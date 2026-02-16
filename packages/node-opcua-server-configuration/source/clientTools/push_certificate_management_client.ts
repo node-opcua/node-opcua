@@ -118,7 +118,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         return this.fileHandle;
     }
 
-    async closeAndUpdate(applyChangesRequired: boolean): Promise<boolean> {
+    async closeAndUpdate(): Promise<boolean> {
         if (!this.fileHandle) {
             throw new Error("File has node been opened yet");
         }
@@ -127,8 +127,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             throw new Error("CloseAndUpdateMethod doesn't exist");
         }
         const inputArguments = [
-            { dataType: DataType.UInt32, value: this.fileHandle },
-            { dataType: DataType.Boolean, value: !!applyChangesRequired }
+            { dataType: DataType.UInt32, value: this.fileHandle }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -139,6 +138,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
+        this.fileHandle = 0;
         return callMethodResult.outputArguments![0].value as boolean;
     }
 
@@ -200,11 +200,12 @@ export class TrustListClient extends ClientFile implements ITrustList {
     }
 
     async writeTrustedCertificateList(trustedList: TrustListDataType): Promise<boolean> {
-        await this.open(OpenFileMode.Write);
+        await this.open(OpenFileMode.WriteEraseExisting);
         const s = trustedList.binaryStoreSize();
         const stream = new BinaryStream(s);
         trustedList.encode(stream);
-        return await this.closeAndUpdate(true);
+        await this.write(stream.buffer);
+        return await this.closeAndUpdate();
     }
 }
 export class CertificateGroup {

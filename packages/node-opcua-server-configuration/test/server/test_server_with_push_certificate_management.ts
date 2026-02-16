@@ -101,11 +101,16 @@ describe("Testing server configured with push certificate management", () => {
         });
         clientPrivateKeyFile = clientCertificateManager.privateKey;
 
-        // make sure that CA Certificate and revocation list are trusted in clientCertificateManager
+        // make sure that CA Certificate and revocation list are trusted in both certificate managers
         {
             const { certificate, crl } = await _getFakeAuthorityCertificate(_folder);
             await clientCertificateManager.addIssuer(certificate);
             await clientCertificateManager.addRevocationList(crl);
+            await clientCertificateManager.trustCertificate(certificate);
+            
+            await certificateManager.addIssuer(certificate);
+            await certificateManager.addRevocationList(crl);
+            await certificateManager.trustCertificate(certificate);
         }
     });
 

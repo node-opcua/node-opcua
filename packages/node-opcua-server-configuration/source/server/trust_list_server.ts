@@ -20,6 +20,7 @@ async function readAll(folder: string): Promise<Buffer[]> {
             const buf = await readCertificate(file);
             results.push(buf);
         } else if (ext === ".crl") {
+            // Strict validation: only accept valid CRL files
             const buf = await readCertificateRevocationList(file);
             results.push(buf);
         } else {
@@ -53,13 +54,49 @@ export async function buildTrustList(
         trustList.trustedCertificates = await readAll(certificateManager.trustedFolder);
     }
     if ((trustListFlag & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
-        trustList.trustedCrls = await readAll(certificateManager.crlFolder);
+        // Get or construct crlFolder path
+        let crlFolder = certificateManager.crlFolder;
+        if (!crlFolder) {
+            const rootDir = certificateManager.rootDir;
+            if (rootDir) {
+                crlFolder = path.join(rootDir, "crl");
+            }
+        }
+        if (crlFolder && fs.existsSync(crlFolder)) {
+            trustList.trustedCrls = await readAll(crlFolder);
+        } else {
+            trustList.trustedCrls = [];
+        }
     }
     if ((trustListFlag & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates) {
-        trustList.issuerCertificates = await readAll(certificateManager.issuersCertFolder);
+        // Get or construct issuersCertFolder path
+        let issuersCertFolder = (certificateManager as any).issuersCertFolder;
+        if (!issuersCertFolder) {
+            const rootDir = certificateManager.rootDir;
+            if (rootDir) {
+                issuersCertFolder = path.join(rootDir, "issuers", "certs");
+            }
+        }
+        if (issuersCertFolder && fs.existsSync(issuersCertFolder)) {
+            trustList.issuerCertificates = await readAll(issuersCertFolder);
+        } else {
+            trustList.issuerCertificates = [];
+        }
     }
     if ((trustListFlag & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
-        trustList.issuerCrls = await readAll(certificateManager.issuersCrlFolder);
+        // Get or construct issuersCrlFolder path
+        let issuersCrlFolder = certificateManager.issuersCrlFolder;
+        if (!issuersCrlFolder) {
+            const rootDir = certificateManager.rootDir;
+            if (rootDir) {
+                issuersCrlFolder = path.join(rootDir, "issuers", "crl");
+            }
+        }
+        if (issuersCrlFolder && fs.existsSync(issuersCrlFolder)) {
+            trustList.issuerCrls = await readAll(issuersCrlFolder);
+        } else {
+            trustList.issuerCrls = [];
+        }
     }
     return trustList;
 }

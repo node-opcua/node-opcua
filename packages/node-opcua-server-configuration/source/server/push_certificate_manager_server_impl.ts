@@ -13,6 +13,7 @@ import {
     exploreCertificate,
     makeSHA1Thumbprint,
     toPem,
+    verifyCertificateChain,
     PrivateKey,
     certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
@@ -65,6 +66,11 @@ const eccCertificateTypes = [
     resolveNodeId("ns=0;i=12562"), // ApplicationInstanceCertificate_ECC_curve448
 ];
 
+/**
+ * Find the name of a certificate group based on its NodeId.
+ * @param certificateGroupNodeId The NodeId of the certificate group
+ * @returns The name of the certificate group (e.g. "DefaultApplicationGroup") or empty string if not recognized
+ */
 function findCertificateGroupName(certificateGroupNodeId: NodeId | string): string {
     // Convert string to NodeId if needed to check for null NodeId
     let nodeId: NodeId;
@@ -100,46 +106,60 @@ function findCertificateGroupName(certificateGroupNodeId: NodeId | string): stri
  * @param certificate The certificate to analyze
  * @returns "RSA" or "ECC" or null if unknown
  */
+type AlgorithmIdentifierLike = {
+    identifier?: string;
+    oid?: string;
+};
+
+/**
+ * Extract the algorithm identifier from an algorithm object or string
+ * @param algorithm The algorithm to analyze
+ * @returns The algorithm identifier as a string, or undefined if not found
+ */
+function getAlgorithmId(algorithm: unknown): string | undefined {
+    if (typeof algorithm === "string") {
+        return algorithm;
+    }
+    if (algorithm && typeof algorithm === "object") {
+        const obj = algorithm as AlgorithmIdentifierLike;
+        return obj.identifier ?? obj.oid;
+    }
+    return undefined;
+}
+
+/**
+ * Extract the key type from a certificate (RSA or ECC)
+ * @param certificate The certificate to analyze
+ * @returns "RSA" or "ECC" or null if unknown
+ */
 function getCertificateKeyType(certificate: Buffer): "RSA" | "ECC" | null {
     try {
         const certInfo = exploreCertificate(certificate);
-        
-        // Use the signature algorithm to determine the key type
-        // RSA algorithms include RSA-SHA1, RSA-SHA256, etc.
-        // ECC algorithms include ECDSA-SHA256, etc.
-        const signatureAlgorithm = certInfo.signatureAlgorithm;
-        debugLog("Certificate signatureAlgorithm:", signatureAlgorithm);
-        
-        // Convert AlgorithmIdentifier to string
-        const algorithmStr = typeof signatureAlgorithm === "string" 
-            ? signatureAlgorithm 
-            : (signatureAlgorithm as any)?.identifier || signatureAlgorithm?.toString();
-        
+
+        // Use subject public key algorithm to determine key type
+        const publicKeyAlg = certInfo.tbsCertificate?.subjectPublicKeyInfo?.algorithm;
+        debugLog("Certificate subjectPublicKeyInfo.algorithm:", publicKeyAlg);
+
+        const algorithmStr = getAlgorithmId(publicKeyAlg);
+
         if (!algorithmStr) {
-            warningLog("Unable to extract signature algorithm from certificate");
+            warningLog("Unable to extract public key algorithm from certificate");
             return null;
         }
-        
+
         const algorithmLower = algorithmStr.toLowerCase();
-        
-        // Check for RSA algorithms
-        // OID format: "1.2.840.113549.1.1.x" (all RSA signature OIDs)
-        // String format: "sha256WithRSAEncryption", "sha1WithRSAEncryption", "rsaEncryption", etc.
-        if (algorithmStr.startsWith("1.2.840.113549.1.1") || 
-            algorithmLower.includes("rsa")) {
+
+        // RSA public key OID: 1.2.840.113549.1.1.1
+        if (algorithmStr.startsWith("1.2.840.113549.1.1.1") || algorithmLower.includes("rsa")) {
             return "RSA";
         }
-        
-        // Check for ECDSA algorithms
-        // OID format: "1.2.840.10045.4.x" (all ECDSA signature OIDs)
-        // String format: "ecdsa-with-SHA256", "ecdsaWithSHA256", etc.
-        if (algorithmStr.startsWith("1.2.840.10045.4") || 
-            algorithmLower.includes("ecdsa") || 
-            algorithmLower.includes("ecc")) {
+
+        // EC public key OID: 1.2.840.10045.2.1
+        if (algorithmStr.startsWith("1.2.840.10045.2.1") || algorithmLower.includes("ec") || algorithmLower.includes("ecc")) {
             return "ECC";
         }
         
-        warningLog("Unknown certificate signature algorithm:", algorithmStr);
+        warningLog("Unknown certificate public key algorithm:", algorithmStr);
         return null;
     } catch (err) {
         errorLog("Error extracting certificate key type:", (err as Error).message);
@@ -150,30 +170,16 @@ function getCertificateKeyType(certificate: Buffer): "RSA" | "ECC" | null {
 /**
  * Validate that the certificate type matches the expected type from certificateTypeId
  * 
- * Note: This function requires the certificate to extract its key type (RSA/ECC) and match it
- * against the certificateTypeId. For validating certificateTypeId without a certificate
- * (e.g., in createSigningRequest where no cert exists yet), use inline validation instead.
- * 
- * FIXME: Consider extracting certificateTypeId validation into a separate function
- * that doesn't require the certificate, to avoid code duplication between
- * createSigningRequest and updateCertificate.
+ * This function validates the certificate type against the allowed types for the specified
+ * certificate group. Per OPC UA Part 12, the validation checks if the certificateTypeId
+ * is present in the CertificateTypes Property of the specific CertificateGroup Object.
  * 
  * @param certificate The certificate to validate
  * @param certificateTypeId The NodeId of the expected certificate type
+ * @param allowedTypes The list of allowed certificate types for this group (from CertificateTypes property)
  * @returns true if valid or if validation is not applicable
  */
-function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId | string): boolean {
-    // FIXME: Certificate type validation should check against CertificateTypes property
-    // Currently we validate against a hardcoded list of known OPC UA certificate types.
-    // Per OPC UA Part 12, the validation should instead check if the certificateTypeId
-    // is present in the CertificateTypes Property of the specific CertificateGroup Object.
-    // This would allow custom certificate types and proper per-group validation.
-    // Implementation steps:
-    // 1. Accept certificateGroupId as parameter to identify which group to check
-    // 2. Browse the CertificateGroup Object to read its CertificateTypes Property value
-    // 3. Check if certificateTypeId exists in that list
-    // 4. Return false if not found in the group's permitted types
-    
+function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId | string, allowedTypes: NodeId[]): boolean {
     // If certificateTypeId is null or not specified, skip validation
     if (!certificateTypeId || 
         (certificateTypeId instanceof NodeId && sameNodeId(certificateTypeId, NodeId.nullNodeId))) {
@@ -209,17 +215,28 @@ function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId 
     // The certificateType argument in UpdateCertificate and CreateSigningRequest specifies
     // which type of certificate is expected.
     
-    // Check if the certificate type matches
-    if (keyType === "RSA") {
-        return rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId));
-    } else if (keyType === "ECC") {
-        return eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    // Check if the certificateTypeId is in the list of allowed types for this group
+    const isAllowed = allowedTypes.some(t => sameNodeId(t, typeNodeId));
+    
+    if (!isAllowed) {
+        warningLog("Certificate typeId is not in the allowed types for this certificate group:", certificateTypeId);
+        return false;
     }
     
-    // If we reach here, the certificateTypeId is specified but doesn't match
-    // any known type - this should fail validation
-    warningLog("Certificate typeId does not match known RSA or ECC types:", certificateTypeId);
-    return false;
+    // Additional validation: check if the certificate's actual key type matches the declared type
+    const isRsaType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    
+    if (keyType === "RSA" && !isRsaType) {
+        warningLog("Certificate has RSA key but certificateTypeId is not an RSA type:", certificateTypeId);
+        return false;
+    }
+    if (keyType === "ECC" && !isEccType) {
+        warningLog("Certificate has ECC key but certificateTypeId is not an ECC type:", certificateTypeId);
+        return false;
+    }
+    
+    return true;
 }
 
 export interface PushCertificateManagerServerOptions {
@@ -228,6 +245,13 @@ export interface PushCertificateManagerServerOptions {
     httpsGroup?: CertificateManager;
 
     applicationUri: string;
+    
+    // Optional: Allowed certificate types for each group
+    // These should be read from the CertificateTypes Property of the CertificateGroup objects in the AddressSpace
+    // If not provided, defaults to all known OPC UA certificate types (backward compatibility)
+    applicationGroupCertificateTypes?: NodeId[];
+    userTokenGroupCertificateTypes?: NodeId[];
+    httpsGroupCertificateTypes?: NodeId[];
 }
 
 type Functor = () => Promise<void>;
@@ -305,10 +329,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public httpsGroup?: CertificateManager;
 
     private readonly _map: { [key: string]: CertificateManager } = {};
+    private readonly _certificateTypes: { [key: string]: NodeId[] } = {};
     private readonly _pendingTasks: Functor[] = [];
     private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
-    private _fileCounter = 0;
+    private fileCounter = 0;
+    // Guard to prevent concurrent updateCertificate and applyChanges operations
+    private _operationInProgress = false;
+    // Track backup files for transaction rollback: maps destination -> backup file path
+    private readonly _backupFiles: Map<string, string> = new Map();
 
     private applicationUri: string;
 
@@ -323,6 +352,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this.httpsGroup = options.httpsGroup;
             if (this.userTokenGroup) {
                 this._map.DefaultUserTokenGroup = this.userTokenGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultUserTokenGroup = options.userTokenGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
 
                 // istanbul ignore next
                 if (!(this.userTokenGroup instanceof CertificateManager)) {
@@ -335,10 +368,18 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
             if (this.applicationGroup) {
                 this._map.DefaultApplicationGroup = this.applicationGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultApplicationGroup = options.applicationGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
                 assert(this.applicationGroup instanceof CertificateManager);
             }
             if (this.httpsGroup) {
                 this._map.DefaultHttpsGroup = this.httpsGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultHttpsGroup = options.httpsGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
                 assert(this.httpsGroup instanceof CertificateManager);
             }
         }
@@ -450,15 +491,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // Note: Unlike certificateGroupId, there is no "If null" clause in the spec for certificateTypeId.
         // However, null NodeId and empty string are accepted (treated as "no type validation").
         
-        // FIXME: Certificate type validation should check against CertificateTypes property
-        // Currently we validate against a hardcoded list of known OPC UA certificate types.
-        // Per OPC UA Part 12, the validation should instead check if the certificateTypeId
-        // is present in the CertificateTypes Property of the specific CertificateGroup Object.
-        // This would allow custom certificate types and proper per-group validation.
-        // Implementation steps:
-        // 1. Browse the CertificateGroup Object to read its CertificateTypes Property value
-        // 2. Check if certificateTypeId exists in that list
-        // 3. Return BadInvalidArgument if not found in the group's permitted types
+        // Get the allowed certificate types for this group
+        const groupName = findCertificateGroupName(certificateGroupId);
+        // const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes, ...eccCertificateTypes];
+        const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
         
         if (certificateTypeId) {
             let typeNodeId: NodeId;
@@ -481,26 +517,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     if (sameNodeId(typeNodeId, NodeId.nullNodeId)) {
                         // Skip validation - null NodeId means no type specified
                     } else {
-                        // Validate the type
-                        const isValidType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId!)) || 
-                                            eccCertificateTypes.some(t => sameNodeId(t, typeNodeId!));
+                        // Validate that the type is in the allowed types for this group
+                        const isValidType = allowedTypes.some(t => sameNodeId(t, typeNodeId!));
                         
                         if (!isValidType) {
-                            warningLog("Unknown or unsupported certificateTypeId:", certificateTypeId);
-                            return {
-                                statusCode: StatusCodes.BadInvalidArgument
-                            };
-                        }
-                        
-                        // FIXME: ECC key generation is not yet supported
-                        // To implement ECC support:
-                        // 1. Map certificateTypeId to ECC curve (e.g., i=12557 -> prime256v1, i=12558 -> secp384r1)
-                        // 2. Extend CertificateManager to accept curve parameter instead of/alongside keySize
-                        // 3. Add conditional logic to pass either keySize (RSA) or curve (ECC) to CertificateManager
-                        // For now, we only support RSA key generation
-                        const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId!));
-                        if (isEccType && regeneratePrivateKey) {
-                            warningLog("ECC certificate type requested but ECC key generation is not yet supported:", certificateTypeId);
+                            warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                             return {
                                 statusCode: StatusCodes.BadNotSupported
                             };
@@ -515,26 +536,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 if (sameNodeId(typeNodeId, NodeId.nullNodeId)) {
                     // Skip validation - null NodeId means no type specified
                 } else {
-                    // Validate the type
-                    const isValidType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId)) || 
-                                        eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+                    // Validate that the type is in the allowed types for this group
+                    const isValidType = allowedTypes.some(t => sameNodeId(t, typeNodeId));
                     
                     if (!isValidType) {
-                        warningLog("Unknown or unsupported certificateTypeId:", certificateTypeId);
-                        return {
-                            statusCode: StatusCodes.BadInvalidArgument
-                        };
-                    }
-                    
-                    // FIXME: ECC key generation is not yet supported
-                    // To implement ECC support:
-                    // 1. Map certificateTypeId to ECC curve (e.g., i=12557 -> prime256v1, i=12558 -> secp384r1)
-                    // 2. Extend CertificateManager to accept curve parameter instead of/alongside keySize
-                    // 3. Add conditional logic to pass either keySize (RSA) or curve (ECC) to CertificateManager
-                    // For now, we only support RSA key generation
-                    const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
-                    if (isEccType && regeneratePrivateKey) {
-                        warningLog("ECC certificate type requested but ECC key generation is not yet supported:", certificateTypeId);
+                        warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                         return {
                             statusCode: StatusCodes.BadNotSupported
                         };
@@ -594,7 +600,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this._tmpCertificateManager = certificateManager;
 
             this.addPendingTask(async () => {
-                await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey);
+                await this.moveFileWithBackupTracked(certificateManager!.privateKey, destCertificateManager.privateKey);
             });
             this.addPendingTask(async () => {
                 await rimraf.rimraf(path.join(location));
@@ -686,6 +692,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         privateKeyFormat?: string,
         privateKey?: Buffer | string
     ): Promise<UpdateCertificateResult> {
+        if (this._operationInProgress) {
+            return {
+                statusCode: StatusCodes.BadTooManyOperations,
+                applyChangesRequired: false
+            };
+        }
+
+        this._operationInProgress = true;
+        try {
         // Result Code                Description
         // BadInvalidArgument        The certificateTypeId or certificateGroupId is not valid.
         // BadCertificateInvalid     The Certificate is invalid or the format is not supported.
@@ -702,16 +717,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             };
         }
 
-        // Reserve file counter values atomically to prevent race conditions with concurrent calls
-        // Calculate total needed: 2 per issuer cert (DER+PEM) + 2 for certificate (DER+PEM) + 1 for private key (if provided)
-        const issuerCertCount = issuerCertificates?.length || 0;
-        const baseCounterValue = this._fileCounter;
-        const privateKeyCounter = privateKey && privateKeyFormat ? 1 : 0;
-        const totalCountersNeeded = (issuerCertCount * 2) + 2 + privateKeyCounter;
-        this._fileCounter += totalCountersNeeded;
-
         // Validate certificate type if specified
-        if (!validateCertificateType(certificate, certificateTypeId)) {
+        const groupName = findCertificateGroupName(certificateGroupId);
+        // const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes, ...eccCertificateTypes];
+        const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
+        if (!validateCertificateType(certificate, certificateTypeId, allowedTypes)) {
             warningLog("Certificate type does not match expected certificateTypeId", certificateTypeId);
             return {
                 statusCode: StatusCodes.BadCertificateInvalid,
@@ -720,81 +730,46 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         // Process issuer certificates - stage them to temporary files and add move tasks to _pendingTasks
-        async function preInstallIssuerCertificates(self: PushCertificateManagerServerImpl, startCounter: number) {
+        async function preInstallIssuerCertificates(self: PushCertificateManagerServerImpl) {
             if (issuerCertificates && issuerCertificates.length > 0) {
                 const issuerFolder = path.join(certificateManager.rootDir, "issuers/certs");
                 const pendingFilesCreated: string[] = [];
-                let counterOffset = 0;
+
+                // Ensure the directory exists before writing files
+                await fs.promises.mkdir(issuerFolder, { recursive: true });
                 
-                try {
-                    // Ensure the directory exists before writing files
-                    await fs.promises.mkdir(issuerFolder, { recursive: true });
+                for (let i = 0; i < issuerCertificates.length; i++) {
+                    const issuerCert = issuerCertificates[i];
                     
-                    for (let i = 0; i < issuerCertificates.length; i++) {
-                        const issuerCert = issuerCertificates[i];
-                        
-                        // OPC UA Part 12 - UpdateCertificate:
-                        // "The Server shall do all normal integrity checks on the Certificate and all of the issuer Certificates"
-                        // For issuer certificates (CA certificates in the chain), we only validate that they are parseable.
-                        // Validity date checks are intentionally NOT performed here because:
-                        // - CA certificates may be expired but still valid for verification if they were valid at signing time
-                        // - Root/Intermediate CAs often have long validity periods (10-30 years)
-                        // - Trust validation (including proper validity checks) happens during TLS handshake by CertificateManager
-                        try {
-                            exploreCertificate(issuerCert);
-                        } catch (err) {
-                            errorLog("Invalid issuer certificate - cannot parse:", (err as Error).message);
-                            throw new Error("BadCertificateInvalid: Issuer certificate is corrupted or has invalid format");
-                        }
-                        
-                        const thumbprint = makeSHA1Thumbprint(issuerCert).toString("hex");
-                        
-                        // Write to temporary/pending files instead of final destination
-                        const pendingIssuerFileDER = path.join(issuerFolder, `_pending_issuer_${thumbprint}_${startCounter + counterOffset++}.der`);
-                        const pendingIssuerFilePEM = path.join(issuerFolder, `_pending_issuer_${thumbprint}_${startCounter + counterOffset++}.pem`);
-                        
-                        const finalIssuerFileDER = path.join(issuerFolder, `issuer_${thumbprint}.der`);
-                        const finalIssuerFilePEM = path.join(issuerFolder, `issuer_${thumbprint}.pem`);
-                        
-                        // Write issuer certificate in both DER and PEM format to temporary files
-                        await writeFile(pendingIssuerFileDER, issuerCert, "binary");
-                        pendingFilesCreated.push(pendingIssuerFileDER);
-                        
-                        await writeFile(pendingIssuerFilePEM, toPem(issuerCert, "CERTIFICATE"), "utf-8");
-                        pendingFilesCreated.push(pendingIssuerFilePEM);
-                        
-                        // Stage the move operations to be applied on applyChanges()
-                        self.addPendingTask(() => moveFileWithBackup(pendingIssuerFileDER, finalIssuerFileDER));
-                        self.addPendingTask(() => moveFileWithBackup(pendingIssuerFilePEM, finalIssuerFilePEM));
-                        
-                        debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
-                    }
-                } catch (err) {
-                    // On error, clean up any pending files that were created
-                    errorLog("Error during preInstallIssuerCertificates, cleaning up pending files:", (err as Error).message);
-                    for (const file of pendingFilesCreated) {
-                        try {
-                            await fs.promises.unlink(file);
-                        } catch (cleanupErr) {
-                            // Ignore ENOENT - file already gone is fine during cleanup
-                            if ((cleanupErr as NodeJS.ErrnoException).code !== 'ENOENT') {
-                                warningLog(`Failed to cleanup pending file ${file}:`, cleanupErr);
-                            }
-                        }
-                    }
-                    throw err;
+                    const thumbprint = makeSHA1Thumbprint(issuerCert).toString("hex");
+                    
+                    // Write to temporary/pending files instead of final destination
+                    const pendingIssuerFileDER = path.join(issuerFolder, `_pending_issuer_${thumbprint}${self.fileCounter++}.der`);
+                    const pendingIssuerFilePEM = path.join(issuerFolder, `_pending_issuer_${thumbprint}${self.fileCounter++}.pem`);
+                    
+                    const finalIssuerFileDER = path.join(issuerFolder, `issuer_${thumbprint}.der`);
+                    const finalIssuerFilePEM = path.join(issuerFolder, `issuer_${thumbprint}.pem`);
+                    
+                    // Write issuer certificate in both DER and PEM format to temporary files
+                    await writeFile(pendingIssuerFileDER, issuerCert, "binary");
+                    pendingFilesCreated.push(pendingIssuerFileDER);
+                    
+                    await writeFile(pendingIssuerFilePEM, toPem(issuerCert, "CERTIFICATE"), "utf-8");
+                    pendingFilesCreated.push(pendingIssuerFilePEM);
+                    
+                    // Stage the move operations to be applied on applyChanges()
+                    self.addPendingTask(() => self.moveFileWithBackupTracked(pendingIssuerFileDER, finalIssuerFileDER));
+                    self.addPendingTask(() => self.moveFileWithBackupTracked(pendingIssuerFilePEM, finalIssuerFilePEM));
+                    
+                    debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
                 }
             }
         }
 
-        async function preInstallCertificate(self: PushCertificateManagerServerImpl, counterDER: number, counterPEM: number) {
+        async function preInstallCertificate(self: PushCertificateManagerServerImpl) {
             const certFolder = path.join(certificateManager.rootDir, "own/certs");
-            
-            // Ensure the directory exists before writing files
-            await fs.promises.mkdir(certFolder, { recursive: true });
-            
-            const certificateFileDER = path.join(certFolder, `_pending_certificate${counterDER}.der`);
-            const certificateFilePEM = path.join(certFolder, `_pending_certificate${counterPEM}.pem`);
+            const certificateFileDER = path.join(certFolder, `_pending_certificate${self.fileCounter++}.der`);
+            const certificateFilePEM = path.join(certFolder, `_pending_certificate${self.fileCounter++}.pem`);
 
             await writeFile(certificateFileDER, certificate, "binary");
             await writeFile(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
@@ -803,25 +778,21 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const destPEM = path.join(certFolder, "certificate.pem");
 
             // put existing file in security by backing them up
-            self.addPendingTask(() => moveFileWithBackup(certificateFileDER, destDER));
-            self.addPendingTask(() => moveFileWithBackup(certificateFilePEM, destPEM));
+            self.addPendingTask(() => self.moveFileWithBackupTracked(certificateFileDER, destDER));
+            self.addPendingTask(() => self.moveFileWithBackupTracked(certificateFilePEM, destPEM));
         }
 
-        async function preInstallPrivateKey(self: PushCertificateManagerServerImpl, counterValue: number) {
+        async function preInstallPrivateKey(self: PushCertificateManagerServerImpl) {
             assert(privateKeyFormat!.toUpperCase() === "PEM");
 
             const ownPrivateFolder = path.join(certificateManager.rootDir, "own/private");
-            
-            // Ensure the directory exists before writing files
-            await fs.promises.mkdir(ownPrivateFolder, { recursive: true });
-            
-            const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${counterValue}.pem`);
+            const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${self.fileCounter++}.pem`);
 
             if (privateKey) {
                 const privateKey1 = coercePEMorDerToPrivateKey(privateKey);
                 const privateKeyPEM = await coercePrivateKeyPem(privateKey1);
                 await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
-                self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
+                self.addPendingTask(() => self.moveFileWithBackupTracked(privateKeyFilePEM, certificateManager.privateKey));
             }
         }
 
@@ -868,10 +839,102 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         } catch (err) {
             // Certificate is invalid or cannot be parsed
             errorLog("Cannot parse certificate:", (err as Error).message);
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadCertificateInvalid,
                 applyChangesRequired: false
             };
+        }
+
+        const issuerCertBuffers = (issuerCertificates || []).filter((cert): cert is Buffer => {
+            return Buffer.isBuffer(cert) && cert.length > 0;
+        });
+        if ((issuerCertificates || []).length !== issuerCertBuffers.length) {
+            warningLog("issuerCertificates contains invalid entries");
+            await this.cleanupPendingFiles();
+            return {
+                statusCode: StatusCodes.BadCertificateInvalid,
+                applyChangesRequired: false
+            };
+        }
+
+        for (const issuerCert of issuerCertBuffers) {
+            try {
+                const issuerInfo = exploreCertificate(issuerCert);
+                const nowIssuer = new Date();
+                if (issuerInfo.tbsCertificate.validity.notBefore.getTime() > nowIssuer.getTime()) {
+                    warningLog("Issuer certificate is not yet valid");
+                    await this.cleanupPendingFiles();
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+                if (issuerInfo.tbsCertificate.validity.notAfter.getTime() < nowIssuer.getTime()) {
+                    warningLog("Issuer certificate is out of date");
+                    await this.cleanupPendingFiles();
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+            } catch (err) {
+                errorLog("Cannot parse issuer certificate:", (err as Error).message);
+                await this.cleanupPendingFiles();
+                return {
+                    statusCode: StatusCodes.BadCertificateInvalid,
+                    applyChangesRequired: false
+                };
+            }
+        }
+
+        if (issuerCertBuffers.length > 0) {
+            const chainCheck = await verifyCertificateChain([certificate, ...issuerCertBuffers]);
+            if (chainCheck.status !== "Good") {
+                warningLog("Issuer chain validation failed:", chainCheck.status, chainCheck.reason);
+                await this.cleanupPendingFiles();
+                return {
+                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    applyChangesRequired: false
+                };
+            }
+        }
+
+        const certificateChain = Buffer.concat([certificate, ...issuerCertBuffers]);
+        
+        // Skip trust validation for the application group (server's own certificate)
+        // Trust validation is only relevant for client certificates, not the server's own certificate
+        const isApplicationGroup = certificateManager === this.applicationGroup;
+        
+        if (!isApplicationGroup) {
+            const verifyCertificate = (certificateManager as any).verifyCertificate as
+                | ((chain: Buffer) => Promise<string> | string)
+                | undefined;
+            const checkCertificate = (certificateManager as any).checkCertificate as
+                | ((chain: Buffer) => Promise<StatusCode>)
+                | undefined;
+
+            if (verifyCertificate) {
+                const status = await Promise.resolve(verifyCertificate.call(certificateManager, certificateChain));
+                if (status !== "Good") {
+                    warningLog("Certificate trust validation failed:", status);
+                    await this.cleanupPendingFiles();
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+            } else if (checkCertificate) {
+                const statusCode = await checkCertificate.call(certificateManager, certificateChain);
+                if (statusCode && statusCode.isNotGood()) {
+                    warningLog("Certificate trust validation failed:", statusCode.toString());
+                    await this.cleanupPendingFiles();
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+            }
         }
 
         const now = new Date();
@@ -883,6 +946,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadSecurityChecksFailed,
                 applyChangesRequired: false
@@ -896,6 +960,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadSecurityChecksFailed,
                 applyChangesRequired: false
@@ -923,6 +988,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         if (hasPrivateKeyFormat !== hasPrivateKey) {
             // Only one of the two parameters is provided - this is invalid
             warningLog("privateKeyFormat and privateKey must both be provided or both be omitted");
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadInvalidArgument,
                 applyChangesRequired: false
@@ -944,6 +1010,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             if (!certificateMatchesPrivateKey(certificate, privateKey1)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
+                await this.cleanupPendingFiles();
                 /* debug code */
                 const certificatePEM = toPem(certificate, "CERTIFICATE");
                 certificatePEM;
@@ -956,29 +1023,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     applyChangesRequired: false,
                 };
             }
-            // a new certificate is provided for us,
-            // we keep our private key
-            // we do this in two stages
-            try {
-                await preInstallIssuerCertificates(this, baseCounterValue);
-                await preInstallCertificate(this, baseCounterValue + (issuerCertCount * 2), baseCounterValue + (issuerCertCount * 2) + 1);
-            } catch (err) {
-                // Check if this is an issuer certificate validation error
-                if (err instanceof Error && err.message.startsWith("BadCertificateInvalid:")) {
-                    return {
-                        statusCode: StatusCodes.BadCertificateInvalid,
-                        applyChangesRequired: false
-                    };
-                }
-                // For other errors, ensure cleanup and re-throw
-                try {
-                    await this.cleanupPendingFiles();
-                } catch {
-                    // Ignore cleanup errors to avoid masking the original failure
-                }
-                throw err;
-            }
-
+            await preInstallIssuerCertificates(this);
+            await preInstallCertificate(this);
             return {
                 statusCode: StatusCodes.Good,
                 applyChangesRequired: true,
@@ -988,10 +1034,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // Validate privateKeyFormat
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
                 warningLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             if (privateKeyFormat !== "PEM") {
                 warningLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported , applyChangesRequired: false };
             }
 
@@ -1005,44 +1053,28 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 privateKey1 = coercePEMorDerToPrivateKey(privateKey);
             }
             if (!privateKey1) {
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             
             // Verify that the certificate matches the provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey1)) {
                 warningLog("certificate doesn't match privateKey");
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
             }
 
-            try {
-                await preInstallPrivateKey(this, baseCounterValue + (issuerCertCount * 2) + 2);
-                await preInstallIssuerCertificates(this, baseCounterValue);
-                await preInstallCertificate(
-                    this,
-                    baseCounterValue + (issuerCertCount * 2),
-                    baseCounterValue + (issuerCertCount * 2) + 1
-                );
-            } catch (err) {
-                // Check if this is an issuer certificate validation error
-                if (err instanceof Error && err.message.startsWith("BadCertificateInvalid:")) {
-                    return {
-                        statusCode: StatusCodes.BadCertificateInvalid,
-                        applyChangesRequired: false
-                    };
-                }
-                // For other errors, ensure cleanup and re-throw
-                try {
-                    await this.cleanupPendingFiles();
-                } catch {
-                    // Ignore cleanup errors to avoid masking the original failure
-                }
-                throw err;
-            }
+            await preInstallPrivateKey(this);
+            await preInstallIssuerCertificates(this);
+            await preInstallCertificate(this);
 
             return {
                 statusCode: StatusCodes.Good,
                 applyChangesRequired: true
             };
+        }
+        } finally {
+            this._operationInProgress = false;
         }
     }
 
@@ -1090,47 +1122,56 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // If the Server Certificate has changed, Secure Channels using the old Certificate will
         // eventually be interrupted.
 
+        if (this._operationInProgress) {
+            return StatusCodes.BadTooManyOperations;
+        }
+
         // Check if there are any pending tasks
         if (this._pendingTasks.length === 0 && this.$$actionQueue.length === 0) {
             // If ApplyChanges is called and there is no active transaction then return Bad_NothingToDo
             return StatusCodes.BadNothingToDo;
         }
-        
+
+        this._operationInProgress = true;
         try {
-            this.emit("CertificateAboutToChange", this.$$actionQueue);
-        } catch (err) {
-            errorLog("Event listener error:", (err as Error).message);
+            try {
+                this.emit("CertificateAboutToChange", this.$$actionQueue);
+            } catch (err) {
+                errorLog("Event listener error:", (err as Error).message);
+            }
+            await this.flushActionQueue();
+
+            try {
+                await this.applyPendingTasks();
+            } catch (err) {
+                debugLog("err ", (err as Error).message);
+                return StatusCodes.BadInternalError;
+            }
+            try {
+                this.emit("CertificateChanged", this.$$actionQueue);
+            } catch (err) {
+                errorLog("Event listener error:", (err as Error).message);
+            }
+            await this.flushActionQueue();
+
+            // Clear temporary certificate manager after applying changes
+            this._tmpCertificateManager = undefined;
+
+            // The only leeway the Server has is with the timing.
+            // In the best case, the Server can close the TransportConnections for the affected Endpoints and leave any
+            // Subscriptions intact. This should appear no different than a network interruption from the
+            // perspective of the Client. The Client should be prepared to deal with Certificate changes
+            // during its reconnect logic. In the worst case, a full shutdown which affects all connected
+            // Clients will be necessary. In the latter case, the Server shall advertise its intent to interrupt
+            // connections by setting the SecondsTillShutdown and ShutdownReason Properties in the
+            // ServerStatus Variable.
+
+            // If the Secure Channel being used to call this Method will be affected by the Certificate change
+            // then the Server shall introduce a delay long enough to allow the caller to receive a reply.
+            return StatusCodes.Good;
+        } finally {
+            this._operationInProgress = false;
         }
-        await this.flushActionQueue();
-
-        try {
-            await this.applyPendingTasks();
-        } catch (err) {
-            debugLog("err ", (err as Error).message);
-            return StatusCodes.BadInternalError;
-        }
-        try {
-            this.emit("CertificateChanged", this.$$actionQueue);
-        } catch (err) {
-            errorLog("Event listener error:", (err as Error).message);
-        }
-        await this.flushActionQueue();
-
-        // Clear temporary certificate manager after applying changes
-        this._tmpCertificateManager = undefined;
-
-        // The only leeway the Server has is with the timing.
-        // In the best case, the Server can close the TransportConnections for the affected Endpoints and leave any
-        // Subscriptions intact. This should appear no different than a network interruption from the
-        // perspective of the Client. The Client should be prepared to deal with Certificate changes
-        // during its reconnect logic. In the worst case, a full shutdown which affects all connected
-        // Clients will be necessary. In the latter case, the Server shall advertise its intent to interrupt
-        // connections by setting the SecondsTillShutdown and ShutdownReason Properties in the
-        // ServerStatus Variable.
-
-        // If the Secure Channel being used to call this Method will be affected by the Certificate change
-        // then the Server shall introduce a delay long enough to allow the caller to receive a reply.
-        return StatusCodes.Good;
     }
 
     private getCertificateManager(certificateGroupId: NodeId | string): CertificateManager | null {
@@ -1142,20 +1183,82 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         this._pendingTasks.push(functor);
     }
 
+    /**
+     * Move file with backup and track the backup for potential rollback.
+     * This method creates a backup of the destination file and tracks it
+     * so it can be restored if the transaction fails.
+     */
+    private async moveFileWithBackupTracked(source: string, dest: string): Promise<void> {
+        const backupPath = dest + "_old";
+        
+        // Track the backup before creating it
+        this._backupFiles.set(dest, backupPath);
+        
+        // Perform the actual move with backup
+        await moveFileWithBackup(source, dest);
+    }
+
+    /**
+     * Rollback the transaction by restoring all backup files.
+     * This restores files from their *_old backups to recover the previous state.
+     */
+    private async rollbackTransaction(): Promise<void> {
+        debugLog("Rolling back transaction, restoring", this._backupFiles.size, "backup files");
+        
+        const rollbackPromises: Promise<void>[] = [];
+        
+        for (const [dest, backupPath] of this._backupFiles.entries()) {
+            rollbackPromises.push(
+                (async () => {
+                    try {
+                        // Check if backup exists before trying to restore
+                        if (fs.existsSync(backupPath)) {
+                            debugLog("Restoring backup:", backupPath, "to", dest);
+                            await copyFile(backupPath, dest);
+                            // Delete backup immediately after restoration
+                            await deleteFile(backupPath);
+                        }
+                    } catch (err) {
+                        errorLog("Error restoring backup file", backupPath, "to", dest, ":", (err as Error).message);
+                    }
+                })()
+            );
+        }
+        
+        await Promise.all(rollbackPromises);        
+        debugLog("Transaction rollback completed");
+    }
+
+    /**
+     * Clean up backup files after successful transaction.
+     * Removes all *_old backup files that were created during the transaction.
+     */
+    private async cleanupBackupFiles(): Promise<void> {
+        debugLog("Cleaning up", this._backupFiles.size, "backup files");
+        
+        const cleanupPromises: Promise<void>[] = [];
+        
+        for (const backupPath of this._backupFiles.values()) {
+            cleanupPromises.push(
+                deleteFile(backupPath).catch(err => {
+                    warningLog("Failed to delete backup file", backupPath, ":", err);
+                })
+            );
+        }
+        
+        await Promise.all(cleanupPromises);
+        this._backupFiles.clear();
+    }
+
     private async applyPendingTasks(): Promise<void> {
         debugLog("start applyPendingTasks");
         const promises: Promise<void>[] = [];
         const t = this._pendingTasks.splice(0);
 
-        // FIXME: Transaction rollback capability
-        // If a task fails partway through, we currently clean up pending files but don't
-        // restore the previous certificate state. For true transaction safety, we should:
-        // 1. Keep backup references to all files being replaced
-        // 2. On error, restore backups atomically (rollback)
-        // 3. Implement a two-phase commit pattern:
-        //    - Phase 1: Validate all operations can succeed (write to _pending files)
-        //    - Phase 2: Commit all changes atomically (move _pending to final)
-        // This would prevent partial certificate updates that leave the server in an inconsistent state.
+        // Transaction safety with two-phase commit:
+        // Phase 1: All operations write to _pending files (already done in updateCertificate)
+        // Phase 2: Commit all changes atomically (this method moves _pending to final)
+        // On error: Rollback restores all backup files to prevent partial updates
         
         try {
             if (false) {
@@ -1171,10 +1274,28 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
             await Promise.all(promises);
             debugLog("end applyPendingTasks");
+            
+            // Transaction successful - clean up backup files
+            await this.cleanupBackupFiles();
         } catch (err) {
-            errorLog("Error during applyPendingTasks, cleaning up pending files:", (err as Error).message);
-            // Clean up any remaining pending files on error
+            errorLog("Error during applyPendingTasks:", (err as Error).message);
+            errorLog("Rolling back transaction to restore previous certificate state");
+            
+            // Rollback: restore all backup files to their original locations
+            try {
+                await this.rollbackTransaction();
+                debugLog("Transaction rollback successful");
+            } catch (rollbackErr) {
+                errorLog("Critical: Rollback failed:", (rollbackErr as Error).message);
+                errorLog("Certificate state may be inconsistent - manual intervention required");
+            }
+            
+            // Clean up any remaining pending files
             await this.cleanupPendingFiles();
+            
+            // Clear backup tracking after rollback
+            this._backupFiles.clear();
+            
             throw err;
         }
     }
