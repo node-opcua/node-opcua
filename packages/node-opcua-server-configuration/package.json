@@ -34,8 +34,7 @@
         "node-opcua-service-translate-browse-path": "2.163.1",
         "node-opcua-status-code": "2.162.0",
         "node-opcua-types": "2.163.1",
-        "node-opcua-variant": "2.163.0",
-        "rimraf": "6.1.2"
+        "node-opcua-variant": "2.163.0"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.10",

@@ -1,7 +1,6 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { rimraf } from "rimraf";
 import {
     Certificate,
     CertificateRevocationList,
@@ -21,10 +20,10 @@ export async function initializeHelpers(prefix: string, n: number): Promise<stri
     const _tempFolder = path.join(os.tmpdir(), "node-opcua2");
     const subfolder = path.join(_tempFolder, prefix);
     try {
-        await rimraf.rimraf(subfolder);
+        await fs.promises.rm(subfolder, { recursive: true, force: true });
     } catch (err) {
         /** */
-        console.log("err", err);    
+        console.log("err", err);
     }
     try {
         await fs.promises.mkdir(path.dirname(subfolder));
@@ -121,7 +120,7 @@ async function _produceCertificate(
 
     const certificatePEM = await readFile(certificate, "utf8");
     const certificateDER = convertPEMtoDER(certificatePEM);
-    
+
     // signCertificateRequest already writes the full chain (cert + CA), so just return it
     return certificateDER;
 }

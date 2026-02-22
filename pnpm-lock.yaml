@@ -3109,9 +3109,6 @@ importers:
       node-opcua-variant:
         specifier: 2.163.0
         version: link:../node-opcua-variant
-      rimraf:
-        specifier: 6.1.2
-        version: 6.1.2
     devDependencies:
       '@types/mocha':
         specifier: ^10.0.10
