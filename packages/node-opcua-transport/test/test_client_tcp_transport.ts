@@ -422,12 +422,14 @@ describe("testing ClientTCP_transport", function (this: any) {
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
                 const regexp_4 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received NaN./; // node > 10.20
                 const regexp_5 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received type number/; // node > 19.0
+                const regexp_6 = /Invalid endpoint url/; // URL parsing
                 const test1 = !!err.message.match(regexp_1);
                 const test2 = !!err.message.match(regexp_2);
                 const test3 = !!err.message.match(regexp_3);
                 const test4 = !!err.message.match(regexp_4);
                 const test5 = !!err.message.match(regexp_5);
-                (test1 || test2 || test3 || test4 || test5).should.eql(
+                const test6 = !!err.message.match(regexp_6);
+                (test1 || test2 || test3 || test4 || test5 || test6).should.eql(
                     true,
                     "expecting one of those error message. got: " + err.message
                 );

@@ -1,4 +1,4 @@
-const url = require("url");
+
 const path = require("path");
 const https = require('https');
 let http = require('http');
@@ -31,12 +31,9 @@ function wget(dest_folder, file_url) {
 
     const stream = fs.createWriteStream(filename, { flag: "w" });
 
-    const request_options = url.parse(file_url);
+    const request_options = new URL(file_url);
 
-    request_options.headers = { 'user-agent': 'Mozilla/5.0' };
-
-    // Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.101 Safari/537.36
-    const req = http.get(request_options, function (response) {
+    const req = http.get(request_options, { headers: { 'user-agent': 'Mozilla/5.0' } }, function(response) {
         // handle the response
         let res_data = '';
         // console.log(response);
@@ -51,7 +48,7 @@ function wget(dest_folder, file_url) {
             total: fileBytes
         });
 
-        response.on('data', function (chunk) {
+        response.on('data', function(chunk) {
             res_data += chunk;
 
             if (chunk.length) {
@@ -64,11 +61,11 @@ function wget(dest_folder, file_url) {
             stream.write(chunk, "binary");
 
         });
-        response.on('end', function () {
+        response.on('end', function() {
             stream.end();
         });
     });
-    req.on('error', function (err) {
+    req.on('error', function(err) {
         console.log("Request error: " + err.message);
     });
 }
@@ -261,7 +258,7 @@ function fetch_from_github(version, file) {
 
     const destFolder = path.join(__dirname, version);
     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/refs/heads/${version}/${file}`);
-//     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
+    //     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
 
 }
 const version = "latest";

@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-transport
  */
-import url from "url";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -58,31 +57,45 @@ export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): 
     return messageChunk;
 }
 
+export interface ParsedEndpointUrl {
+    protocol: string;
+    hostname: string;
+    port: string | null;
+    pathname: string | null;
+    auth: string | null;
+    href: string;
+}
+
 // opc.tcp://hostname:51210/UA/SampleServer
-export function parseEndpointUrl(endpointUrl: string): url.Url {
-    const _url = url.parse(endpointUrl);
-    if (!_url.protocol || !_url.hostname) {
+export function parseEndpointUrl(endpointUrl: string): ParsedEndpointUrl {
+    // Replace non-standard protocols (e.g. opc.tcp:) with http:
+    // so the WHATWG URL parser can handle them, then restore the
+    // original protocol in the result.
+    const protocolMatch = endpointUrl.match(/^([a-z][a-z0-9.+-]*):/i);
+    if (!protocolMatch) {
         throw new Error("Invalid endpoint url " + endpointUrl);
     }
-    return _url;
-    /*
-    const r = /^([a-z.]*):\/\/([a-zA-Z_\-.\-0-9]*):([0-9]*)(\/.*){0,1}/;
+    const originalProtocol = protocolMatch[1].toLowerCase() + ":";
+    const normalizedUrl = endpointUrl.replace(/^[a-z][a-z0-9.+-]*:/i, "http:");
 
-    const matches = r.exec(endpointUrl);
-
-    if (!matches) {
+    let parsed: URL;
+    try {
+        parsed = new URL(normalizedUrl);
+    } catch {
+        throw new Error("Invalid endpoint url " + endpointUrl);
+    }
+    if (!parsed.hostname) {
         throw new Error("Invalid endpoint url " + endpointUrl);
     }
     return {
-        protocol: matches[1],
-
-        hostname: matches[2],
-
-        port: parseInt(matches[3], 10),
-
-        address: matches[4] || ""
+        protocol: originalProtocol,
+        hostname: parsed.hostname,
+        port: parsed.port || null,
+        pathname: parsed.pathname !== "/" ? parsed.pathname : null,
+        auth: parsed.username ? (parsed.password ? `${parsed.username}:${parsed.password}` : parsed.username) : null,
+        href: endpointUrl
     };
-   */
+
 }
 
 export function is_valid_endpointUrl(endpointUrl: string): boolean {
