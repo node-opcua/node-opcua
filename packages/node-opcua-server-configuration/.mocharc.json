@@ -6,8 +6,6 @@
   ],
   "recursive": true,
   "enable-source-maps": true,
-  "spec": [
-    "test/**/test_*.ts"
-  ],
+  "extension": ".ts",
   "timeout": 30000
 }
