@@ -169,13 +169,13 @@ export class ClientTCP_transport extends TCP_transport {
 
     public connect(endpointUrl: string, callback: ErrorCallback): void {
 
-        const ep = parseEndpointUrl(endpointUrl);
         this.endpointUrl = endpointUrl;
         this.serverUri = "urn:" + gHostname + ":Sample";
         /* istanbul ignore next */
         doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = " + endpointUrl + ")"));
         let socket: ISocketLike | null = null;
         try {
+            const ep = parseEndpointUrl(endpointUrl);
             socket = createClientSocket(endpointUrl, this.timeout);
           
             socket.setTimeout(this.timeout >> 1, () => {
