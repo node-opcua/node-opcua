@@ -1,8 +1,7 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import assert from "node-opcua-assert";
 import { TimestampsToReturn } from "node-opcua-data-value";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { warningLog } from "node-opcua-pki";
+import { make_debugLog, checkDebugFlag, make_warningLog } from "node-opcua-debug";
 import { MonitoredItemCreateRequestOptions, CreateMonitoredItemsRequest, CreateMonitoredItemsResponse } from "node-opcua-types";
 
 import {
@@ -18,6 +17,7 @@ import { _shouldNotContinue } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");
+const warningLog = make_warningLog("RECONNECTION");
 
 async function createMonitoredItemsAndRespectOperationalLimits(
     session: IBasicSessionReadAsync & IBasicSessionWithSubscription,
