@@ -11,6 +11,12 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
     "dependencies": {
         "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
