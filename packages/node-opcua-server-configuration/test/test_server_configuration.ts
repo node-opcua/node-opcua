@@ -12,7 +12,9 @@ import {
     makeRoles,
     UAServer,
     UAServerConfiguration,
-    ContinuationPointManager
+    ContinuationPointManager,
+    UATrustList,
+    UAMethod
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeClass } from "node-opcua-data-model";
@@ -32,6 +34,8 @@ import { initializeHelpers, _getFakeAuthorityCertificate } from "./helpers/fake_
 
 const doDebug = false;
 describe("ServerConfiguration", () => {
+
+
     let addressSpace: AddressSpace;
 
     const opcuaServer: IServerBase = {
@@ -63,6 +67,11 @@ describe("ServerConfiguration", () => {
     let userTokenGroup: CertificateManager;
 
     const xmlFiles = [nodesets.standard];
+
+    before(async () => {
+        await CertificateManager.disposeAll();
+    });
+    
     beforeEach(async () => {
         try {
             const _folder = await initializeHelpers("AA", 0);
@@ -93,6 +102,9 @@ describe("ServerConfiguration", () => {
         addressSpace.dispose();
         await applicationGroup.dispose();
         await userTokenGroup.dispose();
+
+        // check that all certificate managers have been properly disposed
+        CertificateManager.checkAllDisposed();
     });
 
     it("should expose a server configuration object", async () => {
@@ -359,19 +371,19 @@ describe("ServerConfiguration", () => {
 
             // create a new trust list with additional issuer certificates and CRLs
             // Reuse the same certificate chain for issuer certificates and CRLs
-            
+
             const newTrustList = new TrustListDataType();
             newTrustList.specifiedLists = TrustListMasks.All;
             newTrustList.trustedCertificates = a.trustedCertificates;
             // Add the issuer certificates from the chain that weren't added by AddCertificate
             newTrustList.issuerCertificates = certificates.slice(1); // All but the leaf
             newTrustList.trustedCrls = a.trustedCrls;
-            
+
             // Use real CRL data from the certificate authority
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_CRL", 0));
             newTrustList.issuerCrls = [
-                    crl,
-                    crl  // Use the same CRL twice to test multiple CRLs
+                crl,
+                crl  // Use the same CRL twice to test multiple CRLs
             ];
 
             // now write back the updated list
@@ -385,7 +397,7 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
             a.trustedCertificates!.length.should.eql(1);
             a.issuerCertificates!.length.should.eql(1); // issuer from the chain added via Write
-            a.issuerCrls!.length.should.eql(newTrustList.issuerCrls!.length);
+            a.issuerCrls!.length.should.eql(1); // same CRL buffer produces same filename, so only 1 file on disk
             a.trustedCrls!.length.should.eql(0);
         });
 
@@ -401,7 +413,7 @@ describe("ServerConfiguration", () => {
 
             // Read with TrustedCrls mask only
             const a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCrls);
-            
+
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
             a.trustedCertificates!.length.should.eql(0);
@@ -422,7 +434,7 @@ describe("ServerConfiguration", () => {
 
             // Read with IssuerCrls mask only
             const a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
-            
+
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
             a.trustedCertificates!.length.should.eql(0);
@@ -444,7 +456,7 @@ describe("ServerConfiguration", () => {
             // Read with both CRL masks
             const crlMask = TrustListMasks.TrustedCrls | TrustListMasks.IssuerCrls;
             const a = await trustList.readTrustedCertificateListWithMasks(crlMask);
-            
+
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(crlMask);
             a.trustedCertificates!.length.should.eql(0);
@@ -472,7 +484,7 @@ describe("ServerConfiguration", () => {
             newTrustList.trustedCertificates = [];
             newTrustList.issuerCertificates = [];
             newTrustList.issuerCrls = [];
-            newTrustList.trustedCrls = [crl, crl]; // Add two CRLs
+            newTrustList.trustedCrls = [crl]; // identical CRLs produce same filename, only 1 stored
 
             // Write the trust list
             const rc = await trustList.writeTrustedCertificateList(newTrustList);
@@ -481,9 +493,9 @@ describe("ServerConfiguration", () => {
             // Read back with TrustedCrls mask
             const a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCrls);
             doDebug && console.log(a.toString());
-            
+
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
-            a.trustedCrls!.length.should.eql(2);
+            a.trustedCrls!.length.should.eql(1);
             a.issuerCrls!.length.should.eql(0);
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(0);
@@ -508,7 +520,7 @@ describe("ServerConfiguration", () => {
             newTrustList.trustedCertificates = [];
             newTrustList.issuerCertificates = [];
             newTrustList.trustedCrls = [];
-            newTrustList.issuerCrls = [crl, crl, crl]; // Add three CRLs
+            newTrustList.issuerCrls = [crl]; // identical CRLs produce same filename, only 1 stored
 
             // Write the trust list
             const rc = await trustList.writeTrustedCertificateList(newTrustList);
@@ -517,9 +529,9 @@ describe("ServerConfiguration", () => {
             // Read back with IssuerCrls mask
             const a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
             doDebug && console.log(a.toString());
-            
+
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
-            a.issuerCrls!.length.should.eql(3);
+            a.issuerCrls!.length.should.eql(1);
             a.trustedCrls!.length.should.eql(0);
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(0);
@@ -544,7 +556,7 @@ describe("ServerConfiguration", () => {
             newTrustList.trustedCertificates = [];
             newTrustList.issuerCertificates = [];
             newTrustList.trustedCrls = [crl];
-            newTrustList.issuerCrls = [crl, crl];
+            newTrustList.issuerCrls = [crl]; // identical CRLs produce same filename, only 1 stored
 
             // Write the trust list
             const rc = await trustList.writeTrustedCertificateList(newTrustList);
@@ -554,10 +566,10 @@ describe("ServerConfiguration", () => {
             const crlMask = TrustListMasks.TrustedCrls | TrustListMasks.IssuerCrls;
             const a = await trustList.readTrustedCertificateListWithMasks(crlMask);
             doDebug && console.log(a.toString());
-            
+
             a.specifiedLists.should.eql(crlMask);
             a.trustedCrls!.length.should.eql(1);
-            a.issuerCrls!.length.should.eql(2);
+            a.issuerCrls!.length.should.eql(1); // same CRL → same filename → 1 file on disk
             a.trustedCertificates!.length.should.eql(0);
             a.issuerCertificates!.length.should.eql(0);
         });
@@ -581,13 +593,13 @@ describe("ServerConfiguration", () => {
             newTrustList.trustedCertificates = [];
             newTrustList.issuerCertificates = [];
             newTrustList.trustedCrls = [];
-            newTrustList.issuerCrls = [crl, crl];
+            newTrustList.issuerCrls = [crl]; // identical CRLs produce same filename, only 1 stored
 
             await trustList.writeTrustedCertificateList(newTrustList);
 
             // Verify the initial write
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
-            a.issuerCrls!.length.should.eql(2);
+            a.issuerCrls!.length.should.eql(1);
 
             // Now write a new trust list with 1 issuer CRL (should replace the previous 2)
             newTrustList = new TrustListDataType();
@@ -689,19 +701,19 @@ describe("ServerConfiguration", () => {
 
             // Now add CRLs and issuer certificates using writeTrustedCertificateList
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_CERT_AND_CRL", 0));
-            
+
             // Extract issuer certificates from the original certificate chain
             // Reuse the same certificate chain for issuer certificates and CRLs
 
             const newTrustList = new TrustListDataType();
-            newTrustList.specifiedLists = 
-                TrustListMasks.TrustedCertificates | 
+            newTrustList.specifiedLists =
+                TrustListMasks.TrustedCertificates |
                 TrustListMasks.IssuerCertificates |
                 TrustListMasks.IssuerCrls;
             newTrustList.trustedCertificates = a.trustedCertificates;
             newTrustList.issuerCertificates = certificates.slice(1); // Add issuer certificates from chain
             newTrustList.trustedCrls = [];
-            newTrustList.issuerCrls = [crl, crl];
+            newTrustList.issuerCrls = [crl]; // identical CRLs produce same filename, only 1 stored
 
             // Write the trust list with certificates and CRLs
             const rc = await trustList.writeTrustedCertificateList(newTrustList);
@@ -710,10 +722,10 @@ describe("ServerConfiguration", () => {
             // Read back everything and verify
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            
+
             a.trustedCertificates!.length.should.eql(1);
             a.issuerCertificates!.length.should.eql(1);
-            a.issuerCrls!.length.should.eql(2);
+            a.issuerCrls!.length.should.eql(1); // same CRL → same filename → 1 file on disk
         });
 
         it("should preserve certificates when updating only CRLs", async () => {
@@ -730,7 +742,7 @@ describe("ServerConfiguration", () => {
             const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
             assert(fs.existsSync(certificateFile));
             const certificate = await readCertificate(certificateFile);
-            
+
             let newTrustList = new TrustListDataType();
             newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
             newTrustList.trustedCertificates = [certificate];
@@ -746,7 +758,7 @@ describe("ServerConfiguration", () => {
 
             // Now update only CRLs
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_PRESERVE_CERT", 0));
-            
+
             newTrustList = new TrustListDataType();
             newTrustList.specifiedLists = TrustListMasks.IssuerCrls;
             newTrustList.trustedCertificates = [];
@@ -759,7 +771,7 @@ describe("ServerConfiguration", () => {
             // Verify certificate is still there and CRL was added
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            
+
             a.trustedCertificates!.length.should.eql(1); // Certificate should still be there
             a.issuerCrls!.length.should.eql(1);
         });
@@ -779,7 +791,7 @@ describe("ServerConfiguration", () => {
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
-                
+
                 let sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
 
@@ -812,7 +824,7 @@ describe("ServerConfiguration", () => {
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
-                
+
                 const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ false);
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             });
@@ -833,7 +845,7 @@ describe("ServerConfiguration", () => {
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
                 const certificates = split_der(certificate);
-                
+
                 // Create a trust list with issuer certificates
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.IssuerCertificates;
@@ -841,7 +853,7 @@ describe("ServerConfiguration", () => {
                 newTrustList.issuerCertificates = certificates;
                 newTrustList.trustedCrls = [];
                 newTrustList.issuerCrls = [];
-                
+
                 await trustList.writeTrustedCertificateList(newTrustList);
 
                 // Verify issuer certificates were added
@@ -871,13 +883,13 @@ describe("ServerConfiguration", () => {
                 // Add two certificates
                 const certFile1 = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certFile2 = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_1024.pem");
-                
+
                 assert(fs.existsSync(certFile1));
                 assert(fs.existsSync(certFile2));
-                
+
                 const cert1 = await readCertificate(certFile1);
                 const cert2 = await readCertificate(certFile2);
-                
+
                 await trustList.addCertificate(cert1, true);
                 await trustList.addCertificate(cert2, true);
 
@@ -992,9 +1004,9 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Get the TrustList node to check LastUpdateTime directly
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as any;
+                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
                 const lastUpdateTimeNode = trustListNode.lastUpdateTime;
-                
+
                 assert(lastUpdateTimeNode, "LastUpdateTime property should exist on TrustList");
 
                 // Read initial timestamp
@@ -1063,7 +1075,7 @@ describe("ServerConfiguration", () => {
 
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certificate = await readCertificate(certificateFile);
-                
+
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadSecurityModeInsufficient);
             });
@@ -1089,7 +1101,7 @@ describe("ServerConfiguration", () => {
 
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certificate = await readCertificate(certificateFile);
-                
+
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadUserAccessDenied);
             });
@@ -1111,7 +1123,7 @@ describe("ServerConfiguration", () => {
                 // Try to add certificate while trust list is open for write
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certificate = await readCertificate(certificateFile);
-                
+
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadInvalidState);
 
@@ -1136,7 +1148,7 @@ describe("ServerConfiguration", () => {
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
                 const certificates = split_der(certificateChain);
-                
+
                 // Verify this is actually a chain
                 certificates.length.should.be.greaterThan(1);
 
@@ -1156,7 +1168,7 @@ describe("ServerConfiguration", () => {
                 // Verify: only the leaf certificate should be in trusted certs
                 const result = await trustList.readTrustedCertificateList();
                 result.trustedCertificates!.length.should.eql(1);
-                
+
                 // Verify the added cert is the leaf cert
                 const addedCertThumbprint = makeSHA1Thumbprint(result.trustedCertificates![0]).toString("hex");
                 const leafThumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
@@ -1230,7 +1242,7 @@ describe("ServerConfiguration", () => {
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
                 const certificates = split_der(certificateChain);
-                
+
                 // Add the entire chain: leaf as trusted, CA as issuer
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.TrustedCertificates | TrustListMasks.IssuerCertificates;
@@ -1249,7 +1261,7 @@ describe("ServerConfiguration", () => {
                 // The leaf cert depends on this CA in issuerCertificates, so removing it should fail
                 const caThumbprint = makeSHA1Thumbprint(certificates[1]).toString("hex");
                 const sc = await trustList.removeCertificate(caThumbprint, false);
-                
+
                 // Should return BadCertificateChainIncomplete because trusted cert depends on this CA
                 sc.should.eql(StatusCodes.BadCertificateChainIncomplete);
 
@@ -1271,25 +1283,21 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Get the trust list node to call open directly with unsupported mode
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as any;
-                const openMethod = trustListNode.getChildByName("Open");
+                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
+                const openMethod = trustListNode.getChildByName("Open") as UAMethod;
 
                 // Try to open with Write mode (0x02) - not supported per OPC UA spec
                 // OPC UA spec: Only Read (0x01) and WriteEraseExisting (0x06) are supported
                 const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
                 const DataType = await import("node-opcua-variant").then(m => m.DataType);
                 const Variant = await import("node-opcua-variant").then(m => m.Variant);
-                
-                const result = await new Promise<any>((resolve) => {
-                    openMethod.execute(
-                        trustListNode,
-                        [new Variant({ dataType: DataType.Byte, value: 0x02 })], // Write mode (unsupported)
-                        context,
-                        (err: any, result: any) => resolve(result)
-                    );
-                });
 
-                result.statusCode.should.eql(StatusCodes.BadNotSupported);
+                const result = await openMethod.execute(
+                    trustListNode,
+                    [new Variant({ dataType: DataType.Byte, value: 0x02 })], // Write mode (unsupported)
+                    context,
+                );
+                result.statusCode!.should.eql(StatusCodes.BadNotSupported);
             });
 
             it("should return BadInvalidState when opening while already opened for write", async () => {
@@ -1307,21 +1315,18 @@ describe("ServerConfiguration", () => {
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to open again (either read or write) - should fail with BadInvalidState
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as any;
-                const openMethod = trustListNode.getChildByName("Open");
+                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
+                const openMethod = trustListNode.getChildByName("Open")! as UAMethod;
                 const DataType = await import("node-opcua-variant").then(m => m.DataType);
                 const Variant = await import("node-opcua-variant").then(m => m.Variant);
 
-                const result = await new Promise<any>((resolve) => {
-                    openMethod.execute(
-                        trustListNode,
-                        [new Variant({ dataType: DataType.Byte, value: OpenFileMode.Read })],
-                        context,
-                        (err: any, result: any) => resolve(result)
-                    );
-                });
+                const result = await openMethod.execute(
+                    trustListNode,
+                    [new Variant({ dataType: DataType.Byte, value: OpenFileMode.Read })],
+                    context
+                );
 
-                result.statusCode.should.eql(StatusCodes.BadInvalidState);
+                result.statusCode!.should.eql(StatusCodes.BadInvalidState);
 
                 // Clean up - close the file handle
                 // closeAndUpdate will fail since we didn't write anything
@@ -1342,7 +1347,7 @@ describe("ServerConfiguration", () => {
 
                 // Create an invalid certificate buffer (corrupted data)
                 const invalidCertificate = Buffer.from("This is not a valid certificate", "utf-8");
-                
+
                 const sc = await trustList.addCertificate(invalidCertificate, true);
                 // Should return BadCertificateInvalid when certificate cannot be parsed or validated
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
@@ -1362,7 +1367,7 @@ describe("ServerConfiguration", () => {
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
-                
+
                 // Try to add the certificate without first adding its issuer to the trust list
                 // Per OPC UA spec: "This Method will return a validation error if the Certificate is issued by a CA
                 // and the Certificate for the issuer is not in the TrustList"
@@ -1418,7 +1423,7 @@ describe("ServerConfiguration", () => {
                 // Write a valid trust list
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certificate = await readCertificate(certificateFile);
-                
+
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
                 newTrustList.trustedCertificates = [certificate];
@@ -1452,19 +1457,19 @@ describe("ServerConfiguration", () => {
 
                 // Open for read twice (should be allowed per OPC UA spec)
                 const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
-                
+
                 // First read
                 await trustList.open(OpenFileMode.Read);
                 const data1 = await trustList.read(65535);
-                
+
                 // Second read should be allowed (multiple read handles)
                 await trustList2.open(OpenFileMode.Read);
                 const data2 = await trustList2.read(65535);
-                
+
                 // Both reads should return the same data
                 data1.length.should.be.greaterThan(0);
                 data2.length.should.eql(data1.length);
-                
+
                 // Close both handles
                 await trustList.close();
                 await trustList2.close();
@@ -1481,7 +1486,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
-                
+
                 // Open for read
                 await trustList.open(OpenFileMode.Read);
 
@@ -1489,7 +1494,7 @@ describe("ServerConfiguration", () => {
                 const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
                 const certificate = await readCertificate(certificateFile);
                 const sc = await trustList.addCertificate(certificate, true);
-                
+
                 // Should return BadInvalidState per OPC UA spec
                 sc.should.eql(StatusCodes.BadInvalidState);
 

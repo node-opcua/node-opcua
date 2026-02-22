@@ -54,45 +54,24 @@ export async function buildTrustList(
         trustList.trustedCertificates = await readAll(certificateManager.trustedFolder);
     }
     if ((trustListFlag & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
-        // Get or construct crlFolder path
-        let crlFolder = certificateManager.crlFolder;
-        if (!crlFolder) {
-            const rootDir = certificateManager.rootDir;
-            if (rootDir) {
-                crlFolder = path.join(rootDir, "crl");
-            }
-        }
-        if (crlFolder && fs.existsSync(crlFolder)) {
+        const crlFolder = certificateManager.crlFolder;
+        if (fs.existsSync(crlFolder)) {
             trustList.trustedCrls = await readAll(crlFolder);
         } else {
             trustList.trustedCrls = [];
         }
     }
     if ((trustListFlag & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates) {
-        // Get or construct issuersCertFolder path
-        let issuersCertFolder = (certificateManager as any).issuersCertFolder;
-        if (!issuersCertFolder) {
-            const rootDir = certificateManager.rootDir;
-            if (rootDir) {
-                issuersCertFolder = path.join(rootDir, "issuers", "certs");
-            }
-        }
-        if (issuersCertFolder && fs.existsSync(issuersCertFolder)) {
+        const issuersCertFolder = certificateManager.issuersCertFolder;
+        if (fs.existsSync(issuersCertFolder)) {
             trustList.issuerCertificates = await readAll(issuersCertFolder);
         } else {
             trustList.issuerCertificates = [];
         }
     }
     if ((trustListFlag & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
-        // Get or construct issuersCrlFolder path
-        let issuersCrlFolder = certificateManager.issuersCrlFolder;
-        if (!issuersCrlFolder) {
-            const rootDir = certificateManager.rootDir;
-            if (rootDir) {
-                issuersCrlFolder = path.join(rootDir, "issuers", "crl");
-            }
-        }
-        if (issuersCrlFolder && fs.existsSync(issuersCrlFolder)) {
+        const issuersCrlFolder = certificateManager.issuersCrlFolder;
+        if (fs.existsSync(issuersCrlFolder)) {
             trustList.issuerCrls = await readAll(issuersCrlFolder);
         } else {
             trustList.issuerCrls = [];

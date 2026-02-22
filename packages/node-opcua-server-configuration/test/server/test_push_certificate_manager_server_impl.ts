@@ -10,7 +10,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { subjectToString, UpdateCertificateResult } from "../..";
+import { subjectToString, UpdateCertificateResult, rsaCertificateTypes } from "../..";
 import { PushCertificateManagerServerImpl } from "../..";
 import {
     createSomeCertificate,
@@ -29,10 +29,15 @@ describe("Testing Server Side PushCertificateManager", () => {
     let cert2: Buffer;
 
     let _folder: string;
+
     before(async () => {
-      
+        await CertificateManager.disposeAll();
+    });
+
+    before(async () => {
+
         _folder = await initializeHelpers("BB", 1);
-      
+
         const someClientCertificateManager = new CertificateManager({
             location: path.join(_folder, "tmp")
         });
@@ -48,7 +53,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         const userTokenGroup = new CertificateManager({
             location: path.join(_folder, "user")
         });
-        
+
         pushManager = new PushCertificateManagerServerImpl({
             applicationGroup,
             userTokenGroup,
@@ -57,7 +62,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Initialize pushManager (this calls initialize on the certificate managers)
         await pushManager.initialize();
-        
+
         const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(_folder);
         await applicationGroup.trustCertificate(caCertificate);
         await applicationGroup.addIssuer(caCertificate);
@@ -65,6 +70,12 @@ describe("Testing Server Side PushCertificateManager", () => {
         await userTokenGroup.trustCertificate(caCertificate);
         await userTokenGroup.addIssuer(caCertificate);
         await userTokenGroup.addRevocationList(crl);
+    });
+
+    after(async () => {
+        // Dispose all CertificateManager instances created during tests
+        await CertificateManager.disposeAll();
+        CertificateManager.checkAllDisposed();
     });
 
     it("should expose support format", async () => {
@@ -120,7 +131,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             applicationUri: "urn:APPLICATION:URI",
             dns: ["localhost", "my.domain.com"],
             ip: ["192.123.145.121"],
-            
+
         });
         const certificateSigningRequestPEM = await readFile(filename, "utf-8");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
@@ -446,7 +457,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     it("updateCertificate should store multiple issuer certificates correctly", async () => {
         const issuerFolder = path.join(_folder, "application", "issuers", "certs");
-        
+
         // Backup existing issuer certificates from previous tests
         const backupFiles = new Map<string, Buffer>();
         if (fs.existsSync(issuerFolder)) {
@@ -488,7 +499,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
             // Then all issuer certificates should be stored with unique filenames
             const files = fs.readdirSync(issuerFolder);
-            
+
             // Count issuer files (both .der and .pem)
             const issuerFiles = files.filter(f => f.startsWith("issuer_"));
             // We expect 2 files per issuer certificate (DER + PEM)
@@ -1027,7 +1038,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Given certificates rejected in different groups
         const tmpCertManager = new CertificateManager({ location: path.join(_folder, "tmp2") });
         await tmpCertManager.initialize();
-        
+
         const cert3 = await createSomeCertificate(tmpCertManager, "cert3.pem");
 
         await pushManager.userTokenGroup!.rejectCertificate(cert3);
@@ -1080,7 +1091,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // And when I apply changes, the last certificate should be active
         await pushManager.applyChanges();
-        
+
         const finalCert = await getCertificateDER(pushManager.applicationGroup!);
         finalCert.toString("hex").should.eql(cert2Chain[0].toString("hex"));
     });
@@ -1275,7 +1286,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with RSA_Sha256_2048 certificateTypeId
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12541", // ApplicationInstanceCertificate_RSA_Sha256_2048
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_2048,
             certificate,
             issuerCertificates
         );
@@ -1300,7 +1311,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with RSA_Sha256_4096 certificateTypeId
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12542", // ApplicationInstanceCertificate_RSA_Sha256_4096
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_4096,
             certificate,
             issuerCertificates
         );
@@ -1325,7 +1336,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with deprecated RSA_Sha256 certificateTypeId
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12538", // ApplicationInstanceCertificate_RSA_Sha256 (deprecated)
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256,
             certificate,
             issuerCertificates
         );
@@ -1367,7 +1378,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Then it should fail with BadCertificateInvalid
-            result.statusCode.should.eql(StatusCodes.BadCertificateInvalid, 
+            result.statusCode.should.eql(StatusCodes.BadCertificateInvalid,
                 `RSA certificate should be rejected with ${eccType.name} type`);
             result.applyChangesRequired.should.eql(false);
         }
@@ -1495,7 +1506,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call createSigningRequest with RSA_Sha256_2048 certificateTypeId
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12541", // ApplicationInstanceCertificate_RSA_Sha256_2048
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_2048,
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA2048Type"
         );
 
@@ -1508,7 +1519,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call createSigningRequest with RSA_Sha256_4096 certificateTypeId
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12542", // ApplicationInstanceCertificate_RSA_Sha256_4096
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_4096,
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA4096Type"
         );
 
@@ -1521,7 +1532,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call createSigningRequest with deprecated RSA_Sha256 certificateTypeId
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12538", // ApplicationInstanceCertificate_RSA_Sha256 (deprecated)
+            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256,
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSASha256Type"
         );
 
@@ -1552,7 +1563,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Currently it's accepted (validation skipped) for backward compatibility, but this should be
         // changed once proper validation against the CertificateTypes Property is implemented.
         // See corresponding FIXME in push_certificate_manager_server_impl.ts
-        
+
         // When I call createSigningRequest with null NodeId
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
@@ -1714,7 +1725,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             const applicationGroup = new CertificateManager({
                 location: path.join(rollbackFolder, "application")
             });
-            
+
             rollbackTestPushManager = new PushCertificateManagerServerImpl({
                 applicationGroup,
                 applicationUri: "urn:test:rollback"
@@ -1738,7 +1749,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
             const initialCertFull = await produceCertificate(rollbackFolder, initialCSR.certificateSigningRequest!);
             const initialChain = split_der(initialCertFull);
-            
+
             await rollbackTestPushManager.updateCertificate(
                 "DefaultApplicationGroup",
                 "",
@@ -1750,7 +1761,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Store the baseline certificate
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
-            
+
             const baselineCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const baselineCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             const baselineIssuerFiles = fs.readdirSync(issuerFolder).filter(f => !f.startsWith("_pending_")).sort();
@@ -1775,7 +1786,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             result.statusCode.should.eql(StatusCodes.Good);
 
             // Inject a failing task
-            (rollbackTestPushManager as any)._pendingTasks.push(async () => {
+            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
                 throw new Error("Simulated failure during applyChanges");
             });
 
@@ -1797,17 +1808,17 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: Baseline certificate should be restored
             const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
             restoredCertDER.toString("hex").should.eql(baselineCertDER.toString("hex"), "Baseline certificate.der should be restored");
-            
+
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             restoredCertPEM.should.eql(baselineCertPEM, "Baseline certificate.pem should be restored");
 
             // And: No backup files should remain
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
-            
+
             const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
             const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
-            
+
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain after rollback");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain after rollback");
 
@@ -1859,7 +1870,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             secondResult.statusCode.should.eql(StatusCodes.Good);
 
             // Inject a failure
-            (rollbackTestPushManager as any)._pendingTasks.push(async () => {
+            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
                 throw new Error("Rollback test failure");
             });
 
@@ -1881,10 +1892,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: No backup files should remain
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
-            
+
             const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
             const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
-            
+
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain after rollback");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain after rollback");
         });
@@ -1896,7 +1907,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-BackupTest"
             );
-            
+
             const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
             const certificateChain = split_der(certificateFull);
 
@@ -1930,7 +1941,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject a failure task
-            (rollbackTestPushManager as any)._pendingTasks.push(async () => {
+            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
                 throw new Error("Backup test failure");
             });
 
@@ -1982,7 +1993,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RollbackFailureTest"
             );
-            
+
             const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
             const certificateChain = split_der(certificateFull);
 
@@ -1994,7 +2005,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject a failure task
-            (rollbackTestPushManager as any)._pendingTasks.push(async () => {
+            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
                 throw new Error("Test failure to trigger rollback");
             });
 
@@ -2007,13 +2018,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: Pending files should be cleaned up
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
-            
+
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
-            
+
             const pendingCertFiles = certFiles.filter(f => f.startsWith("_pending_"));
             const pendingIssuerFiles = issuerFiles.filter(f => f.startsWith("_pending_"));
-            
+
             pendingCertFiles.length.should.eql(0, "Pending certificate files should be cleaned up");
             pendingIssuerFiles.length.should.eql(0, "Pending issuer files should be cleaned up");
 
@@ -2029,7 +2040,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-SuccessfulCleanup"
             );
-            
+
             const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
             const certificateChain = split_der(certificateFull);
 
@@ -2048,7 +2059,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-SuccessfulCleanup2"
             );
-            
+
             const cert2Full = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest!);
             const cert2Chain = split_der(cert2Full);
 
@@ -2068,13 +2079,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: All backup files (*_old) should be cleaned up
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
-            
+
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
-            
+
             const backupCertFiles = certFiles.filter(f => f.endsWith("_old"));
             const backupIssuerFiles = issuerFiles.filter(f => f.endsWith("_old"));
-            
+
             backupCertFiles.length.should.eql(0, "No backup certificate files should remain after successful transaction");
             backupIssuerFiles.length.should.eql(0, "No backup issuer files should remain after successful transaction");
 
@@ -2104,7 +2115,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Store the baseline state
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
-            
+
             const baselineCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const baselineCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             const baselineIssuerFiles = fs.readdirSync(issuerFolder).filter(f => !f.startsWith("_pending_")).sort();
@@ -2126,7 +2137,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject failure
-            (rollbackTestPushManager as any)._pendingTasks.push(async () => {
+            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
                 throw new Error("Multi-file transaction failure");
             });
 
@@ -2139,7 +2150,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Then: All files should be restored to baseline state
             const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
-            
+
             restoredCertDER.toString("hex").should.eql(baselineCertDER.toString("hex"),
                 "certificate.der should be restored to baseline");
             restoredCertPEM.should.eql(baselineCertPEM,
@@ -2157,10 +2168,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: No backup files should remain on disk
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
-            
+
             const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
             const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
-            
+
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain on disk");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain on disk");
         });
@@ -2196,11 +2207,11 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Given: Create stale pending issuer files in the issuers/certs folder
             const issuerCertsFolder = path.join(cleanupFolder, "application/issuers/certs");
             await fs.promises.mkdir(issuerCertsFolder, { recursive: true });
-            
+
             const stalePendingFile1 = path.join(issuerCertsFolder, "_pending_issuer_abc123_0.der");
             const stalePendingFile2 = path.join(issuerCertsFolder, "_pending_issuer_def456_1.pem");
             const normalFile = path.join(issuerCertsFolder, "issuer_normal.der");
-            
+
             await fs.promises.writeFile(stalePendingFile1, "stale content");
             await fs.promises.writeFile(stalePendingFile2, "stale content");
             await fs.promises.writeFile(normalFile, "normal issuer content");
@@ -2218,11 +2229,11 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Given: Create stale pending certificate files in the own/certs folder
             const ownCertsFolder = path.join(cleanupFolder, "application/own/certs");
             await fs.promises.mkdir(ownCertsFolder, { recursive: true });
-            
+
             const stalePendingCert1 = path.join(ownCertsFolder, "_pending_certificate0.der");
             const stalePendingCert2 = path.join(ownCertsFolder, "_pending_certificate1.pem");
             const normalCert = path.join(ownCertsFolder, "certificate.pem");
-            
+
             await fs.promises.writeFile(stalePendingCert1, "stale cert");
             await fs.promises.writeFile(stalePendingCert2, "stale cert");
             await fs.promises.writeFile(normalCert, "normal cert");
@@ -2240,11 +2251,11 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Given: Create stale pending private key files in the own/private folder
             const ownPrivateFolder = path.join(cleanupFolder, "application/own/private");
             await fs.promises.mkdir(ownPrivateFolder, { recursive: true });
-            
+
             const stalePendingKey1 = path.join(ownPrivateFolder, "_pending_private_key0.pem");
             const stalePendingKey2 = path.join(ownPrivateFolder, "_pending_private_key1.pem");
             const normalKey = path.join(ownPrivateFolder, "private_key.pem");
-            
+
             await fs.promises.writeFile(stalePendingKey1, "stale key");
             await fs.promises.writeFile(stalePendingKey2, "stale key");
             await fs.promises.writeFile(normalKey, "normal key");
@@ -2262,13 +2273,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Given: Create tmp directories in certificate groups
             const tmpDir1 = path.join(cleanupFolder, "application/tmp");
             const tmpDir2 = path.join(cleanupFolder, "user/tmp");
-            
+
             await fs.promises.mkdir(tmpDir1, { recursive: true });
             await fs.promises.mkdir(tmpDir2, { recursive: true });
-            
+
             const tmpFile1 = path.join(tmpDir1, "temp_cert.pem");
             const tmpFile2 = path.join(tmpDir2, "temp_key.pem");
-            
+
             await fs.promises.writeFile(tmpFile1, "temp cert");
             await fs.promises.writeFile(tmpFile2, "temp key");
 
@@ -2292,11 +2303,11 @@ describe("Testing Server Side PushCertificateManager", () => {
                 const issuerCertsFolder = path.join(group.path, "issuers/certs");
                 const ownCertsFolder = path.join(group.path, "own/certs");
                 const ownPrivateFolder = path.join(group.path, "own/private");
-                
+
                 await fs.promises.mkdir(issuerCertsFolder, { recursive: true });
                 await fs.promises.mkdir(ownCertsFolder, { recursive: true });
                 await fs.promises.mkdir(ownPrivateFolder, { recursive: true });
-                
+
                 await fs.promises.writeFile(path.join(issuerCertsFolder, "_pending_issuer_test.der"), "stale");
                 await fs.promises.writeFile(path.join(ownCertsFolder, "_pending_certificate99.pem"), "stale");
                 await fs.promises.writeFile(path.join(ownPrivateFolder, "_pending_private_key99.pem"), "stale");
@@ -2310,12 +2321,12 @@ describe("Testing Server Side PushCertificateManager", () => {
                 const issuerPendingFile = path.join(group.path, "issuers/certs/_pending_issuer_test.der");
                 const certPendingFile = path.join(group.path, "own/certs/_pending_certificate99.pem");
                 const keyPendingFile = path.join(group.path, "own/private/_pending_private_key99.pem");
-                
-                fs.existsSync(issuerPendingFile).should.eql(false, 
+
+                fs.existsSync(issuerPendingFile).should.eql(false,
                     `${group.name}: pending issuer should be removed`);
-                fs.existsSync(certPendingFile).should.eql(false, 
+                fs.existsSync(certPendingFile).should.eql(false,
                     `${group.name}: pending certificate should be removed`);
-                fs.existsSync(keyPendingFile).should.eql(false, 
+                fs.existsSync(keyPendingFile).should.eql(false,
                     `${group.name}: pending private key should be removed`);
             }
         });
@@ -2379,7 +2390,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Track pending files before operation
             const issuerCertsFolder = path.join(cleanupFolder, "application/issuers/certs");
             const ownCertsFolder = path.join(cleanupFolder, "application/own/certs");
-            
+
             // When: Call updateCertificate with a not-yet-valid certificate
             const result = await cleanupTestPushManager.updateCertificate(
                 "DefaultApplicationGroup",
@@ -2394,10 +2405,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             // And: Any pending files created during updateCertificate should be cleaned up
             const issuerFiles = await fs.promises.readdir(issuerCertsFolder).catch(() => []);
             const certFiles = await fs.promises.readdir(ownCertsFolder).catch(() => []);
-            
+
             const pendingIssuerFiles = issuerFiles.filter(f => f.startsWith("_pending_issuer_"));
             const pendingCertFiles = certFiles.filter(f => f.startsWith("_pending_certificate"));
-            
+
             pendingIssuerFiles.length.should.eql(0, "No pending issuer files should remain after error");
             pendingCertFiles.length.should.eql(0, "No pending certificate files should remain after error");
         });
@@ -2440,15 +2451,15 @@ describe("Testing Server Side PushCertificateManager", () => {
             const issuerCertsFolder = path.join(cleanupFolder, "application/issuers/certs");
             const ownCertsFolder = path.join(cleanupFolder, "application/own/certs");
             const ownPrivateFolder = path.join(cleanupFolder, "application/own/private");
-            
+
             const issuerFiles = await fs.promises.readdir(issuerCertsFolder).catch(() => []);
             const certFiles = await fs.promises.readdir(ownCertsFolder).catch(() => []);
             const keyFiles = await fs.promises.readdir(ownPrivateFolder).catch(() => []);
-            
+
             const pendingIssuerFiles = issuerFiles.filter(f => f.startsWith("_pending_issuer_"));
             const pendingCertFiles = certFiles.filter(f => f.startsWith("_pending_certificate"));
             const pendingKeyFiles = keyFiles.filter(f => f.startsWith("_pending_private_key"));
-            
+
             pendingIssuerFiles.length.should.eql(0, "No pending issuer files should remain");
             pendingCertFiles.length.should.eql(0, "No pending certificate files should remain");
             pendingKeyFiles.length.should.eql(0, "No pending key files should remain");

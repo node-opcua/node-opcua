@@ -7,7 +7,7 @@ import { hostname } from "os";
 import { types } from "util";
 import chalk from "chalk";
 import "should";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";
 import { makeRoles } from "node-opcua-address-space";
 import {
@@ -62,6 +62,9 @@ describe("Testing server configured with push certificate management", () => {
     let clientCertificateManager: OPCUACertificateManager;
 
     before(async () => {
+        await CertificateManager.disposeAll();
+    });
+    before(async () => {
         _folder = await initializeHelpers("CC", 2);
 
         const fakeClientPKI = path.join(_folder, "FakeClientPKI");
@@ -115,8 +118,10 @@ describe("Testing server configured with push certificate management", () => {
     });
 
     after(async () => {
-        await certificateManager.dispose();
-        await clientCertificateManager.dispose();
+        // Dispose all CertificateManager instances, including
+        // those created internally by OPCUAServer
+        await CertificateManager.disposeAll();
+        CertificateManager.checkAllDisposed();
     });
 
     it("SCT-1 should modify a server to support push certificate management", async () => {
