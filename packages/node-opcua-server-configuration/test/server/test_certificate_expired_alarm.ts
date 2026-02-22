@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import "should";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUAServer } from "node-opcua-server";
 import { makeRoles, WellKnownRoles } from "node-opcua-address-space";
 import {
@@ -110,7 +110,9 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
     let clientCertificateManager: OPCUACertificateManager;
     let serverCertificateManager: OPCUACertificateManager;
     let userCertificateManager: OPCUACertificateManager;
-
+    before(async () => {
+        await CertificateManager.disposeAll();
+    });
     before(async () => {
         const fakePKI = await getFolder("EE");
         clientCertificateManager = new OPCUACertificateManager({
@@ -134,6 +136,15 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
             rootFolder: fakePKIUser
         });
         await userCertificateManager.initialize();
+    });
+    after(async () => {
+        await clientCertificateManager.dispose();
+        await serverCertificateManager.dispose();
+        await userCertificateManager.dispose();
+
+        // check that all certificate manager have been properly disposed
+        CertificateManager.checkAllDisposed();
+        
     });
     async function createClient() {
         const client = OPCUAClient.create({
