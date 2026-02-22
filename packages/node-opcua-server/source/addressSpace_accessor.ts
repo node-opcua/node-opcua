@@ -13,7 +13,6 @@ import { TimestampsToReturn, DataValue, coerceTimestampsToReturn, apply_timestam
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { resolveNodeId, coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
-import { doDebug, debugLog } from "node-opcua-pki";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     BrowseDescriptionOptions,
@@ -33,6 +32,10 @@ import {
 } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { IAddressSpaceAccessor } from "./i_address_space_accessor";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
 
 function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
     if (!historyReadDetails.aggregateConfiguration) {

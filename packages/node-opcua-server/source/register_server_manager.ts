@@ -112,7 +112,7 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
     const info = exploreCertificate(server.getCertificate());
     const commonName = info.tbsCertificate.subject.commonName!;
 
-    const serverUri = info.tbsCertificate.extensions?.subjectAltName.uniformResourceIdentifier[0];
+    const serverUri = info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier[0];
     // istanbul ignore next
     if (serverUri !== server.serverInfo.applicationUri) {
         warningLog(
