@@ -36,6 +36,8 @@ import {
 } from "../push_certificate_manager";
 import { rsaCertificateTypesArray, eccCertificateTypesArray } from "../clientTools/certificate_types";
 import { getCertificateKeyType } from "../clientTools/get_certificate_key_type";
+import { deleteFile, FileTransactionManager } from "./file_transaction_manager";
+import { validateCertificateAndChain } from "./certificate_validation";
 
 
 const { readFile, writeFile, readdir } = fs.promises;
@@ -174,48 +176,7 @@ export interface PushCertificateManagerServerOptions {
     httpsGroupCertificateTypes?: NodeId[];
 }
 
-type Functor = () => Promise<void>;
 
-export async function copyFile(source: string, dest: string): Promise<void> {
-    try {
-        debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
-        const sourceExist = fs.existsSync(source);
-        if (sourceExist) {
-            await fs.promises.copyFile(source, dest);
-        }
-    } catch (err) {
-        errorLog(err);
-    }
-}
-
-export async function deleteFile(file: string): Promise<void> {
-    try {
-        const exists = fs.existsSync(file);
-        if (exists) {
-            debugLog("deleting file ", file);
-            await fs.promises.unlink(file);
-        }
-    } catch (err) {
-        errorLog(err);
-    }
-}
-
-export async function moveFile(source: string, dest: string): Promise<void> {
-    debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
-    try {
-        await copyFile(source, dest);
-        await deleteFile(source);
-    } catch (err) {
-        errorLog(err);
-    }
-}
-
-export async function moveFileWithBackup(source: string, dest: string): Promise<void> {
-    // let make a copy of the destination file
-    debugLog("moveFileWithBackup file \n source ", source, "\n =>\n dest ", dest);
-    await copyFile(dest, dest + "_old");
-    await moveFile(source, dest);
-}
 
 
 export function subjectToString(subject: SubjectOptions & DirectoryName): string {
@@ -250,14 +211,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
     private readonly _map: { [key: string]: CertificateManager } = {};
     private readonly _certificateTypes: { [key: string]: NodeId[] } = {};
-    private readonly $$pendingFileOps: Functor[] = [];
+    private readonly _fileTransactionManager = new FileTransactionManager();
     private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
 
     // Guard to prevent concurrent updateCertificate and applyChanges operations
     private _operationInProgress = false;
-    // Track backup files for transaction rollback: maps destination -> backup file path
-    private readonly _backupFiles: Map<string, string> = new Map();
 
     private applicationUri: string;
 
@@ -509,7 +468,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             await fs.promises.mkdir(location, { recursive: true });
 
             const destCertificateManager = certificateManager;
-            const keySize = (certificateManager as any).keySize; // because keySize is private !
+            const keySize = certificateManager.keySize;
             certificateManager = new CertificateManager({
                 keySize,
                 location
@@ -654,7 +613,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 };
             }
 
-            // Process issuer certificates - stage them to temporary files and add move tasks to $$pendingFileOps
+            // Process issuer certificates - stage them to temporary files and add move tasks to _pendingFileOps
             async function preInstallIssuerCertificates(self: PushCertificateManagerServerImpl) {
                 if (issuerCertificates && issuerCertificates.length > 0 && certificateManager) {
 
@@ -771,125 +730,23 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             //    - CA: FALSE for application instance certificates
             // Currently implemented: parseability, validity dates (notBefore/notAfter), certificateTypeId matching
 
-            let certInfo;
-            try {
-                certInfo = exploreCertificate(certificate);
-            } catch (err) {
-                // Certificate is invalid or cannot be parsed
-                errorLog("Cannot parse certificate:", (err as Error).message);
-                await this.cleanupPendingFiles();
-                return {
-                    statusCode: StatusCodes.BadCertificateInvalid,
-                    applyChangesRequired: false
-                };
-            }
-
-            const issuerCertBuffers = (issuerCertificates || []).filter((cert): cert is Buffer => {
-                return Buffer.isBuffer(cert) && cert.length > 0;
-            });
-            if ((issuerCertificates || []).length !== issuerCertBuffers.length) {
-                warningLog("issuerCertificates contains invalid entries");
-                await this.cleanupPendingFiles();
-                return {
-                    statusCode: StatusCodes.BadCertificateInvalid,
-                    applyChangesRequired: false
-                };
-            }
-
-            for (const issuerCert of issuerCertBuffers) {
-                try {
-                    const issuerInfo = exploreCertificate(issuerCert);
-                    const nowIssuer = new Date();
-                    if (issuerInfo.tbsCertificate.validity.notBefore.getTime() > nowIssuer.getTime()) {
-                        warningLog("Issuer certificate is not yet valid");
-                        await this.cleanupPendingFiles();
-                        return {
-                            statusCode: StatusCodes.BadSecurityChecksFailed,
-                            applyChangesRequired: false
-                        };
-                    }
-                    if (issuerInfo.tbsCertificate.validity.notAfter.getTime() < nowIssuer.getTime()) {
-                        warningLog("Issuer certificate is out of date");
-                        await this.cleanupPendingFiles();
-                        return {
-                            statusCode: StatusCodes.BadSecurityChecksFailed,
-                            applyChangesRequired: false
-                        };
-                    }
-                } catch (err) {
-                    errorLog("Cannot parse issuer certificate:", (err as Error).message);
-                    await this.cleanupPendingFiles();
-                    return {
-                        statusCode: StatusCodes.BadCertificateInvalid,
-                        applyChangesRequired: false
-                    };
-                }
-            }
-
-            if (issuerCertBuffers.length > 0) {
-                const chainCheck = await verifyCertificateChain([certificate, ...issuerCertBuffers]);
-                if (chainCheck.status !== "Good") {
-                    warningLog("Issuer chain validation failed:", chainCheck.status, chainCheck.reason);
-                    await this.cleanupPendingFiles();
-                    return {
-                        statusCode: StatusCodes.BadSecurityChecksFailed,
-                        applyChangesRequired: false
-                    };
-                }
-            }
-
-            const certificateChain = Buffer.concat([certificate, ...issuerCertBuffers]);
-
-            // Skip trust validation for the application group (server's own certificate)
-            // Trust validation is only relevant for client certificates, not the server's own certificate
             const isApplicationGroup = certificateManager === this.applicationGroup;
+            const validationResult = await validateCertificateAndChain(
+                certificateManager,
+                isApplicationGroup,
+                certificate,
+                issuerCertificates
+            );
 
-            if (!isApplicationGroup) {
-                if (certificateManager.verifyCertificate) {
-                    const status = await certificateManager.verifyCertificate(certificateChain, {
-                        acceptCertificateWithValidIssuerChain: true
-                    });
-                    debugLog("verifyCertificate status for non-application group:", status, "isApplicationGroup:", isApplicationGroup);
-                    if (status !== "Good") {
-                        warningLog("Certificate trust validation failed:", status);
-                        await this.cleanupPendingFiles();
-                        return {
-                            statusCode: StatusCodes.BadSecurityChecksFailed,
-                            applyChangesRequired: false
-                        };
-                    }
-                }
-            }
-
-            const now = new Date();
-            if (certInfo.tbsCertificate.validity.notBefore.getTime() > now.getTime()) {
-                // certificate is not yet valid
-                warningLog(
-                    "Certificate is not yet valid : not before ",
-                    certInfo.tbsCertificate.validity.notBefore.toISOString(),
-                    "now = ",
-                    now.toISOString()
-                );
+            if (validationResult.statusCode !== StatusCodes.Good) {
                 await this.cleanupPendingFiles();
                 return {
-                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    statusCode: validationResult.statusCode,
                     applyChangesRequired: false
                 };
             }
-            if (certInfo.tbsCertificate.validity.notAfter.getTime() < now.getTime()) {
-                // certificate is already out of date
-                warningLog(
-                    "Certificate is already out of date : not after ",
-                    certInfo.tbsCertificate.validity.notAfter.toISOString(),
-                    "now = ",
-                    now.toISOString()
-                );
-                await this.cleanupPendingFiles();
-                return {
-                    statusCode: StatusCodes.BadSecurityChecksFailed,
-                    applyChangesRequired: false
-                };
-            }
+
+            const certificateChain = validationResult.certificateChain!;
 
             // If the Server returns applyChangesRequired=FALSE then it is indicating that it is able to
             // satisfy the requirements specified for the ApplyChanges Method.
@@ -1046,7 +903,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         // Check if there are any pending tasks
-        if (this.$$pendingFileOps.length === 0 && this.$$actionQueue.length === 0) {
+        if (this._fileTransactionManager.pendingTasksCount === 0 && this.$$actionQueue.length === 0) {
             // If ApplyChanges is called and there is no active transaction then return Bad_NothingToDo
             return StatusCodes.BadNothingToDo;
         }
@@ -1061,8 +918,9 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             await this.flushActionQueue();
 
             try {
-                await this.applyFileOps();
+                await this._fileTransactionManager.applyFileOps();
             } catch (err) {
+                await this.cleanupPendingFiles();
                 debugLog("err ", (err as Error).message);
                 return StatusCodes.BadInternalError;
             }
@@ -1096,105 +954,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
      * so it can be restored if the transaction fails.
      */
     private async moveFileWithBackupTracked(source: string, dest: string): Promise<void> {
-        const backupPath = dest + "_old";
-
-        // Track the backup before creating it
-        this._backupFiles.set(dest, backupPath);
-
-        // Perform the actual move with backup
-        await moveFileWithBackup(source, dest);
-    }
-
-    /**
-     * Rollback the transaction by restoring all backup files.
-     * This restores files from their *_old backups to recover the previous state.
-     */
-    private async rollbackTransaction(): Promise<void> {
-        debugLog("Rolling back transaction, restoring", this._backupFiles.size, "backup files");
-
-        const rollbackPromises: Promise<void>[] = [];
-
-        for (const [dest, backupPath] of this._backupFiles.entries()) {
-            rollbackPromises.push(
-                (async () => {
-                    try {
-                        // Check if backup exists before trying to restore
-                        if (fs.existsSync(backupPath)) {
-                            debugLog("Restoring backup:", backupPath, "to", dest);
-                            await copyFile(backupPath, dest);
-                            // Delete backup immediately after restoration
-                            await deleteFile(backupPath);
-                        }
-                    } catch (err) {
-                        errorLog("Error restoring backup file", backupPath, "to", dest, ":", (err as Error).message);
-                    }
-                })()
-            );
-        }
-
-        await Promise.all(rollbackPromises);
-        debugLog("Transaction rollback completed");
-    }
-
-    /**
-     * Clean up backup files after successful transaction.
-     * Removes all *_old backup files that were created during the transaction.
-     */
-    private async cleanupBackupFiles(): Promise<void> {
-        debugLog("Cleaning up", this._backupFiles.size, "backup files");
-
-        const cleanupPromises: Promise<void>[] = [];
-
-        for (const backupPath of this._backupFiles.values()) {
-            cleanupPromises.push(
-                deleteFile(backupPath).catch(err => {
-                    warningLog("Failed to delete backup file", backupPath, ":", err);
-                })
-            );
-        }
-
-        await Promise.all(cleanupPromises);
-        this._backupFiles.clear();
+        await this._fileTransactionManager.moveFileWithBackupTracked(source, dest);
     }
 
     private addFileOp(functor: () => Promise<void>): void {
-        this.$$pendingFileOps.push(functor);
-    }
-
-    private async applyFileOps(): Promise<void> {
-        debugLog("start applyFileOps");
-        const fileOperation = this.$$pendingFileOps.splice(0);
-
-        try {
-            while (fileOperation.length) {
-                const op = fileOperation.shift()!;
-                await op();
-            }
-            debugLog("end applyFileOps");
-
-            // Transaction successful - clean up backup files
-            await this.cleanupBackupFiles();
-        } catch (err) {
-            errorLog("Error during applyFileOps:", (err as Error).message);
-            errorLog("Rolling back transaction to restore previous certificate state");
-
-            // Rollback: restore all backup files to their original locations
-            try {
-                await this.rollbackTransaction();
-                debugLog("Transaction rollback successful");
-            } catch (rollbackErr) {
-                errorLog("Critical: Rollback failed:", (rollbackErr as Error).message);
-                errorLog("Certificate state may be inconsistent - manual intervention required");
-            }
-
-            // Clean up any remaining pending files
-            await this.cleanupPendingFiles();
-
-            // Clear backup tracking after rollback
-            this._backupFiles.clear();
-
-            throw err;
-        }
+        this._fileTransactionManager.addFileOp(functor);
     }
 
     private async flushActionQueue(): Promise<void> {

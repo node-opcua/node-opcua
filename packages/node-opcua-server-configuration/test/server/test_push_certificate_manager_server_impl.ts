@@ -1786,7 +1786,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             result.statusCode.should.eql(StatusCodes.Good);
 
             // Inject a failing task
-            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
+            (rollbackTestPushManager as any)._fileTransactionManager.addFileOp(async () => {
                 throw new Error("Simulated failure during applyChanges");
             });
 
@@ -1870,7 +1870,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             secondResult.statusCode.should.eql(StatusCodes.Good);
 
             // Inject a failure
-            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
+            (rollbackTestPushManager as any)._fileTransactionManager.addFileOp(async () => {
                 throw new Error("Rollback test failure");
             });
 
@@ -1941,7 +1941,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject a failure task
-            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
+            (rollbackTestPushManager as any)._fileTransactionManager.addFileOp(async () => {
                 throw new Error("Backup test failure");
             });
 
@@ -1961,7 +1961,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "Certificate PEM should be restored to initial state");
 
             // And: Verify backup tracking is cleared
-            const backupFilesMap = (rollbackTestPushManager as any)._backupFiles as Map<string, string>;
+            const backupFilesMap = (rollbackTestPushManager as any)._fileTransactionManager._backupFiles as Map<string, string>;
             backupFilesMap.size.should.eql(0, "Backup files map should be cleared after rollback");
 
             // And: No backup files should remain on disk
@@ -2005,7 +2005,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject a failure task
-            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
+            (rollbackTestPushManager as any)._fileTransactionManager.addFileOp(async () => {
                 throw new Error("Test failure to trigger rollback");
             });
 
@@ -2029,7 +2029,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             pendingIssuerFiles.length.should.eql(0, "Pending issuer files should be cleaned up");
 
             // And: Backup tracking should be cleared
-            const backupFilesMap = (rollbackTestPushManager as any)._backupFiles as Map<string, string>;
+            const backupFilesMap = (rollbackTestPushManager as any)._fileTransactionManager._backupFiles as Map<string, string>;
             backupFilesMap.size.should.eql(0, "Backup tracking should be cleared");
         });
 
@@ -2090,7 +2090,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             backupIssuerFiles.length.should.eql(0, "No backup issuer files should remain after successful transaction");
 
             // And: Backup tracking should be cleared
-            const backupFilesMap = (rollbackTestPushManager as any)._backupFiles as Map<string, string>;
+            const backupFilesMap = (rollbackTestPushManager as any)._fileTransactionManager._backupFiles as Map<string, string>;
             backupFilesMap.size.should.eql(0, "Backup tracking should be cleared after successful transaction");
         });
 
@@ -2137,7 +2137,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Inject failure
-            (rollbackTestPushManager as any).$$pendingFileOps.push(async () => {
+            (rollbackTestPushManager as any)._fileTransactionManager.addFileOp(async () => {
                 throw new Error("Multi-file transaction failure");
             });
 
@@ -2162,7 +2162,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "Issuer files should match baseline state");
 
             // And: Backup tracking should be cleared
-            const backupFilesMap = (rollbackTestPushManager as any)._backupFiles as Map<string, string>;
+            const backupFilesMap = (rollbackTestPushManager as any)._fileTransactionManager._backupFiles as Map<string, string>;
             backupFilesMap.size.should.eql(0, "Backup tracking should be cleared after rollback");
 
             // And: No backup files should remain on disk
