@@ -11,7 +11,7 @@
     "scripts": {
         "build": "tsc -b",
         "pretest": "npm run certificate",
-        "certificate": "node bin/create_certificates.cjs demo --dev -s",
+        "certificate": "npx pki demo --dev --silent",
         "test": "echo no test",
         "clean": "npx rimraf -g certificates"
     },
