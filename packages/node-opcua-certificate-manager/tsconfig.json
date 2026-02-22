@@ -4,7 +4,11 @@
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
-        "incremental": true
+        "incremental": true,
+        "types": [
+            "node",
+            "mocha"
+        ]
     },
     "exclude": [
         "node_modules",

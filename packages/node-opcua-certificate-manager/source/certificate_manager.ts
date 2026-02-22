@@ -125,7 +125,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             .catch((err) => callback(err));
     }
     async #checkCertificate(certificateChain: Certificate): Promise<StatusCode> {
-        const status = await this.verifyCertificate(certificateChain);
+        const status = await this.verifyCertificate(certificateChain, { acceptCertificateWithValidIssuerChain: true });
           
         const statusCode = (StatusCodes as any)[status!];
         const certificates = split_der(certificateChain);
@@ -164,9 +164,6 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         this.isCertificateTrusted(certificate)
             .then((trustedStatus) => callback!(null, (StatusCodes as any)[trustedStatus!]))
             .catch((err) => callback!(err));
-    }
-    public async withLock2<T>(action: () => Promise<T>): Promise<T> {
-        return await super.withLock2(action);
     }
 }
 

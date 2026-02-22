@@ -100,12 +100,12 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     });
     beforeEach(async () => {
         // create a PKI with no issuer certificate
-        const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates");
+        const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates_no_issuer");
         certificateMgrWithNoIssuerCert = await createFreshCertificateManager({ rootFolder: temporaryFolder2 });
         await certificateMgrWithNoIssuerCert.initialize();
 
         // create a PKI with  issuer certificate
-        const temporaryFolder = path.join(_tmpFolder, "testing_certificates");
+        const temporaryFolder = path.join(_tmpFolder, "testing_certificates_with_issuer");
         certificateMgr = await createFreshCertificateManager({ rootFolder: temporaryFolder });
 
         const issuerCertificate = await readCertificate(issuerCertificateFile);
@@ -203,7 +203,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
                 statusCode.should.eql(StatusCodes.Good);
             });
             it("AQT05- should accept a certificate (signed by CA) even if the certificate doesn't appear in the  trusted certificate folder", async () => {
-                const verif = await certificateMgr.verifyCertificate(certificateIssuedByCA);
+                const verif = await certificateMgr.verifyCertificate(certificateIssuedByCA, { acceptCertificateWithValidIssuerChain: true });
                 verif.toString().should.eql("Good");
 
                 const statusCode = await certificateMgr.checkCertificate(certificateIssuedByCA);
