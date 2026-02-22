@@ -835,9 +835,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         if (this.isUnusable()) return;
 
-        await this.clientCertificateManager.withLock2(async () => {
-            await performCertificateSanityCheck(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
-        });
+        // Note: do NOT wrap this in withLock2 — performCertificateSanityCheck
+        // calls trustCertificate and verifyCertificate which each acquire
+        // withLock2 internally, so an outer withLock2 would cause a deadlock
+        // on the same file-based mutex.
+        await performCertificateSanityCheck(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
     }
 
     protected _internalState: InternalClientState = "uninitialized";
