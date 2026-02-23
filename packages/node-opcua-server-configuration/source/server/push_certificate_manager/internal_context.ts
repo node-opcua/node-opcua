@@ -1,5 +1,5 @@
-import { CertificateManager } from "node-opcua-certificate-manager";
-import { NodeId } from "node-opcua-nodeid";
+import type { CertificateManager } from "node-opcua-certificate-manager";
+import type { NodeId } from "node-opcua-nodeid";
 import { FileTransactionManager } from "../file_transaction_manager";
 
 export type ActionQueue = (() => Promise<void>)[];
@@ -12,7 +12,7 @@ export interface IPushCertificateManagerServer {
 
     getCertificateManager(groupName: string): CertificateManager | null;
     getCertificateTypes(groupName: string): NodeId[] | undefined;
-    emit(eventName: string | symbol, ...args: any[]): boolean;
+    emit(eventName: string | symbol, ...args: unknown[]): boolean;
 }
 
 export class PushCertificateManagerInternalContext {
@@ -23,16 +23,30 @@ export class PushCertificateManagerInternalContext {
     public actionQueue: ActionQueue = [];
     public operationInProgress = false;
 
-    constructor(private readonly server: IPushCertificateManagerServer) { }
+    constructor(private readonly server: IPushCertificateManagerServer) {}
 
-    get applicationGroup() { return this.server.applicationGroup; }
-    get userTokenGroup() { return this.server.userTokenGroup; }
-    get httpsGroup() { return this.server.httpsGroup; }
-    get applicationUri() { return this.server.applicationUri; }
+    get applicationGroup() {
+        return this.server.applicationGroup;
+    }
+    get userTokenGroup() {
+        return this.server.userTokenGroup;
+    }
+    get httpsGroup() {
+        return this.server.httpsGroup;
+    }
+    get applicationUri() {
+        return this.server.applicationUri;
+    }
 
-    getCertificateManager(groupName: string) { return this.server.getCertificateManager(groupName); }
-    getCertificateTypes(groupName: string) { return this.server.getCertificateTypes(groupName); }
-    emit(eventName: string | symbol, ...args: any[]) { return this.server.emit(eventName, ...args); }
+    getCertificateManager(groupName: string) {
+        return this.server.getCertificateManager(groupName);
+    }
+    getCertificateTypes(groupName: string) {
+        return this.server.getCertificateTypes(groupName);
+    }
+    emit(eventName: string | symbol, ...args: unknown[]) {
+        return this.server.emit(eventName, ...args);
+    }
 
     public async dispose(): Promise<void> {
         if (this.tmpCertificateManager) {

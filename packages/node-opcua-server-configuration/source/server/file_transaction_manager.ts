@@ -1,10 +1,11 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import os from "node:os";
-import path from "node:path";
+
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("ServerConfiguration");
@@ -77,11 +78,10 @@ export class FileTransactionManager {
      * a move operation to atomically place it at destinationPath upon applyFileOps().
      */
     public async stageFile(destinationPath: string, content: Buffer | string, encoding?: BufferEncoding): Promise<void> {
-
         // ensure tmpdir exists
         const tmpDir = await this.getTmpDir();
 
-        const uniqueFileName = crypto.randomBytes(16).toString("hex") + ".tmp";
+        const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}.tmp`;
         const tempFilePath = path.join(tmpDir, uniqueFileName);
 
         if (encoding) {
@@ -122,7 +122,7 @@ export class FileTransactionManager {
      */
     async #moveFileWithBackupTracked(source: string, dest: string): Promise<void> {
         const tmpDir = await this.getTmpDir();
-        const uniqueFileName = crypto.randomBytes(16).toString("hex") + "_backup.tmp";
+        const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}_backup.tmp`;
         const backupPath = path.join(tmpDir, uniqueFileName);
 
         // Track the backup before creating it
@@ -141,8 +141,8 @@ export class FileTransactionManager {
 
         try {
             while (fileOperation.length) {
-                const op = fileOperation.shift()!;
-                await op();
+                const op = fileOperation.shift();
+                await op?.();
             }
             debugLog("end applyFileOps");
 
@@ -214,7 +214,7 @@ export class FileTransactionManager {
 
         for (const backupPath of this.#backupFiles.values()) {
             cleanupPromises.push(
-                _deleteFile(backupPath).catch(err => {
+                _deleteFile(backupPath).catch((err) => {
                     warningLog("Failed to delete backup file", backupPath, ":", err);
                 })
             );

@@ -1,46 +1,28 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import { EventEmitter } from "events";
-import fs from "fs";
-import { SubjectOptions } from "node-opcua-pki";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { ByteString } from "node-opcua-basic-types";
-import {
-    DirectoryName
-} from "node-opcua-crypto/web";
-
-
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { ByteString } from "node-opcua-basic-types";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { StatusCode } from "node-opcua-status-code";
-
-import {
+import { make_errorLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import type { SubjectOptions } from "node-opcua-pki";
+import type { StatusCode } from "node-opcua-status-code";
+import { rsaCertificateTypesArray } from "../clientTools/certificate_types";
+import type {
     CreateSigningRequestResult,
     GetRejectedListResult,
     PushCertificateManager,
     UpdateCertificateResult
 } from "../push_certificate_manager";
-import { rsaCertificateTypesArray } from "../clientTools/certificate_types";
-import { FileTransactionManager } from "./file_transaction_manager";
+import { executeApplyChanges } from "./push_certificate_manager/apply_changes";
 import { executeCreateSigningRequest } from "./push_certificate_manager/create_signing_request";
 import { executeGetRejectedList } from "./push_certificate_manager/get_rejected_list";
-import { executeUpdateCertificate } from "./push_certificate_manager/update_certificate";
-import { executeApplyChanges } from "./push_certificate_manager/apply_changes";
 import { PushCertificateManagerInternalContext } from "./push_certificate_manager/internal_context";
+import { executeUpdateCertificate } from "./push_certificate_manager/update_certificate";
 
-export const warningLog = make_warningLog(__filename);
-export const errorLog = make_errorLog(__filename);
-export const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag("ServerConfiguration");
-doDebug;
-
-const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
-const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
-const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
-
-
+const errorLog = make_errorLog("ServerConfiguration");
 
 export interface PushCertificateManagerServerOptions {
     applicationGroup?: CertificateManager;
@@ -55,29 +37,6 @@ export interface PushCertificateManagerServerOptions {
     applicationGroupCertificateTypes?: NodeId[];
     userTokenGroupCertificateTypes?: NodeId[];
     httpsGroupCertificateTypes?: NodeId[];
-}
-
-export function subjectToString(subject: SubjectOptions & DirectoryName): string {
-    let s = "";
-    subject.commonName && (s += `/CN=${subject.commonName}`);
-
-    subject.country && (s += `/C=${subject.country}`);
-    subject.countryName && (s += `/C=${subject.countryName}`);
-
-    subject.domainComponent && (s += `/DC=${subject.domainComponent}`);
-
-    subject.locality && (s += `/L=${subject.locality}`);
-    subject.localityName && (s += `/L=${subject.localityName}`);
-
-    subject.organization && (s += `/O=${subject.organization}`);
-    subject.organizationName && (s += `/O=${subject.organizationName}`);
-
-    subject.organizationUnitName && (s += `/OU=${subject.organizationUnitName}`);
-
-    subject.state && (s += `/ST=${subject.state}`);
-    subject.stateOrProvinceName && (s += `/ST=${subject.stateOrProvinceName}`);
-
-    return s;
 }
 
 export type ActionQueue = (() => Promise<void>)[];
@@ -106,15 +65,16 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             if (this.userTokenGroup) {
                 this._context.map.DefaultUserTokenGroup = this.userTokenGroup;
                 // Store allowed certificate types, or use all known types as default
-                this._context.certificateTypes.DefaultUserTokenGroup = options.userTokenGroupCertificateTypes ||
+                this._context.certificateTypes.DefaultUserTokenGroup = options.userTokenGroupCertificateTypes || [
                     // [...rsaCertificateTypes, ...eccCertificateTypes];
-                    [...rsaCertificateTypesArray]; // FIXME: ECC is not yet supported
+                    ...rsaCertificateTypesArray
+                ]; // FIXME: ECC is not yet supported
 
                 // istanbul ignore next
                 if (!(this.userTokenGroup instanceof CertificateManager)) {
                     errorLog(
                         "Expecting this.userTokenGroup to be instanceof CertificateManager :",
-                        (this.userTokenGroup as any).constructor.name
+                        (this.userTokenGroup as unknown as { constructor: { name: string } }).constructor.name
                     );
                     throw new Error("Expecting this.userTokenGroup to be instanceof CertificateManager ");
                 }
@@ -122,17 +82,19 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             if (this.applicationGroup) {
                 this._context.map.DefaultApplicationGroup = this.applicationGroup;
                 // Store allowed certificate types, or use all known types as default
-                this._context.certificateTypes.DefaultApplicationGroup = options.applicationGroupCertificateTypes ||
+                this._context.certificateTypes.DefaultApplicationGroup = options.applicationGroupCertificateTypes || [
                     // [...rsaCertificateTypes, ...eccCertificateTypes];
-                    [...rsaCertificateTypesArray]; // FIXME: ECC is not yet supported
+                    ...rsaCertificateTypesArray
+                ]; // FIXME: ECC is not yet supported
                 assert(this.applicationGroup instanceof CertificateManager);
             }
             if (this.httpsGroup) {
                 this._context.map.DefaultHttpsGroup = this.httpsGroup;
                 // Store allowed certificate types, or use all known types as default
-                this._context.certificateTypes.DefaultHttpsGroup = options.httpsGroupCertificateTypes ||
+                this._context.certificateTypes.DefaultHttpsGroup = options.httpsGroupCertificateTypes || [
                     // [...rsaCertificateTypes, ...eccCertificateTypes];
-                    [...rsaCertificateTypesArray]; // FIXME: ECC is not yet supported
+                    ...rsaCertificateTypesArray
+                ]; // FIXME: ECC is not yet supported
                 assert(this.httpsGroup instanceof CertificateManager);
             }
         }
@@ -200,40 +162,40 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     }
 
     /**
-     * 
-     * ApplyChanges is used to apply pending Certificate and TrustList updates 
+     *
+     * ApplyChanges is used to apply pending Certificate and TrustList updates
      * and to complete a transaction as described in 7.10.2.
-     * 
+     *
      * ApplyChanges returns Bad_InvalidState if any TrustList is still open for writing.
      * No changes are applied and ApplyChanges can be called again after the TrustList is closed.
-     * 
+     *
      * If a Session is closed or abandoned then the transaction is closed and all pending changes are discarded.
-     * 
-     * If ApplyChanges is called and there is no active transaction then the Server returns Bad_NothingToDo. 
+     *
+     * If ApplyChanges is called and there is no active transaction then the Server returns Bad_NothingToDo.
      * If there is an active transaction, however, no changes are pending the result is Good and the transaction is closed.
-     * 
+     *
      * When a Server Certificate or TrustList changes active SecureChannels are not immediately affected.
-     * This ensures the caller of ApplyChanges can get a response to the Method call. 
-     * Once the Method response is returned the Server shall force existing SecureChannels affected by 
+     * This ensures the caller of ApplyChanges can get a response to the Method call.
+     * Once the Method response is returned the Server shall force existing SecureChannels affected by
      * the changes to renegotiate and use the new Server Certificate and/or TrustLists.
-     * 
-     * Servers may close SecureChannels without discarding any Sessions or Subscriptions. 
-     * This will seem like a network interruption from the perspective of the Client and the Client reconnect 
-     * logic (see OPC 10000-4) allows them to recover their Session and Subscriptions. 
+     *
+     * Servers may close SecureChannels without discarding any Sessions or Subscriptions.
+     * This will seem like a network interruption from the perspective of the Client and the Client reconnect
+     * logic (see OPC 10000-4) allows them to recover their Session and Subscriptions.
      * Note that some Clients may not be able to reconnect because they are no longer trusted.
-     * 
+     *
      * Other Servers may need to do a complete shutdown.
-     * 
-     * In this case, the Server shall advertise its intent to interrupt connections by setting the 
+     *
+     * In this case, the Server shall advertise its intent to interrupt connections by setting the
      * SecondsTillShutdown and ShutdownReason Properties in the ServerStatus Variable.
-     * 
-     * If a TrustList change only affects UserIdentity associated with a Session then Servers 
-     * shall re-evaluate the UserIdentity and if it is no longer valid the Session and associated 
+     *
+     * If a TrustList change only affects UserIdentity associated with a Session then Servers
+     * shall re-evaluate the UserIdentity and if it is no longer valid the Session and associated
      * Subscriptions are closed.
-     * 
-     * This Method shall be called from an authenticated SecureChannel and from the Session that 
+     *
+     * This Method shall be called from an authenticated SecureChannel and from the Session that
      * created the transaction and has access to the SecurityAdmin Role (see 7.2).
-     * 
+     *
      */
     public async applyChanges(): Promise<StatusCode> {
         return await executeApplyChanges(this._context);

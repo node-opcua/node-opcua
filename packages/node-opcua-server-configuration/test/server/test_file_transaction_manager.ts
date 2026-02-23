@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import should from "should";
 
 import { FileTransactionManager } from "../../dist/server/file_transaction_manager.js";
@@ -10,7 +10,6 @@ describe("FileTransactionManager", () => {
     let tempDir: string;
     let sourceFile: string;
     let destFile: string;
-
 
     beforeEach(async () => {
         transactionManager = new FileTransactionManager();
@@ -26,7 +25,7 @@ describe("FileTransactionManager", () => {
     afterEach(async () => {
         try {
             await transactionManager.abortTransaction();
-        } catch (err) {
+        } catch (_err) {
             // ignore
         }
         await fs.promises.rm(tempDir, { recursive: true, force: true });
@@ -37,11 +36,12 @@ describe("FileTransactionManager", () => {
         const destPath = path.join(tempDir, "staged.txt");
         const content = "Staged Content";
 
+        const tmpDir = await transactionManager.getTmpDir();
         // When I stage the file
         await transactionManager.stageFile(destPath, content, "utf8");
 
         // Then a temporary directory should be created
-        fs.existsSync(await transactionManager.getTmpDir()).should.be.true();
+        fs.existsSync(tmpDir).should.be.true();
         // And the destination file should not exist yet
         fs.existsSync(destPath).should.be.false();
         // And there should be one pending task
@@ -53,7 +53,7 @@ describe("FileTransactionManager", () => {
         // Then there should be no pending tasks left
         transactionManager.pendingTasksCount.should.eql(0);
         // And the temporary directory should be cleaned up
-        should.not.exist((transactionManager as any)._tmpdir);
+        fs.existsSync(tmpDir).should.be.false();
 
         // And the destination file should contain the staged content
         const fileContent = await fs.promises.readFile(destPath, "utf8");
@@ -85,7 +85,7 @@ describe("FileTransactionManager", () => {
 
         await fs.promises.writeFile(destFile, "Original Content", "utf8");
 
-        const destPath2 = path.join(tempDir, "dest2.txt");
+        const _destPath2 = path.join(tempDir, "dest2.txt");
 
         // When I stage a change that will overwrite the destination
         await transactionManager.stageFile(destFile, "New Content", "utf8");
@@ -210,5 +210,4 @@ describe("FileTransactionManager", () => {
         // And: The temp folder should be deleted afterwards
         fs.existsSync(tmpDir).should.be.false("Temp folder was not deleted AFTER cleanup tasks ran");
     });
-
 });

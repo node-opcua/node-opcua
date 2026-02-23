@@ -1,22 +1,24 @@
-import fs from "fs";
-import os from "os";
-import path from "path";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { CertificateManager } from "node-opcua-certificate-manager";
 import {
-    Certificate,
-    CertificateRevocationList,
+    type Certificate,
+    type CertificateRevocationList,
     convertPEMtoDER,
-    PrivateKey,
+    identifyDERContent,
+    type PrivateKey,
     readCertificate,
     readCertificateRevocationList,
     readPrivateKey,
     toPem
 } from "node-opcua-crypto";
-import { CertificateAuthority } from "node-opcua-pki";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { CertificateAuthority } from "node-opcua-pki";
+
 const { readFile, writeFile } = fs.promises;
 
-export async function initializeHelpers(prefix: string, n: number): Promise<string> {
+export async function initializeHelpers(prefix: string, _n: number): Promise<string> {
     const _tempFolder = path.join(os.tmpdir(), "node-opcua2");
     const subfolder = path.join(_tempFolder, prefix);
     try {
@@ -27,7 +29,7 @@ export async function initializeHelpers(prefix: string, n: number): Promise<stri
     }
     try {
         await fs.promises.mkdir(path.dirname(subfolder));
-    } catch (err) {
+    } catch (_err) {
         /** */
     }
     try {
@@ -50,7 +52,7 @@ export async function produceCertificateAndPrivateKey(
     await certificateManager.initialize();
 
     const certFile = path.join(subfolder, "tmpPKI/certificate.pem");
-    const fileExists: boolean = fs.existsSync(certFile);
+    const _fileExists: boolean = fs.existsSync(certFile);
 
     await certificateManager.createSelfSignedCertificate({
         applicationUri: "applicationUri",
@@ -86,10 +88,17 @@ export async function _getFakeAuthorityCertificate(
 
 async function _produceCertificate(
     subfolder: string,
-    certificateSigningRequest: Buffer,
+    certificateSigningRequest: Buffer | undefined,
     startDate: Date,
     validity: number
 ): Promise<Buffer> {
+    if (!certificateSigningRequest) {
+        throw new Error("certificateSigningRequest is required");
+    }
+    const derContent = identifyDERContent(certificateSigningRequest);
+    if (derContent !== "CertificateSigningRequest") {
+        throw new Error(`certificateSigningRequest is not a certificate request but a ${derContent}`);
+    }
     // Given a Certificate Authority
     const certificateAuthority = new CertificateAuthority({
         keySize: 2048,
@@ -125,13 +134,27 @@ async function _produceCertificate(
     return certificateDER;
 }
 
-export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
+export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Buffer> {
+    if (!certificateSigningRequest) {
+        throw new Error("certificateSigningRequest is required");
+    }
+    const derContent = identifyDERContent(certificateSigningRequest);
+    if (derContent !== "CertificateSigningRequest") {
+        throw new Error(`certificateSigningRequest is not a certificate request but a ${derContent}`);
+    }
     const startDate = new Date(2010, 1, 1);
     const validity = 10; //
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
-export async function produceCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
+export async function produceCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Buffer> {
+    if (!certificateSigningRequest) {
+        throw new Error("certificateSigningRequest is required");
+    }
+    const derContent = identifyDERContent(certificateSigningRequest);
+    if (derContent !== "CertificateSigningRequest") {
+        throw new Error(`certificateSigningRequest is not a certificate request but a ${derContent}`);
+    }
     const startDate = new Date(Date.now() - 3600 * 5 * 1000);
     const validity = 365 * 10;
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
@@ -146,7 +169,7 @@ export async function createSomeCertificate(certificateManager: CertificateManag
 
     const fileExists: boolean = fs.existsSync(certFile);
 
-    const millisecondPerDay = 3600 * 24 * 1000;
+    const _millisecondPerDay = 3600 * 24 * 1000;
     const validity = 365;
 
     if (!fileExists) {

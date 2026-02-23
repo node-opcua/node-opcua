@@ -1,9 +1,9 @@
-import { CertificateManager } from "node-opcua-certificate-manager";
+import type { CertificateManager } from "node-opcua-certificate-manager";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { rsaCertificateTypesArray, eccCertificateTypesArray } from "../../clientTools/certificate_types";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { eccCertificateTypesArray, rsaCertificateTypesArray } from "../../clientTools/certificate_types";
 import { getCertificateKeyType } from "../../clientTools/get_certificate_key_type";
-import { PushCertificateManagerInternalContext } from "./internal_context";
+import type { PushCertificateManagerInternalContext } from "./internal_context";
 
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
@@ -46,7 +46,7 @@ export function findCertificateGroupName(certificateGroupNodeId: NodeId | string
 
 /**
  * Validate that the certificate type matches the expected type from certificateTypeId
- * 
+ *
  * @param certificate The certificate to validate
  * @param certificateTypeId The NodeId of the expected certificate type
  * @param allowedTypes The list of allowed certificate types for this group
@@ -57,11 +57,10 @@ export function validateCertificateType(
     certificate: Buffer,
     certificateTypeId: NodeId | string,
     allowedTypes: NodeId[],
-    warningLog: (msg: string, ...args: any[]) => void
+    warningLog: (msg: string, ...args: unknown[]) => void
 ): boolean {
     // If certificateTypeId is null or not specified, skip validation
-    if (!certificateTypeId ||
-        (certificateTypeId instanceof NodeId && sameNodeId(certificateTypeId, NodeId.nullNodeId))) {
+    if (!certificateTypeId || (certificateTypeId instanceof NodeId && sameNodeId(certificateTypeId, NodeId.nullNodeId))) {
         return true;
     }
 
@@ -90,7 +89,7 @@ export function validateCertificateType(
     }
 
     // Check if the certificateTypeId is in the list of allowed types for this group
-    const isAllowed = allowedTypes.some(t => sameNodeId(t, typeNodeId));
+    const isAllowed = allowedTypes.some((t) => sameNodeId(t, typeNodeId));
 
     if (!isAllowed) {
         warningLog("Certificate typeId is not in the allowed types for this certificate group:", certificateTypeId);
@@ -98,8 +97,8 @@ export function validateCertificateType(
     }
 
     // Additional validation: check if the certificate's actual key type matches the declared type
-    const isRsaType = rsaCertificateTypesArray.some(t => sameNodeId(t, typeNodeId));
-    const isEccType = eccCertificateTypesArray.some(t => sameNodeId(t, typeNodeId));
+    const isRsaType = rsaCertificateTypesArray.some((t) => sameNodeId(t, typeNodeId));
+    const isEccType = eccCertificateTypesArray.some((t) => sameNodeId(t, typeNodeId));
 
     if (keyType === "RSA" && !isRsaType) {
         warningLog("Certificate has RSA key but certificateTypeId is not an RSA type:", certificateTypeId);

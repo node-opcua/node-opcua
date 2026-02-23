@@ -3,10 +3,9 @@
  */
 import { resolveNodeId } from "node-opcua-nodeid";
 
-export const CertificateType =  {
+export const CertificateType = {
     Application: resolveNodeId("ApplicationCertificateType"),
     Https: resolveNodeId("HttpsCertificateType"),
     RsaMinApplication: resolveNodeId("RsaMinApplicationCertificateType"),
-    RsaSha256Application: resolveNodeId("RsaSha256ApplicationCertificateType"),
+    RsaSha256Application: resolveNodeId("RsaSha256ApplicationCertificateType")
 };
-         

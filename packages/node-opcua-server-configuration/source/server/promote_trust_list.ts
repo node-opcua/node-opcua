@@ -4,38 +4,36 @@
 
 import { fs as MemFs } from "memfs";
 
-import {
+import type {
+    IAddressSpace,
+    ISessionContext,
     MethodFunctor,
     UAMethod,
-    UATrustList,
     UAObject,
-    UAVariable,
-    ISessionContext,
-    IAddressSpace,
+    UAObjectType,
+    UATrustList,
     UATrustList_Base,
-    UAObjectType
+    UAVariable
 } from "node-opcua-address-space";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
-import { AccessRestrictionsFlag } from "node-opcua-data-model";
-import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { makeSHA1Thumbprint, split_der, verifyCertificateChain } from "node-opcua-crypto/web";
-import { VerificationStatus } from "node-opcua-pki";
 import { BinaryStream } from "node-opcua-binary-stream";
-
-import { TrustListMasks, writeTrustList } from "./trust_list_server";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { makeSHA1Thumbprint, split_der, verifyCertificateChain } from "node-opcua-crypto/web";
+import { AccessRestrictionsFlag } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { type AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
+import { VerificationStatus } from "node-opcua-pki";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
+import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import { rolePermissionAdminOnly } from "./roles_and_permissions";
 
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
-import { rolePermissionAdminOnly } from "./roles_and_permissions";
+import { TrustListMasks, writeTrustList } from "./trust_list_server";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
-doDebug;
 const warningLog = make_warningLog("ServerConfiguration");
-const errorLog = debugLog;
+const errorLog = make_errorLog("ServerConfiguration");
 
 function trustListIsAlreadyOpened(trustList: UATrustList): boolean {
     // TrustList extends FileType, which has an openCount property tracking how many handles are open
@@ -63,7 +61,7 @@ function updateLastUpdateTime(trustList: UATrustList): void {
                 dataType: DataType.DateTime,
                 value: new Date()
             });
-            debugLog("Updated LastUpdateTime to", new Date().toISOString());
+            doDebug && debugLog("Updated LastUpdateTime to", new Date().toISOString());
         } else {
             warningLog("LastUpdateTime property not found on TrustList");
         }
@@ -71,7 +69,6 @@ function updateLastUpdateTime(trustList: UATrustList): void {
         errorLog("Error updating LastUpdateTime:", err);
     }
 }
-
 
 interface UAMethodEx extends UAMethod {
     _asyncExecutionFunction?: MethodFunctor;
@@ -139,10 +136,10 @@ async function _closeAndUpdate(
 
             // Process CRLs using CertificateManager API
             if ((trustListData.specifiedLists & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
-                debugLog("Processing issuer CRLs");
+                doDebug && debugLog("Processing issuer CRLs");
                 await cm.clearRevocationLists("issuers");
                 if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
-                    debugLog(` Writing ${trustListData.issuerCrls.length} issuer CRLs`);
+                    doDebug && debugLog(` Writing ${trustListData.issuerCrls.length} issuer CRLs`);
                     for (const crl of trustListData.issuerCrls) {
                         await cm.addRevocationList(crl, "issuers");
                     }
@@ -150,10 +147,10 @@ async function _closeAndUpdate(
             }
 
             if ((trustListData.specifiedLists & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
-                debugLog("Processing trusted CRLs");
+                doDebug && debugLog("Processing trusted CRLs");
                 await cm.clearRevocationLists("trusted");
                 if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
-                    debugLog(` Writing ${trustListData.trustedCrls.length} trusted CRLs`);
+                    doDebug && debugLog(` Writing ${trustListData.trustedCrls.length} trusted CRLs`);
                     for (const crl of trustListData.trustedCrls) {
                         await cm.addRevocationList(crl, "trusted");
                     }
@@ -165,7 +162,10 @@ async function _closeAndUpdate(
             // is found the Server shall return an error and shall not update the Trust List."
 
             // Validate all trusted certificates before applying changes
-            if ((trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates && trustListData.trustedCertificates) {
+            if (
+                (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
+                trustListData.trustedCertificates
+            ) {
                 for (const cert of trustListData.trustedCertificates) {
                     try {
                         // Attempt to parse and validate the certificate
@@ -183,14 +183,21 @@ async function _closeAndUpdate(
             }
 
             // Validate all issuer certificates before applying changes
-            if ((trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates && trustListData.issuerCertificates) {
+            if (
+                (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
+                trustListData.issuerCertificates
+            ) {
                 for (const cert of trustListData.issuerCertificates) {
                     try {
                         // Attempt to parse and validate the certificate
                         const certs = split_der(cert);
                         const validationResult = await verifyCertificateChain([certs[0]]);
                         if (validationResult.status !== "Good") {
-                            warningLog("Invalid issuer certificate in trust list:", validationResult.status, validationResult.reason);
+                            warningLog(
+                                "Invalid issuer certificate in trust list:",
+                                validationResult.status,
+                                validationResult.reason
+                            );
                             return { statusCode: StatusCodes.BadCertificateInvalid };
                         }
                     } catch (validationErr) {
@@ -201,12 +208,18 @@ async function _closeAndUpdate(
             }
 
             // Update certificates (only if specified in lists and validation passed)
-            if ((trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates && trustListData.trustedCertificates) {
+            if (
+                (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
+                trustListData.trustedCertificates
+            ) {
                 for (const cert of trustListData.trustedCertificates) {
                     await cm.trustCertificate(cert);
                 }
             }
-            if ((trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates && trustListData.issuerCertificates) {
+            if (
+                (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
+                trustListData.issuerCertificates
+            ) {
                 for (const cert of trustListData.issuerCertificates) {
                     await cm.addIssuer(cert);
                 }
@@ -231,9 +244,7 @@ async function _closeAndUpdate(
                     // Override the output argument to match CloseAndUpdate signature
                     resolve({
                         statusCode: result?.statusCode || StatusCodes.Good,
-                        outputArguments: [
-                            new Variant({ dataType: DataType.Boolean, value: false })
-                        ]
+                        outputArguments: [new Variant({ dataType: DataType.Boolean, value: false })]
                     });
                 }
             });
@@ -242,9 +253,7 @@ async function _closeAndUpdate(
 
     return {
         statusCode: StatusCodes.Good,
-        outputArguments: [
-            new Variant({ dataType: DataType.Boolean, value: false })
-        ]
+        outputArguments: [new Variant({ dataType: DataType.Boolean, value: false })]
     };
 }
 
@@ -307,7 +316,7 @@ async function _addCertificate(
 
         updateLastUpdateTime(trustList);
 
-        debugLog("_addCertificate - done, added leaf certificate to trustedCertificates");
+        doDebug && debugLog("_addCertificate - done, added leaf certificate to trustedCertificates");
         return { statusCode: StatusCodes.Good };
     } catch (err) {
         errorLog("Error in _addCertificate:", err);
@@ -373,7 +382,7 @@ async function _removeCertificate(
 
         updateLastUpdateTime(trustList);
 
-        debugLog("_removeCertificate - done, isTrustedCertificate=", isTrustedCertificate);
+        doDebug && debugLog("_removeCertificate - done, isTrustedCertificate=", isTrustedCertificate);
         return { statusCode: StatusCodes.Good };
     } catch (err) {
         errorLog("Error in _removeCertificate:", err);
@@ -408,9 +417,8 @@ export async function promoteTrustList(trustList: UATrustList) {
     const addCertificate = trustList.getChildByName("AddCertificate") as UAMethodEx;
     const removeCertificate = trustList.getChildByName("RemoveCertificate") as UAMethodEx;
 
-
     function _openTrustList(
-        this: any,
+        this: UAMethod,
         trustMask: TrustListMasks,
         inputArgs: Variant[],
         context: ISessionContext,
@@ -423,7 +431,7 @@ export async function promoteTrustList(trustList: UATrustList) {
             return callback(null, { statusCode: StatusCodes.BadNotSupported });
         }
 
-        // OPC UA Spec: BadInvalidState - The Open Method was called with write access 
+        // OPC UA Spec: BadInvalidState - The Open Method was called with write access
         // and the CloseAndUpdate Method has not been called.
         // If already opened for write, no subsequent opens (read or write) are allowed.
         const isOpenedForWrite = trustListEx.$$openedForWrite;
@@ -453,7 +461,7 @@ export async function promoteTrustList(trustList: UATrustList) {
     }
 
     function _openCallback(
-        this: any,
+        this: UAMethod,
         inputArgs: Variant[],
         context: ISessionContext,
         callback: CallbackT<CallMethodResultOptions>
@@ -464,7 +472,7 @@ export async function promoteTrustList(trustList: UATrustList) {
     open.bindMethod(_openCallback);
 
     function _openWithMaskCallback(
-        this: any,
+        this: UAMethod,
         inputArgs: Variant[],
         context: ISessionContext,
         callback: CallbackT<CallMethodResultOptions>
@@ -493,11 +501,11 @@ export async function promoteTrustList(trustList: UATrustList) {
         if (!fileType || fileType.addCertificate.isBound()) {
             return;
         }
-        fileType.open && fileType.open.bindMethod(_openCallback);
+        fileType.open?.bindMethod(_openCallback);
         fileType.addCertificate.bindMethod(_addCertificate);
         fileType.removeCertificate.bindMethod(_removeCertificate);
-        fileType.openWithMasks && fileType.openWithMasks.bindMethod(_openWithMaskCallback);
-        fileType.closeAndUpdate && fileType.closeAndUpdate.bindMethod(_closeAndUpdate);
+        fileType.openWithMasks?.bindMethod(_openWithMaskCallback);
+        fileType.closeAndUpdate?.bindMethod(_closeAndUpdate);
     }
     install_method_handle_on_TrustListType(trustList.addressSpace);
 }

@@ -1,31 +1,25 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import fs from "fs";
-import os from "os";
-import path from "path";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-import { types } from "util";
 import chalk from "chalk";
 
-import { UAServerConfiguration, AddressSpace } from "node-opcua-address-space";
+import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import {
-    Certificate,
-    convertPEMtoDER,
-    PrivateKey,
-    split_der
-} from "node-opcua-crypto/web";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import type { ICertificateKeyPairProviderPriv } from "node-opcua-common";
 import { readPrivateKey } from "node-opcua-crypto";
+import { type Certificate, convertPEMtoDER, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { ICertificateKeyPairProviderPriv } from "node-opcua-common";
-import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
-import { ApplicationDescriptionOptions } from "node-opcua-types";
+import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
+import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
-import { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl";
+import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl";
 
 // node 14 onward : import {  readFile } from "fs/promises";
 const { readFile } = fs.promises;
@@ -33,7 +27,6 @@ const { readFile } = fs.promises;
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
-doDebug;
 
 export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv {
     serverInfo?: ApplicationDescriptionOptions;
@@ -51,7 +44,7 @@ function getCertificate(this: OPCUAServerPartial): Certificate {
         const certificateChain = getCertificateChain.call(this);
         this.$$certificate = split_der(certificateChain)[0];
     }
-    return this.$$certificate!;
+    return this.$$certificate;
 }
 
 function getCertificateChain(this: OPCUAServerPartial): Certificate {
@@ -76,7 +69,7 @@ async function getIpAddresses(): Promise<string[]> {
         if (!netInterfaces[interfaceName]) {
             continue;
         }
-        for (const interFace of netInterfaces[interfaceName]!) {
+        for (const interFace of netInterfaces[interfaceName]) {
             if ("IPv4" !== interFace.family || interFace.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 continue;
@@ -91,12 +84,16 @@ async function getIpAddresses(): Promise<string[]> {
  *
  */
 async function install(this: OPCUAServerPartial): Promise<void> {
-    debugLog("install push certificate management", this.serverCertificateManager.rootDir);
+    doDebug && debugLog("install push certificate management", this.serverCertificateManager.rootDir);
 
-    (this as any).__defineGetter__("privateKeyFile", () => this.serverCertificateManager.privateKey);
-    (this as any).__defineGetter__("certificateFile", () =>
-        path.join(this.serverCertificateManager.rootDir, "own/certs/certificate.pem")
-    );
+    Object.defineProperty(this, "privateKeyFile", {
+        get: () => this.serverCertificateManager.privateKey,
+        configurable: true
+    });
+    Object.defineProperty(this, "certificateFile", {
+        get: () => path.join(this.serverCertificateManager.rootDir, "own/certs/certificate.pem"),
+        configurable: true
+    });
 
     if (!this.$$privateKey) {
         this.$$privateKey = readPrivateKey(this.serverCertificateManager.privateKey);
@@ -112,7 +109,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
             const fqdn = await getFullyQualifiedDomainName();
             const ipAddresses = await getIpAddresses();
 
-            const applicationUri = (this.serverInfo ? this.serverInfo!.applicationUri! : null) || "uri:MISSING";
+            const applicationUri = (this.serverInfo ? this.serverInfo.applicationUri : null) || "uri:MISSING";
 
             const options = {
                 applicationUri,
@@ -120,7 +117,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
                 dns: [fqdn],
                 ip: ipAddresses,
 
-                subject: "/CN=" + applicationUri + ";/L=Paris",
+                subject: `/CN=${applicationUri};/L=Paris`,
 
                 startDate: new Date(),
 
@@ -130,7 +127,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
                 outputFile: certificateFile
             };
 
-            debugLog("creating self signed certificate", options);
+            doDebug && debugLog("creating self signed certificate", options);
             await this.serverCertificateManager.createSelfSignedCertificate(options);
         }
         const certificatePEM = await readFile(certificateFile, "utf8");
@@ -154,9 +151,9 @@ function getPrivateKeyEP(this: OPCUAServerEndPoint): PrivateKey {
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
-    debugLog(chalk.yellow(" onCertificateAboutToChange => Suspending End points"));
+    doDebug && debugLog(chalk.yellow(" onCertificateAboutToChange => Suspending End points"));
     await server.suspendEndPoints();
-    debugLog(chalk.yellow(" onCertificateAboutToChange => End points suspended"));
+    doDebug && debugLog(chalk.yellow(" onCertificateAboutToChange => End points suspended"));
 }
 
 /**
@@ -169,9 +166,9 @@ async function onCertificateAboutToChange(server: OPCUAServer) {
  * @param server
  */
 async function onCertificateChange(server: OPCUAServer) {
-    debugLog("on CertificateChanged");
+    doDebug && debugLog("on CertificateChanged");
 
-    const _server = server as any as OPCUAServerPartial;
+    const _server = server as unknown as OPCUAServerPartial;
 
     _server.$$privateKey = readPrivateKey(server.serverCertificateManager.privateKey);
     const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
@@ -188,19 +185,17 @@ async function onCertificateChange(server: OPCUAServer) {
 
     setTimeout(async () => {
         try {
-            debugLog(chalk.yellow(" onCertificateChange => shutting down channels"));
+            doDebug && debugLog(chalk.yellow(" onCertificateChange => shutting down channels"));
             await server.shutdownChannels();
-            debugLog(chalk.yellow(" onCertificateChange => channels shut down"));
+            doDebug && debugLog(chalk.yellow(" onCertificateChange => channels shut down"));
 
-            debugLog(chalk.yellow(" onCertificateChange => resuming end points"));
+            doDebug && debugLog(chalk.yellow(" onCertificateChange => resuming end points"));
             await server.resumeEndPoints();
-            debugLog(chalk.yellow(" onCertificateChange => end points resumed"));
+            doDebug && debugLog(chalk.yellow(" onCertificateChange => end points resumed"));
 
             debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
         } catch (err) {
-            if (types.isNativeError(err)) {
-                errorLog("Error in CertificateChanged handler ", err.message);
-            }
+            errorLog("Error in CertificateChanged handler ", (err as Error).message);
             debugLog("err = ", err);
         }
     }, 2000);
@@ -209,6 +204,12 @@ async function onCertificateChange(server: OPCUAServer) {
 interface UAServerConfigurationEx extends UAServerConfiguration {
     $pushCertificateManager: PushCertificateManagerServerImpl;
 }
+
+type OPCUAServerEndPointEx = typeof OPCUAServerEndPoint & {
+    _certificateChain: Buffer | null;
+    _privateKey: PrivateKey | null;
+};
+
 export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
@@ -216,14 +217,14 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
                 "you need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
-    await install.call(server as any as OPCUAServerPartial);
+    await install.call(server as unknown as OPCUAServerPartial);
 
     server.getCertificate = getCertificate;
     server.getCertificateChain = getCertificateChain;
     server.getPrivateKey = getPrivateKey;
 
     for (const endpoint of server.endpoints) {
-        const endpointPriv = endpoint as any;
+        const endpointPriv: OPCUAServerEndPointEx = endpoint as unknown as OPCUAServerEndPointEx;
         endpointPriv._certificateChain = null;
         endpointPriv._privateKey = null;
 
@@ -231,9 +232,9 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
         endpoint.getPrivateKey = getPrivateKeyEP;
 
         for (const e of endpoint.endpointDescriptions()) {
-            // e.serverCertificate = null;
-            (e as any).__defineGetter__("serverCertificate", function (this: any) {
-                return endpoint.getCertificate();
+            Object.defineProperty(e, "serverCertificate", {
+                get: () => endpoint.getCertificate(),
+                configurable: true
             });
         }
     }
@@ -242,25 +243,25 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
         applicationGroup: server.serverCertificateManager,
         userTokenGroup: server.userCertificateManager,
 
-        applicationUri: server.serverInfo.applicationUri! || "InvalidURI"
+        applicationUri: server.serverInfo.applicationUri || "InvalidURI"
     });
 
-    const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")!;
+    const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");
     const serverConfigurationPriv = serverConfiguration as UAServerConfigurationEx;
     assert(serverConfigurationPriv.$pushCertificateManager);
 
     serverConfigurationPriv.$pushCertificateManager.on("CertificateAboutToChange", (actionQueue: ActionQueue) => {
         actionQueue.push(async (): Promise<void> => {
-            debugLog("CertificateAboutToChange Event received");
+            doDebug && debugLog("CertificateAboutToChange Event received");
             await onCertificateAboutToChange(server);
-            debugLog("CertificateAboutToChange Event processed");
+            doDebug && debugLog("CertificateAboutToChange Event processed");
         });
     });
     serverConfigurationPriv.$pushCertificateManager.on("CertificateChanged", (actionQueue: ActionQueue) => {
         actionQueue.push(async (): Promise<void> => {
-            debugLog("CertificateChanged Event received");
+            doDebug && debugLog("CertificateChanged Event received");
             await onCertificateChange(server);
-            debugLog("CertificateChanged Event processed");
+            doDebug && debugLog("CertificateChanged Event processed");
         });
     });
 }

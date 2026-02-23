@@ -1,31 +1,29 @@
-import { StatusCodes } from "node-opcua-status-code";
-import { NodeId } from "node-opcua-nodeid";
-import { ByteString } from "node-opcua-basic-types";
-import { UpdateCertificateResult } from "../../push_certificate_manager";
-import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import fs from "node:fs";
+import path from "node:path";
+import { assert } from "node-opcua-assert";
+import type { ByteString } from "node-opcua-basic-types";
+import type { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { readPrivateKey } from "node-opcua-crypto";
 import {
-    exploreCertificate,
-    makeSHA1Thumbprint,
-    toPem,
-    PrivateKey,
     certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
-    coercePrivateKeyPem
+    coercePrivateKeyPem,
+    makeSHA1Thumbprint,
+    type PrivateKey,
+    toPem
 } from "node-opcua-crypto/web";
-import { readPrivateKey } from "node-opcua-crypto";
-import * as path from "path";
-import * as fs from "fs";
-import { assert } from "node-opcua-assert";
-import {
-    warningLog,
-    debugLog
-} from "../push_certificate_manager_server_impl";
-import { PushCertificateManagerInternalContext } from "./internal_context";
-import {
-    validateCertificateType,
-    resolveCertificateGroupContext
-} from "./util";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+
+import type { UpdateCertificateResult } from "../../push_certificate_manager";
 import { validateCertificateAndChain } from "../certificate_validation";
+import type { PushCertificateManagerInternalContext } from "./internal_context";
+import { resolveCertificateGroupContext, validateCertificateType } from "./util";
+
+const warningLog = make_warningLog("ServerConfiguration");
+const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 
 // Helper: Stage issuer certificates to temporary files
 async function preInstallIssuerCertificates(
@@ -48,7 +46,7 @@ async function preInstallIssuerCertificates(
             await serverImpl.fileTransactionManager.stageFile(finalIssuerFileDER, issuerCert);
             await serverImpl.fileTransactionManager.stageFile(finalIssuerFilePEM, issuerCertPEM, "utf-8");
 
-            debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
+            doDebug && debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
         }
     }
 }
@@ -73,18 +71,14 @@ async function preInstallPrivateKey(
     serverImpl: PushCertificateManagerInternalContext,
     certificateManager: CertificateManager,
     privateKeyFormat: string,
-    privateKey: Buffer | string
+    privateKey: Buffer | string | undefined
 ): Promise<void> {
     assert(privateKeyFormat.toUpperCase() === "PEM");
 
     if (privateKey) {
         const privateKeyObj = coercePEMorDerToPrivateKey(privateKey as string | Buffer);
         const privateKeyPEM = coercePrivateKeyPem(privateKeyObj);
-        await serverImpl.fileTransactionManager.stageFile(
-            certificateManager.privateKey,
-            privateKeyPEM,
-            "utf-8"
-        );
+        await serverImpl.fileTransactionManager.stageFile(certificateManager.privateKey, privateKeyPEM, "utf-8");
     }
 }
 
@@ -98,7 +92,6 @@ export async function executeUpdateCertificate(
     privateKeyFormat?: string,
     privateKey?: Buffer | string
 ): Promise<UpdateCertificateResult> {
-
     if (serverImpl.operationInProgress) {
         return { statusCode: StatusCodes.BadTooManyOperations, applyChangesRequired: false };
     }
@@ -113,8 +106,10 @@ export async function executeUpdateCertificate(
 
         const { certificateManager, allowedTypes } = context;
 
-        if (!validateCertificateType(certificate, certificateTypeId, allowedTypes!, warningLog)) {
-            warningLog(`Certificate type ${certificateTypeId} does not match expected certificateTypeId \n allowed types: ${allowedTypes!.map(t => t.toString()).join(", ")} \n certificate: ${certificate.toString("base64")}`);
+        if (!validateCertificateType(certificate, certificateTypeId, allowedTypes ?? [], warningLog)) {
+            warningLog(
+                `Certificate type ${certificateTypeId} does not match expected certificateTypeId \n allowed types: ${allowedTypes?.map((t) => t.toString()).join(", ")} \n certificate: ${certificate.toString("base64")}`
+            );
             return { statusCode: StatusCodes.BadCertificateInvalid, applyChangesRequired: false };
         }
 
@@ -131,10 +126,12 @@ export async function executeUpdateCertificate(
             return { statusCode: validationResult.statusCode, applyChangesRequired: false };
         }
 
-        debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));
+        doDebug && debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));
 
         const hasPrivateKeyFormat = privateKeyFormat !== undefined && privateKeyFormat !== null && privateKeyFormat !== "";
-        const hasPrivateKey = privateKey !== undefined && privateKey !== null &&
+        const hasPrivateKey =
+            privateKey !== undefined &&
+            privateKey !== null &&
             privateKey !== "" &&
             !(privateKey instanceof Buffer && privateKey.length === 0);
 
@@ -160,12 +157,12 @@ export async function executeUpdateCertificate(
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };
         } else {
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
-                warningLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
+                warningLog(` the private key format is invalid privateKeyFormat =${privateKeyFormat}`);
                 await serverImpl.fileTransactionManager.abortTransaction();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             if (privateKeyFormat !== "PEM") {
-                warningLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
+                warningLog(`in NodeOPCUA we only support PEM for the moment privateKeyFormat =${privateKeyFormat}`);
                 await serverImpl.fileTransactionManager.abortTransaction();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
@@ -192,7 +189,7 @@ export async function executeUpdateCertificate(
                 return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
             }
 
-            await preInstallPrivateKey(serverImpl, certificateManager, privateKeyFormat!, tempPrivateKey!);
+            await preInstallPrivateKey(serverImpl, certificateManager, privateKeyFormat, tempPrivateKey);
             await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
             await preInstallCertificate(serverImpl, certificateManager, certificate);
 

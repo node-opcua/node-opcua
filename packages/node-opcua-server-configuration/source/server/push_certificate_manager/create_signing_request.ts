@@ -1,23 +1,22 @@
-import { NodeId, sameNodeId, resolveNodeId } from "node-opcua-nodeid";
-import { SubjectOptions } from "node-opcua-pki";
-import { CreateSigningRequestResult } from "../../push_certificate_manager";
-import { StatusCodes } from "node-opcua-status-code";
-import { readCertificate, exploreCertificate } from "node-opcua-crypto";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { convertPEMtoDER } from "node-opcua-crypto";
-import * as path from "path";
-import * as fs from "fs";
-import * as crypto from "crypto";
-import {
-    subjectToString,
-    warningLog,
-    errorLog,
-    debugLog
-} from "../push_certificate_manager_server_impl";
-import { PushCertificateManagerInternalContext } from "./internal_context";
-import {
-    resolveCertificateGroupContext
-} from "./util";
+import { convertPEMtoDER, type DirectoryName, exploreCertificate, readCertificate } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import type { SubjectOptions } from "node-opcua-pki";
+import { StatusCodes } from "node-opcua-status-code";
+
+import type { CreateSigningRequestResult } from "../../push_certificate_manager";
+import type { PushCertificateManagerInternalContext } from "./internal_context";
+import { subjectToString } from "./subject_to_string";
+import { resolveCertificateGroupContext } from "./util";
+
+const warningLog = make_warningLog("ServerConfiguration");
+const errorLog = make_errorLog("ServerConfiguration");
+const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 
 export async function executeCreateSigningRequest(
     serverImpl: PushCertificateManagerInternalContext,
@@ -27,11 +26,10 @@ export async function executeCreateSigningRequest(
     regeneratePrivateKey?: boolean,
     nonce?: Buffer
 ): Promise<CreateSigningRequestResult> {
-
     // Resolve context using our util
     const context = resolveCertificateGroupContext(serverImpl, certificateGroupId);
     if (context.statusCode.isNotGood() || !context.certificateManager) {
-        debugLog(" cannot find group ", certificateGroupId);
+        doDebug && debugLog(" cannot find group ", certificateGroupId);
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -49,7 +47,7 @@ export async function executeCreateSigningRequest(
                     return { statusCode: StatusCodes.BadInvalidArgument };
                 }
                 if (!sameNodeId(typeNodeId, NodeId.nullNodeId)) {
-                    const isValidType = allowedTypes!.some(t => sameNodeId(t, typeNodeId));
+                    const isValidType = allowedTypes?.some((t) => sameNodeId(t, typeNodeId));
                     if (!isValidType) {
                         warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                         return { statusCode: StatusCodes.BadNotSupported };
@@ -59,7 +57,7 @@ export async function executeCreateSigningRequest(
         } else {
             typeNodeId = certificateTypeId;
             if (!sameNodeId(typeNodeId, NodeId.nullNodeId)) {
-                const isValidType = allowedTypes!.some(t => sameNodeId(t, typeNodeId));
+                const isValidType = allowedTypes?.some((t) => sameNodeId(t, typeNodeId));
                 if (!isValidType) {
                     warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                     return { statusCode: StatusCodes.BadNotSupported };
@@ -74,10 +72,15 @@ export async function executeCreateSigningRequest(
         try {
             const certificate = readCertificate(currentCertificateFilename);
             const e = exploreCertificate(certificate);
-            subjectName = subjectToString(e.tbsCertificate.subject as any);
+            subjectName = subjectToString(e.tbsCertificate.subject as SubjectOptions & DirectoryName);
             warningLog("reusing existing certificate subjectName = ", subjectName);
         } catch (err) {
-            errorLog("Cannot find existing certificate to extract subjectName", currentCertificateFilename, ":", (err as Error).message);
+            errorLog(
+                "Cannot find existing certificate to extract subjectName",
+                currentCertificateFilename,
+                ":",
+                (err as Error).message
+            );
             return { statusCode: StatusCodes.BadInvalidState };
         }
     }
@@ -94,14 +97,14 @@ export async function executeCreateSigningRequest(
         }
 
         const volatileTmp = await serverImpl.fileTransactionManager.getTmpDir();
-        const tmpPKI = path.join(volatileTmp, "pki" + crypto.randomUUID());
+        const tmpPKI = path.join(volatileTmp, `pki${crypto.randomUUID()}`);
 
         const tempCertificateManager = new CertificateManager({
             keySize: certificateManager.keySize,
             location: tmpPKI
         });
 
-        debugLog("generating a new private key ...");
+        doDebug && debugLog("generating a new private key ...");
         await tempCertificateManager.initialize();
 
         serverImpl.tmpCertificateManager = tempCertificateManager;

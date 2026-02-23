@@ -1,12 +1,15 @@
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { errorLog, debugLog } from "../push_certificate_manager_server_impl";
-import { PushCertificateManagerInternalContext } from "./internal_context";
+import { make_errorLog, make_warningLog } from "node-opcua-debug";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { PushCertificateManagerInternalContext } from "./internal_context";
+
+const errorLog = make_errorLog("ServerConfiguration");
+const warningLog = make_warningLog("ServerConfiguration");
 
 // Helper: Flush action queue
 async function flushActionQueue(serverImpl: PushCertificateManagerInternalContext): Promise<void> {
     while (serverImpl.actionQueue.length) {
-        const first = serverImpl.actionQueue.pop()!;
-        await first!();
+        const first = serverImpl.actionQueue.pop();
+        await first?.();
     }
 }
 
@@ -38,7 +41,7 @@ export async function executeApplyChanges(serverImpl: PushCertificateManagerInte
             await serverImpl.fileTransactionManager.applyFileOps();
         } catch (err) {
             await serverImpl.fileTransactionManager.abortTransaction();
-            debugLog("err ", (err as Error).message);
+            warningLog("err ", (err as Error).message);
             return StatusCodes.BadInternalError;
         }
         try {

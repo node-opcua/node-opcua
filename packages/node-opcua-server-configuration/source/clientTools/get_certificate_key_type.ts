@@ -1,11 +1,11 @@
 import { exploreCertificate } from "node-opcua-crypto";
-import { make_debugLog, make_errorLog, make_warningLog, checkDebugFlag } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
-doDebug;
+
 /**
  * Extract the key type from a certificate (RSA or ECC)
  * @param certificate The certificate to analyze
@@ -43,7 +43,7 @@ export function getCertificateKeyType(certificate: Buffer): "RSA" | "ECC" | null
 
         // Use subject public key algorithm to determine key type
         const publicKeyAlg = certInfo.tbsCertificate?.subjectPublicKeyInfo?.algorithm;
-        debugLog("Certificate subjectPublicKeyInfo.algorithm:", publicKeyAlg);
+        doDebug && debugLog("Certificate subjectPublicKeyInfo.algorithm:", publicKeyAlg);
 
         const algorithmStr = getAlgorithmId(publicKeyAlg);
 
