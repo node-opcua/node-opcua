@@ -184,10 +184,19 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
 
     stopTimer() {
         if (this.timer) {
-            clearInterval(this.timer);
+            clearTimeout(this.timer);
             this.timer = null;
         }
     }
+    
+    private _startTimer() {
+        this.timer = setTimeout(() => {
+            if (!this.timer) return;
+            this.update();
+            this._startTimer();
+        }, OneDayDuration / 48);
+    }
+
     _post_initialize() {
         if (this.expirationLimit) {
             this.expirationLimit.accessLevel = makeAccessLevelExFlag("CurrentRead | CurrentWrite");
@@ -204,7 +213,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
         this.addressSpace.registerShutdownTask(() => {
             this.stopTimer();
         });
-        this.timer = setInterval(() => this.update(), OneDayDuration / 48);
+        this._startTimer();
     }
 }
 
