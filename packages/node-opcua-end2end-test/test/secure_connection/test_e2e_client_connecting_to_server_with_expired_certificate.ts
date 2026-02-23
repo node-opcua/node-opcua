@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import should from "should"
 
-const port = 62001;
+const port = 2517;
 
 const tmpFolder = os.tmpdir();
 
@@ -40,7 +40,7 @@ async function startServerWithExpiredCertificate() {
 
     console.log("server started at", server.getEndpointUrl());
 
-    process.once("SIGINT", ()=>{
+    process.once("SIGINT", () => {
         server.shutdown();
     })
     return server;
@@ -48,18 +48,20 @@ async function startServerWithExpiredCertificate() {
 }
 
 // eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-describe("Security: verifying some security use cases", function(this: any) {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("Security: verifying some security use cases", function (this: any) {
 
     this.timeout(100000);
     let server: OPCUAServer;
-    before(async()=>{
+    before(async () => {
         server = await startServerWithExpiredCertificate();
     })
-    after(async()=>{
-        await server.shutdown();
+    after(async () => {
+        if (server) {
+            await server.shutdown();
+        }
     })
-    it("a client should not allow connection with a server that have a outdated certificate", async()=>{
+    it("a client should not allow connection with a server that have a outdated certificate", async () => {
 
         const endpointUrl = server.getEndpointUrl();
 
@@ -84,13 +86,13 @@ describe("Security: verifying some security use cases", function(this: any) {
         const serverCertificate = server.getCertificate();
         client.clientCertificateManager.trustCertificate(serverCertificate);
 
-        let  catchedError: Error|null = null;
+        let catchedError: Error | null = null;
 
         try {
             await client.connect(endpointUrl);
             console.log("Client Connected");
             await client.disconnect();
-        } catch(err) {
+        } catch (err) {
             catchedError = err as Error;
             console.log((err as Error).message);
         }
