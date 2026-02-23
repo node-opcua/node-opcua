@@ -88,6 +88,11 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
     }
 
     private _updateAlarm() {
+        if (!this.enabledState) {
+            warningLog(`expiry alarm ${this.nodeId.toString()}  has no enabledState property`);
+            return;
+        }
+        
         const expirationDate = this.getExpirationDate();
 
         const now = new Date();

@@ -254,6 +254,18 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     /**
      */
     public getEnabledState(): boolean {
+        if (!this.enabledState) {
+            // ua variable is missing
+            return false;
+        }
+        if (typeof this.enabledState.getValue !== "function") {
+            // the enabledState is not initialized yet, probably because the addressSpace is not fully initialized
+            // try the id that contains the flag status as a boolean DataValue
+            if (!this.enabledState.id) {
+                return false;
+            }
+            return this.enabledState.id.readValue().value.value as boolean;
+        }
         return this.enabledState.getValue();
     }
 
