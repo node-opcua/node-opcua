@@ -8,7 +8,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AccessLevelFlag, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { isMinDate } from "node-opcua-date-time";
+import { isMinDate, minDate } from "node-opcua-date-time";
 import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 import { NumericRange } from "node-opcua-numeric-range";
 import {
@@ -221,6 +221,10 @@ function _update_startOfOnlineArchive(this: UAVariableImpl, newDate: Date): void
     if (!this.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
+    newDate = newDate || minDate;
+    if (!newDate) {
+        throw new Error("newDate must be provided");
+    }
 
     // The StartOfArchive Variable specifies the date before which there is no data
     // in the archive either online or offline.
@@ -237,7 +241,8 @@ function _update_startOfOnlineArchive(this: UAVariableImpl, newDate: Date): void
         (startOfArchiveDataValue.statusCode.isNotGood() ||
             !startOfArchiveDataValue.value ||
             !startOfArchiveDataValue.value.value ||
-            startOfArchiveDataValue.value.value.getTime() >= newDate.getTime())
+            !(startOfArchiveDataValue.value.value instanceof Date) ||
+            (startOfArchiveDataValue.value.value as Date).getTime() >= newDate.getTime())
     ) {
         this._update_startOfArchive(newDate);
     }
