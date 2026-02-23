@@ -1,9 +1,9 @@
 /**
  * @module node-opcua-server-configuration
  */
-import { ByteString, UAString } from "node-opcua-basic-types";
-import { NodeId } from "node-opcua-nodeid";
-import { StatusCode } from "node-opcua-status-code";
+import type { ByteString, UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
 
 export interface CreateSigningRequestResult {
     statusCode: StatusCode;
@@ -21,7 +21,6 @@ export interface UpdateCertificateResult {
 }
 
 export interface PushCertificateManager {
-
     /**
      * The SupportedPrivateKeyFormats specifies the private key formats supported by the Server.
      * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12). The array is empty
@@ -65,12 +64,12 @@ export interface PushCertificateManager {
      *
      */
     updateCertificate(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      certificate: ByteString,
-      issuerCertificates: ByteString[],
-      privateKeyFormat?: UAString,
-      privateKey?: ByteString
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        certificate: ByteString,
+        issuerCertificates: ByteString[],
+        privateKeyFormat?: UAString,
+        privateKey?: ByteString
     ): Promise<UpdateCertificateResult>;
 
     /**
@@ -136,11 +135,11 @@ export interface PushCertificateManager {
      * Bad_UserAccessDenied          The current user does not have the rights required.
      */
     createSigningRequest(
-      certificateGroupId: NodeId | string,
-      certificateTypeId: NodeId | string,
-      subjectName: string | null,
-      regeneratePrivateKey?: boolean,
-      nonce?: ByteString
+        certificateGroupId: NodeId | string,
+        certificateTypeId: NodeId | string,
+        subjectName: string | null,
+        regeneratePrivateKey?: boolean,
+        nonce?: ByteString
     ): Promise<CreateSigningRequestResult>;
 
     /**
@@ -159,6 +158,5 @@ export interface PushCertificateManager {
      *  Bad_UserAccessDenied  The current user does not have the rights required
      */
 
-    getRejectedList(): Promise</*certificates*/GetRejectedListResult>;
-
+    getRejectedList(): Promise</*certificates*/ GetRejectedListResult>;
 }

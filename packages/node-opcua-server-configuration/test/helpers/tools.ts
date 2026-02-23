@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 
-import { CertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, convertPEMtoDER } from "node-opcua-crypto";
+import type { CertificateManager } from "node-opcua-certificate-manager";
+import { type Certificate, convertPEMtoDER } from "node-opcua-crypto";
+
 const { readFile } = fs.promises;
-
 
 export async function getCertificateDER(manager: CertificateManager): Promise<Certificate> {
     const certificateFilename = path.join(manager.rootDir, "own/certs/certificate.pem");

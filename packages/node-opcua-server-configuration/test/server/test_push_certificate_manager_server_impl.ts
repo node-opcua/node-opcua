@@ -1,40 +1,44 @@
 Error.stackTraceLimit = Infinity;
+
 import fs from "node:fs";
 import path from "node:path";
 import "should";
 
 const { readFile } = fs.promises;
 
-import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { StatusCodes } from "node-opcua-status-code";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { subjectToString, UpdateCertificateResult, rsaCertificateTypes } from "../..";
-import { PushCertificateManagerServerImpl } from "../..";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import {
+    type CreateSigningRequestResult,
+    PushCertificateManagerServerImpl,
+    rsaCertificateTypes,
+    subjectToString,
+    type UpdateCertificateResult
+} from "../..";
+import {
+    _getFakeAuthorityCertificate,
     createSomeCertificate,
     initializeHelpers,
     produceCertificate,
-    produceOutdatedCertificate,
     produceNotYetValidCertificate,
-    _getFakeAuthorityCertificate
+    produceOutdatedCertificate
 } from "../helpers/fake_certificate_authority";
 import { getCertificateDER } from "../helpers/tools";
-
-
 
 const injectFailingTask = (pushManager: PushCertificateManagerServerImpl, errorMessage: string) => {
     console.log("Injecting failing task");
 
-    const context = (pushManager as any)._context;
+    const context = (
+        pushManager as unknown as { _context: { fileTransactionManager: { addFileOp: (fn: () => Promise<void>) => void } } }
+    )._context;
     context.fileTransactionManager.addFileOp(async () => {
         throw new Error(errorMessage);
     });
     console.log("Failure injected");
 };
-
 
 describe("Testing Server Side PushCertificateManager", () => {
     let pushManager: PushCertificateManagerServerImpl;
@@ -50,9 +54,6 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     before(async () => {
         await CertificateManager.disposeAll();
-    });
-
-    before(async () => {
 
         _folder = await initializeHelpers("BB", 1);
 
@@ -63,8 +64,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         cert1 = await createSomeCertificate(someClientCertificateManager, "cert1.pem");
         cert2 = await createSomeCertificate(someClientCertificateManager, "cert2.pem");
-    });
-    before(async () => {
+
         const applicationGroup = new CertificateManager({
             location: path.join(_folder, "application")
         });
@@ -108,27 +108,32 @@ describe("Testing Server Side PushCertificateManager", () => {
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("should provide rejected list", async () => {
         // Given 2 rejected certificates , in two different groups
         // at 2 different time
-        await pushManager.applicationGroup!.rejectCertificate(cert1);
+        await pushManager.applicationGroup?.rejectCertificate(cert1);
         await new Promise((resolve) => setTimeout(resolve, 150));
-        await pushManager.userTokenGroup!.rejectCertificate(cert2);
+        await pushManager.userTokenGroup?.rejectCertificate(cert2);
 
         // When I call getRejectedList
         const result = await pushManager.getRejectedList();
 
         // Then I should retrieve those 2 certificates
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificates!.should.be.instanceOf(Array);
-        result.certificates!.length.should.eql(2);
+        result.certificates?.should.be.instanceOf(Array);
+        result.certificates?.length.should.eql(2);
 
+        const firstCertificate = result.certificates?.[0];
+        const secondCertificate = result.certificates?.[1];
+        if (!firstCertificate || !secondCertificate) {
+            throw new Error("firstCertificate or secondCertificate is undefined");
+        }
         // And their thumbprint should match the expected one
-        const thumbprint1 = makeSHA1Thumbprint(result.certificates![0]).toString("hex");
-        const thumbprint2 = makeSHA1Thumbprint(result.certificates![1]).toString("hex");
+        const thumbprint1 = makeSHA1Thumbprint(firstCertificate).toString("hex");
+        const thumbprint2 = makeSHA1Thumbprint(secondCertificate).toString("hex");
         const thumbprints = [thumbprint1, thumbprint2].sort();
         const certs = [makeSHA1Thumbprint(cert1).toString("hex"), makeSHA1Thumbprint(cert2).toString("hex")].sort();
         // And the most recent certificate should come first
@@ -148,8 +153,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             subject: "/O=NodeOPCUA/CN=NodeOPCUA-Server",
             applicationUri: "urn:APPLICATION:URI",
             dns: ["localhost", "my.domain.com"],
-            ip: ["192.123.145.121"],
-
+            ip: ["192.123.145.121"]
         });
         const certificateSigningRequestPEM = await readFile(filename, "utf-8");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
@@ -176,10 +180,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority, which already outdated
-        const certificateFull = await produceOutdatedCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceOutdatedCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
 
         // When I call updateCertificate with a certificate that do not match the private key
         const certificateChain = split_der(certificateFull);
@@ -202,10 +206,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Future"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority, which is not yet valid (startDate in future)
-        const certificateFull = await produceNotYetValidCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceNotYetValidCertificate(
+            _folder,
+            resultCSR.certificateSigningRequest ?? Buffer.alloc(0)
+        );
 
         // When I call updateCertificate with a certificate that is not yet valid
         const certificateChain = split_der(certificateFull);
@@ -228,10 +235,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
 
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
@@ -256,9 +263,9 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -270,7 +277,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             issuerCertificates
         );
         // and Given
-        const existingCertificate1 = await getCertificateDER(pushManager.applicationGroup!);
+        const existingCertificate1 = await getCertificateDER(pushManager.applicationGroup ?? (null as never));
 
         // When I call ApplyChanges (if needed)
         if (result.applyChangesRequired) {
@@ -278,7 +285,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         }
 
         // Then I should verify that the certificate has changed
-        const existingCertificateAfterApplyChange = await getCertificateDER(pushManager.applicationGroup!);
+        const existingCertificateAfterApplyChange = await getCertificateDER(pushManager.applicationGroup ?? (null as never));
         existingCertificateAfterApplyChange.toString("hex").should.not.eql(existingCertificate1.toString("hex"));
     });
 
@@ -291,7 +298,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/ST=FRANCE/O=SomeOrganisation/CN=urn:SomeCommonName"
             );
-            const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
             const certificateChain = split_der(certificateFull);
             const certificate = certificateChain[0];
             const issuerCertificates = certificateChain.slice(1);
@@ -306,7 +313,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 issuerCertificates
             );
 
-            if (result.statusCode == StatusCodes.Good && result.applyChangesRequired) {
+            if (result.statusCode === StatusCodes.Good && result.applyChangesRequired) {
                 await pushManager.applyChanges();
             }
         }
@@ -316,10 +323,10 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         resultCSR.statusCode.should.eql(StatusCodes.Good);
 
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
 
         const e = exploreCertificate(certificateFull);
         const newCertificateSubject = subjectToString(e.tbsCertificate.subject);
@@ -350,10 +357,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate chain emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -399,10 +406,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const emptyIssuerCertificates: Buffer[] = [];
@@ -498,7 +505,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // and Given a certificate with multiple issuers in the chain
-            const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
             const certificateChain = split_der(certificateFull);
             const certificate = certificateChain[0];
             const issuerCertificates = certificateChain.slice(1);
@@ -507,19 +514,14 @@ describe("Testing Server Side PushCertificateManager", () => {
             issuerCertificates.length.should.be.greaterThan(0);
 
             // When I update the certificate
-            await pushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                certificate,
-                issuerCertificates
-            );
+            await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
             await pushManager.applyChanges();
 
             // Then all issuer certificates should be stored with unique filenames
             const files = fs.readdirSync(issuerFolder);
 
             // Count issuer files (both .der and .pem)
-            const issuerFiles = files.filter(f => f.startsWith("issuer_"));
+            const issuerFiles = files.filter((f) => f.startsWith("issuer_"));
             // We expect 2 files per issuer certificate (DER + PEM)
             issuerFiles.length.should.eql(issuerCertificates.length * 2);
 
@@ -568,9 +570,10 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // And a temporary certificate manager should be created
+        // biome-ignore lint/suspicious/noExplicitAny: accessing private _context property for test verification
         (pushManager as any)._context.tmpCertificateManager.should.not.be.undefined();
 
         // Ensure temporary certificate manager is cleaned up for subsequent tests
@@ -610,11 +613,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     it("createSigningRequest should return BadInvalidArgument for invalid certificate group", async () => {
         // When I call createSigningRequest with an invalid certificateGroupId
-        const result = await pushManager.createSigningRequest(
-            "InvalidGroup",
-            "",
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
-        );
+        const result = await pushManager.createSigningRequest("InvalidGroup", "", "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server");
 
         // Then the result should be BadInvalidArgument
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
@@ -634,11 +633,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         await freshPushManager.initialize();
 
         // When I call createSigningRequest with null subjectName
-        const result = await freshPushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            "",
-            null
-        );
+        const result = await freshPushManager.createSigningRequest("DefaultApplicationGroup", "", null);
 
         // Then the result should be BadInvalidState
         result.statusCode.should.eql(StatusCodes.BadInvalidState);
@@ -651,18 +646,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
         // When I call updateCertificate with an invalid certificateGroupId
-        const result = await pushManager.updateCertificate(
-            "InvalidGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate("InvalidGroup", "", certificate, issuerCertificates);
 
         // Then the result should be BadInvalidArgument
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
@@ -676,19 +666,14 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-NullGroup"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
         // When I call updateCertificate with null NodeId as certificateGroupId
         const nullNodeId = NodeId.nullNodeId;
-        const result = await pushManager.updateCertificate(
-            nullNodeId,
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate(nullNodeId, "", certificate, issuerCertificates);
 
         // Then it should use DefaultApplicationGroup and return Good
         result.statusCode.should.eql(StatusCodes.Good);
@@ -702,18 +687,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-NullGroupString"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
         // When I call updateCertificate with null NodeId string as certificateGroupId
-        const result = await pushManager.updateCertificate(
-            "ns=0;i=0",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate("ns=0;i=0", "", certificate, issuerCertificates);
 
         // Then it should use DefaultApplicationGroup and return Good
         result.statusCode.should.eql(StatusCodes.Good);
@@ -803,7 +783,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-FormatOnly"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -902,7 +882,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-EmptyKey"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -929,7 +909,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-EmptyBuffer"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -956,28 +936,23 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Events"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
-        await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
 
         // When I listen for events and call applyChanges
         let aboutToChangeEmitted = false;
         let changedEmitted = false;
 
-        pushManager.once("CertificateAboutToChange", (actionQueue: any[]) => {
+        pushManager.once("CertificateAboutToChange", (actionQueue: unknown[]) => {
             aboutToChangeEmitted = true;
             actionQueue.should.be.instanceOf(Array);
         });
 
-        pushManager.once("CertificateChanged", (actionQueue: any[]) => {
+        pushManager.once("CertificateChanged", (actionQueue: unknown[]) => {
             changedEmitted = true;
             actionQueue.should.be.instanceOf(Array);
         });
@@ -992,28 +967,19 @@ describe("Testing Server Side PushCertificateManager", () => {
 
     it("should work with DefaultUserTokenGroup", async () => {
         // When I create a signing request for the user token group
-        const result = await pushManager.createSigningRequest(
-            "DefaultUserTokenGroup",
-            "",
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-User"
-        );
+        const result = await pushManager.createSigningRequest("DefaultUserTokenGroup", "", "/O=NodeOPCUA/CN=urn:NodeOPCUA-User");
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
 
         // And I should be able to update the certificate
-        const certificateFull = await produceCertificate(_folder, result.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, result.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
-        const updateResult = await pushManager.updateCertificate(
-            "DefaultUserTokenGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const updateResult = await pushManager.updateCertificate("DefaultUserTokenGroup", "", certificate, issuerCertificates);
 
         updateResult.statusCode.should.eql(StatusCodes.Good);
         updateResult.applyChangesRequired.should.eql(true);
@@ -1026,23 +992,20 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ActionQueue"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
-        await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
 
         // And an action added to the action queue
         let actionExecuted = false;
-        (pushManager as any)._context.actionQueue.push(async () => {
-            actionExecuted = true;
-        });
+        (pushManager as unknown as { _context: { actionQueue: Array<() => Promise<void>> } })._context.actionQueue.push(
+            async () => {
+                actionExecuted = true;
+            }
+        );
 
         // When I call applyChanges
         const statusCode = await pushManager.applyChanges();
@@ -1059,7 +1022,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         const cert3 = await createSomeCertificate(tmpCertManager, "cert3.pem");
 
-        await pushManager.userTokenGroup!.rejectCertificate(cert3);
+        await pushManager.userTokenGroup?.rejectCertificate(cert3);
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // When I call getRejectedList
@@ -1067,7 +1030,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then I should get certificates from both groups
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificates!.length.should.be.greaterThan(0);
+        result.certificates?.length.should.be.greaterThan(0);
     });
 
     it("updateCertificate should handle multiple calls before applyChanges", async () => {
@@ -1077,15 +1040,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Multi1"
         );
-        const cert1Full = await produceCertificate(_folder, resultCSR1.certificateSigningRequest!);
+        const cert1Full = await produceCertificate(_folder, resultCSR1.certificateSigningRequest ?? Buffer.alloc(0));
         const cert1Chain = split_der(cert1Full);
 
-        const result1 = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            cert1Chain[0],
-            cert1Chain.slice(1)
-        );
+        const result1 = await pushManager.updateCertificate("DefaultApplicationGroup", "", cert1Chain[0], cert1Chain.slice(1));
         result1.statusCode.should.eql(StatusCodes.Good);
 
         // When I call updateCertificate again before applyChanges
@@ -1094,15 +1052,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Multi2"
         );
-        const cert2Full = await produceCertificate(_folder, resultCSR2.certificateSigningRequest!);
+        const cert2Full = await produceCertificate(_folder, resultCSR2.certificateSigningRequest ?? Buffer.alloc(0));
         const cert2Chain = split_der(cert2Full);
 
-        const result2 = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            cert2Chain[0],
-            cert2Chain.slice(1)
-        );
+        const result2 = await pushManager.updateCertificate("DefaultApplicationGroup", "", cert2Chain[0], cert2Chain.slice(1));
 
         // Then both should succeed
         result2.statusCode.should.eql(StatusCodes.Good);
@@ -1110,7 +1063,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // And when I apply changes, the last certificate should be active
         await pushManager.applyChanges();
 
-        const finalCert = await getCertificateDER(pushManager.applicationGroup!);
+        const finalCert = await getCertificateDER(pushManager.applicationGroup ?? (null as never));
         finalCert.toString("hex").should.eql(cert2Chain[0].toString("hex"));
     });
 
@@ -1141,15 +1094,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ApplyTest"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
 
-        await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            certificateChain[0],
-            certificateChain.slice(1)
-        );
+        await pushManager.updateCertificate("DefaultApplicationGroup", "", certificateChain[0], certificateChain.slice(1));
 
         // When I call applyChanges with pending tasks
         const statusCode = await pushManager.applyChanges();
@@ -1169,7 +1117,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-TypeTest"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1194,7 +1142,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-WrongType"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1219,7 +1167,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-NullType"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1244,18 +1192,13 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-EmptyType"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
         // When I call updateCertificate with empty string (backward compatibility)
-        const result = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
 
         // Then it should succeed
         result.statusCode.should.eql(StatusCodes.Good);
@@ -1269,7 +1212,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-NodeIdType"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1277,12 +1220,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with NodeId object
         const rsaMinType: NodeId = resolveNodeId("ns=0;i=12537"); // ApplicationInstanceCertificate_RSA_Min
 
-        const result = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            rsaMinType,
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate("DefaultApplicationGroup", rsaMinType, certificate, issuerCertificates);
 
         // Then it should succeed
         result.statusCode.should.eql(StatusCodes.Good);
@@ -1296,7 +1234,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA2048"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1321,7 +1259,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA4096"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1346,7 +1284,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSASha256"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1371,7 +1309,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSAWithECC"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1396,8 +1334,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
 
             // Then it should fail with BadCertificateInvalid
-            result.statusCode.should.eql(StatusCodes.BadCertificateInvalid,
-                `RSA certificate should be rejected with ${eccType.name} type`);
+            result.statusCode.should.eql(
+                StatusCodes.BadCertificateInvalid,
+                `RSA certificate should be rejected with ${eccType.name} type`
+            );
             result.applyChangesRequired.should.eql(false);
         }
     });
@@ -1409,7 +1349,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-InvalidTypeId"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1459,7 +1399,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-UnknownType"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
@@ -1484,7 +1424,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-CorruptedIssuer"
         );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest!);
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificateChain = split_der(certificateFull);
         const certificate = certificateChain[0];
 
@@ -1493,12 +1433,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         const issuerCertificates = [corruptedIssuerCert];
 
         // When I call updateCertificate with a corrupted issuer certificate
-        const result = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            "",
-            certificate,
-            issuerCertificates
-        );
+        const result = await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
 
         // Then it should return BadCertificateInvalid
         // This tests that issuerCertificates validation catches corrupted certificates
@@ -1517,7 +1452,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept RSA_Sha256_2048 certificateTypeId", async () => {
@@ -1530,7 +1465,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept RSA_Sha256_4096 certificateTypeId", async () => {
@@ -1543,7 +1478,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept deprecated RSA_Sha256 certificateTypeId", async () => {
@@ -1556,7 +1491,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good (backward compatibility)
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept certificateTypeId as NodeId object", async () => {
@@ -1570,7 +1505,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept null NodeId as certificateTypeId", async () => {
@@ -1592,7 +1527,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Then the result should be Good (null NodeId means no type validation)
         // This is consistent with updateCertificate behavior and allows flexibility
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept empty string as certificateTypeId for backward compatibility", async () => {
@@ -1606,7 +1541,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Then the result should be Good (backward compatibility - validation is skipped)
         // Both empty string and null NodeId skip type validation
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should return BadInvalidArgument for invalid certificateTypeId string", async () => {
@@ -1679,14 +1614,16 @@ describe("Testing Server Side PushCertificateManager", () => {
             const result = await pushManager.createSigningRequest(
                 "DefaultApplicationGroup",
                 eccType.id,
-                "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-" + eccType.name,
+                `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-${eccType.name}`,
                 true, // regeneratePrivateKey = true
                 nonce
             );
 
             // Then it should return BadNotSupported for all ECC types
-            result.statusCode.should.eql(StatusCodes.BadNotSupported,
-                `${eccType.name} should return BadNotSupported with regeneratePrivateKey=true`);
+            result.statusCode.should.eql(
+                StatusCodes.BadNotSupported,
+                `${eccType.name} should return BadNotSupported with regeneratePrivateKey=true`
+            );
         }
     });
 
@@ -1705,15 +1642,14 @@ describe("Testing Server Side PushCertificateManager", () => {
             const result = await pushManager.createSigningRequest(
                 "DefaultApplicationGroup",
                 rsaType.id,
-                "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-" + rsaType.name,
+                `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-${rsaType.name}`,
                 true, // regeneratePrivateKey = true
                 nonce
             );
 
             // Then it should succeed for all RSA types
-            result.statusCode.should.eql(StatusCodes.Good,
-                `${rsaType.name} should succeed with regeneratePrivateKey=true`);
-            result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+            result.statusCode.should.eql(StatusCodes.Good, `${rsaType.name} should succeed with regeneratePrivateKey=true`);
+            result.certificateSigningRequest?.should.be.instanceOf(Buffer);
         }
     });
 
@@ -1731,7 +1667,6 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Then it should fail with BadNotSupported (certificateTypeId validation happens first)
         result.statusCode.should.eql(StatusCodes.BadNotSupported);
     });
-
 
     describe("Transaction rollback", () => {
         let rollbackTestPushManager: PushCertificateManagerServerImpl;
@@ -1772,8 +1707,6 @@ describe("Testing Server Side PushCertificateManager", () => {
         });
 
         it("should rollback changes when applyChanges fails during file operations", async () => {
-
-
             // Given: Create and apply an initial certificate to have a baseline
             console.log("call method createSigningRequest");
             const initialCSR = await rollbackTestPushManager.createSigningRequest(
@@ -1781,16 +1714,14 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Initial"
             );
-            const initialCertFull = await produceCertificate(rollbackFolder, initialCSR.certificateSigningRequest!);
+            const initialCertFull = await produceCertificate(
+                rollbackFolder,
+                initialCSR.certificateSigningRequest ?? Buffer.alloc(0)
+            );
             const initialChain = split_der(initialCertFull);
 
             console.log("call method updateCertificate");
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                initialChain[0],
-                initialChain.slice(1)
-            );
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", initialChain[0], initialChain.slice(1));
 
             console.log("call method applyChanges");
             await rollbackTestPushManager.applyChanges();
@@ -1814,7 +1745,10 @@ describe("Testing Server Side PushCertificateManager", () => {
             );
             resultCSR.statusCode.should.eql(StatusCodes.Good);
 
-            const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(
+                rollbackFolder,
+                resultCSR.certificateSigningRequest ?? Buffer.alloc(0)
+            );
             const certificateChain = split_der(certificateFull);
 
             console.log("call method updateCertificate");
@@ -1835,14 +1769,15 @@ describe("Testing Server Side PushCertificateManager", () => {
             // When: Call applyChanges which should fail and trigger rollback
             const statusCode = await rollbackTestPushManager.applyChanges();
 
-            console.log("applyChanges returned status code: " + statusCode.toString());
+            console.log(`applyChanges returned status code: ${statusCode.toString()}`);
             // Then: applyChanges should return BadInternalError
             statusCode.should.eql(StatusCodes.BadInternalError, "applyChanges should return BadInternalError on failure");
 
-
             // And: Baseline certificate should be restored
             const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCertDER.toString("hex").should.eql(baselineCertDER.toString("hex"), "Baseline certificate.der should be restored");
+            restoredCertDER
+                .toString("hex")
+                .should.eql(baselineCertDER.toString("hex"), "Baseline certificate.der should be restored");
 
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             restoredCertPEM.should.eql(baselineCertPEM, "Baseline certificate.pem should be restored");
@@ -1851,14 +1786,14 @@ describe("Testing Server Side PushCertificateManager", () => {
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
 
-            const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
-            const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
+            const certBackupFiles = certFiles.filter((f) => f.endsWith("_old"));
+            const issuerBackupFiles = issuerFiles.filter((f) => f.endsWith("_old"));
 
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain after rollback");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain after rollback");
 
             // And: Issuer files should match baseline (excluding _old files)
-            const restoredIssuerFiles = issuerFiles.filter(f => !f.endsWith("_old")).sort();
+            const restoredIssuerFiles = issuerFiles.filter((f) => !f.endsWith("_old")).sort();
             restoredIssuerFiles.should.eql(baselineIssuerFiles, "Issuer files should match baseline");
         });
 
@@ -1869,7 +1804,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-MultiRollback1`
             );
-            const certFull1 = await produceCertificate(rollbackFolder, resultCSR1.certificateSigningRequest!);
+            const certFull1 = await produceCertificate(rollbackFolder, resultCSR1.certificateSigningRequest ?? Buffer.alloc(0));
             const certChain1 = split_der(certFull1);
 
             const firstResult = await rollbackTestPushManager.updateCertificate(
@@ -1893,7 +1828,7 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-MultiRollback2`
             );
-            const certFull2 = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest!);
+            const certFull2 = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest ?? Buffer.alloc(0));
             const certChain2 = split_der(certFull2);
 
             const secondResult = await rollbackTestPushManager.updateCertificate(
@@ -1915,19 +1850,19 @@ describe("Testing Server Side PushCertificateManager", () => {
 
             // Then: Original (baseline) certificate should be restored
             const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCertDER.toString("hex").should.eql(baselineCertDER.toString("hex"),
-                "Certificate should be restored to baseline after rollback");
+            restoredCertDER
+                .toString("hex")
+                .should.eql(baselineCertDER.toString("hex"), "Certificate should be restored to baseline after rollback");
 
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
-            restoredCertPEM.should.eql(baselineCertPEM,
-                "Certificate PEM should be restored to baseline after rollback");
+            restoredCertPEM.should.eql(baselineCertPEM, "Certificate PEM should be restored to baseline after rollback");
 
             // And: No backup files should remain
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
 
-            const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
-            const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
+            const certBackupFiles = certFiles.filter((f) => f.endsWith("_old"));
+            const issuerBackupFiles = issuerFiles.filter((f) => f.endsWith("_old"));
 
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain after rollback");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain after rollback");
@@ -1941,7 +1876,10 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-BackupTest"
             );
 
-            const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(
+                rollbackFolder,
+                resultCSR.certificateSigningRequest ?? Buffer.alloc(0)
+            );
             const certificateChain = split_der(certificateFull);
 
             const result1 = await rollbackTestPushManager.updateCertificate(
@@ -1963,15 +1901,10 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-BackupTest2"
             );
-            const cert2Full = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest!);
+            const cert2Full = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest ?? Buffer.alloc(0));
             const cert2Chain = split_der(cert2Full);
 
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                cert2Chain[0],
-                cert2Chain.slice(1)
-            );
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", cert2Chain[0], cert2Chain.slice(1));
 
             // Inject a failure task
             injectFailingTask(rollbackTestPushManager, "Backup test failure");
@@ -1984,18 +1917,14 @@ describe("Testing Server Side PushCertificateManager", () => {
 
             // Then: The initial certificate should be restored
             const restoredCert = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCert.toString("hex").should.eql(initialCert.toString("hex"),
-                "Certificate should be restored to initial state");
+            restoredCert.toString("hex").should.eql(initialCert.toString("hex"), "Certificate should be restored to initial state");
 
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
-            restoredCertPEM.should.eql(initialCertPEM,
-                "Certificate PEM should be restored to initial state");
-
-
+            restoredCertPEM.should.eql(initialCertPEM, "Certificate PEM should be restored to initial state");
 
             // And: No backup files should remain on disk
             const certFiles = fs.readdirSync(certFolder);
-            const backupFiles = certFiles.filter(f => f.endsWith("_old"));
+            const backupFiles = certFiles.filter((f) => f.endsWith("_old"));
             backupFiles.length.should.eql(0, "No backup files should remain on disk");
         });
 
@@ -2006,14 +1935,12 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-InitialForRollbackFailure"
             );
-            const initialCertFull = await produceCertificate(rollbackFolder, initialCSR.certificateSigningRequest!);
-            const initialChain = split_der(initialCertFull);
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                initialChain[0],
-                initialChain.slice(1)
+            const initialCertFull = await produceCertificate(
+                rollbackFolder,
+                initialCSR.certificateSigningRequest ?? Buffer.alloc(0)
             );
+            const initialChain = split_der(initialCertFull);
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", initialChain[0], initialChain.slice(1));
             await rollbackTestPushManager.applyChanges();
 
             // Now setup for the test - try to update with a new certificate
@@ -2023,7 +1950,10 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RollbackFailureTest"
             );
 
-            const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(
+                rollbackFolder,
+                resultCSR.certificateSigningRequest ?? Buffer.alloc(0)
+            );
             const certificateChain = split_der(certificateFull);
 
             await rollbackTestPushManager.updateCertificate(
@@ -2046,10 +1976,8 @@ describe("Testing Server Side PushCertificateManager", () => {
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
 
-            const certFiles = fs.readdirSync(certFolder);
-            const issuerFiles = fs.readdirSync(issuerFolder);
-
-
+            const _certFiles = fs.readdirSync(certFolder);
+            const _issuerFiles = fs.readdirSync(issuerFolder);
         });
 
         it("should successfully cleanup backup files after successful transaction", async () => {
@@ -2060,7 +1988,10 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-SuccessfulCleanup"
             );
 
-            const certificateFull = await produceCertificate(rollbackFolder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceCertificate(
+                rollbackFolder,
+                resultCSR.certificateSigningRequest ?? Buffer.alloc(0)
+            );
             const certificateChain = split_der(certificateFull);
 
             // Apply initial certificate
@@ -2079,15 +2010,10 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-SuccessfulCleanup2"
             );
 
-            const cert2Full = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest!);
+            const cert2Full = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest ?? Buffer.alloc(0));
             const cert2Chain = split_der(cert2Full);
 
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                cert2Chain[0],
-                cert2Chain.slice(1)
-            );
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", cert2Chain[0], cert2Chain.slice(1));
 
             // When: Apply changes successfully (no injected failure)
             const statusCode = await rollbackTestPushManager.applyChanges();
@@ -2102,17 +2028,14 @@ describe("Testing Server Side PushCertificateManager", () => {
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
 
-            const backupCertFiles = certFiles.filter(f => f.endsWith("_old"));
-            const backupIssuerFiles = issuerFiles.filter(f => f.endsWith("_old"));
+            const backupCertFiles = certFiles.filter((f) => f.endsWith("_old"));
+            const backupIssuerFiles = issuerFiles.filter((f) => f.endsWith("_old"));
 
             backupCertFiles.length.should.eql(0, "No backup certificate files should remain after successful transaction");
             backupIssuerFiles.length.should.eql(0, "No backup issuer files should remain after successful transaction");
-
-
         });
 
         it("should track all backup files during complex multi-file transaction", async () => {
-
             console.log("Starting complex multi-file transaction test");
             // Given: Apply first update to establish baseline
             const resultCSR1 = await rollbackTestPushManager.createSigningRequest(
@@ -2120,16 +2043,11 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ComplexTransaction1`
             );
-            const certFull1 = await produceCertificate(rollbackFolder, resultCSR1.certificateSigningRequest!);
+            const certFull1 = await produceCertificate(rollbackFolder, resultCSR1.certificateSigningRequest ?? Buffer.alloc(0));
             const certChain1 = split_der(certFull1);
 
             console.log("Applying first update");
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                certChain1[0],
-                certChain1.slice(1)
-            );
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", certChain1[0], certChain1.slice(1));
             console.log("First update applied");
             await rollbackTestPushManager.applyChanges();
             console.log("First update applied");
@@ -2149,16 +2067,11 @@ describe("Testing Server Side PushCertificateManager", () => {
                 "",
                 `/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ComplexTransaction2`
             );
-            const certFull2 = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest!);
+            const certFull2 = await produceCertificate(rollbackFolder, resultCSR2.certificateSigningRequest ?? Buffer.alloc(0));
             const certChain2 = split_der(certFull2);
 
             console.log("Second update applied");
-            await rollbackTestPushManager.updateCertificate(
-                "DefaultApplicationGroup",
-                "",
-                certChain2[0],
-                certChain2.slice(1)
-            );
+            await rollbackTestPushManager.updateCertificate("DefaultApplicationGroup", "", certChain2[0], certChain2.slice(1));
             console.log("Second update applied");
 
             injectFailingTask(rollbackTestPushManager, "Multi-file transaction failure");
@@ -2174,24 +2087,24 @@ describe("Testing Server Side PushCertificateManager", () => {
             const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
 
-            restoredCertDER.toString("hex").should.eql(baselineCertDER.toString("hex"),
-                "certificate.der should be restored to baseline");
-            restoredCertPEM.should.eql(baselineCertPEM,
-                "certificate.pem should be restored to baseline");
+            restoredCertDER
+                .toString("hex")
+                .should.eql(baselineCertDER.toString("hex"), "certificate.der should be restored to baseline");
+            restoredCertPEM.should.eql(baselineCertPEM, "certificate.pem should be restored to baseline");
 
             // And: Issuer files should match the baseline (excluding _old files)
-            const restoredIssuerFiles = fs.readdirSync(issuerFolder).filter(f => !f.endsWith("_old")).sort();
-            restoredIssuerFiles.should.eql(baselineIssuerFiles,
-                "Issuer files should match baseline state");
-
-
+            const restoredIssuerFiles = fs
+                .readdirSync(issuerFolder)
+                .filter((f) => !f.endsWith("_old"))
+                .sort();
+            restoredIssuerFiles.should.eql(baselineIssuerFiles, "Issuer files should match baseline state");
 
             // And: No backup files should remain on disk
             const certFiles = fs.readdirSync(certFolder);
             const issuerFiles = fs.readdirSync(issuerFolder);
 
-            const certBackupFiles = certFiles.filter(f => f.endsWith("_old"));
-            const issuerBackupFiles = issuerFiles.filter(f => f.endsWith("_old"));
+            const certBackupFiles = certFiles.filter((f) => f.endsWith("_old"));
+            const issuerBackupFiles = issuerFiles.filter((f) => f.endsWith("_old"));
 
             certBackupFiles.length.should.eql(0, "No backup certificate files should remain on disk");
             issuerBackupFiles.length.should.eql(0, "No backup issuer files should remain on disk");
@@ -2241,20 +2154,20 @@ describe("Testing Server Side PushCertificateManager", () => {
             await cleanupTestPushManager.initialize();
 
             const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(cleanupFolder);
-            await cleanupTestPushManager.applicationGroup!.trustCertificate(caCertificate);
-            await cleanupTestPushManager.applicationGroup!.addIssuer(caCertificate);
-            await cleanupTestPushManager.applicationGroup!.addRevocationList(crl);
+            await cleanupTestPushManager.applicationGroup?.trustCertificate(caCertificate);
+            await cleanupTestPushManager.applicationGroup?.addIssuer(caCertificate);
+            await cleanupTestPushManager.applicationGroup?.addRevocationList(crl);
 
             // Given: Create a signing request
-            const resultCSR = await cleanupTestPushManager.createSigningRequest(
+            const resultCSR = (await cleanupTestPushManager.createSigningRequest(
                 "DefaultApplicationGroup",
                 "",
                 "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-CleanupTest"
-            );
+            )) as CreateSigningRequestResult & { certificateSigningRequest: Buffer };
             resultCSR.statusCode.should.eql(StatusCodes.Good);
 
             // Given: Create a certificate that is not yet valid
-            const certificateFull = await produceNotYetValidCertificate(cleanupFolder, resultCSR.certificateSigningRequest!);
+            const certificateFull = await produceNotYetValidCertificate(cleanupFolder, resultCSR.certificateSigningRequest);
             const certificateChain = split_der(certificateFull);
             const certificate = certificateChain[0];
             const issuerCertificates = certificateChain.slice(1);

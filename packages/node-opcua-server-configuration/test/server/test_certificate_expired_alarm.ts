@@ -1,30 +1,30 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import "should";
-import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { OPCUAServer } from "node-opcua-server";
-import { makeRoles, WellKnownRoles } from "node-opcua-address-space";
-import {
-    OPCUAClient,
-    installAlarmMonitoring,
-    uninstallAlarmMonitoring,
-    UserIdentityInfoUserName,
-    makeBrowsePath,
-    UserTokenType,
-    MessageSecurityMode,
-    ClientAlarm,
-    SecurityPolicy,
-    DataValue,
-    DataType,
-    AttributeIds
-} from "node-opcua-client";
 import bcrypt from "bcryptjs";
+import { makeRoles, WellKnownRoles } from "node-opcua-address-space";
+import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import {
+    AttributeIds,
+    type ClientAlarm,
+    DataType,
+    DataValue,
+    installAlarmMonitoring,
+    MessageSecurityMode,
+    makeBrowsePath,
+    OPCUAClient,
+    SecurityPolicy,
+    type UserIdentityInfoUserName,
+    UserTokenType,
+    uninstallAlarmMonitoring
+} from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { OPCUAServer } from "node-opcua-server";
 
 import { installPushCertificateManagementOnServer } from "../..";
 import {
-    createSomeOutdatedCertificate,
     createCertificateWithEndDate,
+    createSomeOutdatedCertificate,
     initializeHelpers
 } from "../helpers/fake_certificate_authority";
 
@@ -74,7 +74,7 @@ async function installSoonOutdateedCertificate(certificateManager: OPCUACertific
     const certificateFile = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
     try {
         fs.unlinkSync(certificateFile);
-    } catch (err) {
+    } catch (_err) {
         /** */
     }
     // expiring in 10 days
@@ -88,7 +88,7 @@ async function installOutdatedCertificate(certificateManager: OPCUACertificateMa
     const certificateFile = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
     try {
         fs.unlinkSync(certificateFile);
-    } catch (err) {
+    } catch (_err) {
         /** */
     }
     await createSomeOutdatedCertificate(certificateManager.rootDir, certificateManager, certificateFile);
@@ -104,7 +104,7 @@ async function getFolder(name: string) {
     return fakePKI;
 }
 
-describe("Test CertificateExpiredAlarm", function (this: any) {
+describe("Test CertificateExpiredAlarm", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 5 * 60 * 1000));
 
     let clientCertificateManager: OPCUACertificateManager;
@@ -112,16 +112,14 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
     let userCertificateManager: OPCUACertificateManager;
     before(async () => {
         await CertificateManager.disposeAll();
-    });
-    before(async () => {
+
         const fakePKI = await getFolder("EE");
         clientCertificateManager = new OPCUACertificateManager({
             rootFolder: fakePKI,
             automaticallyAcceptUnknownCertificate: true
         });
         await clientCertificateManager.initialize();
-    });
-    before(async () => {
+
         const fakePKIApp = await getFolder("DD-Application");
         const fakePKIUser = await getFolder("DD-User");
 
@@ -138,13 +136,10 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
         await userCertificateManager.initialize();
     });
     after(async () => {
-        await clientCertificateManager.dispose();
-        await serverCertificateManager.dispose();
-        await userCertificateManager.dispose();
-
-        // check that all certificate manager have been properly disposed
-        CertificateManager.checkAllDisposed();
-        
+        // dispose all CertificateManager instances (including those
+        // created internally by OPCUAServer / OPCUAClient and any
+        // lingering instances from other test suites in this process)
+        await CertificateManager.disposeAll();
     });
     async function createClient() {
         const client = OPCUAClient.create({
@@ -152,7 +147,7 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
             clientCertificateManager,
-            clientName: "1 " + __filename,
+            clientName: `1 ${__filename}`
         });
         await client.clientCertificateManager.initialize();
         return client;
@@ -181,14 +176,14 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                 endpointUrl,
                 userIdentity: <UserIdentityInfoUserName>{
                     type: UserTokenType.UserName,
-                    password: (()=>"secret")(),
+                    password: (() => "secret")(),
                     userName: "root"
                 }
             },
             async (session) => {
                 const alarmList = await installAlarmMonitoring(session);
 
-                alarmList.on("newAlarm", (alarm) => {
+                alarmList.on("newAlarm", (_alarm) => {
                     /** */
                 });
                 alarmList.on("alarmChanged", (alarm) => {
@@ -245,15 +240,18 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                     console.log("cannot file the CertificateExpired node in the server");
                     return;
                 }
-
-                const certificateExpired = a.targets![0].targetId;
+                const certificateExpired = a.targets?.[0].targetId;
+                if (!certificateExpired) {
+                    console.log("cannot find the CertificateExpired target node");
+                    return;
+                }
 
                 const b = await session.translateBrowsePath(makeBrowsePath(certificateExpired, "/ExpirationLimit"));
                 if (b.statusCode.isNotGood()) {
                     console.log("cannot file the ExpirationLimit node in the server");
                     return;
                 }
-                const nodeId = b.targets![0].targetId;
+                const nodeId = b.targets?.[0].targetId;
 
                 console.log(" changing the ExpirationLimit node to ", limitInMilliseconds);
                 const dataValue = new DataValue({ value: { dataType: DataType.Double, value: limitInMilliseconds } });
@@ -265,11 +263,11 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
     }
     function checkAlarmIsCertificateExpirationAlarmForDefaultUserTokenGroup(alarms: ClientAlarm[], messageMatch = /has expired/) {
         alarms.length.should.eql(1);
-        alarms[0].getField("sourceName")!.value.toString().should.eql("DefaultUserTokenGroup");
-        alarms[0].getField("message")!.value.toString().should.match(messageMatch);
+        alarms[0].getField("sourceName")?.value.toString().should.eql("DefaultUserTokenGroup");
+        alarms[0].getField("message")?.value.toString().should.match(messageMatch);
         alarms[0]
-            .getField("eventType")!
-            .value.toString()
+            .getField("eventType")
+            ?.value.toString()
             .should.match(/i=13225/);
     }
 

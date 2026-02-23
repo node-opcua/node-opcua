@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { exploreCertificate, verifyCertificateChain } from "node-opcua-crypto/web";
-import { make_warningLog, make_errorLog } from "node-opcua-debug";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { ByteString } from "node-opcua-basic-types";
+import type { ByteString } from "node-opcua-basic-types";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { type CertificateInternals, exploreCertificate, verifyCertificateChain } from "node-opcua-crypto/web";
+import { make_errorLog, make_warningLog } from "node-opcua-debug";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -21,7 +21,7 @@ export async function validateCertificateAndChain(
     certificate: Buffer,
     issuerCertificates: ByteString[] | null | undefined
 ): Promise<{ statusCode: StatusCode; certificateChain?: Buffer }> {
-    let certInfo;
+    let certInfo: CertificateInternals;
     try {
         certInfo = exploreCertificate(certificate);
     } catch (err) {

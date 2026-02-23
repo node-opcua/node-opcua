@@ -1,46 +1,45 @@
-import path from "path";
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import "should";
 import "mocha";
 import {
     AddressSpace,
-    IServerBase,
-    ISessionBase,
+    ContinuationPointManager,
+    type IServerBase,
+    type ISessionBase,
+    makeRoles,
     PseudoSession,
     SessionContext,
-    WellKnownRoles,
-    makeRoles,
-    UAServer,
-    UAServerConfiguration,
-    ContinuationPointManager,
-    UATrustList,
-    UAMethod
+    type UAMethod,
+    type UAServer,
+    type UAServerConfiguration,
+    type UATrustList,
+    WellKnownRoles
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { NodeClass } from "node-opcua-data-model";
-import { nodesets } from "node-opcua-nodesets";
 import { assert } from "node-opcua-assert";
-import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { CertificateManager } from "node-opcua-certificate-manager";
+import { makeSHA1Thumbprint, readCertificate, split_der } from "node-opcua-crypto";
+import { NodeClass } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { SecurityPolicy } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
-import { readCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
-import { SecurityPolicy } from "node-opcua-secure-channel";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { DataType, Variant } from "node-opcua-variant";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { TrustListMasks } from "../source/server/trust_list_server";
-import { initializeHelpers, _getFakeAuthorityCertificate } from "./helpers/fake_certificate_authority";
+import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority";
 
 const doDebug = false;
 describe("ServerConfiguration", () => {
-
-
     let addressSpace: AddressSpace;
 
     const opcuaServer: IServerBase = {
         userManager: {
-            getUserRoles(userName: string): NodeId[] {
+            getUserRoles(_userName: string): NodeId[] {
                 return makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.SecurityAdmin]);
             }
         }
@@ -71,7 +70,7 @@ describe("ServerConfiguration", () => {
     before(async () => {
         await CertificateManager.disposeAll();
     });
-    
+
     beforeEach(async () => {
         try {
             const _folder = await initializeHelpers("AA", 0);
@@ -215,8 +214,8 @@ describe("ServerConfiguration", () => {
             const certificateTypeId = new NodeId();
             const certificate = Buffer.from("SomeCertificate");
             const issuerCertificates = [Buffer.from("Issuer1"), Buffer.from("Issuer2")];
-            const privateKeyFormat = "PEM";
-            const privateKey = Buffer.from("1234");
+            const _privateKeyFormat = "PEM";
+            const _privateKey = Buffer.from("1234");
 
             const result = await clientPushCertificateManager.updateCertificate(
                 certificateGroupId,
@@ -265,10 +264,10 @@ describe("ServerConfiguration", () => {
 
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(certificates.length - 1);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(certificates.length - 1);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should provide trust list with masks - issuer certificates", async () => {
@@ -286,10 +285,10 @@ describe("ServerConfiguration", () => {
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
 
             doDebug && console.log(a.toString());
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
 
             // now add a certificate
             {
@@ -314,19 +313,19 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCertificates);
-            a.trustedCertificates!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
             // AddCertificate no longer adds issuer certificates per OPC UA spec
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
 
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCertificates);
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCertificates);
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should write trust list", async () => {
@@ -364,10 +363,10 @@ describe("ServerConfiguration", () => {
 
             let a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(certificates.length - 1);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(certificates.length - 1);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
 
             // create a new trust list with additional issuer certificates and CRLs
             // Reuse the same certificate chain for issuer certificates and CRLs
@@ -383,7 +382,7 @@ describe("ServerConfiguration", () => {
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_CRL", 0));
             newTrustList.issuerCrls = [
                 crl,
-                crl  // Use the same CRL twice to test multiple CRLs
+                crl // Use the same CRL twice to test multiple CRLs
             ];
 
             // now write back the updated list
@@ -395,10 +394,10 @@ describe("ServerConfiguration", () => {
 
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(1); // issuer from the chain added via Write
-            a.issuerCrls!.length.should.eql(1); // same CRL buffer produces same filename, so only 1 file on disk
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(1); // issuer from the chain added via Write
+            a.issuerCrls?.length.should.eql(1); // same CRL buffer produces same filename, so only 1 file on disk
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should read trust list with TrustedCrls mask", async () => {
@@ -416,10 +415,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0); // No CRLs added yet
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0); // No CRLs added yet
         });
 
         it("should read trust list with IssuerCrls mask", async () => {
@@ -437,10 +436,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0); // No CRLs added yet
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0); // No CRLs added yet
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should read trust list with both CRL masks", async () => {
@@ -459,10 +458,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(crlMask);
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should write and read back trusted CRLs", async () => {
@@ -495,10 +494,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
-            a.trustedCrls!.length.should.eql(1);
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(1);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
         });
 
         it("should write and read back issuer CRLs", async () => {
@@ -531,10 +530,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
-            a.issuerCrls!.length.should.eql(1);
-            a.trustedCrls!.length.should.eql(0);
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(1);
+            a.trustedCrls?.length.should.eql(0);
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
         });
 
         it("should write and read back both trusted and issuer CRLs", async () => {
@@ -568,10 +567,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(crlMask);
-            a.trustedCrls!.length.should.eql(1);
-            a.issuerCrls!.length.should.eql(1); // same CRL → same filename → 1 file on disk
-            a.trustedCertificates!.length.should.eql(0);
-            a.issuerCertificates!.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(1);
+            a.issuerCrls?.length.should.eql(1); // same CRL → same filename → 1 file on disk
+            a.trustedCertificates?.length.should.eql(0);
+            a.issuerCertificates?.length.should.eql(0);
         });
 
         it("should replace existing CRLs when writing new trust list", async () => {
@@ -599,7 +598,7 @@ describe("ServerConfiguration", () => {
 
             // Verify the initial write
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
-            a.issuerCrls!.length.should.eql(1);
+            a.issuerCrls?.length.should.eql(1);
 
             // Now write a new trust list with 1 issuer CRL (should replace the previous 2)
             newTrustList = new TrustListDataType();
@@ -614,7 +613,7 @@ describe("ServerConfiguration", () => {
             // Verify the replacement
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
             doDebug && console.log(a.toString());
-            a.issuerCrls!.length.should.eql(1); // Should have only 1 CRL now, not 3
+            a.issuerCrls?.length.should.eql(1); // Should have only 1 CRL now, not 3
         });
 
         it("should handle empty CRL arrays correctly", async () => {
@@ -641,11 +640,9 @@ describe("ServerConfiguration", () => {
             await trustList.writeTrustedCertificateList(newTrustList);
 
             // Verify CRLs were written
-            let a = await trustList.readTrustedCertificateListWithMasks(
-                TrustListMasks.IssuerCrls | TrustListMasks.TrustedCrls
-            );
-            a.issuerCrls!.length.should.eql(1);
-            a.trustedCrls!.length.should.eql(1);
+            let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls | TrustListMasks.TrustedCrls);
+            a.issuerCrls?.length.should.eql(1);
+            a.trustedCrls?.length.should.eql(1);
 
             // Now write empty CRL arrays (should clear them)
             newTrustList = new TrustListDataType();
@@ -658,12 +655,10 @@ describe("ServerConfiguration", () => {
             await trustList.writeTrustedCertificateList(newTrustList);
 
             // Verify CRLs were cleared
-            a = await trustList.readTrustedCertificateListWithMasks(
-                TrustListMasks.IssuerCrls | TrustListMasks.TrustedCrls
-            );
+            a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls | TrustListMasks.TrustedCrls);
             doDebug && console.log(a.toString());
-            a.issuerCrls!.length.should.eql(0);
-            a.trustedCrls!.length.should.eql(0);
+            a.issuerCrls?.length.should.eql(0);
+            a.trustedCrls?.length.should.eql(0);
         });
 
         it("should write trust list with certificates and CRLs together", async () => {
@@ -696,8 +691,8 @@ describe("ServerConfiguration", () => {
 
             // Verify certificate was added
             let a = await trustList.readTrustedCertificateList();
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(certificates.length - 1);
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(certificates.length - 1);
 
             // Now add CRLs and issuer certificates using writeTrustedCertificateList
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_CERT_AND_CRL", 0));
@@ -707,9 +702,7 @@ describe("ServerConfiguration", () => {
 
             const newTrustList = new TrustListDataType();
             newTrustList.specifiedLists =
-                TrustListMasks.TrustedCertificates |
-                TrustListMasks.IssuerCertificates |
-                TrustListMasks.IssuerCrls;
+                TrustListMasks.TrustedCertificates | TrustListMasks.IssuerCertificates | TrustListMasks.IssuerCrls;
             newTrustList.trustedCertificates = a.trustedCertificates;
             newTrustList.issuerCertificates = certificates.slice(1); // Add issuer certificates from chain
             newTrustList.trustedCrls = [];
@@ -723,9 +716,9 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
 
-            a.trustedCertificates!.length.should.eql(1);
-            a.issuerCertificates!.length.should.eql(1);
-            a.issuerCrls!.length.should.eql(1); // same CRL → same filename → 1 file on disk
+            a.trustedCertificates?.length.should.eql(1);
+            a.issuerCertificates?.length.should.eql(1);
+            a.issuerCrls?.length.should.eql(1); // same CRL → same filename → 1 file on disk
         });
 
         it("should preserve certificates when updating only CRLs", async () => {
@@ -754,7 +747,7 @@ describe("ServerConfiguration", () => {
 
             // Verify certificate was added
             let a = await trustList.readTrustedCertificateList();
-            a.trustedCertificates!.length.should.eql(1);
+            a.trustedCertificates?.length.should.eql(1);
 
             // Now update only CRLs
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_PRESERVE_CERT", 0));
@@ -772,13 +765,17 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
 
-            a.trustedCertificates!.length.should.eql(1); // Certificate should still be there
-            a.issuerCrls!.length.should.eql(1);
+            a.trustedCertificates?.length.should.eql(1); // Certificate should still be there
+            a.issuerCrls?.length.should.eql(1);
         });
 
         describe("RemoveCertificate", () => {
             it("should remove a trusted certificate by thumbprint", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -788,7 +785,10 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
 
@@ -797,7 +797,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was added
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(1);
+                a.trustedCertificates?.length.should.eql(1);
 
                 // Calculate thumbprint of the actual certificate (not the buffer which may contain chain)
                 const certificates = split_der(certificate);
@@ -807,11 +807,15 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was removed
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(0);
+                a.trustedCertificates?.length.should.eql(0);
             });
 
             it("should reject isTrustedCertificate=false per OPC UA spec", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -830,7 +834,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should remove an issuer certificate by thumbprint", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -858,7 +866,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify issuer certificates were added
                 let a = await trustList.readTrustedCertificateList();
-                a.issuerCertificates!.length.should.eql(2); // client cert + its CA
+                a.issuerCertificates?.length.should.eql(2); // client cert + its CA
 
                 // Calculate thumbprint of the leaf certificate (first in chain) and remove it
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
@@ -867,11 +875,15 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was removed (CA should still be there)
                 a = await trustList.readTrustedCertificateList();
-                a.issuerCertificates!.length.should.eql(1);
+                a.issuerCertificates?.length.should.eql(1);
             });
 
             it("should accept thumbprint in both plain hex and NodeOPCUA[hex] formats", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -894,7 +906,7 @@ describe("ServerConfiguration", () => {
                 await trustList.addCertificate(cert2, true);
 
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(2);
+                a.trustedCertificates?.length.should.eql(2);
 
                 // Remove first certificate using plain hex format
                 const certs1 = split_der(cert1);
@@ -903,7 +915,7 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(1);
+                a.trustedCertificates?.length.should.eql(1);
 
                 // Remove second certificate using NodeOPCUA[hex] format
                 const certs2 = split_der(cert2);
@@ -913,11 +925,15 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(0);
+                a.trustedCertificates?.length.should.eql(0);
             });
 
             it("should return BadInvalidArgument when thumbprint does not match any certificate", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -933,7 +949,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadInvalidState when trust list is already opened", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -943,7 +963,10 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
                 await trustList.addCertificate(certificate, true);
 
@@ -961,7 +984,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should look for certificate in correct folder based on isTrustedCertificate flag", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -971,12 +998,15 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a self-signed certificate as trusted
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
                 await trustList.addCertificate(certificate, true);
 
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(1);
+                a.trustedCertificates?.length.should.eql(1);
 
                 const certificates = split_der(certificate);
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
@@ -990,11 +1020,15 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates!.length.should.eql(0);
+                a.trustedCertificates?.length.should.eql(0);
             });
 
             it("should update LastUpdateTime property when trust list is modified", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1004,7 +1038,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Get the TrustList node to check LastUpdateTime directly
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
+                const trustListNode = addressSpace.findNode(trustList.nodeId) as UATrustList;
                 const lastUpdateTimeNode = trustListNode.lastUpdateTime;
 
                 assert(lastUpdateTimeNode, "LastUpdateTime property should exist on TrustList");
@@ -1014,10 +1048,13 @@ describe("ServerConfiguration", () => {
                 assert(initialTime);
 
                 // Wait a bit to ensure timestamp will be different
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Add a certificate - should update LastUpdateTime
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
                 await trustList.addCertificate(certificate, true);
 
@@ -1025,7 +1062,7 @@ describe("ServerConfiguration", () => {
                 afterAddTime.getTime().should.be.greaterThan(initialTime.getTime());
 
                 // Wait a bit to ensure timestamp will be different
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Remove the certificate - should update LastUpdateTime again
                 const certificates = split_der(certificate);
@@ -1037,7 +1074,7 @@ describe("ServerConfiguration", () => {
                 afterRemoveTime.getTime().should.be.greaterThan(afterAddTime.getTime());
 
                 // Wait a bit to ensure timestamp will be different
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Use writeTrustedCertificateList (which calls closeAndUpdate) - should update LastUpdateTime
                 const newTrustList = new TrustListDataType();
@@ -1056,13 +1093,20 @@ describe("ServerConfiguration", () => {
 
         describe("AddCertificate - Security and Validation", () => {
             it("should return BadSecurityModeInsufficient without encrypted channel", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
+                if (!session.channel) {
+                    throw new Error("session.channel is undefined");
+                }
                 // Create context without encryption
                 const unsecureSession: ISessionBase = {
                     ...session,
                     channel: {
-                        ...session.channel!,
+                        ...session.channel,
                         securityMode: MessageSecurityMode.None
                     }
                 };
@@ -1073,7 +1117,10 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
 
                 const sc = await trustList.addCertificate(certificate, true);
@@ -1081,12 +1128,16 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadUserAccessDenied without proper user roles", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 // Create server with user manager that returns no admin roles
                 const restrictedServer: IServerBase = {
                     userManager: {
-                        getUserRoles(userName: string): NodeId[] {
+                        getUserRoles(_userName: string): NodeId[] {
                             return makeRoles([WellKnownRoles.AuthenticatedUser]); // Missing SecurityAdmin role
                         }
                     }
@@ -1099,7 +1150,10 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
 
                 const sc = await trustList.addCertificate(certificate, true);
@@ -1107,7 +1161,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadInvalidState when trust list is opened for write", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1117,11 +1175,14 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Open the trust list for writing
-                const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
+                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to add certificate while trust list is open for write
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
 
                 const sc = await trustList.addCertificate(certificate, true);
@@ -1134,7 +1195,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should only add leaf certificate when certificate chain is provided", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1167,26 +1232,31 @@ describe("ServerConfiguration", () => {
 
                 // Verify: only the leaf certificate should be in trusted certs
                 const result = await trustList.readTrustedCertificateList();
-                result.trustedCertificates!.length.should.eql(1);
+                result.trustedCertificates?.length.should.eql(1);
 
                 // Verify the added cert is the leaf cert
-                const addedCertThumbprint = makeSHA1Thumbprint(result.trustedCertificates![0]).toString("hex");
+                const addedCertThumbprint = makeSHA1Thumbprint(result.trustedCertificates?.[0] ?? Buffer.alloc(0)).toString("hex");
                 const leafThumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 addedCertThumbprint.should.eql(leafThumbprint);
 
                 // Issuer certificates should still be in issuer list (not added by AddCertificate)
-                result.issuerCertificates!.length.should.eql(certificates.length - 1);
+                result.issuerCertificates?.length.should.eql(certificates.length - 1);
             });
         });
 
         describe("RemoveCertificate - Security and Chain Validation", () => {
             it("should return BadSecurityModeInsufficient without encrypted channel", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 // Create context without encryption
                 const unsecureSession: ISessionBase = {
                     ...session,
                     channel: {
+                        // biome-ignore lint/style/noNonNullAssertion: session.channel is guaranteed in test setup
                         ...session.channel!,
                         securityMode: MessageSecurityMode.None
                     }
@@ -1204,12 +1274,16 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadUserAccessDenied without proper user roles", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 // Create server with user manager that returns no admin roles
                 const restrictedServer: IServerBase = {
                     userManager: {
-                        getUserRoles(userName: string): NodeId[] {
+                        getUserRoles(_userName: string): NodeId[] {
                             return makeRoles([WellKnownRoles.AuthenticatedUser]); // Missing SecurityAdmin role
                         }
                     }
@@ -1228,7 +1302,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadCertificateChainIncomplete when removing issuer needed for trusted cert validation", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1254,8 +1332,8 @@ describe("ServerConfiguration", () => {
 
                 // Verify setup
                 let result = await trustList.readTrustedCertificateList();
-                result.trustedCertificates!.length.should.be.greaterThan(0);
-                result.issuerCertificates!.length.should.be.greaterThan(0);
+                result.trustedCertificates?.length.should.be.greaterThan(0);
+                result.issuerCertificates?.length.should.be.greaterThan(0);
 
                 // Try to remove the CA certificate that the trusted cert depends on
                 // The leaf cert depends on this CA in issuerCertificates, so removing it should fail
@@ -1267,13 +1345,17 @@ describe("ServerConfiguration", () => {
 
                 // Verify the CA was not removed
                 result = await trustList.readTrustedCertificateList();
-                result.issuerCertificates!.length.should.be.greaterThan(0);
+                result.issuerCertificates?.length.should.be.greaterThan(0);
             });
         });
 
         describe("Open and OpenWithMasks - OPC UA Spec Compliance", () => {
             it("should return BadNotSupported for unsupported file open modes", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1283,25 +1365,27 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Get the trust list node to call open directly with unsupported mode
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
+                const trustListNode = addressSpace.findNode(trustList.nodeId) as UATrustList;
                 const openMethod = trustListNode.getChildByName("Open") as UAMethod;
 
                 // Try to open with Write mode (0x02) - not supported per OPC UA spec
                 // OPC UA spec: Only Read (0x01) and WriteEraseExisting (0x06) are supported
-                const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
-                const DataType = await import("node-opcua-variant").then(m => m.DataType);
-                const Variant = await import("node-opcua-variant").then(m => m.Variant);
+                const _OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
 
                 const result = await openMethod.execute(
                     trustListNode,
                     [new Variant({ dataType: DataType.Byte, value: 0x02 })], // Write mode (unsupported)
-                    context,
+                    context
                 );
-                result.statusCode!.should.eql(StatusCodes.BadNotSupported);
+                result.statusCode?.should.eql(StatusCodes.BadNotSupported);
             });
 
             it("should return BadInvalidState when opening while already opened for write", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1311,14 +1395,12 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Open the trust list for writing
-                const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
+                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to open again (either read or write) - should fail with BadInvalidState
-                const trustListNode = addressSpace.findNode(trustList.nodeId)! as UATrustList;
-                const openMethod = trustListNode.getChildByName("Open")! as UAMethod;
-                const DataType = await import("node-opcua-variant").then(m => m.DataType);
-                const Variant = await import("node-opcua-variant").then(m => m.Variant);
+                const trustListNode = addressSpace.findNode(trustList.nodeId) as UATrustList;
+                const openMethod = trustListNode.getChildByName("Open") as UAMethod;
 
                 const result = await openMethod.execute(
                     trustListNode,
@@ -1326,7 +1408,7 @@ describe("ServerConfiguration", () => {
                     context
                 );
 
-                result.statusCode!.should.eql(StatusCodes.BadInvalidState);
+                result.statusCode?.should.eql(StatusCodes.BadInvalidState);
 
                 // Clean up - close the file handle
                 // closeAndUpdate will fail since we didn't write anything
@@ -1336,7 +1418,11 @@ describe("ServerConfiguration", () => {
 
         describe("Certificate Validation - OPC UA Part 4 Compliance", () => {
             it("should reject invalid certificate in AddCertificate", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1354,7 +1440,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should reject certificate in AddCertificate when issuer is not in TrustList", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1376,7 +1466,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should reject invalid certificates in CloseAndUpdate", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1400,10 +1494,10 @@ describe("ServerConfiguration", () => {
                     await trustList.writeTrustedCertificateList(newTrustList);
                     // If we reach here, the implementation should have rejected the invalid certificate
                     // For now, we'll just verify the trust list wasn't corrupted
-                    const result = await trustList.readTrustedCertificateList();
+                    const _result = await trustList.readTrustedCertificateList();
                     // The invalid certificate should not have been added
                     // (implementation may or may not validate at write time vs closeAndUpdate time)
-                } catch (err) {
+                } catch (_err) {
                     // It's acceptable to throw an error on invalid certificate
                 }
             });
@@ -1411,7 +1505,11 @@ describe("ServerConfiguration", () => {
 
         describe("CloseAndUpdate - ApplyChangesRequired Output", () => {
             it("should return applyChangesRequired=false for immediate application mode", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1421,7 +1519,10 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Write a valid trust list
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
 
                 const newTrustList = new TrustListDataType();
@@ -1440,7 +1541,11 @@ describe("ServerConfiguration", () => {
 
         describe("Multiple Simultaneous Operations", () => {
             it("should allow multiple simultaneous read operations", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1451,12 +1556,15 @@ describe("ServerConfiguration", () => {
                 const trustList2 = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
                 await trustList.addCertificate(certificate, true);
 
                 // Open for read twice (should be allowed per OPC UA spec)
-                const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
+                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
 
                 // First read
                 await trustList.open(OpenFileMode.Read);
@@ -1476,7 +1584,11 @@ describe("ServerConfiguration", () => {
             });
 
             it("should prevent AddCertificate while file is open for read", async () => {
-                await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+                await installPushCertificateManagement(addressSpace, {
+                    applicationGroup,
+                    userTokenGroup,
+                    applicationUri: "SomeUri"
+                });
 
                 const context = new SessionContext({ server: opcuaServer, session });
                 const pseudoSession = new PseudoSession(addressSpace, context);
@@ -1485,13 +1597,16 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const OpenFileMode = await import("node-opcua-file-transfer").then(m => m.OpenFileMode);
+                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
 
                 // Open for read
                 await trustList.open(OpenFileMode.Read);
 
                 // Try to add certificate while open
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
+                const certificateFile = path.join(
+                    __dirname,
+                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
+                );
                 const certificate = await readCertificate(certificateFile);
                 const sc = await trustList.addCertificate(certificate, true);
 

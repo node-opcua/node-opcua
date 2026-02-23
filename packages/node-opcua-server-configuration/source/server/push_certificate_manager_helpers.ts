@@ -1,44 +1,41 @@
 /**
  * @module node-opcua-server-configuration
  */
-import path from "path";
-import fs from "fs";
+
+import fs from "node:fs";
+import path from "node:path";
 import {
-    AddressSpace,
-    UAMethod,
-    UATrustList,
-    UAServerConfiguration,
-    ISessionContext,
-    UACertificateGroup,
-    UACertificateExpirationAlarmEx,
-    instantiateCertificateExpirationAlarm
+    type AddressSpace,
+    type ISessionContext,
+    instantiateCertificateExpirationAlarm,
+    type UACertificateExpirationAlarmEx,
+    type UACertificateGroup,
+    type UAMethod,
+    type UAServerConfiguration,
+    type UATrustList
 } from "node-opcua-address-space";
-import { UAObject, UAVariable, EventNotifierFlags } from "node-opcua-address-space-base";
-
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
-import { ByteString, UAString } from "node-opcua-basic-types";
+import { EventNotifierFlags, type UAObject, type UAVariable } from "node-opcua-address-space-base";
+import type { ByteString, UAString } from "node-opcua-basic-types";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
-import { CertificateManager } from "node-opcua-pki";
-import { Certificate, readCertificate } from "node-opcua-crypto";
+import { type Certificate, readCertificate } from "node-opcua-crypto";
+import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { CertificateManager } from "node-opcua-pki";
+import { StatusCodes } from "node-opcua-status-code";
+import type { CallMethodResultOptions } from "node-opcua-types";
+import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
-import { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
-
-import { PushCertificateManagerServerImpl, PushCertificateManagerServerOptions } from "./push_certificate_manager_server_impl";
-import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
-import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
-import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
+import type { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
 import { installCertificateFileWatcher } from "./install_certificate_file_watcher";
+import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
+import { PushCertificateManagerServerImpl, type PushCertificateManagerServerOptions } from "./push_certificate_manager_server_impl";
+import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
+import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
 
 const debugLog = make_debugLog("ServerConfiguration");
-const doDebug = checkDebugFlag("ServerConfiguration");
-doDebug;
 const warningLog = make_warningLog("ServerConfiguration");
-const errorLog = debugLog;
+const errorLog = make_errorLog("ServerConfiguration");
 
 function expected(variant: Variant | undefined, dataType: DataType, variantArrayType: VariantArrayType): boolean {
     if (!variant) {
@@ -55,7 +52,7 @@ function expected(variant: Variant | undefined, dataType: DataType, variantArray
 
 function getPushCertificateManager(method: UAMethod): PushCertificateManager | null {
     const serverConfiguration = method.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");
-    const serverConfigurationPriv = serverConfiguration as any;
+    const serverConfigurationPriv = serverConfiguration as unknown as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
         return serverConfigurationPriv.$pushCertificateManager;
     }
@@ -159,7 +156,7 @@ async function _updateCertificate(
     }
 
     if (privateKeyFormat && privateKeyFormat !== "" && privateKeyFormat.toLowerCase() !== "pem") {
-        errorLog("_updateCertificate: Invalid PEM format requested " + privateKeyFormat);
+        errorLog(`_updateCertificate: Invalid PEM format requested ${privateKeyFormat}`);
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -186,7 +183,7 @@ async function _updateCertificate(
         outputArguments: [
             {
                 dataType: DataType.Boolean,
-                value: result.applyChangesRequired!
+                value: result.applyChangesRequired ?? false
             }
         ],
         statusCode: result.statusCode
@@ -196,7 +193,7 @@ async function _updateCertificate(
 
 async function _getRejectedList(
     this: UAMethod,
-    inputArguments: Variant[],
+    _inputArguments: Variant[],
     context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     if (!hasEncryptedChannel(context)) {
@@ -231,7 +228,7 @@ async function _getRejectedList(
 
 async function _applyChanges(
     this: UAMethod,
-    inputArguments: Variant[],
+    _inputArguments: Variant[],
     context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     // This Method requires an encrypted channel and that the Client provide credentials with
@@ -298,11 +295,13 @@ function bindCertificateGroup(certificateGroup: UACertificateGroup, certificateM
     }
     const trustList = certificateGroup.getComponentByName("TrustList");
     if (trustList) {
-        (trustList as any).$$certificateManager = certificateManager;
+        (trustList as unknown as { $$certificateManager: CertificateManager }).$$certificateManager = certificateManager;
     }
     const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
     if (certificateExpired) {
-        (certificateExpired as any).$$certificateManager = certificateManager;
+        (
+            certificateExpired as unknown as UACertificateExpirationAlarmEx & { $$certificateManager: CertificateManager }
+        ).$$certificateManager = certificateManager;
         // install alarm handling
         const timerId = setInterval(updateCertificateAlarm, 60 * 1000);
         addressSpace.registerShutdownTask(() => clearInterval(timerId));
@@ -313,7 +312,7 @@ function bindCertificateGroup(certificateGroup: UACertificateGroup, certificateM
 function bindCertificateManager(addressSpace: AddressSpace, options: PushCertificateManagerServerOptions) {
     const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName(
         "ServerConfiguration"
-    )! as UAServerConfiguration;
+    ) as UAServerConfiguration;
 
     const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName(
         "DefaultApplicationGroup"
@@ -339,12 +338,11 @@ function setNotifierOfChain(childObject: UAObject | null) {
     }
     const notifierOf = childObject.findReferencesEx("HasNotifier", BrowseDirection.Inverse);
     if (notifierOf.length === 0) {
-        const notifierOfNode = childObject.addReference({
+        childObject.addReference({
             referenceType: "HasNotifier",
             nodeId: parentObject.nodeId,
             isForward: false
         });
-        notifierOfNode;
     }
     parentObject.setEventNotifier(parentObject.eventNotifier | EventNotifierFlags.SubscribeToEvents);
     if (parentObject.nodeId.namespace === 0 && parentObject.nodeId.value === ObjectIds.Server) {
@@ -388,7 +386,7 @@ export async function installPushCertificateManagement(
 
     const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName(
         "ServerConfiguration"
-    )! as UAServerConfiguration;
+    ) as UAServerConfiguration;
 
     const serverConfigurationPriv = serverConfiguration as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
@@ -418,12 +416,15 @@ export async function installPushCertificateManagement(
         updateCertificate?.setRolePermissions(rolePermissionAdminOnly);
         updateCertificate?.setAccessRestrictions(accessRestrictionFlag);
 
-        const certificateGroups = serverConfiguration.getComponentByName("CertificateGroups")!;
+        const certificateGroups = serverConfiguration.getComponentByName("CertificateGroups");
+        if (!certificateGroups) {
+            return;
+        }
         certificateGroups.setRolePermissions(rolePermissionRestricted);
         certificateGroups.setAccessRestrictions(AccessRestrictionsFlag.None);
 
         function installAccessRestrictionOnGroup(group: UAObject) {
-            const trustList = group.getComponentByName("TrustList")!;
+            const trustList = group.getComponentByName("TrustList");
             if (trustList) {
                 installAccessRestrictionOnTrustList(trustList);
             }
@@ -447,8 +448,10 @@ export async function installPushCertificateManagement(
     });
 
     function install_method_handle_on_type(addressSpace: AddressSpace): void {
-        const serverConfigurationType = addressSpace.findObjectType("ServerConfigurationType")! as any;
-        if (serverConfigurationType.createSigningRequest.isBound()) {
+        const serverConfigurationType = addressSpace.findObjectType(
+            "ServerConfigurationType"
+        ) as unknown as UAServerConfiguration | null;
+        if (!serverConfigurationType || serverConfigurationType.createSigningRequest.isBound()) {
             return;
         }
         serverConfigurationType.createSigningRequest.bindMethod(_createSigningRequest);
@@ -462,13 +465,14 @@ export async function installPushCertificateManagement(
     serverConfiguration.createSigningRequest.bindMethod(_createSigningRequest);
     serverConfiguration.updateCertificate.bindMethod(_updateCertificate);
     serverConfiguration.getRejectedList.bindMethod(_getRejectedList);
-    if (serverConfiguration.applyChanges) {
-        serverConfiguration.applyChanges!.bindMethod(_applyChanges);
-    }
+    serverConfiguration.applyChanges?.bindMethod(_applyChanges);
 
     const cg = serverConfiguration.certificateGroups.getComponents();
 
-    const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup")!;
+    const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup");
+    if (!defaultApplicationGroup) {
+        return;
+    }
     const certificateTypes = defaultApplicationGroup.getPropertyByName("CertificateTypes") as UAVariable;
     certificateTypes.setValueFromSource({
         dataType: DataType.NodeId,
@@ -476,7 +480,10 @@ export async function installPushCertificateManagement(
         value: [resolveNodeId(ObjectTypeIds.RsaSha256ApplicationCertificateType)]
     });
 
-    const certificateGroupType = addressSpace.findObjectType("CertificateGroupType")!;
+    const certificateGroupType = addressSpace.findObjectType("CertificateGroupType");
+    if (!certificateGroupType) {
+        return;
+    }
 
     for (const certificateGroup of cg) {
         if (certificateGroup.nodeClass !== NodeClass.Object) {

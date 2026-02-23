@@ -1,32 +1,30 @@
-import path from "path";
-import fs from "fs";
-import util from "util";
-import os from "os";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import util from "node:util";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     AttributeIds,
-    IBasicSessionAsync,
-    makeApplicationUrn,
+    type IBasicSessionAsync,
     MessageSecurityMode,
+    makeApplicationUrn,
     OPCUAClient,
     resolveNodeId,
     SecurityPolicy,
     UserTokenType
 } from "node-opcua-client";
+import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 import {
-    Certificate,
+    type Certificate,
     exploreCertificate,
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
     split_der,
     toPem
 } from "node-opcua-crypto/web";
-import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { TrustListDataType } from "node-opcua-types";
-
-import { CertificateType } from "..";
-import { ClientPushCertificateManagement } from "..";
+import type { TrustListDataType } from "node-opcua-types";
+import { CertificateType, ClientPushCertificateManagement } from "..";
 
 const endpointUrl = "opc.tcp://localhost:48010";
 
@@ -48,13 +46,13 @@ function dumpCertificateInfo(certificate: Certificate) {
 }
 
 async function dumpTrustedList(trustList: TrustListDataType) {
-    if (trustList.trustedCertificates && trustList.trustedCertificates.length) {
+    if (trustList.trustedCertificates?.length) {
         console.log("number of trusted certificates", trustList.trustedCertificates.length);
         for (const certificate of trustList.trustedCertificates) {
             dumpCertificateInfo(certificate);
         }
     }
-    if (trustList.issuerCertificates && trustList.issuerCertificates.length) {
+    if (trustList.issuerCertificates?.length) {
         console.log("number of issuers certificates", trustList.issuerCertificates.length);
         for (const certificate of trustList.issuerCertificates) {
             dumpCertificateInfo(certificate);
@@ -139,11 +137,12 @@ async function addApplicationCertificate(session: IBasicSessionAsync) {
     await trustList.addCertificate(certificate, true);
 }
 
-async function addApplicationIssuerCertificateAndCRL(session: IBasicSessionAsync) {
+async function addApplicationIssuerCertificateAndCRL(_session: IBasicSessionAsync) {
     /**
      */
 }
-async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority: CertificateAuthority) {
+
+export async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority: CertificateAuthority) {
     const certificateAuthorityPath = path.join(caAuthority.location);
     const caCertificate = await readCertificate(caAuthority.caCertificate);
     // also get crl
@@ -151,7 +150,7 @@ async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority
 
     // get signing request
     const s = new ClientPushCertificateManagement(session);
-    const ag = await s.getApplicationGroup();
+    const _ag = await s.getApplicationGroup();
     const csr = await s.createSigningRequest("DefaultApplicationGroup", CertificateType.RsaSha256Application, "CN=toto", false);
     if (csr.statusCode.isNotGood()) {
         console.log("Signing Request = ", csr.statusCode.toString());
@@ -162,9 +161,12 @@ async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority
 
     const certificateFile = path.join(certificateAuthorityPath, "demo.pem");
     const csrFilename = path.join(certificateAuthorityPath, "csr.pem");
-    fs.writeFileSync(csrFilename, toPem(csr.certificateSigningRequest!, "CERTIFICATE REQUEST"));
+    if (!csr.certificateSigningRequest) {
+        throw new Error("certificateSigningRequest is undefined");
+    }
+    fs.writeFileSync(csrFilename, toPem(csr.certificateSigningRequest, "CERTIFICATE REQUEST"));
 
-    const certificateRequestInfo = exploreCertificateSigningRequest(csr.certificateSigningRequest!);
+    const certificateRequestInfo = exploreCertificateSigningRequest(csr.certificateSigningRequest);
     console.log(util.inspect(certificateRequestInfo, { depth: 10 }));
 
     const applicationUri = certificateRequestInfo.extensionRequest.subjectAltName.uniformResourceIdentifier[0];
@@ -192,13 +194,13 @@ async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority
         crl
     ]);
     if (result.statusCode.isNotGood()) {
-        throw new Error("updateCertificate failed " + csr.statusCode.name);
+        throw new Error(`updateCertificate failed ${csr.statusCode.name}`);
     }
     if (result.applyChangesRequired) {
         console.log("Applying changes");
         const statusCode = await s.applyChanges();
         if (statusCode.isNotGood()) {
-            throw new Error("applyChanged failed " + csr.statusCode.name);
+            throw new Error(`applyChanged failed ${csr.statusCode.name}`);
         }
     }
 }

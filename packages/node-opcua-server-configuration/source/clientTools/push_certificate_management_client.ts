@@ -1,27 +1,26 @@
 /**
  * @module node-opcua-server-configuration.client
  */
-import { ByteString } from "node-opcua-basic-types";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { CallMethodRequestLike, IBasicSessionAsync } from "node-opcua-pseudo-session";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
-import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
-import { AttributeIds, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
-import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { Certificate } from "node-opcua-crypto/web";
-import { TrustListDataType } from "node-opcua-types";
+import type { ByteString } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
+import type { Certificate } from "node-opcua-crypto/web";
+import { AttributeIds, coerceQualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
+import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { CallMethodRequestLike, IBasicSessionAsync } from "node-opcua-pseudo-session";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { TrustListDataType } from "node-opcua-types";
+import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
 
-import {
+import type {
     CreateSigningRequestResult,
     GetRejectedListResult,
     PushCertificateManager,
     UpdateCertificateResult
 } from "../push_certificate_manager";
-
-import { ITrustList } from "../trust_list";
-import { TrustListMasks } from "../server/trust_list_server";
+import type { TrustListMasks } from "../server/trust_list_server";
+import type { ITrustList } from "../trust_list";
 
 const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
 const createSigningRequestMethod = resolveNodeId("ServerConfiguration_CreateSigningRequest");
@@ -33,7 +32,6 @@ const supportedPrivateKeyFormatsNodeId = resolveNodeId("ServerConfiguration_Supp
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
 const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
-
 
 function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
     if (certificateGroup instanceof NodeId) {
@@ -64,7 +62,10 @@ export class TrustListClient extends ClientFile implements ITrustList {
     private removeCertificateNodeId?: NodeId;
     private openWithMasksNodeId?: NodeId;
 
-    constructor(session: IBasicSessionAsync, public nodeId: NodeId) {
+    constructor(
+        session: IBasicSessionAsync,
+        public nodeId: NodeId
+    ) {
         super(session, nodeId);
     }
     /**
@@ -78,10 +79,10 @@ export class TrustListClient extends ClientFile implements ITrustList {
             makeBrowsePath(this.nodeId, "/OpenWithMasks") // OpenWithMasks Mandatory
         ]);
 
-        this.closeAndUpdateNodeId = browseResults[0].targets![0].targetId;
-        this.addCertificateNodeId = browseResults[1].targets![0].targetId;
-        this.removeCertificateNodeId = browseResults[2].targets![0].targetId;
-        this.openWithMasksNodeId = browseResults[3].targets![0].targetId;
+        this.closeAndUpdateNodeId = browseResults[0].targets?.[0].targetId;
+        this.addCertificateNodeId = browseResults[1].targets?.[0].targetId;
+        this.removeCertificateNodeId = browseResults[2].targets?.[0].targetId;
+        this.openWithMasksNodeId = browseResults[3].targets?.[0].targetId;
 
         // istanbul ignore next
         if (!this.openWithMasksNodeId || this.openWithMasksNodeId.isEmpty()) {
@@ -114,7 +115,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
-        this.fileHandle = callMethodResult.outputArguments![0].value as number;
+        this.fileHandle = callMethodResult.outputArguments?.[0].value as number;
         return this.fileHandle;
     }
 
@@ -126,9 +127,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         if (!this.closeAndUpdateNodeId) {
             throw new Error("CloseAndUpdateMethod doesn't exist");
         }
-        const inputArguments = [
-            { dataType: DataType.UInt32, value: this.fileHandle }
-        ];
+        const inputArguments = [{ dataType: DataType.UInt32, value: this.fileHandle }];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
             methodId: this.closeAndUpdateNodeId,
@@ -139,7 +138,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             throw new Error(callMethodResult.statusCode.name);
         }
         this.fileHandle = 0;
-        return callMethodResult.outputArguments![0].value as boolean;
+        return callMethodResult.outputArguments?.[0].value as boolean;
     }
 
     async addCertificate(certificate: Certificate, isTrustedCertificate: boolean): Promise<StatusCode> {
@@ -209,13 +208,16 @@ export class TrustListClient extends ClientFile implements ITrustList {
     }
 }
 export class CertificateGroup {
-    constructor(public session: IBasicSessionAsync, public nodeId: NodeId) {}
+    constructor(
+        public session: IBasicSessionAsync,
+        public nodeId: NodeId
+    ) {}
     async getCertificateTypes(): Promise<NodeId[]> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
         if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
-        const certificateTypesNodeId = browsePathResult.targets![0].targetId;
+        const certificateTypesNodeId = browsePathResult.targets?.[0].targetId;
         const dataValue = await this.session.read({ nodeId: certificateTypesNodeId, attributeId: AttributeIds.Value });
         if (dataValue.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
@@ -227,7 +229,10 @@ export class CertificateGroup {
         if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
-        const trustListNodeId = browsePathResult.targets![0].targetId;
+        const trustListNodeId = browsePathResult.targets?.[0].targetId;
+        if (!trustListNodeId) {
+            throw new Error("TrustList node not found");
+        }
         return new TrustListClient(this.session, trustListNodeId);
     }
 }
@@ -303,7 +308,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
 
         if (callMethodResult.statusCode.isGood()) {
             return {
-                certificateSigningRequest: callMethodResult.outputArguments![0].value,
+                certificateSigningRequest: callMethodResult.outputArguments?.[0].value,
                 statusCode: callMethodResult.statusCode
             };
         } else {
@@ -331,11 +336,11 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
         if (callMethodResult.statusCode.isGood()) {
-            if (callMethodResult.outputArguments![0].dataType !== DataType.ByteString) {
+            if (callMethodResult.outputArguments?.[0].dataType !== DataType.ByteString) {
                 return { statusCode: StatusCodes.BadInvalidArgument };
             }
             return {
-                certificates: callMethodResult.outputArguments![0].value,
+                certificates: callMethodResult.outputArguments?.[0].value,
                 statusCode: callMethodResult.statusCode
             };
         } else {
@@ -423,22 +428,21 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
         if (callMethodResult.statusCode.isGood()) {
-            if (!callMethodResult.outputArguments || callMethodResult.outputArguments!.length !== 1) {
+            if (!callMethodResult.outputArguments || callMethodResult.outputArguments.length !== 1) {
                 return {
                     statusCode: StatusCodes.BadInternalError,
-                    applyChangesRequired: false,
+                    applyChangesRequired: false
                 };
                 // throw Error("Internal Error, expecting 1 output result");
             }
             return {
-                applyChangesRequired: !!callMethodResult.outputArguments![0].value,
+                applyChangesRequired: !!callMethodResult.outputArguments?.[0].value,
                 statusCode: callMethodResult.statusCode
             };
         } else {
-            return { 
+            return {
                 statusCode: callMethodResult.statusCode,
                 applyChangesRequired: false
-
             };
         }
     }
@@ -472,7 +476,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
 
-        if (callMethodResult.outputArguments && callMethodResult.outputArguments.length) {
+        if (callMethodResult.outputArguments?.length) {
             throw new Error("Invalid  output arguments");
         }
         return callMethodResult.statusCode;

@@ -1,10 +1,10 @@
-import { GetRejectedListResult } from "../../push_certificate_manager";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import fs from "node:fs";
+import path from "node:path";
+import type { CertificateManager } from "node-opcua-certificate-manager";
 import { convertPEMtoDER } from "node-opcua-crypto";
 import { StatusCodes } from "node-opcua-status-code";
-import * as path from "path";
-import * as fs from "fs";
-import { PushCertificateManagerInternalContext } from "./internal_context";
+import type { GetRejectedListResult } from "../../push_certificate_manager";
+import type { PushCertificateManagerInternalContext } from "./internal_context";
 
 interface FileData {
     filename: string;
@@ -33,14 +33,12 @@ async function extractRejectedList(group: CertificateManager | undefined, certif
                 stat: stats[i]
             });
         }
-    } catch (err) {
+    } catch (_err) {
         // Directory might not exist yet, ignore
     }
 }
 
-export async function executeGetRejectedList(
-    serverImpl: PushCertificateManagerInternalContext
-): Promise<GetRejectedListResult> {
+export async function executeGetRejectedList(serverImpl: PushCertificateManagerInternalContext): Promise<GetRejectedListResult> {
     const list: FileData[] = [];
 
     await extractRejectedList(serverImpl.applicationGroup, list);

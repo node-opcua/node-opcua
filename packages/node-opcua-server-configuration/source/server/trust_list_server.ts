@@ -1,12 +1,11 @@
-import fs from "fs";
-import path from "path";
-
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { TrustListDataType } from "node-opcua-types";
-import { AbstractFs } from "node-opcua-file-transfer";
+import fs from "node:fs";
+import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 import { make_errorLog } from "node-opcua-debug";
+import type { AbstractFs } from "node-opcua-file-transfer";
+import { TrustListDataType } from "node-opcua-types";
 
 const errorLog = make_errorLog("TrustListServer");
 
