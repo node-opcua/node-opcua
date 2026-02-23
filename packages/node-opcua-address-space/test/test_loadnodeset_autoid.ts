@@ -290,7 +290,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         const ns = addressSpace.getNamespace(nsAutoId);
         // const XMLWriter = require("xml-writer");
         const doc = ns.toNodeset2XML();
-        console.log(doc);
+        doDebug && debugLog(doc);
         //  const xmlWriter: XmlWriter = new XMLWriter();
         //  (rfidScanResultDataTypeNode as any).dumpXML(xmlWriter);
         //  const t = xmlWriter.toString();

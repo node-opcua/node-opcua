@@ -69,8 +69,8 @@ describe("testing UAObjectType instantiate with addins", () => {
         const identification = machineTool.getComponentByName("Identification", nsDI)!;
         should.exist(identification, "Identification must exist");
 
-        console.log(machineTool.toString());
-        console.log(identification.toString());
+        doDebug && console.log(machineTool.toString());
+        doDebug && console.log(identification.toString());
 
         should.exist(identification.getChildByName("ComponentName"));
         should.exist(identification.getChildByName("AssetId"));
@@ -151,8 +151,9 @@ describe("testing addins - case 1", () => {
 
         const xml = namespace1.toNodeset2XML(); 
         const symbols = getSymbols(namespace1);
-        console.log(xml);
-        console.log(symbols);
+
+        doDebug && console.log(xml);
+        doDebug && console.log(symbols);
 
         symbols.map((x)=>x[0]).sort().should.eql([
             "JobManagementType",
@@ -227,8 +228,8 @@ describe("testing addins - case 1", () => {
 
         const symbols2 = getSymbols(namespace2);
         const symbols1 = getSymbols(namespace1);
-        console.log(symbols1);
-        console.log(symbols2);
+        doDebug && console.log(symbols1);
+        doDebug && console.log(symbols2);
     });
 
 
@@ -300,7 +301,7 @@ describe("testing addins - case 1", () => {
 
         const xml = namespace2.toNodeset2XML();
         const symbols = getSymbols(namespace1);
-        console.log(symbols);
+        doDebug && console.log(symbols);
 
     });
 
