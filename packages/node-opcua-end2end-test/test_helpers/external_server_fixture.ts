@@ -132,7 +132,7 @@ export async function crash_simple_server(serverHandle: any) {
         return;
     }
     await new Promise<void>((resolve) => {
-        serverHandle.process.once("exit", (err: Error) => {
+        serverHandle.process.once("close", (code: number, signal: string) => {
             debugLog("process killed");
             resolve();
         });
