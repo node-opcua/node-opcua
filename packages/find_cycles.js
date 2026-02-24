@@ -1,30 +1,32 @@
-"use strict";
+﻿"use strict";
 const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const child_process = require("child_process");
 
 function dot(graph, callback) {
-    const cmd = "dot -Tpng -o_tmp.png";
-    const child = child_process.exec(cmd, function (err) {});
+    const child = child_process.spawn("dot", ["-Tpng", "-o_tmp.png"]);
     child.stdin.write(graph);
     child.stdin.end();
     child.stderr.pipe(process.stdout);
     child.on("close", function (code) {
         callback(null);
     });
+    child.on("error", function (err) {
+        console.error("dot error:", err.message);
+        callback(err);
+    });
 }
 
 function tred(inputfile, callback) {
-    const cmd = "tred";
-    const child = child_process.exec(cmd, function (err) {});
+    const child = child_process.spawn("tred");
 
     child.stdin.write(inputfile);
     child.stdin.end();
 
     child.stderr.pipe(process.stdout);
 
-    const result = "";
+    let result = "";
     child.stdout.on("data", function (data) {
         result += data.toString();
     });
@@ -32,18 +34,23 @@ function tred(inputfile, callback) {
         console.log("done ... (" + ")");
         callback(null, result);
     });
+    child.on("error", function (err) {
+        console.error("tred error:", err.message);
+        callback(err);
+    });
 }
 function q(a) {
     return '"' + a + '"';
 }
 
-function collectDeps(map, attr) {
+let dependencies = [];
+
+function collectDeps(file, map, attr) {
     Object.keys(map)
         .filter((a) => a.match(/node-opcua/))
         .forEach((d) => dependencies.push("  " + q(file) + " -> " + q(d) + " " + attr + ";"));
 }
 
-const dependencies = [];
 fs.readdir(__dirname, {}, function (err, files) {
     async.map(
         files,
@@ -52,11 +59,13 @@ fs.readdir(__dirname, {}, function (err, files) {
             if (fs.existsSync(package_file)) {
                 const package_ = JSON.parse(fs.readFileSync(package_file));
                 if (package_.dependencies) {
-                    collectDeps(package_.dependencies, "");
+                    collectDeps(file, package_.dependencies, "");
                 }
                 if (package_.devDependencies) {
-                    // collectDeps(package_.devDependencies,"[color=red,penwidth=3]");
+                    // collectDeps(file, package_.devDependencies,"[color=red,penwidth=3]");
                 }
+                callback();
+            } else {
                 callback();
             }
         },
@@ -68,12 +77,13 @@ fs.readdir(__dirname, {}, function (err, files) {
                 );
             dependencies = dependencies.sort();
 
-            constcontent = "digraph G {\n";
+            let content = "digraph G {\n";
             content += dependencies.join("\n");
             content += "}";
 
             // now remove transitive edge
             tred(content, function (err, output) {
+                if (err) return;
                 fs.writeFile("_tmp.dot", output, function (err) {});
                 dot(output, function (err) {});
             });

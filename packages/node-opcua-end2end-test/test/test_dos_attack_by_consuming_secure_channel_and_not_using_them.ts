@@ -212,6 +212,11 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
             await new Promise<void>((resolve) => {
                 const child = spawn("node", [server_script, String(port)], {});
                 child.on("close", () => resolve());
+                child.stderr.on("data", (data) => {
+                    data.toString().split("\n").forEach((line: string) => {
+                        if (line.trim().length) process.stderr.write("                 " + chalk.red(line) + "\n");
+                    });
+                });
                 child.stdout.on("data", (data) => {
                     data.toString().split("\n").forEach((line: string) => {
                         if (line.trim().length) process.stdout.write("                 " + chalk.yellow(line) + "\n");
@@ -234,3 +239,4 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         }
     });
 });
+
