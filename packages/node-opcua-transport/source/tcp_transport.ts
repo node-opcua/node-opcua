@@ -254,7 +254,7 @@ export class TCP_transport extends EventEmitter {
     }
     public set timeout(value: number) {
         assert(!this.#_timerId);
-        debugLog("Setting socket " + this.name + " timeout = ", value);
+        doDebug && debugLog("Setting socket " + this.name + " timeout = ", value);
         this.#_timeout = value;
     }
 
@@ -262,12 +262,13 @@ export class TCP_transport extends EventEmitter {
         this._cleanup_timers();
         assert(!this.#_timerId);
         if (this._socket) {
-            const gracefully = true;
+            const gracefully = false;
             if (gracefully) {
                 // close the connection gracefully
                 this._socket.end();
             } else {
                 // close the connection forcefully
+                this._socket.end();
                 this._socket.destroy();
             }
             //         this._socket.removeAllListeners();
@@ -303,6 +304,7 @@ export class TCP_transport extends EventEmitter {
         assert(typeof callback === "function", "expecting a callback function, but got " + callback);
         if (!this._socket || this.#_isDisconnecting) {
             if (!this.#_isDisconnecting) {
+                this.#_isDisconnecting = true;
                 this.dispose();
             }
             callback();
@@ -385,7 +387,7 @@ export class TCP_transport extends EventEmitter {
         // set socket timeout
         debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
         // let use a large timeout here to make sure that we not conflict with our internal timeout
-        this._socket.setTimeout(this.timeout, ()=>{
+        this._socket.setTimeout(this.timeout, () => {
         });
 
         // istanbul ignore next
