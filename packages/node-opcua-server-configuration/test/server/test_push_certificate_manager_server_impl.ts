@@ -28,7 +28,6 @@ import { getCertificateDER } from "../helpers/tools.ts";
 
 const { readFile } = fs.promises;
 
-
 const injectFailingTask = (pushManager: PushCertificateManagerServerImpl, errorMessage: string) => {
     console.log("Injecting failing task");
 

@@ -30,14 +30,18 @@ import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-import {
-    _getFakeAuthorityCertificate,
-    initializeHelpers
-} from "./helpers/fake_certificate_authority.ts";
+import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.ts";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
 
+const sampleCertificateFolder = path.join(process.cwd(), "../node-opcua-samples/certificates/");
+const sampleCert2048 = path.join(sampleCertificateFolder, "client_cert_2048.pem");
+fs.existsSync(sampleCert2048).should.eql(true);
+const sampleSelfSignedCert2048 = path.join(sampleCertificateFolder, "client_selfsigned_cert_2048.pem");
+assert(fs.existsSync(sampleSelfSignedCert2048));
+const sampleSelfSignedCert1024 = path.join(sampleCertificateFolder, "client_selfsigned_cert_1024.pem");
+assert(fs.existsSync(sampleSelfSignedCert1024));
 
 const doDebug = false;
 describe("ServerConfiguration", () => {
@@ -109,6 +113,8 @@ describe("ServerConfiguration", () => {
     });
 
     afterEach(async () => {
+        session?.continuationPointManager?.dispose();
+
         await addressSpace.shutdown();
         addressSpace.dispose();
         await applicationGroup.dispose();
@@ -260,7 +266,7 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             // now add a certificate
-            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
 
             const certificate = await readCertificate(certificateFile);
@@ -308,7 +314,7 @@ describe("ServerConfiguration", () => {
 
             // now add a certificate
             {
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
                 // Per OPC UA spec, AddCertificate with isTrustedCertificate=false returns BadCertificateInvalid
@@ -316,12 +322,7 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             }
             {
-                const selfSignedCertificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                assert(fs.existsSync(selfSignedCertificateFile));
-                const certificate = await readCertificate(selfSignedCertificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
             }
@@ -358,7 +359,7 @@ describe("ServerConfiguration", () => {
             const trustList = await defaultApplicationGroup.getTrustList();
 
             // now add a certificate
-            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
             const certificate = await readCertificate(certificateFile);
             const certificates = split_der(certificate);
@@ -688,7 +689,7 @@ describe("ServerConfiguration", () => {
             const trustList = await defaultApplicationGroup.getTrustList();
 
             // First add a certificate using the addCertificate method
-            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
             const certificate = await readCertificate(certificateFile);
             const certificates = split_der(certificate);
@@ -748,7 +749,7 @@ describe("ServerConfiguration", () => {
             const trustList = await defaultApplicationGroup.getTrustList();
 
             // First, add a certificate
-            const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+            const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
             const certificate = await readCertificate(certificateFile);
 
@@ -801,12 +802,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                assert(fs.existsSync(certificateFile));
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
 
                 let sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
@@ -841,7 +837,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // OPC UA Spec: "If FALSE Bad_CertificateInvalid is returned."
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
 
@@ -865,7 +861,7 @@ describe("ServerConfiguration", () => {
 
                 // Since AddCertificate can no longer add issuer certificates per OPC UA spec,
                 // we need to use writeTrustedCertificateList to add issuer certificates
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificate = await readCertificate(certificateFile);
                 const certificates = split_der(certificate);
@@ -909,8 +905,8 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add two certificates
-                const certFile1 = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem");
-                const certFile2 = path.join(__dirname, "../../node-opcua-samples/certificates/client_selfsigned_cert_1024.pem");
+                const certFile1 = sampleSelfSignedCert2048;
+                const certFile2 = sampleSelfSignedCert1024;
 
                 assert(fs.existsSync(certFile1));
                 assert(fs.existsSync(certFile2));
@@ -979,11 +975,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 await trustList.addCertificate(certificate, true);
 
                 // Open the trust list
@@ -1014,11 +1006,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a self-signed certificate as trusted
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 await trustList.addCertificate(certificate, true);
 
                 let a = await trustList.readTrustedCertificateList();
@@ -1067,11 +1055,7 @@ describe("ServerConfiguration", () => {
                 await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Add a certificate - should update LastUpdateTime
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 await trustList.addCertificate(certificate, true);
 
                 const afterAddTime = lastUpdateTimeNode.readValue().value.value as Date;
@@ -1133,11 +1117,7 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
 
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadSecurityModeInsufficient);
@@ -1166,11 +1146,7 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
 
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadUserAccessDenied);
@@ -1195,11 +1171,7 @@ describe("ServerConfiguration", () => {
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to add certificate while trust list is open for write
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
 
                 const sc = await trustList.addCertificate(certificate, true);
                 sc.should.eql(StatusCodes.BadInvalidState);
@@ -1225,7 +1197,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Use a certificate with a chain (leaf + CA)
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
                 const certificates = split_der(certificateChain);
@@ -1332,7 +1304,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Use a certificate with a chain (leaf + CA)
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
                 const certificates = split_der(certificateChain);
@@ -1386,7 +1358,6 @@ describe("ServerConfiguration", () => {
 
                 // Try to open with Write mode (0x02) - not supported per OPC UA spec
                 // OPC UA spec: Only Read (0x01) and WriteEraseExisting (0x06) are supported
-
 
                 const result = await openMethod.execute(
                     trustListNode,
@@ -1470,7 +1441,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Use a certificate with a chain (leaf + CA) but don't add the CA first
-                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
                 const certificateChain = await readCertificate(certificateFile);
 
@@ -1535,11 +1506,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Write a valid trust list
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
 
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
@@ -1572,15 +1539,10 @@ describe("ServerConfiguration", () => {
                 const trustList2 = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 await trustList.addCertificate(certificate, true);
 
                 // Open for read twice (should be allowed per OPC UA spec)
-
 
                 // First read
                 await trustList.open(OpenFileMode.Read);
@@ -1613,17 +1575,11 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-
-
                 // Open for read
                 await trustList.open(OpenFileMode.Read);
 
                 // Try to add certificate while open
-                const certificateFile = path.join(
-                    __dirname,
-                    "../../node-opcua-samples/certificates/client_selfsigned_cert_2048.pem"
-                );
-                const certificate = await readCertificate(certificateFile);
+                const certificate = await readCertificate(sampleSelfSignedCert2048);
                 const sc = await trustList.addCertificate(certificate, true);
 
                 // Should return BadInvalidState per OPC UA spec

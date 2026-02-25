@@ -3,3 +3,5 @@ tsconfig.json
 tsconfig.tsbuildinfo
 tslint.*
 .mocharc.yaml
+*.js
+distTest

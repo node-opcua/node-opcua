@@ -22,7 +22,7 @@ import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
 import { VerificationStatus } from "node-opcua-pki";
-import { type CallbackT, StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { rolePermissionAdminOnly } from "./roles_and_permissions";
@@ -79,6 +79,110 @@ interface UATrustListEx extends UATrustList {
     $$openedForWrite: boolean;
 }
 
+async function applyTrustListChanges(cm: OPCUACertificateManager, trustListData: TrustListDataType): Promise<StatusCode> {
+    try {
+        // Automatically update specifiedLists mask
+        if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
+            trustListData.specifiedLists |= TrustListMasks.IssuerCrls;
+        }
+        if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
+            trustListData.specifiedLists |= TrustListMasks.TrustedCrls;
+        }
+        if (trustListData.trustedCertificates && trustListData.trustedCertificates.length > 0) {
+            trustListData.specifiedLists |= TrustListMasks.TrustedCertificates;
+        }
+        if (trustListData.issuerCertificates && trustListData.issuerCertificates.length > 0) {
+            trustListData.specifiedLists |= TrustListMasks.IssuerCertificates;
+        }
+
+        // Process CRLs
+        if ((trustListData.specifiedLists & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
+            doDebug && debugLog("Processing issuer CRLs");
+            await cm.clearRevocationLists("issuers");
+            if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
+                doDebug && debugLog(` Writing ${trustListData.issuerCrls.length} issuer CRLs`);
+                for (const crl of trustListData.issuerCrls) {
+                    await cm.addRevocationList(crl, "issuers");
+                }
+            }
+        }
+
+        if ((trustListData.specifiedLists & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
+            doDebug && debugLog("Processing trusted CRLs");
+            await cm.clearRevocationLists("trusted");
+            if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
+                doDebug && debugLog(` Writing ${trustListData.trustedCrls.length} trusted CRLs`);
+                for (const crl of trustListData.trustedCrls) {
+                    await cm.addRevocationList(crl, "trusted");
+                }
+            }
+        }
+
+        // Validate all trusted certificates
+        if (
+            (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
+            trustListData.trustedCertificates
+        ) {
+            for (const cert of trustListData.trustedCertificates) {
+                try {
+                    const certs = split_der(cert);
+                    const validationResult = await verifyCertificateChain([certs[0]]);
+                    if (validationResult.status !== "Good") {
+                        warningLog("Invalid certificate in trust list:", validationResult.status, validationResult.reason);
+                        return StatusCodes.BadCertificateInvalid;
+                    }
+                } catch (validationErr) {
+                    errorLog("Certificate validation failed:", validationErr);
+                    return StatusCodes.BadCertificateInvalid;
+                }
+            }
+        }
+
+        // Validate all issuer certificates
+        if (
+            (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
+            trustListData.issuerCertificates
+        ) {
+            for (const cert of trustListData.issuerCertificates) {
+                try {
+                    const certs = split_der(cert);
+                    const validationResult = await verifyCertificateChain([certs[0]]);
+                    if (validationResult.status !== "Good") {
+                        warningLog("Invalid issuer certificate in trust list:", validationResult.status, validationResult.reason);
+                        return StatusCodes.BadCertificateInvalid;
+                    }
+                } catch (validationErr) {
+                    errorLog("Issuer certificate validation failed:", validationErr);
+                    return StatusCodes.BadCertificateInvalid;
+                }
+            }
+        }
+
+        // Update certificates
+        if (
+            (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
+            trustListData.trustedCertificates
+        ) {
+            for (const cert of trustListData.trustedCertificates) {
+                await cm.trustCertificate(cert);
+            }
+        }
+        if (
+            (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
+            trustListData.issuerCertificates
+        ) {
+            for (const cert of trustListData.issuerCertificates) {
+                await cm.addIssuer(cert);
+            }
+        }
+
+        return StatusCodes.Good;
+    } catch (err) {
+        errorLog("Error in applyTrustListChanges:", err);
+        return StatusCodes.BadInternalError;
+    }
+}
+
 async function _closeAndUpdate(
     this: UAMethod,
     inputArguments: Variant[],
@@ -104,7 +208,8 @@ async function _closeAndUpdate(
         return { statusCode: StatusCodes.BadInternalError };
     }
 
-    // Since we support immediate application (no transactions), read the updated file and persist it
+    let processStatusCode: StatusCode = StatusCodes.Good;
+
     try {
         if (MemFs.existsSync(filename)) {
             const data = await new Promise<Buffer>((resolve, reject) => {
@@ -119,118 +224,16 @@ async function _closeAndUpdate(
             const trustListData = new TrustListDataType();
             trustListData.decode(stream);
 
-            // Automatically update specifiedLists mask based on which fields are actually present
-            // This ensures that fields with data are processed even if the mask wasn't set correctly
-            if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
-                trustListData.specifiedLists |= TrustListMasks.IssuerCrls;
-            }
-            if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
-                trustListData.specifiedLists |= TrustListMasks.TrustedCrls;
-            }
-            if (trustListData.trustedCertificates && trustListData.trustedCertificates.length > 0) {
-                trustListData.specifiedLists |= TrustListMasks.TrustedCertificates;
-            }
-            if (trustListData.issuerCertificates && trustListData.issuerCertificates.length > 0) {
-                trustListData.specifiedLists |= TrustListMasks.IssuerCertificates;
-            }
+            processStatusCode = await applyTrustListChanges(cm, trustListData);
 
-            // Process CRLs using CertificateManager API
-            if ((trustListData.specifiedLists & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
-                doDebug && debugLog("Processing issuer CRLs");
-                await cm.clearRevocationLists("issuers");
-                if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
-                    doDebug && debugLog(` Writing ${trustListData.issuerCrls.length} issuer CRLs`);
-                    for (const crl of trustListData.issuerCrls) {
-                        await cm.addRevocationList(crl, "issuers");
-                    }
-                }
-            }
-
-            if ((trustListData.specifiedLists & TrustListMasks.TrustedCrls) === TrustListMasks.TrustedCrls) {
-                doDebug && debugLog("Processing trusted CRLs");
-                await cm.clearRevocationLists("trusted");
-                if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
-                    doDebug && debugLog(` Writing ${trustListData.trustedCrls.length} trusted CRLs`);
-                    for (const crl of trustListData.trustedCrls) {
-                        await cm.addRevocationList(crl, "trusted");
-                    }
-                }
-            }
-
-            // OPC UA Spec Part 12 Section 7.8.2.3: "The Server shall verify that every Certificate in the new
-            // Trust List is valid according to the mandatory rules defined in Part 4. If an invalid Certificate
-            // is found the Server shall return an error and shall not update the Trust List."
-
-            // Validate all trusted certificates before applying changes
-            if (
-                (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
-                trustListData.trustedCertificates
-            ) {
-                for (const cert of trustListData.trustedCertificates) {
-                    try {
-                        // Attempt to parse and validate the certificate
-                        const certs = split_der(cert);
-                        const validationResult = await verifyCertificateChain([certs[0]]);
-                        if (validationResult.status !== "Good") {
-                            warningLog("Invalid certificate in trust list:", validationResult.status, validationResult.reason);
-                            return { statusCode: StatusCodes.BadCertificateInvalid };
-                        }
-                    } catch (validationErr) {
-                        errorLog("Certificate validation failed:", validationErr);
-                        return { statusCode: StatusCodes.BadCertificateInvalid };
-                    }
-                }
-            }
-
-            // Validate all issuer certificates before applying changes
-            if (
-                (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
-                trustListData.issuerCertificates
-            ) {
-                for (const cert of trustListData.issuerCertificates) {
-                    try {
-                        // Attempt to parse and validate the certificate
-                        const certs = split_der(cert);
-                        const validationResult = await verifyCertificateChain([certs[0]]);
-                        if (validationResult.status !== "Good") {
-                            warningLog(
-                                "Invalid issuer certificate in trust list:",
-                                validationResult.status,
-                                validationResult.reason
-                            );
-                            return { statusCode: StatusCodes.BadCertificateInvalid };
-                        }
-                    } catch (validationErr) {
-                        errorLog("Issuer certificate validation failed:", validationErr);
-                        return { statusCode: StatusCodes.BadCertificateInvalid };
-                    }
-                }
-            }
-
-            // Update certificates (only if specified in lists and validation passed)
-            if (
-                (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
-                trustListData.trustedCertificates
-            ) {
-                for (const cert of trustListData.trustedCertificates) {
-                    await cm.trustCertificate(cert);
-                }
-            }
-            if (
-                (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
-                trustListData.issuerCertificates
-            ) {
-                for (const cert of trustListData.issuerCertificates) {
-                    await cm.addIssuer(cert);
-                }
+            if (processStatusCode === StatusCodes.Good) {
+                // OPC UA Spec: Update LastUpdateTime after successful trust list update
+                updateLastUpdateTime(trustList);
             }
         }
-
-        // OPC UA Spec: Update LastUpdateTime after successful trust list update
-        updateLastUpdateTime(trustList);
     } catch (err) {
         errorLog("Error in _closeAndUpdate:", err);
-        return { statusCode: StatusCodes.BadInternalError };
+        processStatusCode = StatusCodes.BadInternalError;
     }
 
     // Close the underlying file to decrement openCount
@@ -243,7 +246,8 @@ async function _closeAndUpdate(
                 } else {
                     // Override the output argument to match CloseAndUpdate signature
                     resolve({
-                        statusCode: result?.statusCode || StatusCodes.Good,
+                        statusCode:
+                            processStatusCode === StatusCodes.Good ? result?.statusCode || StatusCodes.Good : processStatusCode,
                         outputArguments: [new Variant({ dataType: DataType.Boolean, value: false })]
                     });
                 }
@@ -252,7 +256,7 @@ async function _closeAndUpdate(
     }
 
     return {
-        statusCode: StatusCodes.Good,
+        statusCode: processStatusCode,
         outputArguments: [new Variant({ dataType: DataType.Boolean, value: false })]
     };
 }

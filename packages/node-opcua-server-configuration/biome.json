@@ -41,7 +41,8 @@
             "!**/certificates",
             "!package.json",
             "!package-lock.json",
-            "!lerna.json"
+            "!lerna.json",
+            "!**/*.js"
         ]
     },
     "javascript": {

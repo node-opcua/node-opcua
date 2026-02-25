@@ -1,0 +1,16 @@
+{
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "test",
+        "outDir": "distTest",
+        "composite": true,
+        "noEmit": true
+    },
+    "exclude": ["node_modules", "dist", "distTest", "source"],
+    "include": ["test/helpers/*.ts", "test/**/*.ts"],
+    "references": [
+        {
+            "path": "./tsconfig.json"
+        }
+    ]
+}
