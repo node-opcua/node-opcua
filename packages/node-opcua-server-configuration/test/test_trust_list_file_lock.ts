@@ -1,4 +1,5 @@
-import * as path from "node:path";
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
 import "mocha";
 import {
@@ -13,15 +14,14 @@ import {
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { CertificateManager } from "node-opcua-certificate-manager";
+import { OpenFileMode } from "node-opcua-file-transfer";
+import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
-import { OpenFileMode } from "node-opcua-file-transfer";
-
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
 import { initializeHelpers } from "./helpers/fake_certificate_authority.ts";
-import { NodeId } from "node-opcua-nodeid";
 
 describe("TrustList File Lock", () => {
     let addressSpace: AddressSpace;
@@ -96,21 +96,16 @@ describe("TrustList File Lock", () => {
         const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
         const trustList = await defaultApplicationGroup.getTrustList();
 
-        // 1. Prepare a payload that is valid TrustListDataType but contains an invalid certificate (Buffer that is valid DER sequence but NOT a certificate)
+        // 1. Prepare a payload that is valid TrustListDataType but contains an invalid certificate
+        //    (Buffer that is valid DER sequence but NOT a certificate)
         const invalidCert = Buffer.from([0x30, 0x03, 0x02, 0x01, 0x05]); // INTEGER 5 (Valid DER, but not a cert)
 
         const newTrustList = new TrustListDataType();
         newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
         newTrustList.trustedCertificates = [invalidCert];
 
-        let hasFailed = false;
-        try {
-            await trustList.writeTrustedCertificateList(newTrustList);
-        } catch (_err) {
-            // Success, it failed as expected
-            hasFailed = true;
-        }
-        hasFailed.should.be.true();
+        const retValue = await trustList.writeTrustedCertificateList(newTrustList);
+        retValue.should.eql(false);
 
         // 2. VERIFICATION: immediately try to open it for write again.
         // If the fix is working, this will NOT return BadInvalidState (it will return Good)

@@ -1,6 +1,6 @@
-import { describeWithLeakDetector as describe, takeMemorySnapshot, checkForMemoryLeak } from "node-opcua-leak-detector";
-import * as fs from "node:fs";
-import * as path from "node:path";
+import fs from "node:fs";
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import "mocha";
@@ -13,6 +13,7 @@ import {
     PseudoSession,
     SessionContext,
     type UAMethod,
+    type UAObject,
     type UAServer,
     type UAServerConfiguration,
     type UATrustList,
@@ -29,11 +30,10 @@ import { SecurityPolicy } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-
-import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.ts";
-
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
+import type { PushCertificateManagerInternalContext } from "../dist/server/push_certificate_manager/internal_context";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
+import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.ts";
 
 const sampleCertificateFolder = path.join(process.cwd(), "../node-opcua-samples/certificates/");
 const sampleCert2048 = path.join(sampleCertificateFolder, "client_cert_2048.pem");
@@ -43,6 +43,73 @@ assert(fs.existsSync(sampleSelfSignedCert2048));
 const sampleSelfSignedCert1024 = path.join(sampleCertificateFolder, "client_selfsigned_cert_1024.pem");
 assert(fs.existsSync(sampleSelfSignedCert1024));
 
+interface PushCertificateManagerServerImplEx {
+    applicationGroup: CertificateManager;
+    userTokenGroup: CertificateManager;
+    _context: PushCertificateManagerInternalContext;
+}
+
+interface UAServerConfigurationEx extends UAServerConfiguration {
+    $pushCertificateManager: PushCertificateManagerServerImplEx;
+}
+interface UATrustListEx extends UATrustList {
+    $$certificateManager: CertificateManager;
+    $$openedForWrite: boolean;
+    $fileData: {
+        openCount: number;
+    };
+}
+
+async function resetTrustList(trustList: UATrustList, certificateManager: CertificateManager) {
+    const trustListPriv = trustList as UATrustListEx;
+    trustListPriv.$$certificateManager = certificateManager;
+    // RESET NODE STATE HERE TOO
+    trustListPriv.$$openedForWrite = false;
+    if (trustListPriv.$fileData) trustListPriv.$fileData.openCount = 0;
+}
+
+async function rebindServerConfiguration(
+    addressSpace: AddressSpace
+): Promise<{ applicationGroup: CertificateManager; userTokenGroup: CertificateManager }> {
+    let applicationGroup: CertificateManager | undefined;
+    let userTokenGroup: CertificateManager | undefined;
+
+    const _folder = await initializeHelpers("AA", 0);
+    applicationGroup = new CertificateManager({
+        location: path.join(_folder, "application")
+    });
+    userTokenGroup = new CertificateManager({
+        location: path.join(_folder, "user")
+    });
+    await applicationGroup.initialize();
+    await userTokenGroup.initialize();
+
+    const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName(
+        "ServerConfiguration"
+    ) as UAServerConfigurationEx;
+    if (serverConfiguration?.$pushCertificateManager) {
+        const pushCM = serverConfiguration.$pushCertificateManager;
+        pushCM.applicationGroup = applicationGroup;
+        pushCM.userTokenGroup = userTokenGroup;
+        if (pushCM._context?.map) {
+            pushCM._context.map.DefaultApplicationGroup = applicationGroup;
+            pushCM._context.map.DefaultUserTokenGroup = userTokenGroup;
+        }
+        const groups = serverConfiguration.certificateGroups.getComponents();
+        for (const group of groups) {
+            if (group.nodeClass !== NodeClass.Object) continue;
+            const groupEx = group as UAObject;
+            const trustList = groupEx.getComponentByName("TrustList") as UATrustListEx;
+            if (trustList) {
+                const certificateManager =
+                    group.browseName.toString() === "DefaultApplicationGroup" ? applicationGroup : userTokenGroup;
+                resetTrustList(trustList, certificateManager);
+            }
+        }
+        return { applicationGroup, userTokenGroup };
+    }
+    return { applicationGroup, userTokenGroup };
+}
 const doDebug = false;
 describe("ServerConfiguration", () => {
     let addressSpace: AddressSpace;
@@ -72,60 +139,45 @@ describe("ServerConfiguration", () => {
         continuationPointManager: new ContinuationPointManager()
     };
 
-    let applicationGroup: CertificateManager;
-    let userTokenGroup: CertificateManager;
+    let applicationGroup: CertificateManager | undefined;
+    let userTokenGroup: CertificateManager | undefined;
 
     const xmlFiles = [nodesets.standard];
 
     before(async () => {
         await CertificateManager.disposeAll();
+        addressSpace = AddressSpace.create();
+        await generateAddressSpace(addressSpace, xmlFiles);
+        addressSpace.registerNamespace("Private");
     });
 
-    after(() => {
-        session.continuationPointManager.dispose();
+    after(async () => {
+        session?.continuationPointManager?.dispose();
+        if (addressSpace) {
+            await addressSpace.shutdown();
+            addressSpace.dispose();
+        }
+        CertificateManager.checkAllDisposed();
     });
-    let beforeSnapshot: number;
 
     beforeEach(async () => {
-        beforeSnapshot = takeMemorySnapshot();
-        try {
-            const _folder = await initializeHelpers("AA", 0);
-
-            doDebug && console.log(" _folder = ", _folder);
-
-            applicationGroup = new CertificateManager({
-                location: path.join(_folder, "application")
-            });
-            userTokenGroup = new CertificateManager({
-                location: path.join(_folder, "user")
-            });
-
-            await applicationGroup.initialize();
-            await userTokenGroup.initialize();
-
-            addressSpace = AddressSpace.create();
-            await generateAddressSpace(addressSpace, xmlFiles);
-            addressSpace.registerNamespace("Private");
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
+        // Re-bind to server if already installed
+        const newGroups = await rebindServerConfiguration(addressSpace);
+        applicationGroup = newGroups.applicationGroup;
+        userTokenGroup = newGroups.userTokenGroup;
     });
 
     afterEach(async () => {
         session?.continuationPointManager?.dispose();
 
-        await addressSpace.shutdown();
-        addressSpace.dispose();
-        await applicationGroup.dispose();
-        await userTokenGroup.dispose();
-
-        // check that all certificate managers have been properly disposed
-        CertificateManager.checkAllDisposed();
-
-        // display memory leak
-        const afterSnapshot = takeMemorySnapshot();
-        checkForMemoryLeak(beforeSnapshot, afterSnapshot);
+        if (applicationGroup) {
+            await applicationGroup.dispose();
+            applicationGroup = undefined;
+        }
+        if (userTokenGroup) {
+            await userTokenGroup.dispose();
+            userTokenGroup = undefined;
+        }
     });
 
     it("should expose a server configuration object", async () => {
