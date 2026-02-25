@@ -359,7 +359,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public static minTransactionTimeout = 5 * 1000; // 5 sec
     public static defaultTransactionTimeout = 15 * 1000; // 15 seconds
     public static defaultTransportTimeout = 60 * 1000; // 60 seconds
-    
+
     /**
      * 
      * maxClockSkew: The amount of clock skew that can be tolerated between server and client clocks
@@ -777,8 +777,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.#__in_normal_close_operation = true;
 
             if (!this.#_transport || this.#_transport.isDisconnecting()) {
-                this.dispose();
-                return callback(new Error("Transport disconnected"));
+                this.abortConnection(() => {
+                    this.dispose();
+                    callback(new Error("Transport disconnected"));
+                });
+                return;
             }
             this.#_performMessageTransaction("CLO", request, (err) => {
                 // istanbul ignore next
@@ -1477,9 +1480,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             this.emit("abort");
-            setImmediate(() => {
-                this.#_backoff_completion(undefined, new Error("Connection abandoned"), transport, callback);
-            });
+            this.#_backoff_completion(new Error("Connection abandoned"), undefined, transport, callback);
         });
 
         this.__call.setStrategy(new backoff.ExponentialStrategy(this.#connectionStrategy));
