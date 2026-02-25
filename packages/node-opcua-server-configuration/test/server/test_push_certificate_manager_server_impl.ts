@@ -4,8 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 import "should";
 
-const { readFile } = fs.promises;
-
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -17,7 +15,7 @@ import {
     rsaCertificateTypes,
     subjectToString,
     type UpdateCertificateResult
-} from "../..";
+} from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
     createSomeCertificate,
@@ -25,8 +23,11 @@ import {
     produceCertificate,
     produceNotYetValidCertificate,
     produceOutdatedCertificate
-} from "../helpers/fake_certificate_authority";
-import { getCertificateDER } from "../helpers/tools";
+} from "../helpers/fake_certificate_authority.ts";
+import { getCertificateDER } from "../helpers/tools.ts";
+
+const { readFile } = fs.promises;
+
 
 const injectFailingTask = (pushManager: PushCertificateManagerServerImpl, errorMessage: string) => {
     console.log("Injecting failing task");

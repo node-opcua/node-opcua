@@ -21,12 +21,12 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServer } from "node-opcua-server";
 
-import { installPushCertificateManagementOnServer } from "../..";
+import { installPushCertificateManagementOnServer } from "../../dist/index.js";
 import {
     createCertificateWithEndDate,
     createSomeOutdatedCertificate,
     initializeHelpers
-} from "../helpers/fake_certificate_authority";
+} from "../helpers/fake_certificate_authority.ts";
 
 const doDebug = false;
 const port = 2909;
@@ -174,11 +174,11 @@ describe("Test CertificateExpiredAlarm", function (this: Mocha.Suite) {
         const alarms = await client.withSessionAsync(
             {
                 endpointUrl,
-                userIdentity: <UserIdentityInfoUserName>{
+                userIdentity: {
                     type: UserTokenType.UserName,
                     password: (() => "secret")(),
                     userName: "root"
-                }
+                } as UserIdentityInfoUserName
             },
             async (session) => {
                 const alarmList = await installAlarmMonitoring(session);
@@ -225,11 +225,11 @@ describe("Test CertificateExpiredAlarm", function (this: Mocha.Suite) {
         await client.withSessionAsync(
             {
                 endpointUrl,
-                userIdentity: <UserIdentityInfoUserName>{
+                userIdentity: {
                     type: UserTokenType.UserName,
                     password: (() => "secret")(),
                     userName: "root"
-                }
+                } as UserIdentityInfoUserName
             },
             async (session) => {
                 const a = await session.translateBrowsePath(

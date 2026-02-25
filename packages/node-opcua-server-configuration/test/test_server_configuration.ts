@@ -2,6 +2,7 @@ import { describeWithLeakDetector as describe, takeMemorySnapshot, checkForMemor
 import * as fs from "node:fs";
 import * as path from "node:path";
 import "should";
+import { OpenFileMode } from "node-opcua-file-transfer";
 import "mocha";
 import {
     AddressSpace,
@@ -29,9 +30,14 @@ import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
-import { TrustListMasks } from "../source/server/trust_list_server";
-import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority";
+import {
+    _getFakeAuthorityCertificate,
+    initializeHelpers
+} from "./helpers/fake_certificate_authority.ts";
+
+import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
+import { TrustListMasks } from "../dist/server/trust_list_server.js";
+
 
 const doDebug = false;
 describe("ServerConfiguration", () => {
@@ -67,16 +73,12 @@ describe("ServerConfiguration", () => {
 
     const xmlFiles = [nodesets.standard];
 
-     let beforeOverallSnapshot: number;;
-
     before(async () => {
         await CertificateManager.disposeAll();
-        beforeOverallSnapshot = takeMemorySnapshot();
     });
 
     after(() => {
-        const afterOverallSnapshot = takeMemorySnapshot();
-        checkForMemoryLeak(beforeOverallSnapshot, afterOverallSnapshot);
+        session.continuationPointManager.dispose();
     });
     let beforeSnapshot: number;
 
@@ -1189,7 +1191,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Open the trust list for writing
-                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
+
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to add certificate while trust list is open for write
@@ -1384,7 +1386,7 @@ describe("ServerConfiguration", () => {
 
                 // Try to open with Write mode (0x02) - not supported per OPC UA spec
                 // OPC UA spec: Only Read (0x01) and WriteEraseExisting (0x06) are supported
-                const _OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
+
 
                 const result = await openMethod.execute(
                     trustListNode,
@@ -1409,7 +1411,7 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Open the trust list for writing
-                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
+
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to open again (either read or write) - should fail with BadInvalidState
@@ -1578,7 +1580,7 @@ describe("ServerConfiguration", () => {
                 await trustList.addCertificate(certificate, true);
 
                 // Open for read twice (should be allowed per OPC UA spec)
-                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
+
 
                 // First read
                 await trustList.open(OpenFileMode.Read);
@@ -1611,7 +1613,7 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const OpenFileMode = await import("node-opcua-file-transfer").then((m) => m.OpenFileMode);
+
 
                 // Open for read
                 await trustList.open(OpenFileMode.Read);
