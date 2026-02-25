@@ -24,6 +24,9 @@ export class MockContinuationPointManager implements IContinuationPointManager {
     public getNextReferences(numValue: number, cnt: ContinuationData): IContinuationPointInfo<ReferenceDescription> {
         throw new Error("Method not implemented.");
     }
+    public dispose(): void {
+        // do nothing
+    }
 }
 
 export const mockSession: ISessionBase = {

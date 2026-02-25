@@ -51,6 +51,7 @@ export interface IContinuationPointManager {
         continuationData: ContinuationData
     ): IContinuationPointInfo<ReferenceDescription>;
     getNextReferences(numValues: number, continuationData: ContinuationData): IContinuationPointInfo<ReferenceDescription>;
+    dispose(): void;
 }
 
 export interface ISessionBase {
