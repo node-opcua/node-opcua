@@ -268,8 +268,7 @@ export class TCP_transport extends EventEmitter {
                 this._socket.end();
             } else {
                 // close the connection forcefully
-                this._socket.end();
-                this._socket.destroy();
+                this._socket.destroy(new Error("ClientTCP_transport disposed"));
             }
             //         this._socket.removeAllListeners();
             this._socket = null;
@@ -321,8 +320,7 @@ export class TCP_transport extends EventEmitter {
             });
         });
 
-        this._socket.end();
-        this._socket && this._socket.destroy();
+        this._socket && this._socket.destroy(new Error("ClientTCP_transport disconnected"));
         this._socket = null;
     }
 
@@ -440,7 +438,6 @@ export class TCP_transport extends EventEmitter {
     public forceConnectionBreak() {
         const socket = this._socket;
         if (!socket) return;
-        socket.end();
         socket.emit("error", new Error("ECONNRESET"));
         socket.destroy(new Error("ECONNRESET"));
     }
