@@ -33,9 +33,8 @@ import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
-
-import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
 import type { OPCUAServerPartial } from "../../dist/index.js";
+import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
     initializeHelpers,

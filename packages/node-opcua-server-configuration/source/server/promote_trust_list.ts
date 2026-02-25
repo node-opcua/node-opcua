@@ -17,7 +17,7 @@ import type {
 } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { makeSHA1Thumbprint, split_der, verifyCertificateChain } from "node-opcua-crypto/web";
+import { split_der, verifyCertificateChain } from "node-opcua-crypto/web";
 import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
@@ -297,21 +297,9 @@ async function _addCertificate(
         if (certificates.length > 1) {
             warningLog("AddCertificate received a certificate chain. Only the leaf certificate will be added.");
             warningLog("Issuer certificates must be added using the Write/CloseAndUpdate methods.");
-
-            // OPC UA Spec: "This Method will return a validation error if the Certificate is issued by a CA
-            // and the Certificate for the issuer is not in the TrustList."
-            for (const issuerCert of certificates.slice(1)) {
-                const thumbprint = makeSHA1Thumbprint(issuerCert).toString("hex");
-                if (!(await cm.hasIssuer(thumbprint))) {
-                    warningLog("Issuer certificate not found in TrustList", thumbprint);
-                    return { statusCode: StatusCodes.BadCertificateInvalid };
-                }
-            }
         }
 
-        // Validate and trust the leaf certificate only
-        const leafCertificate = certificates[0];
-        const status = await cm.addTrustedCertificateFromChain(leafCertificate);
+        const status = await cm.addTrustedCertificateFromChain(certificateBuffer);
 
         if (status !== VerificationStatus.Good) {
             warningLog("Certificate validation failed:", status);
@@ -320,7 +308,7 @@ async function _addCertificate(
 
         updateLastUpdateTime(trustList);
 
-        doDebug && debugLog("_addCertificate - done, added leaf certificate to trustedCertificates");
+        doDebug && debugLog("_addCertificate - done,  leaf certificate has been added to trustedCertificates");
         return { statusCode: StatusCodes.Good };
     } catch (err) {
         errorLog("Error in _addCertificate:", err);

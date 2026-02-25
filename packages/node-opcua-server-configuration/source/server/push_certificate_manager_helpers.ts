@@ -390,7 +390,7 @@ export async function installPushCertificateManagement(
 
     const serverConfigurationPriv = serverConfiguration as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
-        warningLog("PushCertificateManagement has already been installed");
+        debugLog("PushCertificateManagement has already been installed");
         return;
     }
 

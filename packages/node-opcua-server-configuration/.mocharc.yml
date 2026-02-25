@@ -5,7 +5,6 @@ require:
 #  - ../../node_modules/tsconfig-paths/register
 extension:
   - ts
-  - js
 recursive: true
 timeout: 20000
 enable-source-maps: true
