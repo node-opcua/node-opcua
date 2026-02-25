@@ -34,10 +34,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
 
-import {
-    ClientPushCertificateManagement,
-    installPushCertificateManagementOnServer
-} from "../../dist/index.js";
+import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
 import type { OPCUAServerPartial } from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
@@ -184,7 +181,7 @@ describe("Testing server configured with push certificate management", () => {
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientName: `1 ${__filename}`
+            clientName: `1 test_server_with_push_certificate_management`
         });
 
         try {
@@ -253,7 +250,7 @@ describe("Testing server configured with push certificate management", () => {
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientName: `1 ${__filename}`
+            clientName: `1 test_server_with_push_certificate_management`
         });
 
         try {
@@ -441,7 +438,7 @@ describe("Testing server configured with push certificate management", () => {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
 
-            clientName: `1 ${__filename}`
+            clientName: `2 test_server_with_push_certificate_management`
         });
         try {
             await client.connect(endpointUri);
@@ -466,7 +463,7 @@ describe("Testing server configured with push certificate management", () => {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
 
-            clientName: `1 ${__filename}`
+            clientName: `3 test_server_with_push_certificate_management`
         });
         onGoingClient.on("start_reconnection", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
@@ -626,7 +623,7 @@ describe("Testing server configured with push certificate management", () => {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
 
-            clientName: `1 ${__filename}`
+            clientName: `4 test_server_with_push_certificate_management`
         });
 
         client.on("start_reconnection", () => {

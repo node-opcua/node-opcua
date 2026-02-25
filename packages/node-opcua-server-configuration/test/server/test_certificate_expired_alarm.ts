@@ -147,7 +147,7 @@ describe("Test CertificateExpiredAlarm", function (this: Mocha.Suite) {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
             clientCertificateManager,
-            clientName: `1 ${__filename}`
+            clientName: "1 test_certificate_expired_alarm.ts"
         });
         await client.clientCertificateManager.initialize();
         return client;

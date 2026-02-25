@@ -92,7 +92,7 @@ export async function produceCertificateAndPrivateKey(
     const privateKey = readPrivateKey(certificateManager.privateKey);
 
     const privateKeyPEM = await fs.promises.readFile(certificateManager.privateKey, "utf8");
-    
+
     // Clean up internal watcher memory explicitly!
     await certificateManager.dispose();
 
@@ -225,7 +225,7 @@ export async function createCertificateWithEndDate(
     });
 
     const certificateAuthority = await getSharedCertificateAuthority();
-    
+
     await certificateAuthority.signCertificateRequest(certName, resultCSR, {
         applicationUri: "applicationUri",
         startDate,
