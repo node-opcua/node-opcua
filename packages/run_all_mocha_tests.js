@@ -11,6 +11,13 @@ ts_node.register({
     transpileOnly: true
 });
 
+// Register ts-node ESM loader hooks so that Mocha's import()
+// fallback can transpile .ts files in "type": "module" packages.
+// Requires Node.js >= 20.6
+const { register } = require("node:module");
+const { pathToFileURL } = require("node:url");
+register("ts-node/esm/transpile-only", pathToFileURL(__filename));
+
 Error.stackTraceLimit = 20;
 
 require("mocha-clean");
@@ -314,6 +321,11 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
     }
     mocha.timeout(200000);
     mocha.bail(true);
+
+    // Use async file loading so Mocha can fall back to import()
+    // for .ts files in "type": "module" packages
+    mocha.lazyLoadFiles(true);
+    await mocha.loadFilesAsync();
 
     return await new Promise((resolve) => {
         mocha.run((failures) => {
