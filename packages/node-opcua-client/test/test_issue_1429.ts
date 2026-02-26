@@ -30,7 +30,7 @@ export function patchEmitter(emitter: EventEmitter) {
 const endpointUrl = "opc.tcp://10.20.30.40:4840"; // arbitrary IP, no opc ua server shall exist at this address
 
 describe("issue_1429", function (this: any) {
-    this.timeout(40*1000);
+    this.timeout(30*1000);
     it("should issue a backoff event if the endpoint is not reachable", async () => {
         // setup  connect with infinit retries
         const connectionStrategy: ConnectionStrategyOptions = {
@@ -58,13 +58,16 @@ describe("issue_1429", function (this: any) {
 
             client.on("backoff", () => {
                 backoffCount += 1;
+                if (backoffCount === 1) {
+                    // Schedule disconnect after first backoff event
+                    // to ensure the backoff loop has started
+                    // (avoids race with slow initializeCM)
+                    timerId = setTimeout(async () => {
+                        await client.disconnect();
+                        timerId = undefined;
+                    }, 5 * 1000);
+                }
             })
-            timerId = setTimeout(async () => {
-                // force disconnection after 20 seconds
-                await client.disconnect();
-                timerId = undefined;
-            }, 10 * 1000);
-
 
             await client.connect(endpointUrl);
 
