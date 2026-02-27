@@ -81,6 +81,7 @@
         "prettier": "^3.8.1",
         "should": "^13.2.3",
         "ts-node": "^10.9.2",
+        "tsx": "^4.21.0",
         "typescript": "5.9.3"
     },
     "typings": "./packages/node-opcua/node-opcua.d.ts",

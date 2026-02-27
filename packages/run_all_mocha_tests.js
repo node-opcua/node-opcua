@@ -5,18 +5,15 @@ const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const Mocha = require("mocha");
-const ts_node = require("ts-node");
-require("source-map-support").install();
-ts_node.register({
-    transpileOnly: true
-});
+const tsx = require("tsx/cjs/api");
+tsx.register();
 
-// Register ts-node ESM loader hooks so that Mocha's import()
+// Register tsx ESM loader hooks so that Mocha's import()
 // fallback can transpile .ts files in "type": "module" packages.
 // Requires Node.js >= 20.6
 const { register } = require("node:module");
 const { pathToFileURL } = require("node:url");
-register("ts-node/esm/transpile-only", pathToFileURL(__filename));
+register("tsx/esm/api", pathToFileURL(__filename));
 
 Error.stackTraceLimit = 20;
 
@@ -46,7 +43,7 @@ async function collect_files(testFiles, testFolder) {
                     testFiles.push(f);
                 }
             } else {
-                doDebug && console.log("     - (skipping file ",f, ")");
+                doDebug && console.log("     - (skipping file ", f, ")");
             }
         }
     }
