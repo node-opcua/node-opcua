@@ -2,7 +2,7 @@ import "should";
 import { DataValue, ClientMonitoredItem, OPCUAClient, AttributeIds, ClientSubscription } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness { endpointUrl: string; server: any;[k: string]: any }
 
 /**
  * Bug #156 - Monitoring a variable with sampling rate faster than the variable's own refresh cycle.
@@ -19,7 +19,7 @@ export function t(test: TestHarness) {
             let counter = 1;
             const slowVar = namespace.addVariable({
                 organizedBy: addressSpace.rootFolder.objects,
-                browseName: "SlowVariable",
+                browseName: "SlowVariable_156",
                 dataType: "UInt32",
                 value: {
                     refreshFunc: (callback: any) => {
