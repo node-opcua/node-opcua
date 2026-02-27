@@ -4,7 +4,7 @@
 // tslint:disable:no-empty
 import fs from "fs";
 import path from "path";
-import mkdirp from "mkdirp";
+
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
@@ -80,7 +80,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         const location = options.rootFolder || paths.config;
         if (!fs.existsSync(location)) {
             try {
-                mkdirp.sync(location);
+                fs.mkdirSync(location, { recursive: true });
             } catch (err) {
                 errorLog(" cannot create folder ", location, fs.existsSync(location));
             }
@@ -126,7 +126,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     }
     async #checkCertificate(certificateChain: Certificate): Promise<StatusCode> {
         const status = await this.verifyCertificate(certificateChain, { acceptCertificateWithValidIssuerChain: true });
-          
+
         const statusCode = (StatusCodes as any)[status!];
         const certificates = split_der(certificateChain);
 
@@ -143,7 +143,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 debugLog("automaticallyAcceptUnknownCertificate = false");
                 debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
                 await this.rejectCertificate(topCertificateInChain);
-                return  StatusCodes.BadCertificateUntrusted;
+                return StatusCodes.BadCertificateUntrusted;
             }
         } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
             // put all certificates of the chain in the rejected folder
