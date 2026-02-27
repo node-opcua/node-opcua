@@ -1,2 +1,2 @@
-export * from "./certificate_types";
-export * from "./push_certificate_management_client";
+export * from "./certificate_types.js";
+export * from "./push_certificate_management_client.js";

@@ -1,6 +1,6 @@
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import type { PushCertificateManagerInternalContext } from "./internal_context";
+import type { PushCertificateManagerInternalContext } from "./internal_context.js";
 
 const errorLog = make_errorLog("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");

@@ -1,9 +1,9 @@
 import type { CertificateManager } from "node-opcua-certificate-manager";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { eccCertificateTypesArray, rsaCertificateTypesArray } from "../../clientTools/certificate_types";
-import { getCertificateKeyType } from "../../clientTools/get_certificate_key_type";
-import type { PushCertificateManagerInternalContext } from "./internal_context";
+import { eccCertificateTypesArray, rsaCertificateTypesArray } from "../../clientTools/certificate_types.js";
+import { getCertificateKeyType } from "../../clientTools/get_certificate_key_type.js";
+import type { PushCertificateManagerInternalContext } from "./internal_context.js";
 
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
