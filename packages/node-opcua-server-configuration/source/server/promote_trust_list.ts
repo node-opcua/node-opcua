@@ -25,10 +25,10 @@ import { VerificationStatus } from "node-opcua-pki";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { rolePermissionAdminOnly } from "./roles_and_permissions";
+import { rolePermissionAdminOnly } from "./roles_and_permissions.js";
 
-import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
-import { TrustListMasks, writeTrustList } from "./trust_list_server";
+import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
+import { TrustListMasks, writeTrustList } from "./trust_list_server.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");

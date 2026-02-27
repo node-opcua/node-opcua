@@ -9,18 +9,18 @@ import { make_errorLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import type { SubjectOptions } from "node-opcua-pki";
 import type { StatusCode } from "node-opcua-status-code";
-import { rsaCertificateTypesArray } from "../clientTools/certificate_types";
+import { rsaCertificateTypesArray } from "../clientTools/certificate_types.js";
 import type {
     CreateSigningRequestResult,
     GetRejectedListResult,
     PushCertificateManager,
     UpdateCertificateResult
-} from "../push_certificate_manager";
-import { executeApplyChanges } from "./push_certificate_manager/apply_changes";
-import { executeCreateSigningRequest } from "./push_certificate_manager/create_signing_request";
-import { executeGetRejectedList } from "./push_certificate_manager/get_rejected_list";
-import { PushCertificateManagerInternalContext } from "./push_certificate_manager/internal_context";
-import { executeUpdateCertificate } from "./push_certificate_manager/update_certificate";
+} from "../push_certificate_manager.js";
+import { executeApplyChanges } from "./push_certificate_manager/apply_changes.js";
+import { executeCreateSigningRequest } from "./push_certificate_manager/create_signing_request.js";
+import { executeGetRejectedList } from "./push_certificate_manager/get_rejected_list.js";
+import { PushCertificateManagerInternalContext } from "./push_certificate_manager/internal_context.js";
+import { executeUpdateCertificate } from "./push_certificate_manager/update_certificate.js";
 
 const errorLog = make_errorLog("ServerConfiguration");
 

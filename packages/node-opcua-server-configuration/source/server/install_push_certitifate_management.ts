@@ -18,8 +18,8 @@ import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
-import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
-import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl";
+import { installPushCertificateManagement } from "./push_certificate_manager_helpers.js";
+import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 
 // node 14 onward : import {  readFile } from "fs/promises";
 const { readFile } = fs.promises;

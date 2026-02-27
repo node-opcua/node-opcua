@@ -8,10 +8,10 @@ import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { SubjectOptions } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 
-import type { CreateSigningRequestResult } from "../../push_certificate_manager";
-import type { PushCertificateManagerInternalContext } from "./internal_context";
-import { subjectToString } from "./subject_to_string";
-import { resolveCertificateGroupContext } from "./util";
+import type { CreateSigningRequestResult } from "../../push_certificate_manager.js";
+import type { PushCertificateManagerInternalContext } from "./internal_context.js";
+import { subjectToString } from "./subject_to_string.js";
+import { resolveCertificateGroupContext } from "./util.js";
 
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");

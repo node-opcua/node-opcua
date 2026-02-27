@@ -1,6 +1,6 @@
 import type { CertificateManager } from "node-opcua-certificate-manager";
 import type { NodeId } from "node-opcua-nodeid";
-import { FileTransactionManager } from "../file_transaction_manager";
+import { FileTransactionManager } from "../file_transaction_manager.js";
 
 export type ActionQueue = (() => Promise<void>)[];
 

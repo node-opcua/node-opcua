@@ -3,8 +3,8 @@ import path from "node:path";
 import type { CertificateManager } from "node-opcua-certificate-manager";
 import { convertPEMtoDER } from "node-opcua-crypto";
 import { StatusCodes } from "node-opcua-status-code";
-import type { GetRejectedListResult } from "../../push_certificate_manager";
-import type { PushCertificateManagerInternalContext } from "./internal_context";
+import type { GetRejectedListResult } from "../../push_certificate_manager.js";
+import type { PushCertificateManagerInternalContext } from "./internal_context.js";
 
 interface FileData {
     filename: string;
