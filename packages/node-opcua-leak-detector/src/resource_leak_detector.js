@@ -1,6 +1,5 @@
 "use strict";
 Error.stackTraceLimit = Infinity;
-
 const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
 
@@ -9,6 +8,15 @@ const { takeMemorySnapshot, checkForMemoryLeak } = require("./mem_leak_detector"
 
 const trace = false;
 
+const memLeakDetectionDisabled = process.env.MEM_LEAK_DETECTION_DISABLED === "true";
+if (memLeakDetectionDisabled) {
+    console.log("[LeakDetector] ⚠️  Memory leak detection is disabled");
+} else {
+    // if MEM_LEAK_DETECTION_DISABLED is undefined, inform the user that it exists
+    if (process.env.MEM_LEAK_DETECTION_DISABLED === undefined) {
+        console.log("[LeakDetector] ℹ️  Memory leak detection is enabled. Set MEM_LEAK_DETECTION_DISABLED=true to disable it.");
+    }
+}
 
 function get_stack() {
     const stack = (new Error("Stack Trace recording")).stack.split("\n");
@@ -119,7 +127,7 @@ ResourceLeakDetector.prototype.start = function(info) {
     const self = ResourceLeakDetector.singleton;
 
     if (trace) {
-        console.log(" starting resourceLeakDetector");
+        console.log("[LeakDetector] 🚀 starting resourceLeakDetector");
     }
     assert(!self.setInterval_old, "resourceLeakDetector.stop hasn't been called !");
     assert(!self.clearInterval_old, "resourceLeakDetector.stop hasn't been called !");
@@ -152,8 +160,8 @@ ResourceLeakDetector.prototype.start = function(info) {
             assert(delay !== undefined);
             assert(isFinite(delay));
             if (delay < 0) {
-                console.log("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
-                throw new Error("GLOBAL#setTimeout called with a too small delay = " + delay.toString());
+                console.log("[LeakDetector] ❌ GLOBAL#setTimeout called with a too small delay = " + delay.toString());
+                throw new Error("[LeakDetector] ❌ GLOBAL#setTimeout called with a too small delay = " + delay.toString());
             }
 
             // increase number of pending timers
@@ -168,11 +176,11 @@ ResourceLeakDetector.prototype.start = function(info) {
 
                 if (!self.timeout_map[key] || self.timeout_map[key].isCleared) {
                     // throw new Error("Invalid timeoutId, timer has already been cleared - " + key);
-                    console.log("WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
+                    console.log("[LeakDetector] ❌ WARNING : setTimeout:  Invalid timeoutId, timer has already been cleared - " + key);
                     return;
                 }
                 if (self.timeout_map[key].hasBeenHonored) {
-                    throw new Error("setTimeout:  " + key + " time out has already been honored");
+                    throw new Error("[LeakDetector] ❌ setTimeout:  " + key + " time out has already been honored");
                 }
                 self.honoredTimeoutFuncCallCount += 1;
                 self.setTimeoutCallPendingCount -= 1;
@@ -188,18 +196,31 @@ ResourceLeakDetector.prototype.start = function(info) {
                 disposed: false,
                 stack: get_stack() // stack when created
             };
-            return key + 100000;
+
+            // Return a wrapper that acts as the key (for clearTimeout)
+            // but also exposes ref/unref/hasRef from the real Timeout
+            const wrapper = {
+                [Symbol.toPrimitive]() { return key + 100000; },
+                ref() { timeoutId.ref(); return wrapper; },
+                unref() { timeoutId.unref(); return wrapper; },
+                hasRef() { return timeoutId.hasRef(); },
+                _key: key + 100000
+            };
+            return wrapper;
         };
 
         global.clearTimeout = function(timeoutId) {
             // workaround for a bug in 'backoff' module, which call clearTimeout with -1 ( invalid ide)
             if (timeoutId === -1) {
-                console.log("warning clearTimeout is called with illegal timeoutId === 1, this call will be ignored ( backoff module bug?)");
+                console.log("[LeakDetector] ❌ warning clearTimeout is called with illegal timeoutId === 1, this call will be ignored ( backoff module bug?)");
                 return;
             }
 
+            // Support both raw keys (number) and wrapper objects (from our proxy)
+            timeoutId = (timeoutId && timeoutId._key !== undefined) ? timeoutId._key : +timeoutId;
+
             if (timeoutId >= 0 && timeoutId < 100000) {
-                throw new Error("clearTimeout has been called instead of clearInterval");
+                throw new Error("[LeakDetector] ❌ clearTimeout has been called instead of clearInterval");
             }
             timeoutId -= 100000;
 
@@ -240,7 +261,7 @@ ResourceLeakDetector.prototype.start = function(info) {
         assert(delay !== undefined);
         assert(isFinite(delay));
         if (delay <= 10) {
-            throw new Error("GLOBAL#setInterval called with a too small delay = " + delay.toString());
+            throw new Error("[LeakDetector] ⏰ GLOBAL#setInterval called with a too small delay = " + delay.toString());
         }
 
         // increase number of pending timers
@@ -267,20 +288,31 @@ ResourceLeakDetector.prototype.start = function(info) {
             console.log("setInterval \n", get_stack(), "\n");
         }
 
-        return key;
+        // Return a wrapper that acts as the key (for clearInterval)
+        // but also exposes ref/unref/hasRef from the real Timeout
+        const wrapper = {
+            [Symbol.toPrimitive]() { return key; },
+            ref() { intervalId.ref(); return wrapper; },
+            unref() { intervalId.unref(); return wrapper; },
+            hasRef() { return intervalId.hasRef(); },
+            _key: key
+        };
+        return wrapper;
     };
 
     global.clearInterval = function(intervalId) {
 
-        if (intervalId >= 100000) {
-            throw new Error("clearInterval has been called instead of clearTimeout");
+        // Support both raw keys (number) and wrapper objects (from our proxy)
+        const key = (intervalId && intervalId._key !== undefined) ? intervalId._key : +intervalId;
+
+        if (key >= 100000) {
+            throw new Error("[LeakDetector] 🔄 clearInterval has been called instead of clearTimeout");
         }
         self.clearIntervalCallCount += 1;
 
         if (trace) {
-            console.log("clearInterval " + intervalId, get_stack());
+            console.log("[LeakDetector] 🔄 clearInterval " + key, get_stack());
         }
-        const key = intervalId;
 
         const data = self.interval_map[key];
 
@@ -307,7 +339,7 @@ ResourceLeakDetector.prototype.stop = function(info) {
 
     const self = ResourceLeakDetector.singleton;
     if (trace) {
-        console.log(" stop resourceLeakDetector");
+        console.log("[LeakDetector] stop resourceLeakDetector");
     }
     assert(typeof self.setInterval_old === "function", " did you forget to call resourceLeakDetector.start() ?");
 
@@ -371,7 +403,7 @@ let testHasFailed = false;
 
 exports.installResourceLeakDetector = function(isGlobal, func) {
 
-    const trace = traceFromThisProjectOnly();
+    const _trace = traceFromThisProjectOnly();
     testHasFailed = false;
 
     let beforeOverallSnapshot;
@@ -379,7 +411,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
     let beforeSnapshot;
     let afterSnapshot;
     if (isGlobal) {
-        before(function() {
+        before(function(/*this: Mocha.Suite*/) {
             testHasFailed = false;
             resourceLeakDetector.ctx = this.test.ctx;
             resourceLeakDetector.start();
@@ -388,9 +420,9 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
                 global.gc(true);
             }
             beforeOverallSnapshot = takeMemorySnapshot();
-            
+
         });
-        beforeEach(function() {
+        beforeEach(() => {
             // make sure we start with a garbage collected situation
             if (global.gc) {
                 global.gc(true);
@@ -400,24 +432,26 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
         if (func) {
             func.call(this);
         }
-        after(function() {
+        after(async () => {
+
             resourceLeakDetector.stop({ silent: testHasFailed });
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
             if (global.gc) {
                 global.gc(true);
             }
+            // give some time to relax
             afterOverallSnapshot = takeMemorySnapshot();
             checkForMemoryLeak(beforeOverallSnapshot, afterOverallSnapshot);
-            
+
         });
-        afterEach(function() {
+        afterEach(async () => {
             afterSnapshot = takeMemorySnapshot();
-            
+
         });
 
     } else {
-        beforeEach(function() {
+        beforeEach(function(/*this: Mocha.Test*/) {
 
             if (global.gc) {
                 global.gc(true);
@@ -426,13 +460,15 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             resourceLeakDetector.start();
             beforeSnapshot = takeMemorySnapshot();
         });
-        afterEach(function() {
+        afterEach(async () => {
             resourceLeakDetector.stop({ silent: testHasFailed });
             resourceLeakDetector.ctx = false;
             // make sure we start with a garbage collected situation
             if (global.gc) {
                 global.gc(true);
             }
+            // give some time to relax
+            await new Promise(resolve => setTimeout(resolve, 200));
             afterSnapshot = takeMemorySnapshot();
             checkForMemoryLeak(beforeSnapshot, afterSnapshot);
         });
@@ -474,6 +510,11 @@ assert(typeof global_describe === "function", " expecting mocha to be defined");
 
 let g_inDescribeWithLeakDetector = false;
 exports.describeWithLeakDetector = function(message, func) {
+
+    if (memLeakDetectionDisabled) {
+        return global_describe(message, func);
+    }
+
     if (g_inDescribeWithLeakDetector) {
         return global_describe(message, func);
     }
