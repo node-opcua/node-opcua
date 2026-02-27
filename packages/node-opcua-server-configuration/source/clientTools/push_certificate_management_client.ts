@@ -18,9 +18,9 @@ import type {
     GetRejectedListResult,
     PushCertificateManager,
     UpdateCertificateResult
-} from "../push_certificate_manager";
-import type { TrustListMasks } from "../server/trust_list_server";
-import type { ITrustList } from "../trust_list";
+} from "../push_certificate_manager.js";
+import type { TrustListMasks } from "../server/trust_list_server.js";
+import type { ITrustList } from "../trust_list.js";
 
 const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
 const createSigningRequestMethod = resolveNodeId("ServerConfiguration_CreateSigningRequest");

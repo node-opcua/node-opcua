@@ -16,10 +16,10 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 
-import type { UpdateCertificateResult } from "../../push_certificate_manager";
-import { validateCertificateAndChain } from "../certificate_validation";
-import type { PushCertificateManagerInternalContext } from "./internal_context";
-import { resolveCertificateGroupContext, validateCertificateType } from "./util";
+import type { UpdateCertificateResult } from "../../push_certificate_manager.js";
+import { validateCertificateAndChain } from "../certificate_validation.js";
+import type { PushCertificateManagerInternalContext } from "./internal_context.js";
+import { resolveCertificateGroupContext, validateCertificateType } from "./util.js";
 
 const warningLog = make_warningLog("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");

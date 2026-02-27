@@ -26,12 +26,15 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
-import type { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
-import { installCertificateFileWatcher } from "./install_certificate_file_watcher";
-import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
-import { PushCertificateManagerServerImpl, type PushCertificateManagerServerOptions } from "./push_certificate_manager_server_impl";
-import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
-import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
+import type { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager.js";
+import { installCertificateFileWatcher } from "./install_certificate_file_watcher.js";
+import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list.js";
+import {
+    PushCertificateManagerServerImpl,
+    type PushCertificateManagerServerOptions
+} from "./push_certificate_manager_server_impl.js";
+import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions.js";
+import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");

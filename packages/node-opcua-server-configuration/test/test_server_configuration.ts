@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { fileURLToPath } from "node:url";
 import "should";
-import { OpenFileMode } from "node-opcua-file-transfer";
-import "mocha";
 import {
     AddressSpace,
     ContinuationPointManager,
@@ -24,6 +22,8 @@ import { assert } from "node-opcua-assert";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { makeSHA1Thumbprint, readCertificate, split_der } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
+import { OpenFileMode } from "node-opcua-file-transfer";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
@@ -35,9 +35,10 @@ import type { PushCertificateManagerInternalContext } from "../dist/server/push_
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
 import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.ts";
 
-const sampleCertificateFolder = path.join(process.cwd(), "../node-opcua-samples/certificates/");
+const __dirname = global.__dirname || path.dirname(fileURLToPath(import.meta.url));
+const sampleCertificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates/");
 const sampleCert2048 = path.join(sampleCertificateFolder, "client_cert_2048.pem");
-fs.existsSync(sampleCert2048).should.eql(true);
+fs.existsSync(sampleCert2048).should.eql(true, `certificate not found at ${sampleCert2048}`);
 const sampleSelfSignedCert2048 = path.join(sampleCertificateFolder, "client_selfsigned_cert_2048.pem");
 assert(fs.existsSync(sampleSelfSignedCert2048));
 const sampleSelfSignedCert1024 = path.join(sampleCertificateFolder, "client_selfsigned_cert_1024.pem");
