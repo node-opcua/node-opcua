@@ -31,6 +31,7 @@
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-assert": "2.157.0",
-        "node-opcua-object-registry": "2.157.0"
+        "node-opcua-object-registry": "2.157.0",
+        "wtfnode": "^0.10.1"
     }
 }

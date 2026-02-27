@@ -5,6 +5,8 @@ const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
 
 const { ObjectRegistry } = require("node-opcua-object-registry");
+const { takeMemorySnapshot, checkForMemoryLeak } = require("./mem_leak_detector");
+
 const trace = false;
 
 
@@ -371,6 +373,11 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
 
     const trace = traceFromThisProjectOnly();
     testHasFailed = false;
+
+    let beforeOverallSnapshot;
+    let afterOverallSnapshot;
+    let beforeSnapshot;
+    let afterSnapshot;
     if (isGlobal) {
         before(function() {
             testHasFailed = false;
@@ -380,12 +387,15 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             if (global.gc) {
                 global.gc(true);
             }
+            beforeOverallSnapshot = takeMemorySnapshot();
+            
         });
         beforeEach(function() {
             // make sure we start with a garbage collected situation
             if (global.gc) {
                 global.gc(true);
             }
+            beforeSnapshot = takeMemorySnapshot();
         });
         if (func) {
             func.call(this);
@@ -397,6 +407,13 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             if (global.gc) {
                 global.gc(true);
             }
+            afterOverallSnapshot = takeMemorySnapshot();
+            checkForMemoryLeak(beforeOverallSnapshot, afterOverallSnapshot);
+            
+        });
+        afterEach(function() {
+            afterSnapshot = takeMemorySnapshot();
+            
         });
 
     } else {
@@ -407,6 +424,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             }
             resourceLeakDetector.ctx = this.test.ctx;
             resourceLeakDetector.start();
+            beforeSnapshot = takeMemorySnapshot();
         });
         afterEach(function() {
             resourceLeakDetector.stop({ silent: testHasFailed });
@@ -415,6 +433,8 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
             if (global.gc) {
                 global.gc(true);
             }
+            afterSnapshot = takeMemorySnapshot();
+            checkForMemoryLeak(beforeSnapshot, afterSnapshot);
         });
 
     }
