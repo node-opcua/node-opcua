@@ -1,6 +1,10 @@
 "use strict";
+
+const { describeWithLeakDetector } = require("./src/resource_leak_detector");
+const { takeMemorySnapshot, checkForMemoryLeak } = require("./src/mem_leak_detector");
+
 module.exports = {
-    describeWithLeakDetector: require("./src/resource_leak_detector").describeWithLeakDetector,
-    takeMemorySnapshot: require("./src/mem_leak_detector").takeMemorySnapshot,
-    checkForMemoryLeak: require("./src/mem_leak_detector").checkForMemoryLeak
+    describeWithLeakDetector,
+    takeMemorySnapshot,
+    checkForMemoryLeak
 };

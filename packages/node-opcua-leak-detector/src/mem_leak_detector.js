@@ -1,8 +1,17 @@
 // memoryLeakDetector.js
+let wtf;
 
-const wtf = require('wtfnode');
 
-let noGCexposed= undefined;
+if (process.env.MEM_LEAK_DETECTION_WTF_ENABLED) {
+  console.log("[LeakDetector] ⚠️ WTFNODE enabled");
+  wtf = require('wtfnode');
+  wtf.init();
+} else {
+  console.log("[LeakDetector] ℹ️  WTFNODE disabled. Use MEM_LEAK_DETECTION_WTF_ENABLED=true to enable it.");
+}
+
+
+let noGCexposed = undefined;
 
 /**
  * Forces garbage collection if available.
@@ -13,7 +22,7 @@ function forceGC() {
     noGCexposed = false;
   } else {
     if (noGCexposed == undefined) {
-      console.warn('⚠️ Garbage collection not exposed. Run Node.js with --expose-gc flag for more accurate results.');
+      console.warn('[LeakDetector] ⚠️ Garbage collection not exposed. Run Node.js with --expose-gc flag for more accurate results.');
     }
     noGCexposed = true;
   }
@@ -40,7 +49,7 @@ function takeMemorySnapshot() {
  */
 function checkForMemoryLeak(before, after, threshold = 2) {
 
-  if(noGCexposed) {
+  if (noGCexposed) {
     return;
   }
   const heapUsedBefore = before / 1024 / 1024; // MB
@@ -50,18 +59,18 @@ function checkForMemoryLeak(before, after, threshold = 2) {
 
   if (isLeak) {
     console.warn(
-      `⚠️ Potential memory leak detected in test: ${delta.toFixed(2)} MB increase (threshold: ${threshold} MB)`
+      `[LeakDetector] ⚠️ Potential memory leak detected in test: ${delta.toFixed(2)} MB increase (threshold: ${threshold} MB , total : ${heapUsedAfter.toFixed(2)} MB)`
     );
   } else {
     console.log(
-      `✅ No significant memory leak detected: ${delta.toFixed(2)} MB increase`
+      `[LeakDetector] ✅ No significant memory leak detected: ${delta.toFixed(2)} MB increase total : ${heapUsedAfter.toFixed(2)} MB`
     );
   }
 
 
-  wtf.dump({fullStacks: true}); // Show open handles, listeners, etc.
+  wtf?.dump({ fullStacks: true }); // Show open handles, listeners, etc.
 
   return { before: heapUsedBefore, after: heapUsedAfter, delta, isLeak };
 }
 
-module.exports =  { takeMemorySnapshot, checkForMemoryLeak };
+module.exports = { takeMemorySnapshot, checkForMemoryLeak };
