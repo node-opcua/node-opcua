@@ -2,7 +2,7 @@ import "should";
 import { OPCUAClient, DataValue, AttributeIds, ClientSubscription, ClientMonitoredItem } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness { endpointUrl: string; server: any;[k: string]: any }
 
 const doDebug = false;
 
@@ -19,7 +19,7 @@ export function t(test: TestHarness) {
             let counter = 1;
             const variableToMonitor = namespace.addVariable({
                 organizedBy: server.engine.addressSpace.rootFolder.objects,
-                browseName: "SlowVariable",
+                browseName: "SlowVariable_123",
                 dataType: "UInt32",
                 value: {
                     refreshFunc: (callback: any) => {
@@ -60,7 +60,7 @@ export function t(test: TestHarness) {
                 const monitoredItem2 = makeMonitor();
                 monitoredItem2.on("changed", (dv) => { change2++; if (doDebug) console.log("DataValue2", dv.value.toString()); });
 
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 3000));
                 change1.should.be.greaterThan(0);
                 change2.should.be.greaterThan(0);
 
