@@ -20,10 +20,10 @@
     "dependencies": {
         "env-paths": "2.2.1",
         "node-opcua-assert": "2.157.0",
-        "node-opcua-crypto": "5.2.0",
+        "node-opcua-crypto": "5.3.0",
         "node-opcua-debug": "2.157.0",
         "node-opcua-object-registry": "2.157.0",
-        "node-opcua-pki": "6.5.1",
+        "node-opcua-pki": "6.7.0",
         "node-opcua-status-code": "2.162.0",
         "thenify-ex": "4.4.0"
     },

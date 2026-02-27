@@ -102,11 +102,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -256,8 +256,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-access:
         specifier: 2.163.1
         version: link:../node-opcua-data-access
@@ -403,8 +403,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-access:
         specifier: 2.163.1
         version: link:../node-opcua-data-access
@@ -521,8 +521,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-model:
         specifier: 2.163.0
         version: link:../node-opcua-data-model
@@ -764,8 +764,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -773,8 +773,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-status-code:
         specifier: 2.162.0
         version: link:../node-opcua-status-code
@@ -853,8 +853,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-model:
         specifier: 2.163.0
         version: link:../node-opcua-data-model
@@ -883,8 +883,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -1122,8 +1122,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-types:
         specifier: 2.163.1
         version: link:../node-opcua-types
@@ -1360,8 +1360,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -1393,8 +1393,8 @@ importers:
         specifier: 2.163.1
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-server:
         specifier: 2.163.1
         version: link:../node-opcua-server
@@ -2711,14 +2711,14 @@ importers:
         specifier: 2.163.1
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-packet-analyzer:
         specifier: 2.163.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-server-configuration:
         specifier: 2.163.1
         version: link:../node-opcua-server-configuration
@@ -2808,8 +2808,8 @@ importers:
         specifier: 2.163.1
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -2917,8 +2917,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-model:
         specifier: 2.163.0
         version: link:../node-opcua-data-model
@@ -2953,8 +2953,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-secure-channel:
         specifier: 2.163.1
         version: link:../node-opcua-secure-channel
@@ -3065,8 +3065,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.3.0
+        version: 5.3.0
       node-opcua-data-model:
         specifier: 2.163.0
         version: link:../node-opcua-data-model
@@ -3083,8 +3083,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -3178,8 +3178,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.5.1
-        version: 6.5.1
+        specifier: 6.7.0
+        version: 6.7.0
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4324,9 +4324,6 @@ packages:
   '@sinonjs/samsam@8.0.3':
     resolution: {integrity: sha512-hw6HbX+GyVZzmaYNh82Ecj1vdGZrqVIn/keDTg63IgAwiQPO+xCz99uG6Woqgb4tM0mUiFENKZ4cqd7IX94AXQ==}
 
-  '@ster5/global-mutex@2.0.0':
-    resolution: {integrity: sha512-nlp5BM4E7ybkGt6ouZsohSnliWtXgRoUWHMl8uzi64gKwZSONsssEstfBGnQ0OpdQlE0HBP0qq9RDxP0JTW57w==}
-
   '@ster5/global-mutex@3.1.0':
     resolution: {integrity: sha512-wCS0yuz7e13NYr6Rmp7iCUiRieLGGbK031u+VcafYJL++al8E95/h8L1jX44kfHq6LqP1i7FKItA8oan0Ch5HQ==}
     engines: {node: '>=20'}
@@ -4366,12 +4363,6 @@ packages:
 
   '@types/node@25.0.2':
     resolution: {integrity: sha512-gWEkeiyYE4vqjON/+Obqcoeffmk0NF15WSBwSs7zwVA2bAbTaE0SJ7P0WNGoJn8uE7fiaV5a7dKYIJriEqOrmA==}
-
-  '@types/proper-lockfile@4.1.4':
-    resolution: {integrity: sha512-uo2ABllncSqg9F1D4nugVl9v93RmjxF6LJzQLMLDdPaXCUIDPeOJ21Gbqi43xNKzBi/WQ0Q0dICqufzQbMjipQ==}
-
-  '@types/retry@0.12.5':
-    resolution: {integrity: sha512-3xSjTp3v03X/lSQLkczaN9UIEwJMoMCA1+Nb5HfbJEQWogdeQIyVtTvxPXDQjZ5zws8rFQfVfRdz03ARihPJgw==}
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
@@ -4916,9 +4907,6 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  graceful-fs@4.2.11:
-    resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
   has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
     engines: {node: '>=4'}
@@ -5139,11 +5127,11 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  node-opcua-crypto@5.2.0:
-    resolution: {integrity: sha512-0TroQmnEZZqTZHW3wwQOi54QIYohYlyieLjBoEcw7VABQDXt9Xo5o6FT4Z2ziMAWyKbvMyQ8TQhhtIajxcaoWg==}
+  node-opcua-crypto@5.3.0:
+    resolution: {integrity: sha512-JeR4TG0Z8aDSLd3aKUWU3C2LvK4SiB9SHP23a1Rh/GfwHxUB6c4Ui0M2NSqeQCG7eYLX6PrSf6mWcmHo6zB/vg==}
 
-  node-opcua-pki@6.5.1:
-    resolution: {integrity: sha512-qa+d9F9ereNcg38BXrHpEMIpVUziZTFubp+XjPDvr9ygAayFpLIBma1zarUeP+ms+wFuqjUXxIiV0BabvVBcjw==}
+  node-opcua-pki@6.7.0:
+    resolution: {integrity: sha512-J8+wmANHk66BNxbwJ/biREDKgF0g3em9hRQSXIjVkOKsJ+x1WBUjsiifzipWB33lfaddxKBJ74Mmif3S9hMztw==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -5240,9 +5228,6 @@ packages:
     resolution: {integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==}
     engines: {node: '>=0.4.0'}
 
-  proper-lockfile@4.1.2:
-    resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
-
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -5289,10 +5274,6 @@ packages:
     resolution: {integrity: sha512-NPRy+/ncIMeDlTAsuqwKIiferiawhefFJtkNSW0qZJEqMEb+qBt/77B/jGeeek+F0uOeN05CDa6HXbbIgtVX4w==}
     engines: {node: '>= 0.4'}
     hasBin: true
-
-  retry@0.12.0:
-    resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
-    engines: {node: '>= 4'}
 
   rimraf@6.1.2:
     resolution: {integrity: sha512-cFCkPslJv7BAXJsYlK1dZsbP8/ZNLkCAQ0bi1hf5EKX2QHegmDFEFA6QhuYJlk7UDdc+02JjO80YSOrWPpw06g==}
@@ -5345,9 +5326,6 @@ packages:
 
   should@13.2.3:
     resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
-
-  signal-exit@3.0.7:
-    resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
@@ -6177,11 +6155,6 @@ snapshots:
       '@sinonjs/commons': 3.0.1
       type-detect: 4.1.0
 
-  '@ster5/global-mutex@2.0.0':
-    dependencies:
-      '@types/proper-lockfile': 4.1.4
-      proper-lockfile: 4.1.2
-
   '@ster5/global-mutex@3.1.0': {}
 
   '@ts-morph/common@0.28.1':
@@ -6223,12 +6196,6 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
     optional: true
-
-  '@types/proper-lockfile@4.1.4':
-    dependencies:
-      '@types/retry': 0.12.5
-
-  '@types/retry@0.12.5': {}
 
   '@types/semver@7.7.1': {}
 
@@ -6760,8 +6727,6 @@ snapshots:
 
   globals@14.0.0: {}
 
-  graceful-fs@4.2.11: {}
-
   has-flag@3.0.0: {}
 
   has-flag@4.0.0: {}
@@ -6968,21 +6933,21 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  node-opcua-crypto@5.2.0:
+  node-opcua-crypto@5.3.0:
     dependencies:
       '@peculiar/webcrypto': 1.5.0
       '@peculiar/x509': 1.14.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.5.1:
+  node-opcua-pki@6.7.0:
     dependencies:
-      '@ster5/global-mutex': 2.0.0
+      '@ster5/global-mutex': 3.1.0
       byline: 5.0.0
       chalk: 4.1.2
       chokidar: 4.0.3
       command-line-args: 6.0.1
       command-line-usage: 7.0.3
-      node-opcua-crypto: 5.2.0
+      node-opcua-crypto: 5.3.0
       progress: 2.0.3
       wget-improved-2: 3.3.0
       yauzl: 3.2.0
@@ -7066,12 +7031,6 @@ snapshots:
 
   progress@2.0.3: {}
 
-  proper-lockfile@4.1.2:
-    dependencies:
-      graceful-fs: 4.2.11
-      retry: 0.12.0
-      signal-exit: 3.0.7
-
   punycode@2.3.1: {}
 
   pvtsutils@1.3.6:
@@ -7109,8 +7068,6 @@ snapshots:
       is-core-module: 2.16.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
-
-  retry@0.12.0: {}
 
   rimraf@6.1.2:
     dependencies:
@@ -7162,8 +7119,6 @@ snapshots:
       should-type: 1.4.0
       should-type-adaptors: 1.1.0
       should-util: 1.0.1
-
-  signal-exit@3.0.7: {}
 
   signal-exit@4.1.0: {}
 
