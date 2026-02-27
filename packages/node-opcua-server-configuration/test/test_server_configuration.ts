@@ -1,5 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
+import { describeWithLeakDetector as describe, takeMemorySnapshot, checkForMemoryLeak } from "node-opcua-leak-detector";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import "should";
 import "mocha";
 import {
@@ -16,12 +17,11 @@ import {
     type UATrustList,
     WellKnownRoles
 } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { assert } from "node-opcua-assert";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { makeSHA1Thumbprint, readCertificate, split_der } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
@@ -67,11 +67,21 @@ describe("ServerConfiguration", () => {
 
     const xmlFiles = [nodesets.standard];
 
+     let beforeOverallSnapshot: number;;
+
     before(async () => {
         await CertificateManager.disposeAll();
+        beforeOverallSnapshot = takeMemorySnapshot();
     });
 
+    after(() => {
+        const afterOverallSnapshot = takeMemorySnapshot();
+        checkForMemoryLeak(beforeOverallSnapshot, afterOverallSnapshot);
+    });
+    let beforeSnapshot: number;
+
     beforeEach(async () => {
+        beforeSnapshot = takeMemorySnapshot();
         try {
             const _folder = await initializeHelpers("AA", 0);
 
@@ -104,6 +114,10 @@ describe("ServerConfiguration", () => {
 
         // check that all certificate managers have been properly disposed
         CertificateManager.checkAllDisposed();
+
+        // display memory leak
+        const afterSnapshot = takeMemorySnapshot();
+        checkForMemoryLeak(beforeSnapshot, afterSnapshot);
     });
 
     it("should expose a server configuration object", async () => {

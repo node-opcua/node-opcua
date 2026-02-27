@@ -451,7 +451,7 @@ export async function promoteTrustList(trustList: UATrustList) {
                     _open_asyncExecutionFunction.call(this, inputArgs, context, callback);
                 })
                 .catch((err) => {
-                    errorLog(err);
+                    errorLog((err as Error).message);
                     callback(err, { statusCode: StatusCodes.BadInternalError });
                 });
         } else {
