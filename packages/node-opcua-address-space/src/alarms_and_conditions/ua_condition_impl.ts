@@ -5,7 +5,7 @@
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { ByteString } from "node-opcua-basic-types";
+import { ByteString, minDate } from "node-opcua-basic-types";
 import { randomGuid } from "node-opcua-basic-types";
 import {
     AttributeIds,
@@ -193,7 +193,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
     private _branch0: ConditionSnapshot = null as any;
     private _previousRetainFlag = false;
-    private _branches: Map<string,ConditionSnapshot> = new Map()
+    private _branches: Map<string, ConditionSnapshot> = new Map()
 
     /**
      * @private
@@ -237,7 +237,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     public createBranch(): ConditionSnapshot {
         const branchId = _create_new_branch_id();
         const snapshot = new ConditionSnapshotImpl(this, branchId);
-        this._branches.set(branchId.toString(),snapshot);
+        this._branches.set(branchId.toString(), snapshot);
         return snapshot;
     }
 
@@ -480,13 +480,21 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         assert(selfConditionType.isSubtypeOf(conditionType));
 
         const branch = this.currentBranch();
-
+        if (!branch) {
+            warningLog(
+                "UACondition#raiseNewCondition currentBranch is not defined for node ",
+                fullPath2(this)
+            );
+            throw new Error("UACondition#raiseNewCondition currentBranch is not defined");
+        }
         const currentDefaultDate = new Date();
         const time = conditionInfo.time || currentDefaultDate;
         const receiveTime = conditionInfo.receiveTime || currentDefaultDate;
         // install the eventTimestamp
         // set the received Time
-        branch.setTime(time);
+
+        branch.setTime(time || minDate);
+
         branch.setReceiveTime(receiveTime);
 
         // note : in 1.04 LocalTime property is optional
@@ -619,12 +627,12 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         // xx }
     }
 
-    public findBranchForEventId(eventId: Buffer| null): ConditionSnapshot | null {
+    public findBranchForEventId(eventId: Buffer | null): ConditionSnapshot | null {
         if (sameBuffer(this.eventId!.readValue().value.value, eventId)) {
             return this.currentBranch();
         }
         const e = [...this._branches.values()]
-                    .filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
+            .filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
         if (e.length === 1) {
             return e[0];
         }
@@ -863,8 +871,8 @@ function UACondition_instantiate(
                     errorLog("conditionSourceNode = ", conditionSourceNode.nodeId.toString());
                     throw new Error(
                         "conditionSourceNode must be an event source " +
-                            conditionSourceNode.browseName.toString() +
-                            conditionSourceNode.nodeId.toString()
+                        conditionSourceNode.browseName.toString() +
+                        conditionSourceNode.nodeId.toString()
                     );
                 }
             }
