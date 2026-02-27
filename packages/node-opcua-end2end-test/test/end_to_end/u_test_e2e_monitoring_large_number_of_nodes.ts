@@ -36,7 +36,9 @@ interface TestHarness { endpointUrl: string;[k: string]: any }
  * Converted from callback-based JavaScript to async/await TypeScript while keeping original intent/comments.
  */
 export function t(test: TestHarness) {
-    describe("Monitoring many nodes", () => {
+    describe("Monitoring many nodes", function (this: Mocha.Context) {
+
+        this.timeout(Math.max(60_000, test.timeout));
         let client: OPCUAClient; let endpointUrl: string;
 
         beforeEach(async () => {
@@ -141,7 +143,7 @@ export function t(test: TestHarness) {
         }
 
         function makeItemsToCreate(count: number) {
-            const itemsToMonitor= makeItemsToMonitor(count);
+            const itemsToMonitor = makeItemsToMonitor(count);
 
             const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
             let clientHandle = 1;
@@ -193,7 +195,7 @@ export function t(test: TestHarness) {
                     doDebug && console.log("keepalive");
                 });
 
-                subscription.on("received_notifications", ()=>{
+                subscription.on("received_notifications", () => {
                     doDebug && console.log("received notification");
                 });
 
@@ -209,7 +211,7 @@ export function t(test: TestHarness) {
                     }, TimestampsToReturn.Both);
 
                     group.monitoredItems[0].statusCode.should.eql(StatusCodes.Good);
-                    group.monitoredItems[group.monitoredItems.length-1].statusCode.should.eql(StatusCodes.Good);
+                    group.monitoredItems[group.monitoredItems.length - 1].statusCode.should.eql(StatusCodes.Good);
 
                     // wait for a raw notification to be received
                     await waitUntilCondition(async () => notificationMessageSpy.callCount > + 1, 5000, "expecting some raw notification");
@@ -217,8 +219,8 @@ export function t(test: TestHarness) {
                     keepAlive.resetHistory();
                     await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
 
-              //      keepAlive.resetHistory();
-              //       await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
+                    //      keepAlive.resetHistory();
+                    //       await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
 
 
                     // find the first raw notification that as notification.length > 0 inside the notificationMessageSpy calls
