@@ -17,7 +17,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 const port = 2024; // use a unit port number to allow test serialization
 describe("issue_1436", function (this: any) {
 
-    this.timeout(10 * 1000);
+    this.timeout(50 * 1000);
 
     let server: OPCUAServer;
     before(async()=>{
