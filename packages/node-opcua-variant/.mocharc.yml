@@ -1,0 +1,11 @@
+require:
+  - should
+  - tsx
+timeout: 20000
+extension:
+  - .ts
+  - .js
+spec:
+  - test/*.ts
+  - test/*.js
+bail: true

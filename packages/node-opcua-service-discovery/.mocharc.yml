@@ -1,0 +1,9 @@
+require:
+  - should
+  - tsx
+recursive: true
+timeout: 50000
+extension:
+  - .ts
+  - .js
+bail: true

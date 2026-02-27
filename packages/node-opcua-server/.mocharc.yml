@@ -1,0 +1,10 @@
+require:
+  - should
+  - tsx
+timeout: 60000
+enable-source-maps: true
+extension:
+  - .ts
+  - .js
+bail: false
+parallel: false
