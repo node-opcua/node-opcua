@@ -1480,7 +1480,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             this.emit("abort");
-            this.#_backoff_completion(new Error("Connection abandoned"), undefined, transport, callback);
+            this.#_backoff_completion(new Error("Connection abandoned"), this.#lastError, transport, callback);
         });
 
         this.__call.setStrategy(new backoff.ExponentialStrategy(this.#connectionStrategy));
