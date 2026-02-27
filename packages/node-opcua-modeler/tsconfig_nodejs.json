@@ -6,11 +6,6 @@
         "composite": true,
         "incremental": true
     },
-    "ts-node": {
-        "compilerOptions": {
-            "inlineSourceMap": true
-        }
-    },
     "include": [
         "source_nodejs/**/*.ts"
     ],
