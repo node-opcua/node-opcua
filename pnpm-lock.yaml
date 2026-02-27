@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ster5/global-mutex':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.1.1
+        version: 3.1.1
       '@sterfive/fix-tsconfigs':
         specifier: 1.0.0
         version: link:tools/fix-tsconfigs
@@ -105,8 +105,8 @@ importers:
         specifier: 5.3.0
         version: 5.3.0
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -773,8 +773,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       node-opcua-status-code:
         specifier: 2.162.0
         version: link:../node-opcua-status-code
@@ -820,8 +820,8 @@ importers:
   packages/node-opcua-client:
     dependencies:
       '@ster5/global-mutex':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.1.1
+        version: 3.1.1
       async:
         specifier: ^3.2.6
         version: 3.2.6
@@ -883,8 +883,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -1393,8 +1393,8 @@ importers:
         specifier: 2.163.1
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       node-opcua-server:
         specifier: 2.163.1
         version: link:../node-opcua-server
@@ -2869,8 +2869,8 @@ importers:
   packages/node-opcua-server:
     dependencies:
       '@ster5/global-mutex':
-        specifier: ^3.1.0
-        version: 3.1.0
+        specifier: ^3.1.1
+        version: 3.1.1
       '@types/async':
         specifier: 3.2.25
         version: 3.2.25
@@ -2953,8 +2953,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       node-opcua-secure-channel:
         specifier: 2.163.1
         version: link:../node-opcua-secure-channel
@@ -3083,8 +3083,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -3178,8 +3178,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.7.0
-        version: 6.7.0
+        specifier: 6.7.1
+        version: 6.7.1
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4328,6 +4328,10 @@ packages:
     resolution: {integrity: sha512-wCS0yuz7e13NYr6Rmp7iCUiRieLGGbK031u+VcafYJL++al8E95/h8L1jX44kfHq6LqP1i7FKItA8oan0Ch5HQ==}
     engines: {node: '>=20'}
 
+  '@ster5/global-mutex@3.1.1':
+    resolution: {integrity: sha512-V+e4oe14/EIaMecvtTTeeZFOoQ3Hr2kdqBd6nfsaASNrrfmnC/zIrI3oZs5e2fP4lSKkQdeXMt+5QhAANrQtTw==}
+    engines: {node: '>=20'}
+
   '@ts-morph/common@0.28.1':
     resolution: {integrity: sha512-W74iWf7ILp1ZKNYXY5qbddNaml7e9Sedv5lvU1V8lftlitkc9Pq1A+jlH23ltDgWYeZFFEqGCD1Ies9hqu3O+g==}
 
@@ -5132,6 +5136,10 @@ packages:
 
   node-opcua-pki@6.7.0:
     resolution: {integrity: sha512-J8+wmANHk66BNxbwJ/biREDKgF0g3em9hRQSXIjVkOKsJ+x1WBUjsiifzipWB33lfaddxKBJ74Mmif3S9hMztw==}
+    hasBin: true
+
+  node-opcua-pki@6.7.1:
+    resolution: {integrity: sha512-l1lBSLbV1sbCY9Z0qFFssKUL+UJ/oe25PL+/7KC8TF4QZA4mDGQeuDR+1JvB+8DuBjwwvMqOzIWsyc92QbXeKA==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6157,6 +6165,8 @@ snapshots:
 
   '@ster5/global-mutex@3.1.0': {}
 
+  '@ster5/global-mutex@3.1.1': {}
+
   '@ts-morph/common@0.28.1':
     dependencies:
       minimatch: 10.0.3
@@ -6942,6 +6952,21 @@ snapshots:
   node-opcua-pki@6.7.0:
     dependencies:
       '@ster5/global-mutex': 3.1.0
+      byline: 5.0.0
+      chalk: 4.1.2
+      chokidar: 4.0.3
+      command-line-args: 6.0.1
+      command-line-usage: 7.0.3
+      node-opcua-crypto: 5.3.0
+      progress: 2.0.3
+      wget-improved-2: 3.3.0
+      yauzl: 3.2.0
+    transitivePeerDependencies:
+      - '@75lb/nature'
+
+  node-opcua-pki@6.7.1:
+    dependencies:
+      '@ster5/global-mutex': 3.1.1
       byline: 5.0.0
       chalk: 4.1.2
       chokidar: 4.0.3

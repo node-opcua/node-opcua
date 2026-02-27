@@ -94,7 +94,7 @@
         }
     },
     "dependencies": {
-        "@ster5/global-mutex": "^3.1.0",
+        "@ster5/global-mutex": "^3.1.1",
         "@sterfive/fix-tsconfigs": "1.0.0",
         "@types/async": "3.2.25",
         "@types/bonjour": "^3.5.13",
@@ -126,7 +126,7 @@
         "memfs": "^4.56.10",
         "mocha-clean": "^1.0.0",
         "node-opcua-crypto": "5.3.0",
-        "node-opcua-pki": "6.7.0",
+        "node-opcua-pki": "6.7.1",
         "progress": "^2.0.3",
         "rimraf": "6.1.2",
         "semver": "^7.7.4",
