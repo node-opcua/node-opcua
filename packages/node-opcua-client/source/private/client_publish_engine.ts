@@ -325,6 +325,21 @@ export class ClientSidePublishEngine {
                         warningLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
                     }
                 }
+                if (err.message.match(/BadSecureChannelIdInvalid/)) {
+                    // This can happen transiently during session transfer to a new
+                    // SecureChannel (e.g. after server certificate change). The
+                    // PublishRequest arrived on the new channel before ActivateSession
+                    // completed the session transfer. We should pause and let the
+                    // reconnection flow replenish publish requests once the session
+                    // transfer completes.
+                    debugLog(
+                        chalk.bgWhite.yellow(
+                            " WARNING: BadSecureChannelIdInvalid on PublishRequest"
+                            + " - session transfer may be in progress"
+                        )
+                    );
+                    active = false;
+                }
             } else {
                 // istanbul ignore next
                 if (doDebug) {
