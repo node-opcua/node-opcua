@@ -544,16 +544,11 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     }
 
     if (arrayTypeConstructor && value instanceof arrayTypeConstructor) {
-        const newArray = new value.constructor(value.length); // deep copy
-
-        /* istanbul ignore if */
-        if (newArray instanceof Buffer) {
-            // required for nodejs 4.x
-            value.copy(newArray);
-        } else {
-            newArray.set(value);
+        if (value instanceof Buffer) {
+            return Buffer.from(value); // preserve Buffer prototype
         }
-
+        const newArray = new arrayTypeConstructor(value.length); // deep copy
+        newArray.set(value);
         return newArray;
     }
     const coerceFunc = coerceVariantType.bind(null, dataType);
