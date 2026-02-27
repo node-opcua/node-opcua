@@ -10,9 +10,7 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "exports": {
-        "./*": "./dist/*.js"
-    },
+    "type": "module",
     "dependencies": {
         "chalk": "4.1.2",
         "memfs": "^4.56.10",
@@ -46,8 +44,7 @@
         "node-opcua-client": "2.163.1",
         "node-opcua-data-value": "2.163.0",
         "node-opcua-leak-detector": "2.157.0",
-        "node-opcua-nodesets": "2.163.1",
-        "ts-node": "^10.9.2"
+        "node-opcua-nodesets": "2.163.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

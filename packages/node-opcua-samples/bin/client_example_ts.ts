@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 /* eslint-disable max-statements */
 import fs from "fs";
 import path from "path";
@@ -197,7 +197,7 @@ function getTick() {
 }
 
 (async () => {
-    // ts-node bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
+    // tsx bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const argv = await yargs(process.argv.slice(2)).options({
         endpoint: {
             alias: "e",

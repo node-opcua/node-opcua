@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 import { nodesets, OPCUAServer } from "node-opcua";
 import chalk from "chalk";
 async function main() {

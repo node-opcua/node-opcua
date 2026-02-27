@@ -1,7 +1,5 @@
 require:
-  - ts-node/register
-  - source-map-support/register
-extension:
+  - tsx\nextension:
   - ts
   - js
 recursive: true

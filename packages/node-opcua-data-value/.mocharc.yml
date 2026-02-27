@@ -1,8 +1,5 @@
 recursive: true
 bail: true
-require:
-- source-map-support/register
-- ts-node/register
-extension: 
+require:- tsx\nextension: 
    - ts
    - js

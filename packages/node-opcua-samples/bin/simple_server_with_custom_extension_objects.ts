@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
 import path from "path";

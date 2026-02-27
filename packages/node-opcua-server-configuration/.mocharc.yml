@@ -1,8 +1,4 @@
-require:
-  - ../../node_modules/source-map-support/register
-  - ../../node_modules/ts-node/register
-  - ../../node_modules/should
-#  - ../../node_modules/tsconfig-paths/register
+require:  - tsx\n  - ../../node_modules/should
 extension:
   - ts
 recursive: true

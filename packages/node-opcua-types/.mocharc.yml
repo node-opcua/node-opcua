@@ -1,6 +1,5 @@
 require:
-  - ts-node/register
-extension:
+  - tsx\nextension:
   - ts 
   - js
 recursive: true

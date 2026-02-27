@@ -1,9 +1,6 @@
 bail: true
 timeout: 20000
 recursive: true
-require:
-  - ../../node_modules/source-map-support/register
-  - ../../node_modules/ts-node/register
-  - ../../node_modules/should
+require:  - tsx\n  - ../../node_modules/should
 spec:
   - test/**/*.ts
