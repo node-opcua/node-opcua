@@ -167,6 +167,9 @@ export function t(test: TestHarness) {
 
         it("monitors a very large number of nodes (~5000)", async () => {
 
+            // Use a longer transaction timeout for this stress test — under heavy
+            // load the server may take >15s to process 5000+ CreateMonitoredItems.
+            client = OPCUAClient.create({ defaultTransactionTimeout: 60_000 });
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
 
