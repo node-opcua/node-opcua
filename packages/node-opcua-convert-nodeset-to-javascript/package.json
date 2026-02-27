@@ -7,7 +7,7 @@
     "bin": "dist/main.js",
     "scripts": {
         "build": "tsc -b",
-        "generate": "tsc -b && ts-node source/main.ts",
+        "generate": "tsc -b && tsx source/main.ts",
         "test": "mocha && npm run test-generated",
         "test-generated": "tsc --build tsconfig-generated.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo tmp"

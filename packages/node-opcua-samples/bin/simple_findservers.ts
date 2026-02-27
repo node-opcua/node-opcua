@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 // tslint:disable:no-console
 // this script queries the discovery server and display the discovery urls
 import { types } from "util";

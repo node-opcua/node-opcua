@@ -1,5 +1,5 @@
 require:
-  - ts-node/register
+  - tsx
 extension:
   - ts 
   - js

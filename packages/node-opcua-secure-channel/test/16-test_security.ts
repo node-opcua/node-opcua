@@ -1,4 +1,4 @@
-// launch with mocha -r ts-node/register test/*.ts
+// launch with mocha -r tsx test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
 import fs from "fs";
 import path from "path";
@@ -236,20 +236,20 @@ describe("Testing secure client and server connection", function (this: any) {
 
             const statusCode = await serverSChannel.certificateManager.checkCertificate(param.clientCertificate);
             const chain = split_der(param.clientCertificate!);
-            doDebug &&console.log("certificate thumbprint ", chain.length, getThumbprint(param.clientCertificate!)?.toString("hex"));
-            doDebug &&console.log("statusCode = ", statusCode.toString());
+            doDebug && console.log("certificate thumbprint ", chain.length, getThumbprint(param.clientCertificate!)?.toString("hex"));
+            doDebug && console.log("statusCode = ", statusCode.toString());
 
             const statusCode2 = await serverSChannel.certificateManager.checkCertificate(chain[0]);
-            doDebug &&console.log("statusCode = ", getThumbprint(chain[0])?.toString("hex"), statusCode2.toString());
+            doDebug && console.log("statusCode = ", getThumbprint(chain[0])?.toString("hex"), statusCode2.toString());
 
             for (const cert of chain) {
                 await serverSChannel.certificateManager.trustCertificate(cert);
                 const statusCode4 = await serverSChannel.certificateManager.checkCertificate(cert);
-                doDebug &&console.log("statusCode = ", getThumbprint(cert)?.toString("hex"), statusCode4.toString());
+                doDebug && console.log("statusCode = ", getThumbprint(cert)?.toString("hex"), statusCode4.toString());
             }
         }
 
-        doDebug &&console.log("server secure channel init")
+        doDebug && console.log("server secure channel init")
         await new Promise<void>((resolve, reject) => {
             serverSChannel.init(serverSocket, (err?: Error) => {
                 doDebug && console.log("server secure channel initialized");

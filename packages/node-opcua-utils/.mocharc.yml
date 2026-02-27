@@ -1,10 +1,9 @@
 recursive: true
 require:
- - ../../node_modules/source-map-support/register
- - ../../node_modules/ts-node/register
- - ../../node_modules/should
+  - tsx
+  - ../../node_modules/should
 timeout: 20000
 files: 
- - test/**/*.ts
- - test/**/*.js
+  - test/**/*.ts
+  - test/**/*.js
 
