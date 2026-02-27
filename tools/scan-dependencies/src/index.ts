@@ -43,19 +43,19 @@ function log(...args: any[]): void {
 function findPackages(): Package[] {
     const packagesDir = path.join(__dirname, '..', '..', '..', 'packages');
     const packages: Package[] = [];
-    
+
     if (!fs.existsSync(packagesDir)) {
         console.error('Packages directory not found');
         process.exit(1);
     }
-    
+
     const entries = fs.readdirSync(packagesDir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
         if (entry.isDirectory() && entry.name.startsWith('node-opcua-')) {
             const packagePath = path.join(packagesDir, entry.name);
             const packageJsonPath = path.join(packagePath, 'package.json');
-            
+
             if (fs.existsSync(packageJsonPath)) {
                 packages.push({
                     name: entry.name,
@@ -65,45 +65,45 @@ function findPackages(): Package[] {
             }
         }
     }
-    
+
     return packages;
 }
 
 function findSourceDirectories(packagePath: string): string[] {
     const possibleDirs = ['source', 'src', 'sources', 'source_nodejs', 'test', 'tests', 'test_helpers', 'test_helper'];
     const found: string[] = [];
-    
+
     for (const dir of possibleDirs) {
         const fullPath = path.join(packagePath, dir);
         if (fs.existsSync(fullPath)) {
             found.push(fullPath);
         }
     }
-    
+
     return found;
 }
 
 function findSourceFiles(directory: string): { sourceFiles: string[], testFiles: string[] } {
     const sourceFiles: string[] = [];
     const testFiles: string[] = [];
-    
+
     function scanDir(dir: string, isTest: boolean = false): void {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
-        
+
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
-            
+
             if (entry.isDirectory()) {
                 // Check if this is a test directory
                 const isTestDir = ['test', 'tests', 'test_helpers', 'test_helper'].includes(entry.name);
-                
+
                 // Skip node_modules and dist, but scan test directories
                 if (!['node_modules', 'dist'].includes(entry.name)) {
                     scanDir(fullPath, isTest || isTestDir);
                 }
-            } else if ((entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) || 
-                       entry.name.endsWith('.js') || 
-                       entry.name.endsWith('.mjs')) {
+            } else if ((entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) ||
+                entry.name.endsWith('.js') ||
+                entry.name.endsWith('.mjs')) {
                 if (isTest) {
                     testFiles.push(fullPath);
                 } else {
@@ -112,11 +112,11 @@ function findSourceFiles(directory: string): { sourceFiles: string[], testFiles:
             }
         }
     }
-    
+
     // Check if the directory itself is a test directory
     const dirName = path.basename(directory);
     const isTestDirectory = ['test', 'tests', 'test_helpers', 'test_helper'].includes(dirName);
-    
+
     scanDir(directory, isTestDirectory);
     return { sourceFiles, testFiles };
 }
@@ -125,7 +125,7 @@ function extractImports(filePath: string): string[] {
     const content = fs.readFileSync(filePath, 'utf8');
     const imports = new Set<string>();
     const ignoredImports = new Set<string>();
-    
+
     // Match different import patterns
     const importPatterns = [
         // ES6 imports
@@ -141,30 +141,30 @@ function extractImports(filePath: string): string[] {
         // Re-exports with default
         /export\s+\{\s*default\s*\}\s+from\s+['"]([^'"]+)['"]/g
     ];
-    
+
     for (const pattern of importPatterns) {
         let match: RegExpExecArray | null;
         while ((match = pattern.exec(content)) !== null) {
             const moduleName = match[1];
-            
+
             // Skip relative imports and absolute paths
-            if (moduleName.startsWith('./') || 
-                moduleName.startsWith('../') || 
+            if (moduleName.startsWith('./') ||
+                moduleName.startsWith('../') ||
                 moduleName.startsWith('/')) {
                 ignoredImports.add(moduleName);
                 continue;
             }
-            
+
             // Normalize package names
             const normalizedName = normalizePackageName(moduleName);
             imports.add(normalizedName);
         }
     }
-    
+
     if (verbose && ignoredImports.size > 0) {
         log(`    Ignored local imports: ${Array.from(ignoredImports).join(', ')}`);
     }
-    
+
     return Array.from(imports);
 }
 
@@ -177,7 +177,7 @@ function normalizePackageName(moduleName: string): string {
         }
         return moduleName;
     }
-    
+
     // Handle regular packages with subpaths (e.g., node-opcua-crypto/web -> node-opcua-crypto)
     const parts = moduleName.split('/');
     return parts[0];
@@ -195,39 +195,39 @@ function readPackageJson(packageJsonPath: string): PackageJson | null {
 
 function getDependencies(packageJson: PackageJson): Set<string> {
     const deps = new Set<string>();
-    
+
     if (packageJson.dependencies) {
         Object.keys(packageJson.dependencies).forEach(dep => deps.add(dep));
     }
-    
+
     return deps;
 }
 
 function getDevDependencies(packageJson: PackageJson): Set<string> {
     const deps = new Set<string>();
-    
+
     if (packageJson.devDependencies) {
         Object.keys(packageJson.devDependencies).forEach(dep => deps.add(dep));
     }
-    
+
     return deps;
 }
 
 function getAllDependencies(packageJson: PackageJson): Set<string> {
     const deps = new Set<string>();
-    
+
     if (packageJson.dependencies) {
         Object.keys(packageJson.dependencies).forEach(dep => deps.add(dep));
     }
-    
+
     if (packageJson.devDependencies) {
         Object.keys(packageJson.devDependencies).forEach(dep => deps.add(dep));
     }
-    
+
     if (packageJson.peerDependencies) {
         Object.keys(packageJson.peerDependencies).forEach(dep => deps.add(dep));
     }
-    
+
     return deps;
 }
 
@@ -256,15 +256,15 @@ function findMissingDependenciesDetailed(
 
         // If used in source files, must be in dependencies
         if (sourceFiles.length > 0) {
-            missing.push({ 
-                name: importName, 
+            missing.push({
+                name: importName,
                 section: 'dependencies',
                 sourceFiles,
                 testFiles
             });
         } else if (testFiles.length > 0) {
-            missing.push({ 
-                name: importName, 
+            missing.push({
+                name: importName,
                 section: 'devDependencies',
                 sourceFiles,
                 testFiles
@@ -277,12 +277,12 @@ function findMissingDependenciesDetailed(
     for (const dep of specialTypeDependencies) {
         const lodashSourceFiles = sourceFileImports.get('lodash') || [];
         const lodashTestFiles = testFileImports.get('lodash') || [];
-        
+
         // If lodash is used in source, @types/lodash should be in dependencies, else in devDependencies
         if (lodashSourceFiles.length > 0) {
             if (!hasDep(dep)) {
-                missing.push({ 
-                    name: dep, 
+                missing.push({
+                    name: dep,
                     section: 'dependencies',
                     sourceFiles: lodashSourceFiles,
                     testFiles: lodashTestFiles
@@ -290,8 +290,8 @@ function findMissingDependenciesDetailed(
             }
         } else if (lodashTestFiles.length > 0) {
             if (!hasDep(dep)) {
-                missing.push({ 
-                    name: dep, 
+                missing.push({
+                    name: dep,
                     section: 'devDependencies',
                     sourceFiles: lodashSourceFiles,
                     testFiles: lodashTestFiles
@@ -305,16 +305,16 @@ function findMissingDependenciesDetailed(
 
 function getSpecialTypeDependencies(imports: string[], dependencies: Set<string>): string[] {
     const specialTypes: string[] = [];
-    
 
-    
+
+
     // Check each import for its corresponding @types package
     for (const [packageName, typePackage] of Object.entries(typeDependencies)) {
         if (imports.includes(packageName) && !dependencies.has(typePackage)) {
             specialTypes.push(typePackage);
         }
     }
-    
+
     return specialTypes;
 }
 
@@ -327,7 +327,7 @@ interface ExtraneousDependency {
 const typeDependencies: Record<string, string> = {
     'lodash': '@types/lodash',
     'semver': '@types/semver',
-    'mkdirp': '@types/mkdirp',
+
     'async': '@types/async',
     'underscore': '@types/underscore',
     'node': '@types/node'
@@ -335,7 +335,7 @@ const typeDependencies: Record<string, string> = {
 
 function findExtraneousDependencies(sourceImports: string[], testImports: string[], dependencies: Set<string>, devDependencies: Set<string>): ExtraneousDependency[] {
     const extraneous: ExtraneousDependency[] = [];
-    
+
 
     // Check dependencies (should be used in source files)
     for (const dep of dependencies) {
@@ -349,7 +349,7 @@ function findExtraneousDependencies(sourceImports: string[], testImports: string
             extraneous.push({ name: dep, section: 'dependencies' });
         }
     }
-    
+
     // Check devDependencies (should be used in test files)
     for (const dep of devDependencies) {
         if (!testImports.includes(dep)) {
@@ -362,58 +362,58 @@ function findExtraneousDependencies(sourceImports: string[], testImports: string
             extraneous.push({ name: dep, section: 'devDependencies' });
         }
     }
-    
+
     return extraneous;
 }
 
 function isExternalPackage(moduleName: string): boolean {
     // Node.js built-in modules to ignore
     const builtInModules = [
-        'fs', 'path', 'util', 'crypto', 'buffer', 'stream', 'events', 
-        'http', 'https', 'net', 'tls', 'zlib', 'querystring', 'url', 
-        'os', 'child_process', 'cluster', 'dgram', 'dns', 'domain', 
-        'punycode', 'readline', 'repl', 'string_decoder', 'timers', 
-        'tty', 'vm', 'worker_threads', 'assert', 'constants', 'module', 
-        'process', 'v8', 'perf_hooks', 'trace_events', 'async_hooks', 
-        'inspector', 'fs/promises', 'path/posix', 'path/win32', 
+        'fs', 'path', 'util', 'crypto', 'buffer', 'stream', 'events',
+        'http', 'https', 'net', 'tls', 'zlib', 'querystring', 'url',
+        'os', 'child_process', 'cluster', 'dgram', 'dns', 'domain',
+        'punycode', 'readline', 'repl', 'string_decoder', 'timers',
+        'tty', 'vm', 'worker_threads', 'assert', 'constants', 'module',
+        'process', 'v8', 'perf_hooks', 'trace_events', 'async_hooks',
+        'inspector', 'fs/promises', 'path/posix', 'path/win32',
         'util/types', 'util/promises', 'usage'
     ];
-    
+
     // Global test modules that don't need to be declared as dependencies
     const globalTestModules = [
         'should', 'sinon', 'mocha'
     ];
-    
+
     // Ignore built-in Node.js modules and node:* modules
     if (builtInModules.includes(moduleName) || moduleName.startsWith('node:')) {
         return false;
     }
-    
+
     // Ignore global test modules
     if (globalTestModules.includes(moduleName)) {
         return false;
     }
-    
+
     // Ignore relative paths (should already be handled, but double-check)
     if (moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName === '..') {
         return false;
     }
-    
+
     // Check for node-opcua packages (local monorepo packages)
     if (moduleName.startsWith('node-opcua-')) {
         return true;
     }
-    
+
     // Check for external npm packages (simple names without slashes)
     if (!moduleName.startsWith('@') && !moduleName.includes('/')) {
         return true;
     }
-    
+
     // Check for scoped packages (like @ster5/global-mutex)
     if (moduleName.startsWith('@') && moduleName.split('/').length === 2) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -422,14 +422,14 @@ function getLatestVersion(packageName: string): string {
         // Try to get version from the monorepo first
         const packagePath = path.join(__dirname, '..', '..', '..', 'packages', packageName);
         const packageJsonPath = path.join(packagePath, 'package.json');
-        
+
         if (fs.existsSync(packageJsonPath)) {
             const pkg = readPackageJson(packageJsonPath);
             if (pkg && pkg.version) {
                 return pkg.version;
             }
         }
-        
+
         // Fallback to npm view
         const output = execSync(`npm view ${packageName} version`, { encoding: 'utf8' }).trim();
         return output;
@@ -442,20 +442,20 @@ function getLatestVersion(packageName: string): string {
 function fixPackageJson(packageJsonPath: string, missingDependencies: string[]): boolean {
     const packageJson = readPackageJson(packageJsonPath);
     if (!packageJson) return false;
-    
+
     let modified = false;
-    
+
     if (!packageJson.dependencies) {
         packageJson.dependencies = {};
     }
-    
+
     for (const dep of missingDependencies) {
         const version = getLatestVersion(dep);
         packageJson.dependencies[dep] = version;
         console.log(`  + Adding ${dep}@${version} to dependencies`);
         modified = true;
     }
-    
+
     if (modified) {
         // Sort dependencies alphabetically
         packageJson.dependencies = Object.keys(packageJson.dependencies)
@@ -464,31 +464,31 @@ function fixPackageJson(packageJsonPath: string, missingDependencies: string[]):
                 obj[key] = packageJson.dependencies![key];
                 return obj;
             }, {} as Record<string, string>);
-        
+
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 4) + '\n');
         return true;
     }
-    
+
     return false;
 }
 
 function fixDevDependencies(packageJsonPath: string, missingDevDependencies: string[]): boolean {
     const packageJson = readPackageJson(packageJsonPath);
     if (!packageJson) return false;
-    
+
     let modified = false;
-    
+
     if (!packageJson.devDependencies) {
         packageJson.devDependencies = {};
     }
-    
+
     for (const dep of missingDevDependencies) {
         const version = getLatestVersion(dep);
         packageJson.devDependencies[dep] = version;
         console.log(`  + Adding ${dep}@${version} to devDependencies`);
         modified = true;
     }
-    
+
     if (modified) {
         // Sort devDependencies alphabetically
         packageJson.devDependencies = Object.keys(packageJson.devDependencies)
@@ -497,20 +497,20 @@ function fixDevDependencies(packageJsonPath: string, missingDevDependencies: str
                 obj[key] = packageJson.devDependencies![key];
                 return obj;
             }, {} as Record<string, string>);
-        
+
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 4) + '\n');
         return true;
     }
-    
+
     return false;
 }
 
 function removeExtraneousDependencies(packageJsonPath: string, extraneousDependencies: string[]): boolean {
     const packageJson = readPackageJson(packageJsonPath);
     if (!packageJson) return false;
-    
+
     let modified = false;
-    
+
     // Remove from dependencies
     if (packageJson.dependencies) {
         for (const dep of extraneousDependencies) {
@@ -521,7 +521,7 @@ function removeExtraneousDependencies(packageJsonPath: string, extraneousDepende
             }
         }
     }
-    
+
     // Remove from devDependencies
     if (packageJson.devDependencies) {
         for (const dep of extraneousDependencies) {
@@ -532,7 +532,7 @@ function removeExtraneousDependencies(packageJsonPath: string, extraneousDepende
             }
         }
     }
-    
+
     // Remove from peerDependencies
     if (packageJson.peerDependencies) {
         for (const dep of extraneousDependencies) {
@@ -543,53 +543,53 @@ function removeExtraneousDependencies(packageJsonPath: string, extraneousDepende
             }
         }
     }
-    
+
     if (modified) {
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 4) + '\n');
         return true;
     }
-    
+
     return false;
 }
 
 function main(): void {
     console.log('Scanning node-opcua monorepo for missing dependencies...\n');
-    
+
     const packages = findPackages();
     let totalIssues = 0;
     let totalFixed = 0;
     let totalExtraneous = 0;
     let totalRemoved = 0;
-    
+
     for (const pkg of packages) {
         log(`\nProcessing package: ${pkg.name}`);
-        
+
         const sourceDirs = findSourceDirectories(pkg.path);
         if (sourceDirs.length === 0) {
             log(`  No source directories found for ${pkg.name}`);
             continue;
         }
-        
+
         const allImports = new Set<string>();
         const testImports = new Set<string>();
         const sourceImports = new Set<string>();
-        
+
         // Track which files import each dependency
         const sourceFileImports = new Map<string, string[]>(); // import -> source files
         const testFileImports = new Map<string, string[]>();   // import -> test files
-        
+
         for (const sourceDir of sourceDirs) {
             log(`  Scanning directory: ${sourceDir}`);
             const { sourceFiles, testFiles } = findSourceFiles(sourceDir);
             log(`  Found ${sourceFiles.length} source files (TS/JS) and ${testFiles.length} test files (TS/JS)`);
-            
+
             // Process source files
             for (const file of sourceFiles) {
                 const imports = extractImports(file);
                 imports.forEach(imp => {
                     allImports.add(imp);
                     sourceImports.add(imp);
-                    
+
                     // Track which file imports this dependency
                     if (!sourceFileImports.has(imp)) {
                         sourceFileImports.set(imp, []);
@@ -597,14 +597,14 @@ function main(): void {
                     sourceFileImports.get(imp)!.push(file);
                 });
             }
-            
+
             // Process test files
             for (const file of testFiles) {
                 const imports = extractImports(file);
                 imports.forEach(imp => {
                     allImports.add(imp);
                     testImports.add(imp);
-                    
+
                     // Track which file imports this dependency
                     if (!testFileImports.has(imp)) {
                         testFileImports.set(imp, []);
@@ -613,13 +613,13 @@ function main(): void {
                 });
             }
         }
-        
+
         const packageJson = readPackageJson(pkg.packageJsonPath);
         if (!packageJson) continue;
-        
+
         const dependencies = getDependencies(packageJson);
         const devDependencies = getDevDependencies(packageJson);
-        
+
         // --- NEW: Use improved missing dependency detection with file tracking ---
         const missingDetailed = findMissingDependenciesDetailed(
             Array.from(sourceImports),
@@ -630,12 +630,12 @@ function main(): void {
             testFileImports
         );
         // --- END NEW ---
-        
+
         // Check for extraneous dependencies (considering source and test imports separately)
         const extraneousDependencies = findExtraneousDependencies(Array.from(sourceImports), Array.from(testImports), dependencies, devDependencies);
-        
+
         let hasIssues = false;
-        
+
         if (missingDetailed.length > 0) {
             console.log(`\n❌ ${pkg.name}: Missing dependencies:`);
             // Group by section
@@ -644,7 +644,7 @@ function main(): void {
                 acc[dep.section].push(dep);
                 return acc;
             }, {} as Record<'dependencies' | 'devDependencies', MissingDependency[]>);
-            
+
             if (bySection.dependencies && bySection.dependencies.length > 0) {
                 console.log(`  dependencies:`);
                 bySection.dependencies.forEach(dep => {
@@ -680,7 +680,7 @@ function main(): void {
             }
             totalIssues += missingDetailed.length;
             hasIssues = true;
-            
+
             if (fixMode) {
                 // Add to correct section
                 const depsToAdd = bySection.dependencies?.map(d => d.name) || [];
@@ -701,10 +701,10 @@ function main(): void {
                 }
             }
         }
-        
+
         if (extraneousDependencies.length > 0) {
             console.log(`\n⚠️  ${pkg.name}: Extraneous dependencies:`);
-            
+
             // Group by section for better display
             const bySection = extraneousDependencies.reduce((acc, dep) => {
                 if (!acc[dep.section]) {
@@ -713,22 +713,22 @@ function main(): void {
                 acc[dep.section].push(dep.name);
                 return acc;
             }, {} as Record<string, string[]>);
-            
+
             // Display dependencies section
             if (bySection.dependencies && bySection.dependencies.length > 0) {
                 console.log(`  Dependencies (not used in source files):`);
                 bySection.dependencies.forEach(dep => console.log(`    - ${dep}`));
             }
-            
+
             // Display devDependencies section
             if (bySection.devDependencies && bySection.devDependencies.length > 0) {
                 console.log(`  DevDependencies (not used in test files):`);
                 bySection.devDependencies.forEach(dep => console.log(`    - ${dep}`));
             }
-            
+
             totalExtraneous += extraneousDependencies.length;
             hasIssues = true;
-            
+
             if (removeExtraneous) {
                 console.log(`  🔧 Removing extraneous dependencies...`);
                 const depNames = extraneousDependencies.map(dep => dep.name);
@@ -738,31 +738,31 @@ function main(): void {
                 }
             }
         }
-        
+
         if (!hasIssues) {
             log(`  ✅ ${pkg.name}: All dependencies are properly declared`);
         }
     }
-    
+
     console.log(`\n📊 Summary:`);
     console.log(`  Total packages scanned: ${packages.length}`);
     console.log(`  Total missing dependencies found: ${totalIssues}`);
     console.log(`  Total extraneous dependencies found: ${totalExtraneous}`);
-    
+
     if (fixMode) {
         console.log(`  Total dependencies added: ${totalFixed}`);
         if (totalFixed > 0) {
             console.log(`\n💡 Run 'npm install' in the root directory to install the new dependencies.`);
         }
     }
-    
+
     if (removeExtraneous) {
         console.log(`  Total dependencies removed: ${totalRemoved}`);
         if (totalRemoved > 0) {
             console.log(`\n💡 Run 'npm install' in the root directory to clean up removed dependencies.`);
         }
     }
-    
+
     if (totalIssues === 0 && totalExtraneous === 0) {
         console.log(`\n🎉 All packages have properly declared dependencies!`);
     } else if (totalIssues > 0 || totalExtraneous > 0) {
