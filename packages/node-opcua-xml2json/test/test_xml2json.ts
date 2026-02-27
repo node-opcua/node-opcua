@@ -1,17 +1,12 @@
 // tslint:disable:no-console
+import path from "node:path";
+import fs from "node:fs";
 import should from "should";
-import path from "path";
-import fs from "fs";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { make_debugLog } from "node-opcua-debug";
 import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
 import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
 
-const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
-
-const _should = should;
-
-type ErrorCallback = (err?: Error) => void;
 
 describe("XMLToJSON", () => {
     it("should parse a simple xml data string", () => {
@@ -73,22 +68,40 @@ describe("XMLToJSON", () => {
         await fs.promises.writeFile(filename, xmlWithBom, 'utf8');
     }
     it("should parse a UTF8 encoded xml file with a BOM", async () => {
+        const fixturesDir = path.join(__dirname, "fixtures");
+        await fs.promises.mkdir(fixturesDir, { recursive: true });
 
-        const xml_file = path.join(__dirname, "fixtures", "nodeset-with-bom.xml");
+        const xml_file = path.join(fixturesDir, "nodeset-with-bom.xml");
         await createXMLFileWithBOM(xml_file);
+
+        let parsedObj: Record<string, string> | null = null;
 
         const parser = new Xml2JsonFs({
             parser: {
                 root: {
+                    init(this: any) {
+                        this.obj = {};
+                    },
+                    parser: {
+                        element: {
+                            finish(this: any) {
+                                this.parent.obj.element = this.text;
+                            }
+                        }
+                    },
                     finish(this: any) {
-                        this.obj.should.eql({ element: "Hello, World!" });
+                        parsedObj = this.obj;
                     }
                 }
             }
         });
-        parser.parse(xml_file);
+        await parser.parse(xml_file);
 
+        should(parsedObj).not.be.null();
+        parsedObj!.should.eql({ element: "Hello, World!" });
 
+        // Clean up temp fixture
+        await fs.promises.unlink(xml_file);
     });
 
     it("should parse a escaped string", () => {
