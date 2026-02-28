@@ -249,9 +249,9 @@ describe("Testing secure client and server connection", function (this: any) {
             }
         }
 
-        doDebug && console.log("server secure channel init")
-        await new Promise<void>((resolve, reject) => {
-            serverSChannel.init(serverSocket, (err?: Error) => {
+        doDebug && console.log("server secure channel init");
+        await new Promise<void>((resolve, _reject) => {
+            serverSChannel.init(serverSocket, (_err?: Error) => {
                 doDebug && console.log("server secure channel initialized");
                 //                err ? reject(err) : resolve();
             });
