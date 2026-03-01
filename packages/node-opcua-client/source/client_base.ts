@@ -375,7 +375,7 @@ export class OPCUAClientBase {
     public static retryDelay = 1000 * 5;
 
     public static create(options: OPCUAClientBaseOptions): OPCUAClientBase {
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         options;
         throw new Error("Not Implemented");
     }

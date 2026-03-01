@@ -34,7 +34,7 @@ export class TCPErrorMessage extends BaseUAObject {
         const schema = schemaTCPErrorMessage;
 
         super();
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }

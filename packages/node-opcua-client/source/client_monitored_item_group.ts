@@ -31,7 +31,7 @@ export class ClientMonitoredItemGroup {
         monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
     ): ClientMonitoredItemGroup {
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         throw new Error("Not implemented");
     }
 }

@@ -48,13 +48,13 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
         }
         const nonExclusiveAlarmType = addressSpace.findEventType(type);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!nonExclusiveAlarmType) {
             throw new Error(" cannot find Alarm Condition Type for " + type);
         }
 
         const nonExclusiveLimitAlarmType = addressSpace.findEventType("NonExclusiveLimitAlarmType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!nonExclusiveLimitAlarmType) {
             throw new Error("cannot find NonExclusiveLimitAlarmType");
         }

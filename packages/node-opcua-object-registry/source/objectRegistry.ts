@@ -34,7 +34,7 @@ export class ObjectRegistry {
             this._cache[obj._____hash] = obj;
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (ObjectRegistry.doDebug) {
             obj._____trace = traceFromThisProjectOnly();
         }

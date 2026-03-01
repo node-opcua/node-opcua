@@ -43,7 +43,7 @@ function _slow_isSubtypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl
     for (const subType1 of subTypes) {
         const subTypeId = subType1.nodeId;
         const subTypeNode = this.addressSpace.findNode(subTypeId) as any as T;
-        // istanbul ignore next
+        // c8 ignore next
         if (!subTypeNode) {
             throw new Error("Cannot find object with nodeId " + subTypeId.toString());
         }

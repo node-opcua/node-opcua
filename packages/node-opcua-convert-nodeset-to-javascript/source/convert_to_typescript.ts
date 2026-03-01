@@ -951,7 +951,7 @@ export async function _convertTypeToTypescript(
     {
         if (nodeClass === NodeClass.VariableType) {
             if (classDef.dataTypeImport) {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog(chalk.red(" ----------------> ", classDef.browseName));
                     classDef.dataTypeImport.forEach((a) => {

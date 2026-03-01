@@ -305,7 +305,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
-            // istanbul ignore next
+            // c8 ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
@@ -319,7 +319,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
-            // istanbul ignore next
+            // c8 ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestErrorCounter: cannot find", propName);
                 // xx  return;
@@ -560,7 +560,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public _detach_channel(): void {
         const channel = this.channel;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!channel) {
             return;
             // already detached !
@@ -895,7 +895,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      */
     private _getSubscriptionDiagnosticsArray() {
         if (!this.addressSpace) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 console.warn("ServerSession#_getSubscriptionDiagnosticsArray : no addressSpace");
             }

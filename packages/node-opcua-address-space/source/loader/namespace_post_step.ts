@@ -44,7 +44,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
 
                     promoter.promoter(a as any);
                     const after = a.constructor.name;
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doDebug) {
                         debugLog(`promoting ${a.browseName.toString()} from ${before} to ${after}`);
                     }

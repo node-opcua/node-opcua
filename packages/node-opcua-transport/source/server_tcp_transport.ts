@@ -35,7 +35,7 @@ function clamp_value(value: number, minVal: number, maxVal: number): number {
     if (value < minVal) {
         return minVal;
     }
-    /* istanbul ignore next*/
+    /* c8 ignore next*/
     if (value >= maxVal) {
         return maxVal;
     }
@@ -140,7 +140,7 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     protected _write_chunk(messageChunk: Buffer): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (this.sendBufferSize > 0 && messageChunk.length > this.sendBufferSize) {
             errorLog(
                 "write chunk exceed sendBufferSize messageChunk length = ",
@@ -169,7 +169,7 @@ export class ServerTCP_transport extends TCP_transport {
      *
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
-        // istanbul ignore next
+        // c8 ignore next
         debugLog && debugLog(chalk.cyan("init socket"));
 
         assert(!this._socket, "init already called!");
@@ -182,7 +182,7 @@ export class ServerTCP_transport extends TCP_transport {
         // closes the TransportConnection gracefully.
         doDebug && debugLog(this.name, chalk.cyan("_abortWithError", statusCode.toString(), extraErrorDescription));
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (this._aborted) {
             errorLog("Internal Er!ror: _abortWithError already called! Should not happen here");
             // already called
@@ -210,13 +210,13 @@ export class ServerTCP_transport extends TCP_transport {
 
         this.setLimits(limits);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doTraceHelloAck) {
             warningLog(`received Hello \n${helloMessage.toString()}`);
             warningLog("Client accepts only message of size => ", this.maxMessageSize);
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("Client accepts only message of size => ", this.maxMessageSize);
 
         const acknowledgeMessage = new AcknowledgeMessage({
@@ -227,12 +227,12 @@ export class ServerTCP_transport extends TCP_transport {
             sendBufferSize: this.sendBufferSize
         });
 
-        // istanbul ignore next
+        // c8 ignore next
         doTraceHelloAck && warningLog(`sending Ack \n${acknowledgeMessage.toString()}`);
 
         const messageChunk = packTcpMessage("ACK", acknowledgeMessage);
 
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         if (doDebug) {
             verify_message_chunk(messageChunk);
             debugLog("server send: " + chalk.yellow("ACK"));
@@ -245,7 +245,7 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     private _install_HEL_message_receiver(callback: ErrorCallback): void {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog(chalk.cyan("_install_HEL_message_receiver "));
 
         this._install_one_time_message_receiver((err?: Error | null, data?: Buffer) => {
@@ -259,14 +259,14 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     private _on_HEL_message(data: Buffer, callback: ErrorCallback): void {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog(chalk.cyan("_on_HEL_message"));
 
         assert(!this._helloReceived);
         const stream = new BinaryStream(data);
         const msgType = data.subarray(0, 3).toString("utf-8");
 
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         if (doDebug) {
             debugLog("SERVER received " + chalk.yellow(msgType));
             debugLog("SERVER received " + hexDump(data));
@@ -280,7 +280,7 @@ export class ServerTCP_transport extends TCP_transport {
                 // OPCUA Spec 1.03 part 6 - page 41
                 // The Server shall always accept versions greater than what it supports.
                 if (helloMessage.protocolVersion !== this.protocolVersion) {
-                    // istanbul ignore next
+                    // c8 ignore next
                     doDebug &&
                         debugLog(
                             `warning ! client sent helloMessage.protocolVersion = ` +
@@ -325,7 +325,7 @@ export class ServerTCP_transport extends TCP_transport {
             }
         } else {
             // invalid packet , expecting HEL
-            /* istanbul ignore next*/
+            /* c8 ignore next*/
             doDebug && debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
             this._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
         }

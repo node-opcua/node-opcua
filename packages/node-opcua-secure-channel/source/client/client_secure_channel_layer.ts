@@ -147,7 +147,7 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
     }
 
     const theCallbackFunction = requestData.callback;
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!theCallbackFunction) {
         throw new Error("Internal error");
     }
@@ -564,7 +564,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         assert(typeof callback === "function");
 
         if (this.securityMode !== MessageSecurityMode.None) {
-            // istanbul ignore next
+            // c8 ignore next
             if (!this.#serverCertificate) {
                 return callback(
                     new Error("ClientSecureChannelLayer#create : expecting a server certificate when securityMode is not None")
@@ -574,11 +574,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             // take the opportunity of this async method to perform some async pre-processing
             if (!this.#receiverPublicKey) {
                 extractPublicKeyFromCertificate(this.#serverCertificate, (err: Error | null, publicKey?: PublicKeyPEM) => {
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (err) {
                         return callback(err);
                     }
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!publicKey) {
                         throw new Error("Internal Error");
                     }
@@ -729,7 +729,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public cancelPendingTransactions(callback: ErrorCallback): void {
         assert(typeof callback === "function", "expecting a callback function, but got " + callback);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(
                 "cancelPendingTransactions ",
@@ -784,7 +784,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 return;
             }
             this.#_performMessageTransaction("CLO", request, (err) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (err) {
                     warningLog("CLO transaction terminated with error: ", err.message, " has transport ?: ", !!this.#_transport);
                 }
@@ -830,7 +830,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     #_install_message_builder() {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.#_transport || !this.#_transport.parameters) {
             throw new Error("internal error");
         }
@@ -844,7 +844,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             maxMessageSize: this.#_transport.maxMessageSize || 0
         });
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceChunk) {
             console.log(
                 chalk.cyan(timestamp()),
@@ -875,7 +875,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             .on("abandon", (requestId: number) => {
                 const requestData = this.#_requests[requestId];
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("request id = ", requestId, "message was ", requestData);
                 }
@@ -892,14 +892,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 callback && callback(null, err);
             })
             .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (!requestId) {
                     return;
                 }
 
                 const requestData = this.#_requests[requestId];
 
-                // istanbul ignore next
+                // c8 ignore next
                 doDebug && debugLog("request id = ", requestId, err, "message was ", requestData);
 
                 if (doTraceClientRequestContent) {
@@ -908,7 +908,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 if (!requestData) {
                     warningLog("requestData not found for requestId = ", requestId);
-                    // istanbul ignore next
+                    // c8 ignore next
                     doDebug && warningLog("err = ", err);
 
                     return;
@@ -931,7 +931,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     #_on_transaction_completed(transactionStatistics: ClientTransactionStatistics) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceStatistics) {
             // dump some statistics about transaction ( time and sizes )
             _dump_client_transaction_statistics(transactionStatistics);
@@ -940,7 +940,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     #_on_message_received(response: Response, msgType: string, securityHeader: SecurityHeader, requestId: number) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (response.responseHeader.requestHandle !== requestId) {
             warningLog(msgType, response.toString());
             errorLog(
@@ -965,14 +965,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
         } else {
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceClientMessage) {
             traceClientResponseMessage(response, this.channelId, this.#_counter);
         }
 
         const requestData = this.#_requests[requestId];
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!requestData) {
             if (this.#__in_normal_close_operation) {
                 // may be some responses that are received from the server
@@ -992,14 +992,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const request = requestData.request;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doPerfMonitoring) {
             requestData.startReceivingTick = this.#startReceivingTick;
         }
 
         delete this.#_requests[requestId];
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (response.responseHeader.requestHandle !== request.requestHeader.requestHandle) {
             const expected = request.requestHeader.requestHandle;
             const actual = response.responseHeader.requestHandle;
@@ -1032,14 +1032,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         requestData.response = response;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doPerfMonitoring) {
             // record tick2 : after response message has been received, before message processing
             requestData.startReceivingTick = this.#messageBuilder!._tick1;
         }
         requestData.bytesRead = this.#messageBuilder!.totalMessageSize;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doPerfMonitoring) {
             // record tick3 : after response message has been received, before message processing
             requestData.endReceivingTick = get_clock_tick();
@@ -1123,7 +1123,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     #_on_security_token_about_to_expire(securityToken: ChannelSecurityToken) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug &&
             debugLog(" client: Security Token ", securityToken.tokenId, " is about to expired, let's raise lifetime_75 event ");
 
@@ -1153,7 +1153,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         timeout = Math.min(timeout, (lifeTime * 75) / 100);
         timeout = Math.max(timeout, 50);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(
                 chalk.red.bold(" time until next security token renewal = "),
@@ -1180,7 +1180,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         // "This parameter shall have a length equal to key size used for the symmetric
         //  encryption algorithm that is identified by the securityPolicyUri"
         const cryptoFactory = getCryptoFactory(this.securityPolicy);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!cryptoFactory) {
             // this securityPolicy may not be support yet ... let's return null
             return undefined;
@@ -1221,7 +1221,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const startDate = new Date();
         this.#_performMessageTransaction(msgType, msg, (err?: Error | null, response?: Response) => {
-            // istanbul ignore next
+            // c8 ignore next
             if (response && response.responseHeader && response.responseHeader.serviceResult !== StatusCodes.Good) {
                 warningLog(
                     "OpenSecureChannelRequest Error: response.responseHeader.serviceResult ",
@@ -1236,7 +1236,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 // record channelId for future transactions
                 this.channelId = openSecureChannelResponse.securityToken.channelId;
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (openSecureChannelResponse.securityToken.tokenId <= 0 && msgType !== "OPN") {
                     return callback(
                         new Error(
@@ -1276,14 +1276,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (this.securityMode !== MessageSecurityMode.None) {
                     // verify that server nonce if provided is at least 32 bytes long
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!openSecureChannelResponse.serverNonce) {
                         warningLog(" client : server nonce is missing !");
                         return callback(new Error(" Invalid server nonce"));
                     }
                     // This parameter shall have a length equal to key size used for the symmetric
                     // encryption algorithm that is identified by the securityPolicyUri.
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (openSecureChannelResponse.serverNonce.length !== clientNonce?.length) {
                         warningLog(" client : server nonce is invalid  (invalid length)!");
                         return callback(new Error(" Invalid server nonce length"));
@@ -1291,7 +1291,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                     const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy!)!;
                     derivedKeys = computeDerivedKeys(cryptoFactory, serverNonce, clientNonce!);
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doDebug) {
                         debugLog("Server has send a new security Token");
                     }
@@ -1494,10 +1494,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
     #_renew_security_token() {
         this.beforeSecurityRenew()
             .then(() => {
-                // istanbul ignore next
+                // c8 ignore next
                 doDebug && debugLog("ClientSecureChannelLayer#_renew_security_token");
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (!this.isValid()) {
                     // this may happen if the communication has been closed by the client or the sever
                     warningLog("Invalid socket => Communication has been lost, cannot renew token");
@@ -1506,11 +1506,13 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 const isInitial = false;
                 this.#_send_open_secure_channel_request(isInitial, (err?: Error | null) => {
-                    /* istanbul ignore else */
+
                     if (!err) {
                         doDebug && debugLog(" token renewed");
                         this.emit("security_token_renewed", this.activeSecurityToken!);
-                    } else {
+                    }
+                    /* c8 ignore next */
+                    else {
                         errorLog(
                             "ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ",
                             (err as Error).message
@@ -1524,7 +1526,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     #_on_receive_message_chunk(messageChunk: Buffer) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug1) {
             const _stream = new BinaryStream(messageChunk);
             const messageHeader = readMessageHeader(_stream);
@@ -1584,7 +1586,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }, timeout);
 
         const modified_callback = (err?: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(
                     chalk.cyan("------------------------------------- Client receiving response "),
@@ -1634,7 +1636,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.defaultTransactionTimeout ||
             ClientSecureChannelLayer.defaultTransactionTimeout;
         timeout = Math.max(ClientSecureChannelLayer.minTransactionTimeout, timeout);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (request.requestHeader.timeoutHint != timeout) {
             debugLog("Adjusted timeout = ", request.requestHeader.timeoutHint);
         }
@@ -1645,7 +1647,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     #_performMessageTransaction(msgType: string, request: Request, callback: PerformTransactionCallback) {
         this.emit("beforePerformTransaction", msgType, request);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this.isValid()) {
             return callback(
                 new Error("ClientSecureChannelLayer => Socket is closed ! while processing " + request.constructor.name)
@@ -1684,7 +1686,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         const msgType = transactionData.msgType;
         const request = transactionData.request;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (request.requestHeader.requestHandle !== requestHandleNotSetValue) {
             errorLog(
                 chalk.bgRed.white("xxxxx   >>>>>> request has already been set with a requestHandle"),
@@ -1698,7 +1700,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         // get a new requestId
         request.requestHeader.requestHandle = this.#makeRequestId();
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceClientMessage) {
             traceClientRequestMessage(request, this.channelId, this.#_counter);
         }
@@ -1723,7 +1725,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.#_requests[request.requestHeader.requestHandle] = requestData;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doPerfMonitoring) {
             const stats = requestData;
             // record tick0 : before request is being sent to server
@@ -1739,7 +1741,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (chunk) {
             this.emit("send_chunk", chunk);
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (checkChunks) {
                 verify_message_chunk(chunk);
                 debugLog(chalk.yellow("CLIENT SEND chunk "));
@@ -1752,7 +1754,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         } else {
             // last chunk ....
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (checkChunks) {
                 debugLog(chalk.yellow("CLIENT SEND done."));
             }
@@ -1877,7 +1879,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     senderCertificate: partialCertificateChain // certificate of the private key used to sign the message
                 });
 
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (dumpSecurityHeader) {
                     warningLog("HEADER !!!! ", securityHeader.toString());
                 }
@@ -1885,7 +1887,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 break;
             }
             default:
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 throw new Error("invalid security mode");
         }
     }
@@ -1899,18 +1901,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
 
         const senderPrivateKey = this.getPrivateKey();
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!senderPrivateKey) {
             throw new Error("invalid or missing senderPrivateKey : necessary to sign");
         }
 
         const cryptoFactory = getCryptoFactory(this.securityPolicy);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!cryptoFactory) {
             throw new Error("Internal Error: ServerSecureChannelLayer must have a crypto strategy");
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this.#receiverPublicKey) {
             throw new Error("Internal error: invalid receiverPublicKey");
         }
@@ -1934,7 +1936,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             return null;
         }
         const derivedClientKeys = this.#tokenStack.clientKeyProvider().getDerivedKey(tokenId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!derivedClientKeys) {
             errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
             return null;
@@ -1992,7 +1994,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             securityHeader: securityHeader
         };
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceClientRequestContent) {
             traceClientRequestContent(request, this.channelId, this.activeSecurityToken);
         }

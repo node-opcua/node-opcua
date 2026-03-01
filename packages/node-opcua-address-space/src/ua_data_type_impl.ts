@@ -368,9 +368,11 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public getDefinition(): DataTypeDefinition {
         const d = this._getDefinition();
+        /* c8 ignore start */
         if (!d) {
             throw new Error("DataType has no definition property");
         }
+        /* c8 ignore stop */
         return d;
     }
 

@@ -86,7 +86,7 @@ export class HelloMessage extends BaseUAObject implements IHelloAckLimits {
         options = options || {};
         super();
         const schema = schemaHelloMessage;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }

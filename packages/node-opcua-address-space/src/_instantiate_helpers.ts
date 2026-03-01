@@ -90,7 +90,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
             baseTypeDefinition.browseName.toString()
         );
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!baseTypeDefinition) {
         throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeDefinitionNodeId);
     }

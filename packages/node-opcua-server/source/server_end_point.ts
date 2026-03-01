@@ -376,11 +376,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         securityPolicy: SecurityPolicy,
         options: EndpointDescriptionParams
     ): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (securityMode === MessageSecurityMode.None && securityPolicy !== SecurityPolicy.None) {
             throw new Error(" invalid security ");
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (securityMode !== MessageSecurityMode.None && securityPolicy === SecurityPolicy.None) {
             throw new Error(" invalid security ");
         }
@@ -396,7 +396,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, endpointUrl);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (endpoint_desc) {
             throw new Error(" endpoint already exist");
         }
@@ -591,7 +591,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                         this.shutdown_channel(channel, callback1);
                     },
                     (err?: Error | null) => {
-                        /* istanbul ignore next */
+                        /* c8 ignore next */
                         if (!(Object.keys(this._channels).length === 0)) {
                             errorLog(" Bad !");
                         }
@@ -673,7 +673,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._listen_callback = undefined;
         this._server
             .on("connection", (socket: NodeJS.Socket) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     this._dump_statistics();
                     debugLog("server connected  with : " + (socket as any).remoteAddress + ":" + (socket as any).remotePort);
@@ -859,7 +859,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.transactionsCountOldChannels += channel.transactionsCount;
         delete this._channels[channel.hashKey];
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             this._dump_statistics();
             debugLog("un-registering channel  - Count = ", this.currentChannelCount);
@@ -899,7 +899,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         const nbConnections = this.activeChannelCount;
 
         if (nbConnections >= this.maxConnections) {
-            // istanbul ignore next
+            // c8 ignore next
             errorLog(chalk.bgRed.white("PREVENTING DDOS ATTACK => maxConnection =" + this.maxConnections));
 
             const unused_channels: ServerSecureChannelLayer[] = this.getChannels().filter((channel1: ServerSecureChannelLayer) => {
@@ -913,7 +913,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 );
                 // all channels are in used , we cannot get any
                 errorLog(`All channels are in used ! we cannot cancel any ${this.getChannels().length}`);
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     console.log("  - all channels are used !!!!");
                     false && dumpChannelInfo(this.getChannels());
@@ -921,7 +921,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 setTimeout(deny_connection, 1000);
                 return;
             }
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 console.log(
                     "   - Unused channels that can be clobbered",
@@ -931,7 +931,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             const channel = unused_channels[0];
             errorLog(`${unused_channels.length} : Forcefully closing oldest channel that have no session: ${channel.hashKey}`);
             channel.close(() => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     console.log("   _ Unused channel has been closed ", channel.hashKey);
                 }
@@ -1116,7 +1116,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
             //  when channel session security is not "None",
             //  userIdentityTokens can be left to null.
             //  in this case this mean that secure policy will be the same as connection security policy
-            // istanbul ignore next
+            // c8 ignore next
             if (process.env.NODEOPCUA_SERVER_EMULATE_SIEMENS) {
                 // However, for some reason SIEMENS plc requires that password get encrypted even though
                 // the secure channel is also encrypted ....

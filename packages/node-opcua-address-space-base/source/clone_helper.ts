@@ -20,8 +20,10 @@ const traceLog = errorLog;
 
 type UAConcrete = UAVariable | UAObject | UAMethod;
 
-// istanbul ignore next
-/** @private */
+/* c8 ignore start */
+/** 
+ * @private 
+ */
 export function fullPath(node: BaseNode): string {
     const browseName = node.browseName.toString();
 
@@ -35,13 +37,10 @@ export function fullPath(node: BaseNode): string {
     }
     return browseName;
 }
-// istanbul ignore next
 /** @private */
 export function fullPath2(node: BaseNode): string {
     return fullPath(node) + " (" + node.nodeId.toString() + ")";
 }
-
-// istanbul ignore next
 /** @private */
 export function exploreNode(node: BaseNode) {
     const f = (n: BaseNode) => {
@@ -129,7 +128,7 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
     const addressSpace = originalObject.addressSpace;
 
     const parents = originalObject.findReferencesEx("HasChild", BrowseDirection.Inverse);
-    // istanbul ignore next
+    // c8 ignore next
     if (parents.length > 1) {
         warningLog(" object ", originalObject.browseName.toString(), " has more than one parent !");
         warningLog(originalObject.toString());
@@ -152,6 +151,7 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
     const { parentType, path } = _get_parent_type_and_path(theParent!);
     return { parentType, path: [...path, originalObject.browseName] };
 }
+/* c8 ignore stop */
 
 interface CloneInfo {
     cloned: UAObject | UAVariable | UAMethod;
@@ -197,13 +197,13 @@ export class CloneHelper {
         TO extends UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
         TC extends UAObject | UAVariable | UAMethod
     >({ clonedParent, originalParent }: { clonedParent: TC; originalParent: TO }): void {
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog("push context: ", "original parent = ", fullPath2(originalParent), "cloned parent =", fullPath2(clonedParent));
 
         const typeInstance = originalParent.nodeId.toString() + clonedParent.nodeId.toString();
 
-        // istanbul ignore next
+        // c8 ignore next
         doTrace && traceLog("typeInstance (1) = ", typeInstance, fullPath2(originalParent), fullPath2(clonedParent));
 
         let a = this.mapTypeInstanceChildren.get(typeInstance);
@@ -229,7 +229,7 @@ export class CloneHelper {
         if (!this._context) {
             this.pushContext({ clonedParent: clonedNode, originalParent: originalNode });
         }
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog("registerClonedObject", "originalNode = ", fullPath2(originalNode), "clonedNode =", fullPath2(clonedNode));
 
@@ -241,7 +241,7 @@ export class CloneHelper {
                 while (base) {
                     const shadowChild = followPath(base, path);
                     if (shadowChild) {
-                        // istanbul ignore next
+                        // c8 ignore next
                         doTrace && traceLog("shadowChild = ", fullPath2(shadowChild));
                         map.set(shadowChild.nodeId.toString(), {
                             cloned: clonedNode,
@@ -283,7 +283,7 @@ export class CloneHelper {
         //          |                                                      |
         //          +- Component (B again !)  [originalNode]               +- Component (B again !)
 
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog(
                 "typeInstance (3) = originalParent",
@@ -367,7 +367,7 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
     // have been cloned .
     // this could be node organized by some FunctionalGroup
 
-    // istanbul ignore next
+    // c8 ignore next
     doTrace && traceLog("reconstructNonHierarchicalReferences");
 
     for (const { original, cloned } of cloneInfoArray) {
@@ -383,7 +383,7 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
             return;
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         doTrace && traceLog(" investigation ", "original", fullPath2(original), NodeClass[cloned.nodeClass], fullPath2(cloned));
 
         for (const ref of originalNonHierarchical) {
@@ -395,7 +395,7 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
             const originalDest = info.original;
             const cloneDest = info.cloned;
 
-            // istanbul ignore next
+            // c8 ignore next
             doTrace &&
                 traceLog(
                     "   adding reference ",

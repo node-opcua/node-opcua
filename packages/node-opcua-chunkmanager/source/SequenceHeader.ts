@@ -39,7 +39,7 @@ export class SequenceHeader extends BaseUAObject {
         options = options || {};
         super();
         const schema = schemaSequenceHeader;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }

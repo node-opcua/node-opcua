@@ -23,7 +23,7 @@ export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefi
         }
         return sessionSrc.userIdentityToken.userName === sessionDest.userIdentityToken.userName;
     }
-    // istanbul ignore else
+
     else if (sessionSrc.userIdentityToken instanceof X509IdentityToken) {
         if (!(sessionDest.userIdentityToken instanceof X509IdentityToken)) {
             return false;
@@ -32,7 +32,9 @@ export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefi
             sessionSrc.userIdentityToken.certificateData.toString("hex") ===
             sessionDest.userIdentityToken.certificateData.toString("hex")
         );
-    } else {
+    }
+    /* c8 ignore next */
+    else {
         throw new Error("Unsupported Identity token");
     }
 }

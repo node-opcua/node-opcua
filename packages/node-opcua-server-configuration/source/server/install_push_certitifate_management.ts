@@ -55,7 +55,7 @@ function getCertificateChain(this: OPCUAServerPartial): Certificate {
 }
 
 function getPrivateKey(this: OPCUAServerPartial): PrivateKey {
-    // istanbul ignore next
+    // c8 ignore next
     if (!this.$$privateKey) {
         throw new Error("internal Error. cannot find $$privateKey");
     }

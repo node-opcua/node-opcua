@@ -37,13 +37,13 @@ export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExc
 
         const exclusiveAlarmType = addressSpace.findEventType(type);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!exclusiveAlarmType) {
             throw new Error(" cannot find Alarm Condition Type for " + type);
         }
 
         const exclusiveLimitAlarmType = addressSpace.findEventType("ExclusiveLimitAlarmType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!exclusiveLimitAlarmType) {
             throw new Error("cannot find ExclusiveLimitAlarmType");
         }

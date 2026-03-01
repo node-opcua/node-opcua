@@ -38,7 +38,7 @@ export class UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmIm
         const addressSpace = namespace.addressSpace;
 
         const nonExclusiveDeviationAlarmType = addressSpace.findEventType("NonExclusiveDeviationAlarmType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!nonExclusiveDeviationAlarmType) {
             throw new Error("cannot find ExclusiveDeviationAlarmType");
         }

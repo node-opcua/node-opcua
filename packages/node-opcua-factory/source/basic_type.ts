@@ -49,7 +49,7 @@ export interface BasicTypeOptions {
 export function registerBasicType(schema: BasicTypeOptions): void {
     const exists: boolean = hasBuiltInType(schema.name);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (exists) {
         errorLog("registerBasicType:", schema);
         throw new Error(`Basic Type ${schema.name} already registered`);
@@ -59,7 +59,7 @@ export function registerBasicType(schema: BasicTypeOptions): void {
 
     const t = getBuiltInType(schema.subType);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!t) {
         // tslint:disable-next-line:no-console
         throw new Error(" cannot find subtype " + schema.subType);

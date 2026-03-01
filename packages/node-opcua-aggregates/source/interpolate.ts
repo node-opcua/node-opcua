@@ -116,7 +116,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         return interpVal;
     }
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (interval.index < 0 && interval.count === 0) {
         return new DataValue({
             sourceTimestamp: interval.startTime,

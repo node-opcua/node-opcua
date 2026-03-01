@@ -19,7 +19,7 @@ export async function findSuperType(session: IBasicSessionBrowseAsyncSimple, dat
         resultMask
     });
     const browseResult = await session.browse(nodeToBrowse);
-    browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+    browseResult.references = browseResult.references || /* c8 ignore next */ [];
     const baseDataType = browseResult.references[0].nodeId;
     return baseDataType;
 }

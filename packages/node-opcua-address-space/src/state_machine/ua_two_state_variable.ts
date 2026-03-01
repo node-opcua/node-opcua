@@ -145,7 +145,7 @@ export function promoteToTwoStateVariable(node: UAVariable): UATwoStateVariableE
     if (node instanceof UATwoStateVariableImpl) {
         return node as unknown as UATwoStateVariableEx;
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (!(node instanceof UAVariableImpl)) {
         throw new Error("Trying to promote a invalid object");
     }

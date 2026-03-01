@@ -33,7 +33,7 @@ export class ExtraDataTypeManager {
     }
 
     public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory): void {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         assert(namespaceIndex !== 0, "registerTypeDictionary cannot be used for namespace 0");
         if (this.hasDataTypeFactory(namespaceIndex)) {
             throw new Error("Dictionary already registered");

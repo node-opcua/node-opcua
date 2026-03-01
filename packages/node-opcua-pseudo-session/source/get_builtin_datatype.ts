@@ -15,7 +15,7 @@ export async function getBuiltInDataType(
         nodeId: variableNodeId
     };
     const dataValue = await session.read(nodeToRead);
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (dataValue.statusCode.isNot(StatusCodes.Good)) {
         throw new Error("cannot read DataType Attribute " + dataValue.statusCode.toString() + " for nodeId "+ variableNodeId.toString());
     }

@@ -239,13 +239,13 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
     ) {
         const s = field.schema as EnumerationDefinition;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!s.typedEnum) {
             // tslint:disable:no-console
             errorLog("xxxx cannot find typeEnum", s);
         }
         const convert = (value: number) => {
-            // istanbul ignore next
+            // c8 ignore next
             if (!s.typedEnum.get(value)) {
                 return [value, s.typedEnum.get(value)] as [number, any];
             } else {
@@ -338,7 +338,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         } else {
             const typeDictionary = self.schema.getDataTypeFactory();
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!typeDictionary) {
                 errorLog("Internal Error: No typeDictionary for ", self.schema);
                 return;

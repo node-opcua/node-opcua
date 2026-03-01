@@ -192,7 +192,7 @@ function repair_client_session_by_recreating_a_new_session(
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
     }
@@ -247,7 +247,7 @@ function repair_client_session_by_recreating_a_new_session(
                 // prettier-ignore
                 { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
 
-                // istanbul ignore next
+                // c8 ignore next
                 doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
                 session.getPublishEngine().suspend(true);
                 innerCallback();
@@ -275,7 +275,7 @@ function repair_client_session_by_recreating_a_new_session(
                     newSession,
                     newSession.userIdentityInfo!,
                     (err: Error | null, session1?: ClientSessionImpl) => {
-                        // istanbul ignore next
+                        // c8 ignore next
                         doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
                         if (err) {
                             doDebug &&
@@ -293,9 +293,9 @@ function repair_client_session_by_recreating_a_new_session(
                                 if (err2) {
                                     warningLog("closing session", err2.message);
                                 }
-                                // istanbul ignore next
+                                // c8 ignore next
                                 doDebug && debugLog("the temporary replacement session is now closed");
-                                // istanbul ignore next
+                                // c8 ignore next
                                 doDebug && debugLog(" err ", err.message, "propagated upwards");
                                 innerCallback(err);
                             });
@@ -372,7 +372,7 @@ function repair_client_session_by_recreating_a_new_session(
                         }
 
                         const results = transferSubscriptionsResponse.results || [];
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog(
                                 chalk.cyan("    =>  transfer subscriptions  done"),
@@ -550,7 +550,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                 return;
             }
 
-            // istanbul ignore next
+            // c8 ignore next
             doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
             session.emit("session_restored");
             callback(err);
@@ -561,7 +561,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         const otherCallbacks = privateSession._reconnecting.pendingCallbacks.splice(0);
         // re-inject element in queue
         
-        // istanbul ignore next
+        // c8 ignore next
         if (transactionQueue.length > 0) {
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
             transactionQueue.forEach((e: any) => privateSession._reconnecting.pendingTransactions.push(e));

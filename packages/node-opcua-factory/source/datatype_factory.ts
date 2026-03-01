@@ -155,11 +155,11 @@ export class DataTypeFactory {
                 return structureInfo2;
             }
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog([...this.structuredTypesNames()].join(" "));
         }
-        // istanbul ignore next
+        // c8 ignore next
         throw new Error(
             "Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type"
         );
@@ -182,7 +182,7 @@ export class DataTypeFactory {
         return structureInfo.schema;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     public dump(): void {
         warningLog(" dumping registered factories");
         warningLog(
@@ -277,7 +277,7 @@ export class DataTypeFactory {
 
         const expandedNodeIdKey = makeExpandedNodeIdKey(expandedNodeId);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (this._structureInfoByEncodingMap.has(expandedNodeIdKey)) {
             throw new Error(
                 " Class " +
@@ -307,7 +307,7 @@ export class DataTypeFactory {
         constructor: ConstructorFuncWithSchema | null,
         schema: IStructuredTypeSchema
     ): void {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (this._structureInfoByName.has(typeName)) {
             warningLog("target namespace = `" + this.targetNamespace + "`");
             warningLog("registerFactory  : " + typeName + " already registered. dataTypeNodeId=", dataTypeNodeId.toString());
@@ -357,7 +357,7 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ..
 }
 
 function verifyExpandedNodeId(expandedNodeId: NodeId): boolean {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (expandedNodeId.value instanceof Buffer) {
         throw new Error("getConstructor not implemented for opaque nodeid");
     }

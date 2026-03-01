@@ -31,16 +31,20 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     if (options.valueRank > 0 && (!options.arrayDimensions || options.arrayDimensions.length === 0)) {
         options.arrayDimensions = new Array(options.valueRank).fill(0);
     }
-    // istanbul ignore next
+    // c8 ignore start
     if (!options.arrayDimensions && options.valueRank > 0) {
         throw new Error("[CONFORMANCE] arrayDimension must be specified  if valueRank >0 " + options.valueRank);
     }
+    // c8 ignore stop
+
+    // c8 ignore start
     if (options.valueRank > 0 && options.arrayDimensions!.length !== options.valueRank) {
         throw new Error(
             "[CONFORMANCE] when valueRank> 0, arrayDimensions must have valueRank elements, this.valueRank =" +
-                options.valueRank +
-                "  whereas arrayDimensions.length =" +
-                options.arrayDimensions!.length
+            options.valueRank +
+            "  whereas arrayDimensions.length =" +
+            options.arrayDimensions!.length
         );
     }
+    // c8 ignore stop
 }

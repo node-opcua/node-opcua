@@ -254,7 +254,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         const arrayDimensions = options.arrayDimensions !== undefined ? options.arrayDimensions : this.arrayDimensions;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!dataType || dataType.isEmpty()) {
             warningLog(" options.dataType", options.dataType ? options.dataType.toString() : "<null>");
             warningLog(" this.dataType", this.dataType ? this.dataType.toString() : "<null>");
@@ -366,7 +366,7 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     if (!(parent instanceof BaseNodeImpl)) {
         throw new Error("Invalid parent  parent is " + parent.constructor.name);
     }
-    // istanbul ignore next
+    // c8 ignore next
     // verify that no components already exists in parent
     if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
         throw new Error(

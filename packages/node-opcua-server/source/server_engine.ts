@@ -413,15 +413,15 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
             "http://opcfoundation.org/UA-Profile/Server/DataAccess",
             "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
-             "http://opcfoundation.org/UA-Profile/Server/Events",
+            "http://opcfoundation.org/UA-Profile/Server/Events",
             "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
             "http://opcfoundation.org/UA-Profile/Server/Methods",
             "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
             "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
             "http://opcfoundation.org/UA-Profile/Server/FileAccess",
             "http://opcfoundation.org/UA-Profile/Server/StateMachine",
-            
-       
+
+
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
             // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"
@@ -775,7 +775,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 callback(err);
             })
             .then(() => {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (!this.addressSpace) {
                     throw new Error("Internal error");
                 }
@@ -864,7 +864,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     // make sur the provided function returns a valid value for the variant type
                     // This test may not be exhaustive but it will detect obvious mistakes.
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!isValidVariant(VariantArrayType.Scalar, dataType, func())) {
                         errorLog("func", func());
                         throw new Error("bindStandardScalar : func doesn't provide an value of type " + DataType[dataType]);
@@ -1303,8 +1303,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         return;
                     }
                     const outputArguments = getMonitoredItemsMethod.outputArguments!;
-                        const dataValue = outputArguments.readValue();
-                        if (!dataValue.value?.value) {
+                    const dataValue = outputArguments.readValue();
+                    if (!dataValue.value?.value) {
                         // value is null or undefined , meaning no arguments necessary
                         return;
                     }
@@ -1553,7 +1553,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         const session = this.getSession(authenticationToken);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!session) {
             throw new Error("cannot find session with this authenticationToken " + authenticationToken.toString());
         }
@@ -1689,7 +1689,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             statusCode: StatusCodes.Good
         });
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("TransferResult", result.toString());
         }
@@ -1894,21 +1894,22 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         if (!methodNode) {
             return;
         }
-        // istanbul ignore else
         if (methodNode && methodNode.bindMethod) {
             methodNode.bindMethod(func);
-        } else {
+        }
+        /* c8 ignore next */
+        else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                    chalk.cyan(nodeId.toString()) +
-                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
     }
 
     private _getServerSubscriptionDiagnosticsArrayNode(): UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.addressSpace) {
             doDebug && debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
 

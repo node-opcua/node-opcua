@@ -170,7 +170,7 @@ const state0: any = {
                     },
                     finish: function (this: IImportParser) {
                         // _register_namespace_uri(this.text);
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog("Import NameSpace = ", this.attrs.Namespace, " Location", this.attrs.Location);
                         }
@@ -180,7 +180,7 @@ const state0: any = {
                 EnumeratedType: {
                     init: function (this: IEnumeratedTypeParser) {
                         this.typescriptDefinition = "";
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog(
                                 chalk.cyan("EnumeratedType Name="),
@@ -206,7 +206,7 @@ const state0: any = {
                         },
                         EnumeratedValue: {
                             finish: function (this: IEnumeratedTypeEnumeratedValueParser) {
-                                // istanbul ignore next
+                                // c8 ignore next
                                 if (doDebug) {
                                     debugLog(" EnumeratedValue Name=", w(this.attrs.Name, 40), " Value=", this.attrs.Value);
                                 }
@@ -221,7 +221,7 @@ const state0: any = {
                     finish: function (this: IEnumeratedTypeParser) {
                         this.typescriptDefinition += `\n}`;
                         this.parent.typeDictionary.addEnumeration(this.attrs.Name, this.enumeratedType);
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog(" this.typescriptDefinition  = ", this.typescriptDefinition);
                         }
@@ -229,7 +229,7 @@ const state0: any = {
                 },
                 StructuredType: {
                     init: function (this: IStructureTypeParser) {
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog(
                                 chalk.cyan("StructureType Name="),
@@ -255,7 +255,7 @@ const state0: any = {
                                     // ignore  this field, This is a repetition of the base type field with same name
                                     return;
                                 }
-                                // istanbul ignore next
+                                // c8 ignore next
                                 if (doDebug) {
                                     debugLog(
                                         chalk.yellow(" field Name="),
@@ -303,7 +303,7 @@ const state0: any = {
                                     if (this.attrs.SwitchValue) {
                                         // we are in a union
                                         field.switchValue = parseInt(this.attrs.SwitchValue, 10);
-                                        // istanbul ignore next
+                                        // c8 ignore next
                                         if (doDebug) {
                                             debugLog(
                                                 "field",
@@ -323,7 +323,7 @@ const state0: any = {
                                         field.switchBit = structuredType.bitFields
                                             ? structuredType.bitFields!.findIndex((x) => x.name === switchField)
                                             : -2;
-                                        // istanbul ignore next
+                                        // c8 ignore next
                                         if (doDebug) {
                                             debugLog(
                                                 "field",
@@ -386,7 +386,7 @@ export async function parseBinaryXSD(
         }
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("------------------------------- Resolving complex Type");
         typeDictionary.getStructures().map((x: any) => debugLog(x.name));

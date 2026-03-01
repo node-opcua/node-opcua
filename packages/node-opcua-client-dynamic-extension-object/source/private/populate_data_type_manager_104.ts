@@ -61,7 +61,7 @@ export async function readDataTypeDefinitionAndBuildType(
 
         const resolvedName = name || (browseNameDataValue.value?.value?.name as string) || "Unknown";
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (isAbstractDataValue.statusCode.isNotGood()) {
             errorLog("browseName", browseNameDataValue.value.toString());
             throw new Error(" Cannot find dataType isAbstract ! with nodeId =" + dataTypeNodeId.toString() + " " + isAbstractDataValue.statusCode.toString());
@@ -69,7 +69,7 @@ export async function readDataTypeDefinitionAndBuildType(
         const isAbstract = isAbstractDataValue.value.value as boolean;
 
         let dataTypeDefinition: DataTypeDefinition = dataTypeDefinitionDataValue.value.value as DataTypeDefinition;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (dataTypeDefinitionDataValue.statusCode.isNotGood()) {
             // may be we are reading a 1.03 server
             // or it could be some of the di:ParameterResultDataType that are not marked as abstract

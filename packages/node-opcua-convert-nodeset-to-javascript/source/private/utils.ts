@@ -176,7 +176,7 @@ async function readBrowseName(session: IBasicSessionReadAsyncSimple, nodeId: Nod
         nodeId
     };
     const dataValue = await session.read(nodeToRead);
-    // istanbul ignore next
+    // c8 ignore next
     if (dataValue.statusCode.isNotGood()) {
         return new QualifiedName({ name: "", namespaceIndex: 0 });
     }

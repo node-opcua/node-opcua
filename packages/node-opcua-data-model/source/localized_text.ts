@@ -85,7 +85,7 @@ export class LocalizedText extends BaseUAObject {
             this.text = options;
             return;
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             const schema = schemaLocalizedText;
             check_options_correctness_against_schema(this, schema, options);

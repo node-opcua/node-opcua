@@ -115,7 +115,7 @@ export class DiagnosticInfo extends BaseUAObject {
     constructor(options: DiagnosticInfoOptions = {}) {
         super();
         const schema = schemaDiagnosticInfo;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }

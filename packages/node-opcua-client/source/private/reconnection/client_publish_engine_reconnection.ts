@@ -32,9 +32,9 @@ function _republish(
             subscriptionId: subscription.subscriptionId
         });
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
-            // istanbul ignore next
+            // c8 ignore next
             debugLog(
                 chalk.bgCyan.yellow.bold(" republish Request for subscription"),
                 request.subscriptionId,

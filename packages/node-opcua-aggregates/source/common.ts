@@ -39,7 +39,7 @@ function processAggregateData(
 
         const dataValue = lambda(interval, aggregateConfiguration);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!dataValue || !dataValue.sourceTimestamp) {
             // const dataValue = interval.interpolatedValue(aggregateConfiguration);
             throw Error("invalid DataValue");
@@ -61,12 +61,12 @@ export function getAggregateData(
     lambda: (interval: Interval, aggregateConfiguration: AggregateConfigurationOptionsEx) => DataValue,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ): void {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (node.nodeClass !== NodeClass.Variable) {
         return callback(new Error("node must be UAVariable"));
     }
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (processingInterval <= 0) {
         return callback(new Error("Invalid processing interval, shall be greater than 0"));
     }
@@ -95,7 +95,7 @@ export function getAggregateData(
         dataEncoding,
         { continuationPoint },
         (err: Error | null, result?: HistoryReadResult) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }

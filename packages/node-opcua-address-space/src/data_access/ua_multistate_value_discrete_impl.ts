@@ -216,7 +216,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
         // MultiStateValueDiscrete Variables can have any numeric Data Type;
         // this includes signed and unsigned integers from 8 to 64 Bit length.
 
-        // istanbul ignore next
+        // c8 ignore next
         validateIsNumericDataType(this.dataType.value);
 
         // find the enum value type

@@ -221,7 +221,7 @@ export class ClientFile implements IClientFile {
         const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value };
         const dataValue = await this.session.read(nodeToRead);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(" OpenCount ", nodeToRead.nodeId!.toString(), dataValue.toString());
         }

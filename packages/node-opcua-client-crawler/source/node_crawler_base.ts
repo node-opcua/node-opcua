@@ -51,7 +51,7 @@ import {
     Task,
     TaskBase,
     TaskBrowseNode,
-     EmptyCallback,
+    EmptyCallback,
     TaskCrawl,
     TaskProcessBrowseResponse,
     dedup_reference
@@ -163,11 +163,11 @@ interface TaskReadNode {
     action: ReadNodeAction;
 }
 
-function getReferenceTypeId(referenceType: undefined | string | NodeId ): NodeId | null {
+function getReferenceTypeId(referenceType: undefined | string | NodeId): NodeId | null {
     if (!referenceType) {
         return null;
     }
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (referenceType.toString() === "i=45" || referenceType === "HasSubtype") {
         return NodeId.resolveNodeId("i=45");
     } else if (referenceType.toString() === "i=35" || referenceType === "Organizes") {
@@ -209,7 +209,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         crawler: NodeCrawlerBase,
         cacheNode: CacheNode,
         userData: UserData,
-        referenceType?: string ,
+        referenceType?: string,
         browseDirection?: BrowseDirection
     ): void {
         const referenceTypeNodeId = getReferenceTypeId(referenceType);
@@ -268,7 +268,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.taskQueue = async.queue((task: TaskBase, callback: EmptyCallback) => {
             // use process next tick to relax the stack frame
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(" executing Task ", task.name); // JSON.stringify(task, null, " "));
             }
@@ -334,7 +334,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         nodeId = resolveNodeId(nodeId) as NodeId;
         assert(typeof endCallback === "function");
         this._readOperationalLimits((err?: Error) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return endCallback(err);
             }
@@ -382,7 +382,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         AttributeIds.BrowseName,
 
                         (err: Error | null, value?: QualifiedName) => {
-                            /* istanbul ignore else */
+                            /* c8 ignore next */
                             if (err) {
                                 return callback(err);
                             }
@@ -399,7 +399,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
                 task2: (callback: ErrorCallback) => {
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.NodeClass, (err: Error | null, value?: NodeClass) => {
-                        /* istanbul ignore else */
+                        /* c8 ignore next */
                         if (err) {
                             return callback(err);
                         }
@@ -414,7 +414,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         AttributeIds.DisplayName,
 
                         (err: Error | null, value?: LocalizedText) => {
-                            /* istanbul ignore else */
+                            /* c8 ignore next */
                             if (err) {
                                 return callback(err);
                             }
@@ -445,7 +445,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
         const key = cacheNode.nodeId.toString();
 
-        /* istanbul ignore else */
+        /* c8 ignore next */
         if (this._crawled.has(key)) {
             return;
         }
@@ -531,7 +531,6 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                 for (const [readTask, dataValue] of zip(selectedPendingReadTasks, dataValues)) {
                     assert(Object.prototype.hasOwnProperty.call(dataValue, "statusCode"));
                     if (dataValue.statusCode.equals(StatusCodes.Good)) {
-                        /* istanbul ignore else */
                         if (dataValue.value === null) {
                             readTask.action(null, dataValue);
                         } else {
@@ -696,7 +695,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         //                  +->(hasSubtype) HasEventSource/EventSourceOf
         appendPrepopulatedReference("HasSubtype");
 
-        /* istanbul ignore else */
+        /* c8 ignore next */
         if (false) {
             appendPrepopulatedReference("HasTypeDefinition");
             appendPrepopulatedReference("HasChild");
@@ -854,15 +853,17 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     if (dataValue.statusCode.isGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
-                    } else {
+                    }
+                    /* c8 ignore next */
+                    else {
                         callback(
                             new Error(
                                 "Error " +
-                                    dataValue.statusCode.toString() +
-                                    " while reading " +
-                                    nodeId.toString() +
-                                    " attributeIds " +
-                                    AttributeIds[attributeId]
+                                dataValue.statusCode.toString() +
+                                " while reading " +
+                                nodeId.toString() +
+                                " attributeIds " +
+                                AttributeIds[attributeId]
                             )
                         );
                     }
@@ -907,7 +908,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const key = resolveNodeId(nodeId).toString();
         let cacheNode: CacheNode = this._objectCache[key];
 
-        /* istanbul ignore else */
+        /* c8 ignore next */
         if (cacheNode) {
             throw new Error("NodeCrawlerBase#_createCacheNode :" + " cache node should not exist already : " + nodeId.toString());
         }
@@ -982,11 +983,11 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         // extract the reference containing HasTypeDefinition
         const tmp = cacheNode.references.filter((x) => sameNodeId(x.referenceTypeId, hasTypeDefinitionNodeId));
         if (tmp.length) {
-            // istanbul ignore next
+            // c8 ignore next
             if (tmp.length !== 1) {
                 warningLog(`node ${cacheNode.nodeId.toString()} ${cacheNode.browseName.toString()} has two typeDefinitions}`);
             }
-            // istanbul ignore next
+            // c8 ignore next
             if (cacheNode.typeDefinition) {
                 if (cacheNode.typeDefinition.toString() !== tmp[0].nodeId.toString()) {
                     warningLog(`node ${cacheNode.nodeId.toString()} ${cacheNode.browseName.toString()} has wrong typeDefinitions}`);

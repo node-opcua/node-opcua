@@ -68,7 +68,7 @@ async function convertNodeIdToDataTypeAsync(
     };
     const dataValue = await session.read(nodeToRead);
     let dataType: DataType;
-    // istanbul ignore next
+    // c8 ignore next
     if (dataValue.statusCode.isNotGood()) {
         dataType = DataType.Null;
         return dataType;
@@ -393,7 +393,7 @@ export async function readUAStructure(proxyManager: UAProxyManager, obj: { nodeI
         }
     ];
     const browseResults = await session.browse(nodesToBrowse);
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("Components", t(browseResults[0].references));
         debugLog("Properties", t(browseResults[1].references));

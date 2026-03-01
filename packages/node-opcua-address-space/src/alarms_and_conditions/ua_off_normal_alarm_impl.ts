@@ -63,7 +63,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         const addressSpace = namespace.addressSpace as AddressSpacePrivate;
 
         const offNormalAlarmType = addressSpace.findEventType("OffNormalAlarmType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!offNormalAlarmType) {
             throw new Error("cannot find offNormalAlarmType");
         }

@@ -62,7 +62,7 @@ export class AcknowledgeMessage extends BaseUAObject implements IHelloAckLimits 
 
         super();
         const schema = schemaAcknowledgeMessage;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             check_options_correctness_against_schema(this, schema, options);
         }

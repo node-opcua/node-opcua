@@ -217,7 +217,7 @@ function addRelation(srcNode: BaseNode, referenceType: UAReferenceType | string,
 }
 
 export function createBoilerType(namespace: Namespace): BoilerType {
-    // istanbul ignore next
+    // c8 ignore next
     if (namespace.findObjectType("BoilerType")) {
         console.warn("createBoilerType has already been called");
         return namespace.findObjectType("BoilerType") as BoilerType;
@@ -610,7 +610,7 @@ export function makeBoiler(
     let boilerType: UAObjectType | null;
     boilerType = namespace.findObjectType("BoilerType");
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!boilerType) {
         createBoilerType(namespace);
         boilerType = namespace.findObjectType("BoilerType")!;

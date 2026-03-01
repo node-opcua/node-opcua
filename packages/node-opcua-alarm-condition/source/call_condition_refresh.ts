@@ -20,7 +20,7 @@ export async function callConditionRefresh(session: IBasicSessionAsync, subscrip
     const browsePath = makeBrowsePath(conditionTypeNodeId, ".ConditionRefresh");
     const translateResult = await session.translateBrowsePath(browsePath);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (translateResult.targets && translateResult.targets.length > 0) {
         conditionRefreshId = translateResult.targets[0].targetId;
     } else {
@@ -35,7 +35,7 @@ export async function callConditionRefresh(session: IBasicSessionAsync, subscrip
 
     doDebug && debugLog("Calling method ", new CallMethodRequest(methodToCall).toString());
     const callResult = await session.call(methodToCall);
-    // istanbul ignore next
+    // c8 ignore next
     if (callResult.statusCode.isNotGood()) {
         warningLog(new CallMethodRequest(methodToCall).toString());
     }

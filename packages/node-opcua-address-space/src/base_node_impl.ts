@@ -167,7 +167,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     public get addressSpace(): IAddressSpace {
         const _private = BaseNode_getPrivate(this);
-        // istanbul ignore next
+        // c8 ignore next
         if (!_private) {
             throw new Error("Internal error , cannot extract private data from " + this.browseName.toString());
         }
@@ -176,7 +176,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     protected get addressSpacePrivate(): AddressSpacePrivate {
         const _private = BaseNode_getPrivate(this);
-        // istanbul ignore next
+        // c8 ignore next
         if (!_private) {
             throw new Error("Internal error , cannot extract private data from " + this.browseName.toString());
         }
@@ -445,7 +445,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         if (_cache._ref.has(hash)) {
             return _cache._ref.get(hash)!;
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug && !this.addressSpace.findReferenceType(referenceTypeNode.nodeId)) {
             throw new Error("expecting valid reference name " + referenceType);
         }
@@ -711,7 +711,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         if (this.parentNodeId) {
             const parent = this.addressSpace.findNode(this.parentNodeId) as BaseNode;
 
-            // istanbul ignore else
+            // c8 ignore next
             if (parent) {
                 return parent.fullName() + "." + this.browseName.toString() + "";
             } else {
@@ -796,7 +796,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
             const obj = resolveReferenceNode(this.addressSpace, reference);
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!obj) {
                 throw new Error(" cannot find node with id " + reference.nodeId.toString());
             }
@@ -850,7 +850,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         // get all possible references
         let references = this.allReferences();
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (do_debug) {
             debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
             dumpReferences(addressSpace, _private._referenceIdx.values());
@@ -870,7 +870,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         }
         const referenceDescriptions = _constructReferenceDescription(addressSpace, references, browseDescription.resultMask);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (do_debug) {
             dumpReferenceDescriptions(this.addressSpace, referenceDescriptions);
         }
@@ -1004,14 +1004,14 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         const name = lowerFirstLetter(childNode.browseName.name!.toString());
         if (Object.prototype.hasOwnProperty.call(reservedNames, name)) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 // tslint:disable-next-line:no-console
                 debugLog(chalk.bgWhite.red("Ignoring reserved keyword                                     " + name));
             }
             return;
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!Object.prototype.hasOwnProperty.call(this, name)) {
             return;
         }
@@ -1170,7 +1170,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return !this.addressSpacePrivate;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     public dumpXML(xmlWriter: XmlWriter): void {
         console.error(" This ", (NodeClass as any)[this.nodeClass]);
         assert(false, "BaseNode#dumpXML NOT IMPLEMENTED !");
@@ -1189,7 +1189,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             // filter out non  Hierarchical References
             const referenceType = resolveReferenceType(addressSpace, reference);
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!referenceType) {
                 console.error(chalk.red(" ERROR"), " cannot find reference ", reference.referenceType, reference.toString());
             }
@@ -1262,7 +1262,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         let result: UAReferenceType;
         if (typeof referenceType === "string") {
             result = this.addressSpace.findReferenceType(referenceType)!;
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!result) {
                 errorLog("referenceType ", referenceType, " cannot be found");
                 throw new Error("Cannot coerce reference with name " + referenceType);
@@ -1497,7 +1497,7 @@ function _setup_parent_item(this: BaseNode, referencesMap: Map<string, UAReferen
         references = this.findReferencesEx("Aggregates", BrowseDirection.Inverse);
 
         if (references.length >= 1) {
-            // istanbul ignore next
+            // c8 ignore next
             if (references.length > 1) {
                 if (displayWarning) {
                     const options = { addressSpace };
@@ -1519,7 +1519,7 @@ function _setup_parent_item(this: BaseNode, referencesMap: Map<string, UAReferen
 
 function toObject(addressSpace: IAddressSpace, reference: UAReference): BaseNode {
     const obj = resolveReferenceNode(addressSpace, reference);
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug && !obj) {
         debugLog(
             chalk.red(" Warning :  object with nodeId ") +
@@ -1603,7 +1603,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     // filter out non  Hierarchical References
     const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!referenceType) {
         errorLog(chalk.red(" ERROR"), " cannot find reference ", reference.referenceType, reference.toString());
     }
@@ -1622,7 +1622,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     if (related_node) {
         // verify that reference doesn't point to object it this (see mantis 3099)
         if (sameNodeId(reference.nodeId, this.nodeId)) {
-            // istanbul ignore next
+            // c8 ignore next
             if (displayWarningReferencePointingToItSelf) {
                 // this could happen with method
                 warningLog("  Warning: a Reference is pointing to source ", this.nodeId.toString(), this.browseName.toString(), ". Is this intentional ?");
@@ -1687,7 +1687,7 @@ function _filter_by_referenceType(
         assert(referenceTypeId instanceof NodeId);
         const referenceType = this.addressSpace.findNode(referenceTypeId) as UAReferenceType;
         dumpIf(!referenceType, referenceTypeId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!referenceType || referenceType.nodeClass !== NodeClass.ReferenceType) {
             throw new Error("Cannot find reference type");
         }
@@ -1698,7 +1698,7 @@ function _filter_by_referenceType(
 
         references = references.filter((reference) => {
             const ref = resolveReferenceType(this.addressSpace, reference)!;
-            // istanbul ignore next
+            // c8 ignore next
             if (!ref) {
                 throw new Error("Cannot find reference type " + reference.toString());
             }
@@ -1775,13 +1775,13 @@ function _filter_by_userFilter(this: BaseNode, references: UAReference[], contex
     const addressSpace = this.addressSpace;
     return references.filter((reference: UAReference) => {
         const obj = resolveReferenceNode(addressSpace, reference) as BaseNode;
-        // istanbul ignore next
+        // c8 ignore next
         if (!obj) {
             return false;
         }
 
         const _private = BaseNode_getPrivate(obj);
-        // istanbul ignore next
+        // c8 ignore next
         if (!_private._browseFilter) {
             throw Error("Internal error : cannot find browseFilter");
         }

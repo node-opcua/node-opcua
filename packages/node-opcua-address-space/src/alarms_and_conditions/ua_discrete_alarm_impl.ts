@@ -24,7 +24,7 @@ export class UADiscreteAlarmImpl extends UAAlarmConditionImpl implements UADiscr
         const addressSpace = namespace.addressSpace;
 
         const discreteAlarmType = addressSpace.findEventType(discreteAlarmTypeId);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!discreteAlarmType) {
             throw new Error(" cannot find Condition Type for " + discreteAlarmType);
         }
@@ -33,7 +33,7 @@ export class UADiscreteAlarmImpl extends UAAlarmConditionImpl implements UADiscr
         assert(discreteAlarmTypeBase, "expecting DiscreteAlarmType - please check you nodeset xml file!");
 
         /* eventTypeNode should be subtypeOf("DiscreteAlarmType"); */
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!discreteAlarmType.isSubtypeOf(discreteAlarmTypeBase as any)) {
             throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
         }

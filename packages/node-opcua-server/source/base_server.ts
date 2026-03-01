@@ -387,7 +387,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 channel.send_response("MSG", response, message, emptyCallback);
             }
         } catch (err) {
-            /* istanbul ignore if */
+            /* c8 ignore next */
             const errMessage1 = "[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
             warningLog(chalk.red.bold(errMessage1));
             warningLog(request.toString());
@@ -449,20 +449,20 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public async suspendEndPoints(): Promise<void>;
     public suspendEndPoints(callback: (err?: Error) => void): void;
     public suspendEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!callback) {
             throw new Error("Internal Error");
         }
         async.forEach(
             this.endpoints,
             (ep: OPCUAServerEndPoint, _inner_callback) => {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog("Suspending ", ep.endpointDescriptions()[0].endpointUrl);
                 }
 
                 ep.suspendConnection((err?: Error | null) => {
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog("Suspended ", ep.endpointDescriptions()[0].endpointUrl);
                     }

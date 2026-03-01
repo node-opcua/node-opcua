@@ -211,7 +211,7 @@ function _check_range(numericalRange: NumericalRange0) {
         case NumericRangeType.ArrayRange:
             return _valid_range(numericalRange.value[0], numericalRange.value[1]);
     }
-    // istanbul ignore next
+    // c8 ignore next
     throw new Error("unsupported case");
 }
 
@@ -249,7 +249,7 @@ function construct_from_values(value: number, secondValue?: number): NumericalRa
 function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
     assert(value.length === 2);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!isFinite(value[0]) || !isFinite(value[1])) {
         return { type: NumericRangeType.InvalidRange, value: "" + value };
     }
@@ -259,7 +259,7 @@ function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
     }
     // we have a matrix
     const nr2 = new NumericRange(value2);
-    // istanbul ignore next
+    // c8 ignore next
     if (
         nr2.type === NumericRangeType.InvalidRange ||
         nr2.type === NumericRangeType.MatrixRange ||
@@ -278,7 +278,7 @@ function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
         nr2.value = [nr2.value as number, nr2.value as number];
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     return {
         type: NumericRangeType.MatrixRange,
         value: [range1.value as number[], nr2.value as number[]]
@@ -313,9 +313,9 @@ export class NumericRange implements NumericalRange1 {
             const h2 = nr2.value[1];
             return _overlap(l1, h1, l2, h2);
         }
-        // istanbul ignore next
+        // c8 ignore next
         assert(false, "NumericalRange#overlap : case not implemented yet "); // TODO
-        // istanbul ignore next
+        // c8 ignore next
         return false;
     }
 
@@ -370,7 +370,7 @@ export class NumericRange implements NumericalRange1 {
         }
         if (this.type === NumericRangeType.SingleValue) {
             const value = this.value as number;
-            // istanbul ignore next
+            // c8 ignore next
             if (value < 0) {
                 return false;
             }
@@ -433,7 +433,7 @@ export class NumericRange implements NumericalRange1 {
             case NumericRangeType.MatrixRange:
                 return this.toString();
             case NumericRangeType.InvalidRange:
-                // istanbul ignore next
+                // c8 ignore next
                 if (!(typeof this.value === "string")) {
                     throw new Error("Internal Error");
                 }
@@ -495,7 +495,7 @@ export class NumericRange implements NumericalRange1 {
         const self = this as NumericalRange0;
         assert(dimensions, "expecting valid dimensions here");
         if (self.type !== NumericRangeType.MatrixRange) {
-            // istanbul ignore next
+            // c8 ignore next
             return { matrix, statusCode: StatusCodes.BadTypeMismatch };
         }
 

@@ -30,7 +30,7 @@ export class ClientMonitoredItem {
         monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn = TimestampsToReturn.Neither
     ): ClientMonitoredItem {
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         throw new Error("unimplemented");
     }
 }

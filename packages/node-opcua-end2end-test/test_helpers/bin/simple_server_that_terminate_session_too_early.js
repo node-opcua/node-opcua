@@ -133,7 +133,7 @@ const port = parseInt(argv.port) || 26555;
             }
         });
         server.on("response", (response) => {
-            // istanbul ignore next
+            // c8 ignore next
             console.log(response.constructor.name.toString(), response.responseHeader.serviceResult.toString());
         });
 

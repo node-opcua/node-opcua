@@ -7,7 +7,7 @@ export function adjustBrowseDirection(
     browseDirection: BrowseDirection | null | undefined,
     defaultValue: BrowseDirection
 ): BrowseDirection {
-    // istanbul ignore next
+    // c8 ignore next
     if (browseDirection === null || browseDirection === undefined) {
         return defaultValue;
     }

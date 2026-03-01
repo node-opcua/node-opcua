@@ -155,7 +155,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         context: ISessionContext,
         callback?: CallbackT<CallMethodResultOptions>
     ): any {
-        // istanbul ignore next
+        // c8 ignore next
         if (!callback) {
             throw new Error("execute need to be promisified");
         }
@@ -168,7 +168,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
         object = object || (this.parent as UAObject);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!object) {
             errorLog("UAMethod#execute expects a valid object");
             return callback(null, { statusCode: StatusCodes.BadInternalError });

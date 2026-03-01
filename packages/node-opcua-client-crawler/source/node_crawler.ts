@@ -38,14 +38,14 @@ export class NodeCrawler extends NodeCrawlerBase {
     public read(nodeId: NodeIdLike): Promise<Pojo>;
     public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: Pojo) => void): void;
     public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: Pojo) => void): any {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!callback) {
             throw new Error("Invalid Error");
         }
 
         try {
             nodeId = resolveNodeId(nodeId);
-        } /* istanbul ignore next */ catch (err) {
+        } /* c8 ignore next */ catch (err) {
             callback(err as Error);
             return;
         }
@@ -63,18 +63,19 @@ export class NodeCrawler extends NodeCrawlerBase {
         };
 
         this.crawl(nodeId, userData, (err) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore else */
             if (Object.prototype.hasOwnProperty.call(this._objectCache, key)) {
                 const cacheNode = this._objectCache[key];
                 assert(cacheNode.browseName.name !== "pending");
 
                 this.simplify_object(this._objMap, cacheNode, callback);
-            } else {
+            }
+            /* c8 ignore next */
+            else {
                 callback(new Error("Cannot find nodeId" + key));
             }
         });
@@ -186,14 +187,14 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             const referenceType = this._objectCache[refIndex];
 
-            /* istanbul ignore else */
+            /* c8 ignore next */
             if (!referenceType) {
                 warningLog(chalk.red("Unknown reference type " + refIndex));
                 // debugLog(util.inspect(object, { colors: true, depth: 10 }));
             }
             const reference = this._objectCache[ref.nodeId.toString()];
 
-            /* istanbul ignore else */
+            /* c8 ignore next */
             if (!reference) {
                 warningLog(
                     ref.nodeId.toString(),

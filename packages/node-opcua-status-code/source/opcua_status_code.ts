@@ -7,7 +7,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 function warnLog(...args: [any?, ...any[]]) {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     // tslint:disable-next-line:no-console
     console.warn(...args);
 }
@@ -270,7 +270,7 @@ export function getStatusCodeFromCode(code: number): StatusCode {
     const infoBits = code & 0x0000ffff;
     let sc = statusCodesReversedMap[codeWithoutInfoBits];
 
-    /* istanbul ignore if */
+    /* c8 ignore next */
     if (!sc) {
         sc = StatusCodes.Bad;
         warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), " code was 0x" + code.toString(16));
@@ -325,7 +325,7 @@ export class ModifiableStatusCode extends StatusCode {
             }
             const tmp = extraStatusCodeBits[bit as string];
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!tmp) {
                 throw new Error("Invalid StatusCode Bit " + bit);
             }
@@ -345,7 +345,7 @@ export class ModifiableStatusCode extends StatusCode {
             }
             const tmp = extraStatusCodeBits[bit];
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!tmp) {
                 throw new Error("Invalid StatusCode Bit " + bit);
             }
@@ -362,7 +362,7 @@ export class ModifiableStatusCode extends StatusCode {
             }
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (str.length === 0) {
             return "";
         }

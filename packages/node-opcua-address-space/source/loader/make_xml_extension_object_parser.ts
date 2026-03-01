@@ -234,7 +234,7 @@ function _makeTypeReader(
             const typeReader = _makeTypeReader(field.dataType, definitionMap, readerMap, translateNodeId);
             const fieldParser = typeReader.reader;
             const fieldTypename = typeReader.name;
-            // istanbul ignore next
+            // c8 ignore next
             if (!fieldParser) {
                 throw new Error(" Cannot find reader for dataType " + field.dataType + " fieldTypename=" + fieldTypename);
             }
@@ -332,7 +332,7 @@ function _makeTypeReader(
         // basic datatype
         const typeName: string = DataType[definition.dataType];
         const reader = partials[typeName as keyof typeof partials] as ReaderStateParser;
-        // istanbul ignore next
+        // c8 ignore next
         if (!reader) {
             throw new Error("missing parse for " + typeName);
         }
@@ -348,7 +348,7 @@ export function makeXmlExtensionObjectReader(
 ): ReaderState {
     const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(definition instanceof StructureDefinition)) {
         throw new Error("Expecting StructureDefinition");
     }

@@ -785,7 +785,7 @@ const old_encode = function (variant, stream) {
     }
     encodeUInt8(encodingByte, stream);
     const encode = findBuiltInType(DataType[variant.dataType]).encode;
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!encode) {
         throw new Error("Cannot find encode function for dataType " + DataType[variant.dataType]);
     }

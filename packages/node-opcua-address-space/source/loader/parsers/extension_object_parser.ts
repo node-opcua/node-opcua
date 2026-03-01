@@ -308,7 +308,7 @@ export function makeExtensionObjectParser<T>(
                                 setExtensionObject(extensionObject, data);
                             } break;
                             default: {
-                                // istanbul ignore next
+                                // c8 ignore next
                                 if (!this._cloneFragment) {
                                     // the XML file is probably not exposing standard UA extension object correctly.
                                     // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding

@@ -167,7 +167,7 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: Nod
             identifierType = NodeIdType.BYTESTRING;
             break;
         default:
-            // istanbul ignore next
+            // c8 ignore next
             if (encodingByte !== EnumNodeIdEncoding.Guid) {
                 throw new Error("decodeNodeId: unknown encoding_byte = 0x" + encodingByte.toString(16));
             }

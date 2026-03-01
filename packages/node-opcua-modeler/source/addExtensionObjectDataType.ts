@@ -15,7 +15,7 @@ export function getOrCreateDataTypeSystem(namespace: INamespace): UAObject {
     const addressSpace = namespace.addressSpace;
 
     const opcBinaryTypeSystem = addressSpace.findNode("OPCBinarySchema_TypeSystem") as UAObject;
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!opcBinaryTypeSystem) {
         throw new Error("Cannot find OPCBinarySchema_TypeSystem");
     }
@@ -39,12 +39,12 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
 
     // encodings
     const dataTypeEncodingType = addressSpace.findObjectType("DataTypeEncodingType");
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!dataTypeEncodingType) {
         throw new Error("Cannot find DataTypeEncodingType");
     }
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!options.browseName.toString().match(/DataType$/)) {
         throw new Error("DataType name must end up with DataType ! " + options.browseName.toString());
     }
@@ -113,7 +113,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
 
     // get Definition
     const definition = dataType.getStructureDefinition();
-    // istanbul ignore next
+    // c8 ignore next
     if (!definition || !(definition instanceof StructureDefinition)) {
         throw new Error("dataType is not a structure");
     }
@@ -128,7 +128,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
     for (const field of definition.fields || []) {
         let typeDefinition: UAVariableType | string = "BaseVariableType";
         const fType = addressSpace.findDataType(field.dataType);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!fType) {
             throw new Error("Cannot find dataType" + field.dataType.toString());
         }

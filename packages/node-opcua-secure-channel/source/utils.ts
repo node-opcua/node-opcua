@@ -77,7 +77,7 @@ export interface ServerTransactionStatistics {
     lap_emission: number;
 }
 
-// istanbul ignore next
+// c8 ignore next
 export function _dump_transaction_statistics(stats?: ServerTransactionStatistics): void {
     if (stats) {
         console.log("                Bytes Read : ", stats.bytesRead);
@@ -269,7 +269,7 @@ function statusCodeToString(s: StatusCode): string {
     }
 }
 
-// istanbul ignore next
+// c8 ignore next
 export function traceRequestMessage(request: Request, channelId: number, instance: number): void {
     if (doTraceServerMessage) {
         const extra = _get_extraInfo(request);
@@ -291,7 +291,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
     }
 }
 
-// istanbul ignore next
+// c8 ignore next
 export function traceResponseMessage(response: Response, tokenId: number, channelId: number, instance: number): void {
     assert(response.responseHeader.requestHandle >= 0);
     if (doTraceServerMessage) {
@@ -338,8 +338,8 @@ export function traceClientResponseContent(response: Response, channelId: number
         traceLog(response.toString());
     }
 }
-// istanbul ignore next
-// istanbul ignore next
+// c8 ignore next
+// c8 ignore next
 export function traceClientRequestMessage(request: Request, channelId: number, instance: number): void {
     const extra = _get_extraInfo(request);
     const size = evaluateBinarySize(request);

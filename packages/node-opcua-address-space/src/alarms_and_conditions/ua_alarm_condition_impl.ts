@@ -48,13 +48,13 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         assert(Object.prototype.hasOwnProperty.call(options, "inputNode")); // must provide a inputNode
         const alarmConditionType = addressSpace.findEventType(alarmConditionTypeId);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!alarmConditionType) {
             throw new Error(" cannot find Alarm Condition Type for " + alarmConditionTypeId);
         }
 
         const alarmConditionTypeBase = addressSpace.findEventType("AlarmConditionType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!alarmConditionTypeBase) {
             throw new Error("cannot find AlarmConditionType");
         }

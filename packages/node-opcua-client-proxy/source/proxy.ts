@@ -8,7 +8,7 @@ import { makeNodeId, NodeId } from "node-opcua-nodeid";
 export function makeRefId(referenceTypeName: string): NodeId {
     const nodeId = makeNodeId((ReferenceTypeIds as any)[referenceTypeName] || (ObjectTypeIds as any)[referenceTypeName]);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (nodeId.isEmpty()) {
         throw new Error("makeRefId: cannot find ReferenceTypeName + " + referenceTypeName);
     }

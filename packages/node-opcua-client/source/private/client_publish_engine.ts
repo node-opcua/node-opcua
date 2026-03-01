@@ -281,7 +281,7 @@ export class ClientSidePublishEngine {
                     // There is no need to send more publish request for the time being until reconnection is completed
                     active = false;
                 }
-                // istanbul ignore next
+                // c8 ignore next
                 if (err.message.match(/BadNoSubscription/) && this.activeSubscriptionCount >= 1) {
                     // there is something wrong happening here.
                     // the server tells us that there is no subscription for this session
@@ -341,7 +341,7 @@ export class ClientSidePublishEngine {
                     active = false;
                 }
             } else {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
@@ -395,7 +395,7 @@ export class ClientSidePublishEngine {
                 // delegate notificationData to the subscription callback
                 subscription.onNotificationMessage(notificationMessage);
             } catch (err) {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog(err);
                     debugLog("Exception in onNotificationMessage");

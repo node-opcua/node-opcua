@@ -80,11 +80,12 @@ export async function findMethodId(
     }
     result.targets = result.targets || [];
 
-    // istanbul ignore else
     if (result.targets.length > 0) {
         const methodId = result.targets[0].targetId as NodeId;
         return { methodId };
-    } else {
+    }
+    /* c8 ignore next */
+    else {
         // cannot find objectWithMethodNodeId
         const err = new Error(" cannot find " + methodName + " Method");
         return { methodId: null, err };

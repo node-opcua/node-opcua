@@ -265,7 +265,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
             const filter = this.monitoringParameters.filter;
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!filter) {
                 return { error: "Internal Error" };
             }
@@ -310,7 +310,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public _applyResult(monitoredItemResult: MonitoredItemCreateResult): void {
         this.statusCode = monitoredItemResult.statusCode;
 
-        /* istanbul ignore else */
         if (monitoredItemResult.statusCode.isGood()) {
             this.result = monitoredItemResult;
             this.monitoredItemId = monitoredItemResult.monitoredItemId;

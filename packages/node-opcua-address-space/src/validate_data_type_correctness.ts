@@ -13,7 +13,7 @@ function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType)
     assert(dataType !== DataType.Null);
 
     const dataTypeNode = addressSpace.findDataType(DataType[dataType]);
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!dataTypeNode) {
         throw new Error(" Cannot find DataType " + DataType[dataType] + " in address Space");
     }
@@ -49,7 +49,7 @@ export function validateDataTypeCorrectness(
 
     const destUADataType = addressSpace.findDataType(dataTypeNodeId)!;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!destUADataType) {
         throw new Error("Cannot find UADataType " + dataTypeNodeId.toString() + " in address Space");
     }
@@ -74,12 +74,12 @@ export function validateDataTypeCorrectness(
     }
 
     const enumerationUADataType = addressSpace.findDataType("Enumeration");
-    // istanbul ignore next
+    // c8 ignore next
     if (!enumerationUADataType) {
         throw new Error("cannot find Enumeration DataType node in standard address space");
     }
     if (destUADataType.isSubtypeOf(enumerationUADataType)) {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("destUADataType.", destUADataType.browseName.toString(), destUADataType.nodeId.toString());
             debugLog(
@@ -97,13 +97,13 @@ export function validateDataTypeCorrectness(
 
     const dest_isSubTypeOf_variant = variantUADataType.isSubtypeOf(builtInUADataType);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         if (dest_isSubTypeOf_variant) {
-            /* istanbul ignore next*/
+            /* c8 ignore next*/
             debugLog(chalk.green(" ---------- Type match !!! "), " on ", context?.toString());
         } else {
-            /* istanbul ignore next*/
+            /* c8 ignore next*/
             debugLog(chalk.red(" ---------- Type mismatch "), " on ", context?.toString());
         }
         debugLog(chalk.cyan(" Variable data Type is    = "), destUADataType.browseName.toString());

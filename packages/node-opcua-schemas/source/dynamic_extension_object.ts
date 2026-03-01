@@ -54,7 +54,7 @@ export function getOrCreateConstructor(
     }
     const schema = dataTypeFactory.getStructuredTypeSchema(dataTypeName);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!schema) {
         throw new Error("Unknown type in dictionary " + dataTypeName);
     }
@@ -64,7 +64,7 @@ export function getOrCreateConstructor(
     if (!constructor) {
         return ExtensionObject as AnyConstructorFunc;
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (!dataTypeFactory.hasStructureByTypeName(dataTypeName)) {
         dataTypeFactory.registerClassDefinition(schema.dataTypeNodeId, dataTypeName, constructor as ConstructorFuncWithSchema);
         return constructor;
@@ -85,7 +85,7 @@ function encodeElement(
     if (encodeFunc) {
         encodeFunc(element, stream);
     } else {
-        // istanbul ignore next
+        // c8 ignore next
         if (!element.encode) {
             throw new Error("encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing");
         }
@@ -429,7 +429,7 @@ function _internal_encodeFields(thisAny: any, schema: IStructuredTypeSchema, str
                 encodeArrayOrElement(field, thisAny, stream, field.schema.encode);
                 break;
             default:
-                /* istanbul ignore next*/
+                /* c8 ignore next*/
                 throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
         }
     }
@@ -518,7 +518,7 @@ function internal_decodeFields(
                 decodeArrayOrElement(dataTypeFactory, field, thisAny, stream, field.schema.decode);
                 break;
             default:
-                /* istanbul ignore next*/
+                /* c8 ignore next*/
                 throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
         }
     }
@@ -545,7 +545,7 @@ function ___fieldToJson(field: FieldType, value: any): any {
         case FieldCategory.basic:
             return value instanceof Date ? new Date(value.getTime()) : value?.toJSON ? value?.toJSON() : value;
         default:
-            /* istanbul ignore next*/
+            /* c8 ignore next*/
             throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
     }
 }
@@ -657,7 +657,7 @@ class UnionBaseClass extends BaseUAObject {
             // dealing with optional fields
 
             const value = getFieldValue(field, options);
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (uniqueFieldHasBeenFound && value !== undefined) {
                 // let try to be helpful for the developper by providing some hint
                 debugLog(this.schema);
@@ -756,7 +756,7 @@ class UnionBaseClass extends BaseUAObject {
                     encodeArrayOrElement(field, this as any, stream, field.schema.encode);
                     break;
                 default:
-                    /* istanbul ignore next*/
+                    /* c8 ignore next*/
                     throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
             }
             break;
@@ -785,7 +785,7 @@ class UnionBaseClass extends BaseUAObject {
                     decodeArrayOrElement(factory, field, this as any, stream, field.schema.decode);
                     break;
                 default:
-                    /* istanbul ignore next*/
+                    /* c8 ignore next*/
                     throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
             }
             break;

@@ -234,7 +234,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public __waiting_callbacks?: any[];
 
     get typeDefinitionObj(): UAVariableType {
-        // istanbul ignore next
+        // c8 ignore next
         if (super.typeDefinitionObj && super.typeDefinitionObj.nodeClass !== NodeClass.VariableType) {
             // this could happen in faulty external nodeset and has been seen once
             // in an nano server
@@ -439,7 +439,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             dataValue = extractRange(dataValue, indexRange);
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (
             dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData) ||
             dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
@@ -527,7 +527,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         try {
             this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (err || !dataValue) {
                     errorLog(
                         "-------------- refresh call failed",
@@ -646,7 +646,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
     public verifyVariantCompatibility(variant: Variant): void {
         try {
-            // istanbul ignore next
+            // c8 ignore next
             if (Object.prototype.hasOwnProperty.call(variant, "value")) {
                 if (variant.dataType === null || variant.dataType === undefined) {
                     throw new Error(
@@ -942,7 +942,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         writeValueOptions: WriteValueOptions,
         callback?: (err: Error | null, statusCode?: StatusCode) => void
     ): any {
-        // istanbul ignore next
+        // c8 ignore next
         if (!callback) {
             throw new Error("Internal error");
         }
@@ -1241,7 +1241,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         try {
             func.call(this, satisfy_callbacks);
         } catch (err) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(chalk.red("func readValueAsync has failed "));
                 if (types.isNativeError(err)) {
@@ -1315,7 +1315,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this.dataType = this.resolveNodeId(DataType.Variant);
         }
         const dt = addressSpace.findNode(this.dataType);
-        // istanbul ignore next
+        // c8 ignore next
         if (!dt) {
             throw new Error("getDataTypeNode: cannot find dataType " + this.dataType.toString());
         }
@@ -1381,7 +1381,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this: UAVariableImpl,
             extObj: ExtensionObject | ExtensionObject[] | null
         ): boolean {
-            // istanbul ignore next
+            // c8 ignore next
             if (!(extObj && extObj.constructor)) {
                 errorLog(extObj);
                 throw new Error("expecting an valid extension object");
@@ -1390,7 +1390,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
 
         function checkExtensionObjectIsCorrectArray(this: UAVariableImpl, extObjArray: ExtensionObject[]): boolean {
-            // istanbul ignore next
+            // c8 ignore next
             for (const extObj of extObjArray) {
                 if (!(extObj && extObj.constructor)) {
                     errorLog(extObj);
@@ -1663,13 +1663,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         const addressSpace = this.addressSpace;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!addressSpace) {
             warningLog("UAVariable#_internal_set_dataValue : no addressSpace ! may be node has already been deleted ?");
             return;
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (dataValue.value.arrayType === VariantArrayType.Matrix) {
             if (!dataValue.value.dimensions) {
                 throw new Error("missing dimensions: a Matrix Variant needs a dimension");
@@ -1684,9 +1684,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             }
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (dataValue.value.dataType === DataType.ExtensionObject) {
-            // istanbul ignore next
+            // c8 ignore next
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
                 warningLog(dataValue.toString());
                 throw new Error("Invalid Extension Object on nodeId =" + this.nodeId.toString());
@@ -2074,7 +2074,7 @@ function _Variable_bind_with_timestamped_get(
 
         const dataValue_verify = timestamped_get.call(pThis);
         // dataValue_verify should be a DataValue or a Promise
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!(dataValue_verify instanceof DataValue) && typeof dataValue_verify.then !== "function") {
             errorLog(
                 chalk.red(" Bind variable error: "),
@@ -2108,7 +2108,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
     const timestamped_get_func_from__Variable_bind_with_simple_get = () => {
         const value: Variant | StatusCode = this._get_func();
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!is_Variant_or_StatusCode(value)) {
             errorLog(
                 chalk.red(" Bind variable error: "),
@@ -2166,7 +2166,7 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
     ) => {
         assert(timestamped_value instanceof DataValue);
         this._set_func(timestamped_value.value, (err: Error | null, statusCode: StatusCode) => {
-            // istanbul ignore next
+            // c8 ignore next
             if (!err && !statusCode) {
                 errorLog(
                     chalk.red("UAVariable Binding Error _set_func must return a StatusCode, check the bindVariable parameters")
@@ -2305,13 +2305,13 @@ function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeI
 
     const addressSpace = uaVariable.addressSpace;
     const newDataTypeNode = addressSpace.findNode(newDataType) as UADataType;
-    // istanbul ignore next
+    // c8 ignore next
     if (!newDataTypeNode || !(newDataTypeNode instanceof UADataTypeImpl)) {
         throw new Error("Cannot find newDataTypeNode " + newDataType.toString());
     }
 
     const newBaseDataType: DataType = newDataTypeNode.basicDataType;
-    // istanbul ignore next
+    // c8 ignore next
     if (newBaseDataType === DataType.Null) {
         throw new Error("newDataTypeNode must be a DataType");
     }

@@ -60,7 +60,7 @@ export function commonCodeToUInt(code: string): number {
     const m = Math.min(4, code.length);
     for (let i = 0; i < m; i++) {
         c = code.charCodeAt(i);
-        /* istanbul ignore if*/
+        /* c8 ignore next*/
         if (c === 0) {
             return unitId;
         }

@@ -506,7 +506,7 @@ function _clone_children_on_template(
             : null;
     if (!nodeToCloneTypeDefinition) return;
 
-    // istanbul ignore next
+    // c8 ignore next
     doTrace &&
         traceLog(
             extraInfo?.pad(),
@@ -533,7 +533,7 @@ function _clone_children_on_template(
 
     let typeDefinitionNode: UAVariableType | UAObjectType | null = nodeToCloneTypeDefinition;
     while (typeDefinitionNode) {
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog(
                 extraInfo?.pad(),
@@ -564,7 +564,7 @@ function _clone_children_on_template(
                 const hasAlready = newParentChild.getChildByName(grandChild.browseName) !== null;
                 if (!hasAlready) {
                     if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
-                        // istanbul ignore next
+                        // c8 ignore next
                         doTrace &&
                             traceLog(
                                 extraInfo.pad(),
@@ -635,7 +635,7 @@ function _clone_collection_new(
         // ensure node is of the correct type,
         // it may happen that the xml nodeset2 file was malformed
 
-        // istanbul ignore next
+        // c8 ignore next
         if (typeof (node as any).clone !== "function") {
             // tslint:disable-next-line:no-console
             warningLog(
@@ -649,14 +649,14 @@ function _clone_collection_new(
             continue;
         }
         if (node && !node.modellingRule) {
-            // istanbul ignore next
+            // c8 ignore next
             doTrace && traceLog(extraInfo.pad(), "skipping  with no modelling rule", fullPath2(node));
             // those node stays in the Type
             continue; // skip this node
         }
 
         if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
-            // istanbul ignore next
+            // c8 ignore next
             doTrace && traceLog(extraInfo.pad(), "skipping optional that doesn't appear in the filter", fullPath2(node));
             continue; // skip this node
         }
@@ -687,7 +687,7 @@ function _clone_collection_new(
 
         const alreadyCloned = extraInfo.getCloned({ originalParent: nodeToClone, clonedParent: newParent, originalNode: node });
         if (alreadyCloned) {
-            // istanbul ignore next
+            // c8 ignore next
             doTrace &&
                 traceLog(
                     extraInfo.pad(),
@@ -710,11 +710,11 @@ function _clone_collection_new(
                     nodeId: newParent.nodeId
                 });
             } else {
-                // istanbul ignore next
+                // c8 ignore next
                 doTrace && traceLog(extraInfo.pad(), "reference to node  ", fullPath2(alreadyCloned), " already exists !");
             }
         } else {
-            // istanbul ignore next
+            // c8 ignore next
             doTrace &&
                 traceLog(
                     extraInfo.pad(),
@@ -729,7 +729,7 @@ function _clone_collection_new(
             const clonedNode = node.clone(options, optionalFilter, extraInfo);
             extraInfo.level -= 1;
 
-            // istanbul ignore next
+            // c8 ignore next
             doTrace &&
                 traceLog(
                     extraInfo.pad(),
@@ -794,7 +794,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
 
     const baseInterfaces: UAInterface[] = [];
     for (const iface of interfaces) {
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog(
                 extraInfo.pad(),
@@ -811,7 +811,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     interfaces.push(...baseInterfaces);
     if (typeDefinitionNode.subtypeOfObj) {
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog(
                 extraInfo.pad(),
@@ -825,7 +825,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     const deduplicatedInterfaces = [...new Set(interfaces)];
 
-    // istanbul ignore next
+    // c8 ignore next
     doTrace &&
         deduplicatedInterfaces.length &&
         traceLog(
@@ -845,7 +845,7 @@ function _cloneInterface(
     extraInfo: CloneExtraInfo,
     browseNameMap: Set<string>
 ): void {
-    // istanbul ignore next
+    // c8 ignore next
     doTrace &&
         traceLog(
             extraInfo?.pad(),
@@ -864,14 +864,14 @@ function _cloneInterface(
     }
     const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
     if (interfaces.length === 0) {
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             false &&
             traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
         return;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     doTrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
 
     const localFilter = optionalFilter.filterFor(node);
@@ -879,7 +879,7 @@ function _cloneInterface(
     for (const iface of interfaces) {
         const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
         if (aggregates.length === 0) continue;
-        // istanbul ignore next
+        // c8 ignore next
         doTrace &&
             traceLog(
                 extraInfo.pad(),
@@ -1043,7 +1043,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
             });
 
             while (typeDefinitionNode) {
-                // istanbul ignore next
+                // c8 ignore next
                 doTrace &&
                     traceLog(
                         extraInfo?.pad(),
@@ -1227,14 +1227,14 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
     const _private = BaseNode_getPrivate(this);
     const h = (<ReferenceImpl>reference).hash;
     assert(typeof h === "string");
-    // istanbul ignore next
+    // c8 ignore next
     if (_private._referenceIdx.has(h)) {
         //  the reference exists already in the forward references
         //  this append for instance when the XML NotSetFile has redundant <UAReference>
         //  in this case there is nothing to do
         return;
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (_private._back_referenceIdx.has(h)) {
         const opts = { addressSpace: this.addressSpace };
         warningLog(" Warning !", this.browseName.toString());

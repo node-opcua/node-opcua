@@ -76,28 +76,28 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
             stream.writeByteStream(object.buffer);
             return;
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!(object instanceof BaseUAObject)) {
             throw new Error("Expecting a extension object");
         }
         // ensure we have a valid encoding Default Binary ID !!!
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!object.schema) {
             debugLog(" object = ", object);
             throw new Error("object has no schema " + object.constructor.name);
         }
         const encodingDefaultBinary = object.schema.encodingDefaultBinary!;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!encodingDefaultBinary) {
             debugLog(chalk.yellow("encoding ExtObj "), object);
             throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (encodingDefaultBinary.isEmpty()) {
             debugLog(chalk.yellow("encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
             throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
             debugLog(
                 chalk.yellow("encoding ExtObj "),
@@ -156,7 +156,7 @@ export function decodeExtensionObject(
 
     const length = stream.readUInt32();
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (nodeId.value === 0 || encodingType === 0) {
         return {} as ExtensionObject;
     }
@@ -180,7 +180,7 @@ export function decodeExtensionObject(
         } catch (err) {
             warningLog("cannot construct object with dataType nodeId", nodeId.toString());
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (object === null) {
             // this object is unknown to us ..
             stream.length -= 4;

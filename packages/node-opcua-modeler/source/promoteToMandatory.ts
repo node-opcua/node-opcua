@@ -29,7 +29,7 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
         return reference.nodeId.toString() === node2.nodeId.toString();
     });
     const ref = r ? r[0] : null;
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!ref) {
         // may be from subtype
         if (
@@ -56,7 +56,7 @@ export function getChildInTypeOrBaseType(
     const addressSpace = node.addressSpace;
 
     const subtypeOf = node.subtypeOfObj!;
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!subtypeOf) {
         throw new Error("Expecting a super type");
     }
@@ -64,7 +64,7 @@ export function getChildInTypeOrBaseType(
     const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId, `.${namespaceIndex}:${propertyName}`));
     const propNodeId = !browseResult.targets || !browseResult.targets[0] ? null : browseResult.targets[0].targetId!;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!propNodeId) {
         displayNodeElement(subtypeOf);
         throw new Error("property " + propertyName + " do not exists on " + subtypeOf.browseName.toString() + " or any superType");
@@ -72,14 +72,14 @@ export function getChildInTypeOrBaseType(
 
     const propInSuperType = addressSpace.findNode(propNodeId)! as UAVariable | UAMethod | UAObject;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!propInSuperType) {
         throw new Error("cannot find " + propNodeId.toString());
     }
     // replicate property
     const reference = findReferenceToNode(subtypeOf, propInSuperType);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!reference) {
         throw new Error("cannot find reference");
     }
@@ -92,7 +92,7 @@ export function promoteToMandatory(node: UAObjectType | UAVariableType, property
     const { propInSuperType } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
 
     // check mandatory
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (propInSuperType.modellingRule === "Mandatory") {
         warningLog("property " + propertyName + " is already Mandatory in super type");
     }

@@ -62,7 +62,7 @@ export class QualifiedName extends BaseUAObject {
         if (typeof options === "string") {
             options = { name: options };
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             const schema = QualifiedName.schema;
             check_options_correctness_against_schema(this, schema, options);

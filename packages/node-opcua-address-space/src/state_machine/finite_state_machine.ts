@@ -92,13 +92,13 @@ export function getFiniteStateMachineTypeStates(uaFiniteStateMachineType: UAObje
     const addressSpace = uaFiniteStateMachineType.addressSpace;
 
     const initialStateType = addressSpace.findObjectType("InitialStateType");
-    // istanbul ignore next
+    // c8 ignore next
     if (!initialStateType) {
         throw new Error("cannot find InitialStateType");
     }
 
     const stateType = addressSpace.findObjectType("StateType");
-    // istanbul ignore next
+    // c8 ignore next
     if (!stateType) {
         throw new Error("cannot find StateType");
     }
@@ -113,7 +113,7 @@ export function getFiniteStateMachineTypeTransitions(uaFiniteStateMachineType: U
     const addressSpace = uaFiniteStateMachineType.addressSpace;
 
     const transitionType = addressSpace.findObjectType("TransitionType");
-    // istanbul ignore next
+    // c8 ignore next
     if (!transitionType) {
         throw new Error("cannot find TransitionType");
     }
@@ -173,7 +173,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         const typeDef = this.typeDefinitionObj;
 
         const comp = getComponentOfType(typeDef, initialStateType);
-        // istanbul ignore next
+        // c8 ignore next
         if (comp.length > 1) {
             throw new Error(" More than 1 initial state in stateMachine");
         }
@@ -209,7 +209,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         // to be executed there must be a transition from currentState to toState
         const transition = this.findTransitionNode(this.currentStateNode, toStateNode, predicate);
         if (!transition) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(" No transition from ", this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
             }
@@ -237,18 +237,18 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             return null;
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (_fromStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (_toStateNode && _toStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
 
         const stateType = addressSpace.findObjectType("StateType");
         
-        // istanbul ignore next
+        // c8 ignore next
         if (!stateType) {
             throw new Error("Cannot find StateType");
         }
@@ -265,7 +265,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             // cannot find a transition from fromState to toState
             return null;
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (transitions.length > 1) {
             const selectedTransition = (predicate || defaultPredicate)(
                 transitions,
@@ -311,7 +311,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
 
         if (typeof toStateNode === "string") {
             const state = this.getStateByName(toStateNode);
-            // istanbul ignore next
+            // c8 ignore next
             if (!state) {
                 throw new Error("Cannot find state with name " + toStateNode);
             }
@@ -421,7 +421,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                 } else {
                     const retVal = r[0];
 
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (retVal.nodeClass !== NodeClass.Variable && retVal.nodeClass !== NodeClass.Object) {
                         throw new Error("find: expecting only object and variable here");
                     }
@@ -553,7 +553,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             });
         } else {
             if (fromStateNode && fromStateNode !== toStateNode) {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     const f = fromStateNode.browseName.toString();
                     const t = toStateNode.browseName.toString();
@@ -576,7 +576,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         const addressSpace = this.addressSpace;
         const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
        
-        // istanbul ignore next
+        // c8 ignore next
         if (!finiteStateMachineType) {
             throw new Error("cannot find FiniteStateMachineType");
         }

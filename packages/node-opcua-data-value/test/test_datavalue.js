@@ -510,7 +510,7 @@ describe("DataValue", () => {
             }
         });
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(dataValue.toJSON());
             debugLog(dataValue.toString());

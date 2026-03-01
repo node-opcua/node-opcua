@@ -390,7 +390,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof BrowseResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -401,7 +401,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 for (let i = 0; i < results.length; i++) {
                     const r = results[i];
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
@@ -415,7 +415,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* istanbul ignore next */[];
+                r.references = r.references || /* c8 ignore next */[];
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);
@@ -451,12 +451,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof BrowseNextResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -526,22 +526,22 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!(response instanceof ReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response.results) {
                 response.results = [];
             }
@@ -673,11 +673,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         assert(nodes.length === request.nodesToRead.length);
         this.historyRead(request, (err: Error | null, response?: HistoryReadResponse) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof HistoryReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -690,18 +690,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public historyRead(request: HistoryReadRequest, callback: Callback<HistoryReadResponse>): void;
     public historyRead(request: HistoryReadRequest): Promise<HistoryReadResponse>;
     public historyRead(request: HistoryReadRequest, callback?: CallbackT<HistoryReadResponse>): any {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!callback) {
             throw new Error("expecting a callback");
         }
 
         this.performMessageTransaction(request, (err: Error | null, response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof HistoryReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -710,7 +710,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* c8 ignore next */[];
 
             // perform ExtensionObject resolution
             const promises = response.results.map(async (result) => {
@@ -841,12 +841,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         assert(nodesToRead.length === request.nodesToRead!.length);
         this.performMessageTransaction(request, (err: Error | null, response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof HistoryReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -855,7 +855,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* c8 ignore next */[];
 
             assert(nodesToRead.length === response.results.length);
 
@@ -980,21 +980,21 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const request = new WriteRequest({ nodesToWrite });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err, response);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof WriteResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* c8 ignore next */[];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1051,7 +1051,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.write(nodeToWrite, (err, statusCode) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
@@ -1174,7 +1174,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const callback = args[2];
         assert(typeof callback === "function");
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (helpAPIChange) {
             // the read method deprecation detection and warning
             if (
@@ -1210,19 +1210,19 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err, response);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof ReadResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
             // perform ExtensionObject resolution
             promoteOpaqueStructure(this, response.results!).then(() => {
-                response.results = response.results || /* istanbul ignore next */[];
+                response.results = response.results || /* c8 ignore next */[];
                 callback(null, isArray ? response.results : response.results[0]);
             }).catch((err) => {
                 callback(err);
@@ -1391,15 +1391,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             SetPublishingModeResponse,
             options,
             (err: Error | null, response?: SetPublishingModeResponse) => {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (err) {
                     return callback(err);
                 }
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (!response) {
                     return callback(new Error("Internal Error"));
                 }
-                response.results = response.results || /* istanbul ignore next */[];
+                response.results = response.results || /* c8 ignore next */[];
                 callback(err, isArray ? response.results : response.results[0]);
             }
         );
@@ -1427,15 +1427,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const request = new TranslateBrowsePathsToNodeIdsRequest({ browsePaths });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err, response);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* c8 ignore next */[];
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1447,7 +1447,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             : -1;
     }
     public isChannelValid(): boolean {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this._client) {
             debugLog(chalk.red("Warning SessionClient is null ?"));
         }
@@ -1469,7 +1469,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
 
         if (this._reconnecting.pendingTransactions.length > 0) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (this._reconnecting.pendingTransactions.length > 10) {
                 if (!pendingTransactionMessageDisplayed) {
                     pendingTransactionMessageDisplayed = true;
@@ -1544,7 +1544,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public _performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
         assert(typeof callback === "function");
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this._client) {
             // session may have been closed by user ... but is still in used !!
             return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
@@ -1568,7 +1568,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this._client.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             this.lastResponseReceivedTime = new Date();
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 if (response && response.responseHeader.serviceDiagnostics) {
                     (err as any).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
@@ -1579,12 +1579,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response) {
                 return callback(new Error("internal Error"));
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 err = new Error(
                     " ServiceResult is " +
@@ -1666,7 +1666,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         assert(typeof callback === "function");
         assert(typeof deleteSubscription === "boolean");
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this._client) {
             debugLog("ClientSession#close : warning, client is already closed");
             return callback(); // already close ?
@@ -1712,12 +1712,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const request = new CallRequest({ methodsToCall });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof CallResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -1759,17 +1759,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.call(methodsToCall, (err?: Error | null, result?: CallMethodResult) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!result) {
                 return callback(new Error("internal error"));
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (result.statusCode.isNot(StatusCodes.Good)) {
                 callback(new Error(result.statusCode.toString()));
             } else {
@@ -1783,8 +1783,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
                 // Note some server might return null array
                 // let make sure we have Uint32Array and not a null pointer
-                data.serverHandles = data.serverHandles || /* istanbul ignore next */ emptyUint32Array;
-                data.clientHandles = data.clientHandles || /* istanbul ignore next */ emptyUint32Array;
+                data.serverHandles = data.serverHandles || /* c8 ignore next */ emptyUint32Array;
+                data.clientHandles = data.clientHandles || /* c8 ignore next */ emptyUint32Array;
 
                 assert(data.serverHandles instanceof Uint32Array);
                 assert(data.clientHandles instanceof Uint32Array);
@@ -1828,16 +1828,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof RegisterNodesResponse)) {
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */[];
+            response.registeredNodeIds = response.registeredNodeIds || /* c8 ignore next */[];
 
             callback(null, response.registeredNodeIds);
         });
@@ -1857,11 +1857,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof UnregisterNodesResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -1880,11 +1880,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const request = new QueryFirstRequest(queryFirstRequest);
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof QueryFirstResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -2076,12 +2076,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         const request = options instanceof requestClass ? options : new requestClass(options);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             request.trace = new Error("").stack;
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (this._closeEventHasBeenEmitted) {
             debugLog("ClientSession#_defaultRequest => session has been closed !!", request.toString());
             setImmediate(() => {
@@ -2098,7 +2098,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     response ? response.toString() : " null"
                 );
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 debugLog("Client session : performMessageTransaction error = ", err.message);
                 // let intercept interesting error message
@@ -2108,7 +2108,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     // let's print some statistics
                     const now = Date.now();
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog(chalk.bgWhite.red(" server send BadSessionClosed !"));
                         debugLog(chalk.bgWhite.red(" request was               "), request.toString());
