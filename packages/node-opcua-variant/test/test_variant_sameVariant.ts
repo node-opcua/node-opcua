@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 import "should";
-import  { assert }from "node-opcua-assert";
-import { ExtensionObject }from "node-opcua-extension-object";
+import { assert } from "node-opcua-assert";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 import { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } from "..";
 
@@ -1057,5 +1057,80 @@ describe("testing return sameVariant for pull request", function () {
         const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
 
         sameVariant(b1, b2).should.eql(true);
+    });
+
+    // ── Coverage for __check_same_object edge cases ──
+
+    it("sameVariant with extension objects having different key counts", () => {
+        // Exercises __check_same_object: keys1.length !== keys2.length
+        // Both objects must share the same constructor name to pass
+        // the check at line 977, so we add an extra key dynamically.
+        const ext1 = new SomeExtensionObjectA({ a: 32 });
+        const ext2 = new SomeExtensionObjectA({ a: 32 });
+        (ext2 as any).extraKey = 99;
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(false);
+    });
+
+    class ExtObjWithBigInt extends ExtensionObject {
+        public value: bigint;
+        constructor(options: { value: bigint }) {
+            super();
+            this.value = options.value;
+        }
+    }
+
+    it("sameVariant with extension objects containing BigInt values - same", () => {
+        // Exercises __check_same_object: BigInt comparison branch
+        const ext1 = new ExtObjWithBigInt({ value: BigInt(42) });
+        const ext2 = new ExtObjWithBigInt({ value: BigInt(42) });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(true);
+    });
+
+    it("sameVariant with extension objects containing BigInt values - different", () => {
+        const ext1 = new ExtObjWithBigInt({ value: BigInt(42) });
+        const ext2 = new ExtObjWithBigInt({ value: BigInt(99) });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(false);
+    });
+
+    class ExtObjWithDate extends ExtensionObject {
+        public timestamp: Date;
+        constructor(options: { timestamp: Date }) {
+            super();
+            this.timestamp = options.timestamp;
+        }
+    }
+
+    it("sameVariant with extension objects containing Date values - same", () => {
+        // Exercises __check_same_object: Date comparison branch
+        const d = new Date("2025-01-01T00:00:00Z");
+        const ext1 = new ExtObjWithDate({ timestamp: new Date(d.getTime()) });
+        const ext2 = new ExtObjWithDate({ timestamp: new Date(d.getTime()) });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(true);
+    });
+
+    it("sameVariant with extension objects containing Date values - different", () => {
+        const ext1 = new ExtObjWithDate({ timestamp: new Date("2025-01-01T00:00:00Z") });
+        const ext2 = new ExtObjWithDate({ timestamp: new Date("2025-06-15T12:00:00Z") });
+
+        const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
+        const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });
+
+        sameVariant(b1, b2).should.eql(false);
     });
 });

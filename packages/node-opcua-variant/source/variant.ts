@@ -979,7 +979,6 @@ function __check_same_object(o1: any, o2: any): boolean {
             }
             const keys1 = Object.keys(o1);
             const keys2 = Object.keys(o2);
-            // istanbul ignore next
             if (keys1.length !== keys2.length) {
                 return false;
             }
