@@ -202,7 +202,7 @@ function getOrCreateProperty(
         (f) => f instanceof UAVariableImpl && f.browseName.name!.toString() === field.name
     );
 
-    // istanbul ignore next
+    // c8 ignore next
     if (field.dataType.value === DataType.Variant) {
         // this means that any type of extensions being used here
         debugLog("Warning : variant is not supported in ExtensionObject");
@@ -210,7 +210,7 @@ function getOrCreateProperty(
 
     if (selectedComponents.length === 1) {
         property = selectedComponents[0] as UAVariableImpl;
-        /* istanbul ignore next */
+        /* c8 ignore next */
     } else {
         if (!options!.createMissingProp) {
             return null;
@@ -247,7 +247,7 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
     for (const field of definition.fields || []) {
         if (field.dataType) {
             const dataTypeNode = addressSpace.findDataType(field.dataType);
-            // istanbul ignore next
+            // c8 ignore next
             if (dataTypeNode && dataTypeNode.isSubtypeOf(structure)) {
                 // sub structure .. let make an handler too
                 const camelCaseName = lowerFirstLetter(field.name!);
@@ -287,10 +287,11 @@ export function _installExtensionObjectBindingOnProperties(uaVariable: UAVariabl
     if (extObj instanceof ExtensionObject) {
         uaVariable.bindExtensionObject(extObj, { createMissingProp: true, force: true });
     } else if (extObj instanceof Array) {
-        // istanbul ignore else
         if (dataValue.value.arrayType === VariantArrayType.Array || dataValue.value.arrayType === VariantArrayType.Matrix) {
             _bindExtensionObjectArrayOrMatrix(uaVariable, extObj, { createMissingProp: true, force: true });
-        } else {
+        }
+        /* c8 ignore next */
+        else {
             throw new Error("Internal Error, unexpected case");
         }
     }
@@ -450,12 +451,12 @@ export function _bindExtensionObject(
 ): ExtensionObject | null {
     options = options || { createMissingProp: false };
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!isVariableContainingExtensionObject(uaVariable)) {
         return null;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (optionalExtensionObject && uaVariable.valueRank === 0) {
         warningLog(
             uaVariable.browseName.toString() +
@@ -466,12 +467,12 @@ export function _bindExtensionObject(
     const addressSpace = uaVariable.addressSpace;
     let extensionObject_;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (uaVariable.valueRank !== -1 && uaVariable.valueRank !== 1) {
         throw new Error("Cannot bind an extension object here, valueRank must be scalar (-1) or one-dimensional (1)");
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     doDebug && debugLog(" ------------------------------ binding ", uaVariable.browseName.toString(), uaVariable.nodeId.toString());
 
     // ignore bindExtensionObject on sub extension object, bindExtensionObject has to be called from the top most object
@@ -483,7 +484,7 @@ export function _bindExtensionObject(
         const parentDataType = (uaVariable.parent as UAVariable | UAVariableType).dataType;
         const dataTypeNode = addressSpace.findNode(parentDataType) as UADataType;
         const structure = addressSpace.findDataType("Structure")!;
-        // istanbul ignore next
+        // c8 ignore next
         if (dataTypeNode && dataTypeNode.isSubtypeOf(structure)) {
             // warningLog(
             //     "Ignoring bindExtensionObject on sub extension object",
@@ -498,7 +499,7 @@ export function _bindExtensionObject(
 
     // -------------------- make sure we do not bind a variable twice ....
     if (uaVariable.$extensionObject && !optionalExtensionObject) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!uaVariable.checkExtensionObjectIsCorrect(uaVariable.$extensionObject!)) {
             warningLog(
                 "on node : ",
@@ -519,7 +520,7 @@ export function _bindExtensionObject(
     }
 
     if (uaVariable.dataTypeObj.isAbstract) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!optionalExtensionObject) {
             warningLog(
                 "Warning the DataType associated with this Variable is abstract ",
@@ -608,12 +609,12 @@ export function _bindExtensionObjectArrayOrMatrix(
     options = options || { createMissingProp: false };
     options.createMissingProp = options.createMissingProp || false;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (uaVariable.valueRank < 1) {
         throw new Error("Variable must be a MultiDimensional array");
     }
     const arrayDimensions = uaVariable.arrayDimensions || [];
-    // istanbul ignore next
+    // c8 ignore next
     if (!isVariableContainingExtensionObject(uaVariable)) {
         return [];
     }
@@ -715,7 +716,7 @@ export function _bindExtensionObjectArrayOrMatrix(
                     set: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => {
                         assert(!isProxy(uaVariable.$$extensionObjectArray[capturedIndex]));
                         uaVariable.$$extensionObjectArray[capturedIndex] = newValue;
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (uaVariable.$$extensionObjectArray !== uaVariable.$dataValue.value.value) {
                             warningLog("uaVariable", uaVariable.nodeId.toString());
                             warningLog("Houston! We have a problem ");
@@ -724,7 +725,7 @@ export function _bindExtensionObjectArrayOrMatrix(
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
                     },
                     setField: (fieldName: string, newValue: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => {
-                        // istanbul ignore next doDebug && debugLog("setField", fieldName, newValue, sourceTimestamp, cache);
+                        // c8 ignore next doDebug && debugLog("setField", fieldName, newValue, sourceTimestamp, cache);
                         const extObj = uaVariable.$$extensionObjectArray[capturedIndex];
                         (isProxy(extObj) ? getProxyTarget(extObj) : extObj)[lowerFirstLetter(fieldName)] = newValue;
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);

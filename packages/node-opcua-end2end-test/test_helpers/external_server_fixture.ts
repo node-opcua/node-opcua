@@ -171,7 +171,7 @@ export async function crash_simple_server(serverHandle: any) {
 //             }
 //         }
 
-//         /* istanbul ignore next */
+//         /* c8 ignore next */
 //         if (process.platform === "win32" && false) {
 //             // under windows, we can also kill a process this way...
 //             spawn("taskkill", ["/pid", serverHandle.pid_collected, "/f", "/t"]);

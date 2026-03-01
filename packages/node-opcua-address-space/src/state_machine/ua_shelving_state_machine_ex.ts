@@ -133,7 +133,7 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
     assert(shelvingState._timer, "expecting timerId to be set");
     shelvingState._timer = null;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("Automatically un-shelving variable ", shelvingState.browseName.toString());
     }
@@ -157,7 +157,7 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
     shelvingState._shelvedTime = new Date(); // now
     shelvingState._duration = duration;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("shelvingState._duration", shelvingState._duration);
     }
@@ -206,7 +206,7 @@ function _timedShelve_method(
     // checking duration ...
     const alarmNode = shelvingState.parent;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(alarmNode instanceof UAAlarmConditionImpl)) {
         return callback(null, {
             statusCode: StatusCodes.BadNodeIdInvalid
@@ -263,7 +263,7 @@ function _oneShotShelve_method(
     // checking duration ...
     const alarmNode = shelvingState.parent;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(alarmNode instanceof UAAlarmConditionImpl)) {
         return callback(null, {
             statusCode: StatusCodes.BadNodeIdInvalid

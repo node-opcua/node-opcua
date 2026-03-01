@@ -124,7 +124,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
             // rebind backoff handler
             masterClient.listeners("backoff").forEach((handler: any) => client.on("backoff", handler));
 
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 client.on("backoff", (retryCount: number, delay: number) => {
                     debugLog(
@@ -160,7 +160,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
                     err.message = "error in getEndpoints \n" + err.message;
                     return innerCallback(err);
                 }
-                // istanbul ignore next
+                // c8 ignore next
                 if (!endpoints) {
                     return innerCallback(new Error("Internal Error"));
                 }
@@ -206,7 +206,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
             );
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(chalk.bgWhite.red("xxxxxxxxxxxxxxxxxxxxx => selected EndPoint = "), selectedEndpoint.toString());
         }
@@ -228,7 +228,7 @@ async function _verify_serverCertificate(
     serverCertificate: Certificate) {
     const status = await certificateManager.checkCertificate(serverCertificate);
     if (status !== StatusCodes.Good) {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             // do it again for debug purposes
             const status1 = await certificateManager.verifyCertificate(serverCertificate);
@@ -413,7 +413,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._internalState = internalState;
     }
     public emit(eventName: string | symbol, ...others: any[]): boolean {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(chalk.cyan(`  Client ${this._instanceNumber} ${this.clientName} emitting `), chalk.magentaBright(eventName));
         }
@@ -497,7 +497,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         // _cancel_reconnection is invoked during disconnection
         // when we detect that a reconnection is in progress...
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.isReconnecting) {
             warningLog("internal error: _cancel_reconnection should only be used when reconnecting is in progress");
         }
@@ -506,7 +506,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         this._reconnectionIsCanceled = true;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._secureChannel) {
             debugLog("_cancel_reconnection:  Nothing to do for !", this.clientName, " because secure channel doesn't exist");
             return callback(); // nothing to do
@@ -587,7 +587,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             this._internal_create_secure_channel(infiniteConnectionRetry, (err?: Error | null) => {
                 if (err) {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (this._secureChannel) {
                         const err = new Error("_internal_create_secure_channel failed, expecting this._secureChannel not to exist");
                         return _when_internal_error(err, callback);
@@ -773,14 +773,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 validity: 365 * 10 // 10 years
             });
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (!fs.existsSync(certificateFile)) {
             throw new Error(" cannot locate certificate file " + certificateFile);
         }
     }
 
     public async createDefaultCertificate(): Promise<void> {
-        // istanbul ignore next
+        // c8 ignore next
         if ((this as any)._inCreateDefaultCertificate) {
             errorLog("Internal error : re-entrancy in createDefaultCertificate!");
         }
@@ -829,7 +829,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         await this.clientCertificateManager.initialize();
         await this.createDefaultCertificate();
-        // istanbul ignore next
+        // c8 ignore next
         if (!fs.existsSync(this.privateKeyFile)) {
             throw new Error(" cannot locate private key file " + this.privateKeyFile);
         }
@@ -879,7 +879,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         assert(typeof endpointUrl === "string" && endpointUrl.length > 0);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (this._internalState !== "disconnected") {
             callback(new Error(`client#connect failed, as invalid internal state = ${this._internalState}`));
             return;
@@ -1077,7 +1077,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 return callback(err);
             }
             this._serverEndpoints = [];
-            // istanbul ignore next
+            // c8 ignore next
             if (!response || !(response instanceof GetEndpointsResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -1119,7 +1119,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof FindServersResponse)) {
                 return callback(new Error("Internal Error"));
             }
@@ -1144,7 +1144,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof FindServersOnNetworkResponse)) {
                 return new Error("Internal Error");
             }
@@ -1172,7 +1172,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(typeof callback === "function");
         assert(typeof deleteSubscriptions === "boolean");
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._secureChannel) {
             return callback(null); // new Error("no channel"));
         }
@@ -1413,7 +1413,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 return callback(err);
             }
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!result) {
                 const err1 = new Error("internal error");
                 return callback(err1);
@@ -1473,7 +1473,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             this._byteRead += this._secureChannel.bytesRead;
             this._transactionsPerformed += this._secureChannel.transactionsPerformed;
             this._timedOutRequestCount += this._secureChannel.timedOutRequestCount;
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 const h = `Client ${this._instanceNumber} ${this.clientName}`;
                 debugLog(chalk.cyan(`${h} byteWritten          = `), this._byteWritten);
@@ -1485,7 +1485,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
     private _destroy_secure_channel() {
         if (this._secureChannel) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(
                     " DESTROYING SECURE CHANNEL (isTransactionInProgress ?",
@@ -1527,7 +1527,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 });
             },
             (err) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (this._sessions.length > 0) {
                     debugLog(
                         this._sessions
@@ -1696,7 +1696,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 if (this.isUnusable()) return;
                 this._finalReconnectionStep((err2?: Error | null) => {
                     if (err2) {
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog("connection_reestablished has failed");
                             debugLog("err= ", err2.message);
@@ -1770,7 +1770,7 @@ class TmpClient extends ClientBaseImpl {
     connect(endpoint: string, callback?: ErrorCallback): any {
         debugLog("connecting to TmpClient");
 
-        // istanbul ignore next
+        // c8 ignore next
         if (this._internalState !== "disconnected") {
             callback!(new Error("TmpClient#connect: invalid internal state = " + this._internalState));
             return;

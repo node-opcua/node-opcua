@@ -87,11 +87,11 @@ export class ClientMonitoredItemToolbox {
         assert(session, "expecting a valid session attached to the subscription ");
 
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ", err.message));
             } else {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (!response) {
                     return done(new Error("Internal Error"));
                 }
@@ -138,7 +138,7 @@ export class ClientMonitoredItemToolbox {
         assert(session, "expecting a valid session attached to the subscription ");
 
         session.modifyMonitoredItems(modifyMonitoredItemsRequest, (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 return callback(err);
             }
@@ -152,7 +152,7 @@ export class ClientMonitoredItemToolbox {
 
             const res = response.results[0];
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (response.results.length === 1 && res.statusCode.isNotGood()) {
                 return callback(new Error("Error" + res.statusCode.toString()));
             }

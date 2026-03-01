@@ -333,7 +333,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.timeout = options.timeout || 30000; // connection timeout
 
         this.#defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
-        // istanbul ignore next
+        // c8 ignore next
         doDebug &&
             debugLog(
                 "server secure channel layer timeout = ",
@@ -518,7 +518,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 // bind low level TCP transport to messageBuilder
                 this.#transport.on("chunk", (messageChunk: Buffer) => {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doTraceIncomingChunk) {
                         console.log(hexDump(messageChunk));
                     }
@@ -559,7 +559,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return callback && callback(new Error("Aborted"));
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             assert(request.schema);
             assert(allowNullRequestId || requestId > 0);
@@ -606,13 +606,13 @@ export class ServerSecureChannelLayer extends EventEmitter {
         } else {
             // #  to do
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (0 && doDebug) {
             debugLog(" options ", options);
             analyze_object_binary_encoding(response as any as BaseUAObject);
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceServerMessage) {
             traceResponseMessage(response, tokenId, channelId, this.#counter);
         }
@@ -629,7 +629,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (chunk) {
                 this.#_send_chunk(chunk);
             } else {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doPerfMonitoring) {
                     // record tick 3 : transaction completed.
                     this.#endSendResponseTick = get_clock_tick();
@@ -692,7 +692,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!certificate) {
             return StatusCodes.Good;
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.certificateManager) {
             return StatusCodes.BadInternalError;
         }
@@ -724,7 +724,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#messageBuilder.on("error", (err, statusCode) => {
             warningLog("ServerSecureChannel:MessageBuilder: ", err.message, statusCode.toString());
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(chalk.red("Error "), err.message,/* err.stack */);
                 debugLog(chalk.red("Server is now closing socket, without further notice"));
@@ -856,7 +856,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     #_install_wait_for_open_secure_channel_request_timeout(timeoutFoOpenChannelRequest: number) {
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("_install_wait_for_open_secure_channel_request_timeout:");
             debugLog("  Installing wait of OpenSecureChannelRequest");
@@ -868,7 +868,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#open_secure_channel_onceClose = (err?: Error) => {
 
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog("_install_wait_for_open_secure_channel_request_timeout:");
                 debugLog("    transport has been closed");
@@ -884,7 +884,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#transport.prependOnceListener("close", this.#open_secure_channel_onceClose);
 
         this.#timeoutId = setTimeout(() => {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog("_install_wait_for_open_secure_channel_request_timeout:");
                 debugLog("     Timeout has expired !");
@@ -913,12 +913,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         debugLog("Just received first OpenSecureChannelRequest");
         this.#status = "connecting";
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceServerMessage) {
             traceRequestMessage(request as Request, channelId, this.#counter);
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!(this.#messageBuilder && this.#messageBuilder.sequenceHeader && this.#messageBuilder.securityHeader)) {
             const securityHeader = new AsymmetricAlgorithmSecurityHeader({ securityPolicyUri: SecurityPolicy.None });
             return this.#_on_OpenSecureChannelRequestError(
@@ -935,7 +935,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         };
 
         //xx  requestId = this.messageBuilder.sequenceHeader.requestId;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (requestId < 0) {
             return this.#_on_OpenSecureChannelRequestError(
                 StatusCodes.BadCommunicationError,
@@ -947,7 +947,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         let description: string = "";
 
         // expecting a OpenChannelRequest as first communication message
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!(request instanceof OpenSecureChannelRequest)) {
             description = "Expecting OpenSecureChannelRequest";
             return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message);
@@ -955,7 +955,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // check that the request is a OpenSecureChannelRequest
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog(this.#messageBuilder.sequenceHeader.toString());
             debugLog(this.#messageBuilder.securityHeader.toString());
@@ -998,7 +998,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 });
             })
             .on("startChunk", () => {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doPerfMonitoring) {
                     // record tick 0: when the first chunk is received
                     this.#startReceiveTick = get_clock_tick();
@@ -1007,7 +1007,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // handle initial OpenSecureChannelRequest
         this.#_process_certificates(message, (err: Error | null, statusCode?: StatusCode) => {
-            // istanbul ignore next
+            // c8 ignore next
             if (err || !statusCode) {
                 description = "Internal Error " + err?.message;
                 return this.#_on_OpenSecureChannelRequestError(statusCode || StatusCodes.BadInternalError, description, message);
@@ -1084,12 +1084,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         const senderPrivateKey = this.getPrivateKey();
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!senderPrivateKey) {
             throw new Error("invalid or missing senderPrivateKey : necessary to sign");
         }
         const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy!);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!cryptoFactory) {
             throw new Error("Internal Error: ServerSecureChannelLayer must have a crypto strategy");
         }
@@ -1121,7 +1121,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return null;
         }
         const derivedKeys = this.#tokenStack.getTokenDerivedKeys(tokenId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!derivedKeys || !derivedKeys.derivedServerKeys) {
             errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
             return null;
@@ -1161,7 +1161,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 this.#clientPublicKeyLength = 0;
 
                 // ignore receiverCertificate that have a zero length
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (clientCertificate && clientCertificate.length === 0) {
                     clientCertificate = null;
                 }
@@ -1230,7 +1230,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     warningLog("Invalid Security Policy", this.securityPolicy);
                 }
 
-                // istanbul ignore next
+                // c8 ignore next
                 securityHeader = new AsymmetricAlgorithmSecurityHeader({
                     securityPolicyUri: asymmClientSecurityHeader.securityPolicyUri,
                     /**
@@ -1289,7 +1289,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 return StatusCodes.BadSecurityModeRejected; // ToDo check code
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (nonceAlreadyBeenUsed(clientNonce)) {
                 warningLog(
                     chalk.red("OPCUAServer with secure connection: this client nonce has already been used"),
@@ -1326,7 +1326,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             let description;
             // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
             // ReceiverCertificateThumbprint were specified in the SecurityHeader.
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!messageRequest.securityHeader) {
                 throw new Error("Internal Error");
             }
@@ -1337,7 +1337,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // let prepare self.securityHeader;
             const securityHeader = this.#_prepare_response_security_header(request, messageRequest);
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!(requestId !== 0 && requestId > 0)) {
                 warningLog("OpenSecureChannelRequest: requestId");
                 return this.#_on_OpenSecureChannelRequestError(
@@ -1371,7 +1371,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 serverNonce: serverNonce || undefined,
                 serverProtocolVersion: this.#protocolVersion
             });
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doTraceServerMessage) {
                 console.log("Transport maxMessageSize = ", this.#transport.maxMessageSize);
                 console.log("Transport maxChunkCount  = ", this.#transport.maxChunkCount);
@@ -1443,12 +1443,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#_bytesWritten_before = this.bytesWritten;
     }
     #_on_common_message(request: Request, msgType: string, securityHeader: SecurityHeader, requestId: number, channelId: number) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doTraceServerMessage) {
             traceRequestMessage(request, channelId, this.#counter);
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (this.#messageBuilder!.sequenceHeader === null) {
             throw new Error("Internal Error");
         }
@@ -1471,7 +1471,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
                 this.close();
             } else {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doPerfMonitoring) {
                     // record tick 1 : after message has been received, before message processing
                     this.#endReceiveTick = get_clock_tick();

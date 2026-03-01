@@ -62,7 +62,7 @@ export function _recomputeRequiredModelsFromTypes(
         if (_visitedDataType.has(dataType.toString())) {
             return;
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (dataTypeNode.nodeClass !== NodeClass.DataType) {
             warningLog("exploreDataTypes! ignoring ", dataTypeNode.toString());
             return;
@@ -83,12 +83,12 @@ export function _recomputeRequiredModelsFromTypes(
         assert(!(e instanceof Variant));
         const nodeId = e.schema.encodingDefaultXml || e.schema.dataTypeNodeId || e.schema.dataTypeNodeId;
         consider(nodeId.namespace);
-        // istanbul ignore next
+        // c8 ignore next
         if (e.schema.dataTypeNodeId.isEmpty()) {
             warningLog("Cannot find dataTypeNodeId for ", e.schema.name);
         }
         const d = addressSpace.findNode(e.schema.dataTypeNodeId) as UADataType | null;
-        // istanbul ignore next
+        // c8 ignore next
         if (!d) return;
         exploreDataTypes(d);
     }
@@ -133,7 +133,7 @@ export function _recomputeRequiredModelsFromTypes(
                 if (dataTypeNode) {
                     consider(dataTypeNode.nodeId.namespace);
                 } else {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (dataTypeNodeId.value != 0) {
                         warningLog("Warning: Cannot find dataType", dataTypeNodeId.toString());
                     }

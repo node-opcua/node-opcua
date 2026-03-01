@@ -1,4 +1,4 @@
-/* istanbul ignore file */
+/* c8 ignore start */
 /**
  * @module node-opcua-generator
  */
@@ -13,3 +13,4 @@ async function main() {
 }
 
 main().then().catch();
+/* c8 ignore stop */

@@ -194,7 +194,7 @@ function createX509IdentityToken(
     const endpoint = context.endpoint;
     assert(endpoint instanceof EndpointDescription);
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
-    // istanbul ignore next
+    // c8 ignore next
     if (!userTokenPolicy) {
         throw new Error("Cannot find Certificate (X509) user token policy in end point description");
     }
@@ -218,7 +218,7 @@ function createX509IdentityToken(
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!cryptoFactory) {
         throw new Error(" Unsupported security Policy");
     }
@@ -280,7 +280,7 @@ function createUserNameIdentityToken(
      */
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.UserName);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!userTokenPolicy) {
         throw new Error("Cannot find USERNAME user token policy in end point description");
     }
@@ -331,7 +331,7 @@ function createUserNameIdentityToken(
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!cryptoFactory) {
         throw new Error(" Unsupported security Policy " + securityPolicy.toString());
     }
@@ -454,7 +454,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (err) {
                 callback(err);
             } else {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (!session) {
                     return callback(new Error("Internal Error"));
                 }
@@ -695,7 +695,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (!this._secureChannel) {
             return callback!(new Error(" client must be connected first"));
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
             return callback!(
                 new Error(
@@ -737,7 +737,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     }
                     callback!();
                 } else {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doDebug) {
                         debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
                     }
@@ -771,7 +771,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
         assert(this.endpoint);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._secureChannel) {
             return callback(new Error("Invalid channel"));
         }
@@ -810,7 +810,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(this._secureChannel.securityMode === MessageSecurityMode.None || request.clientNonce !== null);
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (err) {
                 debugLog("__createSession_step3 has failed", err.message);
                 return callback(err);
@@ -823,7 +823,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 //                 return;
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!response || !(response instanceof CreateSessionResponse)) {
                 return callback(new Error("internal error"));
             }
@@ -839,7 +839,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 return callback(err);
             }
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!validateServerNonce(response.serverNonce)) {
                 return callback(new Error("Invalid server Nonce"));
             }
@@ -895,7 +895,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         // see OPCUA Part 4 - $7.35
         assert(typeof callback === "function");
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._secureChannel) {
             return callback(new Error(" No secure channel"));
         }
@@ -982,7 +982,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             this.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
                 if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!(response instanceof ActivateSessionResponse)) {
                         return callback(new Error("Internal Error"));
                     }
@@ -1002,7 +1002,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     // restore client
                     session._client = _old_client;
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!err1 && response) {
                         err1 = new Error(response.responseHeader.serviceResult.toString());
                     }
@@ -1099,7 +1099,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(typeof callback === "function");
         assert(this._secureChannel);
         if (!this.__resolveEndPoint() || !this.endpoint) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (this._serverEndpoints) {
                 warningLog(
                     "server endpoints =",

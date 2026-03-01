@@ -163,7 +163,7 @@ export async function acknowledgeAllConditions(session: IBasicSessionEx, message
             promises.push(acknowledgeConditionEV(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("Acked all results: ", result.map((e) => e.toString()).join(" "));
         }
@@ -183,7 +183,7 @@ export async function confirmAllConditions(session: IBasicSessionEx, message: st
             promises.push(confirmConditionEV(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("Confirm all results: ", result.map((e) => e.toString()).join(" "));
         }

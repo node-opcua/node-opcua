@@ -194,7 +194,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     function _translateNamespaceIndex(innerIndex: number) {
         const namespaceIndex = namespaceUriTranslationMap.get(innerIndex);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (namespaceIndex === undefined) {
             errorLog("Error; namespace_uri_translation", namespaceUriTranslationMap.entries());
             throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
@@ -203,7 +203,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     }
 
     function _internal_addReferenceType(params: AddReferenceTypeOptions) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!(params.nodeId instanceof NodeId)) {
             throw new Error("invalid param");
         } // already translated
@@ -213,7 +213,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     }
 
     function _internal_createNode(params: CreateNodeOptions): BaseNode {
-        // istanbul ignore next
+        // c8 ignore next
         if (!(params.nodeId instanceof NodeId)) {
             throw new Error("invalid param expecting a valid nodeId");
         } // already translated
@@ -228,7 +228,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         }
         const namespace = addressSpace1.getNamespace(namespaceUri);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
@@ -259,7 +259,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             for (const requiredModel of model.requiredModels) {
                 const existingNamespace = addressSpace1.getNamespace(requiredModel.modelUri);
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (!existingNamespace) {
                     errorLog(
                         "Please ensure that the required namespace",
@@ -1001,7 +1001,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 dataType: DataType.String,
                 value: addressSpace1.getNamespaceArray().map((ns) => ns.namespaceUri)
             });
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(
                     "addressSpace NS = ",
@@ -1020,7 +1020,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 try {
                     await task(addressSpace1);
                 } catch (err) {
-                    // istanbul ignore next
+                    // c8 ignore next
                     // tslint:disable:no-console
                     if (types.isNativeError(err)) {
                         errorLog(" performPostLoadingTasks Err  => ", err.message, "\n", err);

@@ -52,7 +52,7 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
             }
         }
 
-        /* istanbul ignore if */
+        /* c8 ignore next */
         if (addedProperty > 0) {
             data.statusCode = StatusCodes.Good;
         } else {
@@ -77,7 +77,7 @@ export async function readAllAttributes(session: IBasicSessionAsyncMultiple, arg
     for (const node of nodes) {
         const nodeId = resolveNodeId(node);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!nodeId) {
             throw new Error("cannot coerce " + node + " to a valid NodeId");
         }

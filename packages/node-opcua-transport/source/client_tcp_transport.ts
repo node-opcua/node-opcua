@@ -161,7 +161,7 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public dispose(): void {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug && debugLog(" ClientTCP_transport disposed");
 
         super.dispose();
@@ -171,7 +171,7 @@ export class ClientTCP_transport extends TCP_transport {
 
         this.endpointUrl = endpointUrl;
         this.serverUri = "urn:" + gHostname + ":Sample";
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = " + endpointUrl + ")"));
         let socket: ISocketLike | null = null;
         try {
@@ -183,7 +183,7 @@ export class ClientTCP_transport extends TCP_transport {
             });
             
         } catch (err) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog("CreateClientSocket has failed");
 
             return callback(err as Error);
@@ -193,7 +193,7 @@ export class ClientTCP_transport extends TCP_transport {
          *
          */
         const _on_socket_error_after_connection = (err: Error) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog(" _on_socket_error_after_connection ClientTCP_transport Socket Error", err.message);
 
             // EPIPE : EPIPE (Broken pipe): A write on a pipe, socket, or FIFO for which there is no process to read the
@@ -218,13 +218,13 @@ export class ClientTCP_transport extends TCP_transport {
         };
 
         const _on_socket_connect = () => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog("entering _on_socket_connect");
 
             _remove_connect_listeners();
             this._perform_HEL_ACK_transaction((err) => {
                 if (!err) {
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (!this._socket) {
                         return callback(new Error("Abandoned"));                        
                     }
@@ -246,7 +246,7 @@ export class ClientTCP_transport extends TCP_transport {
 
         const _on_socket_error_for_connect = (err: Error) => {
             // this handler will catch attempt to connect to an inaccessible address.
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect - _on_socket_error_for_connect"), err.message);
             assert(types.isNativeError(err));
             _remove_connect_listeners();
@@ -254,13 +254,13 @@ export class ClientTCP_transport extends TCP_transport {
         };
 
         const _on_socket_end_for_connect = () => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug &&
                 debugLog(chalk.cyan("ClientTCP_transport#connect -> _on_socket_end_for_connect Socket has been closed by server"));
         };
 
         const _remove_connect_listeners = () => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!this._socket) {
                 return;
             }
@@ -279,7 +279,7 @@ export class ClientTCP_transport extends TCP_transport {
         const _stream = new BinaryStream(messageChunk);
         const messageHeader = readMessageHeader(_stream);
         let err;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (messageHeader.isFinal !== "F") {
             err = new Error(" invalid ACK message");
             return callback(err);
@@ -295,7 +295,7 @@ export class ClientTCP_transport extends TCP_transport {
 
             err = new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
             (err as any).statusCode = response.statusCode;
-            // istanbul ignore next
+            // c8 ignore next
             doTraceHelloAck && warningLog("receiving ERR instead of Ack", response.toString());
 
             callback(err);
@@ -307,7 +307,7 @@ export class ClientTCP_transport extends TCP_transport {
             this.parameters = response as AcknowledgeMessage;
             this.setLimits(response as AcknowledgeMessage);
 
-            // istanbul ignore next
+            // c8 ignore next
             doTraceHelloAck && warningLog("receiving Ack\n", response.toString());
 
             callback();
@@ -315,7 +315,7 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _send_HELLO_request() {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug && debugLog("entering _send_HELLO_request");
 
         assert(this._socket);
@@ -334,7 +334,7 @@ export class ClientTCP_transport extends TCP_transport {
             receiveBufferSize,
             sendBufferSize
         });
-        // istanbul ignore next
+        // c8 ignore next
         doTraceHelloAck && warningLog(`sending Hello\n ${helloMessage.toString()} `);
 
         const messageChunk = packTcpMessage("HEL", helloMessage);
@@ -342,7 +342,7 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _on_ACK_response(externalCallback: ErrorCallback, err: Error | null, data?: Buffer) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug && debugLog("entering _on_ACK_response");
 
         assert(typeof externalCallback === "function");
@@ -360,18 +360,18 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     private _perform_HEL_ACK_transaction(callback: ErrorCallback) {
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!this._socket) {
             return callback(new Error("No socket available to perform HEL/ACK transaction"));
         }
         assert(this._socket, "expecting a valid socket to send a message");
         assert(typeof callback === "function");
         this._counter = 0;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         doDebug && debugLog("entering _perform_HEL_ACK_transaction");
 
         this._install_one_time_message_receiver((err: Error | null, data?: Buffer) => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog("before  _on_ACK_response ", err ? err.message : "");
 
             this._on_ACK_response(callback, err, data);

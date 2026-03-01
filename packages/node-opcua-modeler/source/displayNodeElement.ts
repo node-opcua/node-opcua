@@ -102,7 +102,7 @@ function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptio
         return; // ignore forward HasSubtype
     }
     // ignore subtype references
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!ref.node) {
         // tslint:disable-next-line: no-console
         console.log(" Halt ", ref.toString({ addressSpace: data.node.addressSpace }));

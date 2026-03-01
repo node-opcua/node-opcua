@@ -82,7 +82,7 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     });
 
     const session = subscription.session;
-    // istanbul ignore next
+    // c8 ignore next
     if (!session) {
         throw new Error("no session");
     }
@@ -97,13 +97,13 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     let _errCount = 0;
     monitoredItemResults.forEach((monitoredItemResult, index) => {
         const itemToCreate = itemsToCreate[index];
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!itemToCreate || !itemToCreate.requestedParameters) {
             _errCount++;
             return;
         }
         const clientHandle = itemToCreate.requestedParameters.clientHandle;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!clientHandle) {
             _errCount++;
             return;

@@ -254,7 +254,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         assert(!branch.getConfirmedState(), "already confirmed ?");
         const conditionEventId = branch.getEventId();
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("autoConfirmBranch getAckedState ", branch.getAckedState());
         this._confirm_branch(conditionEventId, comment, branch, "Server/Confirm");
     }

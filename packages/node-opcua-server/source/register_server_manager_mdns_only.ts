@@ -40,7 +40,7 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
     }
 
     public async start(): Promise<void> {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.server) {
             throw new Error("internal error");
         }

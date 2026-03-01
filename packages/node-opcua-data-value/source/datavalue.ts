@@ -82,7 +82,7 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
         if (!dataValue.value) {
             dataValue.value = new Variant();
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (!dataValue.value.encode) {
             errorLog(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));
         }
@@ -294,7 +294,7 @@ export class DataValue extends BaseUAObject {
             return;
         }
         options = options || emptyObject;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (parameters.debugSchemaHelper) {
             const schema = schemaDataValue;
             check_options_correctness_against_schema(this, schema, options);

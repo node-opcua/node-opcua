@@ -42,7 +42,7 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
         const addressSpace = namespace.addressSpace;
 
         const exclusiveDeviationAlarmType = addressSpace.findEventType("ExclusiveDeviationAlarmType");
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!exclusiveDeviationAlarmType) {
             throw new Error("cannot find ExclusiveDeviationAlarmType");
         }

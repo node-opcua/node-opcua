@@ -260,7 +260,7 @@ function findXsdNamespaceUri(xw: XmlWriter, nodeId: NodeId): string {
     if (namespace === "http://opcfoundation.org/UA/") {
         return "http://opcfoundation.org/UA/2008/02/Types.xsd";
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (!namespace) {
         return "";
     }
@@ -651,7 +651,7 @@ function _isDefaultValue(value: Variant): boolean {
 function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: Variant) {
     const addressSpace = node.addressSpace;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (variant === null || variant === undefined) {
         return;
     }
@@ -659,7 +659,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
 
     const dataTypeNode = addressSpace.findDataType(node.dataType);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!dataTypeNode) {
         debugLog("Cannot find dataType:", node.dataType.toString());
         return;
@@ -1229,7 +1229,7 @@ function dumpUAMethod(xw: XmlWriter, node: UAMethod) {
 }
 function resolveDataTypeName(addressSpace: IAddressSpace, dataType: string | NodeId): QualifiedName {
     let dataTypeNode = null;
-    // istanbul ignore next
+    // c8 ignore next
     if (typeof dataType === "string") {
         dataTypeNode = addressSpace.findDataType(dataType);
     } else {
@@ -1250,7 +1250,7 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, data: BuildAliasesData) {
     if (!data.aliases_visited) data.aliases_visited = new Set();
 
     const k = _hash(node);
-    // istanbul ignore next
+    // c8 ignore next
     if (data.aliases_visited.has(k)) {
         return;
     }

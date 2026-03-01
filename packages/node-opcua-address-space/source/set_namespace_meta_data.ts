@@ -12,11 +12,11 @@ export function setNamespaceMetaData(namespace: INamespace): void {
     const namespaceMetadataType = addressSpace.findObjectType("NamespaceMetadataType");
     const namespaces = addressSpace.rootFolder.objects.server.getChildByName("Namespaces") as UAObject;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!namespaces) {
         throw new Error("Cannot find namespacesType node under server object");
     }
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!namespaceMetadataType) {
         throw new Error("cannot find NamespaceMetadataType");
     }
@@ -25,7 +25,7 @@ export function setNamespaceMetaData(namespace: INamespace): void {
 
     const existingMetaData = namespaces.getComponentByName(deriveName, namespace.index);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (existingMetaData) {
         throw new Error("INamespace meta data already exists for " + deriveName);
     }

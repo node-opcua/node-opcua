@@ -22,7 +22,7 @@ export enum LogLevel {
     Debug = 7
 }
 
-// istanbul ignore next
+// c8 ignore next
 if (_process.env && false) {
     // this code can be activated to help detecting
     // when a external module overwrite one of the

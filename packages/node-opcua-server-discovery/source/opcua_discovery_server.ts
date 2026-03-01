@@ -297,7 +297,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             );
             channel.send_response("MSG", response, message);
         });
-        // istanbul ignore next
+        // c8 ignore next
     }
 
     protected _on_RegisterServerRequest(message: Message, channel: ServerSecureChannelLayer) {
@@ -396,7 +396,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                     continue;
                 }
                 if (!hasCapabilities(serverOnNetwork.serverCapabilities, serverCapabilityFilter)) {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doDebug) {
                         debugLog(
                             "   server ",
@@ -440,7 +440,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 // nothing to do
                 return;
             } else {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("Configuration ", conf.mdnsServerName, " HAS changed !");
                     debugLog(" Was ", serviceToString(b.serviceConfig));

@@ -33,7 +33,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
 
         const alreadyIn = this.references.filter((r: UAReference) => {
             const n = addressSpace.findNode(r.nodeId)!;
-            // istanbul ignore next
+            // c8 ignore next
             if (!n) {
                 warningLog(" cannot find node ", r.nodeId.toString());
                 return false;
@@ -53,7 +53,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         switch (modellingRule) {
             case null:
             case undefined:
-                // istanbul ignore next
+                // c8 ignore next
                 doTrace &&
                     traceLog(
                         "node ",
@@ -92,7 +92,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         if (browseName in this.optionalsMap) {
             map = this.optionalsMap[browseName] as any;
         }
-        // istanbul ignore next
+        // c8 ignore next
         doTrace && traceLog("filterFor ", browseName, map);
         const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, false, map);
         return newFilter;

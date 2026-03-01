@@ -28,7 +28,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: Map<number,string>
         return "ua:ExtensionObject";
     }
     const node = addressSpace.findNode(nodeId);
-    // istanbul ignore next
+    // c8 ignore next
     if (!node) {
         throw new Error("Cannot find Node for" + nodeId?.toString());
     }
@@ -75,7 +75,7 @@ function dumpDataTypeStructure(
         }
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (optionalsCount >= 32) {
         throw new Error("Too many optionals fields");
     }

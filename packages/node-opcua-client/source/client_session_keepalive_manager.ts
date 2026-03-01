@@ -45,13 +45,13 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
     public start(keepAliveInterval?: number): void {
         assert(!this.timerId);
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         if (this.session.timeout < 600) {
             warningLog(
                 `[NODE-OPCUA-W13] ClientSessionKeepAliveManager detected that the session timeout (${this.session.timeout} ms) is really too small: please adjust it to a greater value ( at least 1000))`
             );
         }
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         if (this.session.timeout < 100) {
             throw new Error(
                 `ClientSessionKeepAliveManager detected that the session timeout (${this.session.timeout} ms) is really too small: please adjust it to a greater value ( at least 1000))`
@@ -179,7 +179,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
                     if (dataValue.statusCode.isGood()) {
                         const newState = dataValue.value.value as ServerState;
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (newState !== this.lastKnownState && this.lastKnownState) {
                             warningLog(
                                 "ClientSessionKeepAliveManager#Server state has changed = ",

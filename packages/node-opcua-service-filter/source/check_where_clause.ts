@@ -81,25 +81,25 @@ function evaluateOperand<T>(
 }
 
 function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | null): boolean {
-    // istanbul ignore next
+    // c8 ignore next
     if (!ofType || !(ofType instanceof LiteralOperand)) {
         warningLog("checkOfType : unsupported case ! ofType is not a LiteralOperand , ofType = ", ofType?.toString());
         return false;
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (ofType.value.dataType !== DataType.NodeId) {
         warningLog("invalid operand type (expecting NodeId); got " + DataType[ofType.value.dataType]);
         return false;
     }
 
     const ofTypeNode: NodeId = ofType.value.value;
-    // istanbul ignore next
+    // c8 ignore next
     if (!ofTypeNode) {
         return false; // the ofType node is not known, we don't know what to do
     }
     const ofTypeNodeNodeClass = filterContext.getNodeClass(ofTypeNode);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (
         ofTypeNodeNodeClass !== NodeClass.ObjectType &&
         ofTypeNodeNodeClass !== NodeClass.VariableType &&
@@ -249,7 +249,7 @@ function checkBetween(filterContext: FilterContext, filter: ContentFilter, filte
 function checkInList(context: FilterContext, filterOperands: FilterOperand[]): boolean {
     const operand0 = filterOperands[0];
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(operand0 instanceof SimpleAttributeOperand)) {
         // unsupported case
         warningLog("FilterOperator.InList operand0 is not a SimpleAttributeOperand " + operand0.constructor.name);
@@ -257,14 +257,14 @@ function checkInList(context: FilterContext, filterOperands: FilterOperand[]): b
     }
     const value = resolveOperand(context, operand0);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (value.dataType !== DataType.NodeId) {
         return false;
     }
 
     const nodeId: NodeId | null = value.value as NodeId;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!nodeId) {
         return false;
     }
@@ -297,7 +297,7 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
     }
     const element = filter.elements[index];
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!element) {
         return true;
     }

@@ -107,13 +107,13 @@ async function findSuperType(session: IBasicSessionAsync2, dataTypeNodeId: NodeI
         };
         const result3 = await browseAll(session, nodeToBrowse3);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (result3.statusCode.isNotGood()) {
             throw new Error("Cannot find superType for " + dataTypeNodeId.toString());
         }
         result3.references = result3.references || [];
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (result3.references.length !== 1) {
             errorLog("Invalid dataType with more than one (or 0) superType", result3.toString());
             throw new Error(
@@ -222,7 +222,7 @@ async function resolve2(
     switch (category) {
         case FieldCategory.basic:
             schema = await findDataTypeBasicType(session, cache, dataTypeNodeId);
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!schema) {
                 errorLog("Cannot find basic type " + fieldTypeName);
             }
@@ -235,7 +235,7 @@ async function resolve2(
                     nodeId: dataTypeNodeId
                 });
 
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (dataTypeDefinitionDataValue.statusCode.isNotGood()) {
                     throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
                 }
@@ -403,7 +403,7 @@ async function resolveFieldType(
             category = res.category;
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!schema) {
             throw new Error(
                 "expecting a schema here fieldTypeName=" + fieldTypeName + " " + dataTypeNodeId.toString() + " category = " + category

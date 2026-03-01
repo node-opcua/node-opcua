@@ -55,7 +55,7 @@ const warningLog = make_warningLog(__filename);
 async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictionary: NodeId): Promise<boolean> {
     const browsePath = makeBrowsePath(dataTypeDictionary, ".Deprecated");
     const a = await session.translateBrowsePath(browsePath);
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!a.targets || a.targets.length === 0) {
         // the server is probably version < 1.04.
         debugLog("Cannot find Deprecated property for dataTypeDictionary " + dataTypeDictionary.toString());
@@ -68,7 +68,7 @@ async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictiona
 
 async function _readNamespaceUriProperty(session: IBasicSessionAsync, dataTypeDictionary: NodeId): Promise<string> {
     const a = await session.translateBrowsePath(makeBrowsePath(dataTypeDictionary, ".NamespaceUri"));
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!a.targets || a.targets.length === 0) {
         return "??dataTypeDictionary doesn't expose NamespaceUri property??";
     }
@@ -119,7 +119,7 @@ async function _enrichWithDescriptionOf(
         }))
         ;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (nodesToBrowse3.length === 0) {
         return [];
     }
@@ -173,7 +173,7 @@ async function _enrichWithDescriptionOf(
             const result4 = results4[i];
             result4.references = result4.references || [];
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (result4.references.length !== 1) {
                 errorLog("What's going on ?", result4.toString(), "result4.references.length = ", result4.references.length);
             }
@@ -306,7 +306,7 @@ async function _extractDataTypeDictionaryFromDefinition(
         const dataTypeNodeId = dataTypeNodeIds[index];
         const dataTypeDescription = dataTypeDescriptions[index];
 
-        /* istanbul ignore else */
+
         if (dataValue.statusCode.isGood()) {
             const dataTypeDefinition = dataValue.value.value;
 
@@ -319,7 +319,9 @@ async function _extractDataTypeDictionaryFromDefinition(
                     })()
                 );
             }
-        } else {
+        }
+        /* c8 ignore next */
+        else {
             debugLog(
                 "dataTypeNodeId ",
                 dataTypeNodeId.toString(),
@@ -333,7 +335,7 @@ async function _extractDataTypeDictionaryFromDefinition(
 
     // to do put in logical order
     const dataTypeDefinitionsSorted = sortStructure(dataTypeDefinitions);
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
     }
@@ -345,7 +347,7 @@ async function _extractDataTypeDictionaryFromDefinition(
             (async () => {
 
                 const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
                 }
@@ -369,7 +371,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                         cache
                     );
 
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (doDebug) {
                         debugLog(
                             chalk.red("Registering "),
@@ -384,7 +386,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                         ) as unknown as ConstructorFuncWithSchema;
                         assert(Constructor.schema === schema);
                     } else {
-                        // istanbul ignore next
+                        // c8 ignore next
                         if (doDebug) {
                             debugLog("Ignoring Abstract ", className);
                         }
@@ -475,7 +477,7 @@ async function _extractDataTypeDictionary(
             );
         // old method ( until 1.03 )
         // one need to read the schema file store in the dataTypeDictionary node and parse it !
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog("---------------------------------------------");
             debugLog(rawSchema.toString());
@@ -504,7 +506,7 @@ async function _exploreDataTypeDefinition(
     const result = await browseAll(session, nodeToBrowse);
     const references = result.references || [];
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (references.length === 0) {
         return;
     }
@@ -525,7 +527,7 @@ async function _exploreDataTypeDefinition(
     const binaryEncodingNodeIds = results2.map((br: BrowseResult) => {
         const defaultBin = br.references!.filter((r: ReferenceDescription) => r.browseName.toString() === "Default Binary");
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (defaultBin.length < 1) {
             return ExpandedNodeId;
         }
@@ -534,7 +536,7 @@ async function _exploreDataTypeDefinition(
 
     // follow now Default Binary <= [Has Encoding] = [DataType]
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (doDebug) {
         debugLog(chalk.bgWhite.red("testing new constructors"));
         for (let i = 0; i < references.length; i++) {
@@ -602,14 +604,14 @@ export async function populateDataTypeManager103(
 
     let namespaceArray: string[] = dataValueNamespaceArray.value.value;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!namespaceArray) {
         debugLog("session: cannot read Server_NamespaceArray");
         // throw new Error("Cannot get Server_NamespaceArray as a array of string");
         return;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("namespaceArray ", namespaceArray.map((a, index) => " " + index.toString().padEnd(3) + ":" + a).join(" "));
     }
@@ -648,7 +650,7 @@ export async function populateDataTypeManager103(
     };
     const result = await browseAll(session, nodeToBrowse);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog(result.statusCode.toString());
         debugLog(result.references?.map((r: any) => r.browseName?.toString()).join(" "));
@@ -694,7 +696,7 @@ export async function populateDataTypeManager103(
             infos.push(info);
 
             if (!isDictionaryDeprecated || rawSchema.length > 0) {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("schema", rawSchema);
                 }
@@ -851,7 +853,7 @@ export async function populateDataTypeManager103(
         const dataTypeDictionaryNodeId = d.reference.nodeId;
 
         await _extractDataTypeDictionary(session, d, dataTypeManager);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog(
                 chalk.bgWhite("                                         => "),
@@ -863,7 +865,7 @@ export async function populateDataTypeManager103(
         await _exploreDataTypeDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory, dataTypeManager.namespaceArray);
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         for (const d of dataTypeDictionaryInfo) {
             debugLog(d);
@@ -942,7 +944,7 @@ export async function populateDataTypeManager103(
         }
         while (queue.length > 0) {
 
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 for (const d of queue) {
                     debugLog({ t: d.targetNamespace, d: d.dependencies });

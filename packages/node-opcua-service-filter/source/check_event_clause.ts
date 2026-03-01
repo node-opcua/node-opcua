@@ -20,20 +20,20 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     //
     const addressSpace = parentNode.addressSpace;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (selectClause.typeDefinitionId.isEmpty()) {
         return StatusCodes.Good;
     }
     const eventTypeNode = addressSpace.findEventType(selectClause.typeDefinitionId)!;
 
     if (!eventTypeNode || !(eventTypeNode.nodeClass === NodeClass.ObjectType)) {
-        // istanbul ignore next
+        // c8 ignore next
         if (eventTypeNode) {
             debugLog(" checkSelectClause", eventTypeNode.toString());
         }
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
         return StatusCodes.BadTypeMismatch;
     }

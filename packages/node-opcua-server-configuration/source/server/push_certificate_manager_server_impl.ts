@@ -70,7 +70,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     ...rsaCertificateTypesArray
                 ]; // FIXME: ECC is not yet supported
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (!(this.userTokenGroup instanceof CertificateManager)) {
                     errorLog(
                         "Expecting this.userTokenGroup to be instanceof CertificateManager :",

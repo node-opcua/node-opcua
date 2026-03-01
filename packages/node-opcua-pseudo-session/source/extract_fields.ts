@@ -33,7 +33,7 @@ export async function extractFields(
         const e = [...parent, browseName];
         const key = simpleBrowsePathToString(e);
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("adding field ", key);
 
         if (!_duplicateMap[key]) {
@@ -77,7 +77,7 @@ export async function extractFields(
             const parent = extracted[index].parent;
             if (!result.references || result.references.length === 0) continue;
 
-            // istanbul ignore next
+            // c8 ignore next
             doDebug &&
                 debugLog(
                     "exploring",
@@ -129,7 +129,7 @@ export async function extractFields(
         if (browseResultForInverseSubType && browseResultForInverseSubType.references) {
             const promises = [];
             for (const reference of browseResultForInverseSubType.references) {
-                // istanbul ignore next
+                // c8 ignore next
                 doDebug && debugLog(" investigating super-type", reference.browseName.toString());
                 promises.push(_investigateTopLevel([], reference.nodeId));
             }
@@ -137,7 +137,7 @@ export async function extractFields(
         }
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     doDebug &&
         debugLog(
             "investigating ",

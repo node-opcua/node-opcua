@@ -58,14 +58,14 @@ const historicalCapabilitiesDefaultProperties /*: HistoryServerCapabilities */ =
 };
 
 export function createHistoryServerCapabilities(addressSpace: AddressSpace, serverCapabilities: UAServerCapabilities): UAObject {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (serverCapabilities.browseName.toString() !== "ServerCapabilities") {
         throw new Error("Expecting server Capabilities");
     }
 
     const historyServerCapabilitiesType = addressSpace.getNamespace(0).findObjectType("HistoryServerCapabilitiesType")!;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!historyServerCapabilitiesType) {
         throw new Error("Cannot find HistoryServerCapabilitiesType");
     }
@@ -79,14 +79,14 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     function setBoolean(propName: string) {
         const lowerCase = lowerFirstLetter(propName);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!Object.prototype.hasOwnProperty.call(defaultProperties, lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
         const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!prop) {
             throw new Error(" Cannot find property " + propName);
         }
@@ -95,7 +95,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
 
     function setUInt32(propName: string) {
         const lowerCase = lowerFirstLetter(propName);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!Object.prototype.hasOwnProperty.call(historyServerCapabilities, lowerCase)) {
             throw new Error("cannot find " + lowerCase);
         }
@@ -132,7 +132,7 @@ interface UAHistoryServerCapabilitiesWithH extends UAServerCapabilities {
 export function addAggregateFunctionSupport(addressSpace: AddressSpace, aggregateFunctionNodeId: NodeIdLike): void {
     const serverCapabilities = addressSpace.rootFolder.objects.server.serverCapabilities as UAHistoryServerCapabilitiesWithH;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!serverCapabilities.historyServerCapabilities) {
         throw new Error("missing serverCapabilities.historyServerCapabilities");
     }
@@ -143,15 +143,15 @@ export function addAggregateFunctionSupport(addressSpace: AddressSpace, aggregat
 
     const functionNode = addressSpace.findNode(aggregateFunctionNodeId);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!functionNode) {
         throw new Error("Cannot find node " + aggregateFunctionNodeId.toString() + " in addressSpace");
     }
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (functionNode.nodeClass !== NodeClass.Object) {
         throw new Error("Expecting an object Node");
     }
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!sameNodeId((functionNode as UAObject).typeDefinition, coerceNodeId(ObjectTypeIds.AggregateFunctionType))) {
         throw new Error("Expecting an object with TypeDefinition AggregateFunctionType");
     }
@@ -167,7 +167,7 @@ export function addAggregateFunctionSupport(addressSpace: AddressSpace, aggregat
 }
 
 export function addAggregateStandardFunctionSupport(addressSpace: AddressSpace, functionName: AggregateFunction): void {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!functionName) {
         throw new Error("Invalid function name");
     }
@@ -185,21 +185,21 @@ export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFuncti
 
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!aggregateConfigurationType) {
         throw new Error("addressSpace do not expose AggregateConfigurationType");
     }
 
     const aggregateFunctionType = addressSpace.getNamespace(0).findObjectType("AggregateFunctionType");
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!aggregateFunctionType) {
         throw new Error("addressSpace do not expose AggregateFunctionType");
     }
 
     const serverObject = addressSpace.rootFolder.objects.getFolderElementByName("Server");
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!serverObject) {
         throw new Error("addressSpace do not expose a ServerObject");
     }
@@ -210,7 +210,7 @@ export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFuncti
     // Let see if HistoryServer Capabilities object exists
     let historyServerCapabilities = serverCapabilities.getChildByName("HistoryServerCapabilities");
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!historyServerCapabilities) {
         historyServerCapabilities = createHistoryServerCapabilities(addressSpace, serverCapabilities);
     }
@@ -262,7 +262,7 @@ export function installAggregateConfigurationOptions(
 ): void {
     const nodePriv = node as BaseNodeWithHistoricalDataConfiguration;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!nodePriv.historizing) {
         throw new Error(
             "variable.historizing is not set\n make sure addressSpace.installHistoricalDataNode(variable) has been called"
@@ -320,7 +320,7 @@ export function installAggregateConfigurationOptions(
 export function getAggregateConfiguration(node: BaseNode): AggregateConfigurationOptionsEx {
     const nodePriv = node as BaseNodeWithHistoricalDataConfiguration;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!nodePriv.$historicalDataConfiguration) {
         throw new Error("internal error");
     }

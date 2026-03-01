@@ -157,7 +157,7 @@ export class PacketAssembler extends EventEmitter {
         this.minimumSizeInBytes = options.minimumSizeInBytes || 8;
         assert(typeof this.readChunkFunc === "function", "packet assembler requires a readChunkFunc");
 
-        // istanbul ignore next
+        // c8 ignore next
         assert(options.maxChunkSize === undefined || options.maxChunkSize !== 0);
 
         this.maxChunkSize = options.maxChunkSize || PacketAssembler.defaultMaxMessageSize;
@@ -232,7 +232,7 @@ export class PacketAssembler extends EventEmitter {
 
             messageChunk = this._buildData(data);
 
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 const packetInfo = this._readPacketInfo(messageChunk);
                 assert(this.packetInfo && this.packetInfo.length === packetInfo.length);

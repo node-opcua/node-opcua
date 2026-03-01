@@ -83,7 +83,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
     const namespace = parentFolder.namespace;
 
     const complexVariableType = addressSpace.findVariableType(options.complexVariableType);
-    // istanbul ignore next
+    // c8 ignore next
     if (!complexVariableType) {
         throw new Error("cannot find complex variable type");
     }
@@ -100,7 +100,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
 
     const dataType = addressSpace.findDataType(variableType.dataType);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!dataType) {
         errorLog(variableType.toString());
         throw new Error("cannot find Data Type");
@@ -149,19 +149,19 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     const addressSpace = uaArrayVariableNode.addressSpace;
 
     const variableType = addressSpace.findVariableType(variableTypeNodeId);
-    // istanbul ignore next
+    // c8 ignore next
     if (!variableType || variableType.nodeId.isEmpty()) {
         throw new Error("Cannot find VariableType " + variableTypeNodeId.toString());
     }
 
     const structure = addressSpace.findDataType("Structure");
-    // istanbul ignore next
+    // c8 ignore next
     if (!structure) {
         throw new Error("Structure Type not found: please check your nodeset file");
     }
 
     let dataType = addressSpace.findDataType(variableType.dataType);
-    // istanbul ignore next
+    // c8 ignore next
     if (!dataType) {
         throw new Error("Cannot find DataType " + variableType.dataType.toString());
     }
@@ -272,7 +272,7 @@ export function removeElement<T extends ExtensionObject>(
     assert(element, "removeElement: element must exist");
     const _array = uaArrayVariableNode.$$extensionObjectArray;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (_array.length === 0) {
         throw new Error(" cannot remove an element from an empty array ");
     }
@@ -295,7 +295,7 @@ export function removeElement<T extends ExtensionObject>(
         throw new Error("Unsupported anymore!!! please use a functor instead");
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (elementIndex < 0) {
         throw new Error("removeElement: cannot find element matching " + element.toString());
     }

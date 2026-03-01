@@ -141,12 +141,12 @@ export enum SecurityPolicy {
 }
 
 export function fromURI(uri: string | null): SecurityPolicy {
-    // istanbul ignore next
+    // c8 ignore next
     if (typeof uri !== "string") {
         return SecurityPolicy.Invalid;
     }
     const a: string[] = uri.split("#");
-    // istanbul ignore next
+    // c8 ignore next
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
@@ -157,7 +157,7 @@ export function fromURI(uri: string | null): SecurityPolicy {
 export function toURI(value: SecurityPolicy | string): string {
     if (typeof value === "string") {
         const a: string[] = value.split("#");
-        // istanbul ignore next
+        // c8 ignore next
         if (a.length < 2) {
             return (SecurityPolicy as any)[value as any];
         }
@@ -343,7 +343,7 @@ function RSA_OAEP_SHA2_256_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer
     for (let i = 0; i < nbBlocks; i++) {
         const currentBlock = buffer.subarray(chunk_size * i, chunk_size * (i + 1));
         const encrypted_chunk = publicEncrypt_native(options, currentBlock);
-        // istanbul ignore next
+        // c8 ignore next
         if (encrypted_chunk.length !== blockSize) {
             throw new Error(`publicEncrypt_long unexpected chunk length ${encrypted_chunk.length}  expecting ${blockSize}`);
         }

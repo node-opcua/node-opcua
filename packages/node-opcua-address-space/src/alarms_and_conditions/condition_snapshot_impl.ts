@@ -150,7 +150,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
                 const name = aggregate.browseName.toString();
                 const key = prefix + name;
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("adding key =", key);
                 }
@@ -171,7 +171,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
 
                 const key = prefix + name;
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("adding key =", key);
                 }
@@ -215,9 +215,9 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     #_set_var(varName: string, dataType: DataType, value: unknown, options?: IConditionVariableTypeSetterOptions): void {
         const key = normalizeName(varName);
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._map.has(key)) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(" cannot find node " + varName);
                 debugLog("  map=", [...this._map.keys()].join(" "));
@@ -747,7 +747,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         const key = ConditionSnapshotImpl.normalizeName(varName) + ".Id";
         const variant = this._map.get(key);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!variant) {
             return "???";
             // throw new Error("Cannot find TwoStateVariable with name " + varName);

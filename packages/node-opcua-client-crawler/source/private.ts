@@ -16,7 +16,7 @@ export function dedup_reference(parentNode: CacheNode, references: ReferenceDesc
     for (const reference of references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (dedup[key]) {
             duplicatedReferences.push(reference);
             continue;

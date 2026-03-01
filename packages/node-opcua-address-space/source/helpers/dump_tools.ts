@@ -14,7 +14,7 @@ import { IAddressSpace, BaseNode, UAReference, UAReferenceType as UAReferenceTyp
 import { resolveReferenceType } from "../../src/reference_impl";
 
 export function referenceTypeToString(addressSpace: IAddressSpace, referenceTypeId: NodeIdLike | null): string {
-    // istanbul ignore next
+    // c8 ignore next
     if (!referenceTypeId) {
         return "<null> ";
     } else {

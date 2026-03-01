@@ -76,7 +76,7 @@ describe("addExtensionObjectDataType", function (this: any) {
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");
         console.log("tmpFile =", tmpFile);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             (ns as any).nodeIterator().forEach((b: any) => {
                 console.log(
@@ -97,7 +97,7 @@ describe("addExtensionObjectDataType", function (this: any) {
         // should be possible to create object
         const o = addressSpace.constructExtensionObject(dataType, { name: "JoeDoe" });
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             console.log("symbol =");
             console.log(csv);

@@ -19,7 +19,7 @@ function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinar
 function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     const value = stream.readInteger();
     const e = typedEnum.get(value) as any as string;
-    // istanbul ignore next
+    // c8 ignore next
     if (!e) {
         throw new Error("cannot  coerce value=" + value + " to " + typedEnum.constructor.name);
     }

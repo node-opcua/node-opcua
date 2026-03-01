@@ -150,7 +150,7 @@ function _getSequenceNumbers(arr: NotificationMessage[]): number[] {
 }
 
 function analyzeEventFilterResult(node: BaseNode, eventFilter: EventFilter): EventFilterResult {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!(eventFilter instanceof EventFilter)) {
         throw new Error("Internal Error");
     }
@@ -189,7 +189,7 @@ function _process_filter(node: BaseNode, filter: any): EventFilterResult | Aggre
     } else if (filter instanceof AggregateFilter) {
         return analyzeAggregateFilterResult(node, filter);
     }
-    // istanbul ignore next
+    // c8 ignore next
     throw new Error("invalid filter");
 }
 
@@ -882,7 +882,7 @@ export class Subscription extends EventEmitter {
         };
     }
     public dispose(): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("Subscription#dispose", this.id, this.monitoredItemCount);
         }
@@ -977,7 +977,7 @@ export class Subscription extends EventEmitter {
             // - Any negative number is interpreted as -1.
             samplingInterval = this.publishingInterval;
         } else if (samplingInterval === 0) {
-            // istanbul ignore next
+            // c8 ignore next
             if (!node) throw new Error("Internal Error");
 
             // OPCUA 1.0.3 Part 4 - 5.12.1.2
@@ -1092,7 +1092,7 @@ export class Subscription extends EventEmitter {
         assert(createResult.statusCode.isGood());
 
         const monitoredItem = this.getMonitoredItem(createResult.monitoredItemId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!monitoredItem) {
             throw new Error("internal error");
         }
@@ -1234,13 +1234,13 @@ export class Subscription extends EventEmitter {
         });
 
         if (foundIndex === -1) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(chalk.red("acknowledging sequence FAILED !!! "), chalk.cyan(sequenceNumber.toString()));
             }
             return StatusCodes.BadSequenceNumberUnknown;
         } else {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(chalk.yellow("acknowledging sequence "), chalk.cyan(sequenceNumber.toString()));
             }
@@ -1434,7 +1434,7 @@ export class Subscription extends EventEmitter {
 
         this.resetLifeTimeAndKeepAliveCounters();
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(
                 "Subscription sending a notificationMessage subscriptionId=",
@@ -1476,7 +1476,7 @@ export class Subscription extends EventEmitter {
                 this.state === SubscriptionState.NORMAL ||
                 (this.state === SubscriptionState.LATE && this.hasPendingNotifications)
             ) {
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog("    -> pendingPublishRequestCount > 0 " + "&& normal state => re-trigger tick event immediately ");
                 }
@@ -1564,7 +1564,7 @@ export class Subscription extends EventEmitter {
      * @private
      */
     private _tick() {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(`Subscription#_tick id ${this.id} aborted=${this.aborted} state=${SubscriptionState[this.state]}`);
         }
@@ -1575,7 +1575,7 @@ export class Subscription extends EventEmitter {
 
         this.discardOldSentNotifications();
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(
                 t(new Date()) + "  " + this._life_time_counter + "/" + this.lifeTimeCount + chalk.cyan("   Subscription#_tick"),
@@ -1598,7 +1598,7 @@ export class Subscription extends EventEmitter {
         }
 
         if (this.lifeTimeHasExpired) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             doDebug && debugLog(chalk.red.bold(`Subscription ${this.id} has expired !!!!! => Terminating`));
 
             /**
@@ -1620,14 +1620,14 @@ export class Subscription extends EventEmitter {
 
         const publishEngine = this.publishEngine!;
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("Subscription#_tick  self._pending_notifications= ", this._pending_notifications.size);
 
         if (
             publishEngine.pendingPublishRequestCount === 0 &&
             (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications)
         ) {
-            // istanbul ignore next
+            // c8 ignore next
             doDebug &&
                 debugLog(
                     "subscription set to LATE  hasPendingNotifications = ",
@@ -1666,7 +1666,7 @@ export class Subscription extends EventEmitter {
 
         if (this.publishEngine!.send_keep_alive_response(this.id, future_sequence_number)) {
             this.messageSent = true;
-            // istanbul ignore next
+            // c8 ignore next
             doDebug &&
                 debugLog(
                     `    -> Subscription#_sendKeepAliveResponse subscriptionId ${this.id} future_sequence_number ${future_sequence_number}`
@@ -1692,7 +1692,7 @@ export class Subscription extends EventEmitter {
     private resetKeepAliveCounter(): void {
         this._keep_alive_counter = 0;
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug &&
             debugLog(
                 "     -> subscriptionId",
@@ -1709,7 +1709,7 @@ export class Subscription extends EventEmitter {
     private increaseKeepAliveCounter() {
         this._keep_alive_counter += 1;
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug &&
             debugLog(
                 "     -> subscriptionId",
@@ -1724,7 +1724,7 @@ export class Subscription extends EventEmitter {
      * @private
      */
     private _addNotificationMessage(notificationData: QueueItem | StatusChangeNotification, monitoredItemId?: number) {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog(chalk.yellow("Subscription#_addNotificationMessage"), notificationData.toString());
 
         this._pending_notifications.push({

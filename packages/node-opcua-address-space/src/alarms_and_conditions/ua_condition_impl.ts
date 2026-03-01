@@ -682,7 +682,7 @@ function UACondition_instantiate(
 
     const conditionType = addressSpace.findEventType(conditionTypeId);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!conditionType) {
         throw new Error(" cannot find Condition Type for " + conditionTypeId);
     }
@@ -691,7 +691,7 @@ function UACondition_instantiate(
     assert(!conditionType.isAbstract, "Cannot instantiate abstract conditionType");
 
     const baseConditionEventType = addressSpace.findEventType("ConditionType");
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!baseConditionEventType) {
         throw new Error("cannot find  ConditionType");
     }
@@ -800,7 +800,7 @@ function UACondition_instantiate(
         // check that Variant DataType is compatible with the UAVariable dataType
         // xx var nodeDataType = addressSpace.findNode(varNode.dataType).browseName;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!varNode._validate_DataType(variant.dataType)) {
             throw new Error(" Invalid variant dataType " + variant + " " + varNode.browseName.toString());
         }
@@ -865,7 +865,7 @@ function UACondition_instantiate(
             //   Types. The Server Object shall be the root of this hierarchy.
             if (!sameNodeId(conditionSourceNode.nodeId, coerceNodeId("ns=0;i=2253"))) {
                 // server object
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (conditionSourceNode.getEventSourceOfs().length === 0) {
                     errorLog("conditionSourceNode = ", conditionSourceNode.browseName.toString());
                     errorLog("conditionSourceNode = ", conditionSourceNode.nodeId.toString());
@@ -1000,7 +1000,7 @@ function _disable_method(inputArguments: VariantLike[], context: ISessionContext
     const conditionNode = context.object;
     assert(conditionNode);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(conditionNode instanceof UAConditionImpl)) {
         debugLog("conditionNode is not a UACondition ", conditionNode?.toString());
         return callback(null, {
@@ -1037,7 +1037,7 @@ function _condition_refresh_method(
     // arguments : IntegerId SubscriptionId
     assert(inputArguments.length === 1);
     const addressSpace = context.object!.addressSpace as AddressSpacePrivate;
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog(chalk.red(" ConditionType.ConditionRefresh ! subscriptionId ="), inputArguments[0].toString());
     }
@@ -1063,7 +1063,7 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, inputArgu
     //                            that owns the Subscription
     //
 
-    // istanbul ignore next
+    // c8 ignore next
     if (addressSpace._condition_refresh_in_progress) {
         // a refresh operation is already in progress....
         return StatusCodes.BadRefreshInProgress;
@@ -1103,7 +1103,7 @@ function _condition_refresh2_method(
     }
     const addressSpace = context.object.addressSpace as AddressSpacePrivate;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog(chalk.cyan.bgWhite(" ConditionType.conditionRefresh2 !"));
     }
@@ -1228,7 +1228,7 @@ function _getCompositeKey(node: BaseNode, key: string): UAVariableImpl {
     let cur = node as any;
     const elements = key.split(".");
     for (const e of elements) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!Object.prototype.hasOwnProperty.call(cur, e)) {
             throw new Error(" cannot extract '" + key + "' from " + node.browseName.toString());
         }

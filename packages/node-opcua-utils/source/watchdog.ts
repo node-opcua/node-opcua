@@ -33,7 +33,7 @@ function hasExpired(watchDogData: IWatchdogData2, currentTime: ArbitraryClockTic
 
 function keepAliveFunc(this: ISubscriber) {
     assert(this._watchDog instanceof WatchDog);
-    // istanbul ignore next
+    // c8 ignore next
     if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
     }

@@ -410,7 +410,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         callback = callback || dummy_function;
         assert(typeof callback === "function");
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!(request instanceof PublishRequest)) {
             throw new Error("Internal error : expecting a Publish Request here");
         }
@@ -470,7 +470,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             }
             late_subscriptions.sort(compare_subscriptions);
 
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(
                     late_subscriptions
@@ -599,7 +599,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         //  Notification Message that is to be sent.
 
         const subscription = this.getSubscriptionById(subscriptionId);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!subscription) {
             traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
             return false;
@@ -652,7 +652,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         const invalid_published_request = parts[0];
         for (const publishData of invalid_published_request) {
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
             }
@@ -664,7 +664,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         publishData.callback(publishData.request, response);
     }
     public _send_valid_response_for_request(publishData: PublishData, response: PublishResponse): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog("_send_response_for_request ", response.toString());
         }

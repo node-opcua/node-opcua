@@ -50,11 +50,11 @@ describe("Bonjour", () => {
         });
 
         browser.on("up", (service) => {
-            // istanbul ignore next
+            // c8 ignore next
             debugLog("MDNSResponder : service is up with  ", serviceToString(service));
         });
         browser.on("down", (service) => {
-            // istanbul ignore next
+            // c8 ignore next
             debugLog("MDNSResponder : service is down with  ", serviceToString(service));
         });
 

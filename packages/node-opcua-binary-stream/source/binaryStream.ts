@@ -71,7 +71,7 @@ export class BinaryStream {
      * @param value the value to write
      */
     public writeInt8(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 1, "not enough space in buffer");
             assert(value >= -128 && value < 128);
@@ -85,7 +85,7 @@ export class BinaryStream {
      * @param value  the value to write
      */
     public writeUInt8(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 1, "not enough space in buffer");
             assert(value >= 0 && value < 256, " writeUInt8 : out of bound ");
@@ -99,7 +99,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeInt16(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 2, "not enough space in buffer");
         }
@@ -112,7 +112,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeUInt16(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 2, "not enough space in buffer");
         }
@@ -125,7 +125,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeInteger(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
         }
@@ -139,7 +139,7 @@ export class BinaryStream {
      * @param  value the value to write
      */
     public writeUInt32(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
             assert(isFinite(value));
@@ -160,7 +160,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeFloat(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
         }
@@ -173,7 +173,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeDouble(value: number): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 8, "not enough space in buffer");
         }
@@ -187,7 +187,7 @@ export class BinaryStream {
      * @param length   the number of byte to write
      */
     public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, length = 0): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(arrayBuf instanceof ArrayBuffer);
         }
@@ -228,7 +228,7 @@ export class BinaryStream {
      * read a single unsigned byte (8 bits) from the stream.
      */
     public readUInt8(): number {
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 1);
         }
@@ -307,7 +307,7 @@ export class BinaryStream {
         // make sure there is enough room in destination buffer
         const remainingBytes = this.buffer.length - this.length;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (remainingBytes < buf.length) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
@@ -333,7 +333,7 @@ export class BinaryStream {
         }
         // make sure there is enough room in destination buffer
         const remainingBytes = this.buffer.length - this.length;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (remainingBytes < byteLength) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
@@ -371,17 +371,17 @@ export class BinaryStream {
         if (length > BinaryStream.maxByteStringLength) {
             throw new Error(`maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${length}`);
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
         }
         const slice = this.buffer.subarray(this.length, this.length + length);
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(slice.length === length);
         }
         const byteArr = new Uint8Array(slice);
-        // istanbul ignore next
+        // c8 ignore next
         if (performCheck) {
             assert(byteArr.length === length);
         }
@@ -408,7 +408,7 @@ export class BinaryStream {
         }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;
-        // istanbul ignore next
+        // c8 ignore next
         if (remainingBytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +
@@ -437,7 +437,7 @@ export class BinaryStream {
         }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;
-        // istanbul ignore next
+        // c8 ignore next
         if (remainingBytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +

@@ -30,7 +30,7 @@ export function getStructureTypeConstructor(typeName: string): ConstructorFuncWi
 
 
 
-/* istanbul ignore next */
+/* c8 ignore next */
 export function dump(): void {
     getStandardDataTypeFactory().dump();
 }

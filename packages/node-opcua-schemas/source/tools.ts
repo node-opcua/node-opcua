@@ -78,7 +78,7 @@ export function getOrCreateStructuredTypeSchema(
                 const name = field.name;
                 const index = baseSchema.fields.findIndex((f) => f.name === name);
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (index >= 0) {
                     errorLog(
                         "Warning : find duplicated field from base structure : field name ",
@@ -145,7 +145,7 @@ export function getOrCreateStructuredTypeSchema(
                                 field.category = FieldCategory.basic;
                                 // try in this
                                 field.schema = _getOrCreateStructuredTypeSchema(fieldTypeName);
-                                // istanbul ignore next
+                                // c8 ignore next
                                 if (!field.schema) {
                                     errorLog("What should I do ??", fieldTypeName, " ", dataTypeFactory.hasStructureByTypeName(fieldTypeName));
                                 } else {

@@ -39,7 +39,7 @@ function makeFlagFromString<Type>(type: Enum, str: string): Type {
 //      makeNodeClassMask("Method | Object").should.eql(5);
 export function makeNodeClassMask(str: string): NodeClassMask {
     const classMask = makeFlagFromString<NodeClassMask>(NodeClassMask as any, str);
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!classMask) {
         throw new Error(" cannot find class mask for " + str);
     }

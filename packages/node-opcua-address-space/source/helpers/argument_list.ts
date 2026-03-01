@@ -57,7 +57,7 @@ export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stre
 }
 
 export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): any[] {
-    // istanbul ignore next
+    // c8 ignore next
     if (!Array.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +
@@ -102,7 +102,7 @@ export function getMethodDeclaration_ArgumentList(
     // find object in address space
     const obj = addressSpace.findNode(objectId) as UAObject;
     if (!obj) {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("cannot find node ", objectId.toString());
 
         return { statusCode: StatusCodes.BadNodeIdUnknown };
@@ -124,7 +124,7 @@ export function getMethodDeclaration_ArgumentList(
         //  return {statusCode: StatusCodes.BadMethodInvalid};
         return { statusCode: StatusCodes.Good, methodDeclaration: objectMethod };
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (methodDeclaration.nodeClass !== NodeClass.Method) {
         throw new Error("Expecting a Method here");
     }
@@ -175,7 +175,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!argDefDataType) {
         debugLog("dataType ", argDefinition.dataType.toString(), "doesn't exist");
         return false;
@@ -190,7 +190,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
         return false;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!argDataType) {
         doDebug && debugLog(" cannot find dataType ", arg.dataType, resolveNodeId(arg.dataType));
         doDebug && debugLog(" arg = ", arg.toString());
@@ -198,7 +198,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
         return false;
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         doDebug && debugLog(" checking argDefDataType ", argDefDataType.toString());
         doDebug && debugLog(" checking argDataType ", argDataType.toString());
@@ -250,7 +250,7 @@ export function verifyArguments_ArgumentList(
     });
 
     if (methodInputArguments.length > inputArguments.length) {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug &&
             debugLog(
                 "verifyArguments_ArgumentList " +
@@ -266,7 +266,7 @@ export function verifyArguments_ArgumentList(
     }
 
     if (methodInputArguments.length < inputArguments.length) {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug &&
             debugLog(
                 " verifyArguments_ArgumentList " +

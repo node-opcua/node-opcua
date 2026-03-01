@@ -130,22 +130,24 @@ export class Variant extends BaseUAObject {
 
         if (this.dataType === DataType.ExtensionObject) {
             if (this.arrayType === VariantArrayType.Scalar) {
-                /* istanbul ignore next */
+                /* c8 ignore start */
                 if (this.value && !(this.value instanceof BaseUAObject)) {
                     throw new Error(
                         `A variant with DataType.ExtensionObject must have a ExtensionObject value.\nMake sure that you specify a valid ExtensionObject to the value options in the Variant Constructor`
                     );
                 }
+                /* c8 ignore stop */
             } else {
                 if (this.value) {
+                    /* c8 ignore start */
                     for (const e of this.value) {
-                        /* istanbul ignore next */
                         if (e && !(e instanceof BaseUAObject)) {
                             throw new Error(
                                 "A variant with DataType.ExtensionObject must have a ExtensionObject value\nMake sure that you specify a valid ExtensionObject for all element of the value array passed to the  Variant Constructor`"
                             );
                         }
                     }
+                    /* c8 ignore stop */
                 }
             }
         }
@@ -272,11 +274,43 @@ export function encodeVariant(variant: Variant | undefined | null, stream: Outpu
     }
 }
 
-/***
- * @private
- *
- * istanbul ignore function
- */
+/* c8 ignore start */
+function _decodeVariantArrayDebug(stream: BinaryStream, decode: any, tracer: any, dataType: DataType) {
+    let cursorBefore = stream.length;
+    const length = decodeUInt32(stream);
+
+    let i;
+    let element;
+    tracer.trace("start_array", "Variant", -1, cursorBefore, stream.length);
+    if (length === 0xffffffff) {
+        // empty array
+        tracer.trace("end_array", "Variant", stream.length);
+        return;
+    }
+
+    const n1 = Math.min(10, length);
+
+    // display a maximum of 10 elements
+    for (i = 0; i < n1; i++) {
+        tracer.trace("start_element", "", i);
+        cursorBefore = stream.length;
+        element = decode(stream);
+        // arr.push(element);
+        tracer.trace("member", "Variant", element, cursorBefore, stream.length, DataType[dataType]);
+        tracer.trace("end_element", "", i);
+    }
+    // keep reading
+    if (length >= n1) {
+        for (i = n1; i < length; i++) {
+            decode(stream);
+        }
+        tracer.trace("start_element", "", n1);
+        tracer.trace("member", "Variant", "...", cursorBefore, stream.length, DataType[dataType]);
+        tracer.trace("end_element", "", n1);
+    }
+    tracer.trace("end_array", "Variant", stream.length);
+}
+
 function decodeDebugVariant(self: Variant, stream: BinaryStream, options: DecodeDebugOptions): void {
     const tracer = options.tracer;
 
@@ -293,7 +327,7 @@ function decodeDebugVariant(self: Variant, stream: BinaryStream, options: Decode
 
     const decode = findBuiltInType(DataType[self.dataType]).decode;
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!decode) {
         throw new Error("Variant.decode : cannot find decoder for type " + DataType[self.dataType]);
     }
@@ -322,7 +356,7 @@ function decodeDebugVariant(self: Variant, stream: BinaryStream, options: Decode
         const verification = calculate_product(self.dimensions);
     }
 }
-
+/* c8 ignore stop */
 function internalDecodeVariant(self: Variant, stream: BinaryStream) {
     const encodingByte = decodeUInt8(stream);
 
@@ -343,10 +377,11 @@ function internalDecodeVariant(self: Variant, stream: BinaryStream) {
     if (hasDimension) {
         self.dimensions = decodeDimension(stream);
         const verification = calculate_product(self.dimensions);
-        /* istanbul ignore next */
+        /* c8 ignore start */
         if (verification !== self.value.length) {
             throw new Error("internalDecodeVariant: BadDecodingError: inconsistent matrix ");
         }
+        /* c8 ignore stop */
     }
 }
 
@@ -395,34 +430,38 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
     // dataType could be a string
     if (typeof options.dataType === "string") {
         const d = findBuiltInType(options.dataType);
-        /* istanbul ignore next */
+        /* c8 ignore start */
         if (!d) {
             throw new Error("Cannot find Built-In data type or any DataType resolving to " + options.dataType);
         }
+        /* c8 ignore stop */
         options.dataType = DataType[d.name as keyof typeof DataType];
     }
 
     // array type could be a string
     if (typeof options.arrayType === "string") {
         const at: VariantArrayType | undefined = (VariantArrayType as any)[options.arrayType];
-        /* istanbul ignore next */
+        /* c8 ignore start */
         if (at === undefined) {
             throw new Error("ArrayType: invalid " + options.arrayType);
         }
+        /* c8 ignore stop */
         options.arrayType = at;
     }
 
     if (isArrayTypeUnspecified && Array.isArray(options.value)) {
         // when using UInt64 ou Int64 arrayType must be specified , as automatic detection cannot be made
 
-        /* istanbul ignore next */
+        /* c8 ignore start */
         if (options.dataType === DataType.UInt64 || options.dataType === DataType.Int64) {
             // we do nothing here ....
             throw new Error(
                 "Variant#constructor : when using UInt64 ou Int64" +
                 " arrayType must be specified , as automatic detection cannot be made"
             );
-        } else {
+        }
+        /* c8 ignore stop */
+        else {
             options.arrayType = VariantArrayType.Array;
             isArrayTypeUnspecified = false;
         }
@@ -430,22 +469,21 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
 
     if (options.arrayType !== VariantArrayType.Scalar && !isArrayTypeUnspecified) {
         assert(options.arrayType === VariantArrayType.Array || options.arrayType === VariantArrayType.Matrix);
-        /* istanbul ignore else */
         if (options.arrayType === VariantArrayType.Array) {
             const value1 = coerceVariantArray(options.dataType, options.value);
             assert(value1 === null || value1 !== options.value);
             options.value = value1;
-        } else {
+        }
+        /* c8 ignore start */
+        else {
             assert(options.arrayType === VariantArrayType.Matrix);
             options.value = options.value || [];
 
             options.value = coerceVariantArray(options.dataType, options.value);
 
-            /* istanbul ignore next */
             if (!options.dimensions) {
                 throw new Error("Matrix Variant : missing dimensions");
             }
-            /* istanbul ignore next */
             if (options.value.length != 0 && options.value.length !== calculate_product(options.dimensions)) {
                 throw new Error(
                     "Matrix Variant : invalid value size = options.value.length " +
@@ -457,6 +495,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
                 );
             }
         }
+        /* c8 ignore stop */
     } else {
         assert(options.arrayType === VariantArrayType.Scalar || options.arrayType === undefined);
         options.arrayType = VariantArrayType.Scalar;
@@ -464,7 +503,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         // scalar
         options.value = coerceVariantType(options.dataType, options.value);
 
-        /* istanbul ignore next */
+        /* c8 ignore start */
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error(
                 "Invalid variant arrayType: " +
@@ -478,6 +517,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
                 " )"
             );
         }
+        /* c8 ignore stop */
     }
     if (options.dimensions) {
         assert(options.arrayType === VariantArrayType.Matrix, "dimension can only provided if variant is a matrix");
@@ -486,7 +526,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
 }
 
 function calculate_product(array: number[] | null): number {
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!array || array.length === 0) {
         return 0;
     }
@@ -495,25 +535,28 @@ function calculate_product(array: number[] | null): number {
 
 function get_encoder(dataType: DataType) {
     const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
-    /* istanbul ignore next */
+    /* c8 ignore start */
     if (!dataTypeAsString) {
         throw new Error("invalid dataType " + dataType);
     }
+    /* c8 ignore stop */
     const encode = findBuiltInType(dataTypeAsString).encode;
-    /* istanbul ignore next */
+    /* c8 ignore start */
     if (!encode) {
         throw new Error("Cannot find encode function for dataType " + dataTypeAsString);
     }
+    /* c8 ignore stop */
     return encode;
 }
 
 function get_decoder(dataType: DataType) {
     const dataTypeAsString = DataType[dataType];
     const decode = findBuiltInType(dataTypeAsString).decode;
-    /* istanbul ignore next */
+    /* c8 ignore start */
     if (!decode) {
         throw new Error("Variant.decode : cannot find decoder for type " + dataTypeAsString);
     }
+    /* c8 ignore stop */
     return decode;
 }
 
@@ -538,7 +581,7 @@ interface BufferedArrayConstructor {
 }
 
 function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
-    // istanbul ignore next
+    // c8 ignore next
     if (value === undefined || value === null) {
         return null;
     }
@@ -558,7 +601,7 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     for (let i = 0; i < n; i++) {
         newArr[i] = coerceFunc(value[i]);
     }
-    // istanbul ignore next
+    // c8 ignore next
     if (arrayTypeConstructor && displayWarning && n > 10) {
         warningLog("Warning ! an array containing  " + DataType[dataType] + " elements has been provided as a generic array. ");
         warningLog(
@@ -624,7 +667,7 @@ function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, valu
 function decodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: BinaryStream) {
     const length = decodeUInt32(stream);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (length === 0xffffffff) {
         return null;
     }
@@ -645,7 +688,7 @@ function decodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream
 function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
     const length = decodeUInt32(stream);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (length === 0xffffffff) {
         return null;
     }
@@ -687,42 +730,6 @@ _declareTypeArrayHelper(DataType.Int32, Int32Array);
 _declareTypeArrayHelper(DataType.UInt16, Uint16Array);
 _declareTypeArrayHelper(DataType.UInt32, Uint32Array);
 
-function _decodeVariantArrayDebug(stream: BinaryStream, decode: any, tracer: any, dataType: DataType) {
-    let cursorBefore = stream.length;
-    const length = decodeUInt32(stream);
-
-    let i;
-    let element;
-    tracer.trace("start_array", "Variant", -1, cursorBefore, stream.length);
-    if (length === 0xffffffff) {
-        // empty array
-        tracer.trace("end_array", "Variant", stream.length);
-        return;
-    }
-
-    const n1 = Math.min(10, length);
-
-    // display a maximum of 10 elements
-    for (i = 0; i < n1; i++) {
-        tracer.trace("start_element", "", i);
-        cursorBefore = stream.length;
-        element = decode(stream);
-        // arr.push(element);
-        tracer.trace("member", "Variant", element, cursorBefore, stream.length, DataType[dataType]);
-        tracer.trace("end_element", "", i);
-    }
-    // keep reading
-    if (length >= n1) {
-        for (i = n1; i < length; i++) {
-            decode(stream);
-        }
-        tracer.trace("start_element", "", n1);
-        tracer.trace("member", "Variant", "...", cursorBefore, stream.length, DataType[dataType]);
-        tracer.trace("end_element", "", n1);
-    }
-    tracer.trace("end_array", "Variant", stream.length);
-}
-
 function decodeDimension(stream: BinaryStream) {
     return decodeGeneralArray(DataType.UInt32, stream);
 }
@@ -745,17 +752,18 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
     if (value === undefined) {
         value = null;
     }
+    /* c8 ignore start */
     if (isEnumerationItem(value)) {
         // OPCUA Specification 1.0.3 5.8.2 encoding rules for various dataType:
         // [...]Enumeration are always encoded as Int32 on the wire [...]
 
-        /* istanbul ignore next */
         if (dataType !== DataType.Int32 && dataType !== DataType.ExtensionObject) {
             throw new Error(
                 "expecting DataType.Int32 for enumeration values ;" + " got DataType." + dataType.toString() + " instead"
             );
         }
     }
+    /* c8 ignore stop */
 
     switch (dataType) {
         case DataType.Null:
@@ -779,10 +787,11 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
         case DataType.UInt16:
             assert(value !== undefined);
             value = parseInt(value, 10);
-            /* istanbul ignore next */
+            /* c8 ignore start */
             if (!isFinite(value)) {
                 throw new Error("expecting a number " + value);
             }
+            /* c8 ignore stop */
             break;
         case DataType.UInt64:
             value = coerceUInt64(value);
@@ -801,10 +810,11 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
         case DataType.ByteString:
             value = typeof value === "string" ? Buffer.from(value) : value;
 
-            // istanbul ignore next
+            /* c8 ignore start */
             if (!(value === null || value instanceof Buffer)) {
                 throw new Error("ByteString should be null or a Buffer");
             }
+            /* c8 ignore stop */
             assert(value === null || value instanceof Buffer);
             break;
         default:
@@ -887,7 +897,7 @@ function isValidArrayVariant(dataType: DataType, value: any): boolean {
     return true;
 }
 
-/*istanbul ignore next*/
+/* c8 ignore start */
 function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number[] | null) {
     if (!dimensions) {
         return false;
@@ -897,6 +907,7 @@ function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number
     }
     return true;
 }
+/* c8 ignore stop */
 
 export function isValidVariant(
     arrayType: VariantArrayType,
@@ -979,6 +990,7 @@ function __check_same_object(o1: any, o2: any): boolean {
             }
             const keys1 = Object.keys(o1);
             const keys2 = Object.keys(o2);
+            /* c8 ignore next */
             if (keys1.length !== keys2.length) {
                 return false;
             }

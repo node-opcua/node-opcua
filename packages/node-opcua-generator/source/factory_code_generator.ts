@@ -1,10 +1,11 @@
-/* istanbul ignore file */
 /**
  * @module node-opcua-generator
  */
 
 // tslint:disable:max-line-length
 // tslint:disable:max-depth
+
+/* c8 ignore start */
 
 import os from "os";
 import path from "path";
@@ -114,7 +115,7 @@ function write_enumeration_setter(write: WriteFunc, schema: IStructuredTypeSchem
     const capMember = capitalizeFirstLetter(member);
     write(`    public set${capMember}(value: any): ${field.fieldType} {`);
     write(`        const coercedValue = _enumeration${field.fieldType}.get(value);`);
-    write(`        /* istanbul ignore next */`);
+    write(`        /* c8 ignore next */`);
     write(`        if (coercedValue === undefined || coercedValue === null) {`);
     write(`           throw new Error("value cannot be coerced to ${field.fieldType} :" + value);`);
     write(`        }`);
@@ -329,7 +330,7 @@ function write_constructor(write: WriteFunc, schema: IStructuredTypeSchema): voi
     }
     //    write("        if (options === undefined) { options = {}; }");
 
-    write("        /* istanbul ignore next */");
+    write("        /* c8 ignore next */");
     write("        if (parameters.debugSchemaHelper) {");
     write("            check_options_correctness_against_schema(this, schema, options);");
     write("        }");
@@ -652,33 +653,33 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: IStructuredTypeS
                     write("const _enumeration" + field.fieldType + " = " + 'getEnumeration("' + field.fieldType + '");');
                     write(
                         "const encode" +
-                            field.fieldType +
-                            ': (value: any, stream: OutputBinaryStream) => void = getEnumeration("' +
-                            field.fieldType +
-                            '").encode;'
+                        field.fieldType +
+                        ': (value: any, stream: OutputBinaryStream) => void = getEnumeration("' +
+                        field.fieldType +
+                        '").encode;'
                     );
                     write(
                         "const decode" +
-                            field.fieldType +
-                            ': (stream: BinaryStream) => void = getEnumeration("' +
-                            field.fieldType +
-                            '").decode;'
+                        field.fieldType +
+                        ': (stream: BinaryStream) => void = getEnumeration("' +
+                        field.fieldType +
+                        '").decode;'
                     );
                     break;
                 case FieldCategory.complex:
                     write(
                         "const encode" +
-                            field.fieldType +
-                            ': (value: any, stream: OutputBinaryStream) => void = getBuiltInType("' +
-                            field.fieldType +
-                            '").encode;'
+                        field.fieldType +
+                        ': (value: any, stream: OutputBinaryStream) => void = getBuiltInType("' +
+                        field.fieldType +
+                        '").encode;'
                     );
                     write(
                         "const decode" +
-                            field.fieldType +
-                            ': (stream: BinaryStream) => void  = getBuiltInType("' +
-                            field.fieldType +
-                            '").decode;'
+                        field.fieldType +
+                        ': (stream: BinaryStream) => void  = getBuiltInType("' +
+                        field.fieldType +
+                        '").decode;'
                     );
                     break;
             }
@@ -695,7 +696,7 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
     const encodingXmlNodeId = getEncodingXmlId(schema);
     const encodingJsonNodeId = getEncodingJsonId(schema);
 
-  
+
     // ----------------------------------------------- Options
     if (baseClass === "BaseUAObject" || baseClass === "ExtensionObject" || baseClass === "DataTypeDefinition") {
         write(`export interface ${className}Options {`);
@@ -826,7 +827,7 @@ export function produce_TScript_code(
     write("/**");
     write(" * @module node-opcua-address-space.types");
     write(" */");
-    write("/* istanbul ignore file */\n");
+    write("/* c8 ignore start */\n");
     write('import { assert } from "node-opcua-assert";');
     write('import util from "util";');
     write('import { makeNodeId, makeExpandedNodeId } from "node-opcua-nodeid";');
@@ -880,7 +881,7 @@ export function produce_TScript_code(
     if (baseClass !== "BaseUAObject") {
         const filename = get_class_TScript_filename_local(baseClass);
         const localFilename = normalize_require_file(folderForSourceFile, filename);
-       
+
         if (fs.existsSync(filename)) {
             assert(!localFilename.match(/\\/));
             write("import { " + baseClass + ' } from "' + localFilename + '";');
@@ -892,6 +893,8 @@ export function produce_TScript_code(
     write_expose_encoder_decoder(write, schema);
 
     writeStructuredType(write, schema);
+
+    write("/* c8 ignore stop */\n");
 
     f.saveFormat(generatedTypescriptFilename, (code) => {
         return code;
@@ -906,3 +909,4 @@ export function produce_TScript_code(
         */
     });
 }
+/* c8 ignore stop */

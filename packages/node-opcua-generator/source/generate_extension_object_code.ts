@@ -1,5 +1,5 @@
 /* eslint-disable max-statements */
-/* istanbul ignore file */
+/* c8 ignore start */
 /**
  * @module node-opcua-generator
  */
@@ -160,7 +160,7 @@ export async function generate(filename: string, generatedTypescriptFilename: st
                 jsonEncodingNodeId,
                 xmlEncodingNodeId
             };
-            // istanbul ignore next
+            // c8 ignore next
             if (doDebug) {
                 debugLog(
                     " data=",
@@ -352,3 +352,4 @@ import {
             */
     });
 }
+/* c8 ignore stop */

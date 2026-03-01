@@ -59,7 +59,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
-        // istanbul ignore next
+        // c8 ignore next
         if (super.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
             const msg = `Invalid type definition node class , expecting a ObjectType got ${
                 NodeClass[super.typeDefinitionObj.nodeClass]
@@ -170,7 +170,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         eventType = eventType as UAEventType;
 
         let eventTypeNode: UAEventType = eventType as UAEventType;
-        // istanbul ignore next
+        // c8 ignore next
         if (!eventTypeNode) {
             throw new Error("UAObject#raiseEventType : Cannot find event type :" + eventType.toString());
         }

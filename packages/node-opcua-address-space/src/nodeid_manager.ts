@@ -59,7 +59,7 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
     }
     for (const ref of options.references) {
         (ref as any)._referenceType = addressSpace.findReferenceType(ref.referenceType);
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!getReferenceType(ref)) {
             throw new Error("Cannot find referenceType " + JSON.stringify(ref));
         }

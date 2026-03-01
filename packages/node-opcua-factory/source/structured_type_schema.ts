@@ -63,7 +63,7 @@ function figureOutSchema(
 
     // may be the field.type  contains a ns<X>: prefix !! like the one found in Beckhoff PLC !
     const m = field.fieldType.match(regExp);
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!m) {
         throw new Error("malformed fieldType ? : " + field.fieldType);
     }
@@ -86,7 +86,7 @@ function figureOutSchema(
                 }
                 returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (returnValue) {
                     warningLog("Why can't we find a basic type here ?");
                 }
@@ -131,7 +131,7 @@ function buildField(
 
     const schema = figureOutSchema(underConstructSchema, dataTypeFactory, fieldLight, category);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (!schema) {
         throw new Error(
             "expecting a valid schema for field with name " +
@@ -277,7 +277,7 @@ function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema 
         }
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName(schema.baseType);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!structureInfo) {
             throw new Error(" cannot find factory for " + schema.baseType);
         }
@@ -296,12 +296,12 @@ function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema 
  */
 export function extractAllPossibleFields(schema: IStructuredTypeSchema): string[] {
     // returns cached result if any
-    // istanbul ignore next
+    // c8 ignore next
     // extract the possible fields from the schema.
     let possibleFields = schema.fields.map((field) => field.name);
 
     const baseSchema = schema.getBaseSchema();
-    // istanbul ignore next
+    // c8 ignore next
     if (baseSchema) {
         const fields = extractAllPossibleFields(baseSchema);
         possibleFields = fields.concat(possibleFields);
@@ -322,7 +322,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
 
     options = options || {};
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(options !== null && typeof options === "object") && !(typeof options === "object")) {
         let message = chalk.red(" Invalid options specified while trying to construct a ") + " " + chalk.yellow(schema.name);
         message += "\n";
@@ -332,7 +332,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
         throw new Error(message);
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (options instanceof obj.constructor) {
         return true;
     }
@@ -350,7 +350,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     }
     const invalidOptionsFields = difference(currentFields, possibleFields);
 
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (invalidOptionsFields.length > 0) {
         errorLog("expected schema", schema.name);
         errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
@@ -358,7 +358,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
         errorLog(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
         errorLog("options = ", options);
     }
-    /* istanbul ignore next */
+    /* c8 ignore next */
     if (invalidOptionsFields.length !== 0) {
         errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));

@@ -113,7 +113,7 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
     const commonName = info.tbsCertificate.subject.commonName!;
 
     const serverUri = info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier[0];
-    // istanbul ignore next
+    // c8 ignore next
     if (serverUri !== server.serverInfo.applicationUri) {
         warningLog(
             chalk.yellow("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri"),
@@ -128,7 +128,7 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
         );
     }
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!server.serverInfo.applicationName.text) {
         debugLog("warning: application name is missing");
     }

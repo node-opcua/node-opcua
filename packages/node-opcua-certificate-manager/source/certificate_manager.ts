@@ -116,7 +116,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
     public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
     public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
-        // istanbul ignore next
+        // c8 ignore next
         if (!callback || typeof callback !== "function") {
             throw new Error("Internal error");
         }

@@ -53,7 +53,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         debugLog(chalk.cyan("  announceServerOnMulticastSubnet", serviceToString(serviceConfig)));
 
         // waitServiceUp(serviceConfig, () => {
-        //     // istanbul ignore next
+        //     // c8 ignore next
         //     if (doDebug) {
         //         debugLog(chalk.cyan("  announcedOnMulticastSubnet done ", serviceToString(serviceConfig)));
         //     }

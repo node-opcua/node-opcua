@@ -38,10 +38,11 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
         const handler = this.handle_semantic_changed.bind(this);
 
         const falseState = this.getPropertyByName("FalseState");
-        /* istanbul ignore else */
         if (falseState) {
             falseState.on("value_changed", handler);
-        } else {
+        }
+        /* c8 ignore next */
+        else {
             console.warn(
                 "warning: UATwoStateDiscrete -> a FalseState property is mandatory ",
                 this.browseName.toString(),
@@ -49,10 +50,11 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
             );
         }
         const trueState = this.getPropertyByName("TrueState");
-        /* istanbul ignore else */
         if (trueState) {
             trueState.on("value_changed", handler);
-        } else {
+        }
+        /* c8 ignore next */
+        else {
             console.warn(
                 "waring: UATwoStateDiscrete -> a TrueState property is mandatory",
                 this.browseName.toString(),

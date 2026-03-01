@@ -69,7 +69,7 @@ export class TokenStack {
             derivedKeys,
             securityToken
         });
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog("id=", this.id, chalk.cyan("Pushing new token with id "), securityToken.tokenId, this.tokenIds());
         }

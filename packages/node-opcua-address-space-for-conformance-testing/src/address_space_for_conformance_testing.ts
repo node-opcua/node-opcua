@@ -70,7 +70,7 @@ function getRandomFuncForType(dataType: DataType): () => any {
                 return "<" + element + ">" + content + "</" + element + ">";
             };
         default:
-            // istanbul ignore next
+            // c8 ignore next
             throw new Error("Cannot find random" + dataTypeName + "() func anywhere");
     }
 }
@@ -78,7 +78,7 @@ function getRandomFuncForType(dataType: DataType): () => any {
 function _findDataType(dataTypeName: string): DataType {
     const builtInDataTypeName = findBuiltInType(dataTypeName);
     const dataType = (DataType as any)[builtInDataTypeName.name];
-    // istanbul ignore next
+    // c8 ignore next
     if (!dataType) {
         throw new Error(" dataType " + dataTypeName + " must exists");
     }
@@ -94,14 +94,14 @@ function validate_value_or_array(isArray: boolean, variantValue: any, validatorF
 
         for (i = 0; i < n; i++) {
             value = variantValue[i];
-            // istanbul ignore next
+            // c8 ignore next
             if (!validatorFunc(value)) {
                 throw new Error("default value must be valid for dataType " + variantValue + " at index " + i + " got " + value);
             }
         }
     } else {
         // scalar
-        // istanbul ignore next
+        // c8 ignore next
         if (!validatorFunc(variantValue)) {
             throw new Error("default value must be valid for dataType " + variantValue);
         }
@@ -198,7 +198,7 @@ function add_array_variable(
     assert(typeof dataTypeName === "string");
     assert(typeof realTypeName === "string");
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(DataType as any)[realTypeName]) {
         warningLog("dataTypeName", dataTypeName);
         warningLog("realTypeName", realTypeName);
@@ -232,7 +232,7 @@ function add_multi_dimensional_array_variable(
     assert(typeof dataTypeName === "string");
     assert(typeof realTypeName === "string");
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!(DataType as any)[realTypeName]) {
         debugLog("dataTypeName", dataTypeName);
         debugLog("realTypeName", realTypeName);
@@ -360,7 +360,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
         const dataType = _findDataType(realTypeName);
         const randomFunc = getRandomFuncForType(dataType);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (typeof randomFunc !== "function") {
             throw new Error("a random function must exist for basicType " + dataTypeName);
         }

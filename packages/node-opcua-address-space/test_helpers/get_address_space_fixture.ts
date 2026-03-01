@@ -22,7 +22,7 @@ export function getAddressSpaceFixture(pathname: string): string {
         if (!fs.existsSync(folder)) {
             folder = path.join(__dirname, "../../test_helpers/test_fixtures");
 
-            // istanbul ignore next
+            // c8 ignore next
             if (!fs.existsSync(folder)) {
                 // tslint:disable:no-console
                 console.log(" cannot find test_fixtures folder ");
@@ -31,7 +31,7 @@ export function getAddressSpaceFixture(pathname: string): string {
     }
     const filename = path.join(folder, pathname);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!fs.existsSync(filename)) {
         throw new Error(" cannot find fixture with name " + pathname);
     }

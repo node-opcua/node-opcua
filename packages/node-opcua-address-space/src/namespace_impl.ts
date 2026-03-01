@@ -131,7 +131,7 @@ function _makeHashKey(nodeId: NodeId): string | number {
         case NodeIdType.NUMERIC:
             return nodeId.value as number;
         default:
-            // istanbul ignore next
+            // c8 ignore next
             if (nodeId.identifierType !== NodeIdType.BYTESTRING) {
                 throw new Error("invalid nodeIdType");
             }
@@ -238,15 +238,15 @@ export class NamespaceImpl implements NamespacePrivate {
     private defaultRolePermissions?: RolePermissionType[];
 
     constructor(options: NamespaceConstructorOptions) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!(typeof options.namespaceUri === "string")) {
             throw new Error("NamespaceImpl constructor: namespaceUri must exists and be a string : got " + options.namespaceUri);
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (typeof options.index !== "number") {
             throw new Error("NamespaceImpl constructor: index must be a number");
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (!options.addressSpace) {
             throw new Error("NamespaceImpl constructor: Must specify a valid address space");
         }
@@ -689,7 +689,7 @@ export class NamespaceImpl implements NamespacePrivate {
         if (nodeOrNodeId instanceof NodeId) {
             nodeId = nodeOrNodeId;
             node = this.findNode(nodeId);
-            // istanbul ignore next
+            // c8 ignore next
             if (!node) {
                 throw new Error(" deleteNode : cannot find node with nodeId" + nodeId.toString());
             }
@@ -697,7 +697,7 @@ export class NamespaceImpl implements NamespacePrivate {
             node = nodeOrNodeId;
             nodeId = node.nodeId;
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (nodeId.namespace !== this.index) {
             throw new Error("this node doesn't belong to this namespace");
         }
@@ -705,7 +705,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const addressSpace = this.addressSpace;
 
         addressSpace.modelChangeTransaction(() => {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!node) {
                 throw new Error("this node doesn't belong to this namespace");
             }
@@ -1473,7 +1473,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         const fromStateNode = _component.getComponentByName(fromState);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!fromStateNode) {
             throw new Error("Cannot find state with name " + fromState);
         }
@@ -1481,7 +1481,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         const toStateNode = _component.getComponentByName(toState);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!toStateNode) {
             throw new Error("Cannot find state with name " + toState);
         }
@@ -1639,7 +1639,7 @@ export class NamespaceImpl implements NamespacePrivate {
     public _register(node: BaseNode): void {
         assert(node instanceof BaseNodeImpl, "Expecting a instance of BaseNode in _register");
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
-        // istanbul ignore next
+        // c8 ignore next
         if (node.nodeId.namespace !== this.index) {
             throw new Error(
                 "node must belong to this namespace : " +
@@ -1656,7 +1656,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         const hashKey = _makeHashKey(node.nodeId);
 
-        // istanbul ignore next
+        // c8 ignore next
         if (this._nodeid_index.has(hashKey)) {
             const existingNode = this.findNode(node.nodeId)!;
             throw new Error(
@@ -1784,7 +1784,7 @@ export class NamespaceImpl implements NamespacePrivate {
         this._register(node);
 
         // object shall now be registered
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             assert(this.findNode(node.nodeId) !== null && typeof this.findNode(node.nodeId) === "object");
         }
@@ -1795,7 +1795,7 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(node instanceof BaseNodeImpl);
 
         const hashKey = _makeHashKey(node.nodeId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!this._nodeid_index.has(hashKey)) {
             throw new Error("deleteNode : nodeId " + node.nodeId.displayText() + " is not registered " + node.nodeId.toString());
         }
@@ -1958,14 +1958,14 @@ export class NamespaceImpl implements NamespacePrivate {
 
         options.historizing = !!options.historizing;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (Object.prototype.hasOwnProperty.call(options, "hasTypeDefinition")) {
             throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
         }
         // ------------------------------------------ TypeDefinition
         let typeDefinition = options.typeDefinition || baseDataVariableTypeId;
         if (typeDefinition instanceof BaseNodeImpl) {
-            // istanbul ignore next
+            // c8 ignore next
             if (typeDefinition.nodeClass !== NodeClass.VariableType) {
                 const message = `invalid typeDefinition expecting a VariableType got ${NodeClass[typeDefinition.nodeClass]}`;
                 errorLog(message);
@@ -1993,7 +1993,7 @@ export class NamespaceImpl implements NamespacePrivate {
             return typeof options.value?.get === "function" || typeof options.value?.timestamped_get === "function";
         };
 
-        // istanbul ignore next
+        // c8 ignore next
         if (options.minimumSamplingInterval === undefined && hasGetter(options)) {
             // a getter has been specified and no options.minimumSamplingInterval has been specified
             warningLog(
@@ -2006,7 +2006,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         options.minimumSamplingInterval = options.minimumSamplingInterval !== undefined ? +options.minimumSamplingInterval : 0;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (options.minimumSamplingInterval === 0 && hasGetter(options)) {
             warningLog(
                 "[NODE-OPCUA-W31",
@@ -2239,7 +2239,7 @@ function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion?:
     assert(options);
     if (typeof options.nodeVersion == "string") {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
-        // istanbul ignore next
+        // c8 ignore next
         if (node.getNodeVersion()) {
             return; // already exists
         }

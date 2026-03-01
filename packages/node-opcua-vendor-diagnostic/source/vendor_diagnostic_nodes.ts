@@ -1,4 +1,4 @@
-/* istanbul ignore file */
+/* c8 ignore start */
 // tslint:disable:no-console
 import os from "os";
 
@@ -277,3 +277,4 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         }
     });
 }
+/* c8 ignore stop */

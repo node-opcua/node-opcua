@@ -240,7 +240,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return false;
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.messageHeader) {
             throw new Error("internal error");
         }
@@ -256,7 +256,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 const errorCode = decodeStatusCode(binaryStream);
                 const message = decodeString(binaryStream);
 
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(chalk.red.bold(" ERROR RECEIVED FROM SENDER"), chalk.cyan(errorCode.toString()), message);
                     debugLog(hexDump(binaryStream.buffer));
@@ -302,11 +302,11 @@ export class MessageBuilder extends MessageBuilderBase {
                 this.sequenceHeader = new SequenceHeader();
                 this.sequenceHeader.decode(binaryStream);
 
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(" Sequence Header", this.sequenceHeader);
                 }
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doTraceChunk) {
                     console.log(
                         chalk.cyan(timestamp()),
@@ -334,13 +334,13 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     protected override _decodeMessageBody(fullMessageBody: Buffer): boolean {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.messageHeader || !this.securityHeader) {
             return this._report_error(StatusCodes2.BadTcpInternalError, "internal error");
         }
 
         const msgType = this.messageHeader.msgType;
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (msgType === "HEL" || msgType === "ACK" || msgType === "ERR") {
             // invalid message type
             return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK/ERR )");
@@ -384,7 +384,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return this._report_error(StatusCodes.BadNotSupported, "cannot construct object with nodeID " + id);
         } else {
             if (this.#_safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 if (doDebug) {
                     const o = objMessage as any;
                     const requestHandle = o.responseHeader
@@ -418,7 +418,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     // this indicates a bug in the code that uses this class
                     // please check the stack trace to find the problem
 
-                    /* istanbul ignore next */
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog(err);
                     }
@@ -461,7 +461,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 const errMessage =
                     "Invalid Sequence Number found ( expected " + expectedSequenceNumber + ", got " + sequenceNumber + ")";
 
-                /* istanbul ignore next */
+                /* c8 ignore next */
                 debugLog(chalk.red.bold(errMessage));
                 /**
                  * notify the observers that a message with an invalid sequence number has been received.
@@ -474,7 +474,7 @@ export class MessageBuilder extends MessageBuilderBase {
             }
             // todo : handle the case where sequenceNumber wraps back to < 1024
         }
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog(chalk.yellow.bold("" + this.id + " Sequence Number = "), sequenceNumber);
         }
@@ -490,7 +490,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         const asymmetricAlgorithmSecurityHeader = this.securityHeader! as AsymmetricAlgorithmSecurityHeader;
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (doDebug) {
             debugLog("securityHeader = {");
             debugLog("              securityPolicyId: ", asymmetricAlgorithmSecurityHeader.securityPolicyUri);
@@ -501,7 +501,7 @@ export class MessageBuilder extends MessageBuilderBase {
             debugLog("};");
         }
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             // OpcUA part 2 V 1.02 page 15
             // 4.11 OPC UA Security Related Services
@@ -514,20 +514,20 @@ export class MessageBuilder extends MessageBuilderBase {
             // [...]
             //
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             debugLog(chalk.cyan("EN------------------------------"));
             // xx debugLog(hexDump(binaryStream.buffer, 32, 0xFFFFFFFF));
             debugLog("---------------------- SENDER CERTIFICATE");
             debugLog("thumbprint ", makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex"));
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (doTraceChunk) {
             const thumb = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate).toString("hex");
             warningLog(timestamp(), ` >$$ securityPolicyId:  ${asymmetricAlgorithmSecurityHeader.securityPolicyUri} ${thumb} `);
         }
 
         const cryptoFactory = getCryptoFactory(this.securityPolicy);
-        // istanbul ignore next
+        // c8 ignore next
         if (!cryptoFactory) {
             return this._report_error(
                 StatusCodes2.BadTcpInternalError,
@@ -559,7 +559,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 return this._report_error(StatusCodes2.BadTcpInternalError, "Cannot decrypt OPN package " + (err as Error).message);
             }
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(chalk.cyan("DE-----------------------------"));
                 // debugLog(hexDump(binaryStream.buffer));
@@ -585,7 +585,7 @@ export class MessageBuilder extends MessageBuilderBase {
         );
 
         if (!signatureIsOK) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(hexDump(binaryStream.buffer));
             }
@@ -607,7 +607,7 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     #_decrypt_MSG(binaryStream: BinaryStream): boolean {
-        // istanbul ignore next
+        // c8 ignore next
         if (!(this.securityHeader instanceof SymmetricAlgorithmSecurityHeader)) {
             throw new Error("Internal error : expecting a SymmetricAlgorithmSecurityHeader");
         }
@@ -620,7 +620,7 @@ export class MessageBuilder extends MessageBuilderBase {
         // Check  security token
         // securityToken may have been renewed
         const derivedKeys = this.#derivedKeyProvider.getDerivedKey(symmetricAlgorithmSecurityHeader.tokenId);
-        // istanbul ignore next
+        // c8 ignore next
         if (!derivedKeys || derivedKeys.signatureLength === 0) {
             this.#derivedKeyProvider.getDerivedKey(symmetricAlgorithmSecurityHeader.tokenId);
             return this._report_error(
@@ -641,7 +641,7 @@ export class MessageBuilder extends MessageBuilderBase {
             // adjust length
             binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
 
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(chalk.cyan("DE-----------------------------"));
                 debugLog(hexDump(binaryStream.buffer));
@@ -672,13 +672,13 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     #_decrypt(binaryStream: BinaryStream) {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.messageHeader) {
             throw new Error("internal error");
         }
         const msgType = this.messageHeader.msgType;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (msgType !== "OPN" && this.securityPolicy === SecurityPolicy.Invalid) {
             throw new Error("internal error : invalid securityPolicy" + this.securityPolicy);
         }
@@ -707,7 +707,7 @@ export class MessageBuilder extends MessageBuilderBase {
             if (types.isNativeError(err)) {
                 warningLog("Decode message error : ", err.message);
 
-                // istanbul ignore next
+                // c8 ignore next
                 if (doDebug) {
                     debugLog(err.stack);
                     debugLog(hexDump(fullMessageBody));

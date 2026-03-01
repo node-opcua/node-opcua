@@ -66,7 +66,7 @@ const minimumMaxKeepAliveCount = 3;
 function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: number, publishingInterval: number): boolean {
     const keepAliveInterval = maxKeepAliveCount * publishingInterval;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (sessionTimeout < keepAliveInterval) {
         warningLog(
             chalk.yellowBright(
@@ -181,7 +181,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             options.requestedMaxKeepAliveCount,
             options.requestedPublishingInterval
         );
-        // istanbul ignore next
+        // c8 ignore next
         if (warningEmitted) {
             warningLog(
                 JSON.stringify(
@@ -409,7 +409,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (err) {
                 return callback(err);
             }
-            /* istanbul ignore next */
+            /* c8 ignore next */
             if (!statusCode) {
                 return callback(new Error("Internal Error"));
             }
@@ -463,7 +463,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     return callback(err);
                 }
             }
-            // istanbul ignore next
+            // c8 ignore next
             if (!response) {
                 return callback(new Error("Internal Error"));
             }
@@ -634,7 +634,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 }
             }
         }
-        // istanbul ignore next
+        // c8 ignore next
         if (repeated > 1) {
             warningLog("previous message repeated", repeated, "times");
         }
@@ -725,7 +725,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     () => {
                         // now process all notifications
                         for (const notification of notificationData) {
-                            // istanbul ignore next
+                            // c8 ignore next
                             if (!notification) {
                                 continue;
                             }
@@ -820,7 +820,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         timestampsToReturn: TimestampsToReturn,
         monitoringMode: MonitoringMode = MonitoringMode.Reporting
     ): ClientMonitoredItem {
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         const monitoredItem = new ClientMonitoredItemImpl(
             this,
             itemToMonitor,
@@ -893,7 +893,7 @@ ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscr
 };
 
 export function __create_subscription(subscription: ClientSubscriptionImpl, callback: ErrorCallback) {
-    // istanbul ignore next
+    // c8 ignore next
     if (!subscription.hasSession) {
         return callback(new Error("__create_subscription: subscription has no Session"));
     }
@@ -912,7 +912,7 @@ export function __create_subscription(subscription: ClientSubscriptionImpl, call
 
     session.createSubscription(request, (err: Error | null, response?: CreateSubscriptionResponse) => {
         if (err) {
-            /* istanbul ignore next */
+            /* c8 ignore next */
             subscription.emit("internal_error", err);
             if (callback) {
                 return callback(err);
@@ -920,7 +920,7 @@ export function __create_subscription(subscription: ClientSubscriptionImpl, call
             return;
         }
 
-        /* istanbul ignore next */
+        /* c8 ignore next */
         if (!response) {
             return callback(new Error("internal error"));
         }
@@ -940,7 +940,7 @@ export function __create_subscription(subscription: ClientSubscriptionImpl, call
         displayKeepAliveWarning(subscription.session.timeout, subscription.maxKeepAliveCount, subscription.publishingInterval);
         ClientSubscription.ignoreNextWarning = false;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(chalk.yellow.bold("registering callback"));
             debugLog(chalk.yellow.bold("publishingInterval               "), subscription.publishingInterval);

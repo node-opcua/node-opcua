@@ -84,7 +84,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         this.removeCertificateNodeId = browseResults[2].targets?.[0].targetId;
         this.openWithMasksNodeId = browseResults[3].targets?.[0].targetId;
 
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.openWithMasksNodeId || this.openWithMasksNodeId.isEmpty()) {
             throw new Error("Cannot find mandatory method OpenWithMask on object");
         }
@@ -96,12 +96,12 @@ export class TrustListClient extends ClientFile implements ITrustList {
     }
 
     async openWithMasks(trustListMask: TrustListMasks): Promise<number> {
-        // istanbul ignore next
+        // c8 ignore next
         if (this.fileHandle) {
             throw new Error("File has already be opened");
         }
         await this.ensureInitialized();
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.openWithMasksNodeId) {
             throw new Error("OpenWithMasks doesn't exist");
         }
@@ -512,7 +512,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         if (browseName.toString() === "DefaultUserTokenGroup") {
             return new CertificateGroup(this.session, defaultUserTokenGroup);
         }
-        // istanbul ignore next
+        // c8 ignore next
         throw new Error("Not Implemented yet");
     }
     public async getApplicationGroup(): Promise<CertificateGroup> {

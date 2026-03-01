@@ -388,7 +388,7 @@ export class TCP_transport extends EventEmitter {
         this._socket.setTimeout(this.timeout, () => {
         });
 
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog("  TCP_transport#_install_socket ", this.name);
 
         this.#_install_packetAssembler();
@@ -404,7 +404,7 @@ export class TCP_transport extends EventEmitter {
     public sendErrorMessage(statusCode: StatusCode, extraErrorDescription: string | null): void {
         // When the Client receives an Error Message it reports the error to the application and closes the TransportConnection gracefully.
         // If a Client encounters a fatal error, it shall report the error to the application and send a CloseSecureChannel Message.
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         if (doDebug) {
             debugLog(chalk.red(" sendErrorMessage        ") + chalk.cyan(statusCode.toString()));
             debugLog(chalk.red(" extraErrorDescription   ") + chalk.cyan(extraErrorDescription));
@@ -536,7 +536,7 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_socket_data(data: Buffer): void {
-        // istanbul ignore next
+        // c8 ignore next
         if (!this.#packetAssembler) {
             throw new Error("internal Error");
         }
@@ -547,7 +547,7 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_socket_close(hadError: boolean) {
-        // istanbul ignore next
+        // c8 ignore next
         if (doDebug) {
             debugLog(chalk.red(` SOCKET CLOSE ${this.name}: `), chalk.yellow("had_error ="), chalk.cyan(hadError.toString()));
         }
@@ -583,7 +583,7 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_socket_end() {
-        // istanbul ignore next
+        // c8 ignore next
         doDebug && debugLog(chalk.red(` SOCKET END : ${this.name}`), "is disconnecting  ", this.isDisconnecting());
         if (this.isDisconnecting()) {
             return;
@@ -599,7 +599,7 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _on_socket_error(err: Error) {
-        // istanbul ignore next
+        // c8 ignore next
         debugLog(chalk.red(` _on_socket_error:  ${this.name}`), chalk.yellow(err.message));
         // node The "close" event will be called directly following this event.
         // this._emitClose(err);

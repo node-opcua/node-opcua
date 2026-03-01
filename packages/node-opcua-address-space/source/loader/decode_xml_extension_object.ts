@@ -14,13 +14,13 @@ const errorLog = make_errorLog(__filename);
 function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId)!;
 
-    // istanbul ignore next
+    // c8 ignore next
     if (!encodingNode) {
         throw new Error("findDataTypeNode:  Cannot find encoding NodeId" + encodingNodeId.toString());
     }
     const refs = encodingNode.findReferences("HasEncoding", false);
     const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
-    // istanbul ignore next
+    // c8 ignore next
     if (dataTypes.length !== 1) {
         throw new Error("Internal Error");
     }
@@ -71,7 +71,7 @@ export function decodeXmlExtensionObject(
 
     const userDefinedExtensionObject = addressSpace.constructExtensionObject(dataType, pojo);
 
-    // istanbul ignore next
+    // c8 ignore next
     if (doDebug) {
         debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
     }

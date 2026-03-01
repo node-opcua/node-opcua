@@ -301,7 +301,7 @@ export declare interface ClientSubscription {
 
 export class ClientSubscription implements IBasicSubscription {
     public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {
-        /* istanbul ignore next*/
+        /* c8 ignore next*/
         throw new Error("Not Implemented");
     }
     public static ignoreNextWarning = false;

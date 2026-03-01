@@ -1,4 +1,4 @@
-/* istanbul ignore file */
+/* c8 ignore start */
 /**
  * @module node-opcua-generator
  */
@@ -175,7 +175,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
     if (!module) {
         throw new Error("cannot find " + schemaFile);
     }
-  
+
     await generateCode(schemaName, schemaFile, generateCodeFolder);
 
     return null;
@@ -188,3 +188,4 @@ export function unregisterObject(schema: { name: string }, folder: string): void
         assert(!fs.existsSync(generateTypeScriptSource));
     }
 }
+/* c8 ignore stop */

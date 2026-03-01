@@ -42,7 +42,7 @@ export class MDNSResponder {
         };
 
         const addService = (service: Service) => {
-            // istanbul ignore next
+            // c8 ignore next
             doDebug && debugLog("adding server ", service.name, "port =", service.port);
 
             // example:
@@ -113,14 +113,14 @@ export class MDNSResponder {
         };
 
         this.#mDNSBrowser.on("up", (service: Service) => {
-            // istanbul ignore next
+            // c8 ignore next
             doDebug && debugLog("MDNSResponder : service is up with  ", serviceToString(service));
             addService(service);
             // console.log("records " , JSON.stringify(service.records()));
         });
 
         this.#mDNSBrowser.on("down", (service: Service) => {
-            // istanbul ignore next
+            // c8 ignore next
             doDebug && debugLog("MDNSResponder : service is down with  ", serviceToString(service));
             removeService(service);
         });

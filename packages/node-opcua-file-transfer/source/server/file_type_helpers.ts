@@ -196,17 +196,17 @@ export class FileTypeData {
 export async function writeFile(fileSystem: AbstractFs, filename: string, content: Buffer): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         fileSystem.open(filename, "w", (err, fd) => {
-            // istanbul ignore next
+            // c8 ignore next
             if (err) {
                 return reject(err);
             }
             fileSystem.write(fd, content, 0, content.length, 0, (err) => {
-                // istanbul ignore next
+                // c8 ignore next
                 if (err) {
                     return reject(err);
                 }
                 fileSystem.close(fd, (err) => {
-                    // istanbul ignore next
+                    // c8 ignore next
                     if (err) {
                         return reject(err);
                     }
