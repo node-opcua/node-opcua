@@ -105,8 +105,8 @@ importers:
         specifier: 5.3.0
         version: 5.3.0
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -773,8 +773,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-status-code:
         specifier: 2.162.0
         version: link:../node-opcua-status-code
@@ -880,8 +880,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -1390,8 +1390,8 @@ importers:
         specifier: 2.163.1
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-server:
         specifier: 2.163.1
         version: link:../node-opcua-server
@@ -2714,8 +2714,8 @@ importers:
         specifier: 2.163.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-server-configuration:
         specifier: 2.163.1
         version: link:../node-opcua-server-configuration
@@ -2950,8 +2950,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-secure-channel:
         specifier: 2.163.1
         version: link:../node-opcua-secure-channel
@@ -3080,8 +3080,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
       node-opcua-pseudo-session:
         specifier: 2.163.1
         version: link:../node-opcua-pseudo-session
@@ -3175,8 +3175,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.7.1
-        version: 6.7.1
+        specifier: 6.7.2
+        version: 6.7.2
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -5139,8 +5139,8 @@ packages:
   node-opcua-crypto@5.3.0:
     resolution: {integrity: sha512-JeR4TG0Z8aDSLd3aKUWU3C2LvK4SiB9SHP23a1Rh/GfwHxUB6c4Ui0M2NSqeQCG7eYLX6PrSf6mWcmHo6zB/vg==}
 
-  node-opcua-pki@6.7.1:
-    resolution: {integrity: sha512-l1lBSLbV1sbCY9Z0qFFssKUL+UJ/oe25PL+/7KC8TF4QZA4mDGQeuDR+1JvB+8DuBjwwvMqOzIWsyc92QbXeKA==}
+  node-opcua-pki@6.7.2:
+    resolution: {integrity: sha512-ji0Yo3a9/eSF2+YZ6Xgh582NNpbINSb2VlXJf0vnv9u122YzXtbyhVoJ/MW3KnNtIZiDKVbWjgqNQcn8TT4ImA==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6960,7 +6960,7 @@ snapshots:
       '@peculiar/x509': 1.14.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.7.1:
+  node-opcua-pki@6.7.2:
     dependencies:
       '@ster5/global-mutex': 3.1.1
       byline: 5.0.0
