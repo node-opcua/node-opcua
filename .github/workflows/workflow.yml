@@ -20,8 +20,12 @@ jobs:
       matrix:
         node-version: [20.x, 22.x, 24.x]
         include:
-          - node-version: ${{ matrix.node-version }}
+          - node-version: 20.x
             SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+          - node-version: 22.x
+            SECURITY_REVERT_CVE_2023_46809: ""
+          - node-version: 24.x
+            SECURITY_REVERT_CVE_2023_46809: ""
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
