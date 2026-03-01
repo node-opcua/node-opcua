@@ -19,13 +19,7 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x, 22.x, 24.x]
-        include:
-          - node-version: 20.x
-            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
-          - node-version: 22.x
-            SECURITY_REVERT_CVE_2023_46809: ""
-          - node-version: 24.x
-            SECURITY_REVERT_CVE_2023_46809: ""
+
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
@@ -41,9 +35,14 @@ jobs:
       - run: pnpm recursive install --no-frozen-lockfile
       - run: pnpm run build
       - run: pnpm run pretest
-      - run: pnpm run test:win
-        env:
-          SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
+      - name: Run tests (Node 20 with security revert)
+        if: matrix.node-version == '20.x'
+        shell: bash
+        run: cd packages && node --expose-gc --security-revert=CVE-2023-46809 --max-old-space-size=2048 run_all_mocha_tests.js
+      - name: Run tests (Node 22+)
+        if: matrix.node-version != '20.x'
+        shell: bash
+        run: cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
 
   build:
     runs-on: ubuntu-latest
