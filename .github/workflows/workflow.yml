@@ -1,4 +1,3 @@
-
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
@@ -10,77 +9,73 @@ env:
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
-
   build_on_windows:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: [20.x ]
+        node-version: [20.x, 22.x, 24.x]
         include:
-          - node-version: 20.x
+          - node-version: ${{ matrix.node-version }}
             SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - uses: actions/cache@v4
-      with:
-        path: ~/.pnpm-store
-        key: ${{ runner.os }}-pnpm-store
-    - run: npm install -g pnpm@9
-    - run: pnpm run consistency
-    - run: pnpm recursive install --no-frozen-lockfile
-    - run: pnpm run build
-    - run: pnpm run pretest
-    - run: pnpm run test:win
-      env:
-        SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
-
-
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store
+      - run: npm install -g pnpm@9
+      - run: pnpm run consistency
+      - run: pnpm recursive install --no-frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run pretest
+      - run: pnpm run test:win
+        env:
+          SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
 
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 20.x, 22.x, 24.x ]
+        node-version: [20.x, 22.x, 24.x]
         include:
           - node-version: 20.x
             SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - uses: actions/cache@v4
-      with:
-        path: ~/.pnpm-store
-        key: ${{ runner.os }}-pnpm-store
-    - run: npm install -g pnpm@9
-    - run: pnpm recursive install --no-frozen-lockfile
-    - run: pnpm run build
-    - run: hostname 
-    - run: openssl version
-    - run: pnpm run pretest
-    - run: pnpm run test
-      env:
-        SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
-
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store
+      - run: npm install -g pnpm@9
+      - run: pnpm recursive install --no-frozen-lockfile
+      - run: pnpm run build
+      - run: hostname
+      - run: openssl version
+      - run: pnpm run pretest
+      - run: pnpm run test
+        env:
+          SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
 
   # legacy:
   #   runs-on: ubuntu-latest
   #   strategy:
   #     matrix:
   #       node-version: [ 16.x ]
- 
+
   #   steps:
   #   - uses: actions/checkout@v4
   #   - name: Use Node.js ${{ matrix.node-version }}
@@ -95,11 +90,10 @@ jobs:
   #   - run: grep pnpm package.json
   #   - run: pnpm recursive install --no-frozen-lockfile
   #   - run: pnpm run build
-  #   - run: hostname 
+  #   - run: hostname
   #   - run: openssl version
   #   - run: pnpm run pretest
   #   - run: pnpm test
-
 
   coverage:
     runs-on: ubuntu-latest
@@ -114,7 +108,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}  
+          node-version: ${{ matrix.node-version }}
       - uses: actions/cache@v4
         with:
           path: ~/.pnpm-store
@@ -123,16 +117,16 @@ jobs:
       # - run: npm install -g codeclimate-test-reporter
       - run: npm install -g pnpm@9
       - run: pnpm recursive install --no-frozen-lockfile
-      - run: pnpm run build 
-      - run: hostname 
+      - run: pnpm run build
+      - run: hostname
       - run: openssl version
       - run: pnpm run pretest
         env:
-          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}        
-      - run: make test-cov     
+          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}
+      - run: make test-cov
         env:
-          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}        
+          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
