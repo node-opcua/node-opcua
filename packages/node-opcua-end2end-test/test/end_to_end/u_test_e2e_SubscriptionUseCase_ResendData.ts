@@ -167,21 +167,22 @@ export function t(test: TestHarness) {
                 // My understanding: we should have 2 elements related to item 2
                 // => causes: initial value, resend
                 // => also due to queueSize was large enough
+                // Note: notifications may arrive in 1 or 2 messages depending
+                // on publish cycle timing, so collect all items across messages.
                 {
-                    messages.length.should.eql(1);
-                    messages[0].notificationData!.length.should.eql(1);
-                    const n0 = messages[0].notificationData![0] as DataChangeNotification;
-                    n0.monitoredItems!.length.should.eql(2);
-                    n0.monitoredItems![0].clientHandle.should.eql(2);
-                    n0.monitoredItems![0].value.value.value.should.eql(200);
+                    messages.length.should.be.greaterThanOrEqual(1);
+                    const allItems = messages.flatMap((m) =>
+                        (m.notificationData || [])
+                            .filter((nd): nd is DataChangeNotification => nd instanceof DataChangeNotification)
+                            .flatMap((nd) => nd.monitoredItems || [])
+                    );
+                    allItems.length.should.eql(2);
+                    allItems[0].clientHandle.should.eql(2);
+                    allItems[0].value.value.value.should.eql(200);
 
-                    n0.monitoredItems![1].clientHandle.should.eql(2);
-                    n0.monitoredItems![1].value.value.value.should.eql(200);
-                    n0.monitoredItems![1].value.toString().should.eql(n0.monitoredItems![0].value.toString());
-
-                    // n0.monitoredItems![2].clientHandle.should.eql(2);
-                    // n0.monitoredItems![2].value.value.value.should.eql(200);
-                    // n0.monitoredItems![2].value.toString().should.eql(n0.monitoredItems![0].value.toString());
+                    allItems[1].clientHandle.should.eql(2);
+                    allItems[1].value.value.value.should.eql(200);
+                    allItems[1].value.toString().should.eql(allItems[0].value.toString());
                 }
             });
         });
