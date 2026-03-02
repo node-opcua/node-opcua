@@ -54,7 +54,7 @@ const port = parseInt(argv.port) || 26555;
             value = (value + 1) % 100000;
             variable0.setValueFromSource({ dataType: DataType.Int32, value })
         }, 100);
-        addressSpace.registerShutdownTask(()=> clearInterval(timerId));
+        addressSpace.registerShutdownTask(() => clearInterval(timerId));
 
         await server.start();
         const endpointUrl = server.getEndpointUrl();
@@ -63,6 +63,18 @@ const port = parseInt(argv.port) || 26555;
         console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
         console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
+        // Inactivity watchdog: auto-shutdown if no OPC UA activity for 30s
+        const inactivityTimeout = 30000;
+        let watchdog = setTimeout(onInactivityTimeout, inactivityTimeout);
+        server.on("response", () => {
+            clearTimeout(watchdog);
+            watchdog = setTimeout(onInactivityTimeout, inactivityTimeout);
+        });
+        function onInactivityTimeout() {
+            console.log(chalk.yellow("  server shutting down due to inactivity"));
+            server.shutdown(500).then(() => process.exit(0));
+        }
+
         if (doDebug) {
             for (const e of server.endpoints) {
                 for (const ed of e.endpointDescriptions()) {
@@ -70,12 +82,14 @@ const port = parseInt(argv.port) || 26555;
                 }
             }
         }
-        process.once("SIGINT", async () => {
-            // only work on linux apparently
+        async function gracefulShutdown() {
+            clearTimeout(watchdog);
             await server.shutdown(1000);
             console.log(chalk.red.bold(" shutting down completed "));
             process.exit(1);
-        });
+        }
+        process.once("SIGINT", gracefulShutdown);
+        process.once("SIGTERM", gracefulShutdown);
     } catch (err) {
         console.log(chalk.red(err.message));
         process.exit(3);

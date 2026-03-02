@@ -71,15 +71,29 @@ const port = parseInt(argv.port) || 26555;
         console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
         console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
-        process.once("SIGINT", async () => {
-            // only work on linux apparently
+        // Inactivity watchdog: auto-shutdown if no OPC UA activity for 30s
+        const inactivityTimeout = 30000;
+        let watchdog = setTimeout(onInactivityTimeout, inactivityTimeout);
+        server.on("response", () => {
+            clearTimeout(watchdog);
+            watchdog = setTimeout(onInactivityTimeout, inactivityTimeout);
+        });
+        function onInactivityTimeout() {
+            console.log(chalk.yellow("  server shutting down due to inactivity"));
+            server.shutdown(500).then(() => process.exit(0));
+        }
+
+        async function gracefulShutdown() {
+            clearTimeout(watchdog);
             await server.shutdown(1000);
             console.log(chalk.red.bold(" shutting down completed "));
             process.exit(-1);
-        });
+        }
+        process.once("SIGINT", gracefulShutdown);
+        process.once("SIGTERM", gracefulShutdown);
     } catch (err) {
         console.log(chalk.red(err.message));
-   
+
         process.exit(1);
     }
 })();
