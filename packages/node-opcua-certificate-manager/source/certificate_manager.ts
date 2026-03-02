@@ -137,7 +137,20 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             if (this.automaticallyAcceptUnknownCertificate) {
                 debugLog("automaticallyAcceptUnknownCertificate = true");
                 debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
-                await this.trustCertificate(topCertificateInChain);
+                try {
+                    await this.trustCertificate(topCertificateInChain);
+                } catch (err: any) {
+                    if (err.code === "ENOENT") {
+                        // Another concurrent caller already moved the certificate
+                        // from rejected to trusted — verify it's now trusted.
+                        const trustStatus = await this.getTrustStatus(topCertificateInChain);
+                        if (trustStatus.equals(StatusCodes.Good)) {
+                            debugLog("certificate with thumbprint " + thumbprint + " was already trusted by another caller");
+                            return StatusCodes.Good;
+                        }
+                    }
+                    throw err;
+                }
                 return StatusCodes.Good;
             } else {
                 debugLog("automaticallyAcceptUnknownCertificate = false");

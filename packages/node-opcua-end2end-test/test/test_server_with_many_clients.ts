@@ -62,18 +62,11 @@ describe("Functional test : one server with many concurrent clients", function (
         });
         await clientCertificateManager.initialize();
     });
-    beforeEach(async () => {
+
+
+    after(async () => {
+        await server.shutdown();
         await clientCertificateManager.dispose();
-    });
-
-    afterEach((done) => {
-        done();
-    });
-
-    after((done) => {
-        server.shutdown(() => {
-            done();
-        });
     });
 
     const expectedSubscriptionCount = 0;
