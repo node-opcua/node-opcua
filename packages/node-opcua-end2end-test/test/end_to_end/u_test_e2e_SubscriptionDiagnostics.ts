@@ -63,7 +63,7 @@ async function stopSubscriptionByTransfer(endpointUrl: string, subscription: Cli
 
     const client = OPCUAClient.create({});
     await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
-    const response = await (session as any).transferSubscriptions({ subscriptionIds: [subscriptionId] });
+        const response = await (session as any).transferSubscriptions({ subscriptionIds: [subscriptionId] });
         if (response.results[0].statusCode.isNotGood()) {
             console.log(response.toString());
         }
@@ -97,7 +97,7 @@ async function createPersistentSubscription(endpointUrl: string): Promise<Client
 
 async function checkSubscriptionExists(session: ClientSession, subscriptionId: number): Promise<boolean> {
     try {
-    await (session as any).setMonitoringMode({ subscriptionId, monitoringMode: MonitoringMode.Reporting });
+        await (session as any).setMonitoringMode({ subscriptionId, monitoringMode: MonitoringMode.Reporting });
         return true;
     } catch (err: any) {
         if (err.message.match(/BadNothingToDo/)) return true;
@@ -107,7 +107,7 @@ async function checkSubscriptionExists(session: ClientSession, subscriptionId: n
     }
 }
 
-export  function t (test: TestHarness): void {
+export function t(test: TestHarness): void {
     describe("SubscriptionDiagnostics", function () {
         it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
@@ -244,7 +244,11 @@ export  function t (test: TestHarness): void {
                 array2.length.should.eql(before.length + 1);
                 const exist1 = await checkSubscriptionExists(session, subscriptionId);
                 exist1.should.eql(true);
-                const timeout = subscriptionTimeOut + 2000;
+                // We must NOT poll the subscription (e.g., via setMonitoringMode) while
+                // waiting for it to time out, because _apply_on_Subscription resets the
+                // subscription's lifetime counter on every service request.
+                // Use a generous margin (2x + extra) to account for CI timer drift.
+                const timeout = subscriptionTimeOut * 2 + 2000;
                 doDebug && console.log("waiting = ", timeout);
                 await wait(timeout);
                 const exist2 = await checkSubscriptionExists(session, subscriptionId);
