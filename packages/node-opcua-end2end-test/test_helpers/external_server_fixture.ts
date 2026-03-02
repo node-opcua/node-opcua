@@ -9,18 +9,35 @@ import { OPCUAServerOptions } from "node-opcua-server";
 
 const debugLog = make_debugLog("TEST");
 
-/**
- * @method start_simple_server
- * @param options
- * @param options.env
- * @param options.server_sourcefile {String} the path to the server source file
- * @return Handle
- */
-export async function start_simple_server(options: { 
-    silent?: boolean, 
-    env?: any, 
-    port?: string | number, 
-    server_sourcefile: string 
+export async function start_simple_server(options: {
+    silent?: boolean,
+    env?: any,
+    port?: string | number,
+    server_sourcefile: string
+}) {
+    const maxRetries = 5;
+    const retryDelay = 2000;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await _start_simple_server_once({ ...options });
+        } catch (err: any) {
+            const isRetryable = attempt < maxRetries && /code=3/.test(err.message);
+            if (isRetryable) {
+                console.log(`start_simple_server: attempt ${attempt} failed (${err.message}), retrying in ${retryDelay}ms...`);
+                await new Promise(r => setTimeout(r, retryDelay));
+                continue;
+            }
+            throw err;
+        }
+    }
+    throw new Error("start_simple_server: all retries exhausted");
+}
+
+async function _start_simple_server_once(options: {
+    silent?: boolean,
+    env?: any,
+    port?: string | number,
+    server_sourcefile: string
 }) {
     options = options || {};
 
@@ -47,7 +64,7 @@ export async function start_simple_server(options: {
 
     //xx options.env.DEBUG = "ALL";
 
-    const server_exec = spawn("node", [serverScript, "-p", "" + port ], options);
+    const server_exec = spawn("node", [serverScript, "-p", "" + port], options);
 
     const serverCertificateFilename = path.join(__dirname, "../../node-opcua-samples/certificates/server_cert_2048.pem");
 
@@ -105,10 +122,10 @@ export async function start_simple_server(options: {
 
         function dumpData(prolog: string, data: string) {
             data = "" + data;
-            const data2 = data.split("\n") ;
+            const data2 = data.split("\n");
             data2.filter(function (a) {
                 return a.length > 0;
-            }).forEach( (line) =>{
+            }).forEach((line) => {
                 detect_ready_message(line);
                 if (!options.silent) {
                     console.log(prolog + line);

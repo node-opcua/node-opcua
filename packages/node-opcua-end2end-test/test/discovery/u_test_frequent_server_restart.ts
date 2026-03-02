@@ -233,14 +233,14 @@ export function t(test: TestHarness) {
                 console.log(OPCUAClientBase.registry.toString());
             }
 
-            console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
+            doDebug && console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
             await pause(100);
             OPCUAClientBase.registry.count().should.eql(0, "1. All Clients should have been properly disposed of");
             await pause(100);
             OPCUAClientBase.registry.count().should.eql(0, "2. All Clients should have been properly disposed of");
             await pause(100);
             OPCUAClientBase.registry.count().should.eql(0, "3. All Clients should have been properly disposed of");
-            console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
+            doDebug && console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
         });
         it("DISCO4-A - should perform start/stop cycle efficiently - wait ", async () => {
             await createServer();
@@ -348,10 +348,11 @@ export function t(test: TestHarness) {
         it("DISCO4-G - registration manager as a standalone object 2/2 on a none existant discoveryServerEndpointUrl", async function () {
 
             // it should be possible to start and stop immediately when the registration process 
+            const serverCertificateManager = new OPCUACertificateManager({});
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl: "opc.tcp://localhost:48481", // << not existing
                 server: {
-                    serverCertificateManager: new OPCUACertificateManager({}),
+                    serverCertificateManager,
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],
@@ -373,6 +374,8 @@ export function t(test: TestHarness) {
             await registrationManager.start();
             console.log(" Stopping");
             await registrationManager.stop();
+            registrationManager.dispose();
+            await serverCertificateManager.dispose();
 
         });
         it("DISCO4-H - registration manager as a standalone object 2/2", async () => {
@@ -399,6 +402,7 @@ export function t(test: TestHarness) {
             });
             await registrationManager.start();
             await registrationManager.stop();
+            registrationManager.dispose();
         });
 
         const max_duration = 40_000;
@@ -446,7 +450,7 @@ export function t(test: TestHarness) {
             await createServer();
             // and stop immediately( clients will probably have not enough time to reconnect )
             await shutdownServer();
-   
+
             // do it randomly, so we can augment the chance that clients are at various stages
             // in the process of reconnecting
             const startTime = Date.now();

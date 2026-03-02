@@ -1,4 +1,4 @@
-/**
+ /**
  * @module node-opcua-server
  */
 // tslint:disable:no-console
@@ -403,7 +403,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 if (!this.#_isTerminating()) {
                     this.#_setState(RegisterServerManagerStatus.INACTIVE);
                     this.#_emitEvent("serverRegistrationFailure");
-                    await pause(Math.min(5000, this.timeout));
+                    // interruptible pause: check for shutdown every 100ms
+                    const delay = Math.min(5000, this.timeout);
+                    for (let elapsed = 0; elapsed < delay && !this.#_isTerminating(); elapsed += 100) {
+                        await pause(100);
+                    }
                 }
             }
         }
@@ -513,6 +517,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                     warningLog("RegisterServerManager#_establish_initial_connection: error disconnecting client", err);
                 }
             }
+            server.serverCertificateManager.referenceCounter--;
         }
     }
 
@@ -681,6 +686,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this._registration_client = null;
                 await tmp.disconnect();
             }
+            server.serverCertificateManager.referenceCounter--;
         }
     }
 
