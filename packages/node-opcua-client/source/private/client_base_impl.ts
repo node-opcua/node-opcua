@@ -42,7 +42,7 @@ import {
 } from "node-opcua-service-endpoints";
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { matchUri } from "node-opcua-utils";
+import { matchUri, checkFileExistsAndIsNotEmpty } from "node-opcua-utils";
 
 import { getDefaultCertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { VerificationStatus } from "node-opcua-pki";
@@ -442,6 +442,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
         this.clientCertificateManager = options.clientCertificateManager;
+        this.clientCertificateManager.referenceCounter++;
 
         this._secureChannel = null;
 
@@ -785,9 +786,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             errorLog("Internal error : re-entrancy in createDefaultCertificate!");
         }
         (this as any)._inCreateDefaultCertificate = true;
-        if (!fs.existsSync(this.certificateFile)) {
+
+        if (!checkFileExistsAndIsNotEmpty(this.certificateFile)) {
             await withLock({ fileToLock: this.certificateFile + ".mutex" }, async () => {
-                if (fs.existsSync(this.certificateFile)) {
+                if (checkFileExistsAndIsNotEmpty(this.certificateFile)) {
                     // the file may have been created in between
                     return;
                 }
@@ -1278,7 +1280,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if (this.clientCertificateManager) {
             const tmp = this.clientCertificateManager;
             // (this as any).clientCertificateManager = null;
-            tmp.dispose();
+            tmp.dispose().catch((err: Error) => {
+                debugLog("Error disposing clientCertificateManager", err.message);
+            });
         }
 
         if (this._sessions.length) {

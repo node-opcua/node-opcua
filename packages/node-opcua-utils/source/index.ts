@@ -44,4 +44,5 @@ export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump";
 export * from "./timestamp";
 export * from "./line_file";
 export * from "./match_uri";
-export {hrtime} from "./hrtime";
+export { hrtime } from "./hrtime";
+export { checkFileExistsAndIsNotEmpty } from "./check_file_exists";
