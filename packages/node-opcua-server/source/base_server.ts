@@ -36,7 +36,7 @@ import { ServiceFault } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
 import { EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
-import { matchUri } from "node-opcua-utils";
+import { matchUri, checkFileExistsAndIsNotEmpty } from "node-opcua-utils";
 
 import { performCertificateSanityCheck } from "node-opcua-client";
 import { OPCUAServerEndPoint } from "./server_end_point";
@@ -189,9 +189,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 /* to do */
             }
         }
-        if (!fs.existsSync(this.certificateFile)) {
+        if (!checkFileExistsAndIsNotEmpty(this.certificateFile)) {
             await withLock({ fileToLock: this.certificateFile + ".mutex" }, async () => {
-                if (fs.existsSync(this.certificateFile)) {
+                if (checkFileExistsAndIsNotEmpty(this.certificateFile)) {
                     return;
                 }
                 const applicationUri = this.serverInfo.applicationUri!;
