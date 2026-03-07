@@ -105,8 +105,8 @@ importers:
         specifier: 5.3.0
         version: 5.3.0
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -773,8 +773,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-status-code:
         specifier: 2.164.0
         version: link:../node-opcua-status-code
@@ -880,8 +880,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-pseudo-session:
         specifier: 2.164.0
         version: link:../node-opcua-pseudo-session
@@ -1390,8 +1390,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-server:
         specifier: 2.164.0
         version: link:../node-opcua-server
@@ -2714,8 +2714,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-server-configuration:
         specifier: 2.164.0
         version: link:../node-opcua-server-configuration
@@ -2950,8 +2950,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-secure-channel:
         specifier: 2.164.0
         version: link:../node-opcua-secure-channel
@@ -3080,8 +3080,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
       node-opcua-pseudo-session:
         specifier: 2.164.0
         version: link:../node-opcua-pseudo-session
@@ -3175,8 +3175,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.8.0
-        version: 6.8.0
+        specifier: 6.8.1
+        version: 6.8.1
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4309,15 +4309,6 @@ packages:
   '@sinonjs/samsam@9.0.2':
     resolution: {integrity: sha512-H/JSxa4GNKZuuU41E3b8Y3tbSEx8y4uq4UH1C56ONQac16HblReJomIvv3Ud7ANQHQmkeSowY49Ij972e/pGxQ==}
 
-  '@ster5/global-mutex@3.2.0':
-    resolution: {integrity: sha512-F8E4nSdDgonjiid3jSuddQqeEB0u1Tx232HcDHgoKnFBmi5J79YT0BdmWHeBy+xVtKdpILH08snscOyKu0xPNQ==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      proper-lockfile: '*'
-    peerDependenciesMeta:
-      proper-lockfile:
-        optional: true
-
   '@ster5/global-mutex@3.2.1':
     resolution: {integrity: sha512-Z06CZMGn3zL2Fpg5XDFdVdM0dY+R2JnB/Wk+VF1ME/iHJjZuQ8VbTuteboUq7M+sB23aHi3TPNXuvo6QUF1YtA==}
     engines: {node: '>=20'}
@@ -5114,8 +5105,8 @@ packages:
   node-opcua-crypto@5.3.0:
     resolution: {integrity: sha512-JeR4TG0Z8aDSLd3aKUWU3C2LvK4SiB9SHP23a1Rh/GfwHxUB6c4Ui0M2NSqeQCG7eYLX6PrSf6mWcmHo6zB/vg==}
 
-  node-opcua-pki@6.8.0:
-    resolution: {integrity: sha512-PRgpM+7bKp19MoKrMNPP/bXp1y/kiBF9jwR4H8TKHrN70hpsn1mYHZ+3t63yJPpzLqjfSrIZqCaispQp0+zqgg==}
+  node-opcua-pki@6.8.1:
+    resolution: {integrity: sha512-uYnNTR2jmr+RjKS1WytXK1Ymd84nMDDhk/WB7B2dtJ47Y9LkjXxepdbbid0tCHl32ngBR53Ud7zWi8X5Bk0l0w==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6103,8 +6094,6 @@ snapshots:
       '@sinonjs/commons': 3.0.1
       type-detect: 4.1.0
 
-  '@ster5/global-mutex@3.2.0': {}
-
   '@ster5/global-mutex@3.2.1': {}
 
   '@ts-morph/common@0.28.1':
@@ -6871,9 +6860,9 @@ snapshots:
       '@peculiar/x509': 1.14.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.8.0:
+  node-opcua-pki@6.8.1:
     dependencies:
-      '@ster5/global-mutex': 3.2.0
+      '@ster5/global-mutex': 3.2.1
       byline: 5.0.0
       chalk: 4.1.2
       chokidar: 4.0.3
