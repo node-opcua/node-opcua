@@ -2155,3 +2155,42 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
         done();
     });
 });
+
+describe("US-031: ServerEngine.setServerState", function () {
+    let engine: ServerEngine;
+
+    before(function (done) {
+        engine = new ServerEngine({
+            applicationUri: "URI:NODEOPCUA-SERVER-STATE-TEST",
+            buildInfo: {
+                productName: "STATE-TEST",
+                productUri: "URI:STATE-TEST"
+            }
+        });
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, done);
+    });
+
+    after(async () => {
+        await engine.shutdown();
+    });
+
+    it("should update Server.ServerStatus.State variable", () => {
+        const stateVariable = engine.addressSpace!.rootFolder.objects.server
+            .serverStatus.state;
+
+        engine.setServerState(ServerState.NoConfiguration);
+        stateVariable.readValue().value.value.should.eql(
+            ServerState.NoConfiguration
+        );
+
+        engine.setServerState(ServerState.Running);
+        stateVariable.readValue().value.value.should.eql(
+            ServerState.Running
+        );
+
+        engine.setServerState(ServerState.Shutdown);
+        stateVariable.readValue().value.value.should.eql(
+            ServerState.Shutdown
+        );
+    });
+});

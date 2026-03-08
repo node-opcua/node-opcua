@@ -86,7 +86,7 @@ export interface ISessionContext {
     object?: UAObject | UAObjectType;
 
     /** Server timestamp at the time the request was received. */
-    readonly currentTime?: PreciseClock;
+    currentTime?: PreciseClock;
 
     /** Display name of the authenticated user (e.g. "anonymous"). */
     readonly userIdentity?: string;

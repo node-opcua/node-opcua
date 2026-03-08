@@ -1069,6 +1069,18 @@ export class OPCUAServer extends OPCUABaseServer {
         return this.engine ? this.engine.isAuditing : false;
     }
 
+    /**
+     * Set the current server state.
+     *
+     * Updates both the internal state and the
+     * `Server.ServerStatus.State` variable in the
+     * address space so that OPC UA reads reflect the
+     * new state immediately.
+     */
+    public setServerState(serverState: ServerState): void {
+        this.engine.setServerState(serverState);
+    }
+
     public static registry = new ObjectRegistry();
     public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
     /**
