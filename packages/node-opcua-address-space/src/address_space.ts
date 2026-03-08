@@ -55,7 +55,8 @@ import {
     IAddressSpace,
     ShutdownTask,
     RaiseEventData,
-    UAVariableT
+    UAVariableT,
+    MethodCallInterceptor
 } from "node-opcua-address-space-base";
 import { make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 
@@ -191,6 +192,7 @@ export class AddressSpace implements AddressSpacePrivate {
     private _shutdownTask?: ShutdownTask[];
     private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
+    public _methodCallInterceptors: MethodCallInterceptor[] = [];
 
     constructor() {
         this._private_namespaceIndex = 1;
@@ -1080,6 +1082,27 @@ export class AddressSpace implements AddressSpacePrivate {
         this._shutdownTask = this._shutdownTask || [];
         assert(typeof task === "function");
         this._shutdownTask.push(task);
+    }
+
+    /**
+     * Register a method call interceptor.
+     * Interceptors are called sequentially before each UAMethod.execute().
+     * If any interceptor returns a non-Good StatusCode, the method call
+     * is rejected and subsequent interceptors are skipped.
+     */
+    public addMethodCallInterceptor(interceptor: MethodCallInterceptor): void {
+        assert(typeof interceptor === "function");
+        this._methodCallInterceptors.push(interceptor);
+    }
+
+    /**
+     * Remove a previously registered method call interceptor.
+     */
+    public removeMethodCallInterceptor(interceptor: MethodCallInterceptor): void {
+        const index = this._methodCallInterceptors.indexOf(interceptor);
+        if (index !== -1) {
+            this._methodCallInterceptors.splice(index, 1);
+        }
     }
 
     public async shutdown(): Promise<void> {
