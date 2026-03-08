@@ -5,7 +5,7 @@ import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
-import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext, PseudoSession } from "..";
+import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext, PseudoSession, MethodCallInterceptor } from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -176,10 +176,10 @@ describe("testing Method binding", () => {
 
         async function method(this: UAMethod, inputArguments: Variant[], context1: ISessionContext): Promise<CallMethodResultOptions> {
             should(Array.isArray(inputArguments)).eql(true);
-        
+
             inputArguments[0].dataType.should.eql(DataType.UInt32);
             inputArguments[0].value.should.eql(5);
-    
+
             const myResult = {
                 outputArguments: [
                     { dataType: DataType.UInt32, value: [1, 2, 3] },
@@ -190,7 +190,7 @@ describe("testing Method binding", () => {
             await new Promise((resolve) => setImmediate(resolve));
             return myResult;
         }
-    
+
         server.getMonitoredItems!.bindMethod(method);
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
@@ -219,20 +219,20 @@ describe("testing Method calling", () => {
     });
 
     it("should return BadMethodInvalid if methodId is invalid", async () => {
-      
+
         const server = rootFolder.objects.server;
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
-      
+
         const pseudoSession = new PseudoSession(addressSpace);
 
-        const result  = await pseudoSession.call({
+        const result = await pseudoSession.call({
             objectId: server.nodeId,
             methodId: "ns=0;i=2258", // not a method
             inputArguments
         });
 
         result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
-       
+
     });
     it("should return BadMethodInvalid if methodId node does'nt exist", async () => {
         const server = rootFolder.objects.server;
@@ -249,4 +249,227 @@ describe("testing Method calling", () => {
         result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
     });
 
+});
+
+describe("US-030: method call interceptors and afterCall event", () => {
+    let addressSpace: AddressSpace;
+    let namespace: Namespace;
+
+    before(async () => {
+        addressSpace = await getMiniAddressSpace();
+        namespace = addressSpace.getOwnNamespace();
+    });
+    after(() => {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
+    });
+
+    function createBoundMethod(): UAMethod {
+        const obj = namespace.addObject({ browseName: "TestObj_" + Math.random().toString(36).slice(2) });
+        const method = namespace.addMethod(obj, {
+            browseName: "TestMethod_" + Math.random().toString(36).slice(2),
+            executable: true,
+            inputArguments: [
+                { name: "a", dataType: DataType.UInt32 }
+            ],
+            outputArguments: [
+                { name: "result", dataType: DataType.UInt32 }
+            ]
+        });
+        method.bindMethod(
+            async function (this: UAMethod, inputArguments: Variant[], ctx: ISessionContext) {
+                return {
+                    statusCode: StatusCodes.Good,
+                    outputArguments: [{ dataType: DataType.UInt32, value: 42 }]
+                };
+            }
+        );
+        return method;
+    }
+
+    it("should allow method call when no interceptors registered", async () => {
+        const method = createBoundMethod();
+        const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+        result.statusCode!.should.eql(StatusCodes.Good);
+        should.exist(result.outputArguments![0]);
+        result.outputArguments![0]?.value.should.eql(42);
+    });
+
+    it("should reject method call when sync interceptor returns non-Good", async () => {
+        const method = createBoundMethod();
+        let methodBodyCalled = false;
+        method.bindMethod(async function (this: UAMethod, inputArguments: Variant[], ctx: ISessionContext) {
+            methodBodyCalled = true;
+            return { statusCode: StatusCodes.Good };
+        });
+
+        const interceptor: MethodCallInterceptor = (ctx, obj, m, args) => {
+            return StatusCodes.BadUserAccessDenied;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor);
+
+        try {
+            const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            methodBodyCalled.should.eql(false, "method body should not be called when interceptor rejects");
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor);
+        }
+    });
+
+    it("should reject method call when async interceptor returns non-Good", async () => {
+        const method = createBoundMethod();
+        let methodBodyCalled = false;
+        method.bindMethod(async function (this: UAMethod, inputArguments: Variant[], ctx: ISessionContext) {
+            methodBodyCalled = true;
+            return { statusCode: StatusCodes.Good };
+        });
+
+        const interceptor: MethodCallInterceptor = async (ctx, obj, m, args) => {
+            await new Promise((resolve) => setImmediate(resolve));
+            return StatusCodes.BadNotExecutable;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor);
+
+        try {
+            const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+            result.statusCode!.should.eql(StatusCodes.BadNotExecutable);
+            methodBodyCalled.should.eql(false, "method body should not be called when async interceptor rejects");
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor);
+        }
+    });
+
+    it("should allow method call when interceptor returns Good", async () => {
+        const method = createBoundMethod();
+
+        const interceptor: MethodCallInterceptor = (ctx, obj, m, args) => {
+            return StatusCodes.Good;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor);
+
+        try {
+            const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+            result.statusCode!.should.eql(StatusCodes.Good);
+            result.outputArguments![0]!.value.should.eql(42);
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor);
+        }
+    });
+
+    it("should short-circuit when first of two interceptors rejects", async () => {
+        const method = createBoundMethod();
+        const callOrder: string[] = [];
+
+        const interceptor1: MethodCallInterceptor = (ctx, obj, m, args) => {
+            callOrder.push("interceptor1");
+            return StatusCodes.BadUserAccessDenied;
+        };
+        const interceptor2: MethodCallInterceptor = (ctx, obj, m, args) => {
+            callOrder.push("interceptor2");
+            return StatusCodes.Good;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor1);
+        addressSpace.addMethodCallInterceptor(interceptor2);
+
+        try {
+            const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            callOrder.should.eql(["interceptor1"], "second interceptor should not run");
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor1);
+            addressSpace.removeMethodCallInterceptor(interceptor2);
+        }
+    });
+
+    it("should run all interceptors in order when all return Good", async () => {
+        const method = createBoundMethod();
+        const callOrder: string[] = [];
+
+        const interceptor1: MethodCallInterceptor = (ctx, obj, m, args) => {
+            callOrder.push("first");
+            return StatusCodes.Good;
+        };
+        const interceptor2: MethodCallInterceptor = (ctx, obj, m, args) => {
+            callOrder.push("second");
+            return StatusCodes.Good;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor1);
+        addressSpace.addMethodCallInterceptor(interceptor2);
+
+        try {
+            const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+            result.statusCode!.should.eql(StatusCodes.Good);
+            callOrder.should.eql(["first", "second"]);
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor1);
+            addressSpace.removeMethodCallInterceptor(interceptor2);
+        }
+    });
+
+    it("should not invoke interceptor after removeMethodCallInterceptor", async () => {
+        const method = createBoundMethod();
+
+        const interceptor: MethodCallInterceptor = (ctx, obj, m, args) => {
+            return StatusCodes.BadNotExecutable;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor);
+        addressSpace.removeMethodCallInterceptor(interceptor);
+
+        const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
+        result.statusCode!.should.eql(StatusCodes.Good);
+    });
+
+    it("should emit afterCall event with correct arguments", async () => {
+        const method = createBoundMethod();
+        let afterCallFired = false;
+        let receivedContext: ISessionContext | undefined;
+        let receivedResult: CallMethodResultOptions | undefined;
+
+        method.on("afterCall", (ctx: ISessionContext, args: Variant[], res: CallMethodResultOptions) => {
+            afterCallFired = true;
+            receivedContext = ctx;
+            receivedResult = res;
+        });
+
+        const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 5 }], context);
+
+        afterCallFired.should.eql(true, "afterCall event should fire");
+        receivedContext!.should.eql(context);
+        receivedResult!.statusCode!.should.eql(StatusCodes.Good);
+        should.exist(receivedResult!.outputArguments![0]);
+        receivedResult!.outputArguments![0]?.value.should.eql(42);
+    });
+
+    it("should receive correct method and object in interceptor", async () => {
+        const obj = namespace.addObject({ browseName: "InterceptorTestObj" });
+        const method = namespace.addMethod(obj, {
+            browseName: "InterceptorTestMethod",
+            executable: true,
+            inputArguments: [],
+            outputArguments: []
+        });
+        method.bindMethod(async function (this: UAMethod, inputArguments: Variant[], ctx: ISessionContext) {
+            return { statusCode: StatusCodes.Good };
+        });
+
+        let receivedMethod: UAMethod | undefined;
+        let receivedObject: any;
+
+        const interceptor: MethodCallInterceptor = (ctx, o, m, args) => {
+            receivedMethod = m;
+            receivedObject = o;
+            return StatusCodes.Good;
+        };
+        addressSpace.addMethodCallInterceptor(interceptor);
+
+        try {
+            await method.execute(obj, [], context);
+            receivedMethod!.nodeId.should.eql(method.nodeId);
+            receivedObject!.nodeId.should.eql(obj.nodeId);
+        } finally {
+            addressSpace.removeMethodCallInterceptor(interceptor);
+        }
+    });
 });

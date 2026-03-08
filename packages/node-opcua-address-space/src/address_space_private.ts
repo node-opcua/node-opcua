@@ -20,7 +20,8 @@ import {
     UAObjectType,
     UAReference,
     UAVariable,
-    ContinuationData
+    ContinuationData,
+    MethodCallInterceptor
 } from "node-opcua-address-space-base";
 import { UARootFolder } from "../source/ua_root_folder";
 import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
@@ -89,4 +90,6 @@ export interface AddressSpacePrivate extends IAddressSpace {
     ) => void;
 
     isEnumeration(dataType: NodeId): boolean;
+
+    _methodCallInterceptors: MethodCallInterceptor[];
 }

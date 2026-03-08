@@ -209,47 +209,62 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
         context.object = object;
 
-        try {
-            this._asyncExecutionFunction.call(
-                this as UAMethodImpl,
-                inputArguments as Variant[],
-                context,
-                (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                    if (err) {
-                        debugLog(err.message);
-                        debugLog(err);
-                    }
-                    callMethodResult = callMethodResult || {};
+        // ── method call interceptors ──
+        const addressSpace = this.addressSpace as AddressSpacePrivate;
+        const interceptors = addressSpace._methodCallInterceptors;
+        const self = this;
+        const coercedInputArguments = inputArguments as Variant[];
+        const callObject = object;
 
-                    callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;
-                    callMethodResult.outputArguments = callMethodResult.outputArguments || [];
-
-                    callMethodResult.inputArgumentResults =
-                        callMethodResult.inputArgumentResults?.length === inputArguments?.length
-                            ? callMethodResult.inputArgumentResults
-                            : inputArguments?.map(() => StatusCodes.Good);
-                    callMethodResult.inputArgumentDiagnosticInfos =
-                        callMethodResult.inputArgumentDiagnosticInfos || inputArgumentDiagnosticInfos;
-
-                    // verify that output arguments are correct according to schema
-                    // Todo : ...
-                    // const outputArgsDef = this.getOutputArguments();
-
-                    // xx assert(outputArgsDef.length === callMethodResponse.outputArguments.length,
-                    // xx     "_asyncExecutionFunction did not provide the expected number of output arguments");
-                    // to be continued ...
-
-                    callback(err, callMethodResult);
+        const runInterceptorsAndExecute = async () => {
+            // Run interceptors sequentially
+            for (const interceptor of interceptors) {
+                const status = await interceptor(context, callObject, self, coercedInputArguments);
+                if (status !== StatusCodes.Good) {
+                    return callback!(null, { statusCode: status });
                 }
-            );
-        } catch (err) {
-            if (types.isNativeError(err)) {
-                warningLog(chalk.red("ERR in method  handler"), err.message);
-                warningLog(err.stack);
             }
-            const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
-            callback(err as Error, callMethodResponse);
-        }
+
+            // All interceptors passed — execute the method body
+            try {
+                self._asyncExecutionFunction!.call(
+                    self as UAMethodImpl,
+                    coercedInputArguments,
+                    context,
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        if (err) {
+                            debugLog(err.message);
+                            debugLog(err);
+                        }
+                        callMethodResult = callMethodResult || {};
+
+                        callMethodResult.statusCode = callMethodResult.statusCode || StatusCodes.Good;
+                        callMethodResult.outputArguments = callMethodResult.outputArguments || [];
+
+                        callMethodResult.inputArgumentResults =
+                            callMethodResult.inputArgumentResults?.length === coercedInputArguments?.length
+                                ? callMethodResult.inputArgumentResults
+                                : coercedInputArguments?.map(() => StatusCodes.Good);
+                        callMethodResult.inputArgumentDiagnosticInfos =
+                            callMethodResult.inputArgumentDiagnosticInfos || inputArgumentDiagnosticInfos;
+
+                        // ── afterCall event ──
+                        self.emit("afterCall", context, coercedInputArguments, callMethodResult);
+
+                        callback!(err, callMethodResult);
+                    }
+                );
+            } catch (err) {
+                if (types.isNativeError(err)) {
+                    warningLog(chalk.red("ERR in method  handler"), err.message);
+                    warningLog(err.stack);
+                }
+                const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
+                callback!(err as Error, callMethodResponse);
+            }
+        };
+
+        runInterceptorsAndExecute();
     }
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod {
@@ -272,7 +287,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
             UAMethodImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo 
+            extraInfo
         ) as UAMethodImpl;
 
         clonedMethod._asyncExecutionFunction = this._asyncExecutionFunction;
