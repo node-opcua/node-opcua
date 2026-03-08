@@ -154,6 +154,7 @@ export async function executeUpdateCertificate(
 
             await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
             await preInstallCertificate(serverImpl, certificateManager, certificate);
+            serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };
         } else {
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
@@ -193,6 +194,7 @@ export async function executeUpdateCertificate(
             await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
             await preInstallCertificate(serverImpl, certificateManager, certificate);
 
+            serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };
         }
     } finally {

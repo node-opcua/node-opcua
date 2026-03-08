@@ -24,6 +24,22 @@ import { executeUpdateCertificate } from "./push_certificate_manager/update_cert
 
 const errorLog = make_errorLog("ServerConfiguration");
 
+/**
+ * Type-safe event map for PushCertificateManagerServerImpl.
+ *
+ * - `applyChangesCompleted` — fired after a successful `applyChanges()` call.
+ * - `certificateUpdated`    — fired after a successful `updateCertificate()` call,
+ *                             with the resolved group id and the leaf certificate.
+ * - `trustListUpdated`      — fired after a successful TrustList mutation
+ *                             (`CloseAndUpdate`, `AddCertificate`, `RemoveCertificate`),
+ *                             with the certificate-group browse-name.
+ */
+export interface PushCertificateManagerEvents {
+    applyChangesCompleted: () => void;
+    certificateUpdated: (certificateGroupId: NodeId | string, certificate: Buffer) => void;
+    trustListUpdated: (certificateGroupId: string) => void;
+}
+
 export interface PushCertificateManagerServerOptions {
     applicationGroup?: CertificateManager;
     userTokenGroup?: CertificateManager;
@@ -51,6 +67,29 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
     /** @hidden */
     public applicationUri: string;
+
+    // ── typed event helpers ──────────────────────────────────────────
+    public on<K extends keyof PushCertificateManagerEvents>(
+        event: K,
+        listener: PushCertificateManagerEvents[K]
+    ): this;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public on(event: string | symbol, listener: (...args: any[]) => void): this;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public on(event: string | symbol, listener: (...args: any[]) => void): this {
+        return super.on(event, listener);
+    }
+
+    public once<K extends keyof PushCertificateManagerEvents>(
+        event: K,
+        listener: PushCertificateManagerEvents[K]
+    ): this;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public once(event: string | symbol, listener: (...args: any[]) => void): this;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public once(event: string | symbol, listener: (...args: any[]) => void): this {
+        return super.once(event, listener);
+    }
 
     constructor(options: PushCertificateManagerServerOptions) {
         super();

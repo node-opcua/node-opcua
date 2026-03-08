@@ -29,11 +29,38 @@ import { rolePermissionAdminOnly } from "./roles_and_permissions.js";
 
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
 import { TrustListMasks, writeTrustList } from "./trust_list_server.js";
+import type { PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
+
+/**
+ * Navigate from a TrustList node up to the push certificate manager
+ * and emit a `"trustListUpdated"` event with the certificate-group
+ * browse-name.
+ */
+function emitTrustListUpdated(trustList: UATrustList): void {
+    try {
+        const certificateGroup = trustList.parent;
+        const groupName = certificateGroup?.browseName?.name ?? "Unknown";
+
+        const serverConfiguration = trustList.addressSpace.rootFolder
+            .objects.server.getChildByName("ServerConfiguration");
+        if (!serverConfiguration) return;
+
+        const pushManager = (serverConfiguration as unknown as {
+            $pushCertificateManager?: PushCertificateManagerServerImpl;
+        }).$pushCertificateManager;
+
+        if (pushManager) {
+            pushManager.emit("trustListUpdated", groupName);
+        }
+    } catch (err) {
+        errorLog("emitTrustListUpdated error:", (err as Error).message);
+    }
+}
 
 function trustListIsAlreadyOpened(trustList: UATrustList): boolean {
     // TrustList extends FileType, which has an openCount property tracking how many handles are open
@@ -229,6 +256,7 @@ async function _closeAndUpdate(
             if (processStatusCode === StatusCodes.Good) {
                 // OPC UA Spec: Update LastUpdateTime after successful trust list update
                 updateLastUpdateTime(trustList);
+                emitTrustListUpdated(trustList);
             }
         }
     } catch (err) {
@@ -307,6 +335,7 @@ async function _addCertificate(
         }
 
         updateLastUpdateTime(trustList);
+        emitTrustListUpdated(trustList);
 
         doDebug && debugLog("_addCertificate - done,  leaf certificate has been added to trustedCertificates");
         return { statusCode: StatusCodes.Good };
@@ -373,6 +402,7 @@ async function _removeCertificate(
         }
 
         updateLastUpdateTime(trustList);
+        emitTrustListUpdated(trustList);
 
         doDebug && debugLog("_removeCertificate - done, isTrustedCertificate=", isTrustedCertificate);
         return { statusCode: StatusCodes.Good };

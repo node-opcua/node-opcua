@@ -23,8 +23,8 @@ import {
     produceCertificate,
     produceNotYetValidCertificate,
     produceOutdatedCertificate
-} from "../helpers/fake_certificate_authority.ts";
-import { getCertificateDER } from "../helpers/tools.ts";
+} from "../helpers/fake_certificate_authority.js";
+import { getCertificateDER } from "../helpers/tools.js";
 
 const { readFile } = fs.promises;
 
@@ -2201,6 +2201,111 @@ describe("Testing Server Side PushCertificateManager", () => {
             await minimalPushManager.initialize().should.be.fulfilled();
             await minimalPushManager.dispose();
             await minimalAppGroup.dispose();
+        });
+        describe("US-029: post-call events", () => {
+            it("should emit 'certificateUpdated' after a successful updateCertificate", async () => {
+                let emittedGroupId: unknown = null;
+                let emittedCertificate: Buffer | null = null;
+
+                pushManager.on("certificateUpdated", (groupId, cert) => {
+                    emittedGroupId = groupId;
+                    emittedCertificate = cert;
+                });
+
+                const resultCSR = await pushManager.createSigningRequest(
+                    "DefaultApplicationGroup",
+                    "",
+                    "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Event1"
+                );
+                const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
+                const certificateChain = split_der(certificateFull);
+                const certificate = certificateChain[0];
+                const issuerCertificates = certificateChain.slice(1);
+
+                const result = await pushManager.updateCertificate(
+                    "DefaultApplicationGroup",
+                    "",
+                    certificate,
+                    issuerCertificates
+                );
+                result.statusCode.should.eql(StatusCodes.Good);
+
+                // Event should have fired
+                emittedGroupId!.should.eql("DefaultApplicationGroup");
+                emittedCertificate!.toString("hex").should.eql(certificate.toString("hex"));
+
+                // Clean up pending changes
+                await pushManager.applyChanges();
+
+                pushManager.removeAllListeners("certificateUpdated");
+            });
+
+            it("should NOT emit 'certificateUpdated' when updateCertificate fails", async () => {
+                let eventFired = false;
+                pushManager.on("certificateUpdated", () => {
+                    eventFired = true;
+                });
+
+                // Call updateCertificate with an invalid group — should fail
+                const resultCSR = await pushManager.createSigningRequest(
+                    "DefaultApplicationGroup",
+                    "",
+                    "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Event2"
+                );
+                const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
+                const certificateChain = split_der(certificateFull);
+                const certificate = certificateChain[0];
+                const issuerCertificates = certificateChain.slice(1);
+
+                const result = await pushManager.updateCertificate("InvalidGroup", "", certificate, issuerCertificates);
+                result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+
+                eventFired.should.eql(false);
+
+                pushManager.removeAllListeners("certificateUpdated");
+            });
+
+            it("should emit 'applyChangesCompleted' after a successful applyChanges", async () => {
+                let applyEventFired = false;
+                pushManager.on("applyChangesCompleted", () => {
+                    applyEventFired = true;
+                });
+
+                const resultCSR = await pushManager.createSigningRequest(
+                    "DefaultApplicationGroup",
+                    "",
+                    "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Event3"
+                );
+                const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
+                const certificateChain = split_der(certificateFull);
+                const certificate = certificateChain[0];
+                const issuerCertificates = certificateChain.slice(1);
+
+                await pushManager.updateCertificate("DefaultApplicationGroup", "", certificate, issuerCertificates);
+
+                applyEventFired.should.eql(false); // Not yet
+
+                await pushManager.applyChanges();
+
+                applyEventFired.should.eql(true);
+
+                pushManager.removeAllListeners("applyChangesCompleted");
+            });
+
+            it("should NOT emit 'applyChangesCompleted' when applyChanges returns BadNothingToDo", async () => {
+                let applyEventFired = false;
+                pushManager.on("applyChangesCompleted", () => {
+                    applyEventFired = true;
+                });
+
+                // No pending changes → should return BadNothingToDo
+                const statusCode = await pushManager.applyChanges();
+                statusCode.should.eql(StatusCodes.BadNothingToDo);
+
+                applyEventFired.should.eql(false);
+
+                pushManager.removeAllListeners("applyChangesCompleted");
+            });
         });
     });
 });
