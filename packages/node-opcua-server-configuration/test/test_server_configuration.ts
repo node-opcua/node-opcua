@@ -31,9 +31,9 @@ import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
-import type { PushCertificateManagerInternalContext } from "../dist/server/push_certificate_manager/internal_context";
+import type { PushCertificateManagerInternalContext } from "../dist/server/push_certificate_manager/internal_context.js";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
-import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.ts";
+import { _getFakeAuthorityCertificate, initializeHelpers } from "./helpers/fake_certificate_authority.js";
 
 const __dirname = global.__dirname || path.dirname(fileURLToPath(import.meta.url));
 const sampleCertificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates/");
