@@ -36,7 +36,9 @@ import {
     PseudoVariantStringPredefined,
     innerBrowse,
     innerBrowseNext,
-    UAEventType
+    UAEventType,
+    IRolePolicyOverride,
+    IServerBase
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -1079,6 +1081,21 @@ export class OPCUAServer extends OPCUABaseServer {
      */
     public setServerState(serverState: ServerState): void {
         this.engine.setServerState(serverState);
+    }
+
+    /**
+     * Set or clear a temporary role-policy override.
+     *
+     * When set, the override's `getUserRoles(username)`
+     * is called **before** the default `userManager`.
+     * Returning a `NodeId[]` overrides the roles;
+     * returning `null` falls through to the default.
+     *
+     * Call with `null` to remove the override and
+     * restore default behavior.
+     */
+    public setRolePolicyOverride(override: IRolePolicyOverride | null): void {
+        (this as unknown as IServerBase).rolePolicyOverride = override;
     }
 
     public static registry = new ObjectRegistry();
