@@ -1098,6 +1098,26 @@ export class OPCUAServer extends OPCUABaseServer {
         (this as unknown as IServerBase).rolePolicyOverride = override;
     }
 
+    /**
+     * Set `ServerConfiguration.InApplicationSetup` in
+     * the address space.
+     *
+     * Indicates whether the server is in its initial
+     * application setup phase (e.g. awaiting GDS
+     * provisioning).
+     */
+    public setInApplicationSetup(value: boolean): void {
+        this.engine.setInApplicationSetup(value);
+    }
+
+    /**
+     * Read the current value of
+     * `ServerConfiguration.InApplicationSetup`.
+     */
+    public getInApplicationSetup(): boolean {
+        return this.engine.getInApplicationSetup();
+    }
+
     public static registry = new ObjectRegistry();
     public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
     /**

@@ -733,6 +733,68 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         });
     }
 
+    /**
+     * Set the `ServerConfiguration.InApplicationSetup` property
+     * in the address space.
+     *
+     * This flag indicates whether the server is currently in
+     * its initial application setup phase (e.g. waiting for
+     * GDS provisioning).
+     */
+    public setInApplicationSetup(value: boolean): void {
+        const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            return;
+        }
+        const serverConfiguration = addressSpace.rootFolder?.objects?.server?.getChildByName(
+            "ServerConfiguration"
+        ) as UAObject | null;
+        if (!serverConfiguration) {
+            return;
+        }
+        let prop = serverConfiguration.getPropertyByName("InApplicationSetup") as UAVariable | null;
+        if (!prop) {
+            // InApplicationSetup is ModellingRule_Optional on
+            // ServerConfigurationType (i=19308) — instantiate
+            // it on the instance on first use.
+            const ns = addressSpace.getOwnNamespace();
+            prop = ns.addVariable({
+                browseName: { name: "InApplicationSetup", namespaceIndex: 0 },
+                propertyOf: serverConfiguration,
+                typeDefinition: "PropertyType",
+                dataType: DataType.Boolean,
+                minimumSamplingInterval: -1,
+                value: { dataType: DataType.Boolean, value }
+            });
+            return;
+        }
+        prop.setValueFromSource({
+            dataType: DataType.Boolean,
+            value
+        });
+    }
+
+    /**
+     * Read the current value of
+     * `ServerConfiguration.InApplicationSetup`.
+     *
+     * Returns `false` if the property does not exist in
+     * the address space.
+     */
+    public getInApplicationSetup(): boolean {
+        const serverConfiguration = this.addressSpace?.rootFolder?.objects?.server?.getChildByName(
+            "ServerConfiguration"
+        ) as UAObject | null;
+        if (!serverConfiguration) {
+            return false;
+        }
+        const prop = serverConfiguration.getPropertyByName("InApplicationSetup") as UAVariable | null;
+        if (!prop) {
+            return false;
+        }
+        return prop.readValue().value.value ?? false;
+    }
+
     public getServerDiagnosticsEnabledFlag(): boolean {
         const server = this.addressSpace!.rootFolder.objects.server;
         const serverDiagnostics = server.getComponentByName("ServerDiagnostics") as UAVariable;
