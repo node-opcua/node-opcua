@@ -1084,6 +1084,14 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     /**
+     * Read the current `ServerState` from the
+     * internal server status.
+     */
+    public getServerState(): ServerState {
+        return this.engine.getServerState();
+    }
+
+    /**
      * Set or clear a temporary role-policy override.
      *
      * When set, the override's `getUserRoles(username)`

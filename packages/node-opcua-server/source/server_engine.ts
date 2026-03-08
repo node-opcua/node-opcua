@@ -733,6 +733,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         });
     }
 
+    public getServerState(): ServerState {
+        return this._serverStatus.state;
+    }
+
     /**
      * Set the `ServerConfiguration.InApplicationSetup` property
      * in the address space.
@@ -796,7 +800,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     }
 
     public getServerDiagnosticsEnabledFlag(): boolean {
-        const server = this.addressSpace!.rootFolder.objects.server;
+        if (!this.addressSpace) {
+            return false;
+        }
+        const server = this.addressSpace.rootFolder.objects.server;
         const serverDiagnostics = server.getComponentByName("ServerDiagnostics") as UAVariable;
         if (!serverDiagnostics) {
             return false;
