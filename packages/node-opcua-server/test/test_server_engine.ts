@@ -2194,3 +2194,43 @@ describe("US-031: ServerEngine.setServerState", function () {
         );
     });
 });
+
+describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", function () {
+    let engine: ServerEngine;
+
+    before(function (done) {
+        this.timeout(30000);
+        engine = new ServerEngine({
+            applicationUri: "URI:NODEOPCUA-INAPPLICATIONSETUP-TEST",
+            buildInfo: {
+                productName: "INAPPLICATIONSETUP-TEST",
+                productUri: "URI:INAPPLICATIONSETUP-TEST"
+            }
+        });
+        engine.initialize({ nodeset_filename: nodesets.standard }, done);
+    });
+
+    after(async () => {
+        await engine.shutdown();
+    });
+
+    it("should default to false", () => {
+        engine.getInApplicationSetup().should.eql(false);
+    });
+
+    it("should set to true and read back true", () => {
+        engine.setInApplicationSetup(true);
+        engine.getInApplicationSetup().should.eql(true);
+
+        // also verify via address space read
+        const serverConfiguration = engine.addressSpace!.rootFolder.objects.server
+            .getChildByName("ServerConfiguration") as UAObject;
+        const prop = serverConfiguration.getPropertyByName("InApplicationSetup") as UAVariable;
+        prop.readValue().value.value.should.eql(true);
+    });
+
+    it("should set back to false", () => {
+        engine.setInApplicationSetup(false);
+        engine.getInApplicationSetup().should.eql(false);
+    });
+});
