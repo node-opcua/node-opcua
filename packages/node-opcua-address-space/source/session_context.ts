@@ -99,8 +99,22 @@ export interface IUserManager {
      */
     getUserRoles?: (user: string) => NodeId[];
 }
+
+/**
+ * A temporary override for role resolution.
+ *
+ * When set on the server, `getUserRoles` is called
+ * **before** the default `userManager`. Returning
+ * a `NodeId[]` overrides the roles; returning `null`
+ * falls through to the default resolution.
+ */
+export interface IRolePolicyOverride {
+    getUserRoles(username: string): NodeId[] | null;
+}
+
 export interface IServerBase {
     userManager?: IUserManager;
+    rolePolicyOverride?: IRolePolicyOverride | null;
 }
 
 export interface SessionContextOptions {
@@ -254,6 +268,15 @@ export class SessionContext implements ISessionContext {
         const anonymous = makeRoles([WellKnownRoles.Anonymous]);
 
         const username = getUserName(userIdentityToken);
+
+        // --- US-028: check role policy override first ---
+        if (this.server?.rolePolicyOverride) {
+            const overriddenRoles = this.server.rolePolicyOverride.getUserRoles(username);
+            if (overriddenRoles !== null) {
+                return overriddenRoles;
+            }
+            // null => fall through to default resolution
+        }
 
         if (username === "anonymous") {
             return anonymous;
