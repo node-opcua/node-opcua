@@ -3,7 +3,7 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
+import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
 import { AccessRestrictionsFlag, allPermissions, AttributeIds, PermissionFlag } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -207,6 +207,33 @@ export class SessionContext implements ISessionContext {
     }
 
     /**
+     * The client's application-instance certificate,
+     * or `null` if no secure channel is available.
+     */
+    public get clientCertificate(): Certificate | null {
+        return this.session?.channel?.clientCertificate ?? null;
+    }
+
+    /**
+     * The application URI extracted from the client
+     * certificate's SubjectAltName, or `null` if
+     * no certificate is available.
+     */
+    public get clientApplicationUri(): string | null {
+        const cert = this.clientCertificate;
+        if (!cert) {
+            return null;
+        }
+        try {
+            const info = exploreCertificate(cert);
+            const san = info.tbsCertificate.extensions?.subjectAltName;
+            return san?.uniformResourceIdentifier?.[0] ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
      * getCurrentUserRoles
      *
      * guest   => anonymous user (unauthenticated)
@@ -305,7 +332,7 @@ export class SessionContext implements ISessionContext {
                 return true;
             }
         }
-        if (!this.session ) { return false; }
+        if (!this.session) { return false; }
         const securityMode = this.session?.channel?.securityMode;
         if (accessRestrictions & AccessRestrictionsFlag.SigningRequired) {
             if (securityMode !== MessageSecurityMode.Sign && securityMode !== MessageSecurityMode.SignAndEncrypt) {

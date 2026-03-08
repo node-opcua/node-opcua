@@ -64,13 +64,43 @@ export interface ContinuationPointData {
     dataValues: DataValue[];
 }
 export interface ISessionContext {
-    session?: ISessionBase;
+    /** The underlying OPC UA session, if available. */
+    readonly session?: ISessionBase;
+
+    /** Returns the NodeIds of all roles assigned to the current user. */
     getCurrentUserRoles(): NodeId[];
+
+    /** Check whether the current user has the given permission on a node. */
     checkPermission(node: BaseNode, action: PermissionType): boolean;
+
+    /** Returns `true` if browsing the given node is restricted for the current user. */
     isBrowseAccessRestricted(node: BaseNode): boolean;
+
+    /** Returns `true` if the current user has the given role. */
     currentUserHasRole(role: NodeIdLike): boolean;
+
+    /** Returns `true` if access to the node is restricted by security settings. */
     isAccessRestricted(node: BaseNode): boolean;
+
+    /** The object on which the current operation is being performed. */
     object?: UAObject | UAObjectType;
-    currentTime?: PreciseClock;
-    userIdentity?: string;
+
+    /** Server timestamp at the time the request was received. */
+    readonly currentTime?: PreciseClock;
+
+    /** Display name of the authenticated user (e.g. "anonymous"). */
+    readonly userIdentity?: string;
+
+    /**
+     * The client's application-instance certificate,
+     * or `null` if no secure channel is available.
+     */
+    readonly clientCertificate: Certificate | null;
+
+    /**
+     * The application URI extracted from the client
+     * certificate's SubjectAltName, or `null` if
+     * unavailable.
+     */
+    readonly clientApplicationUri: string | null;
 }
