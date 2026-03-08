@@ -6,6 +6,7 @@
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "test": "mocha"
     },
     "main": "./dist/index.js",
