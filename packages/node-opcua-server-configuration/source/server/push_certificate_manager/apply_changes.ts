@@ -56,6 +56,12 @@ export async function executeApplyChanges(serverImpl: PushCertificateManagerInte
             await serverImpl.tmpCertificateManager.dispose();
         }
         serverImpl.tmpCertificateManager = undefined;
+
+        try {
+            serverImpl.emit("applyChangesCompleted");
+        } catch (err) {
+            errorLog("Event listener error:", (err as Error).message);
+        }
         return StatusCodes.Good;
     } finally {
         serverImpl.operationInProgress = false;
