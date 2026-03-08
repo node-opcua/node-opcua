@@ -40,7 +40,7 @@ import {
     initializeHelpers,
     produceCertificate,
     produceCertificateAndPrivateKey
-} from "../helpers/fake_certificate_authority.ts";
+} from "../helpers/fake_certificate_authority.js";
 
 const { readFile } = fs.promises;
 

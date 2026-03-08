@@ -21,7 +21,7 @@ import { SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
-import { initializeHelpers } from "./helpers/fake_certificate_authority.ts";
+import { initializeHelpers } from "./helpers/fake_certificate_authority.js";
 
 describe("TrustList File Lock", () => {
     let addressSpace: AddressSpace;

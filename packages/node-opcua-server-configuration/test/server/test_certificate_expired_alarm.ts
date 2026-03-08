@@ -26,7 +26,7 @@ import {
     createCertificateWithEndDate,
     createSomeOutdatedCertificate,
     initializeHelpers
-} from "../helpers/fake_certificate_authority.ts";
+} from "../helpers/fake_certificate_authority.js";
 
 const doDebug = false;
 const port = 2909;
