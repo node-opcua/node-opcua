@@ -1,3 +1,4 @@
+import type { ISessionContext } from "node-opcua-address-space-base";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { PushCertificateManagerInternalContext } from "./internal_context.js";
@@ -13,7 +14,10 @@ async function flushActionQueue(serverImpl: PushCertificateManagerInternalContex
     }
 }
 
-export async function executeApplyChanges(serverImpl: PushCertificateManagerInternalContext): Promise<StatusCode> {
+export async function executeApplyChanges(
+    serverImpl: PushCertificateManagerInternalContext,
+    sessionContext?: ISessionContext
+): Promise<StatusCode> {
     // ApplyChanges is used to tell the Server to apply any security changes.
     // This Method should only be called if a previous call to a Method that changed the
     // configuration returns applyChangesRequired=true.
@@ -58,7 +62,7 @@ export async function executeApplyChanges(serverImpl: PushCertificateManagerInte
         serverImpl.tmpCertificateManager = undefined;
 
         try {
-            serverImpl.emit("applyChangesCompleted");
+            serverImpl.emit("applyChangesCompleted", sessionContext);
         } catch (err) {
             errorLog("Event listener error:", (err as Error).message);
         }

@@ -3,6 +3,7 @@
  */
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
+import type { ISessionContext } from "node-opcua-address-space-base";
 import type { ByteString } from "node-opcua-basic-types";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { make_errorLog } from "node-opcua-debug";
@@ -35,7 +36,7 @@ const errorLog = make_errorLog("ServerConfiguration");
  *                             with the certificate-group browse-name.
  */
 export interface PushCertificateManagerEvents {
-    applyChangesCompleted: () => void;
+    applyChangesCompleted: (context?: ISessionContext) => void;
     certificateUpdated: (certificateGroupId: NodeId | string, certificate: Buffer) => void;
     trustListUpdated: (certificateGroupId: string) => void;
 }
@@ -236,8 +237,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
      * created the transaction and has access to the SecurityAdmin Role (see 7.2).
      *
      */
-    public async applyChanges(): Promise<StatusCode> {
-        return await executeApplyChanges(this._context);
+    public async applyChanges(context?: ISessionContext): Promise<StatusCode> {
+        return await executeApplyChanges(this._context, context);
     }
 
     public getCertificateManager(groupName: string): CertificateManager | null {
