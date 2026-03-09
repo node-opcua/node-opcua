@@ -149,18 +149,6 @@ export async function performCertificateSanityCheck(
             `The ${serverOrClient} is operating at risk.                                             `
         );
     }
-    try {
-        const _status1 = await certificateManager.trustCertificate(certificate);
-    } catch (err: any) {
-        if (err.code === "ENOENT" && err.syscall === "rename") {
-            // Under heavily concurrent circumstances (e.g. 50 clients sharing the same CertificateManager connecting simultaneously),
-            // a benign race condition occurs in node-opcua-pki's CertificateManager.trustCertificate where a client tries to rename 
-            // the missing (already trusted and thus renamed) rejected certificate. We can safely ignore this!
-            debugLog("Swallowing benign ENOENT on concurrent trustCertificate");
-        } else {
-            throw err;
-        }
-    }
 
     const options: VerifyCertificateOptions = {
         acceptOutdatedCertificate: false,
