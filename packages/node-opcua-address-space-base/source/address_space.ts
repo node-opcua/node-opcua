@@ -29,7 +29,7 @@ export type ShutdownTask = ((this: IAddressSpace) => void) | ((this: IAddressSpa
  */
 export type MethodCallInterceptor = (
     context: ISessionContext,
-    object: UAObject | UAObjectType,
+    object: UAObject | UAObjectType | null,
     method: UAMethod,
     inputArguments: Variant[]
 ) => StatusCode | Promise<StatusCode>;

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import { callbackify, types } from "util";
+import { callbackify } from "util";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
@@ -12,7 +12,7 @@ import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug"
 import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { Argument } from "node-opcua-service-call";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { DataType, VariantLike } from "node-opcua-variant";
@@ -219,9 +219,25 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         const runInterceptorsAndExecute = async () => {
             // Run interceptors sequentially
             for (const interceptor of interceptors) {
-                const status = await interceptor(context, callObject, self, coercedInputArguments);
+                let status: StatusCode;
+                try {
+                    status = await interceptor(context, callObject, self, coercedInputArguments);
+                } catch (err) {
+                    if (err instanceof Error) {
+                        warningLog(chalk.red("ERR in method interceptor"), err.message);
+                    }
+                    const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
+                    callback!(err as Error, callMethodResponse);
+                    return;
+                }
                 if (status !== StatusCodes.Good) {
-                    return callback!(null, { statusCode: status });
+                    const callMethodResult: CallMethodResultOptions = {
+                        statusCode: status,
+                        outputArguments: [],
+                        inputArgumentResults: coercedInputArguments?.map(() => status) || [],
+                        inputArgumentDiagnosticInfos
+                    };
+                    return callback!(null, callMethodResult);
                 }
             }
 
@@ -249,13 +265,19 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                             callMethodResult.inputArgumentDiagnosticInfos || inputArgumentDiagnosticInfos;
 
                         // ── afterCall event ──
-                        self.emit("afterCall", context, coercedInputArguments, callMethodResult);
+                        try {
+                            self.emit("afterCall", context, coercedInputArguments, callMethodResult);
+                        } catch (afterCallErr) {
+                            if (afterCallErr instanceof Error) {
+                                warningLog(chalk.red("ERR in afterCall listener"), afterCallErr.message);
+                            }
+                        }
 
                         callback!(err, callMethodResult);
                     }
                 );
             } catch (err) {
-                if (types.isNativeError(err)) {
+                if (err instanceof Error) {
                     warningLog(chalk.red("ERR in method  handler"), err.message);
                     warningLog(err.stack);
                 }
@@ -264,7 +286,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
             }
         };
 
-        runInterceptorsAndExecute();
+        runInterceptorsAndExecute().catch((err) => {
+            if (err instanceof Error) {
+                warningLog(chalk.red("ERR in method interceptor"), err.message);
+            }
+            const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
+            callback!(err as Error, callMethodResponse);
+        });
     }
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod {
