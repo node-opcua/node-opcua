@@ -1,86 +1,91 @@
 /**
  * @module node-opcua-server
  */
-import { EventEmitter } from "events";
-import { types } from "util";
+import { EventEmitter } from "node:events";
+import { types } from "node:util";
+
 import async from "async";
 import chalk from "chalk";
-import { assert } from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
 import {
-    addElement,
     AddressSpace,
+    addElement,
+    type BindVariableOptions,
     bindExtObjArrayNode,
+    type DTServerStatus,
     ensureObjectIsSecure,
-    MethodFunctor,
+    type IServerBase,
+    type ISessionContext,
+    type MethodFunctor,
     removeElement,
-    SessionContext,
-    UADynamicVariableArray,
-    UAMethod,
-    UAObject,
-    UAServerDiagnosticsSummary,
-    UAServerStatus,
-    UAVariable,
-    UAServerDiagnostics,
-    BindVariableOptions,
-    ISessionContext,
-    DTServerStatus,
-    IServerBase
+    type SessionContext,
+    type UADynamicVariableArray,
+    type UAMethod,
+    type UAObject,
+    type UAServerDiagnostics,
+    type UAServerDiagnosticsSummary,
+    type UAServerStatus,
+    type UAVariable
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { DataValue } from "node-opcua-data-value";
+import { assert } from "node-opcua-assert";
+import type { UInt32 } from "node-opcua-basic-types";
+import { BinaryStream } from "node-opcua-binary-stream";
+import type { CreateSubscriptionRequestLike } from "node-opcua-client";
 import {
     ServerDiagnosticsSummaryDataType,
     ServerState,
     ServerStatusDataType,
     SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
-import { AttributeIds, coerceLocalizedText, LocalizedTextLike, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { BrowseResult } from "node-opcua-service-browse";
-import { UInt32 } from "node-opcua-basic-types";
-import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
+import { AttributeIds, coerceLocalizedText, type LocalizedTextLike, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
 import { getCurrentClock, getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
+import { coerceNodeId, makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ObjectRegistry } from "node-opcua-object-registry";
+import type { BrowseResult } from "node-opcua-service-browse";
 import { CallMethodResult } from "node-opcua-service-call";
-import { TransferResult } from "node-opcua-service-subscription";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
-import { HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
-import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
+import type { HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
+import { TransferResult } from "node-opcua-service-subscription";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
-    BrowseDescription,
-    BrowsePath,
-    BrowsePathResult,
-    BuildInfo,
-    BuildInfoOptions,
-    SessionDiagnosticsDataType,
-    SessionSecurityDiagnosticsDataType,
-    WriteValue,
-    ReadValueId,
-    TimeZoneDataType,
+    ApplicationType,
+    type BrowseDescription,
+    type BrowseDescriptionOptions,
+    type BrowsePath,
+    type BrowsePathResult,
+    type BuildInfo,
+    type BuildInfoOptions,
+    type CallMethodRequest,
+    type CallMethodResultOptions,
     ProgramDiagnosticDataType,
-    CallMethodResultOptions,
-    ReadRequestOptions,
-    BrowseDescriptionOptions,
-    CallMethodRequest,
-    ApplicationType
+    type ReadRequestOptions,
+    ReadValueId,
+    type SessionDiagnosticsDataType,
+    type SessionSecurityDiagnosticsDataType,
+    TimeZoneDataType,
+    type WriteValue
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
-
-import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
+import { AddressSpaceAccessor } from "./addressSpace_accessor";
+import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
+import type { IAddressSpaceAccessor } from "./i_address_space_accessor";
 import { MonitoredItem } from "./monitored_item";
-import { ServerCapabilities, ServerCapabilitiesOptions, ServerOperationLimits, defaultServerCapabilities } from "./server_capabilities";
+import type { OPCUAServerOptions } from "./opcua_server";
+import {
+    defaultServerCapabilities,
+    ServerCapabilities,
+    type ServerCapabilitiesOptions,
+    type ServerOperationLimits
+} from "./server_capabilities";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
-import { OPCUAServerOptions } from "./opcua_server";
-import { IAddressSpaceAccessor } from "./i_address_space_accessor";
-import { AddressSpaceAccessor } from "./addressSpace_accessor";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -95,7 +100,7 @@ async function shutdownAndDisposeAddressSpace(this: ServerEngine) {
     if (this.addressSpace) {
         await this.addressSpace.shutdown();
         this.addressSpace.dispose();
-        delete (this as any).addressSpace;
+        this.addressSpace = null;
     }
 }
 
@@ -220,7 +225,10 @@ function resendData(
     assert(typeof callback === "function");
 
     const data = _getSubscription.call(this, inputArguments, context);
-    if (data.statusCode) return callback(null, { statusCode: data.statusCode });
+    if (data.statusCode) {
+        callback(null, { statusCode: data.statusCode });
+        return;
+    }
     const { subscription } = data;
 
     subscription
@@ -260,11 +268,14 @@ function getMonitoredItemsId(
 function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: BindVariableOptions) {
     options = options || {};
 
-    const variable = self.addressSpace!.findNode(nodeId) as UAVariable;
-    if (variable && variable.bindVariable) {
+    if (!self.addressSpace) {
+        return;
+    }
+    const variable = self.addressSpace.findNode(nodeId) as UAVariable;
+    if (variable?.bindVariable) {
         variable.bindVariable(options, true);
         assert(typeof variable.asyncRefresh === "function");
-        assert(typeof (variable as any).refreshFunc === "function");
+        assert(typeof (variable as unknown as Record<string, unknown>).refreshFunc === "function");
     } else {
         warningLog(
             "Warning: cannot bind object with id ",
@@ -419,8 +430,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
             "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
             "http://opcfoundation.org/UA-Profile/Server/FileAccess",
-            "http://opcfoundation.org/UA-Profile/Server/StateMachine",
-
+            "http://opcfoundation.org/UA-Profile/Server/StateMachine"
 
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
@@ -445,8 +455,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         ];
 
         // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
-        (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
-            return options!.serverCapabilities?.minSupportedSampleRate || MonitoredItem.minimumSamplingInterval;
+        Object.defineProperty(this.serverCapabilities, "minSupportedSampleRate", {
+            get: () => options.serverCapabilities?.minSupportedSampleRate || MonitoredItem.minimumSamplingInterval,
+            configurable: true
         });
 
         this.serverConfiguration = options.serverConfiguration;
@@ -461,16 +472,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
         assert(Object.prototype.hasOwnProperty.call(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
 
-        (this.serverDiagnosticsSummary as any).__defineGetter__("currentSubscriptionCount", () => {
-            // currentSubscriptionCount returns the total number of subscriptions
-            // that are currently active on all sessions
-            let counter = 0;
-            Object.values(this._sessions).forEach((session: ServerSession) => {
-                counter += session.currentSubscriptionCount;
-            });
-            // we also need to add the orphan subscriptions
-            counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
-            return counter;
+        Object.defineProperty(this.serverDiagnosticsSummary, "currentSubscriptionCount", {
+            get: () => {
+                // currentSubscriptionCount returns the total number of subscriptions
+                // that are currently active on all sessions
+                let counter = 0;
+                Object.values(this._sessions).forEach((session: ServerSession) => {
+                    counter += session.currentSubscriptionCount;
+                });
+                // we also need to add the orphan subscriptions
+                counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
+                return counter;
+            },
+            configurable: true
         });
 
         this._internalState = "creating";
@@ -483,7 +497,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         this._applicationUri = "";
         if (typeof options.applicationUri === "function") {
-            (this as any).__defineGetter__("_applicationUri", options.applicationUri);
+            Object.defineProperty(this, "_applicationUri", {
+                get: options.applicationUri,
+                configurable: true
+            });
         } else {
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
@@ -492,10 +509,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             ? options.serverDiagnosticsEnabled
             : true;
 
-        this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled!;
+        this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled || false;
     }
     public isStarted(): boolean {
-        return !!this._serverStatus!;
+        return !!this._serverStatus;
     }
 
     public dispose(): void {
@@ -515,7 +532,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
 
         this._shutdownTasks = [];
-        this._serverStatus = null as any as ServerStatusDataType;
+        this._serverStatus = null as unknown as ServerStatusDataType;
         this._internalState = "disposed";
         this.removeAllListeners();
 
@@ -523,11 +540,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     }
 
     public get startTime(): Date {
-        return this._serverStatus.startTime!;
+        return this._serverStatus.startTime || new Date();
     }
 
     public get currentTime(): Date {
-        return this._serverStatus.currentTime!;
+        return this._serverStatus.currentTime || new Date();
     }
 
     public get buildInfo(): BuildInfo {
@@ -683,9 +700,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         this._expectedShutdownTime = date;
     }
     public setShutdownReason(reason: LocalizedTextLike): void {
+        const localizedReason = coerceLocalizedText(reason);
+        if (!localizedReason) return;
         this.addressSpace?.rootFolder.objects.server.serverStatus.shutdownReason.setValueFromSource({
             dataType: DataType.LocalizedText,
-            value: coerceLocalizedText(reason)!
+            value: localizedReason
         });
     }
     /**
@@ -705,7 +724,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * the name of the server
      */
     public get serverName(): string {
-        return this._serverStatus.buildInfo!.productName!;
+        return this._serverStatus.buildInfo?.productName || "";
     }
 
     /**
@@ -853,7 +872,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 const endTime = new Date();
                 debugLog("Loading ", options.nodeset_filename, " done : ", endTime.getTime() - startTime.getTime(), " ms");
 
-                const bindVariableIfPresent = (nodeId: NodeId, opts: any) => {
+                const bindVariableIfPresent = (nodeId: NodeId, opts?: BindVariableOptions) => {
                     assert(!nodeId.isEmpty());
                     const obj = addressSpace.findNode(nodeId);
                     if (obj) {
@@ -911,8 +930,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 const bindStandardScalar = (
                     id: number,
                     dataType: DataType,
-                    func: () => any,
-                    setter_func?: (value: any) => void
+                    func: () => unknown,
+                    setter_func?: (value: boolean) => void
                 ) => {
                     assert(typeof id === "number", "expecting id to be a number");
                     assert(typeof func === "function");
@@ -936,7 +955,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     /* c8 ignore next */
                     if (!isValidVariant(VariantArrayType.Scalar, dataType, func())) {
                         errorLog("func", func());
-                        throw new Error("bindStandardScalar : func doesn't provide an value of type " + DataType[dataType]);
+                        throw new Error(`bindStandardScalar : func doesn't provide an value of type ${DataType[dataType]}`);
                     }
 
                     return bindVariableIfPresent(nodeId, {
@@ -951,7 +970,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     });
                 };
 
-                const bindStandardArray = (id: number, variantDataType: DataType, dataType: any, func: () => any[]) => {
+                const bindStandardArray = (id: number, variantDataType: DataType, _dataType: unknown, func: () => unknown[]) => {
                     assert(typeof func === "function");
                     assert(variantDataType !== null); // check invalid dataType
 
@@ -978,7 +997,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 bindStandardScalar(VariableIds.Server_EstimatedReturnTime, DataType.DateTime, () => getMinOPCUADate());
 
                 // TimeZoneDataType
-                const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;
+                addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType));
 
                 const timeZone = new TimeZoneDataType({
                     daylightSavingInOffset: /* boolean*/ false,
@@ -1074,7 +1093,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                                 serverStatusNode.secondsTillShutdown.touchValue();
                                 return engine.secondsTillShutdown();
                             }
-                            return (target as any)[prop];
+                            return (target as unknown as Record<string | symbol, unknown>)[prop];
                         }
                     });
                     this._serverStatus = serverStatusNode.$extensionObject;
@@ -1180,12 +1199,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         const keys = Object.keys(operationLimits);
 
                         keys.forEach((key: string) => {
-                            const uid = "Server_ServerCapabilities_OperationLimits_" + upperCaseFirst(key);
-                            const nodeId = makeNodeId((VariableIds as any)[uid]);
+                            const uid = `Server_ServerCapabilities_OperationLimits_${upperCaseFirst(key)}`;
+                            const nodeId = makeNodeId((VariableIds as unknown as Record<string, number>)[uid]);
                             assert(!nodeId.isEmpty());
 
-                            bindStandardScalar((VariableIds as any)[uid], DataType.UInt32, () => {
-                                return (operationLimits as any)[key];
+                            bindStandardScalar((VariableIds as unknown as Record<string, number>)[uid], DataType.UInt32, () => {
+                                return (operationLimits as unknown as Record<string, unknown>)[key];
                             });
                         });
                     };
@@ -1197,7 +1216,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         const nodeId = coerceNodeId("i=2399"); // ProgramStateMachineType_ProgramDiagnostics
                         const variable = addressSpace.findNode(nodeId) as UAVariable;
                         if (variable) {
-                            (variable as any).$extensionObject = new ProgramDiagnosticDataType({});
+                            (variable as unknown as Record<string, unknown>).$extensionObject = new ProgramDiagnosticDataType({});
                             //  variable.setValueFromSource({
                             //     dataType: DataType.ExtensionObject,
                             //     //     value: new ProgramDiagnostic2DataType()
@@ -1270,7 +1289,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 function r<T>(a: undefined | T | Getter<T>, defaultValue: T): T {
                     if (a === undefined) return defaultValue;
                     if (typeof a === "function") {
-                        return (a as any)();
+                        return (a as unknown as () => T)();
                     }
                     return a;
                 }
@@ -1363,15 +1382,18 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
                 // fix getMonitoredItems.outputArguments arrayDimensions
                 const fixGetMonitoredItemArgs = () => {
-                    const objects = this.addressSpace!.rootFolder?.objects;
+                    const objects = this.addressSpace?.rootFolder?.objects;
                     if (!objects || !objects.server) {
                         return;
                     }
-                    const getMonitoredItemsMethod = objects.server.getMethodByName("GetMonitoredItems")!;
+                    const getMonitoredItemsMethod = objects.server.getMethodByName("GetMonitoredItems");
                     if (!getMonitoredItemsMethod) {
                         return;
                     }
-                    const outputArguments = getMonitoredItemsMethod.outputArguments!;
+                    const outputArguments = getMonitoredItemsMethod.outputArguments;
+                    if (!outputArguments) {
+                        return;
+                    }
                     const dataValue = outputArguments.readValue();
                     if (!dataValue.value?.value) {
                         // value is null or undefined , meaning no arguments necessary
@@ -1387,7 +1409,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 fixGetMonitoredItemArgs();
 
                 const prepareServerDiagnostics = () => {
-                    const addressSpace1 = this.addressSpace!;
+                    const addressSpace1 = this.addressSpace;
+                    if (!addressSpace1) {
+                        return;
+                    }
 
                     if (!addressSpace1.rootFolder.objects) {
                         return;
@@ -1418,22 +1443,24 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     );
                     if (samplingIntervalDiagnosticsArray) {
                         addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
-                        const s = serverDiagnosticsNode.getComponents();
                     }
 
                     const subscriptionDiagnosticsArrayNode = serverDiagnosticsNode.getComponentByName(
                         "SubscriptionDiagnosticsArray"
-                    )! as UADynamicVariableArray<SessionDiagnosticsDataType>;
+                    ) as UADynamicVariableArray<SessionDiagnosticsDataType>;
                     assert(subscriptionDiagnosticsArrayNode.nodeClass === NodeClass.Variable);
                     bindExtObjArrayNode(subscriptionDiagnosticsArrayNode, "SubscriptionDiagnosticsType", "subscriptionId");
 
                     makeNotReadableIfEnabledFlagIsFalse(subscriptionDiagnosticsArrayNode);
 
-                    const sessionsDiagnosticsSummary = serverDiagnosticsNode.getComponentByName("SessionsDiagnosticsSummary")!;
+                    const sessionsDiagnosticsSummary = serverDiagnosticsNode.getComponentByName("SessionsDiagnosticsSummary");
 
+                    if (!sessionsDiagnosticsSummary) {
+                        return;
+                    }
                     const sessionDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName(
                         "SessionDiagnosticsArray"
-                    )! as UADynamicVariableArray<SessionDiagnosticsDataType>;
+                    ) as UADynamicVariableArray<SessionDiagnosticsDataType>;
                     assert(sessionDiagnosticsArray.nodeClass === NodeClass.Variable);
 
                     bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
@@ -1444,7 +1471,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     } else {
                         const sessionSecurityDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName(
                             "SessionSecurityDiagnosticsArray"
-                        )! as UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
+                        ) as UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
                         assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
                         bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
                         ensureObjectIsSecure(sessionSecurityDiagnosticsArray);
@@ -1466,7 +1493,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // do expansion first
         for (const browseDescription of nodesToBrowse) {
             const nodeId = resolveNodeId(browseDescription.nodeId);
-            const node = this.addressSpace!.findNode(nodeId);
+            const node = this.addressSpace?.findNode(nodeId);
             if (node) {
                 if (node.onFirstBrowseAction) {
                     try {
@@ -1485,19 +1512,34 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return await this.browse(context, nodesToBrowse);
     }
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
-        return this.addressSpaceAccessor!.browse(context, nodesToBrowse);
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.browse(context, nodesToBrowse);
     }
     public async read(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
-        return this.addressSpaceAccessor!.read(context, readRequest);
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.read(context, readRequest);
     }
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
-        return await this.addressSpaceAccessor!.write(context, nodesToWrite);
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return await this.addressSpaceAccessor.write(context, nodesToWrite);
     }
     public async call(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]> {
-        return await this.addressSpaceAccessor!.call(context, methodsToCall);
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return await this.addressSpaceAccessor.call(context, methodsToCall);
     }
     public async historyRead(context: ISessionContext, historyReadRequest: HistoryReadRequest): Promise<HistoryReadResult[]> {
-        return this.addressSpaceAccessor!.historyRead(context, historyReadRequest);
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.historyRead(context, historyReadRequest);
     }
 
     public getOldestInactiveSession(): ServerSession | null {
@@ -1536,7 +1578,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const sessionTimeout = options.sessionTimeout || 1000;
         assert(typeof sessionTimeout === "number");
 
-        const session = new ServerSession(this, options.server.userManager!, sessionTimeout);
+        const session = new ServerSession(this, options.server.userManager || {}, sessionTimeout);
 
         debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
@@ -1548,13 +1590,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // TODO : When a Session is created, the Server adds an entry for the Client
         //        in its SessionDiagnosticsArray Variable
 
-        session.on("new_subscription", (subscription: Subscription) => {
+        session.on("new_subscription", (_subscription: Subscription) => {
             this.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
             // add the subscription diagnostics in our subscriptions diagnostics array
             // note currentSubscriptionCount is handled directly with a special getter
         });
 
-        session.on("subscription_terminated", (subscription: Subscription) => {
+        session.on("subscription_terminated", (_subscription: Subscription) => {
             // remove the subscription diagnostics in our subscriptions diagnostics array
             // note currentSubscriptionCount is handled directly with a special getter
         });
@@ -1624,7 +1666,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // c8 ignore next
         if (!session) {
-            throw new Error("cannot find session with this authenticationToken " + authenticationToken.toString());
+            throw new Error(`cannot find session with this authenticationToken ${authenticationToken.toString()}`);
         }
 
         if (!deleteSubscriptions) {
@@ -1655,7 +1697,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     public findSubscription(subscriptionId: number): Subscription | null {
         const subscriptions: Subscription[] = [];
-        Object.values(this._sessions).map((session) => {
+        Object.values(this._sessions).forEach((session) => {
             if (subscriptions.length) {
                 return;
             }
@@ -1724,7 +1766,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         //     warningLog("ServerEngine#transferSubscription => BadUserAccessDenied");
         //     return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
         // }
-        if ((session.publishEngine as any) === subscription.publishEngine) {
+        if (session.publishEngine === (subscription.publishEngine as unknown)) {
             // subscription is already in this session !!
             return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
         }
@@ -1738,8 +1780,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // The number of times the subscription has been transferred to an alternate session for the same client.
         subscription.subscriptionDiagnostics.transferredToSameClientCount++;
 
-        const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
-
         if (subscription.$session) {
             subscription.$session._unexposeSubscriptionDiagnostics(subscription);
         }
@@ -1750,7 +1790,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         session._exposeSubscriptionDiagnostics(subscription);
 
-        assert((subscription.publishEngine as any) === session.publishEngine);
+        assert(subscription.publishEngine === session.publishEngine);
         // assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore + 1);
 
         const result = new TransferResult({
@@ -1797,7 +1837,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return browsePathResults;
     }
     public async translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult> {
-        return this.addressSpace!.browsePath(browsePath);
+        if (!this.addressSpace) {
+            throw new Error("addressSpace is not available");
+        }
+        return this.addressSpace.browsePath(browsePath);
     }
 
     /**
@@ -1834,12 +1877,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 continue;
             }
             // ... and that are valid object and instances of Variables ...
-            const uaNode = this.addressSpace!.findNode(nodeToRefresh.nodeId);
+            const uaNode = this.addressSpace?.findNode(nodeToRefresh.nodeId);
             if (!uaNode || !(uaNode.nodeClass === NodeClass.Variable)) {
                 continue;
             }
             // ... and that have been declared as asynchronously updating
-            if (typeof (uaNode as any).refreshFunc !== "function") {
+            if (typeof (uaNode as unknown as Record<string, unknown>).refreshFunc !== "function") {
                 continue;
             }
             const key = uaNode.nodeId.toString();
@@ -1852,7 +1895,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const uaVariableArray = Object.values(nodeMap);
         if (uaVariableArray.length === 0) {
             // nothing to do
-            return callback(null, []);
+            callback(null, []);
+            return;
         }
         // perform all asyncRefresh in parallel
         async.map(
@@ -1879,7 +1923,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
             const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
             const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-            assert((subscriptionDiagnostics as any).$subscription === subscription);
+            assert((subscriptionDiagnostics as unknown as Record<string, unknown>).$subscription === subscription);
             assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
             if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
@@ -1895,7 +1939,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
-            const node = (serverSubscriptionDiagnosticsArray as any)[subscription.id];
             removeElement(serverSubscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
             /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
@@ -1929,7 +1972,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             maxKeepAliveCount,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,
             priority: request.priority || 0,
-            publishEngine: session.publishEngine as any, //
+            publishEngine: session.publishEngine as unknown as ServerSidePublishEngine, //
             publishingEnabled: request.publishingEnabled,
             publishingInterval,
             // -------------------
@@ -1941,7 +1984,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // add subscriptionDiagnostics
         this._exposeSubscriptionDiagnostics(subscription);
 
-        assert((subscription.publishEngine as any) === session.publishEngine);
+        assert(subscription.publishEngine === session.publishEngine);
         session.publishEngine.add_subscription(subscription);
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -1959,19 +2002,18 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         assert(typeof func === "function");
         assert(nodeId instanceof NodeId);
 
-        const methodNode = this.addressSpace!.findNode(nodeId)! as UAMethod;
+        const methodNode = this.addressSpace?.findNode(nodeId) as UAMethod | undefined;
         if (!methodNode) {
             return;
         }
-        if (methodNode && methodNode.bindMethod) {
+        if (methodNode?.bindMethod) {
             methodNode.bindMethod(func);
-        }
-        /* c8 ignore next */
-        else {
+        } else {
+            /* c8 ignore next */
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                chalk.cyan(nodeId.toString()) +
-                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                    chalk.cyan(nodeId.toString()) +
+                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
@@ -1986,14 +2028,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
         const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
         if (!subscriptionDiagnosticsType) {
-            doDebug &&
-                debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
+            doDebug && debugLog(`ServerEngine#_getServerSubscriptionDiagnosticsArray : cannot find SubscriptionDiagnosticsType`);
         }
 
         // SubscriptionDiagnosticsArray = i=2290
         const subscriptionDiagnosticsArrayNode = this.addressSpace.findNode(
             makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray)
-        )!;
+        );
 
         return subscriptionDiagnosticsArrayNode as UADynamicVariableArray<SubscriptionDiagnosticsDataType>;
     }

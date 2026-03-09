@@ -1,25 +1,24 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
+import fs from "node:fs";
+import path from "node:path";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 import { OPCUAClient } from "node-opcua-client";
-import { UserTokenType } from "node-opcua-service-endpoints";
-import { NodeId } from "node-opcua-nodeid";
-
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId } from "node-opcua-nodeid";
+import { UserTokenType } from "node-opcua-service-endpoints";
+import should from "should";
 
 import { OPCUAServer } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-fs.existsSync(mini_nodeset_filename).should.eql(true, " expecting " + mini_nodeset_filename + " to exist");
+fs.existsSync(mini_nodeset_filename).should.eql(true, ` expecting ${mini_nodeset_filename} to exist`);
 
 const port = 2023;
 
 interface OPCUAServerPriv extends Omit<OPCUAServer, "createSession"> {
-    createSession: (options?: any) => any;
+    createSession: (options?: unknown) => unknown;
 }
 describe("OPCUAServer", () => {
     let server: OPCUAServerPriv | null = null;
@@ -27,7 +26,7 @@ describe("OPCUAServer", () => {
         server = new OPCUAServer({
             port,
             nodeset_filename: [mini_nodeset_filename]
-        }) as any as OPCUAServerPriv;
+        }) as OPCUAServer & OPCUAServerPriv;
         await server.start();
     });
     afterEach(async () => {
@@ -44,7 +43,7 @@ describe("OPCUAServer", () => {
 
         // let make sure that no session exists
         // (session and subscriptions )
-        const session = server.createSession({});
+        const _session = server.createSession({});
 
         server.engine.currentSessionCount.should.equal(1);
         server.engine.cumulatedSessionCount.should.equal(1);
@@ -73,7 +72,7 @@ describe("OPCUAServer", () => {
 
         //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
 
-        const sessionNode = server.engine.addressSpace!.findNode(session.nodeId)!;
+        const sessionNode = server.engine.addressSpace?.findNode(session.nodeId);
 
         should(!!sessionNode).eql(true, " a session node must be found");
 
@@ -182,8 +181,8 @@ describe("OPCUAServer-4", () => {
             should(true).eql(false); // should never be reached
         } catch (e) {
             if (!(e instanceof Error)) throw new Error("expecting an error");
-            should(e.message.includes("BadUserSignatureInvalid")).eql(true);
-            should(e.message.includes("0x80570000")).eql(true);
+            e.message.should.match(/BadUserSignatureInvalid/);
+            e.message.should.match(/0x80570000/);
             thrown = true;
         }
         should(thrown).eql(true);

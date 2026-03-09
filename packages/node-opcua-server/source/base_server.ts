@@ -2,46 +2,38 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import fs from "fs";
-import path from "path";
-import os from "os";
-import { types } from "util";
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { types } from "node:util";
+
+import { withLock } from "@ster5/global-mutex";
 import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { withLock } from "@ster5/global-mutex";
-
-import {
-    getDefaultCertificateManager,
-    ICertificateManager,
-    makeSubject,
-    OPCUACertificateManager
-} from "node-opcua-certificate-manager";
-import { IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
-import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
+import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { performCertificateSanityCheck } from "node-opcua-client";
+import { type IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
+import { coerceLocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
+import { checkDebugFlag, displayTraceFromThisProjectOnly, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     extractFullyQualifiedDomainName,
     getFullyQualifiedDomainName,
     getHostname,
     resolveFullyQualifiedDomainName
 } from "node-opcua-hostname";
-import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
+import type { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
-import { ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
-import { ApplicationDescription } from "node-opcua-service-endpoints";
+import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { ServiceFault } from "node-opcua-service-secure-channel";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ApplicationDescriptionOptions } from "node-opcua-types";
-import { EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
-import { matchUri, checkFileExistsAndIsNotEmpty } from "node-opcua-utils";
-
-import { performCertificateSanityCheck } from "node-opcua-client";
-import { OPCUAServerEndPoint } from "./server_end_point";
-import { IChannelData } from "./i_channel_data";
-import { ISocketData } from "./i_socket_data";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { ApplicationDescriptionOptions, EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
+import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
+import type { IChannelData } from "./i_channel_data";
+import type { ISocketData } from "./i_socket_data";
+import type { OPCUAServerEndPoint } from "./server_end_point";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -122,7 +114,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public endpoints: OPCUAServerEndPoint[];
     public readonly serverCertificateManager: OPCUACertificateManager;
     public capabilitiesForMDNS: string[];
-    protected _preInitTask: any[];
+    protected _preInitTask: (() => Promise<void>)[];
 
     protected options: OPCUABaseServerOptions;
 
@@ -155,9 +147,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
             errorLog("[NODE-OPCUA-E06] application name cannot be a urn", this.serverInfo.applicationName.toString());
         }
 
-        this.serverInfo.applicationName!.locale = this.serverInfo.applicationName?.locale || "en";
+        this.serverInfo.applicationName.locale = this.serverInfo.applicationName.locale || "en";
 
-        if (!this.serverInfo.applicationName?.locale) {
+        if (!this.serverInfo.applicationName.locale) {
             warningLog(
                 "[NODE-OPCUA-W24] the server applicationName must have a valid locale : ",
                 this.serverInfo.applicationName.toString()
@@ -166,10 +158,13 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const __applicationUri = serverInfo.applicationUri || "";
 
-        (this.serverInfo as any).__defineGetter__("applicationUri", () => resolveFullyQualifiedDomainName(__applicationUri));
+        Object.defineProperty(this.serverInfo, "applicationUri", {
+            get: () => resolveFullyQualifiedDomainName(__applicationUri),
+            configurable: true
+        });
 
         this._preInitTask.push(async () => {
-            const fqdn = await extractFullyQualifiedDomainName();
+            await extractFullyQualifiedDomainName();
         });
 
         this._preInitTask.push(async () => {
@@ -183,18 +178,18 @@ export class OPCUABaseServer extends OPCUASecureObject {
         }
 
         // collect all hostnames
-        const hostnames = [];
+        const _hostnames = [];
         for (const e of this.endpoints) {
-            for (const ee of e.endpointDescriptions()) {
+            for (const _ee of e.endpointDescriptions()) {
                 /* to do */
             }
         }
         if (!checkFileExistsAndIsNotEmpty(this.certificateFile)) {
-            await withLock({ fileToLock: this.certificateFile + ".mutex" }, async () => {
+            await withLock({ fileToLock: `${this.certificateFile}.mutex` }, async () => {
                 if (checkFileExistsAndIsNotEmpty(this.certificateFile)) {
                     return;
                 }
-                const applicationUri = this.serverInfo.applicationUri!;
+                const applicationUri = this.serverInfo.applicationUri || "<missing application uri>";
                 const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
                 const dns = [...new Set([fqdn, hostname])];
@@ -205,7 +200,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     // ip: await getIpAddresses(),
                     outputFile: this.certificateFile,
 
-                    subject: makeSubject(this.serverInfo.applicationName.text!, hostname),
+                    subject: makeSubject(this.serverInfo.applicationName.text || "<missing application name>", hostname),
 
                     startDate: new Date(),
                     validity: 365 * 10 // 10 years
@@ -219,17 +214,25 @@ export class OPCUABaseServer extends OPCUASecureObject {
         await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
-        await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
+        await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
     }
 
     /**
      * start all registered endPoint, in parallel, and call done when all endPoints are listening.
      */
-    public start(done: (err?: Error | null) => void): void {
-        assert(typeof done === "function");
-        this.startAsync()
-            .then(() => done(null))
-            .catch((err) => done(err));
+    public start(): Promise<void>;
+    public start(done: () => void): void;
+    public start(...args: [((err?: Error) => void)?]): Promise<void> | void {
+        const callback = args[0];
+        if (!callback || args.length === 0) {
+            return this.startAsync();
+        } else {
+            this.startAsync()
+                .then(() => {
+                    callback();
+                })
+                .catch((err) => callback(err));
+        }
     }
 
     protected async performPreInitialization(): Promise<void> {
@@ -294,7 +297,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
     /**
      * shutdown all server endPoints
      */
-    public shutdown(done: (err?: Error) => void): void {
+    public shutdown(done: (err?: Error | null) => void): void {
         assert(typeof done === "function");
         uninstallPeriodicClockAdjustment();
         this.serverCertificateManager.dispose().then(() => {
@@ -307,7 +310,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 },
                 (err?: Error | null) => {
                     debugLog("shutdown completed");
-                    done(err!);
+                    done(err);
                 }
             );
         });
@@ -317,6 +320,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
     public shutdownChannels(callback: (err?: Error | null) => void): void;
     public shutdownChannels(callback?: (err?: Error | null) => void): Promise<void> | void {
         assert(typeof callback === "function");
+        // c8 ignore next
+        if (!callback) throw new Error("thenify is not available");
         debugLog("OPCUABaseServer#shutdownChannels");
         async.forEach(
             this.endpoints,
@@ -338,7 +343,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     inner_callback
                 );
             },
-            callback!
+            callback
         );
     }
 
@@ -352,7 +357,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         // install channel._on_response so we can intercept its call and  emit the "response" event.
         if (!channel._on_response) {
-            channel._on_response = (msg: string, response1: Response /*, inner_message: Message*/) => {
+            channel._on_response = (_msg: string, response1: Response /*, inner_message: Message*/) => {
                 this.emit("response", response1, channel);
             };
         }
@@ -375,12 +380,11 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         try {
             // handler must be named _on_ActionRequest()
-            const handler = (this as any)["_on_" + request.schema.name];
+            const handler = (this as unknown as Record<string, unknown>)[`_on_${request.schema.name}`];
             if (typeof handler === "function") {
-                // eslint-disable-next-line prefer-rest-params
-                handler.apply(this, arguments);
+                handler.call(this, message, channel);
             } else {
-                errMessage = "[NODE-OPCUA-W07] Unsupported Service : " + request.schema.name;
+                errMessage = `[NODE-OPCUA-W07] Unsupported Service : ${request.schema.name}`;
                 warningLog(errMessage);
                 debugLog(chalk.red.bold(errMessage));
                 response = makeServiceFault(StatusCodes.BadServiceUnsupported, [errMessage]);
@@ -388,13 +392,13 @@ export class OPCUABaseServer extends OPCUASecureObject {
             }
         } catch (err) {
             /* c8 ignore next */
-            const errMessage1 = "[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! " + request.schema.name;
+            const errMessage1 = `[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! ${request.schema.name}`;
             warningLog(chalk.red.bold(errMessage1));
             warningLog(request.toString());
             displayTraceFromThisProjectOnly(err as Error);
 
             let additional_messages = [];
-            additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
+            additional_messages.push(`EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! ${request.schema.name}`);
             if (types.isNativeError(err)) {
                 additional_messages.push(err.message);
                 if (err.stack) {
@@ -423,17 +427,17 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * get one of the possible endpointUrl
      */
     public getEndpointUrl(): string {
-        return this._get_endpoints()[0].endpointUrl!;
+        return this._get_endpoints()[0].endpointUrl || "";
     }
 
     public getDiscoveryUrls(): string[] {
         const discoveryUrls = this.endpoints.map((e: OPCUAServerEndPoint) => {
-            return e.endpointDescriptions()[0].endpointUrl!;
+            return e.endpointDescriptions()[0].endpointUrl || "";
         });
         return discoveryUrls;
     }
 
-    public getServers(channel: ServerSecureChannelLayer): ApplicationDescription[] {
+    public getServers(_channel: ServerSecureChannelLayer): ApplicationDescription[] {
         this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
         const servers = [this.serverInfo];
         return servers;
@@ -447,8 +451,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
      *
      */
     public async suspendEndPoints(): Promise<void>;
-    public suspendEndPoints(callback: (err?: Error) => void): void;
-    public suspendEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
+    public suspendEndPoints(callback: (err?: Error | null) => void): void;
+    public suspendEndPoints(callback?: (err?: Error | null) => void): void | Promise<void> {
         /* c8 ignore next */
         if (!callback) {
             throw new Error("Internal Error");
@@ -469,7 +473,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     _inner_callback(err);
                 });
             },
-            (err?: Error | null) => callback(err!)
+            (err?: Error | null) => callback(err)
         );
     }
 
@@ -479,18 +483,20 @@ export class OPCUABaseServer extends OPCUASecureObject {
      *    this method is useful for testing purpose
      */
     public async resumeEndPoints(): Promise<void>;
-    public resumeEndPoints(callback: (err?: Error) => void): void;
-    public resumeEndPoints(callback?: (err?: Error) => void): void | Promise<void> {
+    public resumeEndPoints(callback: (err?: Error | null) => void): void;
+    public resumeEndPoints(callback?: (err?: Error | null) => void): void | Promise<void> {
+        // c8 ignore next
+        if (!callback) throw new Error("thenify is not available");
         async.forEach(
             this.endpoints,
             (ep: OPCUAServerEndPoint, _inner_callback) => {
                 ep.restoreConnection(_inner_callback);
             },
-            (err?: Error | null) => callback!(err!)
+            (err?: Error | null) => callback(err)
         );
     }
 
-    protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
+    protected prepare(_message: Message, _channel: ServerSecureChannelLayer): void {
         /* empty */
     }
 
@@ -517,7 +523,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
          *                          The Transport Profiles that support query strings are defined in OPC 10000-7.
          */
         response.endpoints = this._get_endpoints(null);
-        const e = response.endpoints.map((e) => e.endpointUrl);
+        const _e = response.endpoints.map((e) => e.endpointUrl);
         if (request.endpointUrl) {
             const filtered = response.endpoints.filter(
                 (endpoint: EndpointDescription) => endpoint.endpointUrl === request.endpointUrl
@@ -526,13 +532,16 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 response.endpoints = filtered;
             }
         }
-        response.endpoints = response.endpoints.filter((endpoint: EndpointDescription) => !(endpoint as any).restricted);
+        response.endpoints = response.endpoints.filter(
+            (endpoint: EndpointDescription) => !(endpoint as unknown as { restricted: boolean }).restricted
+        );
 
         // apply filters
         if (request.profileUris && request.profileUris.length > 0) {
-            response.endpoints = response.endpoints.filter((endpoint: any) => {
-                return request.profileUris!.indexOf(endpoint.transportProfileUri) >= 0;
-            });
+            const profileUris = request.profileUris;
+            response.endpoints = response.endpoints.filter(
+                (endpoint: EndpointDescription) => profileUris.indexOf(endpoint.transportProfileUri) >= 0
+            );
         }
 
         // adjust locale on ApplicationName to match requested local or provide
@@ -567,9 +576,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
             // apply filters
             // TODO /
             if (request.serverUris && request.serverUris.length > 0) {
+                const serverUris = request.serverUris;
                 // A serverUri matches the applicationUri from the ApplicationDescription define
                 servers = servers.filter((inner_Server: ApplicationDescription) => {
-                    return request.serverUris!.indexOf(inner_Server.applicationUri) >= 0;
+                    return serverUris.indexOf(inner_Server.applicationUri) >= 0;
                 });
             }
 
@@ -626,6 +636,7 @@ function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFa
 
 // tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 OPCUABaseServer.prototype.resumeEndPoints = withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
 OPCUABaseServer.prototype.suspendEndPoints = withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
