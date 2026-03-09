@@ -1,46 +1,55 @@
 /**
  * @module node-opcua-secure-channel
  */
-// tslint:disable:object-literal-short-hand
-// tslint:disable:variable-name
-// tslint:disable:max-line-length
-
-import { KeyLike, KeyObject, createPrivateKey, createSign, createVerify } from "crypto";
-import { constants, publicEncrypt as publicEncrypt_native, privateDecrypt as privateDecrypt_native } from "crypto";
-import { assert } from "node-opcua-assert";
-
-import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
-
 import {
-    Certificate,
+    constants,
+    createPrivateKey,
+    createSign,
+    createVerify,
+    type KeyLike,
+    KeyObject,
+    privateDecrypt as privateDecrypt_native,
+    publicEncrypt as publicEncrypt_native
+} from "node:crypto";
+import { 
+    assert 
+} from "node-opcua-assert";
+import type { 
+    EncryptBufferFunc, 
+    SignBufferFunc 
+} from "node-opcua-chunkmanager";
+import {
+    type Certificate,
     computeDerivedKeys as computeDerivedKeys_ext,
-    DerivedKeys,
+    type DerivedKeys,
     encryptBufferWithDerivedKeys,
     exploreCertificateInfo,
     makeMessageChunkSignature,
     makeMessageChunkSignatureWithDerivedKeys,
-    Nonce,
+    type Nonce,
+    PaddingAlgorithm,
+    type PrivateKey,
+    type PublicKey,
     privateDecrypt_long,
-    PrivateKey,
     publicEncrypt_long,
-    PublicKey,
     rsaLengthPrivateKey,
     rsaLengthPublicKey,
-    Signature,
+    type Signature,
     split_der,
     toPem,
-    verifyMessageChunkSignature,
-    PaddingAlgorithm
+    verifyMessageChunkSignature
 } from "node-opcua-crypto/web";
-import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
-import { make_warningLog } from "node-opcua-debug";
+import { 
+    make_errorLog, 
+    make_warningLog 
+} from "node-opcua-debug";
+import { 
+    MessageSecurityMode, 
+    SignatureData 
+} from "node-opcua-service-secure-channel";
 
-// tslint:disable:no-empty
-function errorLog(...args: any[]) {
-    /** */
-}
-const warningLog = make_warningLog(__filename);
-
+const warningLog = make_warningLog("SecurityPolicy");
+const errorLog = make_errorLog("SecurityPolicy");
 /**
  *
  * OPCUA Spec Release 1.02  page 15    OPC Unified Architecture, Part 7
@@ -150,7 +159,7 @@ export function fromURI(uri: string | null): SecurityPolicy {
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
-    const v = (SecurityPolicy as any)[a[1]];
+    const v = SecurityPolicy[a[1] as keyof typeof SecurityPolicy];
     return (v as SecurityPolicy) || SecurityPolicy.Invalid;
 }
 
@@ -159,14 +168,14 @@ export function toURI(value: SecurityPolicy | string): string {
         const a: string[] = value.split("#");
         // c8 ignore next
         if (a.length < 2) {
-            return (SecurityPolicy as any)[value as any];
+            return SecurityPolicy[value as keyof typeof SecurityPolicy];
         }
         return value;
     }
 
     const securityPolicy = value || SecurityPolicy.Invalid;
     if (securityPolicy === SecurityPolicy.Invalid) {
-        throw new Error("trying to convert an invalid Security Policy into a URI: " + value);
+        throw new Error(`trying to convert an invalid Security Policy into a URI: ${value}`);
     }
     return SecurityPolicy[securityPolicy];
 }
@@ -185,7 +194,7 @@ export function coerceSecurityPolicy(value?: string | SecurityPolicy | null): Se
         value === "Aes256_Sha256_RsaPss" ||
         value === "Basic256Rsa15"
     ) {
-        return (SecurityPolicy as any)[value as string] as SecurityPolicy;
+        return SecurityPolicy[value];
     }
     if (
         !(
@@ -221,7 +230,11 @@ function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
 }
 
 // --------------------
-export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certificate: Certificate): { signatureIsOK: boolean, signatureLength: number } {
+export function asymmetricVerifyChunk(
+    self: CryptoFactory,
+    chunk: Buffer,
+    certificate: Certificate
+): { signatureIsOK: boolean; signatureLength: number } {
     const cert = exploreCertificateInfo(certificate);
     // then verify the signature
     const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
@@ -235,7 +248,7 @@ export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certif
     const signature = chunk.subarray(chunk.length - signatureLength);
     // debugLog("XXXXX  SIGNATURE !", signature.toString("hex"));
 
-    const  signatureIsOK = self.asymmetricVerify(blockToVerify, signature, leafSenderCertificate);
+    const signatureIsOK = self.asymmetricVerify(blockToVerify, signature, leafSenderCertificate);
     return { signatureIsOK, signatureLength };
 }
 
@@ -421,7 +434,11 @@ export interface CryptoFactory {
     /**  for info only */
     maximumAsymmetricKeyLength: number;
 
-    asymmetricVerifyChunk: (self: CryptoFactory, chunk: Buffer, certificate: Certificate) => {signatureIsOK: boolean, signatureLength: number};
+    asymmetricVerifyChunk: (
+        self: CryptoFactory,
+        chunk: Buffer,
+        certificate: Certificate
+    ) => { signatureIsOK: boolean; signatureLength: number };
     asymmetricSign: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
     asymmetricVerify: (buffer: Buffer, signature: Signature, certificate: Certificate) => boolean;
 
@@ -672,20 +689,25 @@ export function computeSignature(
 
 export function verifySignature(
     receiverCertificate: Buffer,
-    receiverNonce: Buffer,
+    receiverNonce: Buffer | undefined | null,
     signature: SignatureData,
-    senderCertificate: Buffer,
+    senderCertificate: Buffer | undefined | null,
     securityPolicy: SecurityPolicy
 ): boolean {
     if (securityPolicy === SecurityPolicy.None) {
+        // receiverNonce should be undefined
+        // senderCertificate should be undefined
         return true;
     }
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
         return false;
     }
-    if (!(signature.signature instanceof Buffer)) {
+    if (!receiverNonce || !(signature.signature instanceof Buffer)) {
         // no signature provided
+        return false;
+    }
+    if (!senderCertificate) {
         return false;
     }
     // Verify that senderCertificate is not a chain
@@ -717,14 +739,14 @@ export function getOptionsForSymmetricSignAndEncrypt(
     derivedKeys: DerivedKeys
 ): SecureMessageData {
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
-    let options: SecureMessageData = {
-        // for signing 
+    const options: SecureMessageData = {
+        // for signing
         signatureLength: derivedKeys.signatureLength,
         signBufferFunc: (chunk) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
         // for encrypting
         cipherBlockSize: derivedKeys.encryptingBlockSize,
         plainBlockSize: derivedKeys.encryptingBlockSize,
-        encryptBufferFunc: (chunk) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
+        encryptBufferFunc: (chunk) => encryptBufferWithDerivedKeys(chunk, derivedKeys)
     };
     if (securityMode === MessageSecurityMode.Sign) {
         // we don't want to encrypt
