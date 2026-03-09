@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-server-configuration
  */
+import type { ISessionContext } from "node-opcua-address-space-base";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
@@ -101,7 +102,7 @@ export interface PushCertificateManager {
      * Result Code               Description
      * Bad_UserAccessDenied      The current user does not have the rights required.
      */
-    applyChanges(): Promise<StatusCode>;
+    applyChanges(context?: ISessionContext): Promise<StatusCode>;
 
     /**
      * The CreateSigningRequest Method asks the Server to create a PKCS #10 encoded Certificate

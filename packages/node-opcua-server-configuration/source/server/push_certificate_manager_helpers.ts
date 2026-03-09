@@ -247,7 +247,7 @@ async function _applyChanges(
     if (!pushCertificateManager) {
         return { statusCode: StatusCodes.BadNotImplemented };
     }
-    const statusCode = await pushCertificateManager.applyChanges();
+    const statusCode = await pushCertificateManager.applyChanges(context);
     return { statusCode };
 }
 
