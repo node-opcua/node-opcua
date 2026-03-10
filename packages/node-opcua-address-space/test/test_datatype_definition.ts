@@ -7,7 +7,7 @@ import should from "should";
 import { AddressSpace, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-const context = SessionContext.defaultContext;
+const _context = SessionContext.defaultContext;
 
 describe("testing UADataType -  Attribute", () => {
     let addressSpace: AddressSpace;
@@ -58,7 +58,7 @@ describe("testing UADataType -  Attribute", () => {
     it("DTX5 should extract Definition from DataType structure", async () => {
         const ns = addressSpace.getOwnNamespace();
 
-        const dataType = ns.createDataType({
+        const _dataType = ns.createDataType({
             browseName: "MyDataType",
             isAbstract: true,
             subtypeOf: "Structure",
@@ -93,9 +93,9 @@ describe("testing UADataType -  Attribute", () => {
         const definition = dataType.getStructureDefinition();
         definition.should.be.instanceOf(StructureDefinition);
 
-        definition.fields!.length.should.eql(1);
-        definition.fields![0].name!.should.eql("Value");
+        definition.fields?.length.should.eql(1);
+        definition.fields?.[0].name?.should.eql("Value");
         // Must be BaseDataType (ns=0;i=24), not Null NodeId (ns=0;i=0)
-        definition.fields![0].dataType.toString().should.eql("ns=0;i=24");
+        definition.fields?.[0].dataType.toString().should.eql("ns=0;i=24");
     });
 });

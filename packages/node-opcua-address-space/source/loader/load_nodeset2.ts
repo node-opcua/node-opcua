@@ -3,6 +3,7 @@
  * @module node-opcua-address-space
  */
 
+import { types } from "node:util";
 import chalk from "chalk";
 import type {
     AddReferenceTypeOptions,
@@ -35,7 +36,6 @@ import type { EnumFieldOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
-import { types } from "util";
 import type { AddressSpacePrivate } from "../../src/address_space_private";
 import type { NamespacePrivate } from "../../src/namespace_private";
 import type { StructureFieldOptionsEx } from "../../src/ua_data_type_impl";
@@ -86,7 +86,7 @@ function makeDefaultVariant(
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
-    if (nodeDataType && nodeDataType.basicDataType) {
+    if (nodeDataType?.basicDataType) {
         const basicDataType = nodeDataType.basicDataType;
         if (basicDataType === DataType.Variant) {
             /// we don't now what is the variant
@@ -186,7 +186,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         // c8 ignore next
         if (namespaceIndex === undefined) {
             errorLog("Error; namespace_uri_translation", namespaceUriTranslationMap.entries());
-            throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
+            throw new Error(`_translateNamespaceIndex() ! Cannot find namespace definition for index ${innerIndex}`);
         }
         return namespaceIndex;
     }
@@ -197,7 +197,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             throw new Error("invalid param");
         } // already translated
 
-        const namespace = addressSpace1.getNamespace(params.nodeId!.namespace);
+        const namespace = addressSpace1.getNamespace(params.nodeId?.namespace);
         namespace.addReferenceType(params);
     }
 
@@ -256,7 +256,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         "is loaded first when loading",
                         model.modelUri
                     );
-                    throw new Error("LoadNodeSet : Cannot find namespace for " + requiredModel.modelUri);
+                    throw new Error(`LoadNodeSet : Cannot find namespace for ${requiredModel.modelUri}`);
                 }
                 /**
                  *  from https://reference.opcfoundation.org/Core/docs/Part6/F.2/
@@ -318,7 +318,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         const m = nodeId.match(reg);
         if (m) {
             const namespaceIndex = _translateNamespaceIndex(parseInt(m[1], 10));
-            nodeId = "ns=" + namespaceIndex + ";" + m[2];
+            nodeId = `ns=${namespaceIndex};${m[2]}`;
         }
         return resolveNodeId(nodeId);
     }
@@ -369,7 +369,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             Reference: {
                 finish(this: any) {
                     this.parent.array.push({
-                        isForward: this.attrs.IsForward === undefined ? true : this.attrs.IsForward === "false" ? false : true,
+                        isForward: this.attrs.IsForward === undefined ? true : this.attrs.IsForward !== "false",
                         nodeId: convertToNodeId(this.text),
                         referenceType: _translateReferenceType(this.attrs.ReferenceType)
                     });
@@ -379,7 +379,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     };
     // #region UAObject
     const state_UAObject = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
@@ -419,7 +419,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAObjectType
     const state_UAObjectType = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
@@ -452,7 +452,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAReferenceType
     const state_UAReferenceType = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
@@ -504,7 +504,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #region UADataType
     const pendingSimpleTypeToRegister: any[] = [];
     const state_UADataType = {
-        init(this: StateUADataType, name: string, attrs: XmlAttributes) {
+        init(this: StateUADataType, _name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
@@ -552,7 +552,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.obj.partialDefinition = definitionFields;
 
             let capturedDataTypeNode = _internal_createNode(this.obj) as UADataType;
-            const processBasicDataType = async (addressSpace2: IAddressSpace) => {
+            const processBasicDataType = async (_addressSpace2: IAddressSpace) => {
                 const definitionName = capturedDataTypeNode.browseName.name!;
                 const isStructure = capturedDataTypeNode.isStructure();
                 const isEnumeration = capturedDataTypeNode.isEnumeration();
@@ -640,7 +640,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     type ReaderUAVariableL2 = ReaderStateParserLike & { parent: ReaderUAVariableL1; text: string };
 
     const state_UAVariable = {
-        init(this: ReaderUAVariableL1, name: string, attrs: XmlAttributes) {
+        init(this: ReaderUAVariableL1, _name: string, attrs: XmlAttributes) {
             _perform();
 
             const valueRank = attrs.ValueRank === undefined ? -1 : coerceInt32(attrs.ValueRank);
@@ -682,7 +682,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             let capturedVariable: UAVariable;
             if (this.obj.value && this.obj.value.dataType !== DataType.Null) {
                 let capturedValue: any | undefined = this.obj.value;
-                const task = async (addressSpace2: IAddressSpace) => {
+                const task = async (_addressSpace2: IAddressSpace) => {
                     if (false && doDebug) {
                         debugLog("1 setting value to ", capturedVariable.nodeId.toString(), new Variant(capturedValue).toString());
                     }
@@ -697,7 +697,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     postTasks1_InitializeVariable.push(task);
                 }
             } else {
-                const task = async (addressSpace2: IAddressSpace) => {
+                const task = async (_addressSpace2: IAddressSpace) => {
                     const dataTypeNode = capturedVariable.dataType;
                     const valueRank = capturedVariable.valueRank;
                     const arrayDimensions = capturedVariable.arrayDimensions;
@@ -758,7 +758,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     type ReaderUAVariableTypeL1 = ReaderStateParserLike & { obj: IUAVariableTypeProps; isDraft: boolean; isDeprecated: boolean };
     type ReaderUAVariableTypeL2 = ReaderStateParserLike & { parent: ReaderUAVariableTypeL1; text: string };
     const state_UAVariableType = {
-        init(this: ReaderUAVariableTypeL1, name: string, attrs: XmlAttributes) {
+        init(this: ReaderUAVariableTypeL1, _name: string, attrs: XmlAttributes) {
             _perform();
             const valueRank = coerceInt32(attrs.ValueRank) || -1;
             this.obj = {
@@ -815,7 +815,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAMethod
     const state_UAMethod = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
@@ -864,7 +864,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         },
         parser: {
             RequiredModel: {
-                init(this: any, name: string, attrs: XmlAttributes) {
+                init(this: any, _name: string, attrs: XmlAttributes) {
                     const modelUri = attrs.ModelUri;
                     const version = attrs.Version;
                     const publicationDate = new Date(Date.parse(attrs.PublicationDate));
@@ -892,7 +892,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 symbolicName,
                 version
             };
-            const namespace = _add_namespace(model);
+            const _namespace = _add_namespace(model);
             models.push(model);
         }
     });
@@ -955,7 +955,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             Models: {
                 // ModelTable
-                init(this: any, name: string, attrs: XmlAttributes) {
+                init(this: any, _name: string, _attrs: XmlAttributes) {
                     /* */
                 },
                 parser: {
@@ -1041,7 +1041,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 if (dataTypeNodeId.namespace === 0) {
                     continue;
                 }
-                const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+                const _dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
             }
             pendingSimpleTypeToRegister.splice(0);
 
@@ -1078,10 +1078,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
 export class NodeSetLoader {
     _s: NodeSet2ParserEngine;
-    constructor(
-        addressSpace: IAddressSpace,
-        private options?: NodeSetLoaderOptions
-    ) {
+    constructor(addressSpace: IAddressSpace, options?: NodeSetLoaderOptions) {
         this._s = makeNodeSetParserEngine(addressSpace, options || {});
     }
 
