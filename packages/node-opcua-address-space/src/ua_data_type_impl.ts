@@ -6,7 +6,7 @@ import type { BaseNode, ISessionContext, UADataType, UAObject, UAVariable } from
 import { assert } from "node-opcua-assert";
 import { coerceInt64, coerceInt64toInt32, type Int64 } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
-import { AttributeIds, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import { AttributeIds, type LocalizedText, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -16,6 +16,7 @@ import {
     type DataTypeDefinition,
     EnumDefinition,
     type EnumFieldOptions,
+    type EnumValueType,
     StructureDefinition,
     type StructureFieldOptions,
     StructureType
@@ -36,9 +37,6 @@ import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_i
 const debugLog = make_debugLog("DATA_TYPE");
 const doDebug = checkDebugFlag("DATA_TYPE");
 
-export interface UADataTypeImpl {
-    _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
-}
 
 export interface StructureFieldOptionsEx extends StructureFieldOptions {
     allowSubTypes: boolean;
@@ -60,6 +58,7 @@ export interface UADataTypeOptions extends InternalBaseNodeOptions {
 }
 
 export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
+    public _extensionObjectConstructor!: ExtensionObjectConstructorFuncWithSchema;
     public readonly nodeClass = NodeClass.DataType;
     public readonly definitionName: string = "";
     public readonly symbolicName: string;
@@ -80,7 +79,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
 
     public get subtypeOfObj(): UADataType | null {
-        return get_subtypeOfObj.call(this) as any as UADataType;
+        return get_subtypeOfObj.call(this) as unknown as UADataType;
     }
 
     /** @deprecated */
@@ -88,9 +87,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     public isSubtypeOf = construct_isSubtypeOf<UADataType>(UADataTypeImpl);
 
     public readonly isAbstract: boolean;
-    private $isUnion?: boolean;
-    private enumStrings?: any;
-    private enumValues?: any;
+    private enumStrings?: UAVariable;
+    private enumValues?: UAVariable;
     private $partialDefinition?: StructureFieldOptionsEx[] | EnumFieldOptions[];
     private $fullDefinition?: StructureDefinition | EnumDefinition;
 
@@ -98,10 +96,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         super(options);
         if (options.partialDefinition) {
             this.$partialDefinition = options.partialDefinition;
-            this.$isUnion = options.isUnion;
         }
         this.isAbstract = options.isAbstract === undefined || options.isAbstract === null ? false : options.isAbstract;
-        this.symbolicName = options.symbolicName || this.browseName.name!;
+        this.symbolicName = options.symbolicName || this.browseName.name || "";
     }
 
     public get basicDataType(): DataType {
@@ -147,7 +144,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             throw new Error(`Cannot find Encoding for ${encoding_name}`);
         }
         const indexRange = new NumericRange();
-        const descriptionNodeRef = encodingNode.findReferences("HasDescription")[0]!;
+        const descriptionNodeRef = encodingNode.findReferences("HasDescription")[0];
         const descriptionNode = this.addressSpace.findNode(descriptionNodeRef.nodeId) as UAVariable;
         if (!descriptionNode) {
             return null;
@@ -167,8 +164,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             const addressSpace = this.addressSpace;
             const encoding = refs
                 .map((ref) => addressSpace.findNode(ref.nodeId))
-                .filter((obj: any) => obj !== null)
-                .filter((obj: any) => obj.browseName.toString() === encoding_name);
+                .filter((obj): obj is BaseNode => obj !== null)
+                .filter((obj) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
             _cache._encoding.set(key, node);
             return node;
@@ -226,7 +223,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         if (this.enumStrings) {
             const enumStrings = this.enumStrings.readValue().value.value;
             assert(Array.isArray(enumStrings));
-            definition = enumStrings.map((e: any, index: number) => {
+            definition = enumStrings.map((e: LocalizedText, index: number) => {
                 return {
                     name: e.text,
                     value: index
@@ -236,7 +233,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             assert(this.enumValues, "must have a enumValues property");
             const enumValues = this.enumValues.readValue().value.value;
             assert(Array.isArray(enumValues));
-            definition = enumValues.map((e: any) => {
+            definition = enumValues.map((e: EnumValueType) => {
                 return {
                     name: e.displayName.text,
                     value: coerceInt64toInt32(e.value)
@@ -334,7 +331,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             this.$fullDefinition = makeEnumDefinition(definitionFields);
         }
 
-        return this.$fullDefinition!;
+        return this.$fullDefinition as DataTypeDefinition;
     }
 
     public getDefinition(): DataTypeDefinition {

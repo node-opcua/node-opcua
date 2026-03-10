@@ -30,8 +30,9 @@ describe("testing UADataType -  Attribute", () => {
         /** todo */
     });
     it("DTX4 should extract Definition from DataType structure", async () => {
-        const dataTypeSchemaHeader = addressSpace.findDataType("DataTypeSchemaHeader")!;
+        const dataTypeSchemaHeader = addressSpace.findDataType("DataTypeSchemaHeader");
         should.exist(dataTypeSchemaHeader);
+        if (!dataTypeSchemaHeader) return;
 
         const dataTypeDefinitionDataValue = dataTypeSchemaHeader.readAttribute(null, AttributeIds.DataTypeDefinition);
         should.exist(dataTypeDefinitionDataValue);
