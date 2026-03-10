@@ -221,8 +221,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                    namespaceUri +
-                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                namespaceUri +
+                "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
         foundNamespaceMap.set(namespaceUri, namespace);
@@ -312,8 +312,10 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     function _translateNodeId(nodeId: string): NodeId {
         if (aliasMap.has(nodeId)) {
             // note alias are already translated to the right namespaces
-            const aliasedNodeId = aliasMap.get(nodeId)!;
-            return aliasedNodeId;
+            const aliasedNodeId = aliasMap.get(nodeId);
+            if (aliasedNodeId) {
+                return aliasedNodeId;
+            }
         }
         const m = nodeId.match(reg);
         if (m) {
@@ -355,18 +357,21 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     }
 
     const state_Alias = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             addAlias(this.attrs.Alias, this.text);
         }
     };
 
     const references_parser = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any) {
             this.parent.obj.references = [];
             this.array = this.parent.obj.references;
         },
         parser: {
             Reference: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.array.push({
                         isForward: this.attrs.IsForward === undefined ? true : this.attrs.IsForward !== "false",
@@ -379,6 +384,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     };
     // #region UAObject
     const state_UAObject = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
@@ -394,6 +400,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
@@ -402,12 +409,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         },
         parser: {
             DisplayName: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
                 }
             },
 
             Description: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.description = this.text;
                 }
@@ -419,6 +428,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAObjectType
     const state_UAObjectType = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
@@ -430,17 +440,20 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 eventNotifier: coerceByte(attrs.EventNotifier) || 0
             };
         },
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             _internal_createNode(this.obj);
         },
         parser: {
             DisplayName: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
                 }
             },
 
             Description: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.description = this.text;
                 }
@@ -452,6 +465,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAReferenceType
     const state_UAReferenceType = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
@@ -462,23 +476,27 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 browseName: convertQualifiedName(attrs.BrowseName)
             };
         },
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             _internal_addReferenceType(this.obj);
         },
         parser: {
             DisplayName: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
                 }
             },
 
             Description: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.description = this.text;
                 }
             },
 
             InverseName: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.inverseName = this.text;
                 }
@@ -502,7 +520,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
     // #endregion
     // #region UADataType
-    const pendingSimpleTypeToRegister: any[] = [];
+    const pendingSimpleTypeToRegister: { name: string; dataTypeNodeId: NodeId }[] = [];
     const state_UADataType = {
         init(this: StateUADataType, _name: string, attrs: XmlAttributes) {
             _perform();
@@ -531,7 +549,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             const definitionFields = this.definitionFields as StructureFieldOptionsEx[] | EnumFieldOptions[];
 
             // replace DataType with nodeId, and description to LocalizedText
-            definitionFields.forEach((x: any) => {
+            // biome-ignore lint/suspicious/noExplicitAny: fields transition from raw XML strings to typed objects
+            for (const x of definitionFields as any[]) {
                 if (x.description) {
                     x.description = { text: x.description };
                 }
@@ -546,21 +565,21 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 if (x.allowSubTypes) {
                     x.allowSubTypes = coerceBoolean(x.allowSubTypes);
                 }
-                return x;
-            });
+            }
 
             this.obj.partialDefinition = definitionFields;
 
-            let capturedDataTypeNode = _internal_createNode(this.obj) as UADataType;
+            let capturedDataTypeNode: UADataType | undefined = _internal_createNode(this.obj) as UADataType;
             const processBasicDataType = async (_addressSpace2: IAddressSpace) => {
-                const definitionName = capturedDataTypeNode.browseName.name!;
+                if (!capturedDataTypeNode) return;
+                const definitionName = capturedDataTypeNode.browseName.name || "";
                 const isStructure = capturedDataTypeNode.isStructure();
                 const isEnumeration = capturedDataTypeNode.isEnumeration();
                 if (!isEnumeration && !isStructure && capturedDataTypeNode.nodeId.namespace !== 0) {
                     // add a custom basic type that is not a structure nor a enumeration
                     pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: capturedDataTypeNode.nodeId });
                 }
-                (capturedDataTypeNode as any) = undefined;
+                capturedDataTypeNode = undefined;
             };
             postTasks.push(processBasicDataType);
         },
@@ -604,7 +623,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             const extensionObjOrArray = deferred();
             const nodeId = capturedNode.nodeId;
             assert(nodeId, "expecting a nodeid");
-            const node = addressSpace2.findNode(nodeId)!;
+            const node = addressSpace2.findNode(nodeId);
+            if (!node) return;
 
             if (node.nodeClass === NodeClass.Variable) {
                 const v = node as UAVariable;
@@ -614,7 +634,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             } else if (node.nodeClass === NodeClass.VariableType) {
                 const v = node as UAVariableType;
-                (v as any) /*fix me*/.value.value = extensionObjOrArray;
+                (v as unknown as { value: { value: unknown } }).value.value = extensionObjOrArray;
             }
         };
         postTasks2_AssignedExtensionObjectToDataValue.push(task);
@@ -679,16 +699,18 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             }
             */
             // eslint-disable-next-line prefer-const
-            let capturedVariable: UAVariable;
+            let capturedVariable: UAVariable | undefined;
             if (this.obj.value && this.obj.value.dataType !== DataType.Null) {
-                let capturedValue: any | undefined = this.obj.value;
+                let capturedValue: VariantOptions | undefined = this.obj.value;
                 const task = async (_addressSpace2: IAddressSpace) => {
+                    if (!capturedVariable) return;
+                    const cv = capturedVariable;
                     if (false && doDebug) {
-                        debugLog("1 setting value to ", capturedVariable.nodeId.toString(), new Variant(capturedValue).toString());
+                        debugLog("1 setting value to ", cv.nodeId.toString(), new Variant(capturedValue).toString());
                     }
-                    capturedVariable.setValueFromSource(capturedValue);
+                    cv.setValueFromSource(capturedValue as VariantOptions);
                     capturedValue = undefined;
-                    (capturedVariable as any) = undefined;
+                    capturedVariable = undefined;
                 };
                 if (capturedValue.dataType !== DataType.ExtensionObject) {
                     postTasks0_InitializeVariable.push(task);
@@ -698,22 +720,24 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             } else {
                 const task = async (_addressSpace2: IAddressSpace) => {
-                    const dataTypeNode = capturedVariable.dataType;
-                    const valueRank = capturedVariable.valueRank;
-                    const arrayDimensions = capturedVariable.arrayDimensions;
+                    if (!capturedVariable) return;
+                    const cv = capturedVariable;
+                    const dataTypeNode = cv.dataType;
+                    const valueRank = cv.valueRank;
+                    const arrayDimensions = cv.arrayDimensions;
 
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank, arrayDimensions);
                     if (value) {
                         if (false && doDebug) {
-                            debugLog("2 setting value to ", capturedVariable.nodeId.toString(), value);
+                            debugLog("2 setting value to ", cv.nodeId.toString(), value);
                         }
                         if (value.dataType === DataType.Null) {
-                            capturedVariable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
+                            cv.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
                         } else {
-                            capturedVariable.setValueFromSource(value, StatusCodes.Good);
+                            cv.setValueFromSource(value, StatusCodes.Good);
                         }
                     }
-                    (capturedVariable as any) = undefined;
+                    capturedVariable = undefined;
                 };
                 postTasks0_InitializeVariable.push(task);
             }
@@ -723,13 +747,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         parser: {
             DisplayName: {
                 finish(this: ReaderUAVariableL2) {
-                    this.parent.obj.displayName = coerceLocalizedText(this.text)!;
+                    this.parent.obj.displayName = coerceLocalizedText(this.text) ?? undefined;
                 }
             },
 
             Description: {
                 finish(this: ReaderUAVariableL2) {
-                    this.parent.obj.description = coerceLocalizedText(this.text)!;
+                    this.parent.obj.description = coerceLocalizedText(this.text) ?? undefined;
                 }
             },
             References: references_parser,
@@ -740,7 +764,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 },
                 (self: ReaderUAVariableL2, data: VariantOptions, deferredTask) => {
                     self.parent.obj.value = data;
-                    const capturedVariable = { nodeId: self.parent.obj.nodeId! };
+                    const capturedVariable = { nodeId: self.parent.obj.nodeId ?? NodeId.nullNodeId };
                     fixExtensionObjectAndArray(capturedVariable, deferredTask);
                 },
                 (task) => {
@@ -786,13 +810,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         parser: {
             DisplayName: {
                 finish(this: ReaderUAVariableTypeL2) {
-                    this.parent.obj.displayName = coerceLocalizedText(this.text || "")!;
+                    this.parent.obj.displayName = coerceLocalizedText(this.text || "") ?? undefined;
                 }
             },
 
             Description: {
                 finish(this: ReaderUAVariableTypeL2) {
-                    this.parent.obj.description = coerceLocalizedText(this.text || "")!;
+                    this.parent.obj.description = coerceLocalizedText(this.text || "") ?? undefined;
                 }
             },
             References: references_parser,
@@ -802,7 +826,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 },
                 (self: ReaderUAVariableTypeL2, data: VariantOptions, deferredTask) => {
                     self.parent.obj.value = data;
-                    const capturedVariable = { nodeId: self.parent.obj.nodeId! };
+                    const capturedVariable = { nodeId: self.parent.obj.nodeId ?? NodeId.nullNodeId };
                     fixExtensionObjectAndArray(capturedVariable, deferredTask);
                 },
                 (task) => {
@@ -815,6 +839,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     // #endregion
     // #region UAMethod
     const state_UAMethod = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any, _name: string, attrs: XmlAttributes) {
             _perform();
 
@@ -830,6 +855,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
@@ -838,6 +864,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         },
         parser: {
             DisplayName: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     this.parent.obj.displayName = this.text;
                 }
@@ -859,11 +886,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const state_ModelTableEntry = new ReaderState({
         // ModelTableEntry
 
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any) {
             this._requiredModels = [] as RequiredModel[];
         },
         parser: {
             RequiredModel: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 init(this: any, _name: string, attrs: XmlAttributes) {
                     const modelUri = attrs.ModelUri;
                     const version = attrs.Version;
@@ -871,11 +900,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
                     this.parent._requiredModels.push({ modelUri, version, publicationDate });
                 },
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     /** */
                 }
             }
         },
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         finish(this: any) {
             const modelUri = this.attrs.ModelUri; // //"http://opcfoundation.org/UA/"
             const version = this.attrs.Version; // 1.04
@@ -930,6 +961,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const state_0: ReaderStateParserLike = {
         parser: {
             Aliases: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 init(this: any) {
                     _perform();
                 },
@@ -937,17 +969,20 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             },
 
             NamespaceUris: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 init(this: any) {
                     //
                     _namespaceUris = [];
                 },
                 parser: {
                     Uri: {
+                        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                         finish(this: any) {
                             _namespaceUris.push(this.text);
                         }
                     }
                 },
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     // verify that requested namespaces are already loaded or abort with a message
                 }
@@ -955,6 +990,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             Models: {
                 // ModelTable
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 init(this: any, _name: string, _attrs: XmlAttributes) {
                     /* */
                 },
@@ -962,6 +998,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     Model: state_ModelTableEntry
                 },
 
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
                 finish(this: any) {
                     /** */
                 }
@@ -1001,7 +1038,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                    chalk.green("DONE")
+                chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
@@ -1037,11 +1074,11 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             /// ----------------------------------------------------------------------------------------
             doDebug && debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
 
-            for (const { name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
+            for (const { name: _name, dataTypeNodeId } of pendingSimpleTypeToRegister) {
                 if (dataTypeNodeId.namespace === 0) {
                     continue;
                 }
-                const _dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+                dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
             }
             pendingSimpleTypeToRegister.splice(0);
 

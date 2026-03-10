@@ -82,3 +82,4 @@ tmptmp/
 Vagrantfile
 yarn.lock
 generated_doc/
+commit_message.txt
