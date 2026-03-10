@@ -88,7 +88,6 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     public isSubtypeOf = construct_isSubtypeOf<UADataType>(UADataTypeImpl);
 
     public readonly isAbstract: boolean;
-
     private $isUnion?: boolean;
     private enumStrings?: any;
     private enumValues?: any;
@@ -145,7 +144,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     public getEncodingDefinition(encoding_name: string): string | null {
         const encodingNode = this.getEncodingNode(encoding_name);
         if (!encodingNode) {
-            throw new Error("Cannot find Encoding for " + encoding_name);
+            throw new Error(`Cannot find Encoding for ${encoding_name}`);
         }
         const indexRange = new NumericRange();
         const descriptionNodeRef = encodingNode.findReferences("HasDescription")[0]!;
@@ -160,7 +159,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     public getEncodingNode(encoding_name: string): UAObject | null {
         const _cache = BaseNode_getCache(this);
         _cache._encoding = _cache._encoding || new Map();
-        const key = encoding_name + "Node";
+        const key = `${encoding_name}Node`;
         if (!_cache._encoding.has(key)) {
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
             // could be binary or xml
@@ -367,35 +366,35 @@ function dataTypeDefinition_toString(this: UADataTypeImpl, options: ToStringOpti
     const output = definition.toString();
     options.add(options.padding + chalk.yellow(" Definition                   :             "));
     for (const str of output.split("\n")) {
-        options.add(options.padding + chalk.yellow("                              :   " + str));
+        options.add(options.padding + chalk.yellow(`                              :   ${str}`));
     }
 }
 
 export function DataType_toString(this: UADataTypeImpl, options: ToStringOption): void {
     BaseNode_toString.call(this, options);
-    options.add(options.padding + chalk.yellow("          isAbstract          : " + this.isAbstract));
-    options.add(options.padding + chalk.yellow("          definitionName      : " + this.definitionName));
+    options.add(options.padding + chalk.yellow(`          isAbstract          : ${this.isAbstract}`));
+    options.add(options.padding + chalk.yellow(`          definitionName      : ${this.definitionName}`));
 
     options.add(
         options.padding +
-            chalk.yellow("          binaryEncodingNodeId: ") +
-            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          binaryEncodingNodeId: ") +
+        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          xmlEncodingNodeId   : ") +
-            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          xmlEncodingNodeId   : ") +
+        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          jsonEncodingNodeId  : ") +
-            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          jsonEncodingNodeId  : ") +
+        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOfObj        : ") +
-                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+            chalk.yellow("          subtypeOfObj        : ") +
+            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -439,10 +438,10 @@ function makeStructureDefinition(
             ? StructureType.UnionWithSubtypedValues
             : StructureType.Union
         : hasOptionalFields
-          ? StructureType.StructureWithOptionalFields
-          : hasSubtypedFields
-            ? StructureType.StructureWithSubtypedValues
-            : StructureType.Structure;
+            ? StructureType.StructureWithOptionalFields
+            : hasSubtypedFields
+                ? StructureType.StructureWithSubtypedValues
+                : StructureType.Structure;
 
     // note:  https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
     // field.isOptional has a special behavior depending on the structure type
