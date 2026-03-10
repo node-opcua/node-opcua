@@ -2,16 +2,9 @@
 /**
  * @module node-opcua-address-space
  */
-import { types } from "util";
-import chalk from "chalk";
-import semver from "semver";
 
-import { 
-    coerceByte, 
-    coerceBoolean, 
-    coerceInt32 
-} from "node-opcua-basic-types";
-import {
+import chalk from "chalk";
+import type {
     AddReferenceTypeOptions,
     BaseNode,
     CreateNodeOptions,
@@ -23,38 +16,34 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { StatusCodes } from "node-opcua-basic-types";
+import { coerceBoolean, coerceByte, coerceInt32, StatusCodes } from "node-opcua-basic-types";
+import { DataTypeIds } from "node-opcua-constants";
 import {
-    AccessLevelFlag,
+    type AccessLevelFlag,
     coerceLocalizedText,
-    LocalizedText,
+    type LocalizedText,
     makeAccessLevelFlag,
     NodeClass,
-    QualifiedName,
+    type QualifiedName,
     stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { getBuiltInType } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { EnumFieldOptions } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
-import {
-    _definitionParser,
-    ReaderState,
-    ReaderStateParserLike,
-    Xml2Json,
-    XmlAttributes,
-} from "node-opcua-xml2json";
-
-import { AddressSpacePrivate } from "../../src/address_space_private";
-import { NamespacePrivate } from "../../src/namespace_private";
-import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
-import { promoteObjectsAndVariables } from "./namespace_post_step";
+import type { EnumFieldOptions } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
+import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
+import semver from "semver";
+import { types } from "util";
+import type { AddressSpacePrivate } from "../../src/address_space_private";
+import type { NamespacePrivate } from "../../src/namespace_private";
+import type { StructureFieldOptionsEx } from "../../src/ua_data_type_impl";
+import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { makeSemverCompatible } from "./make_semver_compatible";
+import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { makeVariantReader } from "./parsers/variant_parser";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { StructureFieldOptionsEx } from "../../src/ua_data_type_impl";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -162,7 +151,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const postTasks1_InitializeVariable: Task[] = [];
     const postTasks2_AssignedExtensionObjectToDataValue: Task[] = [];
 
-    let aliasMap: Map<string, NodeId> = new Map();
+    const aliasMap: Map<string, NodeId> = new Map();
 
     /**
      * @param aliasName
@@ -175,9 +164,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         addressSpace1.getNamespace(nodeId.namespace).addAlias(aliasName, nodeId);
     }
 
-    let namespaceUriTranslationMap: Map<number, number> = new Map();
+    const namespaceUriTranslationMap: Map<number, number> = new Map();
     let namespaceCounter = 0;
-    let foundNamespaceMap: Map<string, NamespacePrivate> = new Map();
+    const foundNamespaceMap: Map<string, NamespacePrivate> = new Map();
     let models: Model[] = [];
     let performedCalled = false;
 
@@ -232,8 +221,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                namespaceUri +
-                "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                    namespaceUri +
+                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
         foundNamespaceMap.set(namespaceUri, namespace);
@@ -499,17 +488,17 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     };
 
     interface StateUADataType extends ReaderState {
-        obj: Partial<CreateNodeOptions> & { 
+        obj: Partial<CreateNodeOptions> & {
             browseName: QualifiedName;
             nodeClass: NodeClass.DataType;
-            symbolicName : string | null,
+            symbolicName: string | null;
             partialDefinition: StructureFieldOptionsEx[] | EnumFieldOptions[];
         };
         isDraft: boolean;
         isDeprecated: boolean;
         nodeId: NodeId;
         definitionFields: StructureFieldOptionsEx[] | EnumFieldOptions[];
-    };
+    }
 
     // #endregion
     // #region UADataType
@@ -535,13 +524,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.definitionFields = [];
         },
         finish(this: StateUADataType) {
-
             if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
 
-            const definitionFields = this.definitionFields as StructureFieldOptionsEx[] | EnumFieldOptions[];            
-            
+            const definitionFields = this.definitionFields as StructureFieldOptionsEx[] | EnumFieldOptions[];
+
             // replace DataType with nodeId, and description to LocalizedText
             definitionFields.forEach((x: any) => {
                 if (x.description) {
@@ -552,13 +540,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
                 if (x.dataType) {
                     x.dataType = convertToNodeId(x.dataType);
+                } else {
+                    x.dataType = resolveNodeId(DataTypeIds.BaseDataType);
                 }
                 if (x.allowSubTypes) {
                     x.allowSubTypes = coerceBoolean(x.allowSubTypes);
                 }
                 return x;
             });
-
 
             this.obj.partialDefinition = definitionFields;
 
@@ -610,10 +599,10 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
     function fixExtensionObjectAndArray(obj: { nodeId: NodeId }, deferred: () => ExtensionObject | ExtensionObject[] | null) {
         // let's create the mechanism that postpone the assignment of the extension object
-        let capturedNode = obj;
+        const capturedNode = obj;
         const task = async (addressSpace2: IAddressSpace) => {
             const extensionObjOrArray = deferred();
-            let nodeId = capturedNode.nodeId;
+            const nodeId = capturedNode.nodeId;
             assert(nodeId, "expecting a nodeid");
             const node = addressSpace2.findNode(nodeId)!;
 
@@ -1012,7 +1001,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                chalk.green("DONE")
+                    chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {

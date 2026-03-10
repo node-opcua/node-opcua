@@ -1,16 +1,13 @@
-import should from "should";
-
 import { AttributeIds } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
 import { StructureDefinition } from "node-opcua-types";
-
+import should from "should";
 import { AddressSpace, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
-
 
 describe("testing UADataType -  Attribute", () => {
     let addressSpace: AddressSpace;
@@ -61,9 +58,7 @@ describe("testing UADataType -  Attribute", () => {
     it("DTX5 should extract Definition from DataType structure", async () => {
         const ns = addressSpace.getOwnNamespace();
 
-        
         const dataType = ns.createDataType({
-
             browseName: "MyDataType",
             isAbstract: true,
             subtypeOf: "Structure",
@@ -76,5 +71,31 @@ describe("testing UADataType -  Attribute", () => {
                 }
             ]
         });
+    });
+
+    it("DTX6 should default missing field dataType to BaseDataType (i=24)", async () => {
+        const ns = addressSpace.getOwnNamespace();
+
+        const dataType = ns.createDataType({
+            browseName: "MyDataTypeWithMissingFieldDataType",
+            isAbstract: false,
+            subtypeOf: "Structure",
+            partialDefinition: [
+                {
+                    // dataType intentionally omitted
+                    description: "a field with no explicit DataType",
+                    name: "Value",
+                    valueRank: -1
+                }
+            ]
+        });
+
+        const definition = dataType.getStructureDefinition();
+        definition.should.be.instanceOf(StructureDefinition);
+
+        definition.fields!.length.should.eql(1);
+        definition.fields![0].name!.should.eql("Value");
+        // Must be BaseDataType (ns=0;i=24), not Null NodeId (ns=0;i=0)
+        definition.fields![0].dataType.toString().should.eql("ns=0;i=24");
     });
 });
