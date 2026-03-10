@@ -2,55 +2,36 @@
  * @module node-opcua-address-space
  */
 import chalk from "chalk";
-
+import type { BaseNode, ISessionContext, UADataType, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { coerceInt64, coerceInt64toInt32, type Int64 } from "node-opcua-basic-types";
+import { DataTypeIds } from "node-opcua-constants";
+import { AttributeIds, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExpandedNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import {
-    DataTypeDefinition,
+    type DataTypeDefinition,
     EnumDefinition,
-    EnumFieldOptions,
+    type EnumFieldOptions,
     StructureDefinition,
-    StructureFieldOptions,
+    type StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
-import {
-    DataType
-} from "node-opcua-variant";
-import {
-    UAObject,
-    ISessionContext,
-    UADataType,
-    UAVariable,
-    BaseNode
-} from "node-opcua-address-space-base";
-import {
-    DataTypeIds
-} from "node-opcua-constants";
-import {
-    Int64,
-    coerceInt64,
-    coerceInt64toInt32
-} from "node-opcua-basic-types";
+import { DataType } from "node-opcua-variant";
+import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { SessionContext } from "../source/session_context";
-import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import {
+    BaseNode_getCache,
     BaseNode_References_toString,
     BaseNode_toString,
     ToStringBuilder,
-    ToStringOption
+    type ToStringOption
 } from "./base_node_private";
-import { construct_isSubtypeOf } from "./tool_isSubtypeOf";
-import { get_subtypeOf } from "./tool_isSubtypeOf";
-import { get_subtypeOfObj } from "./tool_isSubtypeOf";
-import { BaseNode_getCache } from "./base_node_private";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
+import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 
 const debugLog = make_debugLog("DATA_TYPE");
 const doDebug = checkDebugFlag("DATA_TYPE");
@@ -58,7 +39,6 @@ const doDebug = checkDebugFlag("DATA_TYPE");
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
 }
-
 
 export interface StructureFieldOptionsEx extends StructureFieldOptions {
     allowSubTypes: boolean;
@@ -192,7 +172,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
             _cache._encoding.set(key, node);
-            return node
+            return node;
         }
         return _cache._encoding.get(key) || null;
     }
@@ -317,9 +297,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
         // https://reference.opcfoundation.org/v105/Core/docs/Part3/8.49/#Table34
         if (isStructure) {
-
             let dataTypeNode: UADataTypeImpl | null = this;
-            const allPartialDefinitions: (StructureFieldOptionsEx[])[] = [];
+            const allPartialDefinitions: StructureFieldOptionsEx[][] = [];
             while (dataTypeNode && !isRootDataType(dataTypeNode)) {
                 if (dataTypeNode.$partialDefinition) {
                     allPartialDefinitions.push(dataTypeNode.$partialDefinition as StructureFieldOptionsEx[]);
@@ -337,14 +316,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
             const defaultEncodingId = this.binaryEncodingNodeId || this.xmlEncodingNodeId || new NodeId();
 
-
-
-            this.$fullDefinition = makeStructureDefinition(
-                basicDataType,
-                defaultEncodingId,
-                definitionFields,
-                isUnion
-            );
+            this.$fullDefinition = makeStructureDefinition(basicDataType, defaultEncodingId, definitionFields, isUnion);
         } else if (isEnumeration) {
             const allPartialDefinitions: StructureFieldOptions[][] = [];
             // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -406,24 +378,24 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-        chalk.yellow("          binaryEncodingNodeId: ") +
-        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          binaryEncodingNodeId: ") +
+            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          xmlEncodingNodeId   : ") +
-        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          xmlEncodingNodeId   : ") +
+            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          jsonEncodingNodeId  : ") +
-        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          jsonEncodingNodeId  : ") +
+            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOfObj        : ") +
-            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+                chalk.yellow("          subtypeOfObj        : ") +
+                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -450,7 +422,6 @@ function makeStructureDefinition(
     fields: StructureFieldOptionsEx[],
     isUnion: boolean
 ): StructureDefinition {
-
     const hasSubtypedFields = fields.filter((field) => field.allowSubTypes).length > 0;
 
     if (hasSubtypedFields && doDebug) {
@@ -463,18 +434,15 @@ function makeStructureDefinition(
     }
     const hasOptionalFields = fields.filter((field) => field.isOptional).length > 0;
 
-
-
     const structureType = isUnion
-        ?
-        (
-            hasSubtypedFields ? StructureType.UnionWithSubtypedValues : StructureType.Union
-        )
+        ? hasSubtypedFields
+            ? StructureType.UnionWithSubtypedValues
+            : StructureType.Union
         : hasOptionalFields
-            ? StructureType.StructureWithOptionalFields
-            : (
-                hasSubtypedFields ? StructureType.StructureWithSubtypedValues : StructureType.Structure
-            );
+          ? StructureType.StructureWithOptionalFields
+          : hasSubtypedFields
+            ? StructureType.StructureWithSubtypedValues
+            : StructureType.Structure;
 
     // note:  https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
     // field.isOptional has a special behavior depending on the structure type
@@ -490,8 +458,7 @@ function makeStructureDefinition(
     // indicate if the data type field allows subtyping.Subtyping is allowed when set to TRUE.
 
     const isUnionOrStructureWithSubtypedValues =
-        structureType === StructureType.UnionWithSubtypedValues ||
-        structureType === StructureType.StructureWithSubtypedValues;
+        structureType === StructureType.UnionWithSubtypedValues || structureType === StructureType.StructureWithSubtypedValues;
 
     if (isUnionOrStructureWithSubtypedValues) {
         for (const field of fields) {
@@ -503,10 +470,18 @@ function makeStructureDefinition(
         }
     }
 
+    // Normalize: default missing field dataType to BaseDataType (i=24)
+    // per OPC UA spec, a missing DataType should reference BaseDataType,
+    // not Null NodeId (i=0)
+    const baseDataTypeNodeId = resolveNodeId(DataTypeIds.BaseDataType);
+
     const sd = new StructureDefinition({
         baseDataType,
         defaultEncodingId,
-        fields,
+        fields: fields.map((f) => ({
+            ...f,
+            dataType: f.dataType ?? baseDataTypeNodeId
+        })),
         structureType
     });
     return sd;
