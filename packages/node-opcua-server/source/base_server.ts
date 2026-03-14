@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
+import { isIP } from "node:net";
 import { withLock } from "@ster5/global-mutex";
 import async from "async";
 import chalk from "chalk";
@@ -24,7 +24,6 @@ import {
     getHostname,
     getIpAddresses,
     ipv4ToHex,
-    isIPAddress,
     resolveFullyQualifiedDomainName
 } from "node-opcua-hostname";
 import type { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
@@ -302,9 +301,14 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const missingDns = expectedDns.filter((name) => !sanDns.includes(name));
         // exploreCertificate returns iPAddress entries as hex strings
+        // Only IPv4 addresses can be converted with ipv4ToHex here; IPv6 (and invalid) IPs are skipped.
         const missingIps = expectedIps.filter((ip) => {
-            if (isIPAddress(ip) !== 4) return false; // skip IPv6 — ipv4ToHex only handles v4
-            return !sanIpsHex.includes(ipv4ToHex(ip));
+            const family = isIP(ip);
+            if (family === 4) {
+                return !sanIpsHex.includes(ipv4ToHex(ip));
+            }
+            // IPv6 or invalid literals are currently not matched against SAN iPAddress entries here.
+            return false;
         });
 
         return [...missingDns, ...missingIps];
@@ -346,8 +350,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
             if (missing.length > 0) {
                 warningLog(
                     `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
-                        "Clients with strict certificate validation may reject connections for these entries. " +
-                        "Use server.regenerateSelfSignedCertificate() to fix this."
+                    "Clients with strict certificate validation may reject connections for these entries. " +
+                    "Use server.regenerateSelfSignedCertificate() to fix this."
                 );
             }
         } catch (_err) {

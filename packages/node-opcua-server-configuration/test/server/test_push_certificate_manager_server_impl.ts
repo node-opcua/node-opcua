@@ -1125,7 +1125,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with correct RSA certificateTypeId
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12537", // ApplicationInstanceCertificate_RSA_Min
+            rsaCertificateTypes.RsaMinApplicationCertificateType,
             certificate,
             issuerCertificates
         );
@@ -1150,7 +1150,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call updateCertificate with ECC certificateTypeId (wrong type)
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12556", // ApplicationInstanceCertificate_ECC (wrong for RSA cert)
+            resolveNodeId("EccApplicationCertificateType"),
             certificate,
             issuerCertificates
         );
@@ -1218,7 +1218,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         const issuerCertificates = certificateChain.slice(1);
 
         // When I call updateCertificate with NodeId object
-        const rsaMinType: NodeId = resolveNodeId("ns=0;i=12537"); // ApplicationInstanceCertificate_RSA_Min
+        const rsaMinType: NodeId = rsaCertificateTypes.RsaMinApplicationCertificateType;
 
         const result = await pushManager.updateCertificate("DefaultApplicationGroup", rsaMinType, certificate, issuerCertificates);
 
@@ -1227,57 +1227,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         result.applyChangesRequired.should.eql(true);
     });
 
-    it("updateCertificate should accept RSA certificate with RSA_Sha256_2048 type", async () => {
-        // Given an RSA certificate
-        const resultCSR = await pushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            "",
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA2048"
-        );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
-        const certificateChain = split_der(certificateFull);
-        const certificate = certificateChain[0];
-        const issuerCertificates = certificateChain.slice(1);
-
-        // When I call updateCertificate with RSA_Sha256_2048 certificateTypeId
-        const result = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_2048,
-            certificate,
-            issuerCertificates
-        );
-
-        // Then it should succeed
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.applyChangesRequired.should.eql(true);
-    });
-
-    it("updateCertificate should accept RSA certificate with RSA_Sha256_4096 type", async () => {
-        // Given an RSA certificate
-        const resultCSR = await pushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            "",
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA4096"
-        );
-        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
-        const certificateChain = split_der(certificateFull);
-        const certificate = certificateChain[0];
-        const issuerCertificates = certificateChain.slice(1);
-
-        // When I call updateCertificate with RSA_Sha256_4096 certificateTypeId
-        const result = await pushManager.updateCertificate(
-            "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_4096,
-            certificate,
-            issuerCertificates
-        );
-
-        // Then it should succeed
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.applyChangesRequired.should.eql(true);
-    });
-
-    it("updateCertificate should accept RSA certificate with deprecated RSA_Sha256 type", async () => {
+    it("updateCertificate should accept RSA certificate with RsaSha256 type", async () => {
         // Given an RSA certificate
         const resultCSR = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
@@ -1289,15 +1239,40 @@ describe("Testing Server Side PushCertificateManager", () => {
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
-        // When I call updateCertificate with deprecated RSA_Sha256 certificateTypeId
+        // When I call updateCertificate with RsaSha256ApplicationCertificateType
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256,
+            rsaCertificateTypes.RsaSha256ApplicationCertificateType,
             certificate,
             issuerCertificates
         );
 
-        // Then it should succeed (backward compatibility)
+        // Then it should succeed
+        result.statusCode.should.eql(StatusCodes.Good);
+        result.applyChangesRequired.should.eql(true);
+    });
+
+    it("updateCertificate should accept RSA certificate with RsaMin type", async () => {
+        // Given an RSA certificate
+        const resultCSR = await pushManager.createSigningRequest(
+            "DefaultApplicationGroup",
+            "",
+            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSAMin"
+        );
+        const certificateFull = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
+        const certificateChain = split_der(certificateFull);
+        const certificate = certificateChain[0];
+        const issuerCertificates = certificateChain.slice(1);
+
+        // When I call updateCertificate with RsaMinApplicationCertificateType
+        const result = await pushManager.updateCertificate(
+            "DefaultApplicationGroup",
+            rsaCertificateTypes.RsaMinApplicationCertificateType,
+            certificate,
+            issuerCertificates
+        );
+
+        // Then it should succeed
         result.statusCode.should.eql(StatusCodes.Good);
         result.applyChangesRequired.should.eql(true);
     });
@@ -1314,15 +1289,15 @@ describe("Testing Server Side PushCertificateManager", () => {
         const certificate = certificateChain[0];
         const issuerCertificates = certificateChain.slice(1);
 
-        // Test multiple ECC types
+        // Test multiple ECC types (correct OPC UA 1.05 NodeIds)
         const eccTypes = [
-            { id: "ns=0;i=12556", name: "ECC (deprecated)" },
-            { id: "ns=0;i=12557", name: "ECC_nistP256" },
-            { id: "ns=0;i=12558", name: "ECC_nistP384" },
-            { id: "ns=0;i=12559", name: "ECC_brainpoolP256r1" },
-            { id: "ns=0;i=12560", name: "ECC_brainpoolP384r1" },
-            { id: "ns=0;i=12561", name: "ECC_curve25519" },
-            { id: "ns=0;i=12562", name: "ECC_curve448" }
+            { id: "ns=0;i=23537", name: "EccApplicationCertificateType" },
+            { id: "ns=0;i=23538", name: "EccNistP256ApplicationCertificateType" },
+            { id: "ns=0;i=23539", name: "EccNistP384ApplicationCertificateType" },
+            { id: "ns=0;i=23540", name: "EccBrainpoolP256r1ApplicationCertificateType" },
+            { id: "ns=0;i=23541", name: "EccBrainpoolP384r1ApplicationCertificateType" },
+            { id: "ns=0;i=23542", name: "EccCurve25519ApplicationCertificateType" },
+            { id: "ns=0;i=23543", name: "EccCurve448ApplicationCertificateType" }
         ];
 
         for (const eccType of eccTypes) {
@@ -1378,7 +1353,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // But exploreCertificate is called again later for validity checks
         const result = await pushManager.updateCertificate(
             "DefaultApplicationGroup",
-            "ns=0;i=12537", // RSA type
+            rsaCertificateTypes.RsaMinApplicationCertificateType,
             corruptedCertificate,
             issuerCertificates
         );
@@ -1446,7 +1421,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call createSigningRequest with valid RSA certificateTypeId
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12537", // ApplicationInstanceCertificate_RSA_Min
+            rsaCertificateTypes.RsaMinApplicationCertificateType,
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSAType"
         );
 
@@ -1455,48 +1430,22 @@ describe("Testing Server Side PushCertificateManager", () => {
         result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
-    it("createSigningRequest should accept RSA_Sha256_2048 certificateTypeId", async () => {
-        // When I call createSigningRequest with RSA_Sha256_2048 certificateTypeId
+    it("createSigningRequest should accept RsaSha256 certificateTypeId", async () => {
+        // When I call createSigningRequest with RsaSha256ApplicationCertificateType
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_2048,
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA2048Type"
-        );
-
-        // Then the result should be Good
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
-    });
-
-    it("createSigningRequest should accept RSA_Sha256_4096 certificateTypeId", async () => {
-        // When I call createSigningRequest with RSA_Sha256_4096 certificateTypeId
-        const result = await pushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256_4096,
-            "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSA4096Type"
-        );
-
-        // Then the result should be Good
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
-    });
-
-    it("createSigningRequest should accept deprecated RSA_Sha256 certificateTypeId", async () => {
-        // When I call createSigningRequest with deprecated RSA_Sha256 certificateTypeId
-        const result = await pushManager.createSigningRequest(
-            "DefaultApplicationGroup",
-            rsaCertificateTypes.ApplicationInstanceCertificate_RSA_Sha256,
+            rsaCertificateTypes.RsaSha256ApplicationCertificateType,
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-RSASha256Type"
         );
 
-        // Then the result should be Good (backward compatibility)
+        // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
         result.certificateSigningRequest?.should.be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept certificateTypeId as NodeId object", async () => {
         // When I call createSigningRequest with certificateTypeId as NodeId object
-        const rsaMinType: NodeId = resolveNodeId("ns=0;i=12537");
+        const rsaMinType: NodeId = rsaCertificateTypes.RsaMinApplicationCertificateType;
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
             rsaMinType,
@@ -1572,7 +1521,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call createSigningRequest with ECC certificateTypeId but regeneratePrivateKey=false
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12557", // ApplicationInstanceCertificate_ECC_nistP256
+            resolveNodeId("EccNistP256ApplicationCertificateType"),
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ECC",
             false // regeneratePrivateKey = false
         );
@@ -1586,7 +1535,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         const nonce = Buffer.alloc(32);
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
-            "ns=0;i=12557", // ApplicationInstanceCertificate_ECC_nistP256
+            resolveNodeId("EccNistP256ApplicationCertificateType"),
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-ECCRegen",
             true, // regeneratePrivateKey = true
             nonce
@@ -1597,15 +1546,15 @@ describe("Testing Server Side PushCertificateManager", () => {
     });
 
     it("createSigningRequest should return BadNotSupported for all ECC types with regeneratePrivateKey=true", async () => {
-        // Test multiple ECC types
+        // Test multiple ECC types (correct OPC UA 1.05 NodeIds)
         const eccTypes = [
-            { id: "ns=0;i=12556", name: "ECC (deprecated)" },
-            { id: "ns=0;i=12557", name: "ECC_nistP256" },
-            { id: "ns=0;i=12558", name: "ECC_nistP384" },
-            { id: "ns=0;i=12559", name: "ECC_brainpoolP256r1" },
-            { id: "ns=0;i=12560", name: "ECC_brainpoolP384r1" },
-            { id: "ns=0;i=12561", name: "ECC_curve25519" },
-            { id: "ns=0;i=12562", name: "ECC_curve448" }
+            { id: "ns=0;i=23537", name: "EccApplicationCertificateType" },
+            { id: "ns=0;i=23538", name: "EccNistP256ApplicationCertificateType" },
+            { id: "ns=0;i=23539", name: "EccNistP384ApplicationCertificateType" },
+            { id: "ns=0;i=23540", name: "EccBrainpoolP256r1ApplicationCertificateType" },
+            { id: "ns=0;i=23541", name: "EccBrainpoolP384r1ApplicationCertificateType" },
+            { id: "ns=0;i=23542", name: "EccCurve25519ApplicationCertificateType" },
+            { id: "ns=0;i=23543", name: "EccCurve448ApplicationCertificateType" }
         ];
 
         const nonce = Buffer.alloc(32);
@@ -1628,12 +1577,10 @@ describe("Testing Server Side PushCertificateManager", () => {
     });
 
     it("createSigningRequest should accept all RSA types with regeneratePrivateKey=true", async () => {
-        // Test multiple RSA types
+        // Test RSA types (correct OPC UA 1.05 NodeIds)
         const rsaTypes = [
-            { id: "ns=0;i=12537", name: "RSA_Min" },
-            { id: "ns=0;i=12538", name: "RSA_Sha256" },
-            { id: "ns=0;i=12541", name: "RSA_Sha256_2048" },
-            { id: "ns=0;i=12542", name: "RSA_Sha256_4096" }
+            { id: "ns=0;i=12559", name: "RsaMinApplicationCertificateType" },
+            { id: "ns=0;i=12560", name: "RsaSha256ApplicationCertificateType" }
         ];
 
         const nonce = Buffer.alloc(32);
