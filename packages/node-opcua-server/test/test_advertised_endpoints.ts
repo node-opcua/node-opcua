@@ -1,7 +1,9 @@
-import "should";
+import { ipv4ToHex } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
+import "should";
+
 import { OPCUAServer } from "../source";
 import { parseOpcTcpUrl } from "../source/server_end_point";
 import { createServerCertificateManager } from "./create_server_certificate_manager";
@@ -471,6 +473,120 @@ describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
             // checkCertificateSAN should return empty (all covered)
             const missing = server.checkCertificateSAN();
             missing.should.have.length(0);
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});
+
+const ae18Port = 12090;
+
+
+describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
+    it("should put IP from alternateHostname into SAN iPAddress, not dNSName", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(ae18Port);
+
+        const server = new OPCUAServer({
+            port: ae18Port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["192.168.1.100"]
+        });
+
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+            const sanIps = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+
+            // IP must be in iPAddress (as hex), NOT in dNSName
+            sanIps.should.containEql(ipv4ToHex("192.168.1.100"));
+            sanDns.should.not.containEql("192.168.1.100");
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+
+    it("should split mixed alternateHostname into dNSName and iPAddress", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(ae18Port + 1);
+
+        const server = new OPCUAServer({
+            port: ae18Port + 1,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["my-docker-host", "10.0.0.1"]
+        });
+
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+            const sanIps = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+
+            // hostname → dNSName
+            sanDns.should.containEql("my-docker-host");
+            sanDns.should.not.containEql("10.0.0.1");
+
+            // IP → iPAddress (as hex)
+            sanIps.should.containEql(ipv4ToHex("10.0.0.1"));
+            sanIps.should.not.containEql("my-docker-host");
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+
+    it("should put IP from advertisedEndpoints URL into SAN iPAddress", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(ae18Port + 2);
+
+        const server = new OPCUAServer({
+            port: ae18Port + 2,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints: "opc.tcp://172.17.0.1:4840"
+        });
+
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+            const sanIps = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+
+            // IP literal from URL → iPAddress (as hex), not dNSName
+            sanIps.should.containEql(ipv4ToHex("172.17.0.1"));
+            sanDns.should.not.containEql("172.17.0.1");
         } finally {
             await server.shutdown();
             server.dispose();
