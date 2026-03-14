@@ -37,7 +37,7 @@ describe("Testing bug #574", function (this: Mocha.Context) {
         //       of this test.
         //       Let's remove all but policy and add a single
         //       userIdentityTokens policy for username and un-encrypted password
-        let endpoints = (server as any)._get_endpoints(); // internal accessor
+        let endpoints = (server as any).findMatchingEndpoints(); // internal accessor
         endpointUrl = endpoints[0].endpointUrl;
 
         endpoints = endpoints.filter((e: any) => e.securityMode === MessageSecurityMode.None);

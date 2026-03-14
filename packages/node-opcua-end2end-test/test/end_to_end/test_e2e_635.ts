@@ -24,7 +24,7 @@ let _variableNode2: UAVariable;
 let _variableNode1: UAVariable;
 
 // tslint:disable:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 describe("Testing bug #635", () => {
     function createAddressSpace(addressSpace: AddressSpace) {
         const namespace = addressSpace.getOwnNamespace();
@@ -121,7 +121,7 @@ describe("Testing bug #635", () => {
         server = new OPCUAServer({ port });
         await server.initialize();
         createAddressSpace(server.engine.addressSpace!);
-        const endpoints = server._get_endpoints(null);
+        const endpoints = server.findMatchingEndpoints(null);
         endpointUrl = endpoints[0].endpointUrl!;
         await server.start();
     });

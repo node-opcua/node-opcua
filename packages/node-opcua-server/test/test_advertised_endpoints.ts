@@ -196,7 +196,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
 const port = 12055;
 
 describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by GetEndpoints and CreateSession)", () => {
-    // _get_endpoints() is the shared code path used by both:
+    // findMatchingEndpoints() is the shared code path used by both:
     //   - _on_GetEndpointsRequest (base_server.ts)
     //   - validate_security_endpoint in CreateSession (opcua_server.ts)
 
@@ -214,8 +214,8 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
         try {
             await server.initialize();
 
-            // _get_endpoints(null) should return ALL endpoints (main + advertised)
-            const allEndpoints = server._get_endpoints(null);
+            // findMatchingEndpoints(null) should return ALL endpoints (main + advertised)
+            const allEndpoints = server.findMatchingEndpoints(null);
             const mainUrls = allEndpoints.filter((e) => e.endpointUrl?.includes(`:${port}`));
             const advertisedUrls = allEndpoints.filter((e) => e.endpointUrl?.includes("dockerhost:48481"));
 
@@ -226,15 +226,15 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
                 "total should equal main + advertised (no extras)"
             );
 
-            // _get_endpoints with advertised URL should return only matching
-            const filtered = server._get_endpoints("opc.tcp://dockerhost:48481");
+            // findMatchingEndpoints with advertised URL should return only matching
+            const filtered = server.findMatchingEndpoints("opc.tcp://dockerhost:48481");
             filtered.length.should.be.greaterThan(0, "filtered should find advertised endpoints");
             for (const ep of filtered) {
                 (ep.endpointUrl || "").should.containEql("dockerhost:48481");
             }
 
-            // _get_endpoints with main URL should return only main
-            const filteredMain = server._get_endpoints(`opc.tcp://RAMSES:${port}`);
+            // findMatchingEndpoints with main URL should return only main
+            const filteredMain = server.findMatchingEndpoints(`opc.tcp://RAMSES:${port}`);
             for (const ep of filteredMain) {
                 (ep.endpointUrl || "").should.not.containEql("dockerhost");
             }
@@ -258,9 +258,9 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
         try {
             await server.initialize();
 
-            // Non-matching URL — _get_endpoints returns empty
-            const filtered = server._get_endpoints("opc.tcp://unknown:9999");
-            filtered.length.should.eql(0, "non-matching URL should return empty from _get_endpoints");
+            // Non-matching URL — findMatchingEndpoints returns empty
+            const filtered = server.findMatchingEndpoints("opc.tcp://unknown:9999");
+            filtered.length.should.eql(0, "non-matching URL should return empty from findMatchingEndpoints");
 
             // Note: _on_GetEndpointsRequest falls back to all endpoints when filtered is empty
             // (see base_server.ts: if filtered.length > 0 then use filtered)

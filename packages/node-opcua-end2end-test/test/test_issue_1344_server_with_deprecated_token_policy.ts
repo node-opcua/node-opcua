@@ -13,7 +13,7 @@ import "should";
 
 const port = 2242;
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 describe("issue #1334 - client should avoid using userToken that have deprecated security policy like 192Rsa256 ", () => {
     const buildSecureServer = async () => {
         const server = new OPCUAServer({
@@ -28,7 +28,7 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
         });
 
         await server.initialize();
-        const endpoints = server._get_endpoints();
+        const endpoints = server.findMatchingEndpoints();
 
         const encryptedEndpoint = endpoints.find((e) => e.securityMode === MessageSecurityMode.SignAndEncrypt)!;
 

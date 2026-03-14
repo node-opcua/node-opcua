@@ -295,7 +295,7 @@ function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointU
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.6.2/
     // https://reference.opcfoundation.org/v105/Core/docs/Part4/5.6.2/
     return server
-        ._get_endpoints(endpointUrl)
+        .findMatchingEndpoints(endpointUrl)
         .filter((e) => !(e as unknown as { restricted: boolean }).restricted) // remove restricted endpoints
         .filter((e) => matchUri(e.endpointUrl, endpointUrl))
         .map(getRequiredEndpointInfo);
@@ -629,7 +629,7 @@ function validate_security_endpoint(
     endpoint?: EndpointDescription;
 } {
     debugLog("validate_security_endpoint = ", request.endpointUrl);
-    let endpoints = server._get_endpoints(request.endpointUrl);
+    let endpoints = server.findMatchingEndpoints(request.endpointUrl);
     // endpointUrl String The network address that the Client used to access the Session Endpoint.
     //             The HostName portion of the URL should be one of the HostNames for the application that are
     //             specified in the Server’s ApplicationInstanceCertificate (see 7.2). The Server shall raise an
@@ -642,7 +642,7 @@ function validate_security_endpoint(
     // sometime endpoints have a extra leading "/" that can be ignored
     // don't be too harsh.
     if (endpoints.length === 0 && request.endpointUrl?.endsWith("/")) {
-        endpoints = server._get_endpoints(request.endpointUrl.slice(0, -1));
+        endpoints = server.findMatchingEndpoints(request.endpointUrl.slice(0, -1));
     }
 
     if (endpoints.length === 0) {
@@ -657,7 +657,7 @@ function validate_security_endpoint(
         if (OPCUAServer.requestExactEndpointUrl) {
             return { errCode: StatusCodes.BadServiceUnsupported };
         } else {
-            endpoints = server._get_endpoints(null);
+            endpoints = server.findMatchingEndpoints(null);
         }
     }
     // ignore restricted endpoints
