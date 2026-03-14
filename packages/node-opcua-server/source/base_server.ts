@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { types } from "node:util";
+
 
 import { withLock } from "@ster5/global-mutex";
 import async from "async";
@@ -399,7 +399,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
             let additional_messages = [];
             additional_messages.push(`EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! ${request.schema.name}`);
-            if (types.isNativeError(err)) {
+            if (err instanceof Error) {
                 additional_messages.push(err.message);
                 if (err.stack) {
                     additional_messages = additional_messages.concat(err.stack.split("\n"));
@@ -412,9 +412,18 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     /**
-     * @private
+     * Find endpoint descriptions matching a given endpoint URL.
+     *
+     * When `endpointUrl` is provided, only endpoints whose URL matches
+     * (case-insensitive) are returned. When `null` or omitted, all
+     * endpoints from every `OPCUAServerEndPoint` are returned.
+     *
+     * This is the shared resolution path used by both `GetEndpoints`
+     * and `CreateSession` (`validate_security_endpoint`).
+     *
+     * @internal (was _get_endpoints)
      */
-    public _get_endpoints(endpointUrl?: string | null): EndpointDescription[] {
+    public findMatchingEndpoints(endpointUrl?: string | null): EndpointDescription[] {
         let endpoints: EndpointDescription[] = [];
         for (const endPoint of this.endpoints) {
             const ep = endPoint.endpointDescriptions();
@@ -427,7 +436,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * get one of the possible endpointUrl
      */
     public getEndpointUrl(): string {
-        return this._get_endpoints()[0].endpointUrl || "";
+        return this.findMatchingEndpoints()[0].endpointUrl || "";
     }
 
     public getDiscoveryUrls(): string[] {
@@ -522,7 +531,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
          *                          If the URI is a URL, this URL may have a query string appended.
          *                          The Transport Profiles that support query strings are defined in OPC 10000-7.
          */
-        response.endpoints = this._get_endpoints(null);
+        response.endpoints = this.findMatchingEndpoints(null);
         const _e = response.endpoints.map((e) => e.endpointUrl);
         if (request.endpointUrl) {
             const filtered = response.endpoints.filter(

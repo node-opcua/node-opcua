@@ -8,8 +8,8 @@ import {
     UserTokenType
 } from "node-opcua";
 import "should";
-import  { 
-    createServerCertificateManager 
+import {
+    createServerCertificateManager
 } from "../test_helpers/createServerCertificateManager";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
@@ -28,7 +28,7 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
             nodeset_filename: [get_mini_nodeset_filename()]
         });
         await server.initialize();
-        const endpoints = server._get_endpoints();
+        const endpoints = server.findMatchingEndpoints();
         // endpoints.length.should.eql(1);
         // console.log(endpoints[0].userIdentityTokens);
         endpoints[0].userIdentityTokens!.length.should.eql(1);
@@ -55,7 +55,7 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
             nodeset_filename: [get_mini_nodeset_filename()]
         });
         await server.initialize();
-        const endpoints = server._get_endpoints();
+        const endpoints = server.findMatchingEndpoints();
         endpoints.length.should.eql(2);
         // console.log(endpoints[0].userIdentityTokens);
         endpoints[0].userIdentityTokens!.length.should.eql(2);
