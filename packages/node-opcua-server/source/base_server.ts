@@ -7,7 +7,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-
 import { withLock } from "@ster5/global-mutex";
 import async from "async";
 import chalk from "chalk";
@@ -25,6 +24,7 @@ import {
     getHostname,
     getIpAddresses,
     ipv4ToHex,
+    isIPAddress,
     resolveFullyQualifiedDomainName
 } from "node-opcua-hostname";
 import type { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
@@ -302,7 +302,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const missingDns = expectedDns.filter((name) => !sanDns.includes(name));
         // exploreCertificate returns iPAddress entries as hex strings
-        const missingIps = expectedIps.filter((ip) => !sanIpsHex.includes(ipv4ToHex(ip)));
+        const missingIps = expectedIps.filter((ip) => {
+            if (isIPAddress(ip) !== 4) return false; // skip IPv6 — ipv4ToHex only handles v4
+            return !sanIpsHex.includes(ipv4ToHex(ip));
+        });
 
         return [...missingDns, ...missingIps];
     }
@@ -320,13 +323,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
         const info = exploreCertificate(certDer);
         const issuer = info.tbsCertificate.issuer;
         const subject = info.tbsCertificate.subject;
-        const isSelfSigned =
-            issuer.commonName === subject.commonName &&
-            issuer.organizationName === subject.organizationName;
+        const isSelfSigned = issuer.commonName === subject.commonName && issuer.organizationName === subject.organizationName;
         if (!isSelfSigned) {
-            throw new Error(
-                "Cannot regenerate certificate: current certificate is not self-signed (issued by a CA or GDS)"
-            );
+            throw new Error("Cannot regenerate certificate: current certificate is not self-signed (issued by a CA or GDS)");
         }
 
         // delete old cert
@@ -346,9 +345,9 @@ export class OPCUABaseServer extends OPCUASecureObject {
             const missing = this.checkCertificateSAN();
             if (missing.length > 0) {
                 warningLog(
-                    `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames: ${missing.join(", ")}. ` +
-                    "Clients with strict certificate validation may reject connections from these hostnames. " +
-                    "Use server.regenerateSelfSignedCertificate() to fix this."
+                    `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
+                        "Clients with strict certificate validation may reject connections for these entries. " +
+                        "Use server.regenerateSelfSignedCertificate() to fix this."
                 );
             }
         } catch (_err) {
@@ -673,8 +672,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
         response.endpoints = this.findMatchingEndpoints(null);
         const _e = response.endpoints.map((e) => e.endpointUrl);
         if (request.endpointUrl) {
-            const filtered = response.endpoints.filter(
-                (endpoint: EndpointDescription) => endpoint.endpointUrl === request.endpointUrl
+            const filtered = response.endpoints.filter((endpoint: EndpointDescription) =>
+                matchUri(endpoint.endpointUrl, request.endpointUrl)
             );
             if (filtered.length > 0) {
                 response.endpoints = filtered;
