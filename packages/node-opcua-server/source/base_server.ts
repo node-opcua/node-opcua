@@ -23,6 +23,8 @@ import {
     extractFullyQualifiedDomainName,
     getFullyQualifiedDomainName,
     getHostname,
+    getIpAddresses,
+    ipv4ToHex,
     resolveFullyQualifiedDomainName
 } from "node-opcua-hostname";
 import type { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
@@ -187,6 +189,20 @@ export class OPCUABaseServer extends OPCUASecureObject {
         return [];
     }
 
+    /**
+     * Return additional IP addresses to include in the self-signed
+     * certificate's SubjectAlternativeName (SAN) iPAddress entries.
+     *
+     * The base implementation returns an empty array. Subclasses
+     * override this to include IPs from `alternateHostname`,
+     * `advertisedEndpoints`, and `additionalIPs`.
+     *
+     * @internal
+     */
+    protected getConfiguredIPs(): string[] {
+        return [];
+    }
+
     protected async createDefaultCertificate(): Promise<void> {
         if (fs.existsSync(this.certificateFile)) {
             return;
@@ -201,11 +217,12 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
                 const dns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+                const ip = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
 
                 await this.serverCertificateManager.createSelfSignedCertificate({
                     applicationUri,
                     dns,
-                    // ip: await getIpAddresses(),
+                    ip,
                     outputFile: this.certificateFile,
 
                     subject: makeSubject(this.serverInfo.applicationName.text || "<missing application name>", hostname),
@@ -237,12 +254,18 @@ export class OPCUABaseServer extends OPCUASecureObject {
         const certDer = this.getCertificate();
         const info = exploreCertificate(certDer);
         const sanDns: string[] = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+        const sanIpsHex: string[] = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
 
         const fqdn = getFullyQualifiedDomainName();
         const hostname = getHostname();
-        const expected = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+        const expectedDns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+        const expectedIps = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
 
-        return expected.filter((name) => !sanDns.includes(name));
+        const missingDns = expectedDns.filter((name) => !sanDns.includes(name));
+        // exploreCertificate returns iPAddress entries as hex strings
+        const missingIps = expectedIps.filter((ip) => !sanIpsHex.includes(ipv4ToHex(ip)));
+
+        return [...missingDns, ...missingIps];
     }
 
     /**

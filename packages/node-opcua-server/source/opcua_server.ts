@@ -48,7 +48,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, isIPAddress } from "node-opcua-hostname";
 import type { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
@@ -1132,16 +1132,48 @@ export class OPCUAServer extends OPCUABaseServer {
      * `advertisedEndpoints` URLs so the certificate covers all
      * configured addresses.
      *
+     * IP literals (v4/v6) are **excluded** — they are handled by
+     * `getConfiguredIPs()` and placed in the SAN `iPAddress` entries.
+     *
      * @internal
      */
     protected override getConfiguredHostnames(): string[] {
+        return this._collectAlternateValues().hostnames;
+    }
+
+    /**
+     * Collect additional IP addresses for the self-signed certificate SAN.
+     *
+     * Merges IP literals from `alternateHostname` and parsed
+     * `advertisedEndpoints` URLs so the certificate covers all
+     * configured IP addresses.
+     *
+     * @internal
+     */
+    protected override getConfiguredIPs(): string[] {
+        return this._collectAlternateValues().ips;
+    }
+
+    /**
+     * Classify all values from `alternateHostname` and
+     * `advertisedEndpoints` into hostnames vs IP addresses using
+     * `isIPAddress()` (wraps `net.isIP()`).
+     */
+    private _collectAlternateValues(): { hostnames: string[]; ips: string[] } {
         const hostnames: string[] = [];
+        const ips: string[] = [];
 
         // alternateHostname
         const alt = this.options.alternateHostname;
         if (alt) {
             const altArray = Array.isArray(alt) ? alt : [alt];
-            hostnames.push(...altArray);
+            for (const value of altArray) {
+                if (isIPAddress(value)) {
+                    ips.push(value);
+                } else {
+                    hostnames.push(value);
+                }
+            }
         }
 
         // advertisedEndpoints
@@ -1150,11 +1182,15 @@ export class OPCUAServer extends OPCUABaseServer {
             const advArray = Array.isArray(adv) ? adv : [adv];
             for (const url of advArray) {
                 const { hostname } = parseOpcTcpUrl(url);
-                hostnames.push(hostname);
+                if (isIPAddress(hostname)) {
+                    ips.push(hostname);
+                } else {
+                    hostnames.push(hostname);
+                }
             }
         }
 
-        return hostnames;
+        return { hostnames, ips };
     }
 
     public static registry = new ObjectRegistry();
