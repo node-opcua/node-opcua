@@ -192,3 +192,81 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         }
     });
 });
+
+const port = 12055;
+
+describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by GetEndpoints and CreateSession)", () => {
+    // _get_endpoints() is the shared code path used by both:
+    //   - _on_GetEndpointsRequest (base_server.ts)
+    //   - validate_security_endpoint in CreateSession (opcua_server.ts)
+
+    it("should return only advertised endpoints when filtering by advertised URL", async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
+
+        const server = new OPCUAServer({
+            port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None, SecurityPolicy.Basic256Sha256],
+            advertisedEndpoints: ["opc.tcp://dockerhost:48481"]
+        });
+
+        try {
+            await server.initialize();
+
+            // _get_endpoints(null) should return ALL endpoints (main + advertised)
+            const allEndpoints = server._get_endpoints(null);
+            const mainUrls = allEndpoints.filter((e) => e.endpointUrl?.includes(`:${port}`));
+            const advertisedUrls = allEndpoints.filter((e) => e.endpointUrl?.includes("dockerhost:48481"));
+
+            mainUrls.length.should.be.greaterThan(0, "should have main endpoints");
+            advertisedUrls.length.should.be.greaterThan(0, "should have advertised endpoints");
+            allEndpoints.length.should.eql(
+                mainUrls.length + advertisedUrls.length,
+                "total should equal main + advertised (no extras)"
+            );
+
+            // _get_endpoints with advertised URL should return only matching
+            const filtered = server._get_endpoints("opc.tcp://dockerhost:48481");
+            filtered.length.should.be.greaterThan(0, "filtered should find advertised endpoints");
+            for (const ep of filtered) {
+                (ep.endpointUrl || "").should.containEql("dockerhost:48481");
+            }
+
+            // _get_endpoints with main URL should return only main
+            const filteredMain = server._get_endpoints(`opc.tcp://RAMSES:${port}`);
+            for (const ep of filteredMain) {
+                (ep.endpointUrl || "").should.not.containEql("dockerhost");
+            }
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+
+    it("should return empty when URL matches nothing", async () => {
+        const serverCertificateManager = await createServerCertificateManager(port + 1);
+
+        const server = new OPCUAServer({
+            port: port + 1,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints: ["opc.tcp://myhost:1234"]
+        });
+
+        try {
+            await server.initialize();
+
+            // Non-matching URL — _get_endpoints returns empty
+            const filtered = server._get_endpoints("opc.tcp://unknown:9999");
+            filtered.length.should.eql(0, "non-matching URL should return empty from _get_endpoints");
+
+            // Note: _on_GetEndpointsRequest falls back to all endpoints when filtered is empty
+            // (see base_server.ts: if filtered.length > 0 then use filtered)
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});
