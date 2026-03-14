@@ -159,7 +159,7 @@ import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import type { SamplingFunc } from "./sampling_func";
 import type { ServerCapabilitiesOptions } from "./server_capabilities";
-import { type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint, parseOpcTcpUrl } from "./server_end_point";
+import { type AdvertisedEndpoint, type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "./server_end_point";
 import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine";
 import type { ServerSession } from "./server_session";
 import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
@@ -762,13 +762,15 @@ export interface OPCUAServerEndpointOptions {
      *
      * Use when the server is behind Docker port-mapping, a reverse proxy,
      * or a NAT gateway. Each URL is parsed to extract hostname and port.
-     * A full set of endpoint descriptions (one per security mode × policy)
-     * is generated for each URL. The server still listens on `port`.
+     * Each entry can be a plain URL string (inherits all security
+     * settings from the main endpoint) or an
+     * `AdvertisedEndpointConfig` object with per-URL overrides.
+     * The server still listens on `port`.
      *
      * @example "opc.tcp://localhost:48481"
-     * @example ["opc.tcp://localhost:48481", "opc.tcp://public.example.com:4840"]
+     * @example ["opc.tcp://localhost:48481", { url: "opc.tcp://public:4840", securityModes: [MessageSecurityMode.SignAndEncrypt] }]
      */
-    advertisedEndpoints?: string | string[];
+    advertisedEndpoints?: AdvertisedEndpoint | AdvertisedEndpoint[];
 
     /**
      *  true, if discovery service on secure channel shall be disabled
@@ -1176,17 +1178,14 @@ export class OPCUAServer extends OPCUABaseServer {
             }
         }
 
-        // advertisedEndpoints
-        const adv = this.options.advertisedEndpoints;
-        if (adv) {
-            const advArray = Array.isArray(adv) ? adv : [adv];
-            for (const url of advArray) {
-                const { hostname } = parseOpcTcpUrl(url);
-                if (isIPAddress(hostname)) {
-                    ips.push(hostname);
-                } else {
-                    hostnames.push(hostname);
-                }
+        // advertisedEndpoints — normalize to AdvertisedEndpointConfig[]
+        const advList = normalizeAdvertisedEndpoints(this.options.advertisedEndpoints);
+        for (const config of advList) {
+            const { hostname } = parseOpcTcpUrl(config.url);
+            if (isIPAddress(hostname)) {
+                ips.push(hostname);
+            } else {
+                hostnames.push(hostname);
             }
         }
 

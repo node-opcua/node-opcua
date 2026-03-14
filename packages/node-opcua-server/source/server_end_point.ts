@@ -169,6 +169,67 @@ export interface EndpointDescriptionParams {
     userTokenTypes: UserTokenType[];
 }
 
+/**
+ * Per-URL security overrides for advertised endpoints.
+ *
+ * When `advertisedEndpoints` contains a config object, the endpoint
+ * descriptions generated for that URL use the overridden security
+ * settings instead of inheriting from the main endpoint.
+ *
+ * Any field that is omitted falls back to the main endpoint's value.
+ *
+ * @example
+ * ```ts
+ * advertisedEndpoints: [
+ *     // Public: SignAndEncrypt only, no anonymous
+ *     {
+ *         url: "opc.tcp://public.example.com:4840",
+ *         securityModes: [MessageSecurityMode.SignAndEncrypt],
+ *         allowAnonymous: false
+ *     },
+ *     // Internal: inherits everything from main endpoint
+ *     "opc.tcp://internal:48480"
+ * ]
+ * ```
+ */
+export interface AdvertisedEndpointConfig {
+    /** The full endpoint URL, e.g. `"opc.tcp://public.example.com:4840"` */
+    url: string;
+    /** Override security modes (default: inherit from main endpoint) */
+    securityModes?: MessageSecurityMode[];
+    /** Override security policies (default: inherit from main endpoint) */
+    securityPolicies?: SecurityPolicy[];
+    /** Override anonymous access (default: inherit from main endpoint) */
+    allowAnonymous?: boolean;
+    /** Override user token types (default: inherit from main endpoint) */
+    userTokenTypes?: UserTokenType[];
+}
+
+/**
+ * An advertised endpoint entry — either a plain URL string (inherits
+ * all settings from the main endpoint) or a config object with
+ * per-URL security overrides.
+ */
+export type AdvertisedEndpoint = string | AdvertisedEndpointConfig;
+
+/**
+ * Normalize any `advertisedEndpoints` input into a uniform
+ * `AdvertisedEndpointConfig[]`.
+ *
+ * This coercion is done early so that all downstream code
+ * (endpoint generation, IP/hostname extraction) only deals
+ * with one type.
+ */
+export function normalizeAdvertisedEndpoints(
+    raw?: AdvertisedEndpoint | AdvertisedEndpoint[]
+): AdvertisedEndpointConfig[] {
+    if (!raw) return [];
+    const arr = Array.isArray(raw) ? raw : [raw];
+    return arr.map((entry) =>
+        typeof entry === "string" ? { url: entry } : entry
+    );
+}
+
 export interface AddStandardEndpointDescriptionsParam {
     allowAnonymous?: boolean;
     disableDiscovery?: boolean;
@@ -188,27 +249,31 @@ export interface AddStandardEndpointDescriptionsParam {
      * Use when the server is behind Docker port-mapping,
      * a reverse proxy, or a NAT gateway.
      *
-     * Each URL is parsed to extract hostname and port.
-     * For each URL, a full set of endpoint descriptions
-     * (one per security mode × policy) is generated.
+     * Each entry can be a plain URL string (inherits all security
+     * settings from the main endpoint) or an
+     * `AdvertisedEndpointConfig` object with per-URL overrides.
      *
      * The server still listens on `port` — these are purely
      * advertised aliases.
      *
-     * @example
+     * @example Simple string (inherits main settings)
      * ```ts
      * advertisedEndpoints: "opc.tcp://localhost:48481"
      * ```
      *
-     * @example
+     * @example Mixed array with per-URL security overrides
      * ```ts
      * advertisedEndpoints: [
-     *     "opc.tcp://localhost:48481",
-     *     "opc.tcp://myserver.example.com:4840",
+     *     "opc.tcp://internal:48480",
+     *     {
+     *         url: "opc.tcp://public.example.com:4840",
+     *         securityModes: [MessageSecurityMode.SignAndEncrypt],
+     *         allowAnonymous: false
+     *     }
      * ]
      * ```
      */
-    advertisedEndpoints?: string | string[];
+    advertisedEndpoints?: AdvertisedEndpoint | AdvertisedEndpoint[];
 }
 
 /**
@@ -530,43 +595,57 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
 
         // ── Advertised endpoints (virtual — no TCP listener) ──────
-        const rawAdvertised = options.advertisedEndpoints;
-        const advertisedList: string[] = rawAdvertised ? (Array.isArray(rawAdvertised) ? rawAdvertised : [rawAdvertised]) : [];
+        // Normalize to AdvertisedEndpointConfig[] so downstream code
+        // only deals with one type.
+        const advertisedList = normalizeAdvertisedEndpoints(options.advertisedEndpoints);
 
-        // These are guaranteed non-null — defaults were assigned above
-        const securityModes = options.securityModes || defaultSecurityModes;
-        const securityPolicies = options.securityPolicies || defaultSecurityPolicies;
-        const userTokenTypes = options.userTokenTypes || defaultUserTokenTypes;
+        // Main endpoint defaults (guaranteed non-null — assigned above)
+        const mainSecurityModes = options.securityModes || defaultSecurityModes;
+        const mainSecurityPolicies = options.securityPolicies || defaultSecurityPolicies;
+        const mainUserTokenTypes = options.userTokenTypes || defaultUserTokenTypes;
 
-        for (const advUrl of advertisedList) {
-            const { hostname: advHostname, port: advPort } = parseOpcTcpUrl(advUrl);
+        for (const config of advertisedList) {
+            const { hostname: advHostname, port: advPort } = parseOpcTcpUrl(config.url);
             // Skip if this hostname+port combo was already covered
             // by the regular hostname loop (same hostname, same port)
             if (hostnames.includes(advHostname) && advPort === this.port) {
                 continue;
             }
+
+            // Per-URL security overrides — fall back to main settings
+            const entrySecurityModes = config.securityModes ?? mainSecurityModes;
+            const entrySecurityPolicies = config.securityPolicies ?? mainSecurityPolicies;
+            let entryUserTokenTypes = config.userTokenTypes ?? mainUserTokenTypes;
+
+            // Handle allowAnonymous override: if explicitly false,
+            // filter out Anonymous even if the main config allows it
+            if (config.allowAnonymous === false) {
+                entryUserTokenTypes = entryUserTokenTypes
+                    .filter((t) => t !== UserTokenType.Anonymous);
+            }
+
             const optionsE: EndpointDescriptionParams = {
                 hostname: advHostname,
                 advertisedPort: advPort,
-                securityPolicies,
-                userTokenTypes,
+                securityPolicies: entrySecurityPolicies,
+                userTokenTypes: entryUserTokenTypes,
                 allowUnsecurePassword: options.allowUnsecurePassword,
                 alternateHostname: options.alternateHostname,
                 resourcePath: options.resourcePath
             };
 
-            if (securityModes.indexOf(MessageSecurityMode.None) >= 0) {
+            if (entrySecurityModes.indexOf(MessageSecurityMode.None) >= 0) {
                 this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, optionsE);
             } else {
                 if (!options.disableDiscovery) {
                     this.addRestrictedEndpointDescription(optionsE);
                 }
             }
-            for (const securityMode of securityModes) {
+            for (const securityMode of entrySecurityModes) {
                 if (securityMode === MessageSecurityMode.None) {
                     continue;
                 }
-                for (const securityPolicy of securityPolicies) {
+                for (const securityPolicy of entrySecurityPolicies) {
                     if (securityPolicy === SecurityPolicy.None) {
                         continue;
                     }
