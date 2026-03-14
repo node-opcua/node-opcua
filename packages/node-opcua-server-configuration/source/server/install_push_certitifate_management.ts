@@ -2,7 +2,6 @@
  * @module node-opcua-server-configuration-server
  */
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 
 import chalk from "chalk";
@@ -14,7 +13,7 @@ import type { ICertificateKeyPairProviderPriv } from "node-opcua-common";
 import { readPrivateKey } from "node-opcua-crypto";
 import { type Certificate, convertPEMtoDER, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { getFullyQualifiedDomainName } from "node-opcua-hostname";
+import { getFullyQualifiedDomainName, getIpAddresses } from "node-opcua-hostname";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
@@ -62,23 +61,7 @@ function getPrivateKey(this: OPCUAServerPartial): PrivateKey {
     return this.$$privateKey;
 }
 
-async function getIpAddresses(): Promise<string[]> {
-    const ipAddresses: string[] = [];
-    const netInterfaces = os.networkInterfaces();
-    for (const interfaceName of Object.keys(netInterfaces)) {
-        if (!netInterfaces[interfaceName]) {
-            continue;
-        }
-        for (const interFace of netInterfaces[interfaceName]) {
-            if ("IPv4" !== interFace.family || interFace.internal !== false) {
-                // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-                continue;
-            }
-            ipAddresses.push(interFace.address);
-        }
-    }
-    return ipAddresses;
-}
+
 
 /**
  *
