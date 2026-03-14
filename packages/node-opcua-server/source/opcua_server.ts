@@ -758,6 +758,19 @@ export interface OPCUAServerEndpointOptions {
     alternateHostname?: string | string[];
 
     /**
+     * Additional endpoint URL(s) to advertise.
+     *
+     * Use when the server is behind Docker port-mapping, a reverse proxy,
+     * or a NAT gateway. Each URL is parsed to extract hostname and port.
+     * A full set of endpoint descriptions (one per security mode × policy)
+     * is generated for each URL. The server still listens on `port`.
+     *
+     * @example "opc.tcp://localhost:48481"
+     * @example ["opc.tcp://localhost:48481", "opc.tcp://public.example.com:4840"]
+     */
+    advertisedEndpoints?: string | string[];
+
+    /**
      *  true, if discovery service on secure channel shall be disabled
      */
     disableDiscovery?: boolean;
@@ -1256,6 +1269,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     host: options.host,
                     allowAnonymous: options.allowAnonymous,
                     alternateHostname: options.alternateHostname,
+                    advertisedEndpoints: options.advertisedEndpoints,
                     disableDiscovery: options.disableDiscovery,
                     securityModes: options.securityModes,
                     securityPolicies: options.securityPolicies
@@ -3736,7 +3750,9 @@ export class OPCUAServer extends OPCUABaseServer {
 
             disableDiscovery: !!endpointOptions.disableDiscovery,
             // xx                hostname,
-            resourcePath: serverOption.resourcePath || ""
+            resourcePath: serverOption.resourcePath || "",
+
+            advertisedEndpoints: endpointOptions.advertisedEndpoints,
 
             // TODO  userTokenTypes: endpointOptions.userTokenTypes || undefined,
 

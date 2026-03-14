@@ -639,7 +639,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public abortConnection(callback: ErrorCallback): void {
         if (this.#_isDisconnecting) {
             doDebug && debugLog("abortConnection already aborting!");
-            return callback();
+            callback();
+            return;
         }
         this.#_isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
