@@ -159,7 +159,7 @@ import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import type { SamplingFunc } from "./sampling_func";
 import type { ServerCapabilitiesOptions } from "./server_capabilities";
-import { type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint } from "./server_end_point";
+import { type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint, parseOpcTcpUrl } from "./server_end_point";
 import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine";
 import type { ServerSession } from "./server_session";
 import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
@@ -1123,6 +1123,38 @@ export class OPCUAServer extends OPCUABaseServer {
      */
     public getInApplicationSetup(): boolean {
         return this.engine.getInApplicationSetup();
+    }
+
+    /**
+     * Collect additional hostnames for the self-signed certificate SAN.
+     *
+     * Merges hostnames from `alternateHostname` and parsed
+     * `advertisedEndpoints` URLs so the certificate covers all
+     * configured addresses.
+     *
+     * @internal
+     */
+    protected override getConfiguredHostnames(): string[] {
+        const hostnames: string[] = [];
+
+        // alternateHostname
+        const alt = this.options.alternateHostname;
+        if (alt) {
+            const altArray = Array.isArray(alt) ? alt : [alt];
+            hostnames.push(...altArray);
+        }
+
+        // advertisedEndpoints
+        const adv = this.options.advertisedEndpoints;
+        if (adv) {
+            const advArray = Array.isArray(adv) ? adv : [adv];
+            for (const url of advArray) {
+                const { hostname } = parseOpcTcpUrl(url);
+                hostnames.push(hostname);
+            }
+        }
+
+        return hostnames;
     }
 
     public static registry = new ObjectRegistry();

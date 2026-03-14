@@ -172,18 +172,25 @@ export class OPCUABaseServer extends OPCUASecureObject {
         });
     }
 
+    /**
+     * Return additional DNS hostnames to include in the self-signed
+     * certificate's SubjectAlternativeName (SAN).
+     *
+     * The base implementation returns an empty array. Subclasses
+     * (e.g. `OPCUAServer`) override this to include hostnames from
+     * `alternateHostname` and `advertisedEndpoints`.
+     *
+     * @internal
+     */
+    protected getConfiguredHostnames(): string[] {
+        return [];
+    }
+
     protected async createDefaultCertificate(): Promise<void> {
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
 
-        // collect all hostnames
-        const _hostnames = [];
-        for (const e of this.endpoints) {
-            for (const _ee of e.endpointDescriptions()) {
-                /* to do */
-            }
-        }
         if (!checkFileExistsAndIsNotEmpty(this.certificateFile)) {
             await withLock({ fileToLock: `${this.certificateFile}.mutex` }, async () => {
                 if (checkFileExistsAndIsNotEmpty(this.certificateFile)) {
@@ -192,7 +199,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 const applicationUri = this.serverInfo.applicationUri || "<missing application uri>";
                 const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
-                const dns = [...new Set([fqdn, hostname])];
+                const dns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
 
                 await this.serverCertificateManager.createSelfSignedCertificate({
                     applicationUri,

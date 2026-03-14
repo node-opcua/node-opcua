@@ -270,3 +270,112 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
         }
     });
 });
+
+const sanPort = 12070;
+
+describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
+    it("should include alternateHostname in the self-signed cert SAN", async () => {
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(sanPort);
+
+        const server = new OPCUAServer({
+            port: sanPort,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["alt-host-1", "alt-host-2"]
+        });
+
+        // delete existing cert to force regeneration
+        if (await import("node:fs").then(fs => fs.existsSync(server.certificateFile))) {
+            await import("node:fs").then(fs => fs.unlinkSync(server.certificateFile));
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+
+            sanDns.should.containEql("alt-host-1");
+            sanDns.should.containEql("alt-host-2");
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+
+    it("should include advertisedEndpoints hostnames in the self-signed cert SAN", async () => {
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(sanPort + 1);
+
+        const server = new OPCUAServer({
+            port: sanPort + 1,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints: ["opc.tcp://dockerhost:48481", "opc.tcp://proxy.example.com:4840"]
+        });
+
+        // delete existing cert to force regeneration
+        if (await import("node:fs").then(fs => fs.existsSync(server.certificateFile))) {
+            await import("node:fs").then(fs => fs.unlinkSync(server.certificateFile));
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+
+            sanDns.should.containEql("dockerhost");
+            sanDns.should.containEql("proxy.example.com");
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+
+    it("should produce a sorted and deduplicated dns list", async () => {
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(sanPort + 2);
+
+        const server = new OPCUAServer({
+            port: sanPort + 2,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["zzz-host", "aaa-host"],
+            advertisedEndpoints: ["opc.tcp://aaa-host:9999"]  // duplicate with alternateHostname
+        });
+
+        // delete existing cert to force regeneration
+        if (await import("node:fs").then(fs => fs.existsSync(server.certificateFile))) {
+            await import("node:fs").then(fs => fs.unlinkSync(server.certificateFile));
+        }
+
+        try {
+            await server.initialize();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+
+            // aaa-host should appear only once (deduplication)
+            const aaaCount = sanDns.filter((d: string) => d === "aaa-host").length;
+            aaaCount.should.eql(1, "aaa-host should be deduplicated");
+
+            // dns list should be sorted
+            const sorted = [...sanDns].sort();
+            sanDns.should.deepEqual(sorted, "dns entries should be sorted");
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});
