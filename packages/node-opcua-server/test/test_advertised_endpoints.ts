@@ -593,3 +593,61 @@ describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
         }
     });
 });
+
+describe("getIpAddresses", () => {
+    it("should return at least one non-internal IPv4 address", () => {
+        const { getIpAddresses } = require("node-opcua-hostname");
+        const ips: string[] = getIpAddresses();
+        ips.length.should.be.greaterThan(0);
+        for (const ip of ips) {
+            // basic IPv4 format check
+            ip.should.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/);
+            ip.should.not.equal("127.0.0.1");
+        }
+    });
+});
+
+describe("regenerateSelfSignedCertificate includes IPs", () => {
+    it("should include IPs in the regenerated certificate", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+        const { getIpAddresses } = await import("node-opcua-hostname");
+
+        const serverCertificateManager = await createServerCertificateManager(ae18Port + 3);
+
+        const server = new OPCUAServer({
+            port: ae18Port + 3,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["10.99.0.1"]
+        });
+
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+
+        try {
+            await server.initialize();
+
+            // Regenerate
+            await server.regenerateSelfSignedCertificate();
+
+            const certDer = server.getCertificate();
+            const info = exploreCertificate(certDer);
+            const sanIps = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+
+            // The configured IP must be present
+            sanIps.should.containEql(ipv4ToHex("10.99.0.1"));
+
+            // Auto-detected IPs should also be present
+            const hostIps = getIpAddresses();
+            for (const ip of hostIps) {
+                sanIps.should.containEql(ipv4ToHex(ip));
+            }
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});

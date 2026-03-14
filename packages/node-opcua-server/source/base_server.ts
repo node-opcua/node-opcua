@@ -194,8 +194,14 @@ export class OPCUABaseServer extends OPCUASecureObject {
      * certificate's SubjectAlternativeName (SAN) iPAddress entries.
      *
      * The base implementation returns an empty array. Subclasses
-     * override this to include IPs from `alternateHostname`,
-     * `advertisedEndpoints`, and `additionalIPs`.
+     * (e.g. `OPCUAServer`) override this to include IP literals
+     * found in `alternateHostname` and `advertisedEndpoints`.
+     *
+     * These IPs are considered **explicitly configured** by the
+     * user and are therefore checked by `checkCertificateSAN()`.
+     * In contrast, auto-detected IPs from `getIpAddresses()` are
+     * included in the certificate at creation time but are NOT
+     * checked later — see `checkCertificateSAN()` for rationale.
      *
      * @internal
      */
@@ -217,6 +223,15 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
                 const dns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+
+                // Include both auto-detected IPs and explicitly configured IPs.
+                // Auto-detected IPs (getIpAddresses) are ephemeral — they depend on
+                // the current network state (WiFi, tethering, VPN, roaming) and may
+                // change between reboots. They are included here so that the initial
+                // certificate covers the current network configuration, but they are
+                // NOT checked by checkCertificateSAN() to avoid noisy warnings when
+                // the network changes. Only explicitly configured IPs (from
+                // alternateHostname / advertisedEndpoints) are checked at startup.
                 const ip = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
 
                 await this.serverCertificateManager.createSelfSignedCertificate({
@@ -244,11 +259,32 @@ export class OPCUABaseServer extends OPCUASecureObject {
     }
 
     /**
-     * Compare the current certificate's SAN DNS entries against all
-     * configured hostnames and return any names that are missing.
+     * Compare the current certificate's SAN entries against all
+     * explicitly configured hostnames and IPs, and return any
+     * that are missing.
      *
      * Returns an empty array when the certificate covers every
-     * configured hostname.
+     * configured hostname and IP.
+     *
+     * **Important — ephemeral IP mitigation:**
+     * Auto-detected IPs (from `getIpAddresses()`) are deliberately
+     * NOT included in this check. Network interfaces are transient
+     * — WiFi IPs change on reconnect, tethering IPs appear/disappear,
+     * VPN adapters come and go. Including them would cause the
+     * `[NODE-OPCUA-W26]` warning to fire on every server restart
+     * whenever the network state differs from when the certificate
+     * was originally created.
+     *
+     * Only **explicitly configured** values are checked:
+     * - Hostnames: FQDN, os.hostname(), `alternateHostname` (non-IP),
+     *   hostnames from `advertisedEndpoints` URLs
+     * - IPs: IP literals from `alternateHostname`, IP literals
+     *   from `advertisedEndpoints` URLs
+     *
+     * The certificate itself still includes auto-detected IPs at
+     * creation time — this is fine because it captures the network
+     * state at that moment. But the *mismatch warning* only fires
+     * for things the user explicitly asked for.
      */
     public checkCertificateSAN(): string[] {
         const certDer = this.getCertificate();
@@ -259,7 +295,10 @@ export class OPCUABaseServer extends OPCUASecureObject {
         const fqdn = getFullyQualifiedDomainName();
         const hostname = getHostname();
         const expectedDns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
-        const expectedIps = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
+
+        // Only check explicitly configured IPs — NOT auto-detected ones.
+        // See JSDoc above for the rationale (ephemeral network interfaces).
+        const expectedIps = [...new Set(this.getConfiguredIPs())].sort();
 
         const missingDns = expectedDns.filter((name) => !sanDns.includes(name));
         // exploreCertificate returns iPAddress entries as hex strings
