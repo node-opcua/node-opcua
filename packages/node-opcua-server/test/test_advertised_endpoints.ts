@@ -379,3 +379,101 @@ describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
         }
     });
 });
+
+const ae08Port = 12080;
+
+describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
+    it("checkCertificateSAN should return missing hostnames", async () => {
+        const fs = await import("node:fs");
+
+        const serverCertificateManager = await createServerCertificateManager(ae08Port);
+
+        // Step 1: create server WITHOUT alternateHostname to get a cert with only fqdn/hostname
+        const server1 = new OPCUAServer({
+            port: ae08Port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None]
+        });
+
+        // delete existing cert to force regeneration
+        if (fs.existsSync(server1.certificateFile)) {
+            fs.unlinkSync(server1.certificateFile);
+        }
+
+        try {
+            await server1.initialize();
+            // cert now exists with only fqdn+hostname in SAN
+        } finally {
+            await server1.shutdown();
+            server1.dispose();
+        }
+
+        // Step 2: create a new server WITH alternateHostname using the SAME cert
+        const server2 = new OPCUAServer({
+            port: ae08Port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["new-alt-host"]
+        });
+
+        try {
+            await server2.initialize();
+
+            // checkCertificateSAN should detect "new-alt-host" is missing
+            const missing = server2.checkCertificateSAN();
+            missing.should.containEql("new-alt-host");
+        } finally {
+            await server2.shutdown();
+            server2.dispose();
+        }
+    });
+
+    it("regenerateSelfSignedCertificate should create cert with all hostnames", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+
+        const serverCertificateManager = await createServerCertificateManager(ae08Port + 1);
+
+        // Step 1: create server with only basic cert
+        const server = new OPCUAServer({
+            port: ae08Port + 1,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            alternateHostname: ["regen-host"]
+        });
+
+        // delete existing cert to get a fresh one WITHOUT regen-host
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+
+        try {
+            await server.initialize();
+
+            // Verify cert initially includes regen-host
+            const certBefore = server.getCertificate();
+            const infoBefore = exploreCertificate(certBefore);
+            const sanBefore = infoBefore.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+            sanBefore.should.containEql("regen-host");
+
+            // Now regenerate
+            await server.regenerateSelfSignedCertificate();
+
+            // New cert should also have regen-host
+            const certAfter = server.getCertificate();
+            const infoAfter = exploreCertificate(certAfter);
+            const sanAfter = infoAfter.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+            sanAfter.should.containEql("regen-host");
+
+            // checkCertificateSAN should return empty (all covered)
+            const missing = server.checkCertificateSAN();
+            missing.should.have.length(0);
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});

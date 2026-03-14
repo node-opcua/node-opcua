@@ -15,9 +15,10 @@ import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "node-opcua-client";
 import { type IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
+import { exploreCertificate } from "node-opcua-crypto/web";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
-import { checkDebugFlag, displayTraceFromThisProjectOnly, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, displayTraceFromThisProjectOnly, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import {
     extractFullyQualifiedDomainName,
     getFullyQualifiedDomainName,
@@ -38,7 +39,7 @@ import type { OPCUAServerEndPoint } from "./server_end_point";
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const warningLog = errorLog;
+const warningLog = make_warningLog(__filename);
 
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as
@@ -221,7 +222,76 @@ export class OPCUABaseServer extends OPCUASecureObject {
         await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
+        this._checkCertificateSanMismatch();
         await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
+    }
+
+    /**
+     * Compare the current certificate's SAN DNS entries against all
+     * configured hostnames and return any names that are missing.
+     *
+     * Returns an empty array when the certificate covers every
+     * configured hostname.
+     */
+    public checkCertificateSAN(): string[] {
+        const certDer = this.getCertificate();
+        const info = exploreCertificate(certDer);
+        const sanDns: string[] = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+
+        const fqdn = getFullyQualifiedDomainName();
+        const hostname = getHostname();
+        const expected = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+
+        return expected.filter((name) => !sanDns.includes(name));
+    }
+
+    /**
+     * Delete the existing self-signed certificate and create a new
+     * one that includes all currently configured hostnames.
+     *
+     * @throws if the current certificate was NOT self-signed
+     *         (i.e. issued by a CA or GDS)
+     */
+    public async regenerateSelfSignedCertificate(): Promise<void> {
+        // guard: only allow regeneration of self-signed certs
+        const certDer = this.getCertificate();
+        const info = exploreCertificate(certDer);
+        const issuer = info.tbsCertificate.issuer;
+        const subject = info.tbsCertificate.subject;
+        const isSelfSigned =
+            issuer.commonName === subject.commonName &&
+            issuer.organizationName === subject.organizationName;
+        if (!isSelfSigned) {
+            throw new Error(
+                "Cannot regenerate certificate: current certificate is not self-signed (issued by a CA or GDS)"
+            );
+        }
+
+        // delete old cert
+        if (fs.existsSync(this.certificateFile)) {
+            fs.unlinkSync(this.certificateFile);
+        }
+        // recreate with current hostnames
+        await this.createDefaultCertificate();
+        // invalidate cached cert so next getCertificate() reloads from disk
+        const priv = this as unknown as { $$certificate: null; $$certificateChain: null };
+        priv.$$certificate = null;
+        priv.$$certificateChain = null;
+    }
+
+    private _checkCertificateSanMismatch(): void {
+        try {
+            const missing = this.checkCertificateSAN();
+            if (missing.length > 0) {
+                warningLog(
+                    `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames: ${missing.join(", ")}. ` +
+                    "Clients with strict certificate validation may reject connections from these hostnames. " +
+                    "Use server.regenerateSelfSignedCertificate() to fix this."
+                );
+            }
+        } catch (_err) {
+            // ignore errors during SAN check (e.g. cert not yet loaded)
+        }
     }
 
     /**
