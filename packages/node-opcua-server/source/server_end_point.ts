@@ -69,8 +69,9 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
-            } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
+            s.sessionTimeout
+        } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -220,14 +221,10 @@ export type AdvertisedEndpoint = string | AdvertisedEndpointConfig;
  * (endpoint generation, IP/hostname extraction) only deals
  * with one type.
  */
-export function normalizeAdvertisedEndpoints(
-    raw?: AdvertisedEndpoint | AdvertisedEndpoint[]
-): AdvertisedEndpointConfig[] {
+export function normalizeAdvertisedEndpoints(raw?: AdvertisedEndpoint | AdvertisedEndpoint[]): AdvertisedEndpointConfig[] {
     if (!raw) return [];
     const arr = Array.isArray(raw) ? raw : [raw];
-    return arr.map((entry) =>
-        typeof entry === "string" ? { url: entry } : entry
-    );
+    return arr.map((entry) => (typeof entry === "string" ? { url: entry } : entry));
 }
 
 export interface AddStandardEndpointDescriptionsParam {
@@ -608,7 +605,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             const { hostname: advHostname, port: advPort } = parseOpcTcpUrl(config.url);
             // Skip if this hostname+port combo was already covered
             // by the regular hostname loop (same hostname, same port)
-            if (hostnames.includes(advHostname) && advPort === this.port) {
+            if (hostnames.some((h) => h.toLowerCase() === advHostname.toLowerCase()) && advPort === this.port) {
                 continue;
             }
 
@@ -620,8 +617,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // Handle allowAnonymous override: if explicitly false,
             // filter out Anonymous even if the main config allows it
             if (config.allowAnonymous === false) {
-                entryUserTokenTypes = entryUserTokenTypes
-                    .filter((t) => t !== UserTokenType.Anonymous);
+                entryUserTokenTypes = entryUserTokenTypes.filter((t) => t !== UserTokenType.Anonymous);
             }
 
             const optionsE: EndpointDescriptionParams = {
@@ -691,7 +687,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._server.listen(
             listenOptions,
-            /*"::",*/(err?: Error) => {
+            /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -881,7 +877,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -891,7 +887,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "The maximum number of connection has been reached - Connection is refused"
+                        "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = `maxConnections reached (${this.maxConnections})`;
