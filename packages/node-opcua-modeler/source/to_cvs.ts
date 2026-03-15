@@ -1,4 +1,4 @@
-import { Symbols } from "./symbol";
+import type { Symbols } from "./symbol";
 
 export function toCSV(arr: Symbols) {
     const line: string[] = [];

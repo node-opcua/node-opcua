@@ -105,13 +105,15 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
     assert(defaultXml);
     assert(defaultXml.browseName.toString() === "Default XML");
 
-    (dataType as { $fullDefinition?: StructureDefinition }).$fullDefinition = new StructureDefinition(structureDefinition);
+    (dataType as unknown as { $fullDefinition?: StructureDefinition }).$fullDefinition = new StructureDefinition(
+        structureDefinition
+    );
 
     const d = dataType.getStructureDefinition();
     assert(!NodeId.sameNodeId(d.baseDataType, NodeId.nullNodeId));
 
     /// --------------- Create constructor
-    const dataTypeManager = (addressSpace as { $$extraDataTypeManager: ExtraDataTypeManager }).$$extraDataTypeManager;
+    const dataTypeManager = (addressSpace as unknown as { $$extraDataTypeManager: ExtraDataTypeManager }).$$extraDataTypeManager;
     const dataTypeFactory = dataTypeManager.getDataTypeFactory(namespace.index);
     const session = new PseudoSession(addressSpace);
 

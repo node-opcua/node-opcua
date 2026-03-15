@@ -1,6 +1,6 @@
-import { AddressSpace, NodeIdManager, XmlLoaderAsyncFunc, generateAddressSpaceRaw } from "node-opcua-address-space";
+import { AddressSpace, generateAddressSpaceRaw, type NodeIdManager, type XmlLoaderAsyncFunc } from "node-opcua-address-space";
 import { buildDocumentationToString } from "./generate_markdown_doc";
-import { Symbols } from "./symbol";
+import type { Symbols } from "./symbol";
 
 export interface BuildModelOptionsBase {
     version: string;
@@ -20,17 +20,17 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
         // create own namespace (before loading other xml files)
         const ns = addressSpace.registerNamespace(data.namespaceUri);
 
-        const nodeIdManager = (ns as any)._nodeIdManager as NodeIdManager;
+        const nodeIdManager = (ns as unknown as { _nodeIdManager: NodeIdManager })._nodeIdManager;
         if (data.presetSymbols) {
             nodeIdManager.setSymbols(data.presetSymbols);
         }
 
         await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader, {});
 
-        (addressSpace.getOwnNamespace() as any).registerSymbolicNames = true;
+        (addressSpace.getOwnNamespace() as unknown as { registerSymbolicNames: boolean }).registerSymbolicNames = true;
         await data.createModel(addressSpace);
-        (addressSpace.getOwnNamespace() as any).registerSymbolicNames = false;
-        
+        (addressSpace.getOwnNamespace() as unknown as { registerSymbolicNames: boolean }).registerSymbolicNames = false;
+
         const xmlModel = ns.toNodeset2XML();
         const symbols = nodeIdManager.getSymbols();
         const doc = await buildDocumentationToString(ns, {});
@@ -38,7 +38,6 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
 
         return { xmlModel, symbols, markdown: doc };
     } catch (err) {
-        // tslint:disable-next-line: no-console
         console.log("Error", err);
         throw err;
     }

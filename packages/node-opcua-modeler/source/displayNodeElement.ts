@@ -1,18 +1,17 @@
 import {
-    BaseNode,
-    UAReference,
-    UAObjectType,
-    UAVariable,
+    type BaseNode,
     resolveReferenceNode,
     resolveReferenceType,
-    UAVariableType,
-    UAObject
+    type UAObject,
+    type UAObjectType,
+    type UAReference,
+    type UAVariable,
+    type UAVariableType
 } from "node-opcua-address-space";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import { TableHelper } from "./tableHelper";
-
 
 function symbol(nodeClass: NodeClass) {
     switch (nodeClass) {
@@ -46,9 +45,9 @@ function encodeXML(s: string) {
 interface Data {
     table: TableHelper;
     node: BaseNode;
-    alreadyDumped: Record<string, any>;
+    alreadyDumped: Record<string, number>;
     descriptions: Description[];
-    subElements?: any[];
+    subElements?: unknown[];
 }
 interface Description {
     description: string;
@@ -62,7 +61,7 @@ interface DumpReferenceOptions {
     prefix?: string;
 }
 
-function _dumpReferenceVariable(v: UAVariable, value: any, dataType: string): { value: any; dataType: string } {
+function _dumpReferenceVariable(v: UAVariable, value: string, dataType: string): { value: string; dataType: string } {
     const val = v.readValue().value.value;
     if (v.dataType.isEmpty()) {
         return { value, dataType };
@@ -72,17 +71,17 @@ function _dumpReferenceVariable(v: UAVariable, value: any, dataType: string): { 
         // don't do anything
     } else if (v.isEnumeration() && val !== null) {
         const enumValue = v.readEnumValue();
-        value = enumValue.value + " (" + enumValue.name + ")";
+        value = `${enumValue.value} (${enumValue.name})`;
     } else if (val instanceof Date) {
         value = val ? val.toUTCString() : "";
     } else {
         value = val ? val.toString() : "null";
     }
-    const actualDataType = DataType[v.readValue().value.dataType];
+    const _actualDataType = DataType[v.readValue().value.dataType];
     const basicDataType = DataType[v.dataTypeObj.basicDataType];
     dataType = v.dataTypeObj.browseName.toString();
     if (basicDataType !== dataType) {
-        dataType = dataType + "(" + basicDataType + ")";
+        dataType = `${dataType}(${basicDataType})`;
     }
     return { value, dataType };
 }
@@ -104,15 +103,14 @@ function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptio
     // ignore subtype references
     /* c8 ignore next */
     if (!ref.node) {
-        // tslint:disable-next-line: no-console
         console.log(" Halt ", ref.toString({ addressSpace: data.node.addressSpace }));
         return;
     }
     const dir = ref.isForward ? " " : " ";
-    const refNode = ref.node!;
+    const refNode = ref.node;
 
     const refType = resolveReferenceType(data.node.addressSpace, ref);
-    if (options && options.filter && refType.browseName.name !== options.filter) {
+    if (options?.filter && refType.browseName.name !== options.filter) {
         return;
     }
     const key = ref.nodeId.toString() + ref.referenceType.toString();
@@ -131,8 +129,8 @@ function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptio
         dataType = t.dataType;
         // findBasicDataType(v.dataTypeObj);
     }
- 
-    const prefix = options.prefix ? options.prefix + "." : "";
+
+    const prefix = options.prefix ? `${options.prefix}.` : "";
     const row = [
         "".padEnd(prefix.length) + refType.browseName.toString() + dir + symbol(refNode.nodeClass),
         refNode.nodeId.toString(),
@@ -147,7 +145,7 @@ function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptio
 
     data.descriptions.push({
         description: refNode.description ? refNode.description.text || "" : "",
-        name: refNode.browseName.name!,
+        name: refNode.browseName.name ?? "",
         type: dataType
     });
 
@@ -218,14 +216,14 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         }
 
         if (node.description) {
-            table.push(["Description", { colspan: 6, content: shortDescription(node.description.text! || "") }]);
+            table.push(["Description", { colspan: 6, content: shortDescription(node.description.text ?? "") }]);
         }
         return table;
     }
 
     const table = createTable();
 
-    const alreadyDumped: Record<string, any> = {};
+    const alreadyDumped: Record<string, number> = {};
 
     const descriptions: Description[] = [];
 
@@ -248,7 +246,7 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
     tables.push(table);
 
     if (node.description) {
-        str.push(node.description.text! || "");
+        str.push(node.description.text ?? "");
         str.push("");
     }
     str.push(toText(table));
@@ -262,13 +260,13 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
         let subtypeOf = (curNode as UAObjectType | UAVariableType).subtypeOfObj;
         while (subtypeOf) {
             data.table = createTable();
-            data.table.push([subtypeOf.browseName.toString() + ":", "--", "--", "--"]);
+            data.table.push([`${subtypeOf.browseName.toString()}:`, "--", "--", "--"]);
             const references2 = subtypeOf.allReferences();
 
             dumpReferences(data, references2, { recursive: false });
 
             str.push("<details>");
-            str.push("<summary>Base type: " + subtypeOf.browseName.toString() + "</summary>");
+            str.push(`<summary>Base type: ${subtypeOf.browseName.toString()}</summary>`);
             str.push("");
             str.push(toText(data.table));
             str.push("");

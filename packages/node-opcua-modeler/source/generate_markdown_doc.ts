@@ -1,5 +1,4 @@
-/* eslint-disable max-statements */
-import {
+import type {
     BaseNode,
     INamespace,
     UADataType,
@@ -11,7 +10,7 @@ import {
 } from "node-opcua-address-space";
 import { coerceUInt32 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
-import { StructureField } from "node-opcua-types";
+import type { StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 import { displayNodeElement } from "./displayNodeElement";
@@ -30,15 +29,11 @@ interface NamespacePriv2 extends INamespace {
     _aliasCount(): number;
 }
 export interface IWriter {
-    // eslint-disable-next-line no-unused-vars
     writeLine(_str: string): void;
 }
 
 export class Writer implements IWriter {
     private readonly stream: string[] = [];
-    constructor() {
-        /* empty */
-    }
     public writeLine(str: string): void {
         this.stream.push(str);
     }
@@ -62,7 +57,7 @@ export async function buildDocumentationToString(namespace: INamespace, options?
 const toDataTypeStr = (p: BaseNode): string => {
     if (p.nodeClass === NodeClass.Variable) {
         const v = p as UAVariable;
-        const arr = v.valueRank == 1 ? "[]" : "";
+        const arr = v.valueRank === 1 ? "[]" : "";
         const brn = toDataTypeStr((p as UAVariable).dataTypeObj);
         return brn + arr;
     }
@@ -85,7 +80,7 @@ function dataTypeEnumerationToMarkdown(dataType: UADataType): string {
 
     writer.writeLine("");
     const definition = dataType.getEnumDefinition();
-    writer.writeLine("\nBasic Type: " + (DataType as any)[DataType.Int32]);
+    writer.writeLine(`\nBasic Type: ${DataType[DataType.Int32]}`);
     writer.writeLine("");
 
     const table = new TableHelper(["Name", "Value", "Description"]);
@@ -111,10 +106,10 @@ function dumpTypeRepresentation(uaType: UAObjectType | UADataType | UAReferenceT
     const table = new TableHelper(["Name", "Attribute"]);
     table.push(["NodeId", uaType.nodeId.toString()]);
     table.push(["NamespaceUri", uaType.addressSpace.getNamespaceUri(uaType.nodeId.namespace)]);
-    table.push(["BrowseName", uaType.browseName.name!.toString()]);
+    table.push(["BrowseName", uaType.browseName.name?.toString()]);
     table.push(["NodeClass", NodeClass[uaType.nodeClass]]);
     if (uaType.nodeClass === NodeClass.ReferenceType) {
-        table.push(["InverseName", (uaType as UAReferenceType).inverseName!.text]);
+        table.push(["InverseName", (uaType as UAReferenceType).inverseName?.text]);
         // table.push(["IsSymmetric", (uaType as UAReferenceType).isSymetric ? "Yes" : "No"]);
     }
     table.push(["IsAbstract", uaType.isAbstract ? "Yes" : "No"]);
@@ -130,7 +125,7 @@ function dumpTypeRepresentation(uaType: UAObjectType | UADataType | UAReferenceT
 
         if (uaType.subtypeOfObj) {
             const referenceName = "HasSubType";
-            const p = uaType.subtypeOfObj!;
+            const p = uaType.subtypeOfObj;
             const nodeClass = NodeClass[p.nodeClass];
             const browseName = p.browseName.toString();
             const dataTypeStr = toDataTypeStr(p);
@@ -167,16 +162,16 @@ function dataTypeStructureToMarkdown(dataType: UADataType): string {
     }
 
     const definition = dataType.getStructureDefinition();
-    writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
+    writer.writeLine(`\nBasic Type: ${DataType[dataType.basicDataType]}`);
     writer.writeLine("");
     writer.writeLine(`The fields of the ${dataType.browseName.name} DataType are defined in the following table:`);
 
     const c = (f: StructureField) => {
-        let dataTypeString = addressSpace.findDataType(f.dataType)!.browseName.toString();
+        let dataTypeString = addressSpace.findDataType(f.dataType)?.browseName.toString();
         if (f.valueRank === 1) {
             dataTypeString += "[]";
         } else if (f.valueRank >= 2) {
-            dataTypeString += "[" + f.arrayDimensions?.map((d) => "" + d).join(" ") + "]";
+            dataTypeString += `[${f.arrayDimensions?.map((d) => `${d}`).join(" ")}]`;
         }
         //       f.maxStringLength ? f.maxStringLength : "",
         //       f.arrayDimensions ? f.arrayDimensions : "",
@@ -185,7 +180,7 @@ function dataTypeStructureToMarkdown(dataType: UADataType): string {
     const table = new TableHelper(["Name", "Type", "Description"]);
     table.push([dataType.browseName.name, "Structure"]);
     for (const f of definition.fields || []) {
-        table.push(["   " + f.name, c(f), (f.description.text || "").replace(/\n/g, "<br>")]);
+        table.push([`   ${f.name}`, c(f), (f.description.text || "").replace(/\n/g, "<br>")]);
     }
     writer.writeLine(table.toMarkdownTable());
 
@@ -205,7 +200,7 @@ function dataTypeToMarkdown(dataType: UADataType): string {
         if (dataType.description) {
             writer.writeLine(dataType.description.text || "");
         }
-        writer.writeLine("\nBasic Type: " + (DataType as any)[dataType.basicDataType]);
+        writer.writeLine(`\nBasic Type: ${DataType[dataType.basicDataType]}`);
         writer.writeLine("");
         return writer.toString();
     }
@@ -279,7 +274,7 @@ export async function buildDocumentation(
     const { dataTypes, objectTypes, variableTypes } = extractTypes(namespace, options);
 
     writer.writeLine("");
-    writer.writeLine("# Namespace " + namespaceUri);
+    writer.writeLine(`# Namespace ${namespaceUri}`);
     writer.writeLine("");
 
     // -------------- writeReferences
@@ -288,13 +283,13 @@ export async function buildDocumentation(
         writer.writeLine("##  References ");
         writer.writeLine("");
         for (const referenceType of namespacePriv._referenceTypeIterator()) {
-            writer.writeLine("\n\n###  reference " + referenceType.browseName.name!);
+            writer.writeLine(`\n\n###  reference ${referenceType.browseName.name ?? ""}`);
             dumpReferenceType(referenceType);
         }
     }
 
     function d(node: BaseNode): string {
-        return node.description && node.description.text ? node.description!.text!.toString() : "";
+        return node.description?.text ? node.description?.text?.toString() : "";
     }
 
     // -------------- writeDataType
@@ -303,7 +298,7 @@ export async function buildDocumentation(
         writer.writeLine("## DataTypes");
         writer.writeLine("");
         for (const dataType of dataTypes) {
-            writer.writeLine("\n\n### " + dataType.browseName.name!.toString());
+            writer.writeLine(`\n\n### ${dataType.browseName.name?.toString()}`);
             writer.writeLine("");
             writer.writeLine(dataTypeToMarkdown(dataType));
         }
@@ -314,7 +309,7 @@ export async function buildDocumentation(
         writer.writeLine("## ObjectTypes");
         writer.writeLine("");
         for (const objectType of objectTypes) {
-            writer.writeLine("\n\n### " + objectType.browseName.name!.toString());
+            writer.writeLine(`\n\n### ${objectType.browseName.name?.toString()}`);
             writer.writeLine(d(objectType));
 
             if (options.dumpGraphics) {
@@ -325,12 +320,12 @@ export async function buildDocumentation(
             writer.writeLine(displayNodeElement(objectType, { format: "markdown" }));
 
             for (const comp of objectType.getComponents()) {
-                writer.writeLine("\n\n#### " + comp.browseName.name!.toString());
+                writer.writeLine(`\n\n#### ${comp.browseName.name?.toString()}`);
                 writer.writeLine("");
                 writer.writeLine(d(comp));
             }
             for (const comp of objectType.getProperties()) {
-                writer.writeLine("\n\n#### " + comp.browseName.name!.toString());
+                writer.writeLine(`\n\n#### ${comp.browseName.name?.toString()}`);
                 writer.writeLine("");
                 writer.writeLine(d(comp));
             }
@@ -342,7 +337,7 @@ export async function buildDocumentation(
         writer.writeLine("## VariableTypes");
         writer.writeLine("");
         for (const variableType of variableTypes) {
-            writer.writeLine("\n\n### " + variableType.browseName.name!.toString());
+            writer.writeLine(`\n\n### ${variableType.browseName.name?.toString()}`);
             writer.writeLine(d(variableType));
             writer.writeLine("");
 
@@ -352,8 +347,9 @@ export async function buildDocumentation(
             // enumerate components
             writer.writeLine(displayNodeElement(variableType, { format: "markdown" }));
             for (const reference of variableType.allReferences()) {
-                const n = reference.node!;
-                writer.writeLine("\n\n#### " + n.browseName.name!.toString());
+                const n = reference.node;
+                if (!n) continue;
+                writer.writeLine(`\n\n#### ${n.browseName.name?.toString()}`);
                 writer.writeLine("");
                 writer.writeLine(d(n));
             }

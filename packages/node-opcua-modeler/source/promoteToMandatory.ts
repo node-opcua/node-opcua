@@ -1,5 +1,6 @@
-import {
+import type {
     BaseNode,
+    ModellingRuleType,
     UADataType,
     UAMethod,
     UAObject,
@@ -7,12 +8,11 @@ import {
     UAReference,
     UAReferenceType,
     UAVariable,
-    UAVariableType,
-    ModellingRuleType
+    UAVariableType
 } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
-import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { make_warningLog } from "node-opcua-debug";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 
 import { displayNodeElement } from "./displayNodeElement";
 
@@ -43,7 +43,7 @@ function findReferenceToNode(node1: BaseNode, node2: BaseNode): UAReference {
             }
         }
 
-        throw new Error("Internal Error cannot find ref from node " + node1.nodeId.toString() + " " + node2.nodeId.toString());
+        throw new Error(`Internal Error cannot find ref from node ${node1.nodeId.toString()} ${node2.nodeId.toString()}`);
     }
     return ref;
 }
@@ -55,26 +55,26 @@ export function getChildInTypeOrBaseType(
 ): { propInSuperType: UAConcrete; reference: UAReference } {
     const addressSpace = node.addressSpace;
 
-    const subtypeOf = node.subtypeOfObj!;
+    const subtypeOf = node.subtypeOfObj;
     /* c8 ignore next */
     if (!subtypeOf) {
         throw new Error("Expecting a super type");
     }
 
     const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId, `.${namespaceIndex}:${propertyName}`));
-    const propNodeId = !browseResult.targets || !browseResult.targets[0] ? null : browseResult.targets[0].targetId!;
+    const propNodeId = !browseResult.targets || !browseResult.targets[0] ? null : browseResult.targets[0].targetId;
 
     /* c8 ignore next */
     if (!propNodeId) {
         displayNodeElement(subtypeOf);
-        throw new Error("property " + propertyName + " do not exists on " + subtypeOf.browseName.toString() + " or any superType");
+        throw new Error(`property ${propertyName} do not exists on ${subtypeOf.browseName.toString()} or any superType`);
     }
 
-    const propInSuperType = addressSpace.findNode(propNodeId)! as UAVariable | UAMethod | UAObject;
+    const propInSuperType = addressSpace.findNode(propNodeId) as UAVariable | UAMethod | UAObject;
 
     /* c8 ignore next */
     if (!propInSuperType) {
-        throw new Error("cannot find " + propNodeId.toString());
+        throw new Error(`cannot find ${propNodeId.toString()}`);
     }
     // replicate property
     const reference = findReferenceToNode(subtypeOf, propInSuperType);
@@ -94,11 +94,10 @@ export function promoteToMandatory(node: UAObjectType | UAVariableType, property
     // check mandatory
     /* c8 ignore next */
     if (propInSuperType.modellingRule === "Mandatory") {
-        warningLog("property " + propertyName + " is already Mandatory in super type");
+        warningLog(`property ${propertyName} is already Mandatory in super type`);
     }
 
     return promoteChild(node, propertyName, namespaceIndex, "Mandatory");
-
 }
 
 export function promoteChild(
