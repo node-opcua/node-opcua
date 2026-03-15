@@ -158,8 +158,12 @@ export async function performCertificateSanityCheck(
 
     const status = await certificateManager.verifyCertificate(certificate, options);
 
-    if (status !== "Good") {
-        warningLog("[NODE-OPCUA-W04] Warning: the certificate status is = ", status, " file = ", secureObject.certificateFile);
+    // BadCertificateUntrusted is expected for the application's own
+    // certificate — it does not need to be in its own trust list.
+    // Only warn about genuinely problematic statuses (expired,
+    // revoked, invalid signature, etc.).
+    if (status !== "Good" && status !== "BadCertificateUntrusted") {
+        warningLog("[NODE-OPCUA-W35] Warning: the certificate status is = ", status, " file = ", secureObject.certificateFile);
     }
 
     verifyIsOPCUAValidCertificate(certificate, secureObject.certificateFile, serverOrClient, applicationUri);
