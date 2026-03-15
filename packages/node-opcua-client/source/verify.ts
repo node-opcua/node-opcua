@@ -1,17 +1,12 @@
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { OPCUASecureObject } from "node-opcua-common";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import type { OPCUASecureObject } from "node-opcua-common";
 
-import {
-    Certificate,
-    exploreCertificate,
-    explorePrivateKey,
-    publicKeyAndPrivateKeyMatches
-} from "node-opcua-crypto/web";
+import { type Certificate, exploreCertificate, explorePrivateKey, publicKeyAndPrivateKeyMatches } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { VerifyCertificateOptions } from "node-opcua-pki";
+import type { VerifyCertificateOptions } from "node-opcua-pki";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const _doDebug = checkDebugFlag(__filename);
+const _debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
 
@@ -75,7 +70,7 @@ export function verifyIsOPCUAValidCertificate(
     }
     const keyUsage = certificateInfo.tbsCertificate.extensions?.keyUsage;
     if (!keyUsage) {
-        warningLog(`[NODE-OPCUA-W15] The certificate keyUsage is missing\n` + `certificateFile = ${certificateFile}`);
+        warningLog(`[NODE-OPCUA-W15] The certificate keyUsage is missing\ncertificateFile = ${certificateFile}`);
     } else {
         // spec says that certificate shall include digitalSignature, nonRepudiation, keyEncipherment and dataEncipherment.
         // Other key uses are allowed.
@@ -90,7 +85,7 @@ export function verifyIsOPCUAValidCertificate(
     }
     const extKeyUsage = certificateInfo.tbsCertificate.extensions?.extKeyUsage;
     if (!extKeyUsage) {
-        warningLog(`[NODE-OPCUA-W17] The certificate extKeyUsage is missing\n` + `certificateFile = ${certificateFile}`);
+        warningLog(`[NODE-OPCUA-W17] The certificate extKeyUsage is missing\ncertificateFile = ${certificateFile}`);
     } else {
         // spec says that certificate shall include digitalSignature, nonRepudiation, keyEncipherment and dataEncipherment.
         // Other key uses are allowed.
@@ -153,7 +148,7 @@ export async function performCertificateSanityCheck(
     const options: VerifyCertificateOptions = {
         acceptOutdatedCertificate: false,
         acceptOutDatedIssuerCertificate: false,
-        acceptPendingCertificate: false,
+        acceptPendingCertificate: false
     };
 
     const status = await certificateManager.verifyCertificate(certificate, options);
