@@ -59,15 +59,15 @@ describe("promoteToMandatory", () => {
         const deviceClass = promoteToMandatory(boilerType, "DeviceClass", nsDI);
         deviceClass.browseName.toString().should.eql(`${nsDI}:DeviceClass`);
         deviceClass.nodeClass.should.eql(NodeClass.Variable);
-        deviceClass.modellingRule!.should.eql("Mandatory");
+        should(deviceClass.modellingRule).eql("Mandatory");
 
         const deviceHealth = promoteToMandatory(boilerType, "DeviceHealth", nsDI);
         deviceHealth.browseName.toString().should.eql(`${nsDI}:DeviceHealth`);
         deviceHealth.nodeClass.should.eql(NodeClass.Variable);
-        deviceHealth.modellingRule!.should.eql("Mandatory");
+        should(deviceHealth.modellingRule).eql("Mandatory");
 
         const str1 = displayNodeElement(boilerType);
-        const a = removeDecoration(str1).split("\n");
+        const _a = removeDecoration(str1).split("\n");
         // console.log(a);
 
         // a[2 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=1;i=1001  │ 2:DeviceHealth         │ Mandatory           │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
@@ -210,7 +210,7 @@ describe("promoteToMandatory", () => {
         const folder1_bis = promoteChild(derivedObjectType, "Folder1", 1) as UAObject;
 
         exploreNode(derivedObjectType);
-        
+
 
         console.log("A2-!!!!!!!!!!!!!!!!");
         const variable1_bis = folder1_bis.getComponentByName("Variable1")!;

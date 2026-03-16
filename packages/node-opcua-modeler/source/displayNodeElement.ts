@@ -215,8 +215,8 @@ export function displayNodeElement(node: BaseNode, options?: DisplayNodeOptions)
             table.push(["Base", superType.browseName.toString(), { colSpan: 6, content: node.browseName.toString() }]);
         }
 
-        if (node.description) {
-            table.push(["Description", { colspan: 6, content: shortDescription(node.description.text ?? "") }]);
+        if (node.description?.text) {
+            table.push(["Description", { colspan: 6, content: shortDescription(node.description?.text ?? "") }]);
         }
         return table;
     }

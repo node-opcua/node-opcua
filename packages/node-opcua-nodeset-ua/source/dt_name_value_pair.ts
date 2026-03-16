@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { VariantOptions } from "node-opcua-variant"
+import { Variant } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
@@ -13,6 +13,6 @@ import { DTStructure } from "./dt_structure"
  */
 export interface DTNameValuePair extends DTStructure {
   name: UAString; // String ns=0;i=12
-  value: VariantOptions; // Variant ns=0;i=0
+  value: Variant; // Variant ns=0;i=24
 }
 export interface UDTNameValuePair extends ExtensionObject, DTNameValuePair {};

@@ -1,12 +1,11 @@
-import should from "should";
-
 import { AddressSpace } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
 import { nodesets } from "node-opcua-nodesets";
 import { displayNodeElement } from "..";
 import { removeDecoration } from "./test_helpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+
 
 describe("displayNodeElement", () => {
     let addressSpace: AddressSpace;
@@ -23,16 +22,21 @@ describe("displayNodeElement", () => {
     });
 
     it("displayNodeElement", () => {
-        const str0 = displayNodeElement(addressSpace.rootFolder, { recursive: false });
+        const _str0 = displayNodeElement(addressSpace.rootFolder, { recursive: false });
 
         const str1 = displayNodeElement(addressSpace.rootFolder.objects.server, { format: "cli", recursive: false });
 
         // console.log(removeDecoration(str1));
 
-        removeDecoration(str1)
-            .split("\n")
-            .should.eql(
-                `┌──────────────────────┬──────────────┬──────────────────────────┬───────────────┬──────────────────────────────────┬───────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
+        const array1 = removeDecoration(str1).trim().split("\n");
+        const array2 = removeDecoration(expected1).trim().split("\n");
+        // console.log(array1);
+        // console.log(array2);
+        should(array1.length).eql(array2.length);
+        array1.should.eql(array2);
+    });
+});
+const expected1 = `┌──────────────────────┬──────────────┬──────────────────────────┬───────────────┬──────────────────────────────────┬───────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
 │ ReferenceType        │ NodeId       │ BrowseName               │ ModellingRule │ TypeDefinition                   │ DataType                              │ Value                                                        │
 ├──────────────────────┼──────────────┴──────────────────────────┴───────────────┴──────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────────────────────────────┤
 │ BrowseName:          │ Server                                                                                                                                                                                            │
@@ -88,9 +92,4 @@ describe("displayNodeElement", () => {
 │ Organizes Ⓞ          │ ns=0;i=32637 │ DefaultHAConfiguration   │               │ HistoricalDataConfigurationType  │                                       │                                                              │
 ├──────────────────────┼──────────────┼──────────────────────────┼───────────────┼──────────────────────────────────┼───────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ Organizes Ⓞ          │ ns=0;i=32754 │ DefaultHEConfiguration   │               │ HistoricalEventConfigurationType │                                       │                                                              │
-└──────────────────────┴──────────────┴──────────────────────────┴───────────────┴──────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────────────────────────────┘`.split(
-                    "\n"
-                )
-            );
-    });
-});
+└──────────────────────┴──────────────┴──────────────────────────┴───────────────┴──────────────────────────────────┴───────────────────────────────────────┴──────────────────────────────────────────────────────────────┘`;

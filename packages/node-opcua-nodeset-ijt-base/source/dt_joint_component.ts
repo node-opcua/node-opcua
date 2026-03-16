@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { VariantOptions } from "node-opcua-variant"
+import { Variant } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
@@ -33,6 +33,6 @@ Examples: BoltId, RivetId, GasketId, etc.*/
   manufacturerUri?: UAString; // String ns=0;i=12
   /** It is the content of the joint component.
 Examples: Bolt, Rivet, Gasket, etc.*/
-  jointComponentContent?: VariantOptions; // Variant ns=0;i=0
+  jointComponentContent?: Variant; // Variant ns=0;i=24
 }
 export interface UDTJointComponent extends ExtensionObject, DTJointComponent {};

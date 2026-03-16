@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { VariantOptions } from "node-opcua-variant"
+import { Variant } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { UAString } from "node-opcua-basic-types"
@@ -23,7 +23,7 @@ export interface DTISA95Parameter extends DTStructure {
   /** A unique identifier for a parameter*/
   ID: UAString; // String ns=0;i=12
   /** Value of the parameter.*/
-  value: VariantOptions; // Variant ns=0;i=0
+  value: Variant; // Variant ns=0;i=24
   /** An optional description of the parameter. The array allows to provide descriptions in different languages when writing. When accessing, the server shall only provide one entry in the array.*/
   description?: LocalizedText[]; // LocalizedText ns=0;i=21
   /** The Unit Of Measure of the value*/
