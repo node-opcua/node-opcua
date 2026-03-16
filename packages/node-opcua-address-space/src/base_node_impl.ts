@@ -1523,15 +1523,15 @@ function toObject(addressSpace: IAddressSpace, reference: UAReference): BaseNode
     if (doDebug && !obj) {
         debugLog(
             chalk.red(" Warning :  object with nodeId ") +
-                chalk.cyan(reference.nodeId.toString()) +
-                chalk.red(" cannot be found in the address space !")
+            chalk.cyan(reference.nodeId.toString()) +
+            chalk.red(" cannot be found in the address space !")
         );
     }
     return obj;
 }
 
 function _asObject<T extends BaseNode>(references: UAReference[], addressSpace: IAddressSpace): T[] {
-    return references.map((a) => toObject(addressSpace, a)).filter((o) => o != null && o !== undefined) as T[];
+    return references.map((a) => toObject(addressSpace, a)).filter((o) => !!o) as T[];
 }
 
 function _select_by_browse_name(map: HierarchicalIndexMap, browseName: QualifiedNameLike, namespaceIndex?: number): UAReference[] {

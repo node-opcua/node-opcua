@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { VariantOptions } from "node-opcua-variant"
+import { Variant } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
@@ -19,7 +19,7 @@ import { DTReaderGroup } from "./dt_reader_group"
 export interface DTPubSubConnection extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
-  publisherId: VariantOptions; // Variant ns=0;i=0
+  publisherId: Variant; // Variant ns=0;i=24
   transportProfileUri: UAString; // String ns=0;i=12
   address?: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   connectionProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533

@@ -6,7 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 
 import { displayNodeElement, setNamespaceMetaData } from "..";
 import { removeDecoration } from "./test_helpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("displayNodeElement", () => {
     let addressSpace: AddressSpace;
@@ -27,11 +27,14 @@ describe("displayNodeElement", () => {
         namespace.namespaceUri.should.eql("urn://myNamespace");
         setNamespaceMetaData(namespace);
 
-        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces!, { recursive: false });
+        if (!addressSpace.rootFolder.objects.server.namespaces) {
+            throw new Error("server.namespaces not found");
+        }
+        const str1 = displayNodeElement(addressSpace.rootFolder.objects.server.namespaces, { recursive: false }).trim();
 
-        // console.log(removeDecoration(str1));
+        console.log(removeDecoration(str1));
 
-        removeDecoration(str1).should
+        removeDecoration(str1).split("\n").should
             .eql(`┌──────────────────────┬──────────────┬───────────────────────────────────┬───────────────┬───────────────────────┬──────────┬───────┐
 │ ReferenceType        │ NodeId       │ BrowseName                        │ ModellingRule │ TypeDefinition        │ DataType │ Value │
 ├──────────────────────┼──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┤
@@ -44,7 +47,7 @@ describe("displayNodeElement", () => {
 │ HasComponent Ⓞ       │ ns=2;i=15001 │ 2:http://opcfoundation.org/UA/DI/ │               │ NamespaceMetadataType │          │       │
 ├──────────────────────┼──────────────┼───────────────────────────────────┼───────────────┼───────────────────────┼──────────┼───────┤
 │ HasComponent Ⓞ       │ ns=1;i=1000  │ 1:urn://myNamespace               │               │ NamespaceMetadataType │          │       │
-└──────────────────────┴──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┘`);
+└──────────────────────┴──────────────┴───────────────────────────────────┴───────────────┴───────────────────────┴──────────┴───────┘`.split("\n"));
 
         `┌─────────────────────────────────────────────────┬──────────────┬──────────────────────────────────────────────────────────────┬───────────────┬───────────────────────┬─────────────────────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ ReferenceType                                   │ NodeId       │ BrowseName                                                   │ ModellingRule │ TypeDefinition        │ DataType               

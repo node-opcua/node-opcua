@@ -172,7 +172,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
             if (!typeDefinition) {
                 throw new Error(`Cannot find typeDefinition for dataType${field.dataType.toString()}`);
             }
-            const _comp = typeDefinition.instantiate({
+            typeDefinition.instantiate({
                 browseName: field.name || "",
                 componentOf: variableType,
                 dataType: field.dataType,
@@ -180,9 +180,8 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
                 modellingRule: "Mandatory",
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank
             });
-            _comp;
         } else {
-            const _comp = namespace.addVariable({
+            namespace.addVariable({
                 browseName: field.name || "",
                 componentOf: variableType,
                 dataType: field.dataType,
@@ -191,7 +190,6 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
                 typeDefinition,
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank
             });
-            _comp;
         }
     }
     return variableType;
