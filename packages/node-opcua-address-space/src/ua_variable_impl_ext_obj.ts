@@ -153,13 +153,57 @@ export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObje
 
     const extensionObject = node.$extensionObject;
     if (!extensionObject) {
-        throw new Error("setExtensionObjectValue node has no extension object " + node.browseName.toString());
+        throw new Error(`setExtensionObjectValue node has no extension object ${node.browseName.toString()}`);
+    }
+    /**
+     * Returns true if the value is a structure-like object that should
+     * be recursed into during a partial update.
+     *
+     * For the existing extension object (extObject[prop]):
+     *  - Proxied sub-extension objects → recurse (they have $isProxy)
+     * For the incoming partial object (partialObject1[prop]):
+     *  - Plain objects {} → recurse (from constructExtensionObject or literals)
+     *
+     * Everything else (Date, Buffer, NodeId, QualifiedName, LocalizedText,
+     * DiagnosticInfo, arrays, etc.) is a terminal value and should be
+     * assigned directly — even if it has a `schema` property.
+     */
+    function _shouldRecurseIntoExisting(value: any): boolean {
+        if (value === null || value === undefined) return false;
+        if (typeof value !== "object") return false;
+        if (Array.isArray(value)) return false;
+        // proxied sub-structures: installed by bindExtensionObject for nested structs
+        if (isProxy(value)) return true;
+        // plain objects (unlikely on the existing side but safe fallback)
+        const proto = Object.getPrototypeOf(value);
+        if (proto === Object.prototype || proto === null) return true;
+        return false;
+    }
+
+    function _shouldRecurseIntoNew(value: any): boolean {
+        if (value === null || value === undefined) return false;
+        if (typeof value !== "object") return false;
+        if (Array.isArray(value)) return false;
+        // plain objects: partial update literals like { field1: v1 }
+        const proto = Object.getPrototypeOf(value);
+        if (proto === Object.prototype || proto === null) return true;
+        // extension objects from constructExtensionObject have a schema
+        // but so do QualifiedName/LocalizedText — we disambiguate by
+        // checking the *existing* side with isProxy, not here.
+        // Instead, only recurse if it's a schema'd type AND has
+        // Extension-Object-like characteristics (constructor with schema.name)
+        if (value.schema !== undefined && value.constructor?.name !== "QualifiedName"
+            && value.constructor?.name !== "LocalizedText"
+            && value.constructor?.name !== "DiagnosticInfo") {
+            return true;
+        }
+        return false;
     }
 
     function _update_extension_object(extObject: any, partialObject1: any) {
         const keys = Object.keys(partialObject1);
         for (const prop of keys) {
-            if (extObject[prop] instanceof Object) {
+            if (_shouldRecurseIntoExisting(extObject[prop]) && _shouldRecurseIntoNew(partialObject1[prop])) {
                 _update_extension_object(extObject[prop], partialObject1[prop]);
             } else {
                 if (isProxy(extObject)) {

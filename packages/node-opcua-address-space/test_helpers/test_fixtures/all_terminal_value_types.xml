@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet LastModified="2026-03-18T00:00:00Z"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+  xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://test-terminal-values.example.com</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://test-terminal-values.example.com" Version="1.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2023-12-15T00:00:00Z" Version="1.05.03"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="NodeId">i=17</Alias>
+        <Alias Alias="QualifiedName">i=20</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="DiagnosticInfo">i=25</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+    </Aliases>
+
+    <!-- InnerStruct: sub-structure for nesting test -->
+    <UADataType NodeId="ns=1;i=3000" BrowseName="1:InnerStruct">
+        <DisplayName>InnerStruct</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5000</Reference>
+        </References>
+        <Definition Name="1:InnerStruct">
+            <Field DataType="DateTime" Name="innerDateTime"/>
+            <Field DataType="Int32" Name="innerInt32"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5000" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <!-- AllTerminalsStruct: the main data type with all terminal value type fields -->
+    <UADataType NodeId="ns=1;i=3001" BrowseName="1:AllTerminalsStruct">
+        <DisplayName>AllTerminalsStruct</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+        </References>
+        <Definition Name="1:AllTerminalsStruct">
+            <Field DataType="DateTime" Name="fieldDateTime"/>
+            <Field DataType="ByteString" Name="fieldByteString"/>
+            <Field DataType="NodeId" Name="fieldNodeId"/>
+            <Field DataType="QualifiedName" Name="fieldQualifiedName"/>
+            <Field DataType="LocalizedText" Name="fieldLocalizedText"/>
+            <Field DataType="DiagnosticInfo" Name="fieldDiagnosticInfo"/>
+            <Field DataType="Int32" Name="fieldInt32"/>
+            <Field DataType="Int32" ValueRank="1" Name="fieldInt32Array"/>
+            <Field DataType="ns=1;i=3000" Name="fieldInner"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+    <!-- Container object -->
+    <UAObject NodeId="ns=1;i=5010" BrowseName="1:TerminalValuesTest" ParentNodeId="i=85">
+        <DisplayName>TerminalValuesTest</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+        </References>
+    </UAObject>
+
+    <!-- Variable instance with initial values -->
+    <UAVariable DataType="ns=1;i=3001" NodeId="ns=1;i=6000" BrowseName="1:testAllTerminals" ParentNodeId="ns=1;i=5010" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>testAllTerminals</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5010</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5001</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <AllTerminalsStruct xmlns="http://test-terminal-values.example.com/Types.xsd">
+                        <fieldDateTime>2026-01-01T00:00:00Z</fieldDateTime>
+                        <fieldByteString>qrs=</fieldByteString>
+                        <fieldNodeId>
+                            <uax:Identifier>ns=1;i=100</uax:Identifier>
+                        </fieldNodeId>
+                        <fieldQualifiedName>
+                            <uax:NamespaceIndex>1</uax:NamespaceIndex>
+                            <uax:Name>Initial</uax:Name>
+                        </fieldQualifiedName>
+                        <fieldLocalizedText>
+                            <uax:Locale>en</uax:Locale>
+                            <uax:Text>Hello</uax:Text>
+                        </fieldLocalizedText>
+                        <fieldDiagnosticInfo/>
+                        <fieldInt32>10</fieldInt32>
+                        <fieldInt32Array>
+                            <uax:Int32>1</uax:Int32>
+                            <uax:Int32>2</uax:Int32>
+                            <uax:Int32>3</uax:Int32>
+                        </fieldInt32Array>
+                        <fieldInner>
+                            <innerDateTime>2026-01-01T00:00:00Z</innerDateTime>
+                            <innerInt32>5</innerInt32>
+                        </fieldInner>
+                    </AllTerminalsStruct>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+</UANodeSet>

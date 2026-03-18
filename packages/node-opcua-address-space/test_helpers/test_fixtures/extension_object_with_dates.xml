@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet LastModified="2026-02-06T09:52:06.352Z" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:si="http://www.siemens.com/OPCUA/2017/SimaticNodeSetExtensions" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://my-company.com</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://my-company.com" PublicationDate="2026-02-03T10:31:01+00:00" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2023-12-15T00:00:00Z" Version="1.05.03"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="Int64">i=8</Alias>
+        <Alias Alias="Float">i=10</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <si:Generator Product="SiOME" Edition="Standard" Version="3.1.1-installer"/>
+        </Extension>
+        <Extension>
+            <si:GeneratorExtension Hash="2ae5ea5177019a8880a9c3f11ab10a2a"/>
+        </Extension>
+    </Extensions>
+    <UAObject SymbolicName="http___my-company_io" NodeId="ns=1;i=5000" BrowseName="1:http://my-company.com" ParentNodeId="i=11715">
+        <DisplayName>http://my-company.com</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="Boolean" NodeId="ns=1;i=6000" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=5000">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="DateTime" NodeId="ns=1;i=6001" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=5000">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2026-02-03T10:31:01+00:00</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6002" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5000">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>http://my-company.com</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6003" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=5000">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>1.00</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="i=256" ValueRank="1" NodeId="ns=1;i=6004" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5000">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="i=291" ValueRank="1" NodeId="ns=1;i=6005" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=5000">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6006" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=5000">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="i=96" ValueRank="1" NodeId="ns=1;i=6007" BrowseName="DefaultRolePermissions" ParentNodeId="ns=1;i=5000">
+        <DisplayName>DefaultRolePermissions</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="i=95" NodeId="ns=1;i=6008" BrowseName="DefaultAccessRestrictions" ParentNodeId="ns=1;i=5000">
+        <DisplayName>DefaultAccessRestrictions</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+    </UAVariable>
+    <UADataType NodeId="ns=1;i=3000" BrowseName="1:BasicComplexData">
+        <DisplayName>BasicComplexData</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+        </References>
+        <Definition Name="1:BasicComplexData">
+            <Field DataType="Boolean" Name="boolean"/>
+            <Field DataType="Int32" Name="int32"/>
+            <Field DataType="Double" Name="double"/>
+            <Field DataType="Float" Name="float"/>
+            <Field DataType="Int64" Name="int64"/>
+            <Field DataType="DateTime" Name="dateTime"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=5002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UADataType NodeId="ns=1;i=3001" BrowseName="1:ComplexDataArray">
+        <DisplayName>ComplexDataArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
+        </References>
+        <Definition Name="1:ComplexDataArray">
+            <Field DataType="Boolean" ValueRank="1" Name="booleanArray"/>
+            <Field DataType="Int16" ValueRank="1" Name="int16Array"/>
+            <Field DataType="Double" ValueRank="1" Name="doubleArray"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5003" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=5004" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UADataType NodeId="ns=1;i=3002" BrowseName="1:ComplexDataWithComplexArray">
+        <DisplayName>ComplexDataWithComplexArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5005</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5006</Reference>
+        </References>
+        <Definition Name="1:ComplexDataWithComplexArray">
+            <Field DataType="String" Name="name"/>
+            <Field DataType="Boolean" ValueRank="1" Name="booleanArray"/>
+            <Field DataType="ns=1;i=3000" ValueRank="1" Name="complexDataArray"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5005" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=5006" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=5007" BrowseName="1:ComplexData" ParentNodeId="i=85">
+        <DisplayName>ComplexData</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="ns=1;i=3001" NodeId="ns=1;i=6025" BrowseName="1:complexDataArray" ParentNodeId="ns=1;i=5007" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>complexDataArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5004</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ComplexDataArray xmlns="http://my-company.com/Types.xsd">
+                        <booleanArray>
+                            <Boolean>false</Boolean>
+                        </booleanArray>
+                        <int16Array>
+                            <Int16>0</Int16>
+                        </int16Array>
+                        <doubleArray>
+                            <Double>0</Double>
+                        </doubleArray>
+                    </ComplexDataArray>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="Boolean" ValueRank="1" NodeId="ns=1;i=6026" ArrayDimensions="1" BrowseName="1:booleanArray" ParentNodeId="ns=1;i=6025" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>booleanArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6025</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Int16" ValueRank="1" NodeId="ns=1;i=6027" ArrayDimensions="1" BrowseName="1:int16Array" ParentNodeId="ns=1;i=6025" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>int16Array</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6025</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Double" ValueRank="1" NodeId="ns=1;i=6028" ArrayDimensions="1" BrowseName="1:doubleArray" ParentNodeId="ns=1;i=6025" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>doubleArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6025</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="ns=1;i=3000" NodeId="ns=1;i=6029" BrowseName="1:basicComplexData" ParentNodeId="ns=1;i=5007" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>basicComplexData</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <BasicComplexData xmlns="http://my-company.com/Types.xsd">
+                        <boolean>false</boolean>
+                        <int32>0</int32>
+                        <double>0</double>
+                        <float>0</float>
+                        <int64>0</int64>
+                        <dateTime>2026-02-06T10:30:00.000Z</dateTime>
+                    </BasicComplexData>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="Boolean" NodeId="ns=1;i=6030" BrowseName="1:boolean" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>boolean</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Int32" NodeId="ns=1;i=6031" BrowseName="1:int32" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>int32</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Double" NodeId="ns=1;i=6032" BrowseName="1:double" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>double</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Float" NodeId="ns=1;i=6033" BrowseName="1:float" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>float</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="ns=1;i=3002" NodeId="ns=1;i=6034" BrowseName="1:complexDataWithComplexArray" ParentNodeId="ns=1;i=5007" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>complexDataWithComplexArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5006</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ComplexDataWithComplexArray xmlns="http://my-company.com/Types.xsd">
+                        <name>test</name>
+                        <booleanArray>
+                            <Boolean>false</Boolean>
+                        </booleanArray>
+                        <complexDataArray>
+                            <BasicComplexData xmlns="http://my-company.com/Types.xsd">
+                                <boolean>false</boolean>
+                                <int32>0</int32>
+                                <double>0</double>
+                                <float>0</float>
+                                <int64>0</int64>
+                                <dateTime>2026-02-06T10:30:00.000Z</dateTime>
+                            </BasicComplexData>
+                        </complexDataArray>
+                    </ComplexDataWithComplexArray>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6035" BrowseName="1:name" ParentNodeId="ns=1;i=6034" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>name</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6034</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Boolean" ValueRank="1" NodeId="ns=1;i=6036" ArrayDimensions="1" BrowseName="1:booleanArray" ParentNodeId="ns=1;i=6034" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>booleanArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6034</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="ns=1;i=3000" ValueRank="1" NodeId="ns=1;i=6037" ArrayDimensions="1" BrowseName="1:complexDataArray" ParentNodeId="ns=1;i=6034" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>complexDataArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6034</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAMethod NodeId="ns=1;i=7002" BrowseName="1:callComplexDataArray" ParentNodeId="ns=1;i=5007">
+        <DisplayName>callComplexDataArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+        </References>
+    </UAMethod>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6042" ArrayDimensions="2" BrowseName="InputArguments" ParentNodeId="ns=1;i=7002">
+        <DisplayName>InputArguments</DisplayName>
+        <Description>the definition of the input argument of method 1:ComplexData.1:complexDataArraySuccess</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>data</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3001</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>returnStatusCode</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>i=12</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description>
+                                <uax:Text>The status code which server is expected to return back</uax:Text>
+                            </uax:Description>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6043" ArrayDimensions="1" BrowseName="OutputArguments" ParentNodeId="ns=1;i=7002">
+        <DisplayName>OutputArguments</DisplayName>
+        <Description>the definition of the output arguments of method 1:ComplexData.1:complexDataArraySuccess</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>result</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3001</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAMethod NodeId="ns=1;i=7004" BrowseName="1:callComplexDataWithComplexArray" ParentNodeId="ns=1;i=5007">
+        <DisplayName>callComplexDataWithComplexArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+        </References>
+    </UAMethod>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6046" ArrayDimensions="2" BrowseName="InputArguments" ParentNodeId="ns=1;i=7004">
+        <DisplayName>InputArguments</DisplayName>
+        <Description>the definition of the input argument of method 1:ComplexData.1:complexDataWithComplexArraySuccess</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>data</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3002</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>returnStatusCode</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>i=12</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description>
+                                <uax:Text>The status code which server is expected to return back</uax:Text>
+                            </uax:Description>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6047" ArrayDimensions="1" BrowseName="OutputArguments" ParentNodeId="ns=1;i=7004">
+        <DisplayName>OutputArguments</DisplayName>
+        <Description>the definition of the output arguments of method 1:ComplexData.1:complexDataWithComplexArraySuccess</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>result</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3002</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAMethod NodeId="ns=1;i=7000" BrowseName="1:callBasicComplexData" ParentNodeId="ns=1;i=5007">
+        <DisplayName>callBasicComplexData</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+        </References>
+    </UAMethod>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6011" ArrayDimensions="2" BrowseName="InputArguments" ParentNodeId="ns=1;i=7000">
+        <DisplayName>InputArguments</DisplayName>
+        <Description>the definition of the input argument of method 1:ComplexData.1:callBasicComplexData</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>data</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3000</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>returnStatusCode</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>i=12</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description>
+                                <uax:Text>The status code which server is expected to return back</uax:Text>
+                            </uax:Description>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="i=296" ValueRank="1" NodeId="ns=1;i=6012" ArrayDimensions="1" BrowseName="OutputArguments" ParentNodeId="ns=1;i=7000">
+        <DisplayName>OutputArguments</DisplayName>
+        <Description>the definition of the output arguments of method 1:ComplexData.1:callBasicComplexData</Description>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7000</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=297</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:Argument>
+                            <uax:Name>result</uax:Name>
+                            <uax:DataType>
+                                <uax:Identifier>ns=1;i=3000</uax:Identifier>
+                            </uax:DataType>
+                            <uax:ValueRank>-1</uax:ValueRank>
+                            <uax:ArrayDimensions/>
+                            <uax:Description/>
+                        </uax:Argument>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="DateTime" NodeId="ns=1;i=6009" BrowseName="1:dateTime" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>dateTime</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="Int64" NodeId="ns=1;i=6010" BrowseName="1:int64" ParentNodeId="ns=1;i=6029" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>int64</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6029</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+    </UAVariable>
+</UANodeSet>
