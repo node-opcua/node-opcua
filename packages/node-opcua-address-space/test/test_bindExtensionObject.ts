@@ -1,39 +1,31 @@
 /* eslint-disable max-statements */
 // tslint:disable: no-console
+
+import { assert } from "node-opcua-assert";
+import type { DateTime, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+import { type StructureField, ServerState, type ServerStatusDataType, ServiceCounterDataType, type SessionDiagnosticsDataType } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-
-import { DateTime, Double, UAString, UInt32 } from "node-opcua-basic-types";
-import { LocalizedText } from "node-opcua-data-model";
-import { NodeIdLike } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import {
-    ApplicationDescription,
-    ServerState,
-    ServerStatusDataType,
-    ServiceCounterDataType,
-    SessionDiagnosticsDataType
-} from "node-opcua-types";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
-
 import {
     AddressSpace,
-    UARootFolder,
-    UAVariable,
-    UAVariableT,
-    Namespace,
-    UADataType,
-    UAVariableType,
-    UASessionDiagnosticsVariable,
-    DTSessionDiagnostics,
-    DTServiceCounter,
-    UABaseDataVariable
+    type DTServiceCounter,
+    type DTSessionDiagnostics,
+    type Namespace,
+    type UABaseDataVariable,
+    type UADataType,
+    type UARootFolder,
+    type UASessionDiagnosticsVariable,
+    type UAVariable,
+    type UAVariableT,
+    type UAVariableType
 } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
-import { assert } from "node-opcua-assert";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { getMiniAddressSpace } from "../testHelpers";
 
 const doDebug = false;
 
@@ -48,8 +40,8 @@ interface UASessionDiagnosticsVariableEx extends UASessionDiagnosticsVariable<DT
 interface ServerStatusVariable extends UAVariable {
     startTime: UAVariableT<DateTime, DataType.DateTime>;
     currentTime: UAVariableT<DateTime, DataType.DateTime>;
-    state: UAVariableT<any, DataType.ExtensionObject>; // ServerState
-    buildInfo: UAVariableT<any, DataType.ExtensionObject>; // BuildInfoOptions
+    state: UAVariableT<unknown, DataType.ExtensionObject>; // ServerState
+    buildInfo: UAVariableT<unknown, DataType.ExtensionObject>; // BuildInfoOptions
     secondsTillShutdown: UAVariableT<UInt32, DataType.UInt32>;
     shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
 }
@@ -77,7 +69,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
             const counter = 1;
             const extensionObjectVar = namespace.addVariable({
-                browseName: "VariableWithExtensionObjectArray" + counter,
+                browseName: `VariableWithExtensionObjectArray${counter}`,
                 dataType: serviceCounterDataType.nodeId,
                 valueRank: 1,
                 arrayDimensions: [0],
@@ -92,20 +84,23 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.readValue().value.dataType.should.eql(DataType.Null); // Empty array
             extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
-            const extensionObjectArray = extensionObjectVar.bindExtensionObjectArray([
-                new ServiceCounterDataType({ errorCount: 1, totalCount: 2 }),
-                new ServiceCounterDataType({ errorCount: 3, totalCount: 4 })
-            ], { createMissingProp: true }) as ServiceCounterDataType[];
+            const extensionObjectArray = extensionObjectVar.bindExtensionObjectArray(
+                [
+                    new ServiceCounterDataType({ errorCount: 1, totalCount: 2 }),
+                    new ServiceCounterDataType({ errorCount: 3, totalCount: 4 })
+                ],
+                { createMissingProp: true }
+            ) as ServiceCounterDataType[];
             should.exist(extensionObjectVar.getComponentByName("0"));
             should.exist(extensionObjectVar.getComponentByName("1"));
-            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
-            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("0")?.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")?.getChildByName("TotalCount"));
 
             extensionObjectVar.installExtensionObjectVariables();
             should.exist(extensionObjectVar.getComponentByName("0"));
             should.exist(extensionObjectVar.getComponentByName("1"));
-            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
-            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("0")?.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")?.getChildByName("TotalCount"));
 
             extensionObjectArray.length.should.eql(2);
             extensionObjectArray[0].constructor.name.should.eql("ServiceCounterDataType");
@@ -118,7 +113,7 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.readValue().value.value[0].constructor.name.should.eql("ServiceCounterDataType");
             extensionObjectVar.readValue().value.value[1].constructor.name.should.eql("ServiceCounterDataType");
 
-            // to do 
+            // to do
             const el1 = extensionObjectVar.getComponentByName("0") as UAVariable;
             const dataValueEl1 = el1.readValue();
             dataValueEl1.value.dataType.should.eql(DataType.ExtensionObject);
@@ -133,18 +128,18 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("BEO1 - should handle a Variable containing a ServiceCounterDataType", () => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder") as UARootFolder;
 
-            const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
-            serviceCounterDataType.browseName.toString().should.eql("ServiceCounterDataType");
+            const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType");
+            should(serviceCounterDataType?.browseName.toString()).eql("ServiceCounterDataType");
 
-            const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
-            baseVariableType.browseName.toString().should.eql("BaseVariableType");
+            const baseVariableType = addressSpace.findVariableType("BaseVariableType");
+            should(baseVariableType?.browseName.toString()).eql("BaseVariableType");
 
             const counter = 1;
-            const extensionObjectVar = baseVariableType.instantiate({
-                browseName: "VariableWithExtensionObject" + counter,
-                dataType: serviceCounterDataType.nodeId,
+            const extensionObjectVar = baseVariableType?.instantiate({
+                browseName: `VariableWithExtensionObject${counter}`,
+                dataType: serviceCounterDataType?.nodeId,
                 valueRank: -1,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
@@ -195,18 +190,18 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("BEO2 - should handle a Variable containing a ServerStatus", () => {
-            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+            const rootFolder = addressSpace.findNode("RootFolder") as UARootFolder;
 
-            const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
-            serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
+            const serverStatusDataType = addressSpace?.findDataType("ServerStatusDataType");
+            should(serverStatusDataType?.browseName.toString()).eql("ServerStatusDataType");
 
-            const serverStatusType = addressSpace.findVariableType("ServerStatusType")!;
-            serverStatusType.browseName.toString().should.eql("ServerStatusType");
-
+            const serverStatusType = addressSpace.findVariableType("ServerStatusType");
+            should.exist(serverStatusType);
+            should(serverStatusType?.browseName.toString()).eql("ServerStatusType");
             const counter = 1;
-            const extensionObjectVar = serverStatusType.instantiate({
-                browseName: "ServerStatusType" + counter,
-                dataType: serverStatusDataType.nodeId,
+            const extensionObjectVar = serverStatusType!.instantiate({
+                browseName: `ServerStatusType${counter}`,
+                dataType: serverStatusDataType?.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
             }) as ServerStatusVariable;
@@ -258,7 +253,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
             const counter = 1;
             const uaVariable = sessionDiagnosticsVariableType.instantiate({
-                browseName: "SessionDiagnostics" + counter,
+                browseName: `SessionDiagnostics${counter}`,
                 dataType: sessionDiagnosticsDataType.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
@@ -295,8 +290,8 @@ describe("Extension Object binding and sub  components\n", () => {
 
             useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
 
-            const dv1 = uaVariable.totalRequestCount.readValue();
-            const dv2 = uaVariable.readValue();
+            const _dv1 = uaVariable.totalRequestCount.readValue();
+            const _dv2 = uaVariable.readValue();
 
             uaVariable.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
 
@@ -322,21 +317,21 @@ describe("Extension Object binding and sub  components\n", () => {
     });
 
     describe("should be possible to bind an Extension Object properties with variable node properties", () => {
-        let _sessionDiagnostics: any;
-        let sessionDiagnostics: any;
+        let _sessionDiagnostics: UASessionDiagnosticsVariableEx;
+        let sessionDiagnostics: SessionDiagnosticsDataType;
 
-        let spy_on_sessionDiagnostics_value_changed: any;
-        let spy_on_sessionDiagnostics_totalRequestCount_value_changed: any;
-        let spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed: any;
-        let spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed: any;
-        let spy_on_sessionDiagnostics_clientDescription_value_changed: any;
+        let spy_on_sessionDiagnostics_value_changed: sinon.SinonSpy;
+        let spy_on_sessionDiagnostics_totalRequestCount_value_changed: sinon.SinonSpy;
+        let spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed: sinon.SinonSpy;
+        let spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed: sinon.SinonSpy;
+        let spy_on_sessionDiagnostics_clientDescription_value_changed: sinon.SinonSpy;
 
         let counter = 0;
 
         beforeEach(() => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
-            const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
+            const _sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
             const sessionDiagnosticsVariableType = addressSpace.findVariableType("SessionDiagnosticsVariableType")!;
 
             // the extension object
@@ -344,7 +339,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
             counter += 1;
             sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
-                browseName: "SessionDiagnostics" + counter,
+                browseName: `SessionDiagnostics${counter}`,
                 organizedBy: rootFolder.objects
             }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 
@@ -396,7 +391,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
             const definition = dataTypeNode.getStructureDefinition();
             definition.fields
-                .map((x: any) => x.name)
+                .map((x: StructureField) => x.name)
                 .sort()
                 .should.eql([
                     "ActualSessionTimeout",
@@ -589,12 +584,12 @@ interface UAResultType extends UAVariable {
 }
 describe("Extension Object binding and sub  components On MachineVision", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
+    let _namespace: Namespace;
 
     before(async () => {
         const nodesetFilename = [nodesets.standard, nodesets.machineVision];
         addressSpace = AddressSpace.create();
-        namespace = addressSpace.registerNamespace("private");
+        _namespace = addressSpace.registerNamespace("private");
         await generateAddressSpace(addressSpace, nodesetFilename);
     });
     after(async () => {
@@ -618,7 +613,6 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
     });
 
     it("MV0a MachineVision-ResultClone ", () => {
-
         const configurationIdDataType = addressSpace.findDataType("ConfigurationIdDataType", nsMV)!;
 
         const configurationExtObj = addressSpace.constructExtensionObject(configurationIdDataType, {
@@ -627,7 +621,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             id: "IIII",
             version: "1.2"
         });
-     
+
         const variant = new Variant({
             dataType: DataType.ExtensionObject,
             value: configurationExtObj
@@ -638,11 +632,9 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         clone.value.hash.toString("hex").should.eql("deadbeef");
         clone.value.id.should.eql("IIII");
         clone.value.version.should.eql("1.2");
-
     });
 
-    it("MV0b MachineVision-ResultClone " , () => {
-
+    it("MV0b MachineVision-ResultClone ", () => {
         const configurationIdDataType = addressSpace.findDataType("ConfigurationIdDataType", nsMV)!;
 
         const rr = addressSpace.constructExtensionObject(configurationIdDataType, {
@@ -651,13 +643,13 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             id: "IIII",
             version: "1.2"
         });
-        should.exist((<any>rr).hash);
-        (<any>rr).hash.toString("hex").should.eql("deadbeef");
+        should.exist((rr as Record<string, unknown>).hash);
+        ((rr as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
         const resultContent1 = addressSpace.constructExtensionObject(recipeIdExternalD, {
-            description: "some description",
+            description: "some description"
         });
         const partId = "PartId-1";
         const extObj = addressSpace.constructExtensionObject(resultDataType, {
@@ -671,14 +663,12 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             partId,
             resultState: 32,
 
-            resultContent: [
-                resultContent1
-            ]
+            resultContent: [resultContent1]
         });
 
-        (extObj as any).internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
-        (extObj as any).internalConfigurationId.id.should.eql("IIII");
-        (extObj as any).internalConfigurationId.version.should.eql("1.2");
+        ((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
+        (extObj as Record<string, Record<string, unknown>>).internalConfigurationId.id.should.eql("IIII");
+        (extObj as Record<string, Record<string, unknown>>).internalConfigurationId.version.should.eql("1.2");
 
         const variant = new Variant({
             dataType: DataType.ExtensionObject,
@@ -690,7 +680,6 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         clone.value.internalConfigurationId.id.should.eql("IIII");
         clone.value.internalConfigurationId.version.should.eql("1.2");
         clone.value.toString().should.eql(extObj.toString());
-
     });
 
     it("MV1 MachineVision-BindExtensionObject should instantiate a ResultType", () => {
@@ -717,14 +706,13 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             id: "IIII",
             version: "1.2"
         });
-        should.exist((<any>rr).hash);
-        (<any>rr).hash.toString("hex").should.eql("deadbeef");
+        should.exist((rr as Record<string, unknown>).hash);
+        ((rr as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
         const resultContent1 = addressSpace.constructExtensionObject(recipeIdExternalD, {
-                description: "some description",
-               
+            description: "some description"
         });
         const extObj = addressSpace.constructExtensionObject(resultDataType, {
             hasTransferableDataOnFile: true,
@@ -737,15 +725,13 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             partId,
             resultState: 32,
 
-            resultContent: [
-              resultContent1
-            ]
+            resultContent: [resultContent1]
         });
         if (doDebug) {
             console.log("extObj", extObj.toString());
         }
-        should.exist((<any>extObj).internalConfigurationId.hash);
-        (<any>extObj).internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+        should.exist((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash);
+        ((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const result = resultType.instantiate({
             browseName: `Result2`,
@@ -756,7 +742,7 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             }
         }) as UAResultType;
 
-        const verif = result.readValue().value.value as any;
+        const verif = result.readValue().value.value as Record<string, Record<string, unknown>>;
         should.exist(verif.internalConfigurationId.hash);
         verif.internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
 
