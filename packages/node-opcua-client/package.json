@@ -13,7 +13,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@ster5/global-mutex": "^3.2.2",
+        "@ster5/global-mutex": "^3.3.0",
         "async": "^3.2.6",
         "chalk": "4.1.2",
         "node-opcua-alarm-condition": "2.165.0",
@@ -34,7 +34,7 @@
         "node-opcua-nodeid": "2.165.0",
         "node-opcua-numeric-range": "2.165.0",
         "node-opcua-object-registry": "2.165.0",
-        "node-opcua-pki": "6.8.2",
+        "node-opcua-pki": "6.9.0",
         "node-opcua-pseudo-session": "2.165.0",
         "node-opcua-schemas": "2.165.0",
         "node-opcua-secure-channel": "2.165.0",

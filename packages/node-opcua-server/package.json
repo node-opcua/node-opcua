@@ -12,7 +12,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@ster5/global-mutex": "^3.2.2",
+        "@ster5/global-mutex": "^3.3.0",
         "@types/async": "3.2.25",
         "@types/lodash": "4.17.24",
         "async": "^3.2.6",
@@ -40,7 +40,7 @@
         "node-opcua-nodesets": "2.163.1",
         "node-opcua-numeric-range": "2.165.0",
         "node-opcua-object-registry": "2.165.0",
-        "node-opcua-pki": "6.8.2",
+        "node-opcua-pki": "6.9.0",
         "node-opcua-secure-channel": "2.165.0",
         "node-opcua-service-browse": "2.165.0",
         "node-opcua-service-call": "2.165.0",
