@@ -20,7 +20,7 @@ import { IAddressSpace, INamespace, SessionContext } from "node-opcua-address-sp
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { MonitoredItem, Subscription, ServerEngine } from "../source";
+import { MonitoredItem, Subscription, ServerEngine } from "..";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

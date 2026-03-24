@@ -2,8 +2,8 @@ import should from "should";
 import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
 import { getMinOPCUADate } from "node-opcua-date-time";
-import { Subscription, SubscriptionOptions, SubscriptionState } from "../source";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { Subscription, SubscriptionOptions, SubscriptionState } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 function getFakePublishEngine() {
@@ -134,6 +134,6 @@ describe("Subscription keepAlive behavior", function (this: any) {
 
         subscription.terminate();
         subscription.dispose();
-        
+
     });
 });
