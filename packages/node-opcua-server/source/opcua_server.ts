@@ -158,6 +158,7 @@ import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import type { SamplingFunc } from "./sampling_func";
+import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob";
 import type { ServerCapabilitiesOptions } from "./server_capabilities";
 import { type AdvertisedEndpoint, type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "./server_end_point";
 import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine";
@@ -1877,14 +1878,12 @@ export class OPCUAServer extends OPCUABaseServer {
 
             const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
 
-            // server certificate may be invalid and asymmetricDecrypt may fail
-            if (!buff || buff.length < 4) {
+            const result = extractPasswordFromDecryptedBlob(buff, serverNonce);
+            if (!result.valid) {
                 setImmediate(() => callback(null, false));
                 return;
             }
-
-            const length = buff.readUInt32LE(0) - serverNonce.length;
-            password = buff.subarray(4, 4 + length).toString("utf-8");
+            password = result.password;
         }
 
         this.userManager
