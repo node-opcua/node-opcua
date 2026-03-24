@@ -145,28 +145,9 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
     }
 }
 
-export type Nonce = Buffer;
-/**
- * returns true if the nonce is null or zero (all bytes set to 0)
- */
-export function isEmptyNonce(nonce: Nonce): boolean {
-    const countZero = nonce.reduce((accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0), 0);
-    return countZero === nonce.length;
-}
-const g_alreadyUsedNonce: any = {};
-export function nonceAlreadyBeenUsed(nonce?: Nonce): boolean {
-    if (!nonce || isEmptyNonce(nonce)) {
-        return false;
-    }
-    const hash = nonce.toString("base64");
-    if (Object.prototype.hasOwnProperty.call(g_alreadyUsedNonce, hash)) {
-        return true;
-    }
-    g_alreadyUsedNonce[hash] = {
-        time: new Date()
-    };
-    return false;
-}
+export { Nonce, isEmptyNonce, nonceAlreadyBeenUsed } from "./nonce_cache";
+import { isEmptyNonce, nonceAlreadyBeenUsed } from "./nonce_cache";
+import type { Nonce } from "./nonce_cache";
 
 export interface IServerSessionBase {
     sessionTimeout: number;
