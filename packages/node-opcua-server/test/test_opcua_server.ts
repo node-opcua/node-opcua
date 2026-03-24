@@ -9,7 +9,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import should from "should";
 
-import { OPCUAServer } from "../source";
+import { OPCUAServer, ServerSession } from "..";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -18,7 +18,7 @@ fs.existsSync(mini_nodeset_filename).should.eql(true, ` expecting ${mini_nodeset
 const port = 2023;
 
 interface OPCUAServerPriv extends Omit<OPCUAServer, "createSession"> {
-    createSession: (options?: unknown) => unknown;
+    createSession: (options?: unknown) => ServerSession;
 }
 describe("OPCUAServer", () => {
     let server: OPCUAServerPriv | null = null;
@@ -74,11 +74,11 @@ describe("OPCUAServer", () => {
 
         const sessionNode = server.engine.addressSpace?.findNode(session.nodeId);
 
-        should(!!sessionNode).eql(true, " a session node must be found");
+        should.exist(sessionNode, " a session node must be found");
 
-        sessionNode.nodeId.should.eql(session.nodeId);
+        should(sessionNode?.nodeId).eql(session.nodeId);
 
-        sessionNode.browseName.toString().should.eql("1:SessionNameGivenByClient");
+        should(sessionNode?.browseName.toString()).eql("1:SessionNameGivenByClient");
     });
 });
 

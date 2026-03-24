@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { Subscription } from "../source";
+import { Subscription } from "..";
 import { add_mock_monitored_item } from "./helper";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
 let fake_publish_engine = {
