@@ -47,6 +47,6 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-pki": "6.9.0"
+        "node-opcua-pki": "6.10.1"
     }
 }
