@@ -23,7 +23,7 @@
         "node-opcua-crypto": "5.3.0",
         "node-opcua-debug": "2.165.0",
         "node-opcua-object-registry": "2.165.0",
-        "node-opcua-pki": "6.10.1",
+        "node-opcua-pki": "6.11.0",
         "node-opcua-status-code": "2.165.0",
         "thenify-ex": "4.4.0"
     },
