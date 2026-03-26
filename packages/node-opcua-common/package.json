@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-common",
-    "version": "2.165.0",
+    "version": "2.166.1",
     "description": "pure nodejs OPCUA SDK - module common",
     "scripts": {
         "test": "mocha",

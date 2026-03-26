@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ijt-tightening",
-    "version": "2.165.0",
+    "version": "2.166.1",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ijt-tightening",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -14,8 +14,8 @@
         "node-opcua-basic-types": "2.165.0",
         "node-opcua-data-access": "2.165.0",
         "node-opcua-data-model": "2.165.0",
-        "node-opcua-nodeset-ijt-base": "2.165.0",
-        "node-opcua-nodeset-ua": "2.165.0",
+        "node-opcua-nodeset-ijt-base": "2.166.1",
+        "node-opcua-nodeset-ua": "2.166.1",
         "node-opcua-variant": "2.165.0"
     },
     "files": [
