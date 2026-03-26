@@ -102,11 +102,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -256,8 +256,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-access:
         specifier: 2.165.0
         version: link:../node-opcua-data-access
@@ -403,8 +403,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-access:
         specifier: 2.165.0
         version: link:../node-opcua-data-access
@@ -521,8 +521,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-model:
         specifier: 2.165.0
         version: link:../node-opcua-data-model
@@ -764,8 +764,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-debug:
         specifier: 2.165.0
         version: link:../node-opcua-debug
@@ -773,8 +773,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-status-code:
         specifier: 2.165.0
         version: link:../node-opcua-status-code
@@ -850,8 +850,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-model:
         specifier: 2.165.0
         version: link:../node-opcua-data-model
@@ -880,8 +880,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-pseudo-session:
         specifier: 2.166.0
         version: link:../node-opcua-pseudo-session
@@ -1119,8 +1119,8 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-types:
         specifier: 2.165.0
         version: link:../node-opcua-types
@@ -1357,8 +1357,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-debug:
         specifier: 2.165.0
         version: link:../node-opcua-debug
@@ -1390,8 +1390,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-server:
         specifier: 2.166.0
         version: link:../node-opcua-server
@@ -2708,14 +2708,14 @@ importers:
         specifier: 2.166.0
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-packet-analyzer:
         specifier: 2.165.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-server-configuration:
         specifier: 2.166.0
         version: link:../node-opcua-server-configuration
@@ -2805,8 +2805,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-debug:
         specifier: 2.165.0
         version: link:../node-opcua-debug
@@ -2914,8 +2914,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-model:
         specifier: 2.165.0
         version: link:../node-opcua-data-model
@@ -2950,8 +2950,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-secure-channel:
         specifier: 2.166.0
         version: link:../node-opcua-secure-channel
@@ -3062,8 +3062,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.3.0
-        version: 5.3.0
+        specifier: 5.3.1
+        version: 5.3.1
       node-opcua-data-model:
         specifier: 2.165.0
         version: link:../node-opcua-data-model
@@ -3080,8 +3080,8 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
       node-opcua-pseudo-session:
         specifier: 2.166.0
         version: link:../node-opcua-pseudo-session
@@ -3175,8 +3175,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.11.0
-        version: 6.11.0
+        specifier: 6.11.1
+        version: 6.11.1
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -5102,11 +5102,11 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  node-opcua-crypto@5.3.0:
-    resolution: {integrity: sha512-JeR4TG0Z8aDSLd3aKUWU3C2LvK4SiB9SHP23a1Rh/GfwHxUB6c4Ui0M2NSqeQCG7eYLX6PrSf6mWcmHo6zB/vg==}
+  node-opcua-crypto@5.3.1:
+    resolution: {integrity: sha512-owRb7MtqeF7DD+I/uqBhbqA8YI0BgtY3Wtn33i9YTSQEv/Rt9u1xDYHgY6QyKlkJaodHKaVItvQhrHezGlcwLg==}
 
-  node-opcua-pki@6.11.0:
-    resolution: {integrity: sha512-YCEsLh8NtL1Vs5JA4C4Ul0afPrWlg6kGiL2U//fmC3NAn4hB0vC6r/jqyF8/Vg/boeesMr17N9IRVs7nVGSx4Q==}
+  node-opcua-pki@6.11.1:
+    resolution: {integrity: sha512-i/DWs3VnYoBF5Bn0uj7mzp0v1lUqaZxgfRX2UZYWf23O1CRPdYX59wVRZKwPr/wKaQvGSfgcjtFkhSRMRArY2g==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6854,13 +6854,13 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  node-opcua-crypto@5.3.0:
+  node-opcua-crypto@5.3.1:
     dependencies:
       '@peculiar/webcrypto': 1.5.0
       '@peculiar/x509': 1.14.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.11.0:
+  node-opcua-pki@6.11.1:
     dependencies:
       '@ster5/global-mutex': 3.3.0
       byline: 5.0.0
@@ -6868,7 +6868,7 @@ snapshots:
       chokidar: 4.0.3
       command-line-args: 6.0.2
       command-line-usage: 7.0.4
-      node-opcua-crypto: 5.3.0
+      node-opcua-crypto: 5.3.1
       progress: 2.0.3
       wget-improved-2: 3.3.0
       yauzl: 3.2.1
