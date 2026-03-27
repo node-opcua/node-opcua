@@ -81,6 +81,10 @@ interface RegisteredServerExtended extends RegisteredServer {
     discoveryConfiguration?: MdnsDiscoveryConfiguration[];
 }
 
+type RegisteredServerMdns = RegisteredServer & {
+    discoveryConfiguration?: MdnsDiscoveryConfiguration[];
+};
+
 type RegisterServerMap = Map<string, RegisteredServerExtended>;
 
 
@@ -195,6 +199,37 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         const { hostname } = new URL(endpointUri);
 
         this.mDnsResponder = new MDNSResponder();
+
+        // Forward mDNS events as unified onRegisterServer/onUnregisterServer events
+        this.mDnsResponder.on("serverUp", (serverOnNetwork: ServerOnNetwork) => {
+            const discoveryConfiguration = new MdnsDiscoveryConfiguration({
+                mdnsServerName: serverOnNetwork.serverName,
+                serverCapabilities: serverOnNetwork.serverCapabilities,
+            });
+            const registeredServer: RegisteredServerMdns = new RegisteredServer({
+                serverUri: serverOnNetwork.serverName,
+                serverNames: [{ text: serverOnNetwork.serverName }],
+                discoveryUrls: [serverOnNetwork.discoveryUrl],
+                isOnline: true,
+            });
+            registeredServer.discoveryConfiguration = [discoveryConfiguration];
+            this.emit("onRegisterServer", registeredServer, true);
+        });
+
+        this.mDnsResponder.on("serverDown", (serverOnNetwork: ServerOnNetwork) => {
+            const discoveryConfiguration = new MdnsDiscoveryConfiguration({
+                mdnsServerName: serverOnNetwork.serverName,
+                serverCapabilities: serverOnNetwork.serverCapabilities,
+            });
+            const registeredServer: RegisteredServerMdns = new RegisteredServer({
+                serverUri: serverOnNetwork.serverName,
+                serverNames: [{ text: serverOnNetwork.serverName }],
+                discoveryUrls: [serverOnNetwork.discoveryUrl],
+                isOnline: false,
+            });
+            registeredServer.discoveryConfiguration = [discoveryConfiguration];
+            this.emit("onUnregisterServer", registeredServer, false);
+        });
 
         this.mDnsLDSAnnouncer = new BonjourHolder();
 
