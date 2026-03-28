@@ -1,13 +1,13 @@
-// This file shall show the connection problems with the v2.151 of node-opcua-client in comparison to v2.150.0.
-
-import {
-    ConnectionStrategyOptions,
-    OPCUAClient,
-    OPCUAClientOptions,
-} from "..";
+// This file shall show the connection problems with the v2.151 of
+// node-opcua-client in comparison to v2.150.0.
+import EventEmitter from "node:events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import EventEmitter from "node:events";
+import {
+    type ConnectionStrategyOptions,
+    OPCUAClient,
+    type OPCUAClientOptions,
+} from "..";
 
 /**
  * Function to log every emitted event of an event emitter.
@@ -17,9 +17,9 @@ import EventEmitter from "node:events";
 export function patchEmitter(emitter: EventEmitter) {
     var oldEmit = emitter.emit;
 
-    emitter.emit = function (eventName: string, ...eventArgs: any[]): boolean {
+    emitter.emit = (eventName: string, ...eventArgs: any[]): boolean => {
         // Log the event name and arguments
-        const now = new Date();
+        const _now = new Date();
         console.log(new Date().toISOString(), "Event emitted:", eventName);
 
         // Call the original emit method
@@ -29,8 +29,8 @@ export function patchEmitter(emitter: EventEmitter) {
 
 const endpointUrl = "opc.tcp://10.20.30.40:4840"; // arbitrary IP, no opc ua server shall exist at this address
 
-describe("issue_1429", function (this: any) {
-    this.timeout(30*1000);
+describe("issue_1429", function (this: Mocha.Suite) {
+    this.timeout(30 * 1000);
     it("should issue a backoff event if the endpoint is not reachable", async () => {
         // setup  connect with infinit retries
         const connectionStrategy: ConnectionStrategyOptions = {
@@ -78,7 +78,9 @@ describe("issue_1429", function (this: any) {
             if (timerId) clearTimeout(timerId);
             await client.disconnect();
         }
-        backoffCount.should.be.greaterThan(2,"Expecting server to go to a backoff mode if ip cannot be joined");
+        backoffCount.should.be.greaterThan(2,
+            "Expecting server to go to a backoff mode if ip cannot be joined");
         /* should(caughtError).be.undefined(); */
+        should.exist(caughtError);
     });
 });

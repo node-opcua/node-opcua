@@ -538,10 +538,19 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
     public create(endpointUrl: string, callback: ErrorCallback): void {
         assert(typeof callback === "function");
 
+        let called = false;
+        const wrapperCallback = (err?: Error) => {
+            if (called) {
+                return;
+            }
+            called = true;
+            callback(err);
+        };
+
         if (this.securityMode !== MessageSecurityMode.None) {
             // c8 ignore next
             if (!this.#serverCertificate) {
-                callback(
+                wrapperCallback(
                     new Error("ClientSecureChannelLayer#create : expecting a server certificate when securityMode is not None")
                 );
                 return;
@@ -554,7 +563,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                 extractPublicKeyFromCertificate(chain[0], (err: Error | null, publicKey?: PublicKeyPEM) => {
                     /* c8 ignore next */
                     if (err) {
-                        callback(err);
+                        wrapperCallback(err);
                         return;
                     }
                     /* c8 ignore next */
@@ -562,7 +571,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                         throw new Error("Internal Error");
                     }
                     this.#receiverPublicKey = createPublicKey(publicKey);
-                    this.create(endpointUrl, callback);
+                    this.create(endpointUrl, wrapperCallback);
                 });
                 return;
             }
@@ -582,10 +591,10 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                 doDebug && debugLog(chalk.red("cannot connect to server"));
                 this.#_pending_transport = undefined;
                 transport.dispose();
-                return callback(err);
+                return wrapperCallback(err);
             }
 
-            this.#_on_connection(transport, callback);
+            this.#_on_connection(transport, wrapperCallback);
         });
     }
 
@@ -1477,7 +1486,8 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
             // Do something when backoff starts, e.g. show to the
             // user the delay before next reconnection attempt.
             this.emit("abort");
-            this.#_backoff_completion(new Error("Connection abandoned"), this.#lastError, transport, callback);
+            // The backoff module automatically calls the completion function upon abort.
+            // Calling it here manually throws a "Callback was already called" error.
         });
 
         callObj.setStrategy(new backoff.ExponentialStrategy(this.#connectionStrategy));

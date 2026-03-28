@@ -28,7 +28,14 @@ export function readHistoryServerCapabilities(
     callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
 ): any {
     if (!callback) {
-        throw new Error("Internal error");
+        return new Promise<HistoryServerCapabilities>((resolve, reject) => {
+            readHistoryServerCapabilities(session, (err, capabilities) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(capabilities!);
+            });
+        });
     }
     // display HistoryCapabilities of server
     const browsePath: BrowsePath = makeBrowsePath(ObjectIds.ObjectsFolder, "/Server/ServerCapabilities.HistoryServerCapabilities");
@@ -123,9 +130,3 @@ export function readHistoryServerCapabilities(
         });
     });
 }
-
-// tslint:disable:no-var-requires
-import { withCallback } from "thenify-ex";
-
-const opts = { multiArgs: false };
-(module as any).exports.readHistoryServerCapabilities = withCallback((module as any).exports.readHistoryServerCapabilities, opts);

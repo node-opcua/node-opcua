@@ -1,10 +1,6 @@
-// tslint:disable:no-console
-// tslint:disable:only-arrow-functions
-
-import fs from "fs";
-import path from "path";
-import should from "should";
-import { promisify } from "util";
+import fs from "node:fs";
+import path from "node:path";
+import { promisify } from "node:util";
 import "mocha";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
@@ -93,7 +89,7 @@ function verifyX509UserIdentity(
     }
     const certificate = userIdentityToken.certificateData; /* as Certificate*/
 
-    const parts = split_der(certificate);
+    const _parts = split_der(certificate);
 
     const nonce = sessionNonce;
     assert(certificate instanceof Buffer, "expecting certificate to be a Buffer");
@@ -143,7 +139,9 @@ describe("X509 - Wireshark Analysis", () => {
             policyId: userIdentityToken.policyId
         };
 
-        const userCertificate = readCertificateChain(path.join(__dirname, "./fixtures/user1_certificate.pem"));
+        const userCertificateChain = readCertificateChain(path.join(__dirname, "./fixtures/user1_certificate.pem"));
+        const userCertificate = userCertificateChain[0];
+
         const privateKey = readPrivateKey(path.join(__dirname, "./fixtures/private_key.pem"));
 
         const signatureData = rebuildSignature(serverCertificate, serverNonce, privateKey, securityPolicy);
@@ -154,7 +152,7 @@ describe("X509 - Wireshark Analysis", () => {
             console.log("user certificate from file            \n", userCertificate.toString("hex"));
             console.log("user certificate from activate session\n", userIdentityToken.certificateData.toString("hex"));
 
-            console.log("\nsignature recomputed by the test\n", signatureData.signature!.toString("hex"));
+            console.log("\nsignature recomputed by the test\n", signatureData.signature?.toString("hex"));
             console.log("", signatureData.algorithm);
 
             console.log(

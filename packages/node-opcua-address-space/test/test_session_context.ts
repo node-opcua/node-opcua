@@ -1,29 +1,24 @@
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import { readCertificateChain } from "node-opcua-crypto";
 import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import path from "path";
-import should from "should";
+import "should";
 
-import { type AddressSpace, BaseNode, makeRoles, type Namespace, SessionContext, UAObject } from "..";
-
-// let's make sure should don't get removed by typescript optimizer
-const keep_should = should;
+import { type AddressSpace, makeRoles, SessionContext } from "..";
 
 import { getMiniAddressSpace, MockContinuationPointManager } from "../testHelpers";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
-fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
+fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 describe("SessionContext", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
-        namespace = addressSpace.getOwnNamespace();
     });
     after(() => {
         addressSpace.dispose();
@@ -53,7 +48,6 @@ describe("SessionContext", () => {
 });
 describe("SessionContext - with  dedicated SessionContext and certificate ", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
     let sessionContext: SessionContext;
 
     const mockUserManager = {
@@ -107,7 +101,7 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
     const certificate = readCertificateChain(certificateFilename);
     const mockSession = {
         userIdentityToken: new X509IdentityToken({
-            certificateData: certificate
+            certificateData: Array.isArray(certificate) ? certificate[0] : certificate
         }),
         continuationPointManager: new MockContinuationPointManager(),
         getSessionId() {
@@ -121,7 +115,6 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
             session: mockSession
         });
         addressSpace = await getMiniAddressSpace();
-        namespace = addressSpace.getOwnNamespace();
     });
     after(() => {
         addressSpace.dispose();
