@@ -1,6 +1,15 @@
-import "should";
-import { ClientAlarm, ClientAlarmList, DataType, EventStuff, NodeId, resolveNodeId, TVariant, Variant } from "../source/index";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import {
+    ClientAlarm,
+    ClientAlarmList,
+    DataType,
+    type EventStuff,
+    NodeId,
+    resolveNodeId,
+    type TVariant,
+    Variant
+} from "../source/index";
+import "should";
 
 class VariantId extends Variant {
     public id: TVariant<boolean>;
@@ -12,7 +21,7 @@ class VariantId extends Variant {
 
 describe("Testing client alarm", () => {
     it("should update a client alarm list #CAL", () => {
-        const clientAlarm = new ClientAlarm({
+        const _clientAlarm = new ClientAlarm({
             ackedState: new VariantId(true, "Acknowledged"),
             activeState: new VariantId(true, "Active"),
             conditionId: new Variant({ value: new NodeId() }),
@@ -26,10 +35,10 @@ describe("Testing client alarm", () => {
 
         let alarmChangedCount = 0;
         let alarmCreatedCount = 0;
-        alarmList.on("alarmChanged", (alarm: ClientAlarm) => {
+        alarmList.on("alarmChanged", (_alarm: ClientAlarm) => {
             alarmChangedCount += 1;
         });
-        alarmList.on("newAlarm", (alarm: ClientAlarm) => {
+        alarmList.on("newAlarm", (_alarm: ClientAlarm) => {
             alarmCreatedCount += 1;
         });
 
