@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { convertPEMtoDER, type DirectoryName, exploreCertificate, readCertificate } from "node-opcua-crypto";
+import { convertPEMtoDER, exploreCertificate, readCertificateChain, type DirectoryName } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { SubjectOptions } from "node-opcua-pki";
@@ -70,8 +70,8 @@ export async function executeCreateSigningRequest(
     if (!subjectName) {
         const currentCertificateFilename = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
         try {
-            const certificate = readCertificate(currentCertificateFilename);
-            const e = exploreCertificate(certificate);
+            const certificate = readCertificateChain(currentCertificateFilename);
+            const e = exploreCertificate(certificate[0]);
             subjectName = subjectToString(e.tbsCertificate.subject as SubjectOptions & DirectoryName);
             warningLog("reusing existing certificate subjectName = ", subjectName);
         } catch (err) {

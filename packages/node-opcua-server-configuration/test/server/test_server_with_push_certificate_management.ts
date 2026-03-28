@@ -10,20 +10,7 @@ import "should";
 import { makeRoles } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, makeApplicationUrn, OPCUAClient, type UserIdentityInfoUserName } from "node-opcua-client";
-import {
-    type Certificate,
-    certificateMatchesPrivateKey,
-    convertPEMtoDER,
-    exploreCertificate,
-    exploreCertificateSigningRequest,
-    makePrivateKeyThumbPrint,
-    makeSHA1Thumbprint,
-    type PrivateKey,
-    readCertificate,
-    readPrivateKey,
-    split_der,
-    toPem2
-} from "node-opcua-crypto";
+import { certificateMatchesPrivateKey, convertPEMtoDER, exploreCertificate, exploreCertificateSigningRequest, makePrivateKeyThumbPrint, makeSHA1Thumbprint, readCertificateChain, readPrivateKey, split_der, toPem, toPem2, type Certificate, type PrivateKey } from "node-opcua-crypto";
 import { AttributeIds } from "node-opcua-data-model";
 import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -33,7 +20,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
-import type { OPCUAServerPartial } from "../../dist/index.js";
+import { invalidateCachedSecrets } from "node-opcua-common";
 import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
@@ -567,7 +554,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateBefore.toString("base64").should.not.eql(certificateAfter.toString("base64"));
 
             step("I should also verify that the same certificate is given by the certificateFile property ");
-            const certificateBefore2 = readCertificate(server.certificateFile);
+            const certificateBefore2 = readCertificateChain(server.certificateFile);
             certificateBefore2.toString("base64").should.not.eql(certificateBefore.toString("base64"));
 
             step("I should also verify that the new certificate matches the server private key");
@@ -591,14 +578,20 @@ describe("Testing server configured with push certificate management", () => {
     });
 
     async function simulateCertificateAndPrivateKeyChange(server: OPCUAServer) {
-        const _server = server as unknown as OPCUAServerPartial;
-
         // create a new key pair
-        const { certificate, privateKey } = await produceCertificateAndPrivateKey(_folder);
+        const { certificate, privateKeyPEM } = await produceCertificateAndPrivateKey(_folder);
 
-        _server.$$privateKey = privateKey;
-        _server.$$certificateChain = certificate;
-        _server.$$certificate = split_der(certificate)[0];
+        // Write the new certificate and private key to disk at the
+        // locations the SecretHolder will read from
+        const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
+        const privateKeyFile = server.serverCertificateManager.privateKey;
+        fs.writeFileSync(certificateFile, toPem(certificate, "CERTIFICATE"), "utf8");
+        fs.writeFileSync(privateKeyFile, privateKeyPEM, "utf8");
+
+        // Invalidate cached secrets so next getCertificate()/getPrivateKey()
+        // re-reads from disk
+        invalidateCachedSecrets(server);
+
         await server.suspendEndPoints();
         await server.shutdownChannels();
         await server.resumeEndPoints();

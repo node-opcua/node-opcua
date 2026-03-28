@@ -1,48 +1,49 @@
 /**
  * @module node-opcua-client-private
  */
-import { EventEmitter } from "events";
+
 import chalk from "chalk";
+import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import { AggregateFunction } from "node-opcua-constants";
-import { DateTime } from "node-opcua-basic-types";
+import type { DateTime } from "node-opcua-basic-types";
 import {
+    type ExtraDataTypeManager,
     extractDataValueToPromote,
-    ExtraDataTypeManager,
     getExtensionObjectConstructor,
     getExtraDataTypeManager,
-    promoteOpaqueStructure,
-    PseudoDataValue
+    type PseudoDataValue,
+    promoteOpaqueStructure
 } from "node-opcua-client-dynamic-extension-object";
-import { Certificate, Nonce } from "node-opcua-crypto/web";
-import { BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
+import type { AggregateFunction } from "node-opcua-constants";
+import type { Certificate, Nonce } from "node-opcua-crypto/web";
+import { BrowseDirection, type LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import { coerceNodeId, NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import {
-    getBuiltInDataType,
+    type BrowseDescriptionLike,
     getArgumentDefinitionHelper,
-    IBasicTransportSettings,
+    getBuiltInDataType,
+    type IBasicSessionAsync2,
+    type IBasicTransportSettings,
+    type NodeAttributes,
+    type ResponseCallback,
     readAllAttributes,
-    NodeAttributes,
-    ResponseCallback,
-    BrowseDescriptionLike,
-    IBasicSessionAsync2,
     readNamespaceArray
 } from "node-opcua-pseudo-session";
-import { AnyConstructorFunc } from "node-opcua-schemas";
-import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
+import type { AnyConstructorFunc } from "node-opcua-schemas";
+import { ClientSecureChannelLayer, requestHandleNotSetValue, type SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
-import { CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
-import { EndpointDescription } from "node-opcua-service-endpoints";
+import { CallMethodRequest, type CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
+import type { EndpointDescription } from "node-opcua-service-endpoints";
 import {
+    HistoryData,
     HistoryReadRequest,
     HistoryReadResponse,
-    HistoryReadResult,
-    HistoryData,
-    ReadRawModifiedDetails,
-    ReadProcessedDetails
+    type HistoryReadResult,
+    ReadProcessedDetails,
+    ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import { QueryFirstRequest, QueryFirstResponse } from "node-opcua-service-query";
 import {
@@ -50,7 +51,7 @@ import {
     ReadRequest,
     ReadResponse,
     ReadValueId,
-    ReadValueIdOptions,
+    type ReadValueIdOptions,
     TimestampsToReturn
 } from "node-opcua-service-read";
 import {
@@ -80,35 +81,34 @@ import {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
-    SetTriggeringRequestOptions,
-    SetTriggeringResponse,
     SetTriggeringRequest,
+    type SetTriggeringRequestOptions,
+    SetTriggeringResponse,
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import {
-    BrowsePath,
-    BrowsePathResult,
+    type BrowsePath,
+    type BrowsePathResult,
     TranslateBrowsePathsToNodeIdsRequest,
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
-import { StatusCode, StatusCodes, Callback, CallbackT } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
+import { type Callback, type CallbackT, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     ActivateSessionRequest,
-    AggregateConfigurationOptions,
+    type AggregateConfigurationOptions,
     BrowseNextRequest,
     BrowseNextResponse,
     CloseSessionRequest,
-    HistoryReadValueIdOptions,
+    type HistoryReadValueIdOptions,
     UserTokenType,
-    WriteValueOptions
+    type WriteValueOptions
 } from "node-opcua-types";
 import { buffer_ellipsis, getFunctionParameterNames, isNullOrUndefined } from "node-opcua-utils";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
+import { DataType, type Variant, type VariantLike } from "node-opcua-variant";
 
-import {
+import type {
     ArgumentDefinition,
     CallMethodRequestLike,
     ClientSession,
@@ -116,6 +116,8 @@ import {
     CreateSubscriptionRequestLike,
     DeleteMonitoredItemsRequestLike,
     DeleteSubscriptionsRequestLike,
+    ExtraReadHistoryValueParameters,
+    HistoryReadValueIdOptions2,
     MethodId,
     ModifyMonitoredItemsRequestLike,
     ModifySubscriptionRequestLike,
@@ -123,18 +125,16 @@ import {
     QueryFirstRequestLike,
     SetMonitoringModeRequestLike,
     SubscriptionId,
-    TransferSubscriptionsRequestLike,
-    HistoryReadValueIdOptions2,
-    ExtraReadHistoryValueParameters
+    TransferSubscriptionsRequestLike
 } from "../client_session";
-import { UserIdentityInfo } from "../user_identity_info";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
-import { ClientSubscription } from "../client_subscription";
-import { Request, Response } from "../common";
+import type { ClientSubscription } from "../client_subscription";
+import type { Request, Response } from "../common";
+import type { UserIdentityInfo } from "../user_identity_info";
 
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { IClientBase } from "./i_private_client";
+import type { IClientBase } from "./i_private_client";
 import { repair_client_session } from "./reconnection/reconnection";
 
 const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
@@ -184,7 +184,7 @@ export interface Reconnectable {
     _reconnecting: {
         reconnecting: boolean;
         pendingCallbacks: EmptyCallback[];
-        pendingTransactions: { request: Request, callback: (err: Error | null, response?: Response) => void }[];
+        pendingTransactions: { request: Request; callback: (err: Error | null, response?: Response) => void }[];
     };
 }
 
@@ -405,8 +405,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
-                            " BrowseResponse : the server didn't take into" +
-                            " account our requestedMaxReferencesPerNode "
+                                " BrowseResponse : the server didn't take into" +
+                                " account our requestedMaxReferencesPerNode "
                         );
                         warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
                         warningLog("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
@@ -415,7 +415,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* c8 ignore next */[];
+                r.references = r.references || /* c8 ignore next */ [];
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);
@@ -710,7 +710,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             // perform ExtensionObject resolution
             const promises = response.results.map(async (result) => {
@@ -723,8 +723,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             Promise.all(promises)
                 .then(() => {
                     callback(null, response);
-                }).catch((err) => callback(err));
-
+                })
+                .catch((err) => callback(err));
         });
     }
 
@@ -855,7 +855,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             assert(nodesToRead.length === response.results.length);
 
@@ -994,7 +994,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1189,7 +1189,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 warningLog(
                     chalk.yellow(
                         "please make sure to refactor your code and check that " +
-                        "the second argument of your callback function is named"
+                            "the second argument of your callback function is named"
                     ),
                     chalk.cyan("dataValue" + (isArray ? "s" : ""))
                 );
@@ -1221,12 +1221,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             }
 
             // perform ExtensionObject resolution
-            promoteOpaqueStructure(this, response.results!).then(() => {
-                response.results = response.results || /* c8 ignore next */[];
-                callback(null, isArray ? response.results : response.results[0]);
-            }).catch((err) => {
-                callback(err);
-            });
+            promoteOpaqueStructure(this, response.results!)
+                .then(() => {
+                    response.results = response.results || /* c8 ignore next */ [];
+                    callback(null, isArray ? response.results : response.results[0]);
+                })
+                .catch((err) => {
+                    callback(err);
+                });
         });
     }
 
@@ -1399,7 +1401,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 if (!response) {
                     return callback(new Error("Internal Error"));
                 }
-                response.results = response.results || /* c8 ignore next */[];
+                response.results = response.results || /* c8 ignore next */ [];
                 callback(err, isArray ? response.results : response.results[0]);
             }
         );
@@ -1435,7 +1437,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1501,11 +1503,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
         this.#reprocessRequest(0, request, callback);
     }
-    #reprocessRequest(
-        attemptCount: number,
-        request: Request,
-        callback: (err: Error | null, response?: Response) => void
-    ): void {
+    #reprocessRequest(attemptCount: number, request: Request, callback: (err: Error | null, response?: Response) => void): void {
         attemptCount > 0 &&
             warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
@@ -1539,7 +1537,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 this.#reprocessRequest(0, request, callback);
             }
         });
-    };
+    }
 
     public _performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
         assert(typeof callback === "function");
@@ -1588,9 +1586,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 err = new Error(
                     " ServiceResult is " +
-                    response.responseHeader.serviceResult.toString() +
-                    " request was " +
-                    request.constructor.name
+                        response.responseHeader.serviceResult.toString() +
+                        " request was " +
+                        request.constructor.name
                 );
 
                 if (response && response.responseHeader.serviceDiagnostics) {
@@ -1723,11 +1721,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             }
             response.results = response.results || [];
 
-            promoteOpaqueStructureForCall(this, response.results).then(() => {
-                callback(null, isArray ? response.results : response.results![0]);
-            }).catch((err) => {
-                callback(err);
-            });
+            promoteOpaqueStructureForCall(this, response.results)
+                .then(() => {
+                    callback(null, isArray ? response.results : response.results![0]);
+                })
+                .catch((err) => {
+                    callback(err);
+                });
         });
     }
 
@@ -1837,7 +1837,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* c8 ignore next */[];
+            response.registeredNodeIds = response.registeredNodeIds || /* c8 ignore next */ [];
 
             callback(null, response.registeredNodeIds);
         });
@@ -2163,7 +2163,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 }
 
-async function promoteOpaqueStructureForCallMethodResult(session: IBasicSessionAsync2, callMethodResult: CallMethodResult): Promise<void> {
+async function promoteOpaqueStructureForCallMethodResult(
+    session: IBasicSessionAsync2,
+    callMethodResult: CallMethodResult
+): Promise<void> {
     if (!callMethodResult || !callMethodResult.outputArguments || callMethodResult.outputArguments.length === 0) {
         return;
     }
@@ -2193,13 +2196,16 @@ async function promoteOpaqueStructureForCall(session: IBasicSessionAsync2, callM
     // construct dataTypeManager if not already present
     await getExtraDataTypeManager(session);
 
-    const promises: Promise<void>[] = callMethodResults.map(async (x: CallMethodResult) => promoteOpaqueStructureForCallMethodResult(session, x));
+    const promises: Promise<void>[] = callMethodResults.map(async (x: CallMethodResult) =>
+        promoteOpaqueStructureForCallMethodResult(session, x)
+    );
     await Promise.all(promises);
 }
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 
 ClientSessionImpl.prototype.browse = withCallback(ClientSessionImpl.prototype.browse, opts);
@@ -2226,10 +2232,7 @@ ClientSessionImpl.prototype.republish = withCallback(ClientSessionImpl.prototype
 ClientSessionImpl.prototype.deleteMonitoredItems = withCallback(ClientSessionImpl.prototype.deleteMonitoredItems, opts);
 ClientSessionImpl.prototype.setPublishingMode = withCallback(ClientSessionImpl.prototype.setPublishingMode, opts);
 ClientSessionImpl.prototype.translateBrowsePath = withCallback(ClientSessionImpl.prototype.translateBrowsePath, opts);
-ClientSessionImpl.prototype.performMessageTransaction = withCallback(
-    ClientSessionImpl.prototype.performMessageTransaction,
-    opts
-);
+ClientSessionImpl.prototype.performMessageTransaction = withCallback(ClientSessionImpl.prototype.performMessageTransaction, opts);
 ClientSessionImpl.prototype.close = withCallback(ClientSessionImpl.prototype.close, opts);
 ClientSessionImpl.prototype.call = withCallback(ClientSessionImpl.prototype.call, opts);
 ClientSessionImpl.prototype.getMonitoredItems = withCallback(ClientSessionImpl.prototype.getMonitoredItems, opts);

@@ -37,7 +37,7 @@ import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { type Certificate, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
     filterDiagnosticOperationLevel,
@@ -2113,7 +2113,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // If the securityPolicyUri is None and none of the UserTokenPolicies requires
             // encryption, the Server shall not send an ApplicationInstanceCertificate and the Client
             // shall ignore the ApplicationInstanceCertificate.
-            serverCertificate: hasEncryption ? serverCertificateChain : undefined,
+            serverCertificate: hasEncryption ? (serverCertificateChain ? combine_der(serverCertificateChain) : undefined) : undefined,
 
             // The endpoints provided by the server.
             // The Server shall return a set of EndpointDescriptions available for the serverUri

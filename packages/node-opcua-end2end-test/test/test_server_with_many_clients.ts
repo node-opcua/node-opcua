@@ -1,24 +1,26 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import chalk from "chalk";
 import {
-    OPCUACertificateManager,
-    ClientSession,
-    OPCUAClient,
     AttributeIds,
+    type ClientSession,
+    MonitoringMode,
     makeNodeId,
-    VariableIds,
-    OPCUAServer,
-    NodeIdLike,
-    NodeId,
+    OPCUACertificateManager,
+    OPCUAClient,
+    type OPCUAServer,
     TimestampsToReturn,
-    MonitoringMode
+    VariableIds
 } from "node-opcua";
+import type { Certificate } from "node-opcua-crypto";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import {
+    build_server_with_temperature_device,
+    type ExtraServerProperties
+} from "../test_helpers/build_server_with_temperature_device";
 import { wait } from "../test_helpers/utils";
-import { build_server_with_temperature_device } from "../test_helpers/build_server_with_temperature_device";
 
 const debugLog = make_debugLog("TEST");
 
@@ -26,24 +28,21 @@ const port = 2003;
 const maxConnectionsPerEndpoint = 100;
 const maxSessions = 50;
 
-
 describe("Functional test : one server with many concurrent clients", function (this: Mocha.Runnable) {
-    let server: OPCUAServer & { temperatureVariableId: NodeId };
-    let temperatureVariableId: NodeIdLike;
+    let server: OPCUAServer & ExtraServerProperties;
     let endpointUrl: string;
 
     this.timeout(Math.max(500000, this.timeout()));
 
-    let serverCertificateChain: any = null;
+    let serverCertificateChain: Certificate[] | undefined;
     before(async () => {
         server = await build_server_with_temperature_device({
             port,
             serverCapabilities: { maxSessions },
             maxConnectionsPerEndpoint
-        }) as typeof server;
+        });
 
         endpointUrl = server.getEndpointUrl();
-        temperatureVariableId = server.temperatureVariableId;
         serverCertificateChain = server.getCertificateChain();
         debugLog("server started");
     });
@@ -63,7 +62,6 @@ describe("Functional test : one server with many concurrent clients", function (
         await clientCertificateManager.initialize();
     });
 
-
     after(async () => {
         await server.shutdown();
         await clientCertificateManager.dispose();
@@ -75,7 +73,15 @@ describe("Functional test : one server with many concurrent clients", function (
         await wait(Math.ceil(100 + Math.random() * 100));
     }
 
-    function construct_client_scenario(data: { session: ClientSession, client: OPCUAClient, name: string, nb_received_changed_event: number }) {
+    interface ClientScenarioData {
+        session?: ClientSession;
+        client?: OPCUAClient;
+        name: string;
+        nb_received_changed_event: number;
+        tasks?: (() => Promise<void>)[];
+    }
+
+    function construct_client_scenario(data: ClientScenarioData) {
         debugLog("construct_client_scenario ", data.name);
         const client = OPCUAClient.create({
             clientCertificateManager,
@@ -115,6 +121,7 @@ describe("Functional test : one server with many concurrent clients", function (
             async () => {
                 debugLog(" Creating monitored Item for client", name);
                 const session = data.session;
+                if (!session) throw new Error("session is not initialized");
                 const subscription = await session.createSubscription2({
                     requestedPublishingInterval: 1000,
                     requestedLifetimeCount: 10 * 60 * 10,
@@ -163,7 +170,7 @@ describe("Functional test : one server with many concurrent clients", function (
                             resolve();
                         }
                     });
-                })
+                });
             },
 
             // let the client work for a little while
@@ -171,7 +178,7 @@ describe("Functional test : one server with many concurrent clients", function (
 
             // closing  session
             async () => {
-                await data.session.close(true);
+                await data.session?.close(true);
             },
 
             wait_randomly,
@@ -185,18 +192,18 @@ describe("Functional test : one server with many concurrent clients", function (
         return tasks;
     }
 
-    it("it should allow " + maxSessions + " clients to connect and concurrently monitor some nodeId", async () => {
+    it(`it should allow ${maxSessions} clients to connect and concurrently monitor some nodeId`, async () => {
         const nb_clients = server.engine.serverCapabilities.maxSessions;
 
-        const clients = [];
+        const clients: ClientScenarioData[] = [];
 
         for (let i = 0; i < nb_clients; i++) {
-            const data: { name: string, nb_received_changed_event: 0, tasks: (() => Promise<void>)[] } = {
-                name: "client " + i,
+            const data: ClientScenarioData = {
+                name: `client ${i}`,
                 tasks: [],
                 nb_received_changed_event: 0
-            }
-            data.tasks = construct_client_scenario(data as any);
+            };
+            data.tasks = construct_client_scenario(data);
             clients.push(data);
         }
 
@@ -205,7 +212,7 @@ describe("Functional test : one server with many concurrent clients", function (
                 clients.map(async (data) => {
                     try {
                         // Run tasks in series
-                        for (const task of data.tasks) {
+                        for (const task of data.tasks || []) {
                             await task();
                         }
                         return data.nb_received_changed_event;
@@ -219,19 +226,14 @@ describe("Functional test : one server with many concurrent clients", function (
             // Check results
             results.forEach((nb_received_changed_event, index) => {
                 if (nb_received_changed_event <= 1) {
-                    throw new Error(
-                        `Client ${index} has received ${nb_received_changed_event} events (expecting at least 2)`
-                    );
+                    throw new Error(`Client ${index} has received ${nb_received_changed_event} events (expecting at least 2)`);
                 }
             });
 
             // Check server subscriptions
             if (server.currentSubscriptionCount !== 0) {
-                throw new Error(
-                    `Expected server.currentSubscriptionCount to be 0, but got ${server.currentSubscriptionCount}`
-                );
+                throw new Error(`Expected server.currentSubscriptionCount to be 0, but got ${server.currentSubscriptionCount}`);
             }
-        } catch (err) {
-        }
+        } catch (_err) {}
     });
 });

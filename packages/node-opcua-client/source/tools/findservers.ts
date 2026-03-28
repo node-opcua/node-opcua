@@ -2,10 +2,9 @@
  * @module node-opcua-client
  */
 import async from "async";
-
-import { ErrorCallback } from "node-opcua-status-code";
-import { ServerOnNetwork } from "node-opcua-service-discovery";
-import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
+import type { ServerOnNetwork } from "node-opcua-service-discovery";
+import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
+import type { ErrorCallback } from "node-opcua-status-code";
 import { ClientBaseImpl } from "../private/client_base_impl";
 
 export interface FindServerResults {
@@ -92,5 +91,6 @@ export function findServersOnNetwork(
 
 // tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
+
 (module.exports as any).findServersOnNetwork = withCallback((module.exports as any).findServersOnNetwork);
 (module.exports as any).findServers = withCallback((module.exports as any).findServers);

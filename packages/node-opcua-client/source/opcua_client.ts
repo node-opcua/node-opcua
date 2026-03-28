@@ -2,16 +2,21 @@
  * @module node-opcua-client
  */
 
-import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
-import { CallbackT, ErrorCallback, StatusCode } from "node-opcua-status-code";
-import { ResponseCallback } from "node-opcua-pseudo-session";
-import { FindServersRequestLike, GetEndpointsOptions, OPCUAClientBase, OPCUAClientBaseOptions } from "./client_base";
-
-import { ClientSession } from "./client_session";
-import { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription";
+import type { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
+import type { ResponseCallback } from "node-opcua-pseudo-session";
+import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
+import type { CallbackT, ErrorCallback, StatusCode } from "node-opcua-status-code";
+import type {
+    FindServersRequestLike,
+    GetEndpointsOptions,
+    OPCUAClientBase,
+    OPCUAClientBaseEvents,
+    OPCUAClientBaseOptions
+} from "./client_base";
+import type { ClientSession } from "./client_session";
+import type { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
-import { UserIdentityInfo } from "./user_identity_info";
-import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
+import type { UserIdentityInfo } from "./user_identity_info";
 
 export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     /**
@@ -45,10 +50,18 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
      * default value : "Auto" : the client will attempt to extract DataTypeDefinition using the most efficient strategy
      */
     dataTypeExtractStrategy?: DataTypeExtractStrategy;
-
 }
 
-export interface OPCUAClient extends OPCUAClientBase {
+export interface EndpointWithUserIdentity {
+    endpointUrl: string;
+    userIdentity: UserIdentityInfo;
+}
+export type WithSessionFunc = (session: ClientSession) => Promise<void>;
+export type WithSessionFuncP<T> = (session: ClientSession) => Promise<T>;
+export type WithSubscriptionFunc = (session: ClientSession, subscription: ClientSubscription) => Promise<void>;
+export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: ClientSubscription) => Promise<T>;
+
+export interface OPCUAClient<Events extends OPCUAClientBaseEvents = OPCUAClientBaseEvents> extends OPCUAClientBase<Events> {
     connect(endpointUrl: string): Promise<void>;
     connect(endpointUrl: string, callback: ErrorCallback): void;
 
@@ -93,25 +106,13 @@ export interface OPCUAClient extends OPCUAClientBase {
 
     // @private
     createDefaultCertificate(): Promise<void>;
-}
 
-export interface EndpointWithUserIdentity {
-    endpointUrl: string;
-    userIdentity: UserIdentityInfo;
-}
-export type WithSessionFunc = (session: ClientSession) => Promise<void>;
-export type WithSessionFuncP<T> = (session: ClientSession) => Promise<T>;
-export type WithSubscriptionFunc = (session: ClientSession, subscription: ClientSubscription) => Promise<void>;
-export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: ClientSubscription) => Promise<T>;
-
-export interface OPCUAClient {
     /**
      *
      * @param endpointUrl
      * @param inner_func
      */
     withSessionAsync<T>(endpointUrl: string | EndpointWithUserIdentity, inner_func: WithSessionFuncP<T>): Promise<T>;
-
 
     /**
      *
@@ -128,7 +129,7 @@ export interface OPCUAClient {
 
 export class OPCUAClient {
     public static create(options: OPCUAClientOptions): OPCUAClient {
-        return new OPCUAClientImpl(options);
+        return new OPCUAClientImpl(options) as unknown as OPCUAClient;
     }
     public static async createSession(
         endpointUrl: string,

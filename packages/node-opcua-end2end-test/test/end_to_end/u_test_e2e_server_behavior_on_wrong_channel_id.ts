@@ -1,20 +1,23 @@
-import { ClientSecureChannelLayer, OPCUAClient, SecurityHeader } from "node-opcua";
+import {
+    ClientSecureChannelLayer,
+    OPCUAClient
+} from "node-opcua";
 
 
 interface OPCUAClientEx extends OPCUAClient {
     _secureChannel: ClientSecureChannelLayer;
 }
-export  function t(test: any) {
-    describe("GGH1 Server should check channelId correctness", function () {
+export function t(test: { endpointUrl: string }) {
+    describe("GGH1 Server should check channelId correctness", function (this: Mocha.Suite) {
         it("server should abruptly stops the connection if client uses wrong channel Id", async () => {
             const client = OPCUAClient.create({
                 defaultTransactionTimeout: 100000
             });
 
             client.on("secure_channel_created", (channel) => {
-                channel.on("send_request",  (
-                    request: Request,
-                    msgType: string, securityHeader: SecurityHeader) => {
+                channel.on("send_request", (
+                    request,
+                    msgType, securityHeader) => {
                     console.log(
                         " sending",
                         "channelId=",
@@ -28,10 +31,10 @@ export  function t(test: any) {
             const endpointUrl = test.endpointUrl;
 
             await client.connect(endpointUrl);
-            
+
             const clientEx = client as OPCUAClientEx;
 
-            const result1 = await client.getEndpoints({});
+            const _result1 = await client.getEndpoints({});
 
             if (!(clientEx._secureChannel instanceof ClientSecureChannelLayer)) {
                 throw new Error("expecting a secure channel");
@@ -50,7 +53,7 @@ export  function t(test: any) {
 
             let errorHasBeenCaught = false;
             try {
-                const result2 = await client.getEndpoints({});
+                const _result2 = await client.getEndpoints({});
             } catch (err) {
                 console.log("err = ", (err as Error).message);
                 errorHasBeenCaught = true;

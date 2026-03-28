@@ -6,20 +6,8 @@ import { assert } from "node-opcua-assert";
 import { make_debugLog } from "node-opcua-debug";
 import { hexDump } from "node-opcua-debug";
 import { MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { readPrivateRsaKey } from "node-opcua-crypto";
-import {
-    computeDerivedKeys,
-    encryptBufferWithDerivedKeys,
-    makeMessageChunkSignature,
-    makeMessageChunkSignatureWithDerivedKeys,
-    makeSHA1Thumbprint,
-    publicEncrypt_long,
-    readCertificate,
-    DerivedKeys,
-    readPrivateKey,
-    RSA_PKCS1_OAEP_PADDING,
-    PaddingAlgorithm
-} from "node-opcua-crypto";
+import { readCertificateChain, readPrivateRsaKey } from "node-opcua-crypto";
+import { DerivedKeys, PaddingAlgorithm, RSA_PKCS1_OAEP_PADDING, computeDerivedKeys, encryptBufferWithDerivedKeys, makeMessageChunkSignature, makeMessageChunkSignatureWithDerivedKeys, makeSHA1Thumbprint, publicEncrypt_long, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { make_lorem_ipsum_buffer } from "node-opcua-test-helpers";
 import { getFixture } from "node-opcua-test-fixtures";
@@ -47,10 +35,10 @@ function installFakeDecodeMessageBody(messageBuilder: any) {
     messageBuilder._decodeMessageBody = fake_decodeMessageBody;
 }
 
-const senderCertificate = readCertificate(getFixture("certs/client_cert_1024.pem"));
+const senderCertificate = readCertificateChain(getFixture("certs/client_cert_1024.pem"));
 const senderPrivateKey = readPrivateKey(getFixture("certs/client_key_1024.pem"));
 
-const receiverCertificate = readCertificate(getFixture("certs/server_cert_1024.pem"));
+const receiverCertificate = readCertificateChain(getFixture("certs/server_cert_1024.pem"));
 const receiverCertificateThumbprint = makeSHA1Thumbprint(receiverCertificate);
 const receiverPublicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString();
 

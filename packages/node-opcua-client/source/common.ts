@@ -2,25 +2,25 @@
  * @module node-opcua-client
  */
 
-import { BrowseNextRequest, BrowseNextResponse, BrowseRequest, BrowseResponse } from "node-opcua-service-browse";
-import { CallRequest, CallResponse } from "node-opcua-service-call";
-import {
+import type { BrowseNextRequest, BrowseNextResponse, BrowseRequest, BrowseResponse } from "node-opcua-service-browse";
+import type { CallRequest, CallResponse } from "node-opcua-service-call";
+import type {
     FindServersOnNetworkRequest,
     FindServersOnNetworkResponse,
     FindServersRequest,
     FindServersResponse
 } from "node-opcua-service-discovery";
-import { GetEndpointsRequest, GetEndpointsResponse } from "node-opcua-service-endpoints";
-import { HistoryReadRequest, HistoryReadResponse } from "node-opcua-service-history";
-import { QueryFirstRequest, QueryFirstResponse, QueryNextRequest, QueryNextResponse } from "node-opcua-service-query";
-import { ReadRequest, ReadResponse } from "node-opcua-service-read";
-import {
+import type { GetEndpointsRequest, GetEndpointsResponse } from "node-opcua-service-endpoints";
+import type { HistoryReadRequest, HistoryReadResponse } from "node-opcua-service-history";
+import type { QueryFirstRequest, QueryFirstResponse, QueryNextRequest, QueryNextResponse } from "node-opcua-service-query";
+import type { ReadRequest, ReadResponse } from "node-opcua-service-read";
+import type {
     RegisterNodesRequest,
     RegisterNodesResponse,
     UnregisterNodesRequest,
     UnregisterNodesResponse
 } from "node-opcua-service-register-node";
-import {
+import type {
     ActivateSessionRequest,
     ActivateSessionResponse,
     CloseSessionRequest,
@@ -28,7 +28,7 @@ import {
     CreateSessionRequest,
     CreateSessionResponse
 } from "node-opcua-service-session";
-import {
+import type {
     CreateMonitoredItemsRequest,
     CreateMonitoredItemsResponse,
     CreateSubscriptionRequest,
@@ -52,11 +52,11 @@ import {
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
-import {
+import type {
     TranslateBrowsePathsToNodeIdsRequest,
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
-import { WriteRequest, WriteResponse } from "node-opcua-service-write";
+import type { WriteRequest, WriteResponse } from "node-opcua-service-write";
 
 export type Request =
     | CreateSessionRequest

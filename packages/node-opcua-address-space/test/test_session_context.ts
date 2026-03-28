@@ -1,15 +1,14 @@
-import path from "path";
 import fs from "fs";
-import should from "should";
-
-import { readCertificate } from "node-opcua-crypto";
-import { PermissionType, X509IdentityToken } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { NodeId } from "node-opcua-nodeid";
+import { readCertificateChain } from "node-opcua-crypto";
 import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId } from "node-opcua-nodeid";
+import { PermissionType, X509IdentityToken } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
+import path from "path";
+import should from "should";
 
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject, makeRoles } from "..";
+import { type AddressSpace, BaseNode, makeRoles, type Namespace, SessionContext, UAObject } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
@@ -105,7 +104,7 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
 
     const certificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
 
-    const certificate = readCertificate(certificateFilename);
+    const certificate = readCertificateChain(certificateFilename);
     const mockSession = {
         userIdentityToken: new X509IdentityToken({
             certificateData: certificate

@@ -2,55 +2,52 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:unified-signatures
-import { EventEmitter } from "events";
+
 import chalk from "chalk";
+import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
+import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
 import { AttributeIds } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
-
-import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import type { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     CreateSubscriptionRequest,
-    CreateSubscriptionResponse,
-    DataChangeNotification,
-    DeleteMonitoredItemsResponse,
-    DeleteSubscriptionsResponse,
-    MonitoringParametersOptions,
-    NotificationMessage,
-    StatusChangeNotification,
-    NotificationData,
-    EventNotificationList,
-    SetTriggeringResponse,
-    SetTriggeringRequest,
+    type CreateSubscriptionResponse,
+    type DataChangeNotification,
+    type DeleteMonitoredItemsResponse,
+    type DeleteSubscriptionsResponse,
+    type EventNotificationList,
+    type ModifySubscriptionRequestOptions,
+    type ModifySubscriptionResponse,
     MonitoringMode,
-    ModifySubscriptionRequestOptions,
-    ModifySubscriptionResponse
+    type MonitoringParametersOptions,
+    type NotificationData,
+    type NotificationMessage,
+    SetTriggeringRequest,
+    type SetTriggeringResponse,
+    type StatusChangeNotification
 } from "node-opcua-service-subscription";
-
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
+import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
-import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
-
-import { ClientMonitoredItemBase } from "../client_monitored_item_base";
-import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
-import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
-import {
-    ClientHandle,
-    ClientMonitoredItemBaseMap,
-    ClientSubscription,
-    ClientSubscriptionOptions,
-    ModifySubscriptionOptions,
-    ModifySubscriptionResult
-} from "../client_subscription";
-import { ClientMonitoredItem } from "../client_monitored_item";
+import type { ClientMonitoredItem } from "../client_monitored_item";
+import type { ClientMonitoredItemBase } from "../client_monitored_item_base";
+import type { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
+import type { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
+import {
+    type ClientHandle,
+    type ClientMonitoredItemBaseMap,
+    ClientSubscription,
+    type ClientSubscriptionOptions,
+    type ModifySubscriptionOptions,
+    type ModifySubscriptionResult
+} from "../client_subscription";
 import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
-import { ClientSidePublishEngine } from "./client_publish_engine";
-import { ClientSessionImpl } from "./client_session_impl";
+import type { ClientSidePublishEngine } from "./client_publish_engine";
+import type { ClientSessionImpl } from "./client_session_impl";
 import { detectLongOperation } from "./performance";
 
 const debugLog = make_debugLog("CLIENT_SUBSCRIPTION");
@@ -130,11 +127,13 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         return !!this.publishEngine?.session;
     }
     public get isActive(): boolean {
-        return this.hasSession && !(
-            this.subscriptionId === PENDING_SUBSCRIPTION_ID ||
-            this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
-            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
-
+        return (
+            this.hasSession &&
+            !(
+                this.subscriptionId === PENDING_SUBSCRIPTION_ID ||
+                this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
+                this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
+            )
         );
     }
 
@@ -695,7 +694,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public onNotificationMessage(notificationMessage: NotificationMessage): void {
-        assert(Object.prototype.hasOwnProperty.call(notificationMessage, "sequenceNumber"));
+        assert(Object.hasOwn(notificationMessage, "sequenceNumber"));
 
         this.lastSequenceNumber = notificationMessage.sequenceNumber;
 
@@ -758,7 +757,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         if (s(this).$_slowNotifCount > 0 && s(this).$_slowNotifCount % 1000 !== 0) return;
                         s(this).$_slowNotifCount++;
                         warningLog(
-                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${s(this).$_slowNotifCount
+                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
+                                s(this).$_slowNotifCount
                             } times]\n         please ensure that your monitoredItem event handler is not blocking the event loop.`
                         );
                     }
@@ -840,7 +840,6 @@ export function ClientMonitoredItem_create(
     monitoringMode: MonitoringMode = MonitoringMode.Reporting,
     callback?: (err3?: Error | null, monitoredItem?: ClientMonitoredItem) => void
 ): ClientMonitoredItem {
-
     const subscriptionImpl = subscription as ClientSubscriptionImpl;
     if (!subscriptionImpl) {
         throw new Error("Invalid subscription");
@@ -875,9 +874,11 @@ export function ClientMonitoredItem_create(
     });
     return monitoredItem;
 }
+
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 
 ClientSubscriptionImpl.prototype.setPublishingMode = withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
