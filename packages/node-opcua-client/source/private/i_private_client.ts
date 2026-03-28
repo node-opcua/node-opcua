@@ -1,11 +1,11 @@
-import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
-import { EndpointDescription } from "node-opcua-service-endpoints";
-import { IBasicTransportSettings, ResponseCallback } from "node-opcua-pseudo-session";
+import type { IBasicTransportSettings, ResponseCallback } from "node-opcua-pseudo-session";
+import type { ClientSecureChannelLayer } from "node-opcua-secure-channel";
+import type { EndpointDescription } from "node-opcua-service-endpoints";
 
-import { ClientSession } from "../client_session";
-import { Request, Response } from "../common";
-import { UserIdentityInfo } from "../user_identity_info";
-import { ClientSessionImpl } from "./client_session_impl";
+import type { ClientSession } from "../client_session";
+import type { Request, Response } from "../common";
+import type { UserIdentityInfo } from "../user_identity_info";
+import type { ClientSessionImpl } from "./client_session_impl";
 
 export interface IClientBase {
     __createSession_step2(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void;
@@ -29,5 +29,5 @@ export interface IClientBase {
 
     isUnusable(): boolean;
 
-    beforeSubscriptionRecreate?: (session: ClientSession) => Promise<Error | undefined>
+    beforeSubscriptionRecreate?: (session: ClientSession) => Promise<Error | undefined>;
 }

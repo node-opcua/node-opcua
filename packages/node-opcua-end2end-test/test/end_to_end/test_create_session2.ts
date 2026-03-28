@@ -1,16 +1,15 @@
 /***
  *
  */
-import { OPCUAServer, RegisterServerMethod } from "node-opcua-server";
 import { OPCUAClient } from "node-opcua-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { OPCUAServer, RegisterServerMethod } from "node-opcua-server";
 import should from "should";
-
 
 const sleep = async (delay: number) => await new Promise((resolve) => setTimeout(resolve, delay));
 
 const port = 1304;
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", () => {
     let server: OPCUAServer;
 
@@ -33,12 +32,10 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
         return server;
     }
 
-    [
-        createServerWithMaxAllowSessionOld, 
-        createServerWithMaxAllowSessionNew
-        ].forEach((createServerWithMaxAllowSession, index) => {
+    [createServerWithMaxAllowSessionOld, createServerWithMaxAllowSessionNew].forEach((createServerWithMaxAllowSession, index) => {
         const n = 3;
-        describe(" " + createServerWithMaxAllowSession.name, function () {
+        describe(` ${createServerWithMaxAllowSession.name}`, function (this: Mocha.Suite) {
+            this.timeout(30_000);
             before(async () => {
                 server = createServerWithMaxAllowSession();
                 await server.start();
@@ -49,16 +46,15 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
             });
 
             it(`NOS-${index * n + 1} - OPCUAClient.createSession - should retry to connect a session`, async () => {
-                
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({  clientName: "1 " + __filename });
+                const client1 = OPCUAClient.create({ clientName: `1 ${__filename}` });
                 await client1.connect(server.getEndpointUrl());
 
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();
 
                 // Given a second connected client
-                const client2 = OPCUAClient.create({ clientName: "2 " + __filename });
+                const client2 = OPCUAClient.create({ clientName: `2 ${__filename}` });
                 await client2.connect(server.getEndpointUrl());
 
                 let _err: Error | null = null;
@@ -76,11 +72,11 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                     await session1.close();
                     await client1.disconnect();
                 }
-                
+
                 // Then the server returns BadTooManySession
                 // ahd createSession should fail with an expection
                 should.exist(_err);
-                _err!.message.should.match(/BadTooManySessions/);
+                should(_err?.message).match(/BadTooManySessions/);
             });
 
             it(`NOS-${index * n + 2} - OPCUAClient.createSession - should retry to connect a session`, async () => {
@@ -100,13 +96,13 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                 }
 
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({ clientName: "3 " + __filename });
+                const client1 = OPCUAClient.create({ clientName: `3 ${__filename}` });
                 await client1.connect(server.getEndpointUrl());
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();
 
                 // Given a second connected client
-                const client2 = OPCUAClient.create({ clientName: "4 " + __filename });
+                const client2 = OPCUAClient.create({ clientName: `4 ${__filename}` });
                 await client2.connect(server.getEndpointUrl());
 
                 let _err: Error | null = null;
@@ -164,7 +160,7 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                 }
 
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({ clientName: "5 " + __filename });
+                const client1 = OPCUAClient.create({ clientName: `5 ${__filename}` });
                 await client1.connect(server.getEndpointUrl());
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();

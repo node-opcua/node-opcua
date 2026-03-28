@@ -2,20 +2,24 @@
  * @module node-opcua-client
  */
 // tslint:disable:no-unused-expression
-import { EventEmitter } from "events";
-import { LocaleId } from "node-opcua-basic-types";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { OPCUASecureObject } from "node-opcua-common";
-import { Certificate } from "node-opcua-crypto/web";
+import type { EventEmitter } from "node:events";
+import type { LocaleId } from "node-opcua-basic-types";
+import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import type { OPCUASecureObject } from "node-opcua-common";
+import type { Certificate } from "node-opcua-crypto/web";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { ClientSecureChannelLayer, ConnectionStrategy, ConnectionStrategyOptions, SecurityPolicy } from "node-opcua-secure-channel";
-import { FindServersOnNetworkRequestOptions, FindServersRequestOptions, ServerOnNetwork } from "node-opcua-service-discovery";
-import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
-import { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { ErrorCallback } from "node-opcua-status-code";
-import { ResponseCallback } from "node-opcua-pseudo-session";
-
-import { Request, Response } from "./common";
+import type { ResponseCallback } from "node-opcua-pseudo-session";
+import type {
+    ClientSecureChannelLayer,
+    ConnectionStrategy,
+    ConnectionStrategyOptions,
+    SecurityPolicy
+} from "node-opcua-secure-channel";
+import type { FindServersOnNetworkRequestOptions, FindServersRequestOptions, ServerOnNetwork } from "node-opcua-service-discovery";
+import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
+import type { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import type { ErrorCallback } from "node-opcua-status-code";
+import type { Request, Response } from "./common";
 
 export type FindServersRequestLike = FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;
@@ -73,9 +77,9 @@ export interface OPCUAClientBaseOptions {
     keepPendingSessionsOnDisconnect?: boolean;
 
     /**
-     * the server certificate.
+     * the server certificate or certificate chain.
      */
-    serverCertificate?: Certificate;
+    serverCertificate?: Certificate | Certificate[];
 
     /**
      * default secure token lifetime in ms
@@ -97,70 +101,70 @@ export interface OPCUAClientBaseOptions {
 
     /**
      * When set to true, the session will send a Read request on a regular interval specified by the `keepAliveInterval`.
-     * 
+     *
      * This ensure that the connection will remain active and that the socket will not timeout.
-     * 
-     * When the keepAlive manager is not able to perform the Read operation, then it breaks the connection 
-     * and force the client to enter a reconnection phase. 
-     * 
-     * On some network settings and operating system, it might be quite tricky to detect when the communication 
-     * as the the 
-     * 
-     * 
+     *
+     * When the keepAlive manager is not able to perform the Read operation, then it breaks the connection
+     * and force the client to enter a reconnection phase.
+     *
+     * On some network settings and operating system, it might be quite tricky to detect when the communication
+     * as the the
+     *
+     *
      * Tips:
-     *  
-     * You don't ned to use `keepSessionAlive: true`  when your session have a subscription active. 
-     * A OPCUA subscription has already a built-in keepAlive mechanism that can replace the regular Read pooling 
-     * offered by this flag. 
-     * 
+     *
+     * You don't ned to use `keepSessionAlive: true`  when your session have a subscription active.
+     * A OPCUA subscription has already a built-in keepAlive mechanism that can replace the regular Read pooling
+     * offered by this flag.
+     *
      * @default false
      */
     keepSessionAlive?: boolean;
     /**
      * The number of milliseconds that the client should wait until it sends a keep alive message to the server.
-     * 
+     *
      * If not specified, node-opcua will use a suitable default value.
-     * 
+     *
      * Tips:
-     * 
-     * - make sure to tune the value appropriately to be lesser than the sessionTimeOut and the tcp.ip socket 
-     * timeout. 
+     *
+     * - make sure to tune the value appropriately to be lesser than the sessionTimeOut and the tcp.ip socket
+     * timeout.
      */
     keepAliveInterval?: number;
 
     /**
      * The certificate Manager
-     * 
+     *
      * If not specified your Client will create and use a default Certificate manager.
-     * 
+     *
      * You will have pass your own OPCUACertificateManager if you are in one of the following situation:
-     * 
+     *
      *  - you want to control the location of your PKI
      *  - you want multiple instances of OPCUAClient to share the same OPCUACertificateManager
-     * 
+     *
      */
     clientCertificateManager?: OPCUACertificateManager;
 
     /**
      * The client certificate pem file.
-     * 
-     * Note: 
+     *
+     * Note:
      *   - most of the time, you won't need to overload the certificate PEM fiel
      *   - don't  specify the certificateFile if you are using the PushCertificate built-in feature
-     *     provided by NodeOPCUA as it may interfere. 
-     * 
+     *     provided by NodeOPCUA as it may interfere.
+     *
      * @default `${clientCertificateManager/rootFolder}/own/certs/client_certificate.pem"
      */
     certificateFile?: string;
 
     /**
      * client private key pem file.
-     * Note: 
+     * Note:
      *   - most of the time, you won't need to overload the private key file
      *   - don't  specify the privateKeyFile if you are using the PushCertificate built-in feature
-     *     provided by NodeOPCUA as it may interfere. 
+     *     provided by NodeOPCUA as it may interfere.
      *   - ensure that the provided client certificate matches the private pey.
-     * 
+     *
      * @default `${clientCertificateManager/rootFolder}/own/private/private_key.pem"
      */
     privateKeyFile?: string;
@@ -174,18 +178,18 @@ export interface OPCUAClientBaseOptions {
      * discovery url:
      */
     discoveryUrl?: string;
-    
+
     /**
-     * specify some transport settings that will override 
+     * specify some transport settings that will override
      * the default transport settings for the end point.
      */
     transportSettings?: TransportSettings;
-  
+
     /**
      * transport timeout
-     * 
+     *
      * - the devffault
-     * @default 
+     * @default
      */
     transportTimeout?: number;
     /**
@@ -200,7 +204,7 @@ export interface GetEndpointsOptions {
     profileUris?: string[];
 }
 
-export interface OPCUAClientBase extends OPCUASecureObject {
+export interface OPCUAClientBase<Events extends OPCUAClientBaseEvents = OPCUAClientBaseEvents> extends OPCUASecureObject<Events> {
     /**
      * certificate Manager
      */
@@ -246,23 +250,21 @@ export interface OPCUAClientBase extends OPCUASecureObject {
 }
 
 // Events -----------------------------------------------------------------------------
-export interface OPCUAClientBase extends EventEmitter {
-    // tslint:disable:unified-signatures
-
+export interface OPCUAClientBaseEvents {
     /**
      * this Event is raised when the  initial connection has succeeded
      */
-    on(eventName: "connected", eventHandler: () => void): this;
+    connected: [];
 
     /**
      * this Event is raised when the  initial connection has failed
      */
-    on(eventName: "connection_failed", eventHandler: (err: Error) => void): this;
+    connection_failed: [err: Error];
 
     /**
      * this Event is raised when a failing connection is about to be tried again
      */
-    on(eventName: "backoff", eventHandler: (count: number, delay: number) => void): this;
+    backoff: [count: number, delay: number];
 
     /**
      * this event is raised when the client has encountered a connection failure and
@@ -274,14 +276,14 @@ export interface OPCUAClientBase extends EventEmitter {
      * You can intercept start_reconnection event to pause your interaction with the remote
      * OPCUA server.
      */
-    on(eventName: "start_reconnection", eventHandler: () => void): this;
+    start_reconnection: [err?: Error];
 
     /**
      * this event is raised when the client has failed one attempt to reconnect to the server
      * This event will be raised if the socket has successfully being created to the server but
      * if something went wrong during the reconnection process.
      */
-    on(eventName: "reconnection_attempt_has_failed", eventHandler: (err: Error, message: string) => void): this;
+    reconnection_attempt_has_failed: [err: Error, message: string];
 
     /**
      * this event is raised after the client has successfully managed to re-establish the connection with
@@ -289,63 +291,76 @@ export interface OPCUAClientBase extends EventEmitter {
      * You can intercept after_reconnection event to resume your interaction with the remote
      * OPCUA server.
      */
-    on(eventName: "after_reconnection", eventHandler: (err?: Error) => void): this;
+    after_reconnection: [err?: Error | null];
 
     /**
      * the event is raised when the connection has been aborted by the remote OPCUA Server
      */
-    on(eventName: "abort", eventHandler: () => void): this;
+    abort: [];
+
+    reconnection_canceled: [];
+
+    startingDelayBeforeReconnection: [duration: number];
+
+    reconnecting: [];
+
+    repairConnectionStarted: [];
+
+    keepalive: [];
 
     /**
      * this event is raised when the connection is closed
      */
-    on(eventName: "close", eventHandler: () => void): this;
+    close: [err?: Error | null];
 
     /**
      * this event is raised when the client is sending a message chunk to the server
      * (advanced use only)
      */
-    on(eventName: "send_chunk", eventHandler: (chunk: Buffer) => void): this;
+    send_chunk: [chunk: Buffer];
 
     /**
      * this event is raised when the client has received a new message chunk from the servers
      * (advanced use only)
      */
-    on(eventName: "receive_chunk", eventHandler: (chunk: Buffer) => void): this;
+    receive_chunk: [chunk: Buffer];
 
-    on(eventName: "send_request", eventHandler: (request: Request) => void): this;
+    send_request: [request: Request];
 
-    on(eventName: "receive_response", eventHandler: (response: Response) => void): this;
+    receive_response: [response: Response];
 
     /**
      * this event is raised when the current security token has reached 75% of its lifetime and is therefore
      * about to expired.
      */
-    on(eventName: "lifetime_75", eventHandler: (token: ChannelSecurityToken) => void): this;
+    lifetime_75: [token: ChannelSecurityToken];
 
     /**
      * this event is raised after the (about ) security token as been renewed
      * and renegotiated with the server.to expire
      */
-    on(eventName: "security_token_renewed", eventHandler: (channel: ClientSecureChannelLayer, token: ChannelSecurityToken) => void): this;
+    security_token_renewed: [channel: ClientSecureChannelLayer, token: ChannelSecurityToken];
+
+    /**
+     * this event is raised when the secure channel has been created
+     */
+    secure_channel_created: [secureChannel: ClientSecureChannelLayer];
 
     /**
      * this event is raised when the connection has been broken
      */
-    on(eventName: "connection_lost", eventHandler: () => void): this;
+    connection_lost: [];
 
     /**
      * this event is raised when a broken connection with the remote Server has been reestablished
      */
-    on(eventName: "connection_reestablished", eventHandler: () => void): this;
+    connection_reestablished: [];
 
     /**
      * This event is raised when a request sent to the remote OPCUA server has reach it's timeout value without
      * a Response from the server.
      */
-    on(eventName: "timed_out_request", eventHandler: (request: Request) => void): this;
-
-    on(eventName: string | symbol, listener: (...args: any[]) => void): this;
+    timed_out_request: [request: Request];
 }
 
 export interface OPCUAClientBase {
@@ -359,7 +374,7 @@ export interface OPCUAClientBase {
 
     readonly securityMode: MessageSecurityMode;
     readonly securityPolicy: SecurityPolicy;
-    readonly serverCertificate?: Certificate;
+    readonly serverCertificate?: Certificate | Certificate[];
     readonly clientName: string;
     readonly protocolVersion: 0;
     readonly defaultSecureTokenLifetime: number;
@@ -370,13 +385,13 @@ export interface OPCUAClientBase {
     readonly applicationName: string;
 }
 
-export class OPCUAClientBase {
-    public static registry = new ObjectRegistry();
-    public static retryDelay = 1000 * 5;
+export const OPCUAClientBase = {
+    registry: new ObjectRegistry(),
+    retryDelay: 1000 * 5,
 
-    public static create(options: OPCUAClientBaseOptions): OPCUAClientBase {
+    create(options: OPCUAClientBaseOptions): OPCUAClientBase {
         /* c8 ignore next*/
         options;
         throw new Error("Not Implemented");
     }
-}
+};

@@ -13,15 +13,8 @@ import {
     SecurityPolicy,
     UserTokenType
 } from "node-opcua-client";
-import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
-import {
-    type Certificate,
-    exploreCertificate,
-    exploreCertificateSigningRequest,
-    makeSHA1Thumbprint,
-    split_der,
-    toPem
-} from "node-opcua-crypto/web";
+import { readCertificateChain, readCertificateChainAsync, readCertificateRevocationList } from "node-opcua-crypto";
+import { exploreCertificate, exploreCertificateSigningRequest, makeSHA1Thumbprint, readCertificateChain, readCertificateChainAsync, split_der, toPem, type Certificate } from "node-opcua-crypto/web";
 import { CertificateAuthority } from "node-opcua-pki";
 import type { TrustListDataType } from "node-opcua-types";
 import { CertificateType, ClientPushCertificateManagement } from "..";
@@ -133,7 +126,7 @@ async function addApplicationCertificate(session: IBasicSessionAsync) {
 
     const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
 
-    const certificate = await readCertificate(certificateFile);
+    const certificate = await readCertificateChainAsync(certificateFile);
     await trustList.addCertificate(certificate, true);
 }
 
@@ -144,7 +137,7 @@ async function addApplicationIssuerCertificateAndCRL(_session: IBasicSessionAsyn
 
 export async function replaceServerCertificate(session: IBasicSessionAsync, caAuthority: CertificateAuthority) {
     const certificateAuthorityPath = path.join(caAuthority.location);
-    const caCertificate = await readCertificate(caAuthority.caCertificate);
+    const caCertificate = await readCertificateChainAsync(caAuthority.caCertificate);
     // also get crl
     const crl = await readCertificateRevocationList(caAuthority.revocationList);
 
@@ -178,7 +171,7 @@ export async function replaceServerCertificate(session: IBasicSessionAsync, caAu
         applicationUri
     });
 
-    const certificateChain = readCertificate(certificateFile);
+    const certificateChain = readCertificateChain(certificateFile);
     dumpCertificateInfo(certificateChain);
 
     // now publish certificate
@@ -219,7 +212,7 @@ export async function replaceServerCertificate(session: IBasicSessionAsync, caAu
         });
         await caAuthority.initialize();
         await caAuthority.constructCACertificateWithCRL();
-        const caCertificate = await readCertificate(caAuthority.caCertificate);
+        const caCertificate = await readCertificateChainAsync(caAuthority.caCertificate);
         const crl = await readCertificateRevocationList(caAuthority.revocationList);
 
         // --------------------------------------------------------------- Client PKI

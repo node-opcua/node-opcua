@@ -1,26 +1,24 @@
 /**
  * @module node-opcua-client
  */
-import { EventEmitter } from "events";
-
-import { DataValue } from "node-opcua-data-value";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { TimestampsToReturn } from "node-opcua-service-read";
-import {
+import type { EventEmitter } from "events";
+import { type AttributeIds, UInt32 } from "node-opcua-basic-types";
+import type { QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import type { TimestampsToReturn } from "node-opcua-service-read";
+import type {
     MonitoredItemCreateResult,
     MonitoringMode,
     MonitoringParameters,
     MonitoringParametersOptions
 } from "node-opcua-service-subscription";
-import { StatusCode } from "node-opcua-status-code";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { NumericRange } from "node-opcua-numeric-range";
-import { QualifiedNameLike } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { AttributeIds, UInt32 } from "node-opcua-basic-types";
+import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
+import type { Variant } from "node-opcua-variant";
 
-import { ClientSubscription } from "./client_subscription";
+import type { ClientSubscription } from "./client_subscription";
 
 // tslint:disable:unified-signatures
 export interface ClientMonitoredItemOrGroupAction {

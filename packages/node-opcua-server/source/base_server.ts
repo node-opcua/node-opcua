@@ -13,7 +13,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "node-opcua-client";
-import { type IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
+import { type IOPCUASecureObjectOptions, invalidateCachedSecrets, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
 import { exploreCertificate } from "node-opcua-crypto/web";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
@@ -339,9 +339,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // recreate with current hostnames
         await this.createDefaultCertificate();
         // invalidate cached cert so next getCertificate() reloads from disk
-        const priv = this as unknown as { $$certificate: null; $$certificateChain: null };
-        priv.$$certificate = null;
-        priv.$$certificateChain = null;
+        invalidateCachedSecrets(this);
     }
 
     private _checkCertificateSanMismatch(): void {

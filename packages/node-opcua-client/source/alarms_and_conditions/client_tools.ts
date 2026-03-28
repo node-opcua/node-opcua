@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-client
  */
-import { callbackify } from "util";
-import { LocalizedTextLike } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { StatusCode } from "node-opcua-status-code";
-import { Callback } from "node-opcua-status-code";
+
 import { acknowledgeCondition, callMethodCondition, confirmCondition } from "node-opcua-alarm-condition";
-import { ResponseCallback, findMethodId } from "node-opcua-pseudo-session";
+import type { LocalizedTextLike } from "node-opcua-data-model";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { findMethodId, type ResponseCallback } from "node-opcua-pseudo-session";
+import type { Callback, StatusCode } from "node-opcua-status-code";
+import { callbackify } from "util";
 
 import { ClientSessionImpl } from "../private/client_session_impl";
 
@@ -67,6 +67,7 @@ ClientSessionImpl.prototype.acknowledgeCondition = function (
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 ClientSessionImpl.prototype.addCommentCondition = withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
 ClientSessionImpl.prototype.findMethodId = withCallback(ClientSessionImpl.prototype.findMethodId, opts);

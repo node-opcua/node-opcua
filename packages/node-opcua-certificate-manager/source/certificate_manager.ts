@@ -2,18 +2,16 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
-import fs from "fs";
-import path from "path";
 
 import envPaths from "env-paths";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
-import { CertificateManager, CertificateManagerOptions } from "node-opcua-pki";
-import { StatusCodes } from "node-opcua-status-code";
-import { StatusCode } from "node-opcua-status-code";
-import { StatusCodeCallback } from "node-opcua-status-code";
+import fs from "fs";
 import { assert } from "node-opcua-assert";
+import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
+import { CertificateManager, type CertificateManagerOptions } from "node-opcua-pki";
+import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
+import path from "path";
 
 const paths = envPaths("node-opcua-default");
 
@@ -102,7 +100,10 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(...args: any[]): any {
         const callback = args[0];
         assert(callback && typeof callback === "function");
-        return super.initialize().then(() => callback()).catch((err) => callback(err));
+        return super
+            .initialize()
+            .then(() => callback())
+            .catch((err) => callback(err));
     }
 
     public async dispose(): Promise<void> {
@@ -113,9 +114,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         }
     }
 
-    public checkCertificate(certificateChain: Certificate): Promise<StatusCode>;
-    public checkCertificate(certificateChain: Certificate, callback: StatusCodeCallback): void;
-    public checkCertificate(certificateChain: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | void {
+    public checkCertificate(certificateChain: Certificate | Certificate[]): Promise<StatusCode>;
+    public checkCertificate(certificateChain: Certificate | Certificate[], callback: StatusCodeCallback): void;
+    public checkCertificate(
+        certificateChain: Certificate | Certificate[],
+        callback?: StatusCodeCallback
+    ): Promise<StatusCode> | undefined {
         // c8 ignore next
         if (!callback || typeof callback !== "function") {
             throw new Error("Internal error");
@@ -123,29 +127,31 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         this.#checkCertificate(certificateChain)
             .then((status) => callback(null, status))
             .catch((err) => callback(err));
+        return undefined;
     }
-    async #checkCertificate(certificateChain: Certificate): Promise<StatusCode> {
-        const status = await this.verifyCertificate(certificateChain, { acceptCertificateWithValidIssuerChain: true });
+    async #checkCertificate(certificateChain: Certificate | Certificate[]): Promise<StatusCode> {
+        const certificates = Array.isArray(certificateChain) ? certificateChain : [certificateChain];
 
-        const statusCode = (StatusCodes as any)[status!];
-        const certificates = split_der(certificateChain);
+        const status = await this.verifyCertificate(Buffer.concat(certificates), { acceptCertificateWithValidIssuerChain: true });
 
-        debugLog("checkCertificate => StatusCode = ", statusCode.toString());
+        const statusCode = StatusCodes[status];
+
+        debugLog(`checkCertificate => StatusCode = ${statusCode.toString()}`);
         if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
             const topCertificateInChain = certificates[0];
             const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
             if (this.automaticallyAcceptUnknownCertificate) {
                 debugLog("automaticallyAcceptUnknownCertificate = true");
-                debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
+                debugLog(`certificate with thumbprint ${thumbprint} is now trusted`);
                 try {
                     await this.trustCertificate(topCertificateInChain);
-                } catch (err: any) {
-                    if (err.code === "ENOENT") {
+                } catch (err) {
+                    if (err && (err as Error & { code: string }).code === "ENOENT") {
                         // Another concurrent caller already moved the certificate
                         // from rejected to trusted — verify it's now trusted.
                         const trustStatus = await this.getTrustStatus(topCertificateInChain);
                         if (trustStatus.equals(StatusCodes.Good)) {
-                            debugLog("certificate with thumbprint " + thumbprint + " was already trusted by another caller");
+                            debugLog(`certificate with thumbprint ${thumbprint} was already trusted by another caller`);
                             return StatusCodes.Good;
                         }
                     }
@@ -154,7 +160,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 return StatusCodes.Good;
             } else {
                 debugLog("automaticallyAcceptUnknownCertificate = false");
-                debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
+                debugLog(`certificate with thumbprint ${thumbprint} is now rejected`);
                 await this.rejectCertificate(topCertificateInChain);
                 return StatusCodes.BadCertificateUntrusted;
             }
@@ -173,16 +179,24 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
     public async getTrustStatus(certificate: Certificate): Promise<StatusCode>;
     public getTrustStatus(certificate: Certificate, callback: StatusCodeCallback): void;
-    public getTrustStatus(certificate: Certificate, callback?: StatusCodeCallback): any {
+    public getTrustStatus(certificate: Certificate, callback?: StatusCodeCallback): Promise<StatusCode> | undefined {
+        // c8 ignore next
+        if (!callback || typeof callback !== "function") {
+            throw new Error("Internal error");
+        }
         this.isCertificateTrusted(certificate)
-            .then((trustedStatus) => callback!(null, (StatusCodes as any)[trustedStatus!]))
-            .catch((err) => callback!(err));
+            .then((trustedStatus) =>
+                callback(null, StatusCodes[trustedStatus as unknown as keyof typeof StatusCodes] as StatusCode)
+            )
+            .catch((err) => callback(err));
+        return undefined;
     }
 }
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 
 OPCUACertificateManager.prototype.checkCertificate = withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);

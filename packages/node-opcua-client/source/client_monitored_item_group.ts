@@ -2,12 +2,12 @@
  * @module node-opcua-client
  */
 
-import { EventEmitter } from "events";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { MonitoringParametersOptions } from "node-opcua-types";
+import type { EventEmitter } from "events";
+import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import type { MonitoringParametersOptions } from "node-opcua-types";
 
-import { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
-import { ClientSubscription } from "./client_subscription";
+import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
+import type { ClientSubscription } from "./client_subscription";
 
 // tslint:disable:unified-signatures
 export interface ClientMonitoredItemGroup extends EventEmitter, ClientMonitoredItemOrGroupAction {

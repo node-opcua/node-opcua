@@ -1,4 +1,4 @@
-import { ClientBaseImpl } from "../client_base_impl";
+import type { ClientBaseImpl } from "../client_base_impl";
 
 export function waitUntilReconnectionIsCanceled(client: ClientBaseImpl, callback: () => void) {
     const interval = 100;

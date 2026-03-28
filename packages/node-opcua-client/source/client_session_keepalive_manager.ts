@@ -1,18 +1,19 @@
 /**
  * @module node-opcua-client
  */
-import { EventEmitter } from "events";
+
 import chalk from "chalk";
+import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
+import { AttributeIds } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
 import { VariableIds } from "node-opcua-constants";
-import { DataValue } from "node-opcua-data-value";
-import { AttributeIds } from "node-opcua-basic-types";
+import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
-import { ClientSessionImpl } from "./private/client_session_impl";
-import { IClientBase } from "./private/i_private_client";
+import type { ClientSessionImpl } from "./private/client_session_impl";
+import type { IClientBase } from "./private/i_private_client";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
@@ -166,12 +167,10 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                          */
                         this.emit("failure");
 
-            
-                        // also simulate a connection by closing the channel abruptly from our end ... 
+                        // also simulate a connection by closing the channel abruptly from our end ...
                         warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
 
                         terminateConnection(session._client);
-
 
                         resolve(0);
                         return;
@@ -200,7 +199,6 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     }
 }
 
-
 function terminateConnection(client: IClientBase | null) {
     if (!client) return;
 
@@ -209,5 +207,4 @@ function terminateConnection(client: IClientBase | null) {
         return;
     }
     channel.forceConnectionBreak();
-   
 }

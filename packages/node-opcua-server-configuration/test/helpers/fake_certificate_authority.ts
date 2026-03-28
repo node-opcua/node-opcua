@@ -3,17 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import {
-    type Certificate,
-    type CertificateRevocationList,
-    convertPEMtoDER,
-    identifyDERContent,
-    type PrivateKey,
-    readCertificate,
-    readCertificateRevocationList,
-    readPrivateKey,
-    toPem
-} from "node-opcua-crypto";
+import { convertPEMtoDER, identifyDERContent, readCertificateChain, readCertificateRevocationList, readPrivateKey, toPem, type Certificate, type CertificateRevocationList, type PrivateKey } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { CertificateAuthority } from "node-opcua-pki";
 
@@ -88,7 +78,7 @@ export async function produceCertificateAndPrivateKey(
         outputFile: certFile
     });
 
-    const certificate = readCertificate(certFile);
+    const certificate = readCertificateChain(certFile);
     const privateKey = readPrivateKey(certificateManager.privateKey);
 
     const privateKeyPEM = await fs.promises.readFile(certificateManager.privateKey, "utf8");
@@ -103,7 +93,7 @@ export async function _getFakeAuthorityCertificate(
     _subfolder: string
 ): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
     const certificateAuthority = await getSharedCertificateAuthority();
-    const certificate = readCertificate(certificateAuthority.caCertificate);
+    const certificate = readCertificateChain(certificateAuthority.caCertificate);
     const crl = await readCertificateRevocationList(certificateAuthority.revocationList);
     return { certificate, crl };
 }
@@ -232,7 +222,7 @@ export async function createCertificateWithEndDate(
         validity
     });
 
-    const certificate = readCertificate(certName);
+    const certificate = readCertificateChain(certName);
     return certificate;
 }
 

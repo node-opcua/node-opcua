@@ -6,17 +6,16 @@
 import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
-import { CloseSessionRequest } from "node-opcua-types";
 import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { TransferSubscriptionsRequest, type TransferSubscriptionsResponse } from "node-opcua-service-subscription";
+import { type CallbackT, type ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CloseSessionRequest } from "node-opcua-types";
 
-import { SubscriptionId } from "../../client_session";
-import { ClientSessionImpl, Reconnectable } from "../client_session_impl";
-import { ClientSubscriptionImpl } from "../client_subscription_impl";
-import { IClientBase } from "../i_private_client";
+import type { SubscriptionId } from "../../client_session";
+import type { ClientSessionImpl, Reconnectable } from "../client_session_impl";
+import type { ClientSubscriptionImpl } from "../client_subscription_impl";
+import type { IClientBase } from "../i_private_client";
 import { republish } from "./client_publish_engine_reconnection";
 import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection";
 
@@ -131,7 +130,12 @@ export function _shouldNotContinue2(subscription: ClientSubscriptionImpl) {
 
 function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (err?: Error) => void) {
     // prettier-ignore
-    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+    {
+        const err = _shouldNotContinue(session);
+        if (err) {
+            return callback(err);
+        }
+    }
 
     doDebug && debugLog(chalk.bgCyan.yellow.bold("_ask_for_subscription_republish "));
     // assert(session.getPublishEngine().nbPendingPublishRequests === 0,
@@ -141,7 +145,12 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
     republish(engine, (err?: Error) => {
         doDebug && debugLog("_ask_for_subscription_republish :  republish sent");
         // prettier-ignore
-        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+        {
+            const err = _shouldNotContinue(session);
+            if (err) {
+                return callback(err);
+            }
+        }
 
         doDebug && debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
         if (err) {
@@ -160,14 +169,24 @@ function create_session_and_repeat_if_failed(
     callback: CallbackT<ClientSessionImpl>
 ) {
     // prettier-ignore
-    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+    {
+        const err = _shouldNotContinue(session);
+        if (err) {
+            return callback(err);
+        }
+    }
 
     doDebug && debugLog(chalk.bgWhite.red("    => creating a new session ...."));
     // create new session, based on old session,
     // so we can reuse subscriptions data
     client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
         // prettier-ignore
-        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+        {
+            const err = _shouldNotContinue(session);
+            if (err) {
+                return callback(err);
+            }
+        }
 
         if (!err && session1) {
             assert(session === session1, "session should have been recycled");
@@ -186,7 +205,12 @@ function repair_client_session_by_recreating_a_new_session(
     callback: (err?: Error) => void
 ) {
     // prettier-ignore
-    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+    {
+        const err = _shouldNotContinue(session);
+        if (err) {
+            return callback(err);
+        }
+    }
 
     // As we don"t know if server has been rebooted or not,
     // and may be upgraded in between, we have to invalidate the extra data type manager
@@ -206,7 +230,12 @@ function repair_client_session_by_recreating_a_new_session(
             subscriptionsToRecreate,
             (subscriptionId: SubscriptionId, next: ErrorCallback) => {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return next(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return next(err);
+                    }
+                }
 
                 if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
                     doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
@@ -232,7 +261,12 @@ function repair_client_session_by_recreating_a_new_session(
             },
             (err1?: Error | null) => {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
                 if (!err1) {
                     // prettier-ignore
                 }
@@ -245,7 +279,12 @@ function repair_client_session_by_recreating_a_new_session(
         [
             function suspend_old_session_publish_engine(innerCallback: ErrorCallback) {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
 
                 // c8 ignore next
                 doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
@@ -256,7 +295,12 @@ function repair_client_session_by_recreating_a_new_session(
             function create_new_session(innerCallback: ErrorCallback) {
                 create_session_and_repeat_if_failed(client, session, (err?: Error | null, _newSession?: ClientSessionImpl) => {
                     // prettier-ignore
-                    { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                    {
+                        const err = _shouldNotContinue(session);
+                        if (err) {
+                            return innerCallback(err);
+                        }
+                    }
 
                     if (_newSession) {
                         newSession = _newSession;
@@ -267,7 +311,12 @@ function repair_client_session_by_recreating_a_new_session(
 
             function activate_new_session(innerCallback: ErrorCallback) {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
 
                 doDebug && debugLog(chalk.bgWhite.red("    => activating a new session ...."));
 
@@ -333,7 +382,12 @@ function repair_client_session_by_recreating_a_new_session(
 
             function attempt_subscription_transfer(innerCallback: ErrorCallback) {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
 
                 // get the old subscriptions id from the old session
                 const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
@@ -359,7 +413,12 @@ function repair_client_session_by_recreating_a_new_session(
                     (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
                         // may be the connection with server has been disconnected
                         // prettier-ignore
-                        { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                        {
+                            const err = _shouldNotContinue(session);
+                            if (err) {
+                                return innerCallback(err);
+                            }
+                        }
 
                         if (err || !transferSubscriptionsResponse) {
                             warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
@@ -418,7 +477,12 @@ function repair_client_session_by_recreating_a_new_session(
 
             function ask_for_subscription_republish(innerCallback: ErrorCallback) {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
 
                 //  assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
                 //      call Republish
@@ -432,7 +496,12 @@ function repair_client_session_by_recreating_a_new_session(
 
             function start_publishing_as_normal(innerCallback: ErrorCallback) {
                 // prettier-ignore
-                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                {
+                    const err = _shouldNotContinue(session);
+                    if (err) {
+                        return innerCallback(err);
+                    }
+                }
 
                 newSession.getPublishEngine().suspend(false);
 
@@ -467,11 +536,21 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
     }
 
     // prettier-ignore
-    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+    {
+        const err = _shouldNotContinue(session);
+        if (err) {
+            return callback(err);
+        }
+    }
 
     client._activateSession(session, session.userIdentityInfo!, (err: Error | null, session2?: ClientSessionImpl) => {
         // prettier-ignore
-        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+        {
+            const err = _shouldNotContinue(session);
+            if (err) {
+                return callback(err);
+            }
+        }
         //
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
@@ -513,15 +592,25 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     privateSession._reconnecting.reconnecting = true;
 
     // get old transaction queue ...
-    const transactionQueue =  privateSession._reconnecting.pendingTransactions.splice(0);
+    const transactionQueue = privateSession._reconnecting.pendingTransactions.splice(0);
 
     const repeatedAction = (callback: EmptyCallback) => {
         // prettier-ignore
-        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+        {
+            const err = _shouldNotContinue(session);
+            if (err) {
+                return callback(err);
+            }
+        }
 
         _repair_client_session(client, session, (err) => {
             // prettier-ignore
-            { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+            {
+                const err = _shouldNotContinue(session);
+                if (err) {
+                    return callback(err);
+                }
+            }
 
             if (err) {
                 errorLog(
@@ -534,10 +623,13 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     const delay = 2000;
                     errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
                     setTimeout(() => {
-                        { const err = _shouldNotContinue(session); if (err) {
-                            warningLog("cancelling session repair"); 
-                            return callback(err); 
-                        } }
+                        {
+                            const err = _shouldNotContinue(session);
+                            if (err) {
+                                warningLog("cancelling session repair");
+                                return callback(err);
+                            }
+                        }
                         errorLog(chalk.red("Retrying session repair..."));
                         repeatedAction(callback);
                     }, delay);
@@ -560,7 +652,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         privateSession._reconnecting.reconnecting = false;
         const otherCallbacks = privateSession._reconnecting.pendingCallbacks.splice(0);
         // re-inject element in queue
-        
+
         // c8 ignore next
         if (transactionQueue.length > 0) {
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
@@ -585,7 +677,12 @@ export function repair_client_sessions(client: IClientBase, callback: (err?: Err
         (err, allErrors: (undefined | Error | null)[] | undefined) => {
             err && errorLog("sessions reactivation completed with err: err ", err ? err.message : "null");
             // prettier-ignore
-            { const err = _shouldNotContinue3(client); if (err) { return callback(err); } }
+            {
+                const err = _shouldNotContinue3(client);
+                if (err) {
+                    return callback(err);
+                }
+            }
 
             return callback(err!);
         }

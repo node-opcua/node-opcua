@@ -1,42 +1,41 @@
-import { once } from "events";
-import path from "path";
-import os from "os";
-import fs from "fs";
+import { once } from "node:events";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import chalk from "chalk";
-import "should";
+
 import {
     assert,
     makeApplicationUrn,
     makeSubject,
-    OPCUABaseServer,
+    type OPCUABaseServer,
     OPCUADiscoveryServer,
     OPCUAServer,
     RegisterServerMethod
 } from "node-opcua";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { readCertificate, exploreCertificate } from "node-opcua-crypto";
-
+import { readCertificateChain } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import "should";
 
 import { createServerCertificateManager } from "../../../test_helpers/createServerCertificateManager";
-import { wait, stepLog } from "../../../test_helpers/utils";
-import { TestHarness } from "./harness";
-
+import { stepLog, wait } from "../../../test_helpers/utils";
+import type { TestHarness } from "./harness";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-const { yellow: yellow, cyan: cyan } = chalk;
+const { yellow, cyan } = chalk;
 
 export const pause = wait;
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
-
     assert(typeof port === "number", "expecting a port number");
-    const serverCertificateManager = await createServerCertificateManager(port)
+    const serverCertificateManager = await createServerCertificateManager(port);
 
-    const privateKeyFile = serverCertificateManager.privateKey;
+    const _privateKeyFile = serverCertificateManager.privateKey;
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
 
-    const applicationUri = "urn:localhost:LDS-" + port;
+    const applicationUri = `urn:localhost:LDS-${port}`;
     if (!fs.existsSync(certificateFile)) {
         await serverCertificateManager.createSelfSignedCertificate({
             applicationUri,
@@ -55,7 +54,7 @@ export async function createDiscovery(port: number): Promise<OPCUADiscoveryServe
         port,
         serverInfo: {
             applicationUri,
-            productUri: "LDS-" + port
+            productUri: `LDS-${port}`
         },
 
         certificateFile,
@@ -70,14 +69,12 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
     return discoveryServer;
 }
 
-
-
 export const makeDiscoveryServer = async (port_discovery: number, test: TestHarness) => {
     const discoveryServer = new OPCUADiscoveryServer({
         port: port_discovery,
         serverCertificateManager: test.discoveryServerCertificateManager
     });
-  
+
     discoveryServer.on("onRegisterServer", (server, firstTime) => {
         stepLog(yellow("LDS: Registering server    ", server.productUri, server.isOnline, "firstTime = ", firstTime));
     });
@@ -89,20 +86,18 @@ export const makeDiscoveryServer = async (port_discovery: number, test: TestHarn
 
     stepLog(` Discovery LDS will be on port ${port_discovery}`);
     return discoveryServer;
-
-}
-
+};
 
 export async function addServerCertificateToTrustedCertificateInDiscoveryServer(
     server: OPCUAServer,
     discoveryServer: OPCUADiscoveryServer
 ) {
     const filename = server.certificateFile;
-    fs.existsSync(filename).should.eql(true, " the server certificate file " + filename + " should exist");
-    const certificate = readCertificate(filename);
-    await discoveryServer.serverCertificateManager.trustCertificate(certificate);
+    fs.existsSync(filename).should.eql(true, ` the server certificate file ${filename} should exist`);
+    const certificateChain = readCertificateChain(filename);
+    const firstCertificate = certificateChain[0];
+    await discoveryServer.serverCertificateManager.trustCertificate(firstCertificate);
 }
-
 
 /**
  *
@@ -123,10 +118,9 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     port: number,
     name: string
 ): Promise<OPCUAServer> {
-
     const serverCertificateManager = await createServerCertificateManager(port);
 
-    const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_server" + name + ".pem");
+    const certificateFile = path.join(serverCertificateManager.rootDir, `certificate_server${name}.pem`);
 
     assert(!name.match(/urn:/));
     const applicationName = name;
@@ -150,28 +144,28 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
         serverInfo: {
             applicationName,
             applicationUri,
-            productUri: "LDS-" + name
+            productUri: `LDS-${name}`
         },
 
         discoveryServerEndpointUrl,
         registerServerMethod: RegisterServerMethod.LDS,
 
         certificateFile,
-        serverCertificateManager,
+        serverCertificateManager
     });
     server.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
 
     server.on("serverRegistrationPending", () => {
-        debugLog("on serverRegistrationPending event received on server " + server.getEndpointUrl());
+        debugLog(`on serverRegistrationPending event received on server ${server.getEndpointUrl()}`);
     });
     server.on("serverRegistered", () => {
-        debugLog("on serverRegistered event received on server " + server.getEndpointUrl());
+        debugLog(`on serverRegistered event received on server ${server.getEndpointUrl()}`);
     });
     server.on("serverRegistrationRenewed", () => {
-        debugLog("on serverRegistrationRenewed event received on server " + server.getEndpointUrl());
+        debugLog(`on serverRegistrationRenewed event received on server ${server.getEndpointUrl()}`);
     });
     server.on("serverUnregistered", () => {
-        debugLog("on serverUnregistered event received on server " + server.getEndpointUrl());
+        debugLog(`on serverUnregistered event received on server ${server.getEndpointUrl()}`);
     });
     return server;
 }
@@ -182,9 +176,9 @@ export function ep(server: OPCUABaseServer) {
 }
 
 export const tweak_registerServerManager_timeout = (server: OPCUAServer, timeout: number) => {
-    Object.prototype.hasOwnProperty.call(server.registerServerManager, "timeout").should.eql(true);
+    Object.hasOwn(server.registerServerManager || {}, "timeout").should.eql(true);
     (server.registerServerManager as unknown as { timeout: number }).timeout = timeout;
-}
+};
 export const startAndWaitForRegisteredToLDS = async (server: OPCUAServer) => {
     console.log("starting server ", server.serverInfo.applicationUri);
     await server.start();
@@ -192,7 +186,8 @@ export const startAndWaitForRegisteredToLDS = async (server: OPCUAServer) => {
         const timeout = 10_000;
 
         const timerId = setTimeout(
-            () => reject(new Error(`startAndWaitForRegisteredToLDS: Server failed to register initially within ${timeout} ms.`)), timeout
+            () => reject(new Error(`startAndWaitForRegisteredToLDS: Server failed to register initially within ${timeout} ms.`)),
+            timeout
         );
         server.once("serverRegistered", () => {
             if (timerId) {
@@ -202,7 +197,7 @@ export const startAndWaitForRegisteredToLDS = async (server: OPCUAServer) => {
             resolve();
         });
     });
-}
+};
 
 const doTrace = doDebug || process.env.TRACE;
 
@@ -215,18 +210,17 @@ export function f<T>(func: FF<T>): FF<T> {
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
-    const ff = async function (): Promise<T> {
+    const ff = async (): Promise<T> => {
         if (doTrace) {
             // tslint:disable-next-line: no-console
-            console.log("         * " + title);
+            console.log(`         * ${title}`);
         }
         try {
             return await func();
-        }
-        catch (err) {
+        } catch (err) {
             if (doDebug) {
                 // tslint:disable-next-line: no-console
-                console.log("         ! " + title);
+                console.log(`         ! ${title}`);
             }
             throw err;
         }
@@ -245,15 +239,13 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
     const ff = async () => {
         if (doTrace) {
             // tslint:disable-next-line: no-console
-            console.log("         * " + title);
+            console.log(`         * ${title}`);
         }
         await func();
         if (doDebug) {
             // tslint:disable-next-line: no-console
-            console.log("         ! " + title);
+            console.log(`         ! ${title}`);
         }
     };
     await ff();
 }
-
-

@@ -35,7 +35,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
     it("TSC-1 should raise a close event once on normal disconnection", async () => {
         let close_counter = 0;
         const client = OPCUAClient.create({});
-        client.on("close", (err: Error | null) => {
+        client.on("close", (err?: Error | null) => {
             if (err) {
                 // Should not happen for client-initiated disconnect
                 err.message.should.not.match(/.*/); // force failure if triggered
@@ -92,7 +92,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
         client.on("backoff", () => {
             debugLog("client.on('backoff'): attempting reconnect isReconnecting=", (client as any).isReconnecting);
         });
-        client.on("close", (err: Error | null) => {
+        client.on("close", (err?: Error | null) => {
             debugLog("client 'close' event", err ? err.message : null);
         });
         debugLog(" 1--> Starting server");

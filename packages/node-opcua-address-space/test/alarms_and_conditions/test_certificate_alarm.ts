@@ -2,14 +2,13 @@
 import path from "path";
 import sinon from "sinon";
 import "should";
-import { nodesets } from "node-opcua-nodesets";
-import { NodeId } from "node-opcua-nodeid";
-import { exploreCertificate } from "node-opcua-crypto/web";
-import { readCertificate} from "node-opcua-crypto";
-
-import { AddressSpace, instantiateCertificateExpirationAlarm, UACertificateExpirationAlarmEx } from "../..";
-import { generateAddressSpace } from "../../distNodeJS";
+import { readCertificateChain } from "node-opcua-crypto";
+import { exploreCertificate, readCertificateChain } from "node-opcua-crypto/web";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, instantiateCertificateExpirationAlarm, type UACertificateExpirationAlarmEx } from "../..";
+import { generateAddressSpace } from "../../distNodeJS";
 
 export const OneDayDuration = 1000 * 60 * 60 * 24;
 export const TwoWeeksDuration = OneDayDuration * 2 * 7;
@@ -20,16 +19,15 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         const info = exploreCertificate(certificateBuffer);
         return info.tbsCertificate.validity.notAfter;
     }
-        
+
     beforeEach(() => {
-        clock = sinon.useFakeTimers({ 
+        clock = sinon.useFakeTimers({
             now: new Date(),
             shouldAdvanceTime: true,
-            shouldClearNativeTimers: true,
+            shouldClearNativeTimers: true
         });
         getExpiryDate(ok).getTime().should.be.greaterThan(Date.now());
         getExpiryDate(out_of_date).getTime().should.be.lessThan(Date.now());
-        
     });
     afterEach(() => {
         clock!.restore();
@@ -41,10 +39,10 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 100000));
 
     const demo = path.join(__dirname, "../../../node-opcua-samples/certificates");
-    const not_active_yet = readCertificate(path.join(demo, "client_cert_1024_not_active_yet.pem"));
-    const out_of_date = readCertificate(path.join(demo, "client_cert_1024_outofdate.pem"));
-    const revoked = readCertificate(path.join(demo, "client_cert_1024_revoked.pem"));
-    const ok = readCertificate(path.join(demo, "client_cert_1024.pem"));
+    const not_active_yet = readCertificateChain(path.join(demo, "client_cert_1024_not_active_yet.pem"));
+    const out_of_date = readCertificateChain(path.join(demo, "client_cert_1024_outofdate.pem"));
+    const revoked = readCertificateChain(path.join(demo, "client_cert_1024_revoked.pem"));
+    const ok = readCertificateChain(path.join(demo, "client_cert_1024.pem"));
 
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -85,7 +83,6 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         certificate1.activeState.getValue().should.eql(false);
         raiseEventSpy.getCall(0).args[0].message.value.text.should.match(/is OK/);
         raiseEventSpy.getCall(0).args[0].severity.value.should.be.eql(0);
-        
 
         raiseEventSpy.resetHistory();
         certificate1.setCertificate(out_of_date);
@@ -94,7 +91,7 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         raiseEventSpy.getCall(0).args[0].message.value.text.should.match(/has expired/);
         raiseEventSpy.getCall(0).args[0].severity.value.should.be.greaterThan(100);
         certificate1.currentBranch().getRetain().should.eql(true);
-        
+
         raiseEventSpy.resetHistory();
         certificate1.setCertificate(ok);
         certificate1.activeState.getValue().should.eql(false);
@@ -108,32 +105,29 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
 
         // console.log("timeBeforeExpiration = ", timeBeforeExpiration / 1000, timeBeforeExpiration / (1000 * 60));
 
-        certificate1.setExpirationLimit(TwoWeeksDuration); 
-        
+        certificate1.setExpirationLimit(TwoWeeksDuration);
+
         clock?.setSystemTime(expiryDate.getTime() - 2 * TwoWeeksDuration);
         certificate1.update();
         certificate1.activeState.getValue().should.eql(false);
-        
-        
+
         clock?.setSystemTime(expiryDate.getTime() - TwoWeeksDuration + 1);
         certificate1.update();
         certificate1.activeState.getValue().should.eql(true);
         certificate1.currentBranch().getRetain().should.eql(true);
         certificate1.currentBranch().getSeverity().should.eql(100);
-     
-        clock?.setSystemTime(expiryDate.getTime() -  TwoWeeksDuration/2.0);
+
+        clock?.setSystemTime(expiryDate.getTime() - TwoWeeksDuration / 2.0);
         certificate1.update();
         certificate1.activeState.getValue().should.eql(true);
         certificate1.currentBranch().getRetain().should.eql(true);
         certificate1.currentBranch().getSeverity().should.eql(150);
- 
+
         clock?.setSystemTime(expiryDate.getTime() - 1);
         certificate1.update();
         certificate1.activeState.getValue().should.eql(true);
         certificate1.currentBranch().getRetain().should.eql(true);
         certificate1.currentBranch().getSeverity().should.eql(199);
- 
-
     });
 
     it("should update the alarm on a regular basis", () => {
@@ -169,25 +163,23 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
 
         // console.log("timeBeforeExpiration = ", timeBeforeExpiration / 1000, timeBeforeExpiration / (1000 * 60));
 
-        certificate1.setExpirationLimit(TwoWeeksDuration); 
-        
-        clock?.setSystemTime(expiryDate.getTime() - TwoWeeksDuration -1);
+        certificate1.setExpirationLimit(TwoWeeksDuration);
+
+        clock?.setSystemTime(expiryDate.getTime() - TwoWeeksDuration - 1);
         certificate1.update();
         certificate1.activeState.getValue().should.eql(false);
-        
+
         // now advance timer , it should at least update alarm twice a day
         raiseEventSpy.resetHistory();
-        
+
         clock?.tick(OneDayDuration);
         raiseEventSpy.callCount.should.be.greaterThan(2);
-        const severity1 =     certificate1.currentBranch().getSeverity();
+        const severity1 = certificate1.currentBranch().getSeverity();
         severity1.should.be.greaterThan(100);
 
         clock?.tick(OneDayDuration);
         raiseEventSpy.callCount.should.be.greaterThan(4);
-        const severity2 =     certificate1.currentBranch().getSeverity();
-        severity2.should.be.greaterThan(severity1+3);
+        const severity2 = certificate1.currentBranch().getSeverity();
+        severity2.should.be.greaterThan(severity1 + 3);
     });
-
-
 });

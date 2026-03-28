@@ -4,21 +4,18 @@
 // tslint:disable:no-empty
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import { DataValue, TimestampsToReturn, coerceTimestampsToReturn } from "node-opcua-data-value";
+import { coerceTimestampsToReturn, type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { MonitoringMode, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { StatusCode } from "node-opcua-status-code";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
-
 import { resolveNodeId } from "node-opcua-nodeid";
-import { ReadValueIdOptions } from "node-opcua-types";
-import { ClientMonitoredItemBase } from "../client_monitored_item_base";
+import { MonitoringMode, type MonitoringParametersOptions } from "node-opcua-service-subscription";
+import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
+import type { ReadValueIdOptions } from "node-opcua-types";
+import type { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
-import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
-import { ClientSubscription } from "../client_subscription";
+import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
+import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
-import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import { ClientMonitoredItemBaseEx } from "../client_monitored_item_toolbox";
+import type { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -217,12 +214,11 @@ Please investigate the code of the event handler function to fix the error.`
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 
 ClientMonitoredItemGroupImpl.prototype.terminate = withCallback(ClientMonitoredItemGroupImpl.prototype.terminate);
-ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = withCallback(
-    ClientMonitoredItemGroupImpl.prototype.setMonitoringMode
-);
+ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = withCallback(ClientMonitoredItemGroupImpl.prototype.setMonitoringMode);
 ClientMonitoredItemGroupImpl.prototype.modify = withCallback(ClientMonitoredItemGroupImpl.prototype.modify);
 
 ClientMonitoredItemGroup.create = (

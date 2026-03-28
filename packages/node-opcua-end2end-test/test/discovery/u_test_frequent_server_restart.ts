@@ -1,28 +1,28 @@
 import "should";
 import {
+    ApplicationType,
+    AttributeIds,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    OPCUACertificateManager,
     OPCUAClient,
     OPCUAClientBase,
-    ClientSubscription,
-    OPCUADiscoveryServer,
+    type OPCUADiscoveryServer,
+    OPCUAServer,
     RegisterServerManager,
     RegisterServerMethod,
-    OPCUAServer,
-    ClientMonitoredItem,
     resolveNodeId,
-    AttributeIds,
-    TimestampsToReturn,
-    ApplicationType,
-    ClientSession,
-    OPCUACertificateManager
+    TimestampsToReturn
 } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import {
-    TestHarness,
     createServerThatRegistersItselfToTheDiscoveryServer,
     f,
     pause,
     startDiscovery,
+    type TestHarness,
     tweak_registerServerManager_timeout
 } from "./helpers/index";
 
@@ -35,7 +35,9 @@ const port1 = 12401;
 const discovery_port = 12402;
 
 export function t(test: TestHarness) {
-    describe("DISCO4 - NodeRed -  testing frequent server restart within same process", function () {
+    describe("DISCO4 - NodeRed -  testing frequent server restart within same process", function (this: Mocha.Suite) {
+        this.timeout(360_000);
+
         /**
          * This test simulates the way node-red will frequently start and restart
          * a opcua server and a opcua client when the user is modifying and redeploying its project
@@ -45,7 +47,7 @@ export function t(test: TestHarness) {
 
         let g_server: OPCUAServer;
 
-        let discoveryServer: OPCUADiscoveryServer | undefined = undefined;
+        let discoveryServer: OPCUADiscoveryServer | undefined;
         let discoveryServerEndpointUrl: string;
 
         const startDiscoveryServer = f(async function start_the_discovery_server() {
@@ -65,7 +67,11 @@ export function t(test: TestHarness) {
 
         let test_counter = 0;
         const createServer = f(async function start_an_opcua_server_that_registers_to_the_lds() {
-            const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ" + test_counter);
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(
+                discoveryServerEndpointUrl,
+                port1,
+                "AZ" + test_counter
+            );
             test_counter += 1;
             g_server = server;
             await server.start();
@@ -79,7 +85,6 @@ export function t(test: TestHarness) {
                 debugLog("Server has been shut down");
             }
         });
-
 
         interface ClientData {
             client: OPCUAClient;
@@ -97,7 +102,7 @@ export function t(test: TestHarness) {
                 }
                 const client = OPCUAClient.create({
                     requestedSessionTimeout: 10000,
-                    clientName: "Client-" + clientCount + "__" + __filename
+                    clientName: `Client-${clientCount}__${__filename}`
                 });
                 clientCount += 1;
 
@@ -137,18 +142,20 @@ export function t(test: TestHarness) {
                             });
 
                             subscription
-                                .on("started", function () {
+                                .on("started", () => {
                                     if (doDebug) {
-                                        debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
+                                        debugLog(
+                                            "subscription started for 2 seconds - subscriptionId=",
+                                            subscription.subscriptionId
+                                        );
                                     }
                                 })
-                                .on("keepalive", function () {
+                                .on("keepalive", () => {
                                     debugLog("subscription keepalive", client.clientName);
                                 })
-                                .on("terminated", function () {
+                                .on("terminated", () => {
                                     /** */
                                 });
-
 
                             const monitoredItem = await subscription.monitor(
                                 {
@@ -162,30 +169,49 @@ export function t(test: TestHarness) {
                                 },
                                 TimestampsToReturn.Both
                             );
-                            monitoredItem.on("changed", function (dataValue) {
+                            monitoredItem.on("changed", (dataValue) => {
                                 if (doDebug1) {
                                     debugLog(dataValue.toString());
                                 }
                             });
                             clients.push({ client, session, subscription, monitoredItem });
                         } catch (err) {
-                            console.log(" error client ", client.clientName, " has failed to create subscription to ", endpointUrl, " err = ", (err as Error).message);
+                            console.log(
+                                " error client ",
+                                client.clientName,
+                                " has failed to create subscription to ",
+                                endpointUrl,
+                                " err = ",
+                                (err as Error).message
+                            );
                         } finally {
                             await session.close();
                         }
                     } catch (err) {
-                        console.log(" error client ", client.clientName, " has failed to create session to ", endpointUrl, " err = ", (err as Error).message);
+                        console.log(
+                            " error client ",
+                            client.clientName,
+                            " has failed to create session to ",
+                            endpointUrl,
+                            " err = ",
+                            (err as Error).message
+                        );
                     } finally {
                         await client.disconnect();
                     }
                 } catch (err) {
-                    console.log(" error client ", client.clientName, " has failed to connect to ", endpointUrl, " err = ", (err as Error).message);
+                    console.log(
+                        " error client ",
+                        client.clientName,
+                        " has failed to connect to ",
+                        endpointUrl,
+                        " err = ",
+                        (err as Error).message
+                    );
                 }
             }
 
-            const promises = [
-                addClient(), addClient(), addClient(), addClient(), addClient(), addClient()
-            ]
+            const promises = [addClient(), addClient(), addClient(), addClient(), addClient(), addClient()];
             await Promise.all(promises);
         });
         const shutdownClients = f(async function disconnect_the_opcua_clients() {
@@ -193,7 +219,7 @@ export function t(test: TestHarness) {
                 if (!clients) {
                     return;
                 }
-                const { client, session, subscription, monitoredItem } = clients.pop()!;
+                const { client, session, subscription } = clients.pop()!;
                 await subscription.terminate();
                 await session.close();
                 await client.disconnect();
@@ -202,9 +228,7 @@ export function t(test: TestHarness) {
                 }
             }
 
-            const removePromises = [
-                removeClient(), removeClient(), removeClient(), removeClient(), removeClient(), removeClient()
-            ];
+            const removePromises = [removeClient(), removeClient(), removeClient(), removeClient(), removeClient(), removeClient()];
             await Promise.all(removePromises);
             debugLog("------------------------------------------ clients terminated");
         });
@@ -228,7 +252,7 @@ export function t(test: TestHarness) {
             OPCUAClientBase.registry.count().should.eql(0, "at start, no client should be active");
         });
         afterEach(async () => {
-            if (OPCUAClientBase.registry.count() != 0) {
+            if (OPCUAClientBase.registry.count() !== 0) {
                 // display the name of all active clients
                 console.log(OPCUAClientBase.registry.toString());
             }
@@ -248,9 +272,7 @@ export function t(test: TestHarness) {
             await shutdownServer();
         });
 
-
-        it("DISCO4-Z - should perform start/stop cycle efficiently - long wait ", async function () {
-
+        it("DISCO4-Z - should perform start/stop cycle efficiently - long wait ", async () => {
             await createServer();
             await wait_a_minute();
             await wait_a_minute();
@@ -258,7 +280,7 @@ export function t(test: TestHarness) {
             await shutdownServer();
         });
 
-        it("DISCO4-B - should perform start/stop cycle efficiently - no wait ", async function () {
+        it("DISCO4-B - should perform start/stop cycle efficiently - no wait ", async () => {
             await createServer();
             await shutdownServer();
         });
@@ -268,13 +290,15 @@ export function t(test: TestHarness) {
                 // rootFolder:
             });
 
-            (await f(async function when_creating_a_opcua_certificate_manager() {
-                cm.initialize().then(() => {
-
-                }).catch((err) => {
-
-                });
-            }))();
+            (
+                await f(async function when_creating_a_opcua_certificate_manager() {
+                    cm.initialize()
+                        .then(() => {})
+                        .catch((_err) => {
+                            console.log("Error in cm.initialize", _err);
+                        });
+                })
+            )();
 
             await f(async function disposing() {
                 await cm.dispose();
@@ -287,11 +311,11 @@ export function t(test: TestHarness) {
                 resolveLast = resolve;
             });
             return [promise, resolveLast as () => void];
-        }
+        };
 
         it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", async () => {
             const client = OPCUAClient.create({
-                clientName: "DISCO4-D " + __filename
+                clientName: `DISCO4-D ${__filename}`
             });
 
             const [promise, resolveLast] = makeResolver();
@@ -299,13 +323,16 @@ export function t(test: TestHarness) {
             const endpoint = discoveryServerEndpointUrl;
 
             await f(async function when_we_create_a_client_but_do_not_wait_for_connection() {
-                client.connect(endpoint).then(() => {
-                    resolveLast();
-                }).catch((err) => {
-                    /* nothing here */
-                    // console.log("Connect err = ", err ? err.message: null);
-                    resolveLast();
-                });
+                client
+                    .connect(endpoint)
+                    .then(() => {
+                        resolveLast();
+                    })
+                    .catch((_err) => {
+                        /* nothing here */
+                        // console.log("Connect err = ", err ? err.message: null);
+                        resolveLast();
+                    });
             })();
 
             await f(async function when_we_close_client_while_connection_is_in_progress() {
@@ -316,12 +343,8 @@ export function t(test: TestHarness) {
                 await wait_a_few_seconds();
             })();
 
-
             await promise;
-
-
         });
-
 
         it("DISCO4-E - should cancel a client that cannot connect - on standard LocalDiscoveryServer", async () => {
             const server = new OPCUAServer({
@@ -345,9 +368,8 @@ export function t(test: TestHarness) {
             await server.shutdown();
         });
 
-        it("DISCO4-G - registration manager as a standalone object 2/2 on a none existant discoveryServerEndpointUrl", async function () {
-
-            // it should be possible to start and stop immediately when the registration process 
+        it("DISCO4-G - registration manager as a standalone object 2/2 on a none existant discoveryServerEndpointUrl", async () => {
+            // it should be possible to start and stop immediately when the registration process
             const serverCertificateManager = new OPCUACertificateManager({});
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl: "opc.tcp://localhost:48481", // << not existing
@@ -376,7 +398,6 @@ export function t(test: TestHarness) {
             await registrationManager.stop();
             registrationManager.dispose();
             await serverCertificateManager.dispose();
-
         });
         it("DISCO4-H - registration manager as a standalone object 2/2", async () => {
             const registrationManager = new RegisterServerManager({
@@ -408,7 +429,6 @@ export function t(test: TestHarness) {
         const max_duration = 40_000;
 
         it("DISCO4-I - should perform start/stop cycle efficiently ", async () => {
-
             await createServer();
             await wait_a_few_seconds();
             await shutdownServer();
@@ -434,11 +454,9 @@ export function t(test: TestHarness) {
                 await shutdownServer();
                 await pause(50 * Math.random());
             }
-
         });
 
         it("DISCO4-J - should perform start/stop cycle efficiently even with many connected clients and server close before clients", async () => {
-
             await createServer();
 
             await connectManyClient();
@@ -468,12 +486,9 @@ export function t(test: TestHarness) {
                 await shutdownServer();
                 await pause(100 * Math.random());
             }
-
-
         });
 
         it("DISCO4-K - should perform start/stop cycle efficiently even with many connected clients and clients close before server", async () => {
-
             await createServer();
 
             await connectManyClient();
@@ -494,12 +509,9 @@ export function t(test: TestHarness) {
             await shutdownServer();
             await wait_a_few_seconds();
             await wait_a_few_seconds();
-
-
         });
 
         it("DISCO4-L - should perform start/stop long cycle efficiently even with many connected clients and clients close before server", async () => {
-
             await createServer();
             await wait_a_few_seconds();
 
@@ -518,8 +530,6 @@ export function t(test: TestHarness) {
 
             await shutdownServer();
             await wait_a_few_seconds();
-
-
         });
 
         it("DISCO4-M - NR2 should not crash when a server that failed to start is shot down", async () => {
@@ -529,12 +539,12 @@ export function t(test: TestHarness) {
             // we start a second server on the same port !
             // this server will fail to start
             let secondServerFailedToStart = false;
-            let server2;
+            let server2: OPCUAServer | undefined;
             try {
                 server2 = new OPCUAServer({ port: port1 /* yes port 1*/ });
                 await server2.start();
                 console.log("expecting a error here");
-            } catch (err) {
+            } catch (_err) {
                 secondServerFailedToStart = true;
             }
             // shutdown_server_1(callback: ErrorCallback) {

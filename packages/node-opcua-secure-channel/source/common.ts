@@ -2,9 +2,14 @@
  * @module node-opcua-secure-channel
  */
 import { makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
-import { CommonInterface } from "node-opcua-factory";
-import { CloseSecureChannelRequest, MessageSecurityMode, RequestHeader, ResponseHeader } from "node-opcua-service-secure-channel";
-import { ServiceFault } from "./services";
+import type { CommonInterface } from "node-opcua-factory";
+import type {
+    CloseSecureChannelRequest,
+    MessageSecurityMode,
+    RequestHeader,
+    ResponseHeader
+} from "node-opcua-service-secure-channel";
+import type { ServiceFault } from "./services";
 
 export interface IResponseBase {
     responseHeader: ResponseHeader;
@@ -23,16 +28,23 @@ export type Request = IRequestBase | CloseSecureChannelRequest;
 
 export { ICertificateKeyPairProvider } from "node-opcua-common";
 
-export function extractFirstCertificateInChain(certificateChain?: Buffer | null): Buffer | null {
+export function extractFirstCertificateInChain(certificateChain?: Buffer | Buffer[] | null): Buffer | null {
     if (!certificateChain || certificateChain.length === 0) {
         return null;
     }
-    const c =  split_der(certificateChain);
+    if (Array.isArray(certificateChain)) {
+        return certificateChain[0];
+    }
+    const c = split_der(certificateChain);
     return c[0];
 }
-export function getThumbprint(certificateChain: Buffer|null): Buffer | null {
+export function getThumbprint(certificateChain: Buffer | Buffer[] | null): Buffer | null {
     if (!certificateChain) {
         return null;
     }
-    return makeSHA1Thumbprint(extractFirstCertificateInChain(certificateChain)!);
+    const firstCertificate = extractFirstCertificateInChain(certificateChain);
+    if (!firstCertificate) {
+        return null;
+    }
+    return makeSHA1Thumbprint(firstCertificate);
 }

@@ -109,8 +109,8 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
                     dataValues.splice(0);
                     await wait(1000);
 
-                    await new Promise((resolve) => {
-                        client.once("connection_reestablished", resolve);
+                    await new Promise<void>((resolve) => {
+                        client.once("connection_reestablished", () => resolve());
                         (async () => {
                             console.log("restarting server");
                             server = await createServer();

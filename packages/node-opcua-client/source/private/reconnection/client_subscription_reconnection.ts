@@ -1,18 +1,21 @@
 import { promisify } from "node:util";
 import assert from "node-opcua-assert";
 import { TimestampsToReturn } from "node-opcua-data-value";
-import { make_debugLog, checkDebugFlag, make_warningLog } from "node-opcua-debug";
-import { MonitoredItemCreateRequestOptions, CreateMonitoredItemsRequest, CreateMonitoredItemsResponse } from "node-opcua-types";
-
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import {
-    IBasicSessionReadAsync,
-    IBasicSessionWithSubscription,
     createMonitoredItemsLimit,
+    type IBasicSessionReadAsync,
+    type IBasicSessionWithSubscription,
     readOperationLimits
 } from "node-opcua-pseudo-session";
-import { ClientSubscription } from "../../client_subscription";
-import { ClientMonitoredItemImpl } from "../client_monitored_item_impl";
-import { ClientSubscriptionImpl, TERMINATED_SUBSCRIPTION_ID, __create_subscription } from "../client_subscription_impl";
+import {
+    CreateMonitoredItemsRequest,
+    type CreateMonitoredItemsResponse,
+    type MonitoredItemCreateRequestOptions
+} from "node-opcua-types";
+import type { ClientSubscription } from "../../client_subscription";
+import type { ClientMonitoredItemImpl } from "../client_monitored_item_impl";
+import { __create_subscription, type ClientSubscriptionImpl, TERMINATED_SUBSCRIPTION_ID } from "../client_subscription_impl";
 import { _shouldNotContinue } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
@@ -33,7 +36,7 @@ async function createMonitoredItemsAndRespectOperationalLimits(
 }
 
 async function adjustMonitoredItemNodeIds(subscription: ClientSubscription, oldMonitoredItems: any) {
-    // to Do 
+    // to Do
 }
 /**
  *  utility function to recreate new subscription
@@ -56,7 +59,9 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     await promisify(__create_subscription)(subscription);
 
     const _err = _shouldNotContinue(subscription.session);
-    if (_err) { throw _err; }
+    if (_err) {
+        throw _err;
+    }
 
     const test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
@@ -89,9 +94,7 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
 
     debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
-    const response = await createMonitoredItemsAndRespectOperationalLimits(
-        session,
-        createMonitorItemsRequest);
+    const response = await createMonitoredItemsAndRespectOperationalLimits(session, createMonitorItemsRequest);
     const monitoredItemResults = response.results || [];
 
     let _errCount = 0;

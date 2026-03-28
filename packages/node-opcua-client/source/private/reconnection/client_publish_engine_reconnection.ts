@@ -1,26 +1,21 @@
-import { types } from "util";
 import async from "async";
 import chalk from "chalk";
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { StatusCodes } from "node-opcua-status-code";
-import { RepublishRequest, RepublishResponse } from "node-opcua-types";
-import { SubscriptionId } from "../../client_session";
-import { ClientSessionImpl } from "../client_session_impl";
-import { ClientSubscriptionImpl } from "../client_subscription_impl";
-import { ClientSidePublishEngine } from "../client_publish_engine";
+import { RepublishRequest, type RepublishResponse } from "node-opcua-types";
+import { types } from "util";
+import type { SubscriptionId } from "../../client_session";
+import type { ClientSidePublishEngine } from "../client_publish_engine";
+import type { ClientSessionImpl } from "../client_session_impl";
+import type { ClientSubscriptionImpl } from "../client_subscription_impl";
 import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection";
 import { _shouldNotContinue2 } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");
 
-function _republish(
-    engine: ClientSidePublishEngine,
-    subscription: ClientSubscriptionImpl,
-    callback: (err?: Error) => void
-) {
-
+function _republish(engine: ClientSidePublishEngine, subscription: ClientSubscriptionImpl, callback: (err?: Error) => void) {
     let isDone = false;
     const session = engine.session as ClientSessionImpl;
 
@@ -87,10 +82,14 @@ function __askSubscriptionRepublish(
     subscription: ClientSubscriptionImpl,
     callback: (err?: Error) => void
 ) {
-
     _republish(engine, subscription, (err?: Error) => {
         // prettier-ignore
-        { const _err = _shouldNotContinue2(subscription); if (_err) { return callback(_err); } }
+        {
+            const _err = _shouldNotContinue2(subscription);
+            if (_err) {
+                return callback(_err);
+            }
+        }
 
         assert(!err || types.isNativeError(err));
 
@@ -113,7 +112,9 @@ function __askSubscriptionRepublish(
             debugLog(
                 chalk.bgWhite.red("__askSubscriptionRepublish failed " + " subscriptionId is not valid anymore on server side.")
             );
-            return recreateSubscriptionAndMonitoredItem(subscription).then(() => callback()).catch(err => callback(err));
+            return recreateSubscriptionAndMonitoredItem(subscription)
+                .then(() => callback())
+                .catch((err) => callback(err));
         }
         if (err && err.message.match(/|MessageNotAvailable/)) {
             // start engine and start monitoring

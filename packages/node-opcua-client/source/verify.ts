@@ -24,8 +24,8 @@ export function verifyIsOPCUAValidCertificate(
         // certificate is not active yet
         warningLog(
             `[NODE-OPCUA-W02] The certificate is not active yet\n` +
-            `notBefore       ${certificateInfo.tbsCertificate.validity.notBefore.toISOString()}\n` +
-            `certificateFile ${certificateFile}`
+                `notBefore       ${certificateInfo.tbsCertificate.validity.notBefore.toISOString()}\n` +
+                `certificateFile ${certificateFile}`
         );
     }
     //  check that certificate has not expired
@@ -33,9 +33,9 @@ export function verifyIsOPCUAValidCertificate(
         // certificate is obsolete
         warningLog(
             `[NODE-OPCUA-W03] The certificate has expired\n` +
-            `Please regenerate a valid certificate\n` +
-            `notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}\n` +
-            `certificateFile= ${certificateFile}`
+                `Please regenerate a valid certificate\n` +
+                `notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}\n` +
+                `certificateFile= ${certificateFile}`
         );
     } else {
         const tenDays = 10 * 24 * 60 * 60 * 1000;
@@ -43,9 +43,9 @@ export function verifyIsOPCUAValidCertificate(
             // certificate is going to expired very soon
             warningLog(
                 `[NODE-OPCUA-W05] The certificate is about to expire in less than 10 days.\n` +
-                `Please regenerate a valid certificate as soon as possible\n` +
-                `notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}\n` +
-                `certificateFile= ${certificateFile}\n`
+                    `Please regenerate a valid certificate as soon as possible\n` +
+                    `notAfter       = ${certificateInfo.tbsCertificate.validity.notAfter.toISOString()}\n` +
+                    `certificateFile= ${certificateFile}\n`
             );
         }
     }
@@ -54,18 +54,18 @@ export function verifyIsOPCUAValidCertificate(
     if (!uniformResourceIdentifier) {
         warningLog(
             `[NODE-OPCUA-W14] The certificate subjectAltName uniformResourceIdentifier is missing.\n` +
-            `Please regenerate a specific certificate with a uniformResourceIdentifier that matches your ${type} applicationUri\n` +
-            `applicationUri  = ${applicationUri}\n` +
-            `certificateFile = ${certificateFile}\n`
+                `Please regenerate a specific certificate with a uniformResourceIdentifier that matches your ${type} applicationUri\n` +
+                `applicationUri  = ${applicationUri}\n` +
+                `certificateFile = ${certificateFile}\n`
         );
         return;
     } else if (uniformResourceIdentifier[0] !== applicationUri) {
         warningLog(
             `[NODE-OPCUA-W06] The certificate subjectAltName does not match the ${type} applicationUri\n` +
-            `Please regenerate a specific certificate that matches your ${type} applicationUri\n` +
-            `certificate subjectAltName  = ${uniformResourceIdentifier[0]}\n` +
-            `${type} applicationUri  = ${applicationUri}\n` +
-            `certificateFile         = ${certificateFile}\n`
+                `Please regenerate a specific certificate that matches your ${type} applicationUri\n` +
+                `certificate subjectAltName  = ${uniformResourceIdentifier[0]}\n` +
+                `${type} applicationUri  = ${applicationUri}\n` +
+                `certificateFile         = ${certificateFile}\n`
         );
     }
     const keyUsage = certificateInfo.tbsCertificate.extensions?.keyUsage;
@@ -77,8 +77,8 @@ export function verifyIsOPCUAValidCertificate(
         if (!keyUsage.digitalSignature || !keyUsage.nonRepudiation || !keyUsage.keyEncipherment || !keyUsage.dataEncipherment) {
             warningLog(
                 `[NODE-OPCUA-W16] The certificate keyUsage must include digitalSignature, nonRepudiation, keyEncipherment and dataEncipherment.\n` +
-                `see https://reference.opcfoundation.org/v104/Core/docs/Part6/6.2.2/\n` +
-                `certificateFile = ${certificateFile}`
+                    `see https://reference.opcfoundation.org/v104/Core/docs/Part6/6.2.2/\n` +
+                    `certificateFile = ${certificateFile}`
             );
             warningLog(`keyUsage = ${JSON.stringify(keyUsage, null, " ")}`);
         }
@@ -92,8 +92,8 @@ export function verifyIsOPCUAValidCertificate(
         if (!extKeyUsage.clientAuth && !extKeyUsage.serverAuth) {
             warningLog(
                 `[NODE-OPCUA-W18] The certificate extKeyUsage must include clientAuth and/or serverAuth.\n` +
-                `see https://reference.opcfoundation.org/v104/Core/docs/Part6/6.2.2/\n` +
-                `certificateFile = ${certificateFile}`
+                    `see https://reference.opcfoundation.org/v104/Core/docs/Part6/6.2.2/\n` +
+                    `certificateFile = ${certificateFile}`
             );
         }
     }
@@ -102,14 +102,14 @@ export function verifyIsOPCUAValidCertificate(
     if (keyLengthInBits < 1024) {
         errorLog(
             `[NODE-OPCUA-W19] The public key length shall be greater than or equal to 1024 bits. key length is ${keyLengthInBits}.\n` +
-            `see https://reference.opcfoundation.org/v104/GDS/docs/7.6.3/\n` +
-            `certificateFile = ${certificateFile}`
+                `see https://reference.opcfoundation.org/v104/GDS/docs/7.6.3/\n` +
+                `certificateFile = ${certificateFile}`
         );
     } else if (keyLengthInBits < 2048) {
         warningLog(
             `[NODE-OPCUA-W23] key lengths less than 2048 are considered insecure. key length is ${keyLengthInBits}\n` +
-            `see https://reference.opcfoundation.org/v104/Core/docs/Part2/6.8/\n` +
-            `certificateFile = ${certificateFile}`
+                `see https://reference.opcfoundation.org/v104/Core/docs/Part2/6.8/\n` +
+                `certificateFile = ${certificateFile}`
         );
     }
 }
@@ -140,8 +140,8 @@ export async function performCertificateSanityCheck(
     if (keyLengthInBits <= 1024) {
         warningLog(
             `[NODE-OPCUA-W04] The public/private key pair uses a key length which is equal or lower than 1024 bits. ( key length was ${keyLengthInBits} )\n` +
-            `OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.\n` +
-            `The ${serverOrClient} is operating at risk.                                             `
+                `OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.\n` +
+                `The ${serverOrClient} is operating at risk.                                             `
         );
     }
 

@@ -1,8 +1,8 @@
- /**
- * @module node-opcua-server
- */
+/**
+* @module node-opcua-server
+*/
 // tslint:disable:no-console
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -656,9 +656,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
         debugLog("lds endpoint uri : ", selectedEndpoint.endpointUrl);
 
-        const state = isOnline ? "UnRegisterServer" : "RegisterServer";
+        const state = isOnline ? "RegisterServer" : "UnRegisterServer";
         try {
-            await client.connect(selectedEndpoint!.endpointUrl!);
+            await client.connect(selectedEndpoint?.endpointUrl || "");
 
             // Check state again after connection is established
             if (this.getState() === expectedState) {
@@ -666,7 +666,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                     await sendRegisterServerRequest(server, client as ClientBaseEx, isOnline)
                 } catch (err) {
                     if (this.getState() !== expectedState) {
-                        warningLog(`${state} '${this.server!.serverInfo.applicationUri}' to the LDS has failed during secure connection to the LDS server`);
+                        warningLog(`${state} '${this.server?.serverInfo.applicationUri}' to the LDS has failed during secure connection to the LDS server`);
                         warningLog(chalk.red("  Error message:"), (err as Error).message);                // Do not rethrow here, let the caller 
                     }
                 }

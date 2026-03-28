@@ -3,12 +3,12 @@
  */
 
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { ReadValueIdOptions } from "node-opcua-service-read";
-import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
-import { Variant } from "node-opcua-variant";
-import { IBasicSessionReadAsyncMultiple, IBasicSessionTranslateBrowsePathAsyncMultiple } from "node-opcua-pseudo-session";
+import type { DataValue } from "node-opcua-data-value";
+import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionReadAsyncMultiple, IBasicSessionTranslateBrowsePathAsyncMultiple } from "node-opcua-pseudo-session";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
+import { BrowsePath, type BrowsePathResult } from "node-opcua-service-translate-browse-path";
+import type { Variant } from "node-opcua-variant";
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 

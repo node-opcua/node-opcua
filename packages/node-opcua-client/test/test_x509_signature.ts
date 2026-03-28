@@ -1,28 +1,29 @@
 // tslint:disable:no-console
 // tslint:disable:only-arrow-functions
-import { promisify } from "util";
-import path from "path";
+
 import fs from "fs";
+import path from "path";
 import should from "should";
+import { promisify } from "util";
 import "mocha";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { Certificate, PrivateKey, readCertificate, readPrivateKey, split_der } from "node-opcua-crypto";
+import { type Certificate, type PrivateKey, readCertificateChain, readPrivateKey, split_der } from "node-opcua-crypto";
 import { makeBufferFromTrace } from "node-opcua-debug";
-import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
+import { type BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     computeSignature,
     getCryptoFactory,
-    IDerivedKeyProvider,
+    type IDerivedKeyProvider,
     MessageBuilder,
     MessageSecurityMode,
     SecurityPolicy,
     verifySignature
 } from "node-opcua-secure-channel";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import {
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type {
     ActivateSessionRequest,
     CreateSessionResponse,
     SignatureData,
@@ -41,13 +42,12 @@ function readMessage(name: string): Buffer {
 }
 
 async function decodeMessage(buffer: Buffer): Promise<any> {
-
     const derivedKeyProvider: IDerivedKeyProvider = {
         getDerivedKey(tokenId: number) {
             return null;
-        },
-    }
-    const messageBuilder = new MessageBuilder(derivedKeyProvider,   {
+        }
+    };
+    const messageBuilder = new MessageBuilder(derivedKeyProvider, {
         name: "test",
         maxChunkCount: 1,
         maxChunkSize: buffer.length + 100,
@@ -143,7 +143,7 @@ describe("X509 - Wireshark Analysis", () => {
             policyId: userIdentityToken.policyId
         };
 
-        const userCertificate = readCertificate(path.join(__dirname, "./fixtures/user1_certificate.pem"));
+        const userCertificate = readCertificateChain(path.join(__dirname, "./fixtures/user1_certificate.pem"));
         const privateKey = readPrivateKey(path.join(__dirname, "./fixtures/private_key.pem"));
 
         const signatureData = rebuildSignature(serverCertificate, serverNonce, privateKey, securityPolicy);
