@@ -1,16 +1,13 @@
 import "should";
-import {
-    DataValue,
-    ClientMonitoredItem,
-    OPCUAClient,
-    AttributeIds,
-    ClientSubscription,
-    ClientSession
-} from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, type ClientSession, type ClientSubscription, DataValue, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { waitForChange } from "./_helpers_monitoring";
 
-interface TestHarness { endpointUrl: string; server: any;[k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Bug #156 - Monitoring a variable with sampling rate faster than
@@ -60,7 +57,7 @@ export function t(test: TestHarness) {
                     publishingEnabled: true,
                     priority: 6
                 },
-                async (session: ClientSession, subscription: ClientSubscription) => {
+                async (_session: ClientSession, subscription: ClientSubscription) => {
                     let changeCount = 0;
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
@@ -80,14 +77,9 @@ export function t(test: TestHarness) {
 
                     // Wait for at least one change event (5 s timeout).
                     await waitForChange(monitoredItem);
-                    changeCount.should.be.greaterThan(
-                        0,
-                        "should have received at least one change"
-                    );
+                    changeCount.should.be.greaterThan(0, "should have received at least one change");
                 }
             );
         });
     });
 }
-
-

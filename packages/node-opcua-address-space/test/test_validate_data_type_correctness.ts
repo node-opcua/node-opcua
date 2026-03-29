@@ -6,7 +6,6 @@ import { coerceInt64 } from "node-opcua-basic-types";
 import { AddressSpace, UAVariable, validateDataTypeCorrectness } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
-process.env.TEST = "true";
 describe("testing validateDataTypeCorrectness", () => {
     let addressSpace: AddressSpace;
 

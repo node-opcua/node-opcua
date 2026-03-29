@@ -1,10 +1,8 @@
-import { types } from "util";
+import { types } from "node:util";
+import { AttributeIds, DataType, DataValue, OPCUAClient, type ReadValueIdOptions, type WriteValueOptions } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import { AttributeIds, DataType, DataValue, OPCUAClient, ReadValueIdOptions, WriteValueOptions } from "node-opcua";
-import { ClientSecureChannelLayer } from "../../../node-opcua-secure-channel/dist/source/client/client_secure_channel_layer";
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 export function t(test: any) {
     describe("Testing Client Connection ", function (this: any) {
         it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {
@@ -21,7 +19,7 @@ export function t(test: any) {
                 _err = err as Error;
             }
             should.exist(_err, "expecting an error here");
-            _err!.message.should.match("Invalid endpoint");
+            _err?.message.should.match("Invalid endpoint");
             closeSpy.callCount.should.eql(0);
         });
 
@@ -50,7 +48,7 @@ export function t(test: any) {
             await client.connect(test.endpointUrl);
             closeSpy.callCount.should.eql(0);
 
-            let _err: Error | undefined = undefined;
+            let _err: Error | undefined;
             try {
                 await client.connect(test.endpointUrl);
             } catch (err) {
@@ -60,7 +58,7 @@ export function t(test: any) {
                 await client.disconnect();
             }
             should.exist(_err, " ");
-            _err!.message.should.match(/invalid internal state = connected/);
+            _err?.message.should.match(/invalid internal state = connected/);
             closeSpy.callCount.should.eql(1);
         });
 
@@ -71,7 +69,7 @@ export function t(test: any) {
 
             const p1 = client.connect(test.endpointUrl);
 
-            let _err: Error | undefined = undefined;
+            let _err: Error | undefined;
             try {
                 await client.connect(test.endpointUrl);
             } catch (err) {
@@ -83,7 +81,7 @@ export function t(test: any) {
                 closeSpy.callCount.should.eql(1);
             }
             should.exist(_err, " ");
-            _err!.message.should.match(/invalid internal state = connecting/);
+            _err?.message.should.match(/invalid internal state = connecting/);
             closeSpy.callCount.should.eql(1);
         });
 
@@ -121,7 +119,7 @@ export function t(test: any) {
             const session = await client.createSession();
 
             try {
-                const subscription = await session.createSubscription2({
+                const _subscription = await session.createSubscription2({
                     maxNotificationsPerPublish: 10,
                     publishingEnabled: true,
                     requestedLifetimeCount: 100,
@@ -159,7 +157,7 @@ export function t(test: any) {
             });
 
             // When I try to connect to the server
-            let _err: Error | undefined = undefined;
+            let _err: Error | undefined;
             try {
                 await client.connect(test.endpointUrl);
             } catch (err) {
@@ -171,7 +169,7 @@ export function t(test: any) {
             // it is worthless keeping trying to reconnect with such TcpMessage error message
             should.exist(_err);
             // and should return BadTcpMessageTooLarge message
-            _err!.message.should.match(
+            _err?.message.should.match(
                 /The connection may have been rejected by server|BadTcpMessageTooLarge|max chunk count exceeded|received an Abort Message/
             );
 
@@ -181,11 +179,10 @@ export function t(test: any) {
         });
 
         it("TCC9 - write a very large message ", async () => {
-
             // given a client with correct transport settings
             const client = OPCUAClient.create({
                 // use a very large transaction timeout so it does not interfere with the debuggers
-                defaultTransactionTimeout: 1*60*60*1000,
+                defaultTransactionTimeout: 1 * 60 * 60 * 1000,
 
                 requestedSessionTimeout: 1 * 60 * 60 * 1000,
                 transportSettings: {
@@ -220,10 +217,10 @@ export function t(test: any) {
             }
             const nodesToWrite = makeLargeDataWrite();
 
-            let _err: Error | undefined = undefined;
+            let _err: Error | undefined;
             await client.withSessionAsync(test.endpointUrl, async (session) => {
                 try {
-                    const statusCode = await session.write(nodesToWrite);
+                    const _statusCode = await session.write(nodesToWrite);
                 } catch (err) {
                     console.log(err);
                     _err = err as Error;
@@ -232,11 +229,8 @@ export function t(test: any) {
             });
             should.exist(_err);
             console.log("err.response", (_err! as any).response.toString());
-            (_err! as any).response.responseHeader.stringTable[0].should.match(
-                /BadTcpMessageTooLarge/
-            );
+            (_err! as any).response.responseHeader.stringTable[0].should.match(/BadTcpMessageTooLarge/);
         });
-
 
         const immenseWriteNoProblem = async (nodeId: string) => {
             const client = OPCUAClient.create({
@@ -245,7 +239,7 @@ export function t(test: any) {
                     maxMessageSize: 1000 * 8192, // should be at least 8192
                     receiveBufferSize: 1 * 8192,
                     sendBufferSize: 1 * 8192
-                },
+                }
             });
             function makeSingleLargeDataWrite() {
                 const value = new DataValue({
@@ -262,10 +256,9 @@ export function t(test: any) {
             await client.withSessionAsync(test.endpointUrl, async (session) => {
                 const statusCode = await session.write(nodesToWrite);
                 console.log("statusCode", statusCode.toString());
-               });
-        }
+            });
+        };
         it("TCCA - read a very large message - server send ServerFault instead of ReadResponse", async () => {
-
             const nodeId = "ns=2;s=Static_Scalar_ByteString";
             await immenseWriteNoProblem(nodeId);
 
@@ -284,7 +277,6 @@ export function t(test: any) {
                     maxRetry: -1
                 }
             });
-
 
             function makeLargeDataRead(): ReadValueIdOptions[] {
                 const nodesToRead: ReadValueIdOptions[] = [
@@ -305,13 +297,12 @@ export function t(test: any) {
                 return nodesToRead;
             }
 
-
             const nodesToRead = makeLargeDataRead();
 
-            let _err: Error | undefined = undefined;
+            let _err: Error | undefined;
             await client.withSessionAsync(test.endpointUrl, async (session) => {
                 try {
-                    const dataValues = await session.read(nodesToRead);
+                    const _dataValues = await session.read(nodesToRead);
                 } catch (err) {
                     console.log(err);
                     _err = err as Error;
@@ -319,7 +310,7 @@ export function t(test: any) {
                 }
             });
             should.exist(_err);
-            _err!.message.should.match(/BadOperationAbandoned|BadTcpMessageTooLarge/);
+            _err?.message.should.match(/BadOperationAbandoned|BadTcpMessageTooLarge/);
         });
     });
 }

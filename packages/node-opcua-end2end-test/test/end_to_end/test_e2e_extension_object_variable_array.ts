@@ -1,26 +1,30 @@
 /* eslint-disable max-statements */
-import util from "node:util";
-import path from "node:path";
 
-import should from "should";
+import path from "node:path";
+import util from "node:util";
 import {
     AttributeIds,
-    ClientSession,
-    ClientSubscription,
-    DataValue,
-    IBasicSessionAsync,
+    type BaseNode,
+    BrowseDirection,
+    type ClientSession,
+    type ClientSubscription,
+    DataType,
+    type DataValue,
+    type IBasicSessionAsync,
     MonitoringMode,
+    NodeClass,
     NodeClassMask,
-    NodeId,
+    type NodeId,
     nodesets,
     OPCUAClient,
     OPCUAServer,
-    ReferenceDescription,
+    type ReferenceDescription,
     ResultMask,
     TimestampsToReturn,
+    type UAVariable,
     Variant
 } from "node-opcua";
-import { BaseNode, NodeClass, UAVariable, DataType, BrowseDirection } from "node-opcua";
+import should from "should";
 
 const port = 1984;
 
@@ -106,9 +110,9 @@ async function readFullPath(session: IBasicSessionAsync, nodeId: NodeId): Promis
     });
     let result = "";
     if (r.references && r.references.length === 1) {
-        result = (await readFullPath(session, r.references[0].nodeId)) + "/" + b;
+        result = `${await readFullPath(session, r.references[0].nodeId)}/${b}`;
     } else {
-        result = "/" + b;
+        result = `/${b}`;
     }
     map.set(hash, result);
     return result;
@@ -133,10 +137,10 @@ async function browseChild(session: IBasicSessionAsync, nodeId: NodeId): Promise
 async function getMember(session: IBasicSessionAsync, nodeId: NodeId, name: string): Promise<NodeId> {
     const references = await browseChild(session, nodeId);
 
-    const r = references.find((r) => r.browseName.name!.toLowerCase() === name.toLowerCase());
+    const r = references.find((r) => r.browseName.name?.toLowerCase() === name.toLowerCase());
     if (!r) {
         const fullPath = await readFullPath(session, nodeId);
-        throw new Error("cannot find " + name + " in node " + nodeId.toString() + " " + fullPath);
+        throw new Error(`cannot find ${name} in node ${nodeId.toString()} ${fullPath}`);
     }
     return r.nodeId;
 }
@@ -159,7 +163,7 @@ const write = async (session: IBasicSessionAsync, nodeId: NodeId, value: any, da
         console.log("nodeid = ", nodeId.toString());
         console.log("variantToWrite = ", variantToWrite.toString());
         console.log("oldValue       = ", oldValue.toString());
-        throw new Error("Not writable node " + nodeId.toString() + " " + statusCode.toString());
+        throw new Error(`Not writable node ${nodeId.toString()} ${statusCode.toString()}`);
     }
     const newValue = (await session.read({ nodeId, attributeId: AttributeIds.Value })).value;
 
@@ -189,7 +193,7 @@ async function subscribeToScalarElement(session: ClientSession, subscription: Cl
 
     const value = await read(session, nodeId);
 
-    for (const [k, v] of Object.entries(value)) {
+    for (const [k, _v] of Object.entries(value)) {
         const stat: Counter = { counter: 0, dataValues: [] };
         rootElement.$props![k] = stat;
 
@@ -233,8 +237,8 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
         dumpStat(rootElement);
 
         info.main.counter.should.eql(1);
-        info.main.$props!.field1.counter.should.eql(1);
-        info.main.$props!.field2.counter.should.eql(1);
+        info.main.$props?.field1.counter.should.eql(1);
+        info.main.$props?.field2.counter.should.eql(1);
     }
 
     async function tryChangingChildVariable() {
@@ -253,21 +257,21 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
             dumpStat(rootElement);
 
             info.main.counter.should.eql(1);
-            info.main.$props![key].counter.should.eql(1);
+            info.main.$props?.[key].counter.should.eql(1);
 
             Object.entries(info.main.$props!)
-                .filter(([k, v]) => k !== key)
-                .map(([k, v]) => v.counter.should.eql(0));
+                .filter(([k, _v]) => k !== key)
+                .map(([_k, v]) => v.counter.should.eql(0));
 
             index++;
         }
     }
 }
 async function checMatrixVariable(
-    session: ClientSession,
-    subscription: ClientSubscription,
-    nodeId: NodeId,
-    level: "TopVariable" | "IndexedVariable" | "InnerProperty"
+    _session: ClientSession,
+    _subscription: ClientSubscription,
+    _nodeId: NodeId,
+    _level: "TopVariable" | "IndexedVariable" | "InnerProperty"
 ) {
     /** */
 }
@@ -362,38 +366,35 @@ async function checkArrayVariable(
         await modifyTopElement();
         await modifyArrayElements();
         await modifyArrayElementsProperty();
+        console.log("> modify top element should cause all elements below to be changed in monitored item");
 
-        {
-            console.log("> modify top element should cause all elements below to be changed in monitored item");
+        await waitSubscriptionUpdate(subscription);
+        resetCounter(info);
+        doDebug && console.log(info);
+        info.main.counter.should.eql(0);
+        info.element0.counter.should.eql(0);
+        info.element0.$props?.field1.counter.should.eql(0);
+        info.element0.$props?.field2.counter.should.eql(0);
+        info.element1.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
 
-            await waitSubscriptionUpdate(subscription);
-            resetCounter(info);
-            doDebug && console.log(info);
-            info.main.counter.should.eql(0);
-            info.element0.counter.should.eql(0);
-            info.element0.$props!.field1.counter.should.eql(0);
-            info.element0.$props!.field2.counter.should.eql(0);
-            info.element1.counter.should.eql(0);
-            info.element1.$props!.field1.counter.should.eql(0);
-            info.element1.$props!.field2.counter.should.eql(0);
+        // modify top element
+        await modifyTopElement();
 
-            // modify top element
-            await modifyTopElement();
+        await waitSubscriptionUpdate(subscription);
+        doDebug && console.log(util.inspect(dumpInfo(info)));
 
-            await waitSubscriptionUpdate(subscription);
-            doDebug && console.log(util.inspect(dumpInfo(info)));
-
-            info.main.counter.should.eql(1);
-            info.element0.counter.should.eql(1);
-            info.element0.$props!.field1.counter.should.eql(1);
-            info.element0.$props!.field2.counter.should.eql(1);
-            info.element1.counter.should.eql(1);
-            info.element1.$props!.field1.counter.should.eql(1);
-            info.element1.$props!.field2.counter.should.eql(1);
-        }
+        info.main.counter.should.eql(1);
+        info.element0.counter.should.eql(1);
+        info.element0.$props?.field1.counter.should.eql(1);
+        info.element0.$props?.field2.counter.should.eql(1);
+        info.element1.counter.should.eql(1);
+        info.element1.$props?.field1.counter.should.eql(1);
+        info.element1.$props?.field2.counter.should.eql(1);
     }
 
-    if (level == "IndexedVariable") {
+    if (level === "IndexedVariable") {
         console.log("> modify one array element should cause all elements below to be changed in monitored item");
         await waitSubscriptionUpdate(subscription);
         resetCounter(info);
@@ -401,11 +402,11 @@ async function checkArrayVariable(
         info.main.counter.should.eql(0);
 
         info.element0.counter.should.eql(0);
-        info.element0.$props!.field1.counter.should.eql(0);
-        info.element0.$props!.field2.counter.should.eql(0);
+        info.element0.$props?.field1.counter.should.eql(0);
+        info.element0.$props?.field2.counter.should.eql(0);
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
 
         doDebug && console.log("before", util.inspect(dumpInfo(info)));
         const valueAll = await read(session, nodeId);
@@ -423,12 +424,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(1);
 
         info.element0.counter.should.eql(1);
-        info.element0.$props!.field1.counter.should.eql(1);
-        info.element0.$props!.field2.counter.should.eql(1);
+        info.element0.$props?.field1.counter.should.eql(1);
+        info.element0.$props?.field2.counter.should.eql(1);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
 
         // do it again
         await write(session, el0NodeId, incr(el0Modified));
@@ -438,12 +439,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(2);
 
         info.element0.counter.should.eql(2);
-        info.element0.$props!.field1.counter.should.eql(2);
-        info.element0.$props!.field2.counter.should.eql(2);
+        info.element0.$props?.field1.counter.should.eql(2);
+        info.element0.$props?.field2.counter.should.eql(2);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
     }
 
     if (level === "InnerProperty") {
@@ -454,11 +455,11 @@ async function checkArrayVariable(
 
         info.main.counter.should.eql(0);
         info.element0.counter.should.eql(0);
-        info.element0.$props!.field1.counter.should.eql(0);
-        info.element0.$props!.field2.counter.should.eql(0);
+        info.element0.$props?.field1.counter.should.eql(0);
+        info.element0.$props?.field2.counter.should.eql(0);
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
 
         const valueAll = await read(session, nodeId);
 
@@ -477,12 +478,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(1);
 
         info.element0.counter.should.eql(1);
-        info.element0.$props!.field1.counter.should.eql(0);
-        info.element0.$props!.field2.counter.should.eql(1);
+        info.element0.$props?.field1.counter.should.eql(0);
+        info.element0.$props?.field2.counter.should.eql(1);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
 
         // do it again
         const propModified1 = incr(propModified);
@@ -495,12 +496,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(2);
 
         info.element0.counter.should.eql(2);
-        info.element0.$props!.field1.counter.should.eql(0);
-        info.element0.$props!.field2.counter.should.eql(2);
+        info.element0.$props?.field1.counter.should.eql(0);
+        info.element0.$props?.field2.counter.should.eql(2);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props!.field1.counter.should.eql(0);
-        info.element1.$props!.field2.counter.should.eql(0);
+        info.element1.$props?.field1.counter.should.eql(0);
+        info.element1.$props?.field2.counter.should.eql(0);
     }
 }
 
@@ -512,7 +513,7 @@ interface Counter {
 }
 
 function resetCounter(info: Record<string, Counter>) {
-    for (const [k, v] of Object.entries(info)) {
+    for (const [_k, v] of Object.entries(info)) {
         v.counter = 0;
         (v.dataValues as any).splice(0);
         if (v.$props) resetCounter(v.$props);
@@ -579,7 +580,7 @@ async function subscribeToNodeAt3Level(session: ClientSession, subscription: Cli
         const el0NodeId = await getMember(session, nodeId, "0");
         await monitor(session, subscription, el0NodeId, info.element0);
         const v0 = await read(session, el0NodeId);
-        for (const [k, v] of Object.entries(v0)) {
+        for (const [k, _v] of Object.entries(v0)) {
             const stat: Counter = { counter: 0, dataValues: [] };
             info.element0.$props![k] = stat;
             const nodeId = await getMember(session, el0NodeId, k);
@@ -590,7 +591,7 @@ async function subscribeToNodeAt3Level(session: ClientSession, subscription: Cli
         const el1NodeId = await getMember(session, nodeId, "1");
         await monitor(session, subscription, el1NodeId, info.element1);
         const v1 = await read(session, el1NodeId);
-        for (const [k, v] of Object.entries(v1)) {
+        for (const [k, _v] of Object.entries(v1)) {
             const stat: Counter = { counter: 0, dataValues: [] };
             info.element1.$props![k] = stat;
             const nodeId = await getMember(session, el1NodeId, k);
@@ -671,8 +672,9 @@ async function withClient(
         }
     );
 }
+
 // eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing extension object variable enrichment", function (this: any) {
     let server: OPCUAServer;
@@ -682,7 +684,7 @@ describe("testing extension object variable enrichment", function (this: any) {
             nodeset_filename: [nodesets.standard, path.join(__dirname, "../../fixtures/_generated_mymodel.model.Nodeset2.xml")]
         });
         await server.initialize();
-        const addressSpace = server.engine.addressSpace!;
+        const _addressSpace = server.engine.addressSpace!;
         await server.start();
     });
     afterEach(async () => {
@@ -739,7 +741,7 @@ describe("testing extension object with client residing on a different process t
         ["Matrix", 2]
     ].forEach(([valueRankName, selectedValueRank]) => {
         ["TopVariable", "IndexedVariable", "InnerProperty"].forEach((level: any) => {
-            it("should bind complex extension object - " + valueRankName + "-" + level, async () => {
+            it(`should bind complex extension object - ${valueRankName}-${level}`, async () => {
                 const endpointUrl = server.getEndpointUrl();
                 await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
                     if (selectedValueRank !== valueRank) return;

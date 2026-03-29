@@ -1,30 +1,28 @@
-import { clearTimeout } from "timers";
+import { clearTimeout } from "node:timers";
 import {
-    AddressSpace,
-    assert,
-    AttributeIds,
-    ClientSession,
-    ClientSidePublishEngine,
+    type AddressSpace,
+    type ClientSession,
+    type ClientSidePublishEngine,
     ClientSubscription,
-    DataChangeNotification,
-    ExtensionObject,
-    MonitoredItemNotification,
-    MonitoringParametersOptions,
-    Namespace,
-    NodeIdLike,
-    NotificationMessage,
+    type DataChangeNotification,
+    type ExtensionObject,
+    type MonitoredItemNotification,
+    type MonitoringParametersOptions,
+    type Namespace,
+    type NotificationMessage,
     OPCUAClient,
-    OPCUAClientOptions,
-    ReadValueIdOptions,
-    StatusCode,
+    type OPCUAClientOptions,
+    type ReadValueIdOptions,
+    type StatusCode,
     TimestampsToReturn
 } from "node-opcua";
-import should from "should";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import should from "should";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
+
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
@@ -79,15 +77,15 @@ export function t(test: any) {
             });
         });
     }
-    async function waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
+    async function _waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
         while (true) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
+                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
                     statusCode: item.value.statusCode,
                     value: item.value.value.value
-                }));
+                })) ?? [];
                 return r;
             }
             // tslint:disable-next-line: no-console
@@ -100,11 +98,11 @@ export function t(test: any) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
-            const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
+            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
         });
         beforeEach(async () => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
             s = await createSession();
         });
         afterEach(async () => {
@@ -116,8 +114,8 @@ export function t(test: any) {
         it("Should monitor a large number of node efficiently", async () => {
             const { session, subscription, publishEngine } = s;
 
-            session.on("session_closed", ()=>{ 
-                console.log("session_closed");  
+            session.on("session_closed", () => {
+                console.log("session_closed");
             });
 
             const namespaceArray = await session.readNamespaceArray();
@@ -133,7 +131,7 @@ export function t(test: any) {
             console.log(
                 dataValues
                     .map((x) => x.statusCode.toString())
-                    .filter((x, index) => index % 1000 === 0)
+                    .filter((_x, index) => index % 1000 === 0)
                     .join(" ")
             );
 
@@ -143,7 +141,7 @@ export function t(test: any) {
                 samplingInterval: 1000
             };
 
-            subscription.on("raw_notification", (notificationMessage: NotificationMessage) => {
+            subscription.on("raw_notification", (_notificationMessage: NotificationMessage) => {
                 // console.log("row Notification = ", notificationMessage.toString());
             });
             let counter = 0;
@@ -158,18 +156,16 @@ export function t(test: any) {
                 console.time("B");
 
                 await new Promise<void>((resolve) => {
-
-
                     const timerId = setTimeout(() => resolve(), 5000);
-                    
-                    group.on("changed", (monitoredItem, dataValue, index) => {
+
+                    group.on("changed", (_monitoredItem, _dataValue, index) => {
                         counter++;
                         if (counter === itemToMonitors.length) {
                             clearTimeout(timerId);
                             resolve();
                         }
-                        if ((index +1)% 5000 === 0) {
-                            console.log("index ", index+1);
+                        if ((index + 1) % 5000 === 0) {
+                            console.log("index ", index + 1);
                         }
                     });
                 });

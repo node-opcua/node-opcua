@@ -1,29 +1,29 @@
 import {
-    OPCUAServer,
+    AttributeIds,
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    constructEventFilter,
+    DataType,
+    DataValue,
+    type IBasicSessionAsync,
+    type MonitoringParametersOptions,
+    type NodeId,
     nodesets,
     OPCUAClient,
-    ClientMonitoredItem,
-    MonitoringParametersOptions,
-    TimestampsToReturn,
-    ClientSubscription,
-    AttributeIds,
-    NodeId,
-    DataType,
-    VariantArrayType,
-    UAVariable,
-    DataValue,
+    OPCUAServer,
     resolveNodeId,
-    Variant,
-    constructEventFilter,
-    ClientSession,
-    IBasicSessionAsync
+    TimestampsToReturn,
+    type UAVariable,
+    type Variant,
+    VariantArrayType
 } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
 import sinon from "sinon";
 
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const _should = should;
 
@@ -31,7 +31,8 @@ const port = 2228;
 let endpointUrl: string;
 
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
     let nodeId: NodeId;
     let scanResultNode: UAVariable;
@@ -81,8 +82,8 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                 }
             }
         });
-        
-        const s = server.engine.addressSpace!.rootFolder.objects.server!;
+
+        const s = server.engine.addressSpace?.rootFolder.objects.server!;
 
         s.raiseEvent(rfidScanEventType, {
             scanResult: {
@@ -178,7 +179,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         await client.withSubscriptionAsync(
             endpointUrl,
             subscriptionParameters,
-            async (session: IBasicSessionAsync, subscription: ClientSubscription) => {
+            async (_session: IBasicSessionAsync, subscription: ClientSubscription) => {
                 try {
                     const itemToMonitor = {
                         attributeId: AttributeIds.Value,
@@ -201,7 +202,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                         debugLog("Error", message);
                     });
 
-                    monitoredItem.on("changed", (dataValue) => {
+                    monitoredItem.on("changed", (_dataValue) => {
                         debugLog("."); //dataValue.toJSON());
                     });
                     await new Promise<void>((resolve) => {
@@ -247,7 +248,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                 try {
                     await session.readNamespaceArray();
                     const nsAutoId = session.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
-                    const rfidScanEventTypeNodeId = `ns=${nsAutoId};i=1006`;
+                    const _rfidScanEventTypeNodeId = `ns=${nsAutoId};i=1006`;
 
                     const fields = [
                         "EventType",
@@ -295,7 +296,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                     });
 
                     monitoredItem.on("changed", (eventFields: Variant[]) => {
-                        for (const eventField of eventFields) {
+                        for (const _eventField of eventFields) {
                             // tslint:disable-next-line: no-console
                             // debugLog(eventField.toString());
                         }

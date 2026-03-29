@@ -1,0 +1,49 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "correctness": {
+                "noUnusedVariables": "error"
+            }
+        }
+    },
+    "formatter": {
+        "enabled": true,
+        "lineEnding": "lf",
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 132
+    },
+    "files": {
+        "includes": [
+            "**",
+            "!**/node_modules",
+            "!**/coverage",
+            "!**/dist",
+            "!**/dist_cjs",
+            "!**/dist_esm",
+            "!**/dist-cjs",
+            "!**/dist-esm",
+            "!**/build",
+            "!**/certificates",
+            "!package.json",
+            "!package-lock.json",
+            "!lerna.json"
+        ]
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "trailingCommas": "none"
+        }
+    }
+}

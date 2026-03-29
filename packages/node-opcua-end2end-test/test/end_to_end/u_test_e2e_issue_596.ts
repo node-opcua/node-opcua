@@ -1,9 +1,12 @@
-import os from "os";
+import os from "node:os";
 import "should";
-import { OPCUAClient, makeApplicationUrn } from "node-opcua";
+import { makeApplicationUrn, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 /**
  * Bug #596 - ClientSession#getNamespaceIndex

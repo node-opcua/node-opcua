@@ -1,23 +1,26 @@
 import "should";
 import {
-    OPCUAClient,
     AttributeIds,
+    CreateMonitoredItemsRequest,
     DataType,
     DataValue,
-    Range,
-    makeBrowsePath,
-    StatusCodes,
-    ReadValueId,
     MonitoringMode,
     MonitoringParameters,
-    TimestampsToReturn,
-    CreateMonitoredItemsRequest,
-    PublishRequest
+    makeBrowsePath,
+    OPCUAClient,
+    PublishRequest,
+    Range,
+    ReadValueId,
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_raw_subscription } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string;[k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 const doDebug = false;
 
@@ -79,37 +82,35 @@ async function getNextDataChangeNotification(session: any) {
 
 export function t(test: TestHarness) {
     describe("SemanticChanged bit behaviour", () => {
-
         let client: OPCUAClient;
 
-        let endpointUrl = test.endpointUrl;
+        let _endpointUrl = test.endpointUrl;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            _endpointUrl = test.endpointUrl;
         });
         afterEach(async () => {
             if (client) await client.disconnect();
         });
 
         async function checkSemanticChange(samplingInterval: number) {
-
             const analogNodeId = "ns=2;s=DoubleAnalogDataItem";
 
             await perform_operation_on_raw_subscription(
-                client, test.endpointUrl,
+                client,
+                test.endpointUrl,
 
                 async (session, { subscriptionId }) => {
-
                     const orgEURange = await readEURange(session, analogNodeId);
 
                     // Create monitored item
-                    const itemToMonitor = new ReadValueId({ 
-                        attributeId: AttributeIds.Value, 
-                        nodeId: analogNodeId 
+                    const itemToMonitor = new ReadValueId({
+                        attributeId: AttributeIds.Value,
+                        nodeId: analogNodeId
                     });
 
-// #region create monitored item
+                    // #region create monitored item
                     const monitoringParameters = new MonitoringParameters({
                         clientHandle: 1000,
                         samplingInterval,
@@ -130,10 +131,9 @@ export function t(test: TestHarness) {
                         ]
                     });
 
-
                     const createMonitoredItemResponse = await (session as any).createMonitoredItems(createReq);
                     console.log(createMonitoredItemResponse.toString());
-//#endregion
+                    //#endregion
 
                     // Initial notification: semanticChanged should be false
                     const firstNotif = await getNextDataChangeNotification(session);
@@ -151,17 +151,18 @@ export function t(test: TestHarness) {
 
                     // restore
                     await writeEURange(session, analogNodeId, orgEURange);
-                });
+                }
+            );
         }
 
-        it("YY3 semanticChanged with sampling 1000ms", async () => { 
-            await checkSemanticChange(1000); 
+        it("YY3 semanticChanged with sampling 1000ms", async () => {
+            await checkSemanticChange(1000);
         });
-        it("YY1 semanticChanged with sampling 100ms", async () => { 
-            await checkSemanticChange(100); 
+        it("YY1 semanticChanged with sampling 100ms", async () => {
+            await checkSemanticChange(100);
         });
         it("YY2 semanticChanged with event-based (0ms) sampling", async () => {
-             await checkSemanticChange(0); 
+            await checkSemanticChange(0);
         });
     });
 }

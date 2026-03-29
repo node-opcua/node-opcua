@@ -8,10 +8,10 @@
 //  The test logs states & transitions to aid visual inspection and debugging.
 // --------------------------------------------------------------------------------------------
 import "should";
-import { UAProxyManager } from "node-opcua-client-proxy";
 import { getAddressSpaceFixture } from "node-opcua-address-space/testHelpers";
-import { build_client_server_session, ClientServerSession } from "../../test_helpers/build_client_server_session";
+import { UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { build_client_server_session, type ClientServerSession } from "../../test_helpers/build_client_server_session";
 
 describe("testing client Proxy State Machine", function (this: Mocha.Context) {
     this.timeout(Math.max(200_000, this.timeout()));

@@ -1,18 +1,21 @@
 import "should";
 import {
-    OPCUAClient,
-    StatusCodes,
-    UnregisterNodesRequest,
-    RegisterNodesRequest,
-    DataType,
     AttributeIds,
-    ServiceFault
+    DataType,
+    OPCUAClient,
+    RegisterNodesRequest,
+    ServiceFault,
+    StatusCodes,
+    UnregisterNodesRequest
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 /**
  * End-to-end testing registerNodes / unregisterNodes service behavior.
@@ -20,7 +23,6 @@ interface TestHarness { endpointUrl: string; [k: string]: any }
  */
 export function t(test: TestHarness) {
     describe("end-to-end testing registerNodes", () => {
-
         it("register nodes - BadNothingToDo", async () => {
             const client = OPCUAClient.create({});
             await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {

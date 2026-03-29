@@ -1,23 +1,24 @@
-import should from "should";
-import { ContinuationPoint, nodesets, StatusCodes } from "node-opcua";
-import { OPCUAServer } from "node-opcua-server";
+import { type ContinuationPoint, nodesets, StatusCodes } from "node-opcua";
 import { date_add } from "node-opcua-address-space/testHelpers";
 import {
-    OPCUAClient,
-    ClientSession,
-    ReadRawModifiedDetails,
+    type ClientSession,
+    type DataValue,
+    type HistoryData,
     HistoryReadRequest,
+    type NodeId,
+    OPCUAClient,
+    ReadRawModifiedDetails,
+    type StatusCode,
     TimestampsToReturn,
-    HistoryData,
-    NodeId,
-    StatusCode,
-    DataValue,
     VariableIds
 } from "node-opcua-client";
+import { OPCUAServer } from "node-opcua-server";
+import should from "should";
 
 const port = 2076;
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing Historical Data Node historyRead with continuation points", () => {
     const today = new Date("2017-01-01T00:00:00.000Z");
     let server: OPCUAServer;
@@ -90,9 +91,9 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             should.exist(historyReadResult.continuationPoint, "expecting a continuation point in our case");
 
             const continuationPoint = historyReadResult.continuationPoint;
-            dataValues[0].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 0 }).getTime());
-            dataValues[1].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 1 }).getTime());
-            dataValues[2].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 2 }).getTime());
+            dataValues[0].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 0 }).getTime());
+            dataValues[1].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 1 }).getTime());
+            dataValues[2].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 2 }).getTime());
 
             //  make_first_continuation_read(callback) {
             const historyReadResponse2 = await session.historyRead(
@@ -114,9 +115,9 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             should(continuationPoint2).not.eql(null);
             should(continuationPoint2).eql(continuationPoint);
 
-            dataValues2[0].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 3 }).getTime());
-            dataValues2[1].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 4 }).getTime());
-            dataValues2[2].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 5 }).getTime());
+            dataValues2[0].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 3 }).getTime());
+            dataValues2[1].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 4 }).getTime());
+            dataValues2[2].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 5 }).getTime());
 
             // make a second read with a continuation point to extract more data
             const historyReadResponse3 = await session.historyRead(
@@ -131,7 +132,7 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             historyReadResult3.statusCode.should.eql(StatusCodes.Good);
 
             should.not.exist(
-                historyReadResponse3.results![0].continuationPoint,
+                historyReadResponse3.results?.[0].continuationPoint,
                 "expecting all data to have been read, no continuation point expected"
             );
 
@@ -139,7 +140,7 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             dataValues3.length.should.eql(1);
             should.not.exist(historyReadResult3.continuationPoint, "expecting no continuation point");
 
-            dataValues3[0].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 6 }).getTime());
+            dataValues3[0].sourceTimestamp?.getTime().should.eql(date_add(today, { seconds: 6 }).getTime());
 
             //
             const historyReadResponse4 = await session.historyRead(
@@ -271,13 +272,13 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
 
         // Server_ServerCapabilities_MaxHistoryContinuationPoints
 
-
         await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
-
-            const maxHistoryContinuationPoint = (await session.read({
-                nodeId: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                attributeId: 13
-            })).value.value;
+            const _maxHistoryContinuationPoint = (
+                await session.read({
+                    nodeId: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                    attributeId: 13
+                })
+            ).value.value;
 
             // given that the client has sent a first historyRead request that generated a continuation point
             const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);

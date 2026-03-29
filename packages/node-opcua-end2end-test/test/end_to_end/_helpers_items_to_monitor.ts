@@ -26,10 +26,9 @@ export const itemsToMonitor1 = [
     { nodeId: "ns=2;s=Static_Scalar_XmlElement", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Scalar_ImageBMP", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Scalar_ImageGIF", attributeId: AttributeIds.Value },
-    { nodeId: "ns=2;s=Static_Scalar_ImagePNG", attributeId: AttributeIds.Value },
+    { nodeId: "ns=2;s=Static_Scalar_ImagePNG", attributeId: AttributeIds.Value }
 ];
 export const itemsToMonitor2 = [
-
     { nodeId: "ns=2;s=Static_Array_Boolean", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_Byte", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_ByteString", attributeId: AttributeIds.Value },
@@ -56,7 +55,6 @@ export const itemsToMonitor2 = [
     { nodeId: "ns=2;s=Static_Array_ImageBMP", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_ImageGIF", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_ImagePNG", attributeId: AttributeIds.Value },
-
 
     { nodeId: "ns=2;s=ByteDataItem", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=DoubleDataItem", attributeId: AttributeIds.Value },
@@ -97,6 +95,5 @@ export const itemsToMonitor2 = [
     { nodeId: "ns=2;s=Int64MultiStateValueDiscrete", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=UInt16MultiStateValueDiscrete", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=UInt32MultiStateValueDiscrete", attributeId: AttributeIds.Value },
-    { nodeId: "ns=2;s=UInt64MultiStateValueDiscrete", attributeId: AttributeIds.Value },
+    { nodeId: "ns=2;s=UInt64MultiStateValueDiscrete", attributeId: AttributeIds.Value }
 ];
-

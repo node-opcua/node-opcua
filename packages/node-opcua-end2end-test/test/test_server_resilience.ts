@@ -1,26 +1,19 @@
 import "should";
-import { OPCUAServer } from "node-opcua-server";
-import { ClientSession, OPCUAClient } from "node-opcua-client";
-import {
-    get_empty_nodeset_filename,
-    is_valid_endpointUrl
-} from "node-opcua";
-import {
-    make_debugLog,
-    checkDebugFlag
-} from "node-opcua-debug";
+import { get_empty_nodeset_filename, is_valid_endpointUrl } from "node-opcua";
+import { type ClientSession, OPCUAClient } from "node-opcua-client";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { OPCUAServer } from "node-opcua-server";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 import { ServerSideUnimplementedRequest } from "../test_helpers/unimplementedRequest";
 import { wait } from "../test_helpers/utils";
 
 // Initialize variables
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 describe("testing Server resilience to unsupported request", function (this: Mocha.Runnable) {
-
     const port = 2990;
 
     let server: OPCUAServer;
@@ -57,18 +50,17 @@ describe("testing Server resilience to unsupported request", function (this: Moc
         await server.shutdown();
     });
 
-    it("server should return a ServiceFault if receiving a unsupported MessageType", function (done) {
+    it("server should return a ServiceFault if receiving a unsupported MessageType", (done) => {
         const bad_request = new ServerSideUnimplementedRequest({}); // intentionally send a bad request
 
-        (g_session as any).performMessageTransaction(bad_request, function (err: Error | null, response: any) {
-            err!.should.be.instanceOf(Error);
+        (g_session as any).performMessageTransaction(bad_request, (err: Error | null, _response: any) => {
+            err?.should.be.instanceOf(Error);
             done();
         });
     });
 });
 
 async function abruptly_disconnect_client(client: OPCUAClient) {
-
     await new Promise<void>((resolve) => {
         (client as any)._secureChannel.getTransport().disconnect((err: Error) => {
             err ? resolve() : resolve();
@@ -118,8 +110,6 @@ describe("testing Server resilience with bad internet connection", function (thi
 
             server.currentSessionCount.should.eql(1);
 
-
-
             await abruptly_disconnect_client(client);
             // assert that server has 1 sessions
             server.currentSessionCount.should.eql(1);
@@ -130,7 +120,6 @@ describe("testing Server resilience with bad internet connection", function (thi
             // assert that server has no more session
 
             server.currentSessionCount.should.eql(0);
-
         } finally {
             await client.disconnect();
         }

@@ -1,6 +1,6 @@
 import "should";
-import sinon from "sinon";
 import { ClientSecureChannelLayer, get_mini_nodeset_filename, OPCUAClient, OPCUAServer } from "node-opcua";
+import sinon from "sinon";
 
 const port = 2128;
 
@@ -17,8 +17,10 @@ async function startServer(): Promise<OPCUAServer> {
     await server.start();
     return server;
 }
+
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("#1002 - ability to set transport timeout ", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -30,7 +32,7 @@ describe("#1002 - ability to set transport timeout ", () => {
     });
     it("A- using default transport timeout", async () => {
         const endpointUrl = server.getEndpointUrl();
-        const client = OPCUAClient.create({ clientName: "1 " + __filename });
+        const client = OPCUAClient.create({ clientName: `1 ${__filename}` });
         const spyConnectionLost = sinon.spy();
         const spyClose = sinon.spy();
         const spyConnectionReestablished = sinon.spy();
@@ -38,9 +40,9 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("close", spyClose);
         client.on("connection_reestablished", spyConnectionReestablished);
 
-        const actualTimeout = await client.withSessionAsync<number>(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!.getTransport().timeout;
-            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
+        const actualTimeout = await client.withSessionAsync<number>(endpointUrl, async (_session) => {
+            const timeout = (client as any)._secureChannel?.getTransport().timeout;
+            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
             return timeout;
         });
@@ -55,7 +57,7 @@ describe("#1002 - ability to set transport timeout ", () => {
 
         const transportTimeout = 1234;
         const client = OPCUAClient.create({
-            clientName: "2 " + __filename,
+            clientName: `2 ${__filename}`,
             transportTimeout,
             connectionStrategy: { maxRetry: 0 } // we don't want automatic reconnection => maxRetry = 0
         });
@@ -69,9 +71,9 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("close", spyClose);
         client.on("connection_reestablished", spyConnectionReestablished);
 
-        const actualTimeout = await client.withSessionAsync(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!.getTransport().timeout;
-            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
+        const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
+            const timeout = (client as any)._secureChannel?.getTransport().timeout;
+            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);
@@ -92,7 +94,7 @@ describe("#1002 - ability to set transport timeout ", () => {
 
         const transportTimeout = 1000;
         const client = OPCUAClient.create({
-            clientName: "3 " + __filename,
+            clientName: `3 ${__filename}`,
             transportTimeout,
             connectionStrategy: { maxRetry: 1 } // we WANT automatic reconnection => maxRetry <> 1
         });
@@ -107,9 +109,9 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_reestablished", spyConnectionReestablished);
         const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-        const actualTimeout = await client.withSessionAsync(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!.getTransport().timeout;
-            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
+        const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
+            const timeout = (client as any)._secureChannel?.getTransport().timeout;
+            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);

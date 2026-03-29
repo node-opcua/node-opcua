@@ -1,31 +1,21 @@
-import os from "os";
+import os from "node:os";
 import "should";
 
-import {
-    OPCUAServer,
-    findServers,
-    findServersOnNetwork,
-    makeApplicationUrn
-} from "node-opcua";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
+import { findServers, findServersOnNetwork, makeApplicationUrn, OPCUAServer } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 
-import { 
-    TestHarness, 
-    createAndStartServer, 
-    ep, startDiscovery, 
-    pause 
-} from "./helpers/index";
+import { createAndStartServer, ep, pause, startDiscovery, type TestHarness } from "./helpers/index";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 // add the tcp/ip endpoint with no security
 
-export function t(test: TestHarness) {
+export function t(_test: TestHarness) {
     describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
-        this.timeout(Math.max(40000,this.timeout()));
+        this.timeout(Math.max(40000, this.timeout()));
 
         let discoveryServer1: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl1: string;
@@ -74,19 +64,18 @@ export function t(test: TestHarness) {
             discoveryServer2.registeredServerCount.should.equal(0);
             discoveryServer3.registeredServerCount.should.equal(0);
 
-
             if (doDebug) {
                 debugLog("discoveryServerEndpointUrl1", discoveryServerEndpointUrl1);
                 debugLog("discoveryServerEndpointUrl2", discoveryServerEndpointUrl2);
                 debugLog("discoveryServerEndpointUrl3", discoveryServerEndpointUrl3);
             }
 
-            let initialServerCount = 0;
+            let _initialServerCount = 0;
             {
                 const data = await findServers(discoveryServerEndpointUrl1);
                 const { servers, endpoints } = data;
-                initialServerCount = servers.length;
-                servers[0].discoveryUrls!.length.should.eql(1);
+                _initialServerCount = servers.length;
+                servers[0].discoveryUrls?.length.should.eql(1);
             }
             const server1 = await createAndStartServer(discoveryServerEndpointUrl1, port1, "A1");
 
@@ -111,8 +100,8 @@ export function t(test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl1);
                 const { servers, endpoints } = data!;
                 servers.length.should.eql(2);
-                servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover1}`);
-                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A1`));
+                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover1}`);
+                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A1`));
             }
             {
                 const data = await findServers(discoveryServerEndpointUrl2);
@@ -122,8 +111,8 @@ export function t(test: TestHarness) {
                 debugLog("servers[0].applicationUri = ", servers[0].applicationUri);
                 debugLog("servers[1].applicationUri = ", servers[1].applicationUri);
                 servers.length.should.eql(2);
-                servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover2}`);
-                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A2`));
+                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover2}`);
+                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A2`));
             }
 
             await pause(500);
@@ -132,8 +121,8 @@ export function t(test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl3);
                 const { servers, endpoints } = data!;
                 servers.length.should.eql(2);
-                servers[0].applicationUri!.should.eql(`urn:localhost:LDS-${port_discover3}`);
-                servers[1].applicationUri!.should.eql(makeApplicationUrn(hostname, `A3`));
+                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover3}`);
+                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A3`));
             }
 
             await pause(500);
@@ -143,25 +132,25 @@ export function t(test: TestHarness) {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl1);
 
                 if (doDebug) {
-                    debugLog(servers!.map((x) => x.discoveryUrl).join("\n"));
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
                 }
-                servers!.length.should.eql(6);
+                servers?.length.should.eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
             }
             // query_discovery_server_for_available_servers_on_network(callback) {
             {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl2);
                 if (doDebug) {
-                    debugLog(servers!.map((x) => x.discoveryUrl).join("\n"));
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
                 }
-                servers!.length.should.eql(6);
+                servers?.length.should.eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
             }
             {
                 // query_discovery_server_for_available_servers_on_network
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl3);
                 if (doDebug) {
-                    debugLog(servers!.map((x) => x.discoveryUrl).join("\n"));
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
                 }
                 // xxservers.length.should.eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");

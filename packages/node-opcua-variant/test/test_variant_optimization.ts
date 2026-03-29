@@ -1,6 +1,6 @@
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { decodeVariant, Variant, VariantArrayType } from "..";
+import { decodeVariant, VariantArrayType } from "..";
 import { DataType } from "node-opcua-basic-types";
 import "should";
 
@@ -72,7 +72,7 @@ describe("Variant Optimization: Zero-Copy and Alignment", () => {
         const valueArr = v.value as Float32Array;
 
         // Verify coupling
-        const original = valueArr[0]; // 0
+        const _original = valueArr[0]; // 0
         // access raw buffer at payloadStart (relative to full buffer)
         // Modify float at index 0.
         buffer.writeFloatLE(123.5, payloadStart);

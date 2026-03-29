@@ -1,9 +1,13 @@
 import "should";
-import { OPCUAClient, NodeId, NodeIdType, BrowseDirection, StatusCode, StatusCodes } from "node-opcua";
+import { BrowseDirection, NodeId, NodeIdType, OPCUAClient, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server?: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server?: any;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("Issue #377 - string nodeId that looks like a guid", () => {
@@ -26,16 +30,20 @@ export function t(test: TestHarness) {
             if (!test.server) return; // skip when server not provided
             const client = OPCUAClient.create({});
             await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
-                const browseDesc = { nodeId: "ObjectsFolder", referenceTypeId: null, browseDirection: BrowseDirection.Forward } as any;
+                const browseDesc = {
+                    nodeId: "ObjectsFolder",
+                    referenceTypeId: null,
+                    browseDirection: BrowseDirection.Forward
+                } as any;
                 const browseResult = await session.browse(browseDesc);
 
                 browseResult.should.have.property("references");
-                browseResult.references!.should.be.an.Array();
-                browseResult.references!.should.not.be.empty();
+                browseResult.references?.should.be.an.Array();
+                browseResult.references?.should.not.be.empty();
                 browseResult.statusCode.should.eql(StatusCodes.Good);
-                
-                const nodeIds = browseResult.references!.map((r: any) => r.nodeId.toString());
-                nodeIds.should.containEql(`ns=1;s=${guidLikeString}`);
+
+                const nodeIds = browseResult.references?.map((r: any) => r.nodeId.toString());
+                nodeIds!.should.containEql(`ns=1;s=${guidLikeString}`);
             });
         });
     });

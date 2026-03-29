@@ -1,17 +1,20 @@
 import "should";
-import { assert } from "node-opcua-assert";
 import {
-    OPCUAClient,
     AttributeIds,
-    resolveNodeId,
     ClientMonitoredItem,
     ClientMonitoredItemGroup,
+    OPCUAClient,
+    resolveNodeId,
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any;[k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const doDebug = false;
 
@@ -29,7 +32,8 @@ const doDebug = false;
  */
 export function t(test: TestHarness) {
     describe("Testing ClientMonitoredItemGroup", () => {
-        let client: OPCUAClient; let endpointUrl: string;
+        let client: OPCUAClient;
+        let endpointUrl: string;
 
         beforeEach(async () => {
             client = OPCUAClient.create({});
@@ -38,12 +42,13 @@ export function t(test: TestHarness) {
 
         afterEach(async () => {
             // client disconnected by helpers; just release reference
-            // @ts-ignore
+            // @ts-expect-error
             client = null;
         });
 
         const waitEvent = <T = any>(emitter: any, event: string) => new Promise<T>((resolve) => emitter.once(event, resolve));
-        const terminatePromise = (obj: { terminate: (cb: (err?: Error) => void) => void }) => new Promise<void>((res, rej) => obj.terminate((e) => e ? rej(e) : res()));
+        const terminatePromise = (obj: { terminate: (cb: (err?: Error) => void) => void }) =>
+            new Promise<void>((res, rej) => obj.terminate((e) => (e ? rej(e) : res())));
 
         it("AA11 creates a ClientMonitoredItem and gets notified", async () => {
             await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
@@ -56,7 +61,12 @@ export function t(test: TestHarness) {
                     monitoredItem.on("changed", async () => {
                         count++;
                         if (count === 10) {
-                            try { await terminatePromise(monitoredItem); resolve(); } catch (e) { reject(e); }
+                            try {
+                                await terminatePromise(monitoredItem);
+                                resolve();
+                            } catch (e) {
+                                reject(e);
+                            }
                         }
                     });
                 });
@@ -92,7 +102,12 @@ export function t(test: TestHarness) {
                     group.on("changed", async () => {
                         count++;
                         if (count === 10) {
-                            try { await terminatePromise(group); resolve(); } catch (e) { reject(e); }
+                            try {
+                                await terminatePromise(group);
+                                resolve();
+                            } catch (e) {
+                                reject(e);
+                            }
                         }
                     });
                 });
@@ -128,7 +143,6 @@ export function t(test: TestHarness) {
             });
         });
 
-
         it("AA11-B creates a ClientMonitoredItemGroup with one item and gets notified", async () => {
             await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
                 const itemsToMonitor = [{ nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value }]; // ServerStatus.CurrentTime
@@ -137,10 +151,15 @@ export function t(test: TestHarness) {
                 group.monitoredItems.length.should.eql(1);
                 let count = 0;
                 await new Promise<void>((resolve, reject) => {
-                    group.on("changed", async (monitoredItem: ClientMonitoredItem, dataValue: any, index: number) => {
+                    group.on("changed", async (_monitoredItem: ClientMonitoredItem, _dataValue: any, _index: number) => {
                         count++;
                         if (count === 10) {
-                            try { await group.terminate(); resolve(); } catch (e) { reject(e); }
+                            try {
+                                await group.terminate();
+                                resolve();
+                            } catch (e) {
+                                reject(e);
+                            }
                         }
                     });
                 });
@@ -174,7 +193,12 @@ export function t(test: TestHarness) {
                     group.on("changed", async () => {
                         count++;
                         if (count === 10) {
-                            try { await group.terminate(); resolve(); } catch (e) { reject(e); }
+                            try {
+                                await group.terminate();
+                                resolve();
+                            } catch (e) {
+                                reject(e);
+                            }
                         }
                     });
                 });
@@ -225,5 +249,4 @@ export function t(test: TestHarness) {
             });
         });
     });
-
 }

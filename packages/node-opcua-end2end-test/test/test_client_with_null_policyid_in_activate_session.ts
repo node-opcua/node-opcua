@@ -1,11 +1,11 @@
 import {
     ActivateSessionRequest,
-    OPCUAServer,
-    OPCUAClient,
-    SecurityPolicy,
-    Request,
+    AnonymousIdentityToken,
     MessageSecurityMode,
-    AnonymousIdentityToken
+    OPCUAClient,
+    OPCUAServer,
+    type Request,
+    SecurityPolicy
 } from "node-opcua";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
@@ -13,7 +13,8 @@ import { createServerCertificateManager } from "../test_helpers/createServerCert
 const port = 2235;
 
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing client that have policyId = null in Activate Session for anonymous connection", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -51,7 +52,7 @@ describe("Testing client that have policyId = null in Activate Session for anony
         const endpoint = server.getEndpointUrl();
         await client.connect(endpoint);
 
-        let err: Error | undefined = undefined;
+        let err: Error | undefined;
         try {
             const session = await client.createSession();
             await session.close();

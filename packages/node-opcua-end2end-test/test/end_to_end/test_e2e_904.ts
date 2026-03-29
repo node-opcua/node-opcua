@@ -1,16 +1,16 @@
-import { types } from "util";
+import { types } from "node:util";
 import {
     CreateSessionResponse,
     get_mini_nodeset_filename,
-    nodesets,
     OPCUAClient,
     OPCUAServer,
-    UserIdentityInfo,
-    UserTokenType,
-    Response,
-    Request
+    type Request,
+    type Response,
+    type UserIdentityInfo,
+    UserTokenType
 } from "node-opcua";
 import should from "should";
+
 const port = 2008;
 const doDebug = false;
 
@@ -54,8 +54,10 @@ async function startServer(): Promise<OPCUAServer> {
     }
     return server;
 }
+
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("#904 - Client should connect to server that do not provide ServerNonce", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -68,17 +70,17 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
 
     let client: OPCUAClient;
 
-    let serverNonceWasNullOrEmptyBuffer: undefined | boolean = undefined;
+    let serverNonceWasNullOrEmptyBuffer: undefined | boolean;
     beforeEach(async () => {
         serverNonceWasNullOrEmptyBuffer = undefined;
-        client = OPCUAClient.create({ endpointMustExist: false, clientName: "1 " + __filename });
+        client = OPCUAClient.create({ endpointMustExist: false, clientName: `1 ${__filename}` });
         client.on("backoff", () => console.log("keep trying", endpointUri));
 
         const endpointUri = geEndpoint(server);
         if (doDebug) {
             console.log("endpoint = ", endpointUri);
         }
-        client.on("send_request", (request: Request) => {});
+        client.on("send_request", (_request: Request) => {});
         client.on("receive_response", (response: Response) => {
             if (response instanceof CreateSessionResponse) {
                 serverNonceWasNullOrEmptyBuffer = response.serverNonce === null || response.serverNonce.length === 0;
@@ -105,7 +107,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
         } finally {
             if (serverNonce !== undefined) {
                 should.exist(serverNonceWasNullOrEmptyBuffer, " should have received a CreateSessionResponse");
-                serverNonceWasNullOrEmptyBuffer!.should.eql(true, "we are expecting server to return and empty server Nonce");
+                serverNonceWasNullOrEmptyBuffer?.should.eql(true, "we are expecting server to return and empty server Nonce");
             }
         }
     }
@@ -133,7 +135,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
         exceptionCaught.should.eql(true, " createSession must have failed");
         if (serverNonce !== undefined) {
             should.exist(serverNonceWasNullOrEmptyBuffer, " should have received a CreateSessionResponse");
-            serverNonceWasNullOrEmptyBuffer!.should.eql(true, "we are expecting server to return and empty server Nonce");
+            serverNonceWasNullOrEmptyBuffer?.should.eql(true, "we are expecting server to return and empty server Nonce");
         }
     }
     it("#904-1 Client should allow unsecure connection with anonymous user when serverNonce is specified ", async () => {
@@ -158,7 +160,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
 
     const userIdentity: UserIdentityInfo = {
         type: UserTokenType.UserName,
-        password: (()=>"test")(),
+        password: (() => "test")(),
         userName: "test"
     };
     it("#904-3 Client should NOT allow unsecure connection when userName Identity is when serverNonce = null (because password would be sent un-encrypted)", async () => {

@@ -1,15 +1,14 @@
-
 import {
-    OPCUAClient,
-    OPCUAClientOptions,
-    OPCUAServer,
-    SecurityPolicy,
+    type ClientSession,
     MessageSecurityMode,
-    ClientSession
+    OPCUAClient,
+    type OPCUAClientOptions,
+    OPCUAServer,
+    SecurityPolicy
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
-import * as net from "net";
+import * as net from "node:net";
 
 const realServerPort = 2254;
 const proxyPort = 2255;
@@ -22,7 +21,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
     let session: ClientSession;
 
     let proxyServer: net.Server;
-    let proxySockets: net.Socket[] = [];
+    const proxySockets: net.Socket[] = [];
 
     before(async () => {
         // Start Real Server
@@ -65,7 +64,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
         }
         await server.shutdown();
 
-        proxySockets.forEach(s => s.destroy());
+        proxySockets.forEach((s) => s.destroy());
         proxyServer.close();
     });
 
@@ -93,7 +92,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
 
             // Once reconnection starts, we should unfreeze the proxy or let it proceed?
             // If we froze the proxy, the old connection is dead.
-            // The client will try to reconnect. 
+            // The client will try to reconnect.
             // It will connect to proxyPort again.
             // Our proxy server is still running, so it should accept the new connection and create a new tunnel.
             // So we don't need to do anything specific, just ensure we don't freeze the NEW sockets.
@@ -116,11 +115,11 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
         });
 
         // Wait for a couple of keep-alive cycles to ensure it's working
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         console.log("Simulating network freeze (silent drop)...");
         // Pause all current proxy sockets
-        proxySockets.forEach(s => {
+        proxySockets.forEach((s) => {
             s.pause(); // Stop reading
             s.unpipe(); // Stop piping
             // We don't destroy them, just let them hang.
@@ -130,7 +129,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
         // Wait for the client to detect failure and start reconnection
         // This might take: keepAliveInterval (500) + defaultTransactionTimeout (2000)
         // Give it 10s to be safe
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
 
         // keepaliveFailureDetected SHOULD be true now, because we simulated a timeout.
         keepaliveFailureDetected.should.eql(true, "Keepalive failure should have been detected");
@@ -138,7 +137,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
         reconnectionStarted.should.eql(true, "Client should have started reconnection");
 
         // allow some time for reconnection
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         connectionReestablished.should.eql(true, "Client should have reestablished connection");
 

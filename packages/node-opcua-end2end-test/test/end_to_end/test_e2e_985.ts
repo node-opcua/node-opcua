@@ -1,7 +1,8 @@
 // test issue 985
 //
 
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import {
     ActivateSessionRequest,
     AttributeIds,
@@ -24,7 +25,6 @@ import {
 } from "node-opcua";
 import { coercePrivateKeyPem, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { make_warningLog } from "node-opcua-debug";
-import path from "path";
 import should from "should";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 
@@ -56,7 +56,7 @@ let certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certif
 if (!fs.existsSync(certificateFolder)) {
     certificateFolder = path.join(__dirname, "../../../../node-opcua-samples/certificates");
 }
-fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
+fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager: UserManagerOptions = {
@@ -268,7 +268,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         await client.connect(endpointUrl);
 
-        client.serverCertificate!.should.eql(wrongServerCertificate);
+        client.serverCertificate?.should.eql(wrongServerCertificate);
 
         let _capturedError: Error | undefined;
         try {
@@ -280,7 +280,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
         } catch (err) {
             _capturedError = err as Error;
-            console.log(_capturedError!.message);
+            console.log(_capturedError?.message);
         } finally {
             await client.disconnect();
 
@@ -337,7 +337,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
         } catch (err) {
             _capturedError = err as Error;
-            console.log(_capturedError!.message);
+            console.log(_capturedError?.message);
         } finally {
             await client.disconnect();
 
@@ -371,7 +371,7 @@ describe("test reconnection when server stops and change it privateKey and certi
                         console.log("Hacking the X509 certificate signature");
                         const userTokenSignature: any /*SignatureDataOptions */ = data.userTokenSignature!;
 
-                        if (userTokenSignature && userTokenSignature.signature) {
+                        if (userTokenSignature?.signature) {
                             console.log(userTokenSignature);
                             // Hacking signature
                             userTokenSignature.signature[0] = 0xa;
@@ -404,7 +404,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await session.close();
         } catch (err) {
             _capturedError = err as Error;
-            console.log(_capturedError!.message);
+            console.log(_capturedError?.message);
         } finally {
             await client.disconnect();
 

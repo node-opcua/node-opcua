@@ -1,14 +1,19 @@
 import "should";
-import sinon from "sinon";
 import { OPCUAClient } from "node-opcua";
 import { messageLogger } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("CDC multiple disconnection", () => {
-        let client: OPCUAClient; let endpointUrl: string; let warningSpy: sinon.SinonSpy;
+        let client: OPCUAClient;
+        let endpointUrl: string;
+        let warningSpy: sinon.SinonSpy;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
@@ -19,16 +24,23 @@ export function t(test: TestHarness) {
 
         afterEach(async () => {
             if (client) {
-                try { await client.disconnect(); } catch { /* ignore */ }
+                try {
+                    await client.disconnect();
+                } catch {
+                    /* ignore */
+                }
             }
             // reset spy so tests stay isolated
             warningSpy.resetHistory();
-            // @ts-ignore
+            // @ts-expect-error
             client = null;
         });
 
         function getWarnings(): string {
-            const msg = warningSpy.getCalls().map((c) => c.args[0]).join(" ");
+            const msg = warningSpy
+                .getCalls()
+                .map((c) => c.args[0])
+                .join(" ");
             warningSpy.resetHistory();
             return msg;
         }

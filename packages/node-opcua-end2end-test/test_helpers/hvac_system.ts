@@ -1,7 +1,15 @@
-"use strict";
-
-import { IAddressSpace, ISessionContext, SessionContext, UAAnalogItem, UAMethod, UAObject, UAVariableT } from "node-opcua-address-space";
-import { adjustDataValueStatusCode } from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
+import {
+    type IAddressSpace,
+    type ISessionContext,
+    SessionContext,
+    UAAnalogItem,
+    UAMethod,
+    UAObject,
+    UAVariableT
+} from "node-opcua-address-space";
+import {
+    adjustDataValueStatusCode
+} from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import {
@@ -9,11 +17,11 @@ import {
     Variant,
     NodeId
 } from "node-opcua";
-import { IBaseUAObject } from "../../node-opcua-factory/source";
+
 
 const doDebug = false;
 
-interface IHVAC extends UAObject{
+interface IHVAC extends UAObject {
     nodeId: NodeId;
     enable: UAMethod;
     setTargetTemperature: UAMethod;
@@ -190,7 +198,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
     //xx console.log(" => ",myHVAC.setTargetTemperature.inputArguments.readValue().toString());
 
     // bind the method
-    myHVAC.setTargetTemperature.bindMethod(async function (inputArguments:Variant[], sessionContext: ISessionContext) {
+    myHVAC.setTargetTemperature.bindMethod(async function (inputArguments: Variant[], sessionContext: ISessionContext) {
         sessionContext;
         if (doDebug) {
             console.log(chalk.cyan.bold(" In SetTargetTemperature"));

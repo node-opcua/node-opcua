@@ -5,6 +5,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "clean": "npx rimraf -g _generated_ dist *.tsbuildinfo",

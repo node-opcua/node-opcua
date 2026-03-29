@@ -1,19 +1,16 @@
 import "should";
-import should from "should";
 import {
+    AggregateFunction,
+    type ClientSession,
+    HistoryData,
+    type HistoryReadResult,
+    type HistoryReadValueIdOptions2,
+    type NodeId,
     OPCUAClient,
     OPCUAServer,
-    NodeId,
-    ClientSession,
-    ReadValueIdOptions,
-    StatusCodes,
-    ClientSubscription,
-    HistoryReadValueIdOptions2,
-    AggregateFunction,
-    HistoryReadResult,
-    HistoryData
+    type ReadValueIdOptions,
+    StatusCodes
 } from "node-opcua";
-
 import { addAggregateSupport } from "node-opcua-aggregates";
 import {
     createHistorian1,
@@ -21,10 +18,11 @@ import {
     createHistorian3,
     createHistorian4
 } from "node-opcua-aggregates/test/helpers/create_historizing_variables";
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import should from "should";
+
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const year = 2018;
 const month = 10;
@@ -49,15 +47,17 @@ async function startServerWithHA() {
 
     addAggregateSupport(addressSpace);
     const h1 = createHistorian1(addressSpace);
-    const h2 = createHistorian2(addressSpace);
-    const h3 = createHistorian3(addressSpace);
-    const h4 = createHistorian4(addressSpace);
+    const _h2 = createHistorian2(addressSpace);
+    const _h3 = createHistorian3(addressSpace);
+    const _h4 = createHistorian4(addressSpace);
 
     h1NodeId = h1.nodeId;
     return server;
 }
+
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("test readAggregateValue", () => {
     let server: OPCUAServer;
     let endpointUrl: string;
@@ -284,8 +284,8 @@ describe("test readAggregateValue", () => {
         // tslint:disable-next-line: no-console
         debugLog(historyReadResult.toString());
         historyReadResult.statusCode.should.eql(StatusCodes.Good);
-        historyReadResult.historyData!.should.be.instanceOf(HistoryData);
+        historyReadResult.historyData?.should.be.instanceOf(HistoryData);
         const historyData = historyReadResult.historyData! as HistoryData;
-        historyData.dataValues!.length.should.eql(10);
+        historyData.dataValues?.length.should.eql(10);
     });
 });

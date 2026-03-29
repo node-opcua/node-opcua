@@ -1,18 +1,22 @@
 import "should";
 import {
-    OPCUAClient,
     AttributeIds,
-    makeNodeId,
     MessageSecurityMode,
+    MonitoringMode,
+    makeNodeId,
+    OPCUAClient,
     SecurityPolicy,
     TimestampsToReturn,
-    VariableIds,
-    MonitoringMode
+    VariableIds
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
@@ -21,9 +25,13 @@ function simulate_connection_lost(client: OPCUAClient) {
     const secureChannel: any = (client as any)._secureChannel;
     if (!secureChannel) return;
     const transport = secureChannel.getTransport();
-    const socket: any = transport && transport._socket;
+    const socket: any = transport?._socket;
     if (socket) {
-        try { socket.end(); } catch { /* ignore */ }
+        try {
+            socket.end();
+        } catch {
+            /* ignore */
+        }
         socket.emit("error", new Error("ECONNRESET"));
     }
 }
@@ -52,7 +60,8 @@ function simulate_connection_lost(client: OPCUAClient) {
  */
 export function t(test: TestHarness) {
     describe("Bug #144 reconnection keeps data (no loss)", () => {
-        let client: OPCUAClient; let endpointUrl: string;
+        let client: OPCUAClient;
+        let endpointUrl: string;
 
         beforeEach(async () => {
             client = OPCUAClient.create({
@@ -67,7 +76,7 @@ export function t(test: TestHarness) {
         afterEach(async () => {
             if (client) {
                 await client.disconnect();
-                // @ts-ignore
+                // @ts-expect-error
                 client = null;
             }
         });
@@ -78,23 +87,30 @@ export function t(test: TestHarness) {
                 let sessionRestoredCount = 0;
                 session.on("session_restored", () => sessionRestoredCount++);
 
-                let keepaliveCounter = 0;
+                let _keepaliveCounter = 0;
                 subscription
-                    .on("internal_error", (err: Error) => {
+                    .on("internal_error", (_err: Error) => {
                         // Log but don't fail immediately; reconnection path handles this
                         // console.log("internal_error", err.message);
                     })
-                    .on("keepalive", () => { keepaliveCounter++; });
+                    .on("keepalive", () => {
+                        _keepaliveCounter++;
+                    });
 
                 const nodeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime);
-                const monitoredItem = await subscription.monitor({
-                    nodeId,
-                    attributeId: AttributeIds.Value
-                }, {
-                    samplingInterval: 50,
-                    discardOldest: true,
-                    queueSize: 1
-                }, TimestampsToReturn.Both, MonitoringMode.Reporting);
+                const monitoredItem = await subscription.monitor(
+                    {
+                        nodeId,
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 50,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Both,
+                    MonitoringMode.Reporting
+                );
 
                 let changeCount = 0;
                 monitoredItem.on("changed", (dataValue) => {
@@ -103,7 +119,7 @@ export function t(test: TestHarness) {
                 });
 
                 // Allow some initial notifications
-                await new Promise(r => setTimeout(r, timeout));
+                await new Promise((r) => setTimeout(r, timeout));
                 const changeCountBefore = changeCount;
                 sessionRestoredCount.should.eql(0);
 
@@ -111,7 +127,7 @@ export function t(test: TestHarness) {
                 simulate_connection_lost(client);
 
                 // Wait for reconnection (longer than timeout to allow secure channel recreation)
-                await new Promise(r => setTimeout(r, timeout * 2));
+                await new Promise((r) => setTimeout(r, timeout * 2));
 
                 sessionRestoredCount.should.eql(1);
                 changeCount.should.be.greaterThan(changeCountBefore, "we should have received at least one new notification");

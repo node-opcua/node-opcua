@@ -1,12 +1,16 @@
 /* tslint:disable:variable-name */
-import { registerEnumeration, StructuredTypeOptions } from "node-opcua-factory";
+import {
+    getStandardDataTypeFactory,
+    registerEnumeration,
+    type StructuredTypeOptions
+} from "node-opcua-factory";
 
 export enum Color {
     RED = 100,
     BLUE = 200,
     GREEN = 300
 }
-const schema_EnumColor = registerEnumeration({
+const _schema_EnumColor = registerEnumeration({
     enumValues: Color,
     name: "EnumColor"
 });
@@ -14,6 +18,7 @@ const schema_EnumColor = registerEnumeration({
 export const schema_Shape: StructuredTypeOptions = {
     baseType: "",
     name: "Shape",
+    dataTypeFactory: getStandardDataTypeFactory(),
     fields: [
         {
             defaultValue: () => "my shape",

@@ -1,16 +1,13 @@
 import "should";
-import {
-    OPCUAClient,
-    DataValue,
-    AttributeIds,
-    ClientMonitoredItem,
-    ClientSubscription,
-    ClientSession
-} from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, type ClientSession, type ClientSubscription, DataValue, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { waitForChange } from "./_helpers_monitoring";
 
-interface TestHarness { endpointUrl: string; server: any;[k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const doDebug = false;
 
@@ -24,12 +21,10 @@ export function t(test: TestHarness) {
         it("creates two monitored items for one variable", async () => {
             const server = test.server;
             const refreshRate = 100; // ms
-            const namespace =
-                server.engine.addressSpace.getOwnNamespace();
+            const namespace = server.engine.addressSpace.getOwnNamespace();
             let counter = 1;
             const variableToMonitor = namespace.addVariable({
-                organizedBy:
-                    server.engine.addressSpace.rootFolder.objects,
+                organizedBy: server.engine.addressSpace.rootFolder.objects,
                 browseName: "SlowVariable_123",
                 dataType: "UInt32",
                 value: {
@@ -61,14 +56,9 @@ export function t(test: TestHarness) {
                     publishingEnabled: true,
                     priority: 6
                 },
-                async (session: ClientSession, subscription: ClientSubscription) => {
+                async (_session: ClientSession, subscription: ClientSubscription) => {
                     if (doDebug) {
-                        subscription.once("started", () =>
-                            console.log(
-                                "publishingInterval",
-                                subscription.publishingInterval
-                            )
-                        );
+                        subscription.once("started", () => console.log("publishingInterval", subscription.publishingInterval));
                     }
 
                     const makeMonitor = () =>
@@ -91,29 +81,20 @@ export function t(test: TestHarness) {
                     monitoredItem1.on("changed", (dv) => {
                         change1++;
                         if (doDebug) {
-                            console.log(
-                                "DataValue1",
-                                dv.value.toString()
-                            );
+                            console.log("DataValue1", dv.value.toString());
                         }
                     });
                     const monitoredItem2 = makeMonitor();
                     monitoredItem2.on("changed", (dv) => {
                         change2++;
                         if (doDebug) {
-                            console.log(
-                                "DataValue2",
-                                dv.value.toString()
-                            );
+                            console.log("DataValue2", dv.value.toString());
                         }
                     });
 
                     // Wait for both monitored items to receive at
                     // least one change event (with a 5 s timeout).
-                    await Promise.all([
-                        waitForChange(monitoredItem1),
-                        waitForChange(monitoredItem2)
-                    ]);
+                    await Promise.all([waitForChange(monitoredItem1), waitForChange(monitoredItem2)]);
 
                     change1.should.be.greaterThan(0);
                     change2.should.be.greaterThan(0);
@@ -122,5 +103,3 @@ export function t(test: TestHarness) {
         });
     });
 }
-
-

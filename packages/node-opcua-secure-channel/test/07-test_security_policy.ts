@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { getFixture } from "node-opcua-test-fixtures";
 import should from "should";
@@ -34,11 +34,11 @@ describe("Security Policy", () => {
 });
 
 describe("Security Policy computeSignature, verifySignature", () => {
-    const senderCertificate = readCertificateChain(getFixture("certs/server_cert_2048.pem"));
+    const senderCertificate = readCertificateChain(getFixture("certs/server_cert_2048.pem"))[0];
     const senderNonce = randomBytes(32);
 
     const receiverPrivateKey = readPrivateKey(getFixture("certs/client_key_1024.pem"));
-    const receiverCertificate = readCertificateChain(getFixture("certs/client_cert_1024.pem"));
+    const receiverCertificate = readCertificateChain(getFixture("certs/client_cert_1024.pem"))[0];
 
     const securityPolicy = SecurityPolicy.Basic256;
 

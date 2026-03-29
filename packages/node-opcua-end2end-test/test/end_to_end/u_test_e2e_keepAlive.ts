@@ -1,21 +1,18 @@
 import { OPCUAClient, ServerState } from "node-opcua";
 
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 async function pause(duration: number) {
     return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
 export function t(test: { endpointUrl: string }) {
-
-    describe("Testing client keepalive options", function () {
-
+    describe("Testing client keepalive options", () => {
         it("KA-1 it should terminate keepalive when session is closed", async () => {
-
             let keepAliveCounter = 0;
             // Set NODEOPCUADEBUG=client_session_keepalive_manager-TEST
             const client = OPCUAClient.create({
@@ -25,9 +22,9 @@ export function t(test: { endpointUrl: string }) {
             });
 
             const endpointUrl = test.endpointUrl;
-            debugLog(endpointUrl)
+            debugLog(endpointUrl);
             await client.connect(endpointUrl);
-            let session = await client.createSession();
+            const session = await client.createSession();
             debugLog("session.timeout= ", session.timeout);
             session.on("keepalive", (state: ServerState, count: number) => {
                 debugLog("KeepAlive state=", ServerState[state], "count ", count);
@@ -41,6 +38,6 @@ export function t(test: { endpointUrl: string }) {
                 await pause(1000);
             }
             keepAliveCounter.should.be.greaterThan(3);
-        })
+        });
     });
 }

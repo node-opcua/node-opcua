@@ -1,14 +1,22 @@
 import "should";
-import { OPCUAClient, ClientMonitoredItem, resolveNodeId, AttributeIds } from "node-opcua";
-import sinon from "sinon";
+import { AttributeIds, ClientMonitoredItem, OPCUAClient, resolveNodeId } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server?: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server?: any;
+    [k: string]: any;
+}
 
 // Collect a fixed number of monitored item change notifications using a spy.
 // Returns the spy once the desired count has been reached or rejects on timeout.
-async function collectMonitoredItemChanges(monitoredItem: ClientMonitoredItem, count: number, timeoutMs: number): Promise<sinon.SinonSpy> {
+async function collectMonitoredItemChanges(
+    monitoredItem: ClientMonitoredItem,
+    count: number,
+    timeoutMs: number
+): Promise<sinon.SinonSpy> {
     const spy = sinon.spy();
     return await new Promise<sinon.SinonSpy>((resolve, reject) => {
         const timer = setTimeout(() => {
@@ -49,13 +57,17 @@ export function t(test: TestHarness) {
         it("KK1 subscription receives ServerStatus notifications", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
                 const monitoredItem = ClientMonitoredItem.create(
                     subscription,
                     { nodeId: resolveNodeId("ns=0;i=2256"), attributeId: AttributeIds.Value },
                     { samplingInterval: 100, discardOldest: true, queueSize: 1 }
                 );
-                await new Promise<void>((res) => monitoredItem.once("initialized", () => { res(); }));
+                await new Promise<void>((res) =>
+                    monitoredItem.once("initialized", () => {
+                        res();
+                    })
+                );
                 monitoredItem.monitoringParameters.samplingInterval.should.equal(100);
 
                 // Collect 4 notifications (original logic was changes > 3)

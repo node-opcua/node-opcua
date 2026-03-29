@@ -2,25 +2,25 @@
  * attempt a DoS attack on Server by consuming SecureChannels and NOT using them.
  */
 import "should";
-import path from "path";
-import { spawn } from "child_process";
-import sinon from "sinon";
+import { spawn } from "node:child_process";
+import path from "node:path";
 import chalk from "chalk";
 import {
+    ClientSecureChannelLayer,
+    type ClientSession,
     is_valid_endpointUrl,
     MessageSecurityMode,
-    SecurityPolicy,
-    OPCUAServer,
     OPCUAClient,
-    ClientSecureChannelLayer,
-    ClientSession
+    OPCUAServer,
+    SecurityPolicy
 } from "node-opcua";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const fail_fast_connectionStrategy = { maxRetry: 0 };
 const maxConnectionsPerEndpoint = 3;
@@ -59,7 +59,6 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
     });
 
     it("ZAA1 should be possible to create many sessions per connection", async () => {
-
         const client = OPCUAClient.create({
             connectionStrategy: fail_fast_connectionStrategy
         });
@@ -76,18 +75,19 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         } finally {
             // close sessions
             for (const s of localSessions) {
-                try { await s.close(); } catch { /* ignore */ }
+                try {
+                    await s.close();
+                } catch {
+                    /* ignore */
+                }
             }
             await client.disconnect();
         }
-
     });
 
     it("ZAA2 When creating valid SecureChannel, prior unused channels should be recycled", async () => {
-
         // uncomment this line to run with external server
         //xx endpointUrl = "opc.tcp://" + os.hostname() + ":26543";
-
 
         server.maxConnectionsPerEndpoint.should.eql(maxConnectionsPerEndpoint);
         const nbExtra = 5;
@@ -104,9 +104,8 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
                 connectionStrategy: { maxRetry: 0 }
             });
             try {
-                await new Promise<void>((resolve, reject) =>
-                    ch.create(endpointUrl, (err) => err ? reject(err) : resolve()));
-            } catch (err) {
+                await new Promise<void>((resolve, reject) => ch.create(endpointUrl, (err) => (err ? reject(err) : resolve())));
+            } catch (_err) {
                 // ignore individual creation errors; still push channel for closing attempt
             }
             channels.push(ch);
@@ -118,7 +117,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         for (const ch of channels) {
             try {
                 await new Promise<void>((resolve, reject) => {
-                    ch.close((err) => (err) ? reject(err) : resolve());
+                    ch.close((err) => (err ? reject(err) : resolve()));
                 });
             } catch {
                 nbError++;
@@ -129,12 +128,12 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
     });
 
     let clientCounter = 1;
-    async function createClientAndSession(index: number) {
+    async function createClientAndSession(_index: number) {
         const client = OPCUAClient.create({ connectionStrategy: fail_fast_connectionStrategy });
-        (client as any).name = "client" + clientCounter++;
+        (client as any).name = `client${clientCounter++}`;
         clients.push(client);
         // small stagger
-        await new Promise(r => setTimeout(r, 10));
+        await new Promise((r) => setTimeout(r, 10));
         try {
             await client.connect(endpointUrl);
             try {
@@ -143,7 +142,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
             } catch {
                 // ignore
             }
-        } catch (err) {
+        } catch (_err) {
             rejected_connections++;
         }
     }
@@ -157,11 +156,19 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         let nbError = 0;
         // close sessions
         for (const s of sessions) {
-            try { await s.close(); } catch { nbError++; }
+            try {
+                await s.close();
+            } catch {
+                nbError++;
+            }
         }
         // disconnect clients
         for (const c of clients) {
-            try { await c.disconnect(); } catch { nbError++; }
+            try {
+                await c.disconnect();
+            } catch {
+                nbError++;
+            }
         }
         nbError.should.eql(0);
         rejected_connections.should.eql(5);
@@ -184,7 +191,9 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
                     socket.end();
                     socket.destroy();
                     socket.emit("error", new Error("Terminate"));
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
             }
         }
         rejected_connections.should.eql(5);
@@ -194,8 +203,20 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         }
         rejected_connections.should.eql(10);
         // cleanup
-        for (const s of sessions) { try { await s.close(); } catch { /* ignore */ } }
-        for (const c of clients) { try { await c.disconnect(); } catch { /* ignore */ } }
+        for (const s of sessions) {
+            try {
+                await s.close();
+            } catch {
+                /* ignore */
+            }
+        }
+        for (const c of clients) {
+            try {
+                await c.disconnect();
+            } catch {
+                /* ignore */
+            }
+        }
     });
 
     it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2", async () => {
@@ -213,20 +234,24 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
                 const child = spawn("node", [server_script, String(port)], {});
                 child.on("close", () => resolve());
                 child.stderr.on("data", (data) => {
-                    data.toString().split("\n").forEach((line: string) => {
-                        if (line.trim().length) process.stderr.write("                 " + chalk.red(line) + "\n");
-                    });
+                    data.toString()
+                        .split("\n")
+                        .forEach((line: string) => {
+                            if (line.trim().length) process.stderr.write(`                 ${chalk.red(line)}\n`);
+                        });
                 });
                 child.stdout.on("data", (data) => {
-                    data.toString().split("\n").forEach((line: string) => {
-                        if (line.trim().length) process.stdout.write("                 " + chalk.yellow(line) + "\n");
-                    });
+                    data.toString()
+                        .split("\n")
+                        .forEach((line: string) => {
+                            if (line.trim().length) process.stdout.write(`                 ${chalk.yellow(line)}\n`);
+                        });
                 });
             });
         }
 
         async function verifyChannelCount() {
-            await new Promise(r => setTimeout(r, 350));
+            await new Promise((r) => setTimeout(r, 350));
             serverEndpoint.currentChannelCount.should.eql(0);
             spyNewChannel.callCount.should.eql(launches);
             spyCloseChannel.callCount.should.eql(launches);
@@ -239,4 +264,3 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         }
     });
 });
-

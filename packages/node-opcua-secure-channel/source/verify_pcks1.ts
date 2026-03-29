@@ -19,7 +19,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     const version = process.version.match(/v([0-9]+)\.([0-9]+)\.([0-9]+)/);
     if (!version) {
         throw new Error("Invalid version");
-    }   
+    }
     const major = parseInt(version[1], 10);
     const minor = parseInt(version[2], 10); minor;
     const patch = parseInt(version[3], 10); patch;
@@ -47,7 +47,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     const publicKey = Buffer.from(exportedPublicKey).toString("base64");
     publicKey;
 
-    const privateKeyPem = await privateKeyToPEM(keyPair.privateKey as (Omit<CryptoKey,"usages"> & { usages: any }));
+    const privateKeyPem = await privateKeyToPEM(keyPair.privateKey as (Omit<CryptoKey, "usages"> & { usages: any }));
     // const privateKeyFilename = ""; // fs.mkdtemp((), ".t.pem");
     // await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, "utf-8");
     const privateKey = myCreatePrivateKey(privateKeyPem.privPem);
@@ -58,7 +58,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
         const encrypted = RSAPKCS1V15_Encrypt(buffer, KeyObject.from(keyPair.publicKey));
 
         decrypted = RSAPKCS1V15_Decrypt(encrypted, privateKey);
-    } catch (err) { /**  */}
+    } catch (err) { /**  */ }
     if (!decrypted || decrypted.toString("ascii") !== "buffer") {
         warningLog("[NODE-OPCUA-W27]", "node version", process.version);
         warningLog("  you need to use node flag --security-revert=CVE-2023-46809 if you have issue with RSA PKCS#1 v1.5");

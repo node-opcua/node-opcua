@@ -2,45 +2,45 @@
  * @module node-opcua-variant
  */
 import { assert } from "node-opcua-assert";
-import { NodeId } from "node-opcua-nodeid";
 import {
     coerceInt64,
     coerceUInt64,
-    decodeUInt32,
     decodeUInt8,
-    encodeUInt32,
+    decodeUInt32,
     encodeUInt8,
+    encodeUInt32,
     isValidBoolean,
     isValidByteString,
+    isValidInt8,
     isValidInt16,
     isValidInt32,
     isValidInt64,
-    isValidInt8,
     isValidNodeId,
+    isValidUInt8,
     isValidUInt16,
     isValidUInt32,
-    isValidUInt64,
-    isValidUInt8
+    isValidUInt64
 } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import { make_warningLog } from "node-opcua-debug";
 import {
     BaseUAObject,
     buildStructuredType,
+    type DecodeDebugOptions,
+    FieldCategory,
     findBuiltInType,
     initialize_field,
     registerSpecialVariantEncoder,
-    registerType,
-    DecodeDebugOptions,
-    FieldCategory
+    registerType
 } from "node-opcua-factory";
-
+import { NodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
-import { make_warningLog } from "node-opcua-debug";
+import { DataType } from "./DataType_enum";
+import { VariantArrayType } from "./VariantArrayType_enum";
 
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { _enumerationDataType, DataType } from "./DataType_enum";
-import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 export { VariantArrayType };
+
 // tslint:disable:no-bitwise
 
 const warningLog = make_warningLog(__filename);
@@ -84,6 +84,7 @@ function _coerceVariant(variantLike: VariantOptions | Variant): Variant {
 export interface VariantOptions {
     dataType?: DataType | string;
     arrayType?: VariantArrayType | string;
+    // biome-ignore lint/suspicious/noExplicitAny: intentionally using any here
     value?: any;
     dimensions?: number[] | null;
 }
@@ -91,6 +92,7 @@ export interface VariantOptions {
 export interface VariantOptions2 {
     dataType: DataType;
     arrayType: VariantArrayType;
+    // biome-ignore lint/suspicious/noExplicitAny: intentionally using any here
     value: any;
     dimensions: number[] | null;
 }
@@ -104,6 +106,7 @@ export class Variant extends BaseUAObject {
     public static computer_default_value = (): Variant => new Variant({ dataType: DataType.Null });
     public dataType: DataType;
     public arrayType: VariantArrayType;
+    // biome-ignore lint/suspicious/noExplicitAny: intentionally using any here
     public value: any;
     public dimensions: number[] | null;
 
@@ -180,38 +183,42 @@ Variant.prototype.schema = schemaVariant;
 
 export type VariantLike = VariantOptions;
 
-function variantToString(self: Variant, options?: any) {
-    function toString(value: any): string {
+function variantToString(self: Variant, _options?: Record<string, unknown>) {
+    function asString(value: unknown): string {
         switch (self.dataType) {
             case DataType.ByteString:
-                return value ? "0x" + value.toString("hex") : "<null>";
+                return value ? (value as Buffer).toString("hex") : "<null>";
             case DataType.NodeId:
-                return value instanceof NodeId ? (value as NodeId).displayText() : value ? value.toString(options) : "";
+                return value instanceof NodeId ? value.displayText() : value ? String(value) : "";
             case DataType.Boolean:
-                return value.toString();
+                return String(value);
             case DataType.DateTime:
-                return value ? (value.toISOString ? value.toISOString() : value.toString()) : "<null>";
+                return value
+                    ? typeof (value as Date).toISOString === "function"
+                        ? (value as Date).toISOString()
+                        : String(value)
+                    : "<null>";
             default:
-                return value ? value.toString(options) : "0";
+                return value ? String(value) : "0";
         }
     }
 
-    function f(value: any) {
+    function f(value: unknown) {
         if (value === undefined || (value === null && typeof value === "object")) {
             return "<null>";
         }
-        return toString(value);
+        return asString(value);
     }
 
     let data = VariantArrayType[self.arrayType];
 
     if (self.dimensions && self.dimensions.length >= 0) {
-        data += "[ " + self.dimensions.join(",") + " ]";
+        data += `[ ${self.dimensions.join(",")} ]`;
     }
 
-    data += "<" + DataType[self.dataType] + ">";
+    data += `<${DataType[self.dataType]}>`;
     if (self.arrayType === VariantArrayType.Scalar) {
-        data += ", value: " + f(self.value);
+        data += `, value: ${f(self.value)}`;
     } else if (self.arrayType === VariantArrayType.Array || self.arrayType === VariantArrayType.Matrix) {
         if (!self.value) {
             data += ", null";
@@ -224,10 +231,10 @@ function variantToString(self: Variant, options?: any) {
             if (self.value.length > 10) {
                 a.push("...");
             }
-            data += ", l= " + self.value.length + ", value=[" + a.map(f).join(",") + "]";
+            data += `, l= ${self.value.length}, value=[${a.map(f).join(",")}]`;
         }
     }
-    return "Variant(" + data + ")";
+    return `Variant(${data})`;
 }
 
 /***
@@ -275,12 +282,17 @@ export function encodeVariant(variant: Variant | undefined | null, stream: Outpu
 }
 
 /* c8 ignore start */
-function _decodeVariantArrayDebug(stream: BinaryStream, decode: any, tracer: any, dataType: DataType) {
+function _decodeVariantArrayDebug(
+    stream: BinaryStream,
+    decode: (stream: BinaryStream) => unknown,
+    tracer: { trace: (...args: unknown[]) => void; dump: (...args: unknown[]) => void },
+    dataType: DataType
+) {
     let cursorBefore = stream.length;
     const length = decodeUInt32(stream);
 
-    let i;
-    let element;
+    let i: number = 0;
+    let element: unknown;
     tracer.trace("start_array", "Variant", -1, cursorBefore, stream.length);
     if (length === 0xffffffff) {
         // empty array
@@ -329,7 +341,7 @@ function decodeDebugVariant(self: Variant, stream: BinaryStream, options: Decode
 
     /* c8 ignore next */
     if (!decode) {
-        throw new Error("Variant.decode : cannot find decoder for type " + DataType[self.dataType]);
+        throw new Error(`Variant.decode : cannot find decoder for type ${DataType[self.dataType]}`);
     }
 
     const cursorBefore = stream.length;
@@ -353,7 +365,7 @@ function decodeDebugVariant(self: Variant, stream: BinaryStream, options: Decode
     //   stop and raise a BadDecodingError.
     if (hasDimension) {
         self.dimensions = decodeDimension(stream);
-        const verification = calculate_product(self.dimensions);
+        const _verification = calculate_product(self.dimensions);
     }
 }
 /* c8 ignore stop */
@@ -407,13 +419,13 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
 
         if (opts.dataType === DataType.ExtensionObject) {
             if (opts.arrayType === VariantArrayType.Scalar) {
-                if (opts.value && opts.value.constructor) {
+                if (opts?.value?.constructor) {
                     opts.value = new opts.value.constructor(opts.value);
                 }
             } else {
                 if (opts.value) {
-                    opts.value = opts.value.map((e: any) => {
-                        if (e && e.constructor) {
+                    opts.value = opts.value.map((e: { constructor: new (e: unknown) => unknown } | null) => {
+                        if (e?.constructor) {
                             return new e.constructor(e);
                         }
                         return null;
@@ -432,7 +444,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         const d = findBuiltInType(options.dataType);
         /* c8 ignore start */
         if (!d) {
-            throw new Error("Cannot find Built-In data type or any DataType resolving to " + options.dataType);
+            throw new Error(`Cannot find Built-In data type or any DataType resolving to ${options.dataType}`);
         }
         /* c8 ignore stop */
         options.dataType = DataType[d.name as keyof typeof DataType];
@@ -440,10 +452,12 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
 
     // array type could be a string
     if (typeof options.arrayType === "string") {
-        const at: VariantArrayType | undefined = (VariantArrayType as any)[options.arrayType];
+        const at: VariantArrayType | undefined = (VariantArrayType as unknown as Record<string, VariantArrayType | undefined>)[
+            options.arrayType
+        ];
         /* c8 ignore start */
         if (at === undefined) {
-            throw new Error("ArrayType: invalid " + options.arrayType);
+            throw new Error(`ArrayType: invalid ${options.arrayType}`);
         }
         /* c8 ignore stop */
         options.arrayType = at;
@@ -457,11 +471,10 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             // we do nothing here ....
             throw new Error(
                 "Variant#constructor : when using UInt64 ou Int64" +
-                " arrayType must be specified , as automatic detection cannot be made"
+                    " arrayType must be specified , as automatic detection cannot be made"
             );
-        }
-        /* c8 ignore stop */
-        else {
+        } else {
+            /* c8 ignore stop */
             options.arrayType = VariantArrayType.Array;
             isArrayTypeUnspecified = false;
         }
@@ -473,9 +486,8 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             const value1 = coerceVariantArray(options.dataType, options.value);
             assert(value1 === null || value1 !== options.value);
             options.value = value1;
-        }
-        /* c8 ignore start */
-        else {
+        } else {
+            /* c8 ignore start */
             assert(options.arrayType === VariantArrayType.Matrix);
             options.value = options.value || [];
 
@@ -484,14 +496,9 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             if (!options.dimensions) {
                 throw new Error("Matrix Variant : missing dimensions");
             }
-            if (options.value.length != 0 && options.value.length !== calculate_product(options.dimensions)) {
+            if (options.value.length !== 0 && options.value.length !== calculate_product(options.dimensions)) {
                 throw new Error(
-                    "Matrix Variant : invalid value size = options.value.length " +
-                    options.value.length +
-                    "!=" +
-                    calculate_product(options.dimensions) +
-                    " => " +
-                    JSON.stringify(options.dimensions)
+                    `Matrix Variant : invalid value size = options.value.length ${options.value.length} != ${calculate_product(options.dimensions)} => ${JSON.stringify(options.dimensions)}`
                 );
             }
         }
@@ -499,22 +506,14 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
     } else {
         assert(options.arrayType === VariantArrayType.Scalar || options.arrayType === undefined);
         options.arrayType = VariantArrayType.Scalar;
-        const tmp = options.value;
+        const _tmp = options.value;
         // scalar
         options.value = coerceVariantType(options.dataType, options.value);
 
         /* c8 ignore start */
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error(
-                "Invalid variant arrayType: " +
-                VariantArrayType[options.arrayType] +
-                "  dataType: " +
-                DataType[options.dataType] +
-                " value:" +
-                options.value +
-                " (javascript type = " +
-                typeof options.value +
-                " )"
+                `Invalid variant arrayType: ${VariantArrayType[options.arrayType]}  dataType: ${DataType[options.dataType]} value:${options.value} (javascript type = ${typeof options.value} )`
             );
         }
         /* c8 ignore stop */
@@ -537,13 +536,13 @@ function get_encoder(dataType: DataType) {
     const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
     /* c8 ignore start */
     if (!dataTypeAsString) {
-        throw new Error("invalid dataType " + dataType);
+        throw new Error(`invalid dataType ${dataType}`);
     }
     /* c8 ignore stop */
     const encode = findBuiltInType(dataTypeAsString).encode;
     /* c8 ignore start */
     if (!encode) {
-        throw new Error("Cannot find encode function for dataType " + dataTypeAsString);
+        throw new Error(`Cannot find encode function for dataType ${dataTypeAsString}`);
     }
     /* c8 ignore stop */
     return encode;
@@ -554,7 +553,7 @@ function get_decoder(dataType: DataType) {
     const decode = findBuiltInType(dataTypeAsString).decode;
     /* c8 ignore start */
     if (!decode) {
-        throw new Error("Variant.decode : cannot find decoder for type " + dataTypeAsString);
+        throw new Error(`Variant.decode : cannot find decoder for type ${dataTypeAsString}`);
     }
     /* c8 ignore stop */
     return decode;
@@ -577,10 +576,15 @@ export type BufferedArray2 =
 
 interface BufferedArrayConstructor {
     BYTES_PER_ELEMENT: number;
-    new(buffer: any, byteOffset?: number, length?: number): any;
+    new (length: number): BufferedArray2;
+    new (buffer: ArrayBufferLike, byteOffset?: number, length?: number): BufferedArray2;
 }
 
-function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
+function convertTo(
+    dataType: DataType,
+    arrayTypeConstructor: BufferedArrayConstructor | null,
+    value: BufferedArray2 | unknown[] | null
+) {
     // c8 ignore next
     if (value === undefined || value === null) {
         return null;
@@ -597,18 +601,18 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     const coerceFunc = coerceVariantType.bind(null, dataType);
     const n = value.length;
 
-    const newArr: any = arrayTypeConstructor ? new arrayTypeConstructor(n) : new Array(n);
+    const newArr: BufferedArray2 | unknown[] = arrayTypeConstructor ? new arrayTypeConstructor(n) : new Array(n);
     for (let i = 0; i < n; i++) {
         newArr[i] = coerceFunc(value[i]);
     }
     // c8 ignore next
     if (arrayTypeConstructor && displayWarning && n > 10) {
-        warningLog("Warning ! an array containing  " + DataType[dataType] + " elements has been provided as a generic array. ");
+        warningLog(`Warning ! an array containing  ${DataType[dataType]} elements has been provided as a generic array. `);
         warningLog(
-            "          This is inefficient as every array value will " + "have to be coerced and verified against the expected type"
+            "          This is inefficient as every array value will have to be coerced and verified against the expected type"
         );
         warningLog(
-            "          It is highly recommended that you use a " + " typed array ",
+            "          It is highly recommended that you use a  typed array ",
             arrayTypeConstructor.constructor.name,
             " instead"
         );
@@ -617,9 +621,9 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
 }
 
 interface DataTypeHelper {
-    coerce: (value: any) => any;
-    encode: (stream: OutputBinaryStream, value: any) => void;
-    decode: (stream: BinaryStream) => any;
+    coerce: (value: BufferedArray2 | unknown[] | null) => BufferedArray2 | unknown[] | null;
+    encode: (stream: OutputBinaryStream, value: unknown) => void;
+    decode: (stream: BinaryStream) => unknown;
 }
 
 const typedArrayHelpers: { [key: string]: DataTypeHelper } = {};
@@ -628,7 +632,7 @@ function _getHelper(dataType: DataType) {
     return typedArrayHelpers[DataType[dataType]];
 }
 
-function coerceVariantArray(dataType: DataType, value: any) {
+function coerceVariantArray(dataType: DataType, value: BufferedArray2 | unknown[] | null) {
     const helper = _getHelper(dataType);
     if (helper) {
         return helper.coerce(value);
@@ -637,14 +641,15 @@ function coerceVariantArray(dataType: DataType, value: any) {
     }
 }
 
-function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: OutputBinaryStream, value: any) {
-    assert(value instanceof arrayTypeConstructor);
-    assert(value.buffer instanceof ArrayBuffer);
-    encodeUInt32(value.length, stream);
-    stream.writeArrayBuffer(value.buffer, value.byteOffset, value.byteLength);
+function encodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: OutputBinaryStream, value: unknown) {
+    const typedValue = value as BufferedArray2;
+    assert(typedValue instanceof arrayTypeConstructor);
+    assert(typedValue.buffer instanceof ArrayBuffer);
+    encodeUInt32(typedValue.length, stream);
+    stream.writeArrayBuffer(typedValue.buffer as ArrayBuffer, typedValue.byteOffset, typedValue.byteLength);
 }
 
-function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, value: any[] | null) {
+function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, value: unknown[] | null) {
     if (!value) {
         assert(value === null);
         encodeUInt32(0xffffffff, stream);
@@ -657,11 +662,11 @@ function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, valu
     }
 }
 
-function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, value: any) {
-    if (value && value.buffer) {
+function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, value: BufferedArray2 | unknown[] | null) {
+    if (value && (value as BufferedArray2).buffer) {
         return _getHelper(dataType).encode(stream, value);
     }
-    return encodeGeneralArray(dataType, stream, value);
+    return encodeGeneralArray(dataType, stream, value as unknown[] | null);
 }
 
 function decodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream: BinaryStream) {
@@ -713,7 +718,7 @@ function decodeVariantArray(dataType: DataType, stream: BinaryStream) {
     }
 }
 
-function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: any) {
+function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: BufferedArrayConstructor) {
     typedArrayHelpers[DataType[dataType]] = {
         coerce: convertTo.bind(null, dataType, typedArrayConstructor),
         decode: decodeTypedArray.bind(null, typedArrayConstructor),
@@ -738,15 +743,16 @@ function encodeDimension(dimensions: number[], stream: OutputBinaryStream) {
     return encodeGeneralArray(DataType.UInt32, stream, dimensions);
 }
 
-function isEnumerationItem(value: any): boolean {
+function isEnumerationItem(value: unknown): boolean {
     return (
         value instanceof Object &&
-        Object.prototype.hasOwnProperty.call(value, "value") &&
-        Object.prototype.hasOwnProperty.call(value, "key") &&
+        Object.hasOwn(value, "value") &&
+        Object.hasOwn(value, "key") &&
         value.constructor.name === "EnumValueType"
     );
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: intentional
 export function coerceVariantType(dataType: DataType, value: undefined | any): any {
     /* eslint max-statements: ["error",1000], complexity: ["error",1000]*/
     if (value === undefined) {
@@ -758,9 +764,7 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
         // [...]Enumeration are always encoded as Int32 on the wire [...]
 
         if (dataType !== DataType.Int32 && dataType !== DataType.ExtensionObject) {
-            throw new Error(
-                "expecting DataType.Int32 for enumeration values ;" + " got DataType." + dataType.toString() + " instead"
-            );
+            throw new Error(`expecting DataType.Int32 for enumeration values ; got DataType.${dataType.toString()} instead`);
         }
     }
     /* c8 ignore stop */
@@ -788,8 +792,8 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
             assert(value !== undefined);
             value = parseInt(value, 10);
             /* c8 ignore start */
-            if (!isFinite(value)) {
-                throw new Error("expecting a number " + value);
+            if (!Number.isFinite(value)) {
+                throw new Error(`expecting a number ${value}`);
             }
             /* c8 ignore stop */
             break;
@@ -820,19 +824,18 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
         default:
             assert(dataType !== undefined && dataType !== null, "Invalid DataType");
             break;
-        case DataType.NodeId:
-            break;
     }
     return value;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: intentionally using an   y here
 function isValidScalarVariant(dataType: DataType, value: any): boolean {
     assert(
         value === null ||
-        DataType.Int64 === dataType ||
-        DataType.ByteString === dataType ||
-        DataType.UInt64 === dataType ||
-        !(value instanceof Array)
+            DataType.Int64 === dataType ||
+            DataType.ByteString === dataType ||
+            DataType.UInt64 === dataType ||
+            !Array.isArray(value)
     );
     assert(value === null || !(value instanceof Int32Array));
     assert(value === null || !(value instanceof Uint32Array));
@@ -866,6 +869,7 @@ function isValidScalarVariant(dataType: DataType, value: any): boolean {
     }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: intentional - polymorphic Variant value
 function isValidArrayVariant(dataType: DataType, value: any): boolean {
     if (value === null) {
         return true;
@@ -898,6 +902,7 @@ function isValidArrayVariant(dataType: DataType, value: any): boolean {
 }
 
 /* c8 ignore start */
+// biome-ignore lint/suspicious/noExplicitAny: intentional - polymorphic Variant value
 function isValidMatrixVariant(dataType: DataType, value: any, dimensions: number[] | null) {
     if (!dimensions) {
         return false;
@@ -922,7 +927,7 @@ export function isValidVariant(
             return isValidArrayVariant(dataType, value);
         default:
             assert(arrayType === VariantArrayType.Matrix);
-            return isValidMatrixVariant(dataType, value, dimensions!);
+            return isValidMatrixVariant(dataType, value, dimensions ?? null);
     }
 }
 
@@ -931,7 +936,16 @@ export function buildVariantArray(
     nbElements: number,
     defaultValue: unknown
 ): Float32Array | Float64Array | Uint32Array | Int32Array | Uint16Array | Int16Array | Uint8Array | Int8Array | Array<unknown> {
-    let value;
+    let value:
+        | Float32Array
+        | Float64Array
+        | Uint32Array
+        | Int32Array
+        | Uint16Array
+        | Int16Array
+        | Uint8Array
+        | Int8Array
+        | Array<unknown>;
     switch (dataType) {
         case DataType.Float:
             value = new Float32Array(nbElements);
@@ -972,9 +986,11 @@ export function buildVariantArray(
 const oldNodeVersion =
     typeof process === "object" && process.versions && process.versions.node && process.versions.node.substring(0, 1) === "0";
 
+// biome-ignore lint/suspicious/noExplicitAny: intentional - deep equality comparison of polymorphic values
 function __type(a: any): string {
     return Object.prototype.toString.call(a);
 }
+// biome-ignore lint/suspicious/noExplicitAny: intentional - deep equality comparison of polymorphic values
 function __check_same_object(o1: any, o2: any): boolean {
     if (o1 === o2) return true;
     if ((!o1 && o2) || (!o2 && o1)) return false;
@@ -1020,11 +1036,12 @@ function __check_same_object(o1: any, o2: any): boolean {
         case "[object BigInt]":
             return o1 === o2;
         case "[object Date]":
-            return o1.getTime() == o2.getTime();
+            return o1.getTime() === o2.getTime();
         default:
             return o1 === o2;
     }
 }
+// biome-ignore lint/suspicious/noExplicitAny: intentional - deep equality comparison of polymorphic values
 function __check_same_array(arr1: any, arr2: any) {
     if (!arr1 || !arr2) {
         return !arr1 && !arr2;

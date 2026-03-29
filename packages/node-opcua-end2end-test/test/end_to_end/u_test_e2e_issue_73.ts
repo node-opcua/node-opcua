@@ -1,14 +1,20 @@
 import "should";
-import { OPCUAClient, MessageSecurityMode, SecurityPolicy, ServerSecureChannelLayer } from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, SecurityPolicy, ServerSecureChannelLayer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const doDebug = false;
 
 export function t(test: TestHarness) {
-    describe("Testing bug #73 - Server resets sequence number after secure channel renewal", function () {
-        before(function () { this.timeout(Math.max(200000, this.timeout())); });
+    describe("Testing bug #73 - Server resets sequence number after secure channel renewal", () => {
+        before(function () {
+            this.timeout(Math.max(200000, this.timeout()));
+        });
 
         let endpointUrl: string;
         let oldMin: number;
@@ -40,17 +46,16 @@ export function t(test: TestHarness) {
                         try {
                             messages.push(msg.constructor.name);
                             sequenceNumbers.push(channel._getMessageBuilder().sequenceHeader.sequenceNumber);
-                        } catch (err) {
+                        } catch (_err) {
                             // ignore
                         }
                     });
                 });
 
                 await client.withSessionAsync(endpointUrl, async (session) => {
-
-                    let counter_on_session = 0;
+                    let _counter_on_session = 0;
                     session.on("security_token_renewed", () => {
-                        counter_on_session++;
+                        _counter_on_session++;
                     });
 
                     let counter = 0;
@@ -62,7 +67,6 @@ export function t(test: TestHarness) {
                     });
                 });
 
-                
                 // Expect multiple secure channel renewals (OpenSecureChannelResponse messages)
                 messages.filter((a) => a === "OpenSecureChannelResponse").length.should.be.greaterThan(2);
 

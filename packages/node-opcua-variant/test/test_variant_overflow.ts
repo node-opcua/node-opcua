@@ -40,7 +40,7 @@ describe("test variant array decoding - should prevent resource exhaustion", () 
     });
 
     it("should raise an exception if array buffer is too large - generic array", () => {
-        const largeArray = [];
+        const largeArray: string[] = [];
         largeArray.length = Variant.maxArrayLength + 10;
         const variant = new Variant({
             dataType: DataType.String,
@@ -60,7 +60,7 @@ describe("test variant array decoding - should prevent resource exhaustion", () 
         }, "expecting Variant.decode to raise an exception if array is too large");
     });
     it("should  Not raise an exception if array buffer is as large as possible - generic array", () => {
-        const largeArray = [];
+        const largeArray: string[] = [];
         largeArray.length = Variant.maxArrayLength;
         const variant = new Variant({
             dataType: DataType.String,

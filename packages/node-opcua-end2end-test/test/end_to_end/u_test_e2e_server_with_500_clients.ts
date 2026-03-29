@@ -1,7 +1,14 @@
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 import chalk from "chalk";
-import { getDefaultCertificateManager, OPCUAClient, OPCUAClientOptions, ClientSession, OPCUACertificateManager } from "node-opcua";
+import {
+    type ClientSession,
+    getDefaultCertificateManager,
+    type OPCUACertificateManager,
+    OPCUAClient,
+    type OPCUAClientOptions
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
+
 const doDebug = true;
 
 interface TestHarness {
@@ -19,13 +26,11 @@ interface ClientSessionTaskData {
     keepAliveSignal?: Promise<void>;
 }
 
-
 function r(t: number): number {
     return Math.ceil(t * 100) / 100;
 }
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
 
 function getTick(): number {
     return Date.now() / 1000.0;
@@ -55,7 +60,7 @@ async function perform<T>(msg: string, action: () => Promise<T>): Promise<T> {
     }
 }
 
-export  function t(test: TestHarness): void {
+export function t(test: TestHarness): void {
     const maxSessionsForTest = 50;
 
     // tracks whether threshold has been reached at least once (useful to synchronize start of session creation)
@@ -92,22 +97,22 @@ export  function t(test: TestHarness): void {
         const client1 = OPCUAClient.create(options);
         const endpointUrl = test.endpointUrl;
 
-        client1.on("send_request", function (req: any) {
+        client1.on("send_request", (req: any) => {
             if (doDebug) {
                 console.log(data.index, " >> ", req.constructor.name);
             }
         });
-        client1.on("receive_response", function (res: any) {
+        client1.on("receive_response", (res: any) => {
             if (doDebug) {
                 console.log(data.index, " << ", res.constructor.name, res.responseHeader.serviceResult.toString());
             }
         });
-        client1.on("start_reconnection", function () {
+        client1.on("start_reconnection", () => {
             if (doDebug) {
                 console.log(chalk.bgWhite.yellow("start_reconnection"), data.index);
             }
         });
-        client1.on("backoff", function (number: number, delay: number) {
+        client1.on("backoff", (number: number, delay: number) => {
             if (doDebug) {
                 console.log(chalk.bgCyan.yellow("backoff ", data.index), number, delay);
             }
@@ -120,11 +125,10 @@ export  function t(test: TestHarness): void {
         (client1 as any)._serverEndpoints = (first_client as any)._serverEndpoints;
         (client1 as any).knowsServerEndpoint.should.eql(true);
 
-
-    let the_session: ClientSession | undefined;
-    let createSessionError: unknown = undefined;
-    try {
-            await perform("connecting client " + data.index, async () => {
+        let the_session: ClientSession | undefined;
+        let createSessionError: unknown;
+        try {
+            await perform(`connecting client ${data.index}`, async () => {
                 await client1.connect(endpointUrl);
             });
 
@@ -138,7 +142,7 @@ export  function t(test: TestHarness): void {
             }
 
             try {
-                the_session = await perform("create session " + data.index, async () => {
+                the_session = await perform(`create session ${data.index}`, async () => {
                     return await client1.createSession();
                 });
                 if (data.keepAlive && data.keepAliveSignal && the_session) {
@@ -154,12 +158,12 @@ export  function t(test: TestHarness): void {
             }
 
             if (the_session) {
-                await perform("closing session " + data.index, async () => {
-                    await the_session!.close();
+                await perform(`closing session ${data.index}`, async () => {
+                    await the_session?.close();
                 });
             }
         } finally {
-            await perform("disconnecting client " + data.index, async () => {
+            await perform(`disconnecting client ${data.index}`, async () => {
                 try {
                     await client1.disconnect();
                 } catch (_) {
@@ -174,8 +178,8 @@ export  function t(test: TestHarness): void {
         console.log("Client session", data.index, "done");
     }
 
-    describe("AZAZ Testing " + maxSessionsForTest + " clients", function () {
-    let clientCertificateManager: OPCUACertificateManager;
+    describe(`AZAZ Testing ${maxSessionsForTest} clients`, () => {
+        let clientCertificateManager: OPCUACertificateManager;
 
         before(async () => {
             clientCertificateManager = getDefaultCertificateManager("PKI");
@@ -200,9 +204,9 @@ export  function t(test: TestHarness): void {
         /**
          * Original scenario: spin up maxSessionsForTest clients (parallel) each doing 1 session.
          */
-        it("AZAZ-A should accept many clients", async function () {
+        it("AZAZ-A should accept many clients", async () => {
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
-            const maxConnectionsPerEndpointBackup = test.server.maxConnectionsPerEndpoint;
+            const _maxConnectionsPerEndpointBackup = test.server.maxConnectionsPerEndpoint;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
             test.server.engine.serverCapabilities.maxSessions.should.eql(maxSessionsForTest);
 
@@ -216,7 +220,7 @@ export  function t(test: TestHarness): void {
         /**
          * Scenario B: Run same number of clients but limit concurrency to 10 to reduce instantaneous load.
          */
-        it("AZAZ-B should accept many clients with concurrency limit 10", async function () {
+        it("AZAZ-B should accept many clients with concurrency limit 10", async () => {
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
 
@@ -228,7 +232,9 @@ export  function t(test: TestHarness): void {
             const concurrency = 10;
             const running = new Set<Promise<void>>();
             for (let i = 0; i < total; i++) {
-                const p = client_session({ index: i, clientCertificateManager, waitForAllConnections: false }).finally(() => running.delete(p));
+                const p = client_session({ index: i, clientCertificateManager, waitForAllConnections: false }).finally(() =>
+                    running.delete(p)
+                );
                 running.add(p);
                 if (running.size >= concurrency) {
                     await Promise.race(running);
@@ -242,16 +248,16 @@ export  function t(test: TestHarness): void {
          * Scenario C: Exceed server maxSessions intentionally and verify some attempts fail (e.g., BadTooManySessions) while others succeed.
          * Strategy: Create sessions sequentially until we hit the limit, then verify additional attempts fail.
          */
-        it("AZAZ-C should produce failures when exceeding server maxSessions", async function () {
+        it("AZAZ-C should produce failures when exceeding server maxSessions", async () => {
             const originalMax = test.server.engine.serverCapabilities.maxSessions;
             const reducedMax = Math.min(5, originalMax); // pick a small cap for faster test
             console.log(" new maxSessionsForTest =", reducedMax);
             test.server.engine.serverCapabilities.maxSessions = reducedMax;
             thresholdReached = false;
-            
+
             const clients: OPCUAClient[] = [];
             const sessions: ClientSession[] = [];
-            
+
             try {
                 // Phase 1: Fill up all available session slots
                 console.log("Phase 1: Creating", reducedMax, "sessions to fill capacity");
@@ -262,20 +268,20 @@ export  function t(test: TestHarness): void {
                         clientCertificateManager: clientCertificateManager
                     });
                     (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
-                    
+
                     await client.connect(test.endpointUrl);
                     clients.push(client);
-                    
+
                     const session = await client.createSession();
                     sessions.push(session);
                     console.log("  Created session", i);
                 }
-                
+
                 console.log("Phase 2: Attempting to exceed capacity");
                 // Phase 2: Now try to create more sessions - these should fail
                 let failures = 0;
                 const extraAttempts = 5;
-                
+
                 for (let i = 0; i < extraAttempts; i++) {
                     const client = OPCUAClient.create({
                         connectionStrategy: connectivity_strategy,
@@ -283,11 +289,11 @@ export  function t(test: TestHarness): void {
                         clientCertificateManager: clientCertificateManager
                     });
                     (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
-                    
+
                     try {
                         await client.connect(test.endpointUrl);
                         clients.push(client);
-                        
+
                         const session = await client.createSession();
                         // If we get here, session was created (shouldn't happen but handle it)
                         sessions.push(session);
@@ -299,35 +305,40 @@ export  function t(test: TestHarness): void {
                         }
                     }
                 }
-                
-                console.log(` Results: ${reducedMax} sessions created, ${failures} failures out of ${extraAttempts} over-limit attempts`);
-                
+
+                console.log(
+                    ` Results: ${reducedMax} sessions created, ${failures} failures out of ${extraAttempts} over-limit attempts`
+                );
+
                 // We expect at least some failures when exceeding the limit
                 should(failures).be.above(0);
                 should(sessions.length).eql(reducedMax);
-                
             } finally {
                 // Cleanup: close all sessions and disconnect all clients
                 console.log("Cleanup: Closing", sessions.length, "sessions and", clients.length, "clients");
                 for (const session of sessions) {
                     try {
                         await session.close();
-                    } catch (_) { /* ignore */ }
+                    } catch (_) {
+                        /* ignore */
+                    }
                 }
                 for (const client of clients) {
                     try {
                         await client.disconnect();
-                    } catch (_) { /* ignore */ }
+                    } catch (_) {
+                        /* ignore */
+                    }
                 }
             }
-            
+
             test.server.engine.serverCapabilities.maxSessions = originalMax;
         });
 
         /**
          * Scenario D: Sequential clients (one after another) to detect potential resource leaks when not stressing concurrency.
          */
-        it("AZAZ-D should handle sequential client connections cleanly", async function () {
+        it("AZAZ-D should handle sequential client connections cleanly", async () => {
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
             thresholdReached = false;

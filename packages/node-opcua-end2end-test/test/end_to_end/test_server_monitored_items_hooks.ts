@@ -1,15 +1,12 @@
 import {
     AttributeIds,
-    ClientSession,
-    ClientSubscription,
-    MonitoredItemBase,
-    NodeId,
-    nodesets,
+    type ClientSession,
+    type ClientSubscription,
+    type MonitoredItemBase,
     OPCUAClient,
     OPCUAServer,
-    StatusCode,
     StatusCodes,
-    Subscription,
+    type Subscription,
     TimestampsToReturn
 } from "node-opcua";
 import sinon from "sinon";
@@ -17,16 +14,16 @@ import "should";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 const onCreateMonitoredItem = sinon.spy(async function _onCreateMonitoredItem(
-    subscription: Subscription,
-    monitoredItem: MonitoredItemBase
+    _subscription: Subscription,
+    _monitoredItem: MonitoredItemBase
 ) {
     await new Promise((resolve) => setTimeout(resolve, 10));
     return StatusCodes.Good;
 });
 
 const onDeleteMonitoredItem = sinon.spy(async function _onDeleteMonitoredItem(
-    subscription: Subscription,
-    monitoredItem: MonitoredItemBase
+    _subscription: Subscription,
+    _monitoredItem: MonitoredItemBase
 ) {
     await new Promise((resolve) => setTimeout(resolve, 10));
     return StatusCodes.Good;
@@ -46,7 +43,8 @@ async function createServer() {
 }
 
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Test server monitored Item hooks", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -63,12 +61,10 @@ describe("Test server monitored Item hooks", () => {
         b: boolean,
         functor: (subscription: ClientSubscription, session: ClientSession) => Promise<void>
     ): Promise<void> {
-
-
-        const endpointUrl = server.getEndpointUrl();
+        const _endpointUrl = server.getEndpointUrl();
 
         const client = OPCUAClient.create({});
-        
+
         const subscriptionParameters = {
             publishingEnabled: true,
             requestedLifetimeCount: 100,
@@ -135,7 +131,7 @@ describe("Test server monitored Item hooks", () => {
     });
     it("HK3- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook", async () => {
         await doWithSubscriptionAsync(true, async (subscription) => {
-            const m1 = await subscription.monitor(
+            const _m1 = await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
                     nodeId: "i=2258" // CurrentTime
@@ -147,7 +143,7 @@ describe("Test server monitored Item hooks", () => {
                 },
                 TimestampsToReturn.Both
             );
-            const m2 = await subscription.monitor(
+            const _m2 = await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
                     nodeId: "i=2258" // CurrentTime
@@ -166,7 +162,7 @@ describe("Test server monitored Item hooks", () => {
     });
     it("HK4- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook  when terminating individual monitoredItem", async () => {
         await doWithSubscriptionAsync(true, async (subscription, session: ClientSession) => {
-            const m1 = await subscription.monitor(
+            const _m1 = await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
                     nodeId: "i=2258" // CurrentTime
@@ -193,7 +189,7 @@ describe("Test server monitored Item hooks", () => {
 
             await m2.terminate();
 
-            session.getArgumentDefinition
+            session.getArgumentDefinition;
         });
 
         onCreateMonitoredItem.callCount.should.eql(2);

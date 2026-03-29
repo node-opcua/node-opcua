@@ -1,21 +1,15 @@
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
-import {
-    OPCUAClient,
-    resolveNodeId,
-    StatusCodes,
-    BrowseDirection,
-    BrowseRequest
-} from "node-opcua";
+import { BrowseDirection, BrowseRequest, OPCUAClient, resolveNodeId, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface TestHarness {
     endpointUrl: string;
     server: any;
 }
 
-export  function t(test: TestHarness): void {
-    describe("QSD Test Browse Request", function () {
-        let client: OPCUAClient; 
+export function t(test: TestHarness): void {
+    describe("QSD Test Browse Request", () => {
+        let client: OPCUAClient;
         let endpointUrl: string;
         let g_session: any = null; // session typing loosened due to performMessageTransaction unexposed type
 

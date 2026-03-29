@@ -7,7 +7,8 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "mocha"
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

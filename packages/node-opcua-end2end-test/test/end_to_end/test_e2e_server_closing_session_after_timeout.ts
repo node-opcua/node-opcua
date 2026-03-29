@@ -1,13 +1,13 @@
 import "should";
 import {
-    OPCUAServer,
-    OPCUAClient,
-    get_empty_nodeset_filename,
-    resolveNodeId,
-    ReadRequest,
-    TimestampsToReturn,
     AttributeIds,
-    StatusCodes
+    get_empty_nodeset_filename,
+    OPCUAClient,
+    OPCUAServer,
+    ReadRequest,
+    resolveNodeId,
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
@@ -61,20 +61,19 @@ describe("testing server dropping session after timeout if no activity has been 
     });
 
     it("should deny service call with BadSessionClosed on a timed out session", async () => {
-        
         const client = OPCUAClient.create({ ...options, requestedSessionTimeout: 100 });
         await client.connect(endpointUrl);
         server.currentSessionCount.should.eql(0);
-        
+
         const session = await client.createSession();
         session.timeout.should.equal(100);
-        
+
         server.currentSessionCount.should.eql(1);
-        
+
         await new Promise((resolve) => setTimeout(resolve, 1_500));
-        
+
         server.currentSessionCount.should.eql(0);
-        
+
         // The client library may try to recreate session transparently; ensure call returns without throwing
         await session.read(readRequest.nodesToRead!);
         await client.disconnect();

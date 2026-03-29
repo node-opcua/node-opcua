@@ -61,8 +61,10 @@ describe("Testing secure client and server connection", function (this: any) {
         doDebug && console.log("certificateManager initialized", certificateManager.rootDir);
 
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
-        const issuerCertificate = readCertificateChain(issuerCertificateFile);
-        await certificateManager.addIssuer(issuerCertificate);
+        const issuerCertificates = readCertificateChain(issuerCertificateFile);
+        for (const cert of issuerCertificates) {
+            await certificateManager.addIssuer(cert);
+        }
 
         const issuerCertificateRevocationListFile = path.join(certificateFolder, "CA/crl/revocation_list.der");
         const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
@@ -323,12 +325,12 @@ describe("Testing secure client and server connection", function (this: any) {
 
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);
         const serverPrivateKeyFile = m(`server_key_${sizeS}.pem`);
-        const serverCertificate = readCertificateChain(serverCertificateFile);
+        const serverCertificate = readCertificateChain(serverCertificateFile)[0];
         const serverPrivateKey = readPrivateKey(serverPrivateKeyFile);
 
         const clientCertificateFile = m(`client_cert_${sizeC}.pem`);
         const clientPrivateKeyFile = m(`client_key_${sizeC}.pem`);
-        const clientCertificate = readCertificateChain(clientCertificateFile);
+        const clientCertificate = readCertificateChain(clientCertificateFile)[0];
         const clientPrivateKey = readPrivateKey(clientPrivateKeyFile);
 
         await performTest({

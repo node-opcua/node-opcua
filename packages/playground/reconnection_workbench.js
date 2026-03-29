@@ -1,5 +1,5 @@
 /* Copyright Sterfive 2021-2024 */
-process.env.DEBUG = "RECONNECTION" + (process.env.DEBUG || "");
+process.env.DEBUG = `RECONNECTION${process.env.DEBUG || ""}`;
 process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
 
 /**

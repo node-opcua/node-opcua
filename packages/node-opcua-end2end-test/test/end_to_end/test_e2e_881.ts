@@ -32,8 +32,10 @@ async function startServer(): Promise<OPCUAServer> {
     }
     return server;
 }
+
 // tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("building server with an AlternateName", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -44,7 +46,6 @@ describe("building server with an AlternateName", () => {
         server.dispose();
     });
     it("should not confuse endpoints #881", async () => {
-
         if (ip.length === 0) {
             console.log(" cannot run test because no IPV4 address available", ip);
             return;

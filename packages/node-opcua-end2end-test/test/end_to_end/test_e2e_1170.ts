@@ -2,8 +2,9 @@ import "should";
 import { OPCUAClient, OPCUAServer } from "node-opcua";
 
 // eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-describe("Testing bug #1170", function () {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+describe("Testing bug #1170", () => {
     const port = 1170;
     let server: OPCUAServer;
     let endpointUrl: string;
@@ -25,11 +26,11 @@ describe("Testing bug #1170", function () {
 
     it("server createSession should expose endpoints with correct productURI", async () => {
         const client = OPCUAClient.create({
-            clientName: "1 " + __filename,
+            clientName: `1 ${__filename}`
         });
         const serverEndpoints = await client.withSessionAsync(endpointUrl, async (session) => {
             return session.serverEndpoints;
         });
-        serverEndpoints[0].server.productUri!.should.eql("Mini NodeOPCUA-Server");
+        serverEndpoints[0].server.productUri?.should.eql("Mini NodeOPCUA-Server");
     });
 });

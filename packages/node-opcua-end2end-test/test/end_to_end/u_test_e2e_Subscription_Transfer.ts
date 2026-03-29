@@ -5,28 +5,31 @@
 // If TransferSubscriptions returns Bad_NotImplemented the test should be treated as inconclusive (skipped here).
 
 import "should";
-import sinon from "sinon";
 import {
-    OPCUAClient,
-    ClientSubscription,
-    StatusCodes,
-    MonitoringMode,
     AttributeIds,
-    TimestampsToReturn,
-    ReadValueIdOptions,
-    CreateSubscriptionRequest,
     CreateMonitoredItemsRequest,
-    DataType
+    CreateSubscriptionRequest,
+    MonitoringMode,
+    OPCUAClient,
+    type ReadValueIdOptions,
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-interface TestHarness { endpointUrl: string; server?: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server?: any;
+    [k: string]: any;
+}
 
-function delay(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
+function delay(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
+}
 
 export function t(test: TestHarness) {
     describe("#TSS TransferSessionService", () => {
-
         const spyOnTerminated = sinon.spy();
         let endpointUrl = test.endpointUrl;
 
@@ -37,14 +40,10 @@ export function t(test: TestHarness) {
             endpointUrl = test.endpointUrl;
         });
 
-
-
-        async function createSubscriptionAndCloseSession(): Promise<{ subscriptionId: number } > {
-
+        async function createSubscriptionAndCloseSession(): Promise<{ subscriptionId: number }> {
             const client = OPCUAClient.create({});
             await client.connect(endpointUrl);
             const session = await client.createSession();
-            
 
             const subscription = await session.createSubscription2({
                 requestedPublishingInterval: 100,
@@ -57,7 +56,7 @@ export function t(test: TestHarness) {
             subscription.on("terminated", spyOnTerminated);
 
             const subscriptionId = subscription.subscriptionId;
-            
+
             // Close session but keep subscription
             await session.close(/* deleteSubscriptions */ false);
             await client.disconnect();
@@ -105,7 +104,10 @@ export function t(test: TestHarness) {
             const subscriptionId = subscription.subscriptionId;
             const session2 = await client.createSession();
             try {
-                const response: any = await (session2 as any).transferSubscriptions({ subscriptionIds: [subscriptionId], sendInitialValues: true });
+                const response: any = await (session2 as any).transferSubscriptions({
+                    subscriptionIds: [subscriptionId],
+                    sendInitialValues: true
+                });
                 response.results.length.should.eql(1);
                 response.results[0].statusCode.should.eql(StatusCodes.Good);
                 // deleting subscription on session1 shall fail
@@ -212,7 +214,10 @@ export function t(test: TestHarness) {
             await delay(300);
 
             const session2: any = await client.createSession();
-            const transferResp: any = await session2.transferSubscriptions({ subscriptionIds: [subscriptionId], sendInitialValues: true });
+            const transferResp: any = await session2.transferSubscriptions({
+                subscriptionIds: [subscriptionId],
+                sendInitialValues: true
+            });
             transferResp.results.length.should.eql(1);
             transferResp.results[0].statusCode.should.eql(StatusCodes.Good);
             await delay(300);

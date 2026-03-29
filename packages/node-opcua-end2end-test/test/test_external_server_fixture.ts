@@ -1,13 +1,9 @@
-import path from "path";
+import path from "node:path";
 
-import { 
-    start_simple_server, 
-    stop_simple_server,
-    crash_simple_server 
-} from "../test_helpers/external_server_fixture";
+import { crash_simple_server, start_simple_server, stop_simple_server } from "../test_helpers/external_server_fixture";
 
 const port = 4891;
-describe("testing external fixture server", function () {
+describe("testing external fixture server", () => {
     it("MQS- should start and stop a server several time", async () => {
         /** */
         let serverHandle = await start_simple_server({

@@ -1,9 +1,12 @@
 import "should";
-import { OPCUAClient, coerceNodeId, ClientMonitoredItem, AttributeIds, TimestampsToReturn } from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, coerceNodeId, OPCUAClient, TimestampsToReturn } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("Issue #313 - monitoring invalid nodeId twice shouldn't crash", () => {

@@ -1,11 +1,13 @@
-import os from "os";
-import { OPCUAServer, OPCUAClient } from "node-opcua";
+import os from "node:os";
+import { OPCUAClient, OPCUAServer } from "node-opcua";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+
 const _should = should;
 const port = 2004;
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Verifying Server Endpoint", () => {
     let server: OPCUAServer;
     let endpointUri = `opc.tcp://${os.hostname()}:${port}`;
@@ -32,21 +34,21 @@ describe("Verifying Server Endpoint", () => {
         try {
             for (const e of endpointDescriptions) {
                 // console.log(e.toString());
-                const policyIds = e.userIdentityTokens!.map((a) => a.policyId!);
+                const policyIds = e.userIdentityTokens?.map((a) => a.policyId!);
 
                 const counters: { [key: string]: number } = {};
                 policyIds?.forEach((a: string) => {
                     counters[a] = (counters[a] || 0) + 1;
                 });
                 const duplicatedPolicies = Object.entries(counters)
-                    .filter(([k, v]) => v !== 1)
-                    .map(([k, v]) => k);
+                    .filter(([_k, v]) => v !== 1)
+                    .map(([k, _v]) => k);
 
                 if (duplicatedPolicies.length) {
                     console.log("duplicated policies", duplicatedPolicies);
                 }
 
-                duplicatedPolicies.should.eql([], "endpoint " + e.securityPolicyUri + " must not exhibit duplicated policies");
+                duplicatedPolicies.should.eql([], `endpoint ${e.securityPolicyUri} must not exhibit duplicated policies`);
             }
         } finally {
             await client.disconnect();
@@ -65,15 +67,15 @@ describe("Verifying Server Endpoint", () => {
 
             for (const e of endpointDescriptions) {
                 // console.log(e.toString());
-                const policyIds = e.userIdentityTokens!.map((a) => a.policyId!);
+                const policyIds = e.userIdentityTokens?.map((a) => a.policyId!);
 
                 policyIds?.forEach((a: string) => {
                     counters[a] = (counters[a] || 0) + 1;
                 });
             }
             const duplicatedPolicies = Object.entries(counters)
-                .filter(([k, v]) => v !== 1)
-                .map(([k, v]) => k);
+                .filter(([_k, v]) => v !== 1)
+                .map(([k, _v]) => k);
 
             if (duplicatedPolicies.length) {
                 console.log("duplicated policies", duplicatedPolicies);

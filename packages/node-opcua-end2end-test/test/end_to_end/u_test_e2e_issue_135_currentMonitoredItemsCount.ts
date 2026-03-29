@@ -1,18 +1,15 @@
 import "should";
-import {
-    OPCUAClient,
-    AttributeIds,
-    DataValue,
-    makeBrowsePath,
-    StatusCodes,
-    TimestampsToReturn
-} from "node-opcua";
+import { AttributeIds, DataValue, makeBrowsePath, OPCUAClient, StatusCodes, TimestampsToReturn } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Bug #135 - Server should expose SessionDiagnostics.CurrentMonitoredItemsCount and related counters correctly.
@@ -71,7 +68,7 @@ export function t(test: TestHarness) {
                     makeBrowsePath(sessionId, ".SessionDiagnostics")
                 ];
                 const browsePathResults = await session.translateBrowsePath(browsePaths);
-                browsePathResults.forEach(r => r.statusCode.should.eql(StatusCodes.Good));
+                browsePathResults.forEach((r) => r.statusCode.should.eql(StatusCodes.Good));
 
                 const nodesToRead = browsePathResults.map((r) => {
                     if (!r.targets || r.targets.length === 0) {

@@ -1,26 +1,28 @@
 import {
     AttributeIds,
-    ClientSubscription,
-    ErrorCallback,
-    Message,
+    ClientMonitoredItemGroup,
+    type ClientSubscription,
+    type ErrorCallback,
+    type Message,
+    MessageSecurityMode,
     OPCUAClient,
     OPCUAServer,
-    ReadValueIdOptions,
-    ServerSecureChannelLayer,
-    TimestampsToReturn,
-    Response,
+    type ReadValueIdOptions,
+    type Response,
     SecurityPolicy,
-    MessageSecurityMode,
-    ClientMonitoredItemGroup
+    ServerSecureChannelLayer,
+    TimestampsToReturn
 } from "node-opcua";
 import "should";
 
-async function pause(ms: number) {
+async function _pause(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 const port = 1310;
 const publishingInterval = 50;
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("[CLIENT] monitoredItem group when NotificationChange arrive before CreateMonitoredItemsResponse", () => {
     let server: OPCUAServer;
 
@@ -33,7 +35,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         await server.initialize();
         const addressSpace = server.engine.addressSpace!;
         const namespace = addressSpace.getOwnNamespace();
-        const v = namespace.addVariable({
+        const _v = namespace.addVariable({
             nodeId: "ns=1;s=Variable",
             browseName: "Variable",
             dataType: "Float",
@@ -88,7 +90,9 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         client.on("after_reconnection", () => console.log("after reconnection"));
         client.on("connection_lost", () => console.log("connection lost"));
 
-        client.on("send_request", (request) => {/** */});
+        client.on("send_request", (_request) => {
+            /** */
+        });
 
         await client.connect(endpointUrl);
 
@@ -99,7 +103,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
             requestedMaxKeepAliveCount: 5,
             publishingEnabled: true
         });
-        subscription.on("raw_notification", (notificationMessage: any) => {
+        subscription.on("raw_notification", (_notificationMessage: any) => {
             // console.log(notificationMessage.toString());
         });
 
@@ -148,8 +152,8 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
                 group.on("err", () => {
                     console.log("err");
                 });
-                group.on("changed", (monitoredIem, dataValue, index) => {
-                  //  console.log("received changes");
+                group.on("changed", (_monitoredIem, _dataValue, _index) => {
+                    //  console.log("received changes");
                     counter++;
                 });
 
@@ -172,8 +176,8 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
                 group.on("err", () => {
                     console.log("err");
                 });
-                group.on("changed", (monitoredIem, dataValue, index) => {
-                //    console.log("received changes");
+                group.on("changed", (_monitoredIem, _dataValue, _index) => {
+                    //    console.log("received changes");
                     counter++;
                 });
 
@@ -184,12 +188,12 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
         });
     }
 
-    before(async()=>{
+    before(async () => {
         await startServer();
     });
-    after(async ()=>{
+    after(async () => {
         await server.shutdown();
-    })
+    });
     describe("if PublishRequests are sent with notification AFTER CreateMonitoredItemsResponse is received", () => {
         it("Form1 ClientMonitoredItemGroup.create -  should not miss any notification changes", async () => {
             await testRunClientMonitoredItemGroup_createForm(false);

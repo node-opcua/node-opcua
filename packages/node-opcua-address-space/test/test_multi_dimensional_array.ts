@@ -1,8 +1,8 @@
-import "should";
 import { DataValue } from "node-opcua-data-value";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 import { type AddressSpace, SessionContext, type UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -35,10 +35,10 @@ describe("Multi-Dimensional Array", () => {
             arrayDimensions: defaultMatrixValue.dimensions,
             value: defaultMatrixValue
         });
-        matrixVariable.arrayDimensions.should.eql([4, 5]);
+        should(matrixVariable.arrayDimensions).eql([4, 5]);
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
 
         arrayVariable = namespace1.addVariable({
             browseName: "ArrayVariable",
@@ -71,7 +71,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 33, 8888, 35, 41, 42, 43, 44, 45])
@@ -95,7 +95,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([11, 12, 13, 14, 15, 21, 22, 8888, 8889, 8890, 31, 32, 7777, 7778, 7779, 41, 42, 43, 44, 45])
@@ -120,7 +120,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45])
@@ -144,7 +144,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 8888, 8889, 8890, 41, 42, 7777, 7778, 7779])
@@ -166,7 +166,7 @@ describe("Multi-Dimensional Array", () => {
 
         const dataValueCheck = matrixVariable.readValue();
         dataValueCheck.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValueCheck.value.dimensions.should.eql([4, 5]);
+        should(dataValueCheck.value.dimensions).eql([4, 5]);
         dataValueCheck.value.value.should.eql(
             // prettier-ignore
             new Float64Array([11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45])

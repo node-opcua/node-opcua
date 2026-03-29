@@ -1,9 +1,12 @@
 import "should"; // extends Object with should assertions
 import { OPCUAClient } from "node-opcua";
-import { assertThrow } from "../../test_helpers/assert_throw";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { assertThrow } from "../../test_helpers/assert_throw";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("Issue #231 - server accepts higher client protocolVersion", () => {
@@ -22,7 +25,11 @@ export function t(test: TestHarness) {
             await assertThrow(async () => {
                 await client.connect(test.endpointUrl);
             }, /BadProtocolVersionUnsupported/);
-            try { await client.disconnect(); } catch { /* ignore */ }
+            try {
+                await client.disconnect();
+            } catch {
+                /* ignore */
+            }
         });
     });
 }

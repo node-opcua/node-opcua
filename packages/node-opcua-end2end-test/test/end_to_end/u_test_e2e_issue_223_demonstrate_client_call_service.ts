@@ -1,8 +1,11 @@
 import "should"; // side-effect assertion lib
-import { makeBrowsePath, OPCUAClient, StatusCodes, VariantArrayType, DataType, NodeIdLike } from "node-opcua";
+import { DataType, makeBrowsePath, type NodeIdLike, OPCUAClient, StatusCodes, VariantArrayType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 async function translateBrowsePathToNodeId(session: any, startingNode: NodeIdLike, relativePath: string) {
     const browsePath = makeBrowsePath(startingNode, relativePath);

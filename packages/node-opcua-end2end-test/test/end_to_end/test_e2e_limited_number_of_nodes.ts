@@ -4,21 +4,21 @@
 // under constrained maxNodesPer* settings. Original JS archived as test_e2e_limited_number_of_nodes-old.js
 // --------------------------------------------------------------------------------------------
 import "should"; // assertion side-effects
-import * as should from "should"; // explicit import to silence TS UMD global warning
 import {
-    makeNodeId,
-    VariableIds,
     AttributeIds,
     assert,
-    OPCUAServer,
-    OPCUAClient,
     BrowseDirection,
     makeBrowsePath,
-    ObjectIds
+    makeNodeId,
+    ObjectIds,
+    OPCUAClient,
+    OPCUAServer,
+    VariableIds
 } from "node-opcua";
 import { NodeCrawler } from "node-opcua-client-crawler";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import * as should from "should"; // explicit import to silence TS UMD global warning
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
 assert(typeof makeBrowsePath === "function");
 
@@ -108,7 +108,10 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             const caps: any = (server as any).engine.serverCapabilities;
             const nodeId1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
             const nodeId2 = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
-            const nodesToRead = Array.from({ length: 12 }, (_, i) => ({ nodeId: i % 2 ? nodeId2 : nodeId1, attributeId: AttributeIds.Value }));
+            const nodesToRead = Array.from({ length: 12 }, (_, i) => ({
+                nodeId: i % 2 ? nodeId2 : nodeId1,
+                attributeId: AttributeIds.Value
+            }));
             nodesToRead.length.should.be.greaterThan(caps.operationLimits.maxNodesPerRead);
             await new Promise<void>((resolve) => {
                 (session as any).read(nodesToRead, (err: Error | null) => {
@@ -125,7 +128,11 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
         caps.operationLimits.maxNodesPerBrowse.should.equal(2);
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
             const bad_referenceid_node = "ns=3;i=3500";
-            const browseDesc = { nodeId: "ObjectsFolder", referenceTypeId: bad_referenceid_node, browseDirection: BrowseDirection.Forward };
+            const browseDesc = {
+                nodeId: "ObjectsFolder",
+                referenceTypeId: bad_referenceid_node,
+                browseDirection: BrowseDirection.Forward
+            };
             const browseRequest = Array.from({ length: 5 }, () => browseDesc);
             browseRequest.length.should.be.greaterThan(caps.operationLimits.maxNodesPerBrowse);
             await new Promise<void>((resolve) => {
@@ -157,7 +164,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     it("crawler shall work even with low read/browse limits", async () => {
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
             const crawler = new NodeCrawler(session as any);
-            crawler.on("browsed", (_element) => { /* hook retained for potential debug */ });
+            crawler.on("browsed", (_element) => {
+                /* hook retained for potential debug */
+            });
             await new Promise<void>((resolve, reject) => {
                 crawler.read(ObjectIds.Server, (err: Error | null) => {
                     crawler.dispose();

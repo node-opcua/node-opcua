@@ -1,14 +1,14 @@
 import "should";
 import { OPCUAClient } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 // redirectToFile retained for potential future use
 // import { redirectToFile } from "node-opcua-debug/nodeJS";
 
 describe("Testing Server and Client diagnostic facilities", function (this: Mocha.Context) {
-    let server: any, client: OPCUAClient | null, temperatureVariableId: any, endpointUrl: string;
+    let server: any, client: OPCUAClient | null, _temperatureVariableId: any, endpointUrl: string;
 
     const port = 2015;
     before(async () => {
@@ -17,7 +17,7 @@ describe("Testing Server and Client diagnostic facilities", function (this: Moch
         server = await build_server_with_temperature_device({ port });
 
         endpointUrl = server.getEndpointUrl();
-        temperatureVariableId = server.temperatureVariableId;
+        _temperatureVariableId = server.temperatureVariableId;
     });
 
     beforeEach(() => {
@@ -44,12 +44,7 @@ describe("Testing Server and Client diagnostic facilities", function (this: Moch
             const server_channel = extract_server_channel();
             let transactionCounter = localClient.transactionsPerformed;
             server_channel.on("transaction_done", () => {
-                console.log(
-                    " Server bytes read : ",
-                    server_channel.bytesRead,
-                    " bytes written : ",
-                    server_channel.bytesWritten
-                );
+                console.log(" Server bytes read : ", server_channel.bytesRead, " bytes written : ", server_channel.bytesWritten);
                 console.log(" Client bytes read : ", localClient.bytesRead, " bytes written : ", localClient.bytesWritten);
                 console.log(" transaction count : ", localClient.transactionsPerformed);
                 localClient.bytesWritten.should.eql(server_channel.bytesRead);

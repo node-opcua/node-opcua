@@ -1,10 +1,13 @@
 import "should";
-import { OPCUAClient, coerceNodeId, DataType, NodeId } from "node-opcua";
+import { coerceNodeId, DataType, type NodeId, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 async function expectBuiltInDataType(endpointUrl: string, nodeId: NodeId, expected: DataType) {
     const client = OPCUAClient.create({});
@@ -28,7 +31,11 @@ export function t(test: TestHarness) {
             await expectBuiltInDataType(test.endpointUrl, coerceNodeId("ns=2;s=Scalar_Simulation_Int64"), DataType.Int64);
         });
         it("GDT4 - QualifiedName", async () => {
-            await expectBuiltInDataType(test.endpointUrl, coerceNodeId("ns=2;s=Scalar_Simulation_QualifiedName"), DataType.QualifiedName);
+            await expectBuiltInDataType(
+                test.endpointUrl,
+                coerceNodeId("ns=2;s=Scalar_Simulation_QualifiedName"),
+                DataType.QualifiedName
+            );
         });
         it("GDT5 - Fails on Object node (Server Object)", async () => {
             const nodeId = coerceNodeId("ns=0;i=2253");

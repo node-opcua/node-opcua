@@ -1,27 +1,28 @@
+import chalk from "chalk";
 import {
+    AttributeIds,
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    type MonitoringParametersOptions,
+    nodesets,
     OPCUAClient,
     OPCUAServer,
-    nodesets,
-    ClientSession,
-    ClientSubscription,
     resolveNodeId,
-    VariableIds,
-    MonitoringParametersOptions,
+    ServerState,
     TimestampsToReturn,
-    ClientMonitoredItem,
-    AttributeIds,
-    ServerState} from "node-opcua";
-import chalk from "chalk";
-import sinon from "sinon";
-import { SinonSpy } from "sinon";
+    VariableIds
+} from "node-opcua";
 import should from "should";
-const a = should;
+import sinon, { type SinonSpy } from "sinon";
+
+const _a = should;
 const port = 2233;
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 async function given_a_running_server() {
     const server = new OPCUAServer({
@@ -128,12 +129,14 @@ function f<T>(func: () => Promise<T>): () => Promise<T>;
 function f<T, T2>(func: (a: T2) => Promise<T>): (a: T2) => Promise<T>;
 function f<T, T2>(func: (a?: T2) => Promise<T>): (a?: T2) => Promise<T> {
     return async (a?: T2): Promise<T> => {
-        debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+        debugLog(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         return await func(a);
     };
 }
+
 // tslint:disable-next-line: no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing server shutdown", () => {
     it("should change state and update secondTillShutdown", async () => {
         const server = await f(given_a_running_server)();

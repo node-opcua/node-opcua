@@ -1,24 +1,25 @@
 import "should";
 import {
-    BrowseDirection,
-    OPCUAClient,
-    makeNodeId,
-    VariableIds,
     AttributeIds,
-    makeBrowsePath,
-    StatusCodes,
+    BrowseDirection,
     DataType,
-    TimestampsToReturn,
+    makeBrowsePath,
+    makeNodeId,
+    OPCUAClient,
+    readNamespaceArray,
     resolveNodeId,
-    Variant,
-    readNamespaceArray
+    StatusCodes,
+    TimestampsToReturn,
+    VariableIds,
+    Variant
 } from "node-opcua";
 import sinon from "sinon";
-import { wait, waitUntilCondition } from "../../test_helpers/utils";
+import { waitUntilCondition } from "../../test_helpers/utils";
+
 const doDebug = false;
 
 export function t(test: any) {
-    describe("SDS1 Testing SessionDiagnostics 1/2", function () {
+    describe("SDS1 Testing SessionDiagnostics 1/2", () => {
         /** @type {ClientSubscriptionOptions} */
         const subscriptionParameters = {
             requestedPublishingInterval: 100,
@@ -28,7 +29,7 @@ export function t(test: any) {
         };
         it("SDS1-A server should expose a ServerDiagnostic object", async () => {
             const client = OPCUAClient.create({});
-            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, _subscription) => {
                 const nodesToRead = [
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
@@ -68,7 +69,6 @@ export function t(test: any) {
             const client = OPCUAClient.create({});
             // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
-
                 await readNamespaceArray(session);
 
                 console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
@@ -93,7 +93,7 @@ export function t(test: any) {
 
                 await writeSomeValue(1);
 
-                const dataValue = await session.read({
+                const _dataValue = await session.read({
                     nodeId: session.sessionId,
                     attributeId: AttributeIds.BrowseName
                 });
@@ -124,11 +124,11 @@ export function t(test: any) {
                 browsePathResults[4].statusCode.should.eql(StatusCodes.Good);
 
                 /** prettier-ignore  */
-                const totalRequestCountNodeId = browsePathResults[0].targets![0].targetId;
-                const endpointUrlNodeId = browsePathResults[1].targets![0].targetId;
-                const clientLastContactTimeNodeId = browsePathResults[2].targets![0].targetId;
-                const currentSessionDiagnosticNodeId = browsePathResults[3].targets![0].targetId;
-                const writeCountNodeId = browsePathResults[4].targets![0].targetId;
+                const totalRequestCountNodeId = browsePathResults[0].targets?.[0].targetId;
+                const _endpointUrlNodeId = browsePathResults[1].targets?.[0].targetId;
+                const clientLastContactTimeNodeId = browsePathResults[2].targets?.[0].targetId;
+                const currentSessionDiagnosticNodeId = browsePathResults[3].targets?.[0].targetId;
+                const writeCountNodeId = browsePathResults[4].targets?.[0].targetId;
 
                 {
                     const nodeToRead = {
@@ -187,22 +187,22 @@ export function t(test: any) {
                 monitoredItemGroup.on(
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
-                        doDebug && console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
-                        const nodeId = monitoredItem.itemToMonitor.nodeId!.toString();
+                        doDebug &&
+                            console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
+                        const nodeId = monitoredItem.itemToMonitor.nodeId?.toString();
                         dataValuesMap[nodeId] = dataValuesMap[nodeId] || [];
                         dataValuesMap[nodeId].push(dataValue.value.value);
                         //  console.log(monitoredItem.itemToMonitor.nodeId.toString(), dataValue.value.value.toString());
                     }
                 );
-                doDebug && console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
+                doDebug && console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId!.toString()).join(" "));
 
                 await writeSomeValue(42);
 
                 //  await writeSomeValue(43);
 
                 await waitUntilCondition(
-                    () =>
-                        dataValuesMap[writeCountNodeId.toString()] && dataValuesMap[writeCountNodeId.toString()].length >= 2,
+                    () => dataValuesMap[writeCountNodeId!.toString()] && dataValuesMap[writeCountNodeId!.toString()].length >= 2,
                     10 * 1000
                 );
 
@@ -211,7 +211,7 @@ export function t(test: any) {
 
                 // extract DataChangeNotification that matches writeCounter
                 const args = monitoredItemGroupChangeSpy.args.filter(
-                    (arg) => arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId.toString()
+                    (arg) => arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId!.toString()
                 );
                 args.length.should.eql(2);
 
@@ -233,7 +233,7 @@ export function t(test: any) {
 
                     //xx console.log(results[0].toString());
                     const args = monitoredItemGroupChangeSpy.args.filter(
-                        (arg) => arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString()
+                        (arg) => arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId!.toString()
                     );
                     args.length.should.be.greaterThan(0);
                 }
@@ -243,7 +243,7 @@ export function t(test: any) {
 
         it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
-            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, _subscription) => {
                 //xx console.log("session nodeId = ",session.sessionId);
 
                 const sessionDiagnosticsArrayNodeId = resolveNodeId(
@@ -267,7 +267,7 @@ export function t(test: any) {
                     resultMask: 63
                 });
                 // enumerate all sessions availables
-                const sessionDiagnosticsNodeId = browseResult.references![0].nodeId;
+                const sessionDiagnosticsNodeId = browseResult.references?.[0].nodeId;
 
                 const dataValue = await session.read({
                     nodeId: sessionDiagnosticsNodeId,
@@ -281,7 +281,7 @@ export function t(test: any) {
         });
 
         async function countNumberOfExposedSessionDiagnostics() {
-            let sessionDiagnosticsArrayNodeId = resolveNodeId(
+            const sessionDiagnosticsArrayNodeId = resolveNodeId(
                 "Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray"
             );
             const serverNodeId = resolveNodeId("Server");
@@ -302,8 +302,8 @@ export function t(test: any) {
                     browseDirection: BrowseDirection.Forward,
                     resultMask: 63
                 });
-                const sessionDiagnosticsNodeId = browseResult.references![0].nodeId;
-                const nbSessionDiagnostics = browseResult.references!.length;
+                const _sessionDiagnosticsNodeId = browseResult.references?.[0].nodeId;
+                const nbSessionDiagnostics = browseResult.references?.length;
                 return nbSessionDiagnostics;
             });
         }
@@ -312,14 +312,14 @@ export function t(test: any) {
 
             const client = OPCUAClient.create({});
 
-            const nbSessionDiagnosticsStep = await client.withSessionAsync(test.endpointUrl, async (session) => {
+            const nbSessionDiagnosticsStep = await client.withSessionAsync(test.endpointUrl, async (_session) => {
                 return await countNumberOfExposedSessionDiagnostics();
             });
 
-            nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnosticsStep - 1);
+            nbSessionDiagnosticsStep1!.should.eql(nbSessionDiagnosticsStep! - 1);
 
             const nbSessionDiagnosticsStep2 = await countNumberOfExposedSessionDiagnostics();
-            nbSessionDiagnosticsStep1.should.eql(nbSessionDiagnosticsStep2);
+            nbSessionDiagnosticsStep1!.should.eql(nbSessionDiagnosticsStep2);
         });
     });
-};
+}

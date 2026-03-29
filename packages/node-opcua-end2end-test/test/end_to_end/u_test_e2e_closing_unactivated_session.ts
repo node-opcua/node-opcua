@@ -81,11 +81,17 @@ export function t(test: TestHarness) {
 
                 // Close all sessions we still have references to (some may already have been closed by server)
                 for (const s of sessions) {
-                    try { await s.close(); } catch { /* ignore */ }
+                    try {
+                        await s.close();
+                    } catch {
+                        /* ignore */
+                    }
                 }
                 // Disconnect all clients
                 for (const c of clients) {
-                    try { await c.disconnect(); } finally {
+                    try {
+                        await c.disconnect();
+                    } finally {
                         assert((c as any)._sessions.length === 0, "client should have no remaining sessions");
                     }
                 }

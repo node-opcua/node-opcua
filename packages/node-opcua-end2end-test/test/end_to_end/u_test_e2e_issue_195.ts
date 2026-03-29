@@ -1,16 +1,20 @@
 import "should";
 import {
+    AttributeIds,
+    ClientMonitoredItem,
     ClientSubscription,
     OPCUAClient,
-    ClientMonitoredItem,
-    AttributeIds,
-    TimestampsToReturn,
     ServerSession,
-    StatusCodes
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Issue #195 tests
@@ -41,7 +45,7 @@ export function t(test: TestHarness) {
                 (ClientSubscription as any).ignoreNextWarning = true;
                 const subscription = ClientSubscription.create(session, parameters);
                 await new Promise<void>((resolve) => subscription.on("started", () => resolve()));
-                subscription.on("internal_error", (err: Error) => {
+                subscription.on("internal_error", (_err: Error) => {
                     // eslint-disable-next-line no-console
                     // console.error("internal_error", err.message);
                 });
@@ -83,7 +87,8 @@ export function t(test: TestHarness) {
         });
 
         it("195-B detects session closed and transfers subscription", async () => {
-            const server = test.server; if (!server) return;
+            const server = test.server;
+            if (!server) return;
             const client = OPCUAClient.create({ requestedSessionTimeout: 2500, keepSessionAlive: false });
             const endpointUrl = test.endpointUrl;
 

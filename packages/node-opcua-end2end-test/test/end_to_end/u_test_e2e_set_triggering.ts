@@ -1,38 +1,38 @@
 /* eslint-disable max-statements */
 import {
-    AddressSpace,
+    type AddressSpace,
     AttributeIds,
-    ClientMonitoredItem,
-    ClientSession,
-    ClientSessionRawSubscriptionService,
-    ClientSidePublishEngine,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSessionRawSubscriptionService,
+    type ClientSidePublishEngine,
     ClientSubscription,
     coerceNodeId,
     DataChangeFilter,
-    DataChangeNotification,
+    type DataChangeNotification,
     DataChangeTrigger,
     DataType,
     DeadbandType,
-    ExtensionObject,
-    MonitoredItemNotification,
+    type ExtensionObject,
+    type MonitoredItemNotification,
     MonitoringMode,
-    MonitoringParametersOptions,
-    Namespace,
-    NodeIdLike,
-    NotificationMessage,
+    type MonitoringParametersOptions,
+    type Namespace,
+    type NodeIdLike,
+    type NotificationMessage,
     OPCUAClient,
     ServiceFault,
-    SetTriggeringRequestOptions,
-    StatusCode,
+    type SetTriggeringRequestOptions,
+    type StatusCode,
     StatusCodes,
     TimestampsToReturn,
-    UAVariable
+    type UAVariable
 } from "node-opcua";
-import sinon from "sinon";
-import should from "should";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import sinon from "sinon";
 
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -49,11 +49,10 @@ function getInternalPublishEngine(session: ClientSession): ClientSidePublishEngi
     return s;
 }
 export function t(test: any) {
-  
     async function createSession() {
         const client = OPCUAClient.create({
             keepSessionAlive: true,
-            keepAliveInterval: 1000,
+            keepAliveInterval: 1000
         });
         const endpointUrl = test.endpointUrl;
         await client.connect(endpointUrl);
@@ -93,15 +92,15 @@ export function t(test: any) {
             });
         });
     }
-    async function waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
+    async function _waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
         while (true) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
+                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
                     statusCode: item.value.statusCode,
                     value: item.value.value.value
-                }));
+                })) ?? [];
                 return r;
             }
             // tslint:disable-next-line: no-console
@@ -229,8 +228,8 @@ export function t(test: any) {
         it("SetTriggering-1 it should return BadNothingToDo if both linksToAdd and linksToRemove are empty", async () => {
             const { session, subscription, publishEngine } = s;
             const t = await createMonitoredItem(valueTriggeringNodeId, MonitoringMode.Reporting);
-            const l1 = await createMonitoredItem(linkedValue1NodeId, MonitoringMode.Sampling);
-            const l2 = await createMonitoredItem(linkedValue2NodeId, MonitoringMode.Sampling);
+            const _l1 = await createMonitoredItem(linkedValue1NodeId, MonitoringMode.Sampling);
+            const _l2 = await createMonitoredItem(linkedValue2NodeId, MonitoringMode.Sampling);
 
             let _err!: Error;
 
@@ -261,12 +260,12 @@ export function t(test: any) {
                     subscriptionId: subscription.subscriptionId,
                     triggeringItemId: t.monitoredItemId
                 };
-                const session2 = (session as unknown) as ClientSessionRawSubscriptionService;
+                const session2 = session as unknown as ClientSessionRawSubscriptionService;
                 const result = await session2.setTriggering(request);
                 result.removeResults?.length.should.eql(1);
                 result.addResults?.length.should.eql(1);
-                result.removeResults![0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
-                result.addResults![0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                result.removeResults?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                result.addResults?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
                 result.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 // console.log(result.toString());
             } catch (err) {
@@ -306,7 +305,7 @@ export function t(test: any) {
                 const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 monitoredItems.length.should.eql(1);
 
@@ -332,7 +331,7 @@ export function t(test: any) {
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 monitoredItems.length.should.eql(3);
 
@@ -357,7 +356,7 @@ export function t(test: any) {
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 monitoredItems.length.should.eql(3);
 
@@ -384,7 +383,7 @@ export function t(test: any) {
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 monitoredItems.length.should.eql(2);
 
@@ -411,59 +410,56 @@ export function t(test: any) {
             let m1: ClientMonitoredItem;
             let l1: ClientMonitoredItem;
             let l2: ClientMonitoredItem;
-
-            {
-                m1 = await subscription.monitor(
-                    {
-                        nodeId: triggerNodeId,
-                        attributeId: 13
-                    },
-                    {
-                        discardOldest: true,
-                        queueSize: 1,
-                        samplingInterval: 0,
-                        filter: null
-                    },
-                    TimestampsToReturn.Both,
-                    MonitoringMode.Reporting
-                );
-                l1 = await subscription.monitor(
-                    {
-                        nodeId: linkedNodeId1,
-                        attributeId: 13
-                    },
-                    {
-                        discardOldest: true,
-                        queueSize: 1,
-                        samplingInterval: 0,
-                        filter: new DataChangeFilter({
-                            deadbandType: DeadbandType.Absolute,
-                            deadbandValue: 5,
-                            trigger: DataChangeTrigger.StatusValue,
-                        })
-                    },
-                    TimestampsToReturn.Both,
-                    MonitoringMode.Sampling
-                );
-                l2 = await subscription.monitor(
-                    {
-                        nodeId: linkedNodeId2,
-                        attributeId: 13
-                    },
-                    {
-                        discardOldest: true,
-                        queueSize: 1,
-                        samplingInterval: 0,
-                        filter: new DataChangeFilter({
-                            deadbandType: DeadbandType.Absolute,
-                            deadbandValue: 0.5,
-                            trigger: DataChangeTrigger.StatusValue
-                        })
-                    },
-                    TimestampsToReturn.Both,
-                    MonitoringMode.Sampling
-                );
-            }
+            m1 = await subscription.monitor(
+                {
+                    nodeId: triggerNodeId,
+                    attributeId: 13
+                },
+                {
+                    discardOldest: true,
+                    queueSize: 1,
+                    samplingInterval: 0,
+                    filter: null
+                },
+                TimestampsToReturn.Both,
+                MonitoringMode.Reporting
+            );
+            l1 = await subscription.monitor(
+                {
+                    nodeId: linkedNodeId1,
+                    attributeId: 13
+                },
+                {
+                    discardOldest: true,
+                    queueSize: 1,
+                    samplingInterval: 0,
+                    filter: new DataChangeFilter({
+                        deadbandType: DeadbandType.Absolute,
+                        deadbandValue: 5,
+                        trigger: DataChangeTrigger.StatusValue
+                    })
+                },
+                TimestampsToReturn.Both,
+                MonitoringMode.Sampling
+            );
+            l2 = await subscription.monitor(
+                {
+                    nodeId: linkedNodeId2,
+                    attributeId: 13
+                },
+                {
+                    discardOldest: true,
+                    queueSize: 1,
+                    samplingInterval: 0,
+                    filter: new DataChangeFilter({
+                        deadbandType: DeadbandType.Absolute,
+                        deadbandValue: 0.5,
+                        trigger: DataChangeTrigger.StatusValue
+                    })
+                },
+                TimestampsToReturn.Both,
+                MonitoringMode.Sampling
+            );
 
             let m1Value = 100;
             let l1Value = 100;
@@ -492,14 +488,14 @@ export function t(test: any) {
 
             // setLinks
             const result = await subscription.setTriggering(m1, [l1, l2], []);
-            result.addResults!.should.eql([StatusCodes.Good, StatusCodes.Good]);
+            result.addResults?.should.eql([StatusCodes.Good, StatusCodes.Good]);
 
             await waitUntilKeepAlive(publishEngine, subscription);
             raw_notification_spy.resetHistory();
 
             m1Value += 1;
             {
-                const statusCodes = await session.write([
+                const _statusCodes = await session.write([
                     {
                         nodeId: triggerNodeId,
                         attributeId: AttributeIds.Value,
@@ -515,7 +511,7 @@ export function t(test: any) {
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 monitoredItems.length.should.eql(3);
 
@@ -568,7 +564,7 @@ export function t(test: any) {
                 ]);
                 dataValuesVerif[0].value.value.should.eql(m1Value);
                 dataValuesVerif[1].value.value.should.eql(l1Value);
-               Math.abs(dataValuesVerif[2].value.value - l2Value).should.be.lessThan(1E-6);
+                Math.abs(dataValuesVerif[2].value.value - l2Value).should.be.lessThan(1e-6);
 
                 await pause(10);
                 await waitUntilKeepAlive(publishEngine, subscription);
@@ -577,7 +573,7 @@ export function t(test: any) {
                 // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData![0] as DataChangeNotification).monitoredItems!;
+                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
                 if (successes[i]) {
                     monitoredItems.length.should.eql(3);

@@ -1,5 +1,3 @@
-import { Variant } from "./variant";
-import { DataType } from "./DataType_enum";
 
 // TODO
 /**

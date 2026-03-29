@@ -1,12 +1,12 @@
 import {
-    TimestampsToReturn,
-    OPCUAClient,
+    AttributeIds,
+    DataType,
     MethodIds,
     ObjectIds,
-    DataType,
-    ReadValueIdOptions,
-    VariableIds,
-    AttributeIds
+    OPCUAClient,
+    type ReadValueIdOptions,
+    TimestampsToReturn,
+    VariableIds
 } from "node-opcua";
 export function t(test: any) {
     describe("getMonitoredItem issue #1018", () => {
@@ -29,7 +29,7 @@ export function t(test: any) {
                     };
                     itemsToMonitor.push(itemToMonitor);
                 }
-                const group =  await subscription.monitorItems(
+                const _group = await subscription.monitorItems(
                     itemsToMonitor,
                     {
                         samplingInterval: 100,

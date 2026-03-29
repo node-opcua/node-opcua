@@ -9,7 +9,8 @@
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "echo no test"
+        "test": "echo no test",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "dependencies": {
         "chalk": "4.1.2",

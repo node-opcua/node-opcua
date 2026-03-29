@@ -1,12 +1,6 @@
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import {
-    beforeTest,
-    afterTest,
-    beforeEachTest,
-    afterEachTest,
-    UmbrellaTestContext
-} from "./_helper_umbrella";
+import { afterEachTest, afterTest, beforeEachTest, beforeTest, type UmbrellaTestContext } from "./_helper_umbrella";
 
 const port = 1311;
 

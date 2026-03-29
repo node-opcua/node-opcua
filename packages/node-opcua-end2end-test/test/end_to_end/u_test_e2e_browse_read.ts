@@ -1,22 +1,26 @@
 import "should";
 import {
-    BrowseDirection,
-    VariableIds,
     AttributeIds,
-    StatusCodes,
+    BrowseDirection,
+    coerceNodeId,
     DataType,
     DataValue,
-    ReferenceTypeIds,
     makeNodeId,
-    VariantArrayType,
-    ReadRequest,
-    TimestampsToReturn,
     OPCUAClient,
-    coerceNodeId
+    ReadRequest,
+    ReferenceTypeIds,
+    StatusCodes,
+    TimestampsToReturn,
+    VariableIds,
+    VariantArrayType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -41,7 +45,7 @@ async function expectErrorMessage(regex: RegExp, fn: () => Promise<any>) {
         err.message.should.match(regex);
     }
     if (!failed) {
-        throw new Error("Expected error matching " + regex);
+        throw new Error(`Expected error matching ${regex}`);
     }
 }
 
@@ -106,7 +110,11 @@ export function t(test: TestHarness) {
         });
 
         it("T8-12 - ReadRequest invalid timestampsToReturn -> BadTimestampsToReturnInvalid", async () => {
-            const request = new ReadRequest({ nodesToRead: [{ nodeId: coerceNodeId("ns=0;i=2456") }], maxAge: 0, timestampsToReturn: TimestampsToReturn.Invalid });
+            const request = new ReadRequest({
+                nodesToRead: [{ nodeId: coerceNodeId("ns=0;i=2456") }],
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Invalid
+            });
             await expectErrorMessage(/BadTimestampsToReturnInvalid/, async () => {
                 await call(session.performMessageTransaction.bind(session), request);
             });
@@ -150,7 +158,11 @@ export function t(test: TestHarness) {
         });
 
         it("T8-15c - ReadRequest null nodesToRead -> BadNothingToDo", async () => {
-            const readRequest = new ReadRequest({ maxAge: 0, timestampsToReturn: TimestampsToReturn.Both, nodesToRead: null as any });
+            const readRequest = new ReadRequest({
+                maxAge: 0,
+                timestampsToReturn: TimestampsToReturn.Both,
+                nodesToRead: null as any
+            });
             (readRequest as any).nodesToRead = null; // ensure
             await expectErrorMessage(/BadNothingToDo/, async () => {
                 await call(session.performMessageTransaction.bind(session), readRequest);
@@ -181,7 +193,9 @@ export function t(test: TestHarness) {
 
         it("T9-1 - Server object exposed in Objects folder", async () => {
             const Organizes = makeNodeId(ReferenceTypeIds.Organizes);
-            const nodesToBrowse = [{ nodeId: "ObjectsFolder", referenceTypeId: Organizes, browseDirection: BrowseDirection.Forward, resultMask: 0x3f }];
+            const nodesToBrowse = [
+                { nodeId: "ObjectsFolder", referenceTypeId: Organizes, browseDirection: BrowseDirection.Forward, resultMask: 0x3f }
+            ];
             const browseResults: any[] = await call(session.browse.bind(session), nodesToBrowse);
             browseResults.length.should.equal(1);
             browseResults[0].schema.name.should.equal("BrowseResult");
