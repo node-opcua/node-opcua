@@ -1,16 +1,16 @@
-import should from "should";
 import {
-    OPCUAServer,
     DataType,
+    type DataValue,
     nodesets,
     OPCUAClient,
-    TimestampsToReturn,
-    DataValue,
-    TransferSubscriptionsResponse,
+    OPCUAServer,
+    RepublishResponse,
+    type ServerSecureChannelLayer,
     StatusCodes,
-    ServerSecureChannelLayer,
-    RepublishResponse
+    TimestampsToReturn,
+    TransferSubscriptionsResponse
 } from "node-opcua";
+import should from "should";
 
 const port = 2797;
 let counter = 0;
@@ -66,8 +66,10 @@ async function createServer() {
 }
 
 const wait = (timeout: number) => new Promise((resolve) => setTimeout(resolve, timeout));
+
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

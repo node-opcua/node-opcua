@@ -3,7 +3,11 @@ import { OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * CTT Test 5.10.2 - Test case 7

@@ -1,21 +1,24 @@
 import "should";
 import {
-    OPCUAClient,
-    DataValue,
-    Variant,
-    DataType,
-    StatusCodes,
+    AttributeIds,
     DataChangeFilter,
     DataChangeTrigger,
+    DataType,
+    DataValue,
     DeadbandType,
-    AttributeIds,
+    OPCUAClient,
+    StatusCodes,
     TimestampsToReturn,
-    ClientMonitoredItem
+    Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("NXX1 Testing issue #214 - DataChangeTrigger.StatusValueTimestamp", () => {
@@ -43,7 +46,7 @@ export function t(test: TestHarness) {
             const endpointUrl = test.endpointUrl;
 
             try {
-                await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
+                await perform_operation_on_subscription_async(client, endpointUrl, async (_session, subscription) => {
                     const filter = new DataChangeFilter({
                         trigger: DataChangeTrigger.StatusValueTimestamp,
                         deadbandType: DeadbandType.Absolute,
@@ -52,13 +55,10 @@ export function t(test: TestHarness) {
                     const itemToMonitor = { nodeId, attributeId: AttributeIds.Value };
                     const parameters = { samplingInterval: 100, discardOldest: false, queueSize: 10000, filter };
 
-
-                    const monitoredItem = await subscription.monitor(
-                        itemToMonitor,
-                        parameters,
-                        TimestampsToReturn.Both
-                    );
-                    monitoredItem.on("changed", () => { nbChanges++; });
+                    const monitoredItem = await subscription.monitor(itemToMonitor, parameters, TimestampsToReturn.Both);
+                    monitoredItem.on("changed", () => {
+                        nbChanges++;
+                    });
                     // wait 2 seconds collection
                     await new Promise((r) => setTimeout(r, 2000));
                 });

@@ -1,34 +1,35 @@
 import {
-    AddressSpace,
+    type AddressSpace,
     AttributeIds,
-    ClientSession,
-    ClientSidePublishEngine,
+    type ClientSession,
+    type ClientSidePublishEngine,
     ClientSubscription,
     DataChangeNotification,
     DataType,
     DataValue,
-    MonitoredItemNotification,
+    type MonitoredItemNotification,
     MonitoringMode,
-    MonitoringParametersOptions,
-    Namespace,
-    NodeId,
-    NotificationData,
+    type MonitoringParametersOptions,
+    type Namespace,
+    type NodeId,
+    type NotificationData,
     NumericRange,
     OPCUAClient,
-    OPCUAClientOptions,
-    ReadValueIdOptions,
+    type OPCUAClientOptions,
+    type ReadValueIdOptions,
     SetMonitoringModeRequest,
-    SetMonitoringModeResponse,
-    StatusCode,
+    type SetMonitoringModeResponse,
+    type StatusCode,
     TimestampsToReturn,
-    UInt32,
+    type UInt32,
     VariantArrayType
 } from "node-opcua";
 import "should";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
@@ -94,15 +95,15 @@ export function t(test: any) {
         }
         return null;
     }
-    async function waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
+    async function _waitForNotificationsValues(): Promise<{ value: number; statusCode: StatusCode }[]> {
         while (true) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
+                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
                     statusCode: item.value.statusCode,
                     value: item.value.value.value
-                }));
+                })) ?? [];
                 return r;
             }
             // tslint:disable-next-line: no-console
@@ -116,7 +117,7 @@ export function t(test: any) {
 
         const items: NodeId[] = [];
         before(() => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
             const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
 
             for (let i = 0; i < 10; i++) {
@@ -129,7 +130,7 @@ export function t(test: any) {
             }
         });
         beforeEach(async () => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
             s = await createSession();
         });
         afterEach(async () => {
@@ -203,11 +204,11 @@ export function t(test: any) {
 
             // get a partial notification , but do not go to completion
             const dataChangeNotification = await waitForDataChangeNotification();
-            dataChangeNotification?.monitoredItems!.length.should.eql(2);
+            dataChangeNotification?.monitoredItems?.length.should.eql(2);
 
             await group.terminate();
 
-            const group2 = await subscription.monitorItems(itemToMonitors2, requesterParameters, TimestampsToReturn.Both);
+            const _group2 = await subscription.monitorItems(itemToMonitors2, requesterParameters, TimestampsToReturn.Both);
             const change2 = await collectDataChange({});
             change2.should.eql(5);
         });
@@ -222,7 +223,6 @@ export function t(test: any) {
 
             const itemsValues: { [key: number]: DataValue } = {};
 
-        
             // The 10 items used for this test. The test can use the same NodeIds,
 
             await increaseVariables(session);
@@ -234,7 +234,7 @@ export function t(test: any) {
                 queueSize: 1,
                 samplingInterval: 1
             };
-            const group = await subscription.monitorItems(itemToMonitors, requesterParameters, TimestampsToReturn.Both);
+            const _group = await subscription.monitorItems(itemToMonitors, requesterParameters, TimestampsToReturn.Both);
 
             const totalNumberOfDataChanges = await collectDataChange(itemsValues);
 
@@ -292,7 +292,7 @@ export function t(test: any) {
                         );
                 }
 
-                const setMonitoringModeResponse = (await (session as any).setMonitoringMode(
+                const _setMonitoringModeResponse = (await (session as any).setMonitoringMode(
                     setMonitoringModeRequest
                 )) as SetMonitoringModeResponse;
 
@@ -394,7 +394,7 @@ export function t(test: any) {
                 queueSize: 100,
                 samplingInterval: 0
             };
-            const group = await subscription.monitorItems(itemsToMonitor, requesterParameters, TimestampsToReturn.Both);
+            const _group = await subscription.monitorItems(itemsToMonitor, requesterParameters, TimestampsToReturn.Both);
 
             const d: any = {};
             const change1 = await collectDataChange(d);
@@ -402,16 +402,15 @@ export function t(test: any) {
 
             console.log(d["1"].toString());
 
-
             await session.write({
                 nodeId,
                 attributeId: AttributeIds.Value,
                 indexRange: new NumericRange(nbElements - 3, nbElements - 1),
-                value: {  
+                value: {
                     value: {
-                        dataType: DataType.UInt32, 
-                        arrayType: VariantArrayType.Array, 
-                        value: [70,80,90] 
+                        dataType: DataType.UInt32,
+                        arrayType: VariantArrayType.Array,
+                        value: [70, 80, 90]
                     }
                 }
             });
@@ -419,16 +418,15 @@ export function t(test: any) {
             const change2 = await collectDataChange(d);
             change2.should.eql(1);
 
-            
             await session.write({
                 nodeId,
                 attributeId: AttributeIds.Value,
                 indexRange: new NumericRange(0, 2),
-                value: {  
+                value: {
                     value: {
-                        dataType: DataType.UInt32, 
-                        arrayType: VariantArrayType.Array, 
-                        value: [1000,10001, 10002] 
+                        dataType: DataType.UInt32,
+                        arrayType: VariantArrayType.Array,
+                        value: [1000, 10001, 10002]
                     }
                 }
             });
@@ -438,7 +436,6 @@ export function t(test: any) {
 
             dataValue = await session.read({ nodeId, attributeId: AttributeIds.Value });
             console.log(dataValue.toString());
-
         });
     });
 }

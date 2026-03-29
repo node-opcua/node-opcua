@@ -1,12 +1,6 @@
 import "should";
-import {
-    OPCUAClient,
-    makeResultMask,
-    BrowseDescription,
-    BrowseDirection,
-    nodesets
-} from "node-opcua";
-import { UAProxyManager, makeRefId } from "node-opcua-client-proxy";
+import { BrowseDescription, BrowseDirection, makeResultMask, nodesets, OPCUAClient } from "node-opcua";
+import { makeRefId, UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { build_server_with_temperature_device } from "../../../../test_helpers/build_server_with_temperature_device";
@@ -17,7 +11,7 @@ const port = 2240;
 const doDebug = false; // set true for verbose structural dumps
 
 function ns(namespaceIndex: number, browseName: string) {
-    return namespaceIndex.toString() + ":" + browseName;
+    return `${namespaceIndex.toString()}:${browseName}`;
 }
 
 function create_analyser_device(addressSpace: any) {
@@ -42,10 +36,10 @@ function create_analyser_device(addressSpace: any) {
 
 function dumpObjectType(objectType: any) {
     function w(s: string, l: number) {
-        return (s + "                       ").substring(0, l);
+        return `${s}                       `.substring(0, l);
     }
     function f(c: any) {
-        return w(c.browseName.toString(), 25) + " " + w(c.nodeId.toString(), 25) + w(c.modellingRule, 25);
+        return `${w(c.browseName.toString(), 25)} ${w(c.nodeId.toString(), 25)}${w(c.modellingRule, 25)}`;
     }
     if (doDebug) {
         objectType.getComponents().forEach((c: any) => console.log(f(c)));
@@ -60,7 +54,7 @@ function dumpObjectType(objectType: any) {
     }
 }
 
-function dumpStateMachine(stateMachineType: any) {
+function _dumpStateMachine(stateMachineType: any) {
     const addressSpace = stateMachineType.addressSpace;
     (!!addressSpace).should.eql(true);
     const initialStateType = addressSpace.findObjectType("InitialStateType");

@@ -1,10 +1,10 @@
 /* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
-import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-import { Subscription } from "..";
+import { Subscription } from "../source";
 import { add_mock_monitored_item } from "./helper";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
 let fake_publish_engine = {
@@ -26,16 +26,16 @@ function makeSubscription(options: any) {
 describe("Subscription#resendInitialValues", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
-    beforeEach(function () {
+    beforeEach(() => {
         test.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
     });
 
-    afterEach(function () {
+    afterEach(() => {
         test.clock.restore();
     });
 
-    it("SRD-1 subscription resend data should resend data", async function () {
+    it("SRD-1 subscription resend data should resend data", async () => {
         // pretend the client has sent many pending PublishRequests
         fake_publish_engine.pendingPublishRequestCount = 1000;
 
@@ -52,7 +52,7 @@ describe("Subscription#resendInitialValues", function (this: any) {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine,
+            publishEngine: fake_publish_engine as any,
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });

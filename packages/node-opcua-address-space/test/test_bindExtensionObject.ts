@@ -235,11 +235,11 @@ describe("Extension Object binding and sub  components\n", () => {
             // ---------------------------------------- State ( testing Enumeration )
             extensionObject.state = ServerState.Running;
             spy_on_ServerStatus_State_value_changed.callCount.should.eql(1);
-            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Running);
+            (extensionObjectVar.state.readValue().value.value as ServerState).should.eql(ServerState.Running);
 
             extensionObject.state = ServerState.Suspended;
             spy_on_ServerStatus_State_value_changed.callCount.should.eql(2);
-            extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Suspended);
+            (extensionObjectVar.state.readValue().value.value as ServerState).should.eql(ServerState.Suspended);
         });
 
         it("BEO3 - should handle a Variable containing a SessionDiagnostic", () => {
@@ -317,8 +317,8 @@ describe("Extension Object binding and sub  components\n", () => {
     });
 
     describe("should be possible to bind an Extension Object properties with variable node properties", () => {
-        let _sessionDiagnostics: UASessionDiagnosticsVariableEx;
-        let sessionDiagnostics: SessionDiagnosticsDataType;
+        let sessionDiagnostics: UASessionDiagnosticsVariableEx;
+        let _sessionDiagnostics: SessionDiagnosticsDataType;
 
         let spy_on_sessionDiagnostics_value_changed: sinon.SinonSpy;
         let spy_on_sessionDiagnostics_totalRequestCount_value_changed: sinon.SinonSpy;
@@ -341,9 +341,9 @@ describe("Extension Object binding and sub  components\n", () => {
             sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                 browseName: `SessionDiagnostics${counter}`,
                 organizedBy: rootFolder.objects
-            }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
+            }) as UASessionDiagnosticsVariableEx;
 
-            _sessionDiagnostics = sessionDiagnostics.bindExtensionObject();
+            _sessionDiagnostics = sessionDiagnostics.bindExtensionObject() as SessionDiagnosticsDataType;
             assert(sessionDiagnostics.$extensionObject === _sessionDiagnostics);
             sessionDiagnostics.installExtensionObjectVariables();
 
@@ -383,7 +383,7 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZA1- a ExtensionObject variable should have the expected dataType node", () => {
-            const dataTypeNode = sessionDiagnostics.getDataTypeNode();
+            const dataTypeNode = (sessionDiagnostics as any).getDataTypeNode();
 
             dataTypeNode.browseName.toString().should.eql("SessionDiagnosticsDataType");
             const structure = addressSpace.findDataType("Structure");
@@ -441,7 +441,7 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZA2- sessionDiagnostics should have a dataValue with the expected ExtensionObjectType", () => {
-            const extensionObject = sessionDiagnostics.readValue().value.value;
+            const extensionObject = (sessionDiagnostics as any).readValue().value.value;
             extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
         });
 
@@ -456,22 +456,22 @@ describe("Extension Object binding and sub  components\n", () => {
                     applicationUri: "applicationUri-1"
                 }; /*)*/
 
-                sessionDiagnostics.updateExtensionObjectPartial({ clientDescription: someClientDescription });
+                (sessionDiagnostics as any).updateExtensionObjectPartial({ clientDescription: someClientDescription });
 
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(1);
                 spy_on_sessionDiagnostics_value_changed.callCount.should.eql(1);
 
-                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-                _sessionDiagnostics.clientDescription.applicationUri.should.eql("applicationUri-1");
+                _sessionDiagnostics.clientDescription!.applicationUri!.should.eql("applicationUri-1");
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                const eo = sessionDiagnostics.readValue().value.value;
+                const eo = (sessionDiagnostics as any).readValue().value.value;
                 eo.clientDescription.applicationUri.should.eql("applicationUri-1");
 
                 // xx console.log(eo.toString());
@@ -488,23 +488,23 @@ describe("Extension Object binding and sub  components\n", () => {
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(0);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
                 const totalRequestCount = /* new Counter( */ {
                     errorCount: 25,
                     totalCount: 130
                 };
-                sessionDiagnostics.updateExtensionObjectPartial({ totalRequestCount });
+                (sessionDiagnostics as any).updateExtensionObjectPartial({ totalRequestCount });
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(130);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(130);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(130);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(130);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(130);
 
                 sessionDiagnostics.totalRequestCount.errorCount.readValue().value.value.should.eql(25);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.errorCount.should.eql(25);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.errorCount.should.eql(25);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.errorCount.should.eql(25);
                 _sessionDiagnostics.totalRequestCount.errorCount.should.eql(25);
             }
         );
@@ -515,25 +515,25 @@ describe("Extension Object binding and sub  components\n", () => {
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(0);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                (sessionDiagnostics as any).incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(1);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(1);
 
-                sessionDiagnostics.incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                (sessionDiagnostics as any).incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(2);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(2);
-                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(2);
+                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(2);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(2);
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(2);
@@ -546,11 +546,11 @@ describe("Extension Object binding and sub  components\n", () => {
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
             "to NodeVariables",
             () => {
-                _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
+                _sessionDiagnostics.clientDescription!.applicationUri = "applicationUri-1";
 
-                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
+                (sessionDiagnostics as any).readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
             }
         );
     });
@@ -643,8 +643,8 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             id: "IIII",
             version: "1.2"
         });
-        should.exist((rr as Record<string, unknown>).hash);
-        ((rr as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
+        should.exist((rr as unknown as Record<string, unknown>).hash);
+        ((rr as unknown as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
@@ -666,9 +666,9 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             resultContent: [resultContent1]
         });
 
-        ((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
-        (extObj as Record<string, Record<string, unknown>>).internalConfigurationId.id.should.eql("IIII");
-        (extObj as Record<string, Record<string, unknown>>).internalConfigurationId.version.should.eql("1.2");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.id as string).should.eql("IIII");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.version as string).should.eql("1.2");
 
         const variant = new Variant({
             dataType: DataType.ExtensionObject,
@@ -706,8 +706,8 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             id: "IIII",
             version: "1.2"
         });
-        should.exist((rr as Record<string, unknown>).hash);
-        ((rr as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
+        should.exist((rr as unknown as Record<string, unknown>).hash);
+        ((rr as unknown as Record<string, unknown>).hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
@@ -730,8 +730,8 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
         if (doDebug) {
             console.log("extObj", extObj.toString());
         }
-        should.exist((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash);
-        ((extObj as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
+        should.exist((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash);
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
 
         const result = resultType.instantiate({
             browseName: `Result2`,
@@ -742,9 +742,9 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             }
         }) as UAResultType;
 
-        const verif = result.readValue().value.value as Record<string, Record<string, unknown>>;
+        const verif = result.readValue().value.value as unknown as Record<string, Record<string, unknown>>;
         should.exist(verif.internalConfigurationId.hash);
-        verif.internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+        (verif.internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
 
         if (doDebug) {
             console.log(result.readValue().value.value.toString());

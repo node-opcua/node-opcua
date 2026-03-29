@@ -1,23 +1,22 @@
-
 import "should";
 
 import {
-    BrowseDescriptionLike,
+    type BrowseDescriptionLike,
     BrowseDirection,
-    BrowseRequestOptions,
-    BrowseResult,
-    ClientSession,
+    type BrowseResult,
+    browseAll,
+    type ClientSession,
     NodeClassMask,
-    NodeId,
+    type NodeId,
     OPCUAClient,
-    OPCUAServer,
-    browseAll
+    OPCUAServer
 } from "node-opcua";
-import { spy } from "sinon";
-import should from "should";
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-const doDebug = false;
+import should from "should";
+import { spy } from "sinon";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+
+const _doDebug = false;
 
 // #519_NodeCrawler is not browsing some nodes
 // #889
@@ -30,7 +29,6 @@ describe("testing browse & browseNext", () => {
     let groupNodeId: NodeId;
 
     before(async () => {
- 
         const serverCertificateManager = await createServerCertificateManager(port);
         const options = { port, serverCertificateManager };
         server = new OPCUAServer(options);
@@ -44,7 +42,7 @@ describe("testing browse & browseNext", () => {
         });
         for (let i = 0; i < 27; i++) {
             addressSpace.getOwnNamespace().addObject({
-                browseName: "Object" + i,
+                browseName: `Object${i}`,
                 organizedBy: group
             });
         }
@@ -82,18 +80,18 @@ describe("testing browse & browseNext", () => {
         };
 
         const result: BrowseResult = await session.browse(nodeToBrowse);
-        result.references!.length.should.eql(10);
+        result.references?.length.should.eql(10);
 
         should.exist(result.continuationPoint);
 
         const resultNext1: BrowseResult = await session.browseNext(result.continuationPoint, false);
 
-        resultNext1.references!.length.should.eql(10);
+        resultNext1.references?.length.should.eql(10);
 
         should.exist(resultNext1.continuationPoint);
 
         const resultNext2: BrowseResult = await session.browseNext(resultNext1.continuationPoint, false);
-        resultNext2.references!.length.should.eql(7);
+        resultNext2.references?.length.should.eql(7);
         should.not.exist(resultNext2.continuationPoint);
     });
 
@@ -108,7 +106,7 @@ describe("testing browse & browseNext", () => {
         const browseNextSpy = spy(session, "browseNext");
 
         const result = await browseAll(session, nodeToBrowse);
-        result.references!.length.should.eql(27);
+        result.references?.length.should.eql(27);
 
         browseSpy.callCount.should.eql(1);
         browseNextSpy.callCount.should.eql(2);

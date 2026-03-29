@@ -1,11 +1,11 @@
 import {
-    OPCUAServer,
-    nodesets,
     DataType,
-    OPCUAClient,
-    ReadRawModifiedDetails,
-    TimestampsToReturn,
     HistoryReadRequest,
+    nodesets,
+    OPCUAClient,
+    OPCUAServer,
+    ReadRawModifiedDetails,
+    TimestampsToReturn
 } from "node-opcua";
 import "should";
 
@@ -18,7 +18,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const port = 2248;
 
-describe("Testing HistoryRead with ExtensionObject", function () {
+describe("Testing HistoryRead with ExtensionObject", () => {
     let server: OPCUAServer;
     let client: OPCUAClient;
     let endpointUrl: string;
@@ -26,11 +26,7 @@ describe("Testing HistoryRead with ExtensionObject", function () {
     before(async () => {
         server = new OPCUAServer({
             port,
-            nodeset_filename: [
-                nodesets.standard,
-                nodesets.di,
-                nodesets.autoId
-            ]
+            nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
         });
         await server.initialize();
         const addressSpace = server.engine.addressSpace!;
@@ -47,14 +43,14 @@ describe("Testing HistoryRead with ExtensionObject", function () {
 
         const uaMyObject = namespace.addObject({
             organizedBy: addressSpace.rootFolder.objects,
-            browseName: "MyObject",
+            browseName: "MyObject"
         });
 
         const uaVariable = namespace.addVariable({
             componentOf: uaMyObject,
             browseName: "TheVariable",
             nodeId: "s=MyObject.TheVariable",
-            dataType: rfidScanResult,
+            dataType: rfidScanResult
         });
 
         addressSpace.installHistoricalDataNode(uaVariable);
@@ -110,17 +106,21 @@ describe("Testing HistoryRead with ExtensionObject", function () {
                 startTime: date_add(today, { seconds: -60 })
             });
 
-            const result = await session.historyRead(new HistoryReadRequest({
-                nodesToRead: [{
-                    nodeId,
-                    indexRange: undefined,
-                    dataEncoding: undefined,
-                    continuationPoint: undefined
-                }],
-                historyReadDetails,
-                releaseContinuationPoints: false,
-                timestampsToReturn: TimestampsToReturn.Both
-            }));
+            const result = await session.historyRead(
+                new HistoryReadRequest({
+                    nodesToRead: [
+                        {
+                            nodeId,
+                            indexRange: undefined,
+                            dataEncoding: undefined,
+                            continuationPoint: undefined
+                        }
+                    ],
+                    historyReadDetails,
+                    releaseContinuationPoints: false,
+                    timestampsToReturn: TimestampsToReturn.Both
+                })
+            );
 
             result.responseHeader.serviceResult.isGood().should.be.true();
             result.results!.length.should.eql(1);
@@ -143,7 +143,7 @@ describe("Testing HistoryRead with ExtensionObject", function () {
                 val.constructor.name.should.not.eql("OpaqueStructure");
                 val.constructor.name.should.eql("RfidScanResult");
             } else {
-                throw new Error("Expected HistoryData but got " + historyData.constructor.name);
+                throw new Error(`Expected HistoryData but got ${historyData.constructor.name}`);
             }
         });
     });

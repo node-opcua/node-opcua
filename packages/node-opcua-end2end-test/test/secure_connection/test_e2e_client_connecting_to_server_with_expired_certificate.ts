@@ -1,7 +1,16 @@
-import { getFullyQualifiedDomainName, getHostname, makeSubject, MessageSecurityMode, OPCUACertificateManager, OPCUAClient, OPCUAServer, randomGuid, SecurityPolicy } from "node-opcua";
-import os from "os";
-import path from "path";
-import should from "should"
+import os from "node:os";
+import path from "node:path";
+import {
+    getFullyQualifiedDomainName,
+    getHostname,
+    MessageSecurityMode,
+    makeSubject,
+    OPCUACertificateManager,
+    OPCUAClient,
+    OPCUAServer,
+    SecurityPolicy
+} from "node-opcua";
+import should from "should";
 
 const port = 2517;
 
@@ -21,7 +30,6 @@ async function startServerWithExpiredCertificate() {
 
     await server.initialize();
 
-
     const fqdn = getFullyQualifiedDomainName();
     const hostname = getHostname();
     const dns = [...new Set([fqdn, hostname])];
@@ -34,7 +42,7 @@ async function startServerWithExpiredCertificate() {
         validity: 100,
         subject: makeSubject(server.serverInfo.applicationName.text!, hostname),
         outputFile: server.certificateFile
-    })
+    });
 
     await server.start();
 
@@ -42,27 +50,25 @@ async function startServerWithExpiredCertificate() {
 
     process.once("SIGINT", () => {
         server.shutdown();
-    })
+    });
     return server;
-
 }
 
 // eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-describe("Security: verifying some security use cases", function (this: any) {
 
+describe("Security: verifying some security use cases", function (this: any) {
     this.timeout(100000);
     let server: OPCUAServer;
     before(async () => {
         server = await startServerWithExpiredCertificate();
-    })
+    });
     after(async () => {
         if (server) {
             await server.shutdown();
         }
-    })
+    });
     it("a client should not allow connection with a server that have a outdated certificate", async () => {
-
         const endpointUrl = server.getEndpointUrl();
 
         const rootFolder = path.join(tmpFolder, "clientPki");
@@ -82,7 +88,7 @@ describe("Security: verifying some security use cases", function (this: any) {
         } as any);
         await client.createDefaultCertificate();
 
-        // trust the server certificate 
+        // trust the server certificate
         const serverCertificate = server.getCertificate();
         client.clientCertificateManager.trustCertificate(serverCertificate);
 

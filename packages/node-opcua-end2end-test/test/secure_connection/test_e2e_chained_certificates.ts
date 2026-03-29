@@ -1,16 +1,14 @@
-process.env.NODEOPCUAPKIDEBUG = "1";
-
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { MessageSecurityMode, OPCUACertificateManager, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
 import {
-    MessageSecurityMode,
-    OPCUACertificateManager,
-    OPCUAClient,
-    OPCUAServer,
-    SecurityPolicy,
-} from "node-opcua";
-import { convertPEMtoDER, exploreCertificate, readCertificateChain, readCertificateRevocationList, split_der } from "node-opcua-crypto";
+    convertPEMtoDER,
+    exploreCertificate,
+    readCertificateChain,
+    readCertificateRevocationList,
+    split_der
+} from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
 import should from "should";
 
@@ -40,8 +38,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     });
 
     function dumpCertificate(certificate: Buffer | string) {
-
-        const der = (typeof certificate === "string") ? convertPEMtoDER(certificate) : certificate;
+        const der = typeof certificate === "string" ? convertPEMtoDER(certificate) : certificate;
         const chain = split_der(der);
         console.log(`chain\n${chain.map((c) => `   ${c.toString("hex").substring(0, 100)}`).join("\n")}`);
 
@@ -52,8 +49,14 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             console.log("    commonName                      ", info.tbsCertificate.subject.commonName);
             console.log("    issuer                          ", info.tbsCertificate.issuer.commonName);
             console.log("    subjectKeyIdentifier            ", info.tbsCertificate.extensions?.subjectKeyIdentifier);
-            console.log("    authorityKeyIdentifier issuer   ", info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.commonName);
-            console.log("    authorityKeyIdentifier key      ", info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier);
+            console.log(
+                "    authorityKeyIdentifier issuer   ",
+                info.tbsCertificate.extensions?.authorityKeyIdentifier?.authorityCertIssuer?.commonName
+            );
+            console.log(
+                "    authorityKeyIdentifier key      ",
+                info.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier
+            );
         }
     }
     async function createSignedCertInManager(mgr: OPCUACertificateManager, name: string) {
@@ -106,7 +109,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         name: string,
         rootFolder: string,
         options: {
-            automaticallyAcceptUnknownCertificate?: boolean
+            automaticallyAcceptUnknownCertificate?: boolean;
         } = {}
     ) {
         const serverCertificateManager = new OPCUACertificateManager({
@@ -130,7 +133,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         });
         await server.initialize();
 
-        // to do : 
+        // to do :
 
         return server;
     }
@@ -143,7 +146,6 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         should(caCertificateChain).be.instanceOf(Array);
         should(caCertificateChain.length).be.eql(1);
         const caCertificate = caCertificateChain[0];
-
 
         await serverCertificateManager.addIssuer(caCertificateChain[0], false, true);
 
@@ -168,7 +170,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             applicationUri: "urn:localhost:client1",
             clientCertificateManager,
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256,
+            securityPolicy: SecurityPolicy.Basic256Sha256
             // don't provide: serverCertificate: server.getCertificateChain()
         });
 
@@ -201,14 +203,14 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             applicationUri: "urn:localhost:client2",
             clientCertificateManager: clientCertificateManager,
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256,
+            securityPolicy: SecurityPolicy.Basic256Sha256
             // don't provided: serverCertificate: server.getCertificateChain()
         });
 
         try {
             await client.withSessionAsync(endpointUrl, async (_session) => {
-                // should fail initially because the server cannot verify the chain 
-                // presented by the client because it cannot find the CA in its trust list 
+                // should fail initially because the server cannot verify the chain
+                // presented by the client because it cannot find the CA in its trust list
                 // and it didn't extract the CA from the chain sent by the client.
             });
         } catch (err) {

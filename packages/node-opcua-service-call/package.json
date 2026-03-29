@@ -4,6 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module service-call",
     "scripts": {
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",

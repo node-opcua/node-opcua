@@ -5,6 +5,7 @@
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "doc": "npx typedoc@0.21 --options typedoc.js"

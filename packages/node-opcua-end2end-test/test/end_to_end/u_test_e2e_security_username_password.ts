@@ -3,7 +3,11 @@ import { OPCUAClient, UserTokenType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assertThrow } from "../../test_helpers/assert_throw";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("testing basic Client-Server communication", () => {

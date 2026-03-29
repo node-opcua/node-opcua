@@ -1,14 +1,13 @@
-
 import "should";
-import { OPCUAServer, OPCUAClient, get_empty_nodeset_filename, parseEndpointUrl } from "node-opcua";
+import { get_empty_nodeset_filename, OPCUAClient, OPCUAServer, parseEndpointUrl } from "node-opcua";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 const port = 6789;
 
-describe("Testing a simple server from Server side", function () {
+describe("Testing a simple server from Server side", () => {
     it("should have at least one endpoint", async () => {
         const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
         try {
@@ -26,11 +25,11 @@ describe("Testing a simple server from Server side", function () {
     });
 
     it("OPCUAServer#getChannels", async () => {
-    const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
+        const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
         try {
-        (server as any).getChannels().length.should.equal(0);
+            (server as any).getChannels().length.should.equal(0);
             await server.start();
-        (server as any).getChannels().length.should.equal(0);
+            (server as any).getChannels().length.should.equal(0);
             const endpointUrl = server.getEndpointUrl();
             const client = OPCUAClient.create({});
             await perform_operation_on_client_session(client, endpointUrl, async (_session) => {
@@ -50,5 +49,3 @@ describe("Testing a simple server from Server side", function () {
         await server.shutdown();
     });
 });
-
-

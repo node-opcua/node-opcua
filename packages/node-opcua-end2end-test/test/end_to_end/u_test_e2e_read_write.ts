@@ -6,18 +6,22 @@ import {
     DataValue,
     OPCUAClient,
     ReadRequest,
-    sameDataValue,
     StatusCodes,
+    sameDataValue,
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("JHJ1 end-to-end testing of read and write operation on a Variable", () => {
-        let client: OPCUAClient; let endpointUrl: string;
+        let client: OPCUAClient;
+        let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
@@ -27,7 +31,7 @@ export function t(test: TestHarness) {
         afterEach(async () => {
             if (client) {
                 await client.disconnect();
-                // @ts-ignore
+                // @ts-expect-error
                 client = null;
             }
         });
@@ -56,7 +60,7 @@ export function t(test: TestHarness) {
                         dataEncoding: null
                     }
                 ];
-                const dataValues: DataValue[] = await session.read(nodesToRead as any) as any;
+                const dataValues: DataValue[] = (await session.read(nodesToRead as any)) as any;
                 // session.read with array returns an array of DataValue
 
                 // if timestamps unspecified in original dataValue, adopt from server response
@@ -70,8 +74,8 @@ export function t(test: TestHarness) {
                 }
 
                 // server must provide timestamps
-                dataValues[0].serverTimestamp!.should.be.instanceOf(Date);
-                dataValues[0].sourceTimestamp!.should.be.instanceOf(Date);
+                dataValues[0].serverTimestamp?.should.be.instanceOf(Date);
+                dataValues[0].sourceTimestamp?.should.be.instanceOf(Date);
 
                 (dataValues[0].serverTimestamp!.getTime() + 1).should.be.greaterThan(dataValue.serverTimestamp!.getTime());
 
@@ -124,22 +128,34 @@ export function t(test: TestHarness) {
         it("ZZZ reading ns=2;s=Static_Scalar_Int16", async () => {
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const nodeId = "ns=2;s=Static_Scalar_Int16";
-                const nodesToRead = [
-                    { nodeId, attributeId: AttributeIds.Value, indexRange: undefined, dataEncoding: null }
-                ];
+                const nodesToRead = [{ nodeId, attributeId: AttributeIds.Value, indexRange: undefined, dataEncoding: null }];
                 const maxAge = 10;
 
                 // perform 3 read transactions with differing timestampsToReturn
-                const request1 = new ReadRequest({ nodesToRead: nodesToRead as any, maxAge, timestampsToReturn: TimestampsToReturn.Both });
+                const request1 = new ReadRequest({
+                    nodesToRead: nodesToRead as any,
+                    maxAge,
+                    timestampsToReturn: TimestampsToReturn.Both
+                });
                 await (session as any).performMessageTransaction(request1);
-                const request2 = new ReadRequest({ nodesToRead: nodesToRead as any, maxAge, timestampsToReturn: TimestampsToReturn.Both });
+                const request2 = new ReadRequest({
+                    nodesToRead: nodesToRead as any,
+                    maxAge,
+                    timestampsToReturn: TimestampsToReturn.Both
+                });
                 await (session as any).performMessageTransaction(request2);
-                const request3 = new ReadRequest({ nodesToRead: nodesToRead as any, maxAge, timestampsToReturn: TimestampsToReturn.Server });
+                const request3 = new ReadRequest({
+                    nodesToRead: nodesToRead as any,
+                    maxAge,
+                    timestampsToReturn: TimestampsToReturn.Server
+                });
                 await (session as any).performMessageTransaction(request3);
             });
         });
 
-        xit("#read test maxAge", () => { /* intentionally skipped */ });
+        xit("#read test maxAge", () => {
+            /* intentionally skipped */
+        });
 
         describe("Performance of reading large array", () => {
             it("PERF - READ testing performance of large array", async () => {
@@ -158,8 +174,10 @@ export function t(test: TestHarness) {
                     const dataValue: DataValue = await session.read(nodeToRead as any);
 
                     const variant: any = dataValue.value;
-                    variant.value[1] = 2; variant.value[3] = 2; variant.value[4] = 2;
-                    const nodesToWrite = [ { nodeId, attributeId: AttributeIds.Value, indexRange: null, value: dataValue } ];
+                    variant.value[1] = 2;
+                    variant.value[3] = 2;
+                    variant.value[4] = 2;
+                    const nodesToWrite = [{ nodeId, attributeId: AttributeIds.Value, indexRange: null, value: dataValue }];
                     await session.write(nodesToWrite as any);
 
                     // ensure it's a Float32Array then write a large one

@@ -1,8 +1,8 @@
-import os from "os";
-import { ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
+import os from "node:os";
+import { type ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("list status codes for input arguments", () => {
     const port = 2002;
     const server = new OPCUAServer({
@@ -28,7 +28,7 @@ describe("list status codes for input arguments", () => {
                 nodeId: "ns=1;s=RingDoor",
                 inputArguments: [{ dataType: DataType.UInt16, name: "times" }]
             })
-            .bindMethod((inputArguments, context, callback) => {
+            .bindMethod((inputArguments, _context, callback) => {
                 if (inputArguments[0].value === 0) {
                     return callback(null, {
                         statusCode: StatusCodes.BadInvalidArgument
@@ -67,7 +67,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 1 }]
         });
         result.statusCode.should.eql(StatusCodes.Good);
-        result.inputArgumentResults![0].should.eql(StatusCodes.Good);
+        result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
     });
 
     it("should return lib generated BadTypeMismatch if argument type is wrong", async () => {
@@ -77,7 +77,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
         });
         result.statusCode.should.eql(StatusCodes.BadTypeMismatch);
-        result.inputArgumentResults![0].should.eql(StatusCodes.BadTypeMismatch);
+        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadTypeMismatch);
     });
 
     it("should return custom error", async () => {
@@ -87,7 +87,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 4 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults![0].should.eql(StatusCodes.BadOutOfRange);
+        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadOutOfRange);
     });
 
     it("should return default status code good if no custom status code is provided for input argument result", async () => {
@@ -97,7 +97,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 0 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults![0].should.eql(StatusCodes.Good);
+        result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
     });
 
     it("should return custom diagnostic infos", async () => {
@@ -107,9 +107,9 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 10 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults![0].should.eql(StatusCodes.BadOutOfRange);
+        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadOutOfRange);
         should.exist(result.inputArgumentDiagnosticInfos);
-        should.exist(result.inputArgumentDiagnosticInfos![0]);
-        result.inputArgumentDiagnosticInfos![0]!.additionalInfo!.should.eql("Hey dude, stop ringing the door");
+        should.exist(result.inputArgumentDiagnosticInfos?.[0]);
+        result.inputArgumentDiagnosticInfos?.[0]?.additionalInfo?.should.eql("Hey dude, stop ringing the door");
     });
 });

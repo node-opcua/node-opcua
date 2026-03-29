@@ -1,17 +1,17 @@
-import should from "should";
 import {
-    ClientSubscriptionOptions,
-    OPCUAClient,
-    DataType,
-    OPCUAServer,
-    nodesets,
     AttributeIds,
+    type ClientSubscriptionOptions,
+    DataType,
+    type DataValue,
     MonitoringMode,
-    TimestampsToReturn,
-    DataValue,
-    ClientSecureChannelLayer
+    nodesets,
+    OPCUAClient,
+    OPCUAServer,
+    TimestampsToReturn
 } from "node-opcua";
 import { make_errorLog } from "node-opcua-debug";
+import should from "should";
+
 // import { DTScanResult } from "node-opcua-nodeset-auto-id";
 interface DTScanResult {
     codeType: string;
@@ -40,11 +40,11 @@ function addVariable(server: OPCUAServer) {
     const nextValue = () => {
         const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
             // ScanResult
-            codeType: "Hello" + counter,
+            codeType: `Hello${counter}`,
             scanData: {
                 epc: {
                     pC: 12 + counter,
-                    uId: Buffer.from("Hello" + counter),
+                    uId: Buffer.from(`Hello${counter}`),
                     xpC_W1: 10,
                     xpC_W2: 12
                 }
@@ -87,13 +87,7 @@ async function createServerVersion1() {
 async function createServerVersion2() {
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [
-            nodesets.standard, 
-            nodesets.di, 
-            nodesets.ia,
-            nodesets.robotics, 
-            nodesets.autoId
-        ]
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.ia, nodesets.robotics, nodesets.autoId]
     });
     await server.initialize();
     addVariable(server);
@@ -104,11 +98,11 @@ async function createServerVersion3() {
     const server = new OPCUAServer({
         port,
         nodeset_filename: [
-            nodesets.standard, 
+            nodesets.standard,
             nodesets.di,
             nodesets.ia,
-            nodesets.robotics, 
-            nodesets.commercialKitchenEquipment, 
+            nodesets.robotics,
+            nodesets.commercialKitchenEquipment,
             nodesets.autoId
         ]
     });
@@ -119,12 +113,13 @@ async function createServerVersion3() {
 }
 
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let server: OPCUAServer;
-  
+
     before(async () => {
         server = await createServerVersion1();
     });
@@ -138,7 +133,7 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
             // very large value so we can play with the debugger
             defaultTransactionTimeout: 1000000
         });
-        await client.withSessionAsync(endpointUrl, async (session) => {
+        await client.withSessionAsync(endpointUrl, async (_session) => {
             /** */
             errorLog("done");
         });
@@ -152,7 +147,7 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
             publishingEnabled: true,
             requestedPublishingInterval: 100
         };
-        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session, subscription) => {
+        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (_session, _subscription) => {
             /** */
             console.log("done");
         });
@@ -167,7 +162,7 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
             publishingEnabled: true,
             requestedPublishingInterval: 100
         };
-        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session, subscription) => {
+        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (_session, _subscription) => {
             /** */
             await server.shutdown();
             server = await createServerVersion2();

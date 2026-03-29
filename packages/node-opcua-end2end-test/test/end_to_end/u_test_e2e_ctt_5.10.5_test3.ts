@@ -1,18 +1,15 @@
 import "should";
-import sinon from "sinon";
 import chalk from "chalk";
-import {
-    OPCUAClient,
-    ClientSubscription,
-    ClientMonitoredItem,
-    AttributeIds,
-    DataType,
-    RepublishRequest
-} from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, ClientSubscription, DataType, OPCUAClient, RepublishRequest } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const doDebug = false;
 
@@ -20,12 +17,12 @@ function f(func: Function) {
     const fct = async (...args: any[]) => {
         if (doDebug) {
             // eslint-disable-next-line no-console
-            console.log("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+            console.log(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         }
         await func.apply(null, args);
         if (doDebug) {
             // eslint-disable-next-line no-console
-            console.log("       ! " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+            console.log(`       ! ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         }
     };
     return fct;
@@ -51,17 +48,19 @@ export function t(test: TestHarness) {
             });
 
             subscription_raw_notification_event = sinon.spy();
-            subscription.once("terminated", () => { /* noop */ });
+            subscription.once("terminated", () => {
+                /* noop */
+            });
 
             await new Promise<void>((resolve) => {
-                subscription!.once("started", () => {
+                subscription?.once("started", () => {
                     monitoredItem1 = ClientMonitoredItem.create(
                         subscription!,
                         { nodeId, attributeId: AttributeIds.Value },
                         { samplingInterval: 100, discardOldest: true, queueSize: 100 }
                     );
                     monitoredItem1.once("changed", () => {
-                        subscription!.on("raw_notification", subscription_raw_notification_event!);
+                        subscription?.on("raw_notification", subscription_raw_notification_event!);
                         spy_publish = sinon.spy(session, "publish");
                         resolve();
                     });
@@ -70,7 +69,7 @@ export function t(test: TestHarness) {
         }
 
         async function prevent_publish_request_acknowledgement(session: any) {
-            (session as any)._publishEngine.acknowledge_notification = function(_subscriptionId: number, _sequenceNumber: number) {
+            (session as any)._publishEngine.acknowledge_notification = (_subscriptionId: number, _sequenceNumber: number) => {
                 // intentionally ignore acknowledgements to keep sequence numbers pending
             };
         }
@@ -93,7 +92,7 @@ export function t(test: TestHarness) {
                 const timeoutId = setTimeout(() => {
                     reject(new Error("monitoredItem1 changed notification not received in time !"));
                 }, 4000);
-                monitoredItem1!.once("changed", (dataValue: any) => {
+                monitoredItem1?.once("changed", (dataValue: any) => {
                     clearTimeout(timeoutId);
                     dataValue.value.value.should.eql(_the_value);
                     resolve();
@@ -105,14 +104,16 @@ export function t(test: TestHarness) {
         it("verifying that RepublishRequest service is working as expected", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            client.on("backoff", () => { /* eslint-disable-line no-console */ console.log("keep trying to connect to ", endpointUrl); });
+            client.on("backoff", () => {
+                /* eslint-disable-line no-console */ console.log("keep trying to connect to ", endpointUrl);
+            });
 
             const expected_values: any[] = [];
             let sequenceNumbers: number[] = [];
 
             async function verify_republish(session: any, index: number) {
                 const request = new RepublishRequest({
-                    subscriptionId: subscription!.subscriptionId,
+                    subscriptionId: subscription?.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });
                 const response = await session.republish(request);
@@ -127,18 +128,18 @@ export function t(test: TestHarness) {
                 await f(write_value_and_wait_for_change)(session);
                 await f(write_value_and_wait_for_change)(session);
 
-                subscription_raw_notification_event!.callCount.should.eql(4);
-                const seqNumber1 = subscription_raw_notification_event!.getCall(0).args[0].sequenceNumber;
-                subscription_raw_notification_event!.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
-                subscription_raw_notification_event!.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
-                subscription_raw_notification_event!.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);
-                subscription_raw_notification_event!.getCall(3).args[0].sequenceNumber.should.eql(seqNumber1 + 3);
+                subscription_raw_notification_event?.callCount.should.eql(4);
+                const seqNumber1 = subscription_raw_notification_event?.getCall(0).args[0].sequenceNumber;
+                subscription_raw_notification_event?.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
+                subscription_raw_notification_event?.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
+                subscription_raw_notification_event?.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);
+                subscription_raw_notification_event?.getCall(3).args[0].sequenceNumber.should.eql(seqNumber1 + 3);
 
-                expected_values.push(subscription_raw_notification_event!.getCall(1).args[0].notificationData[0].monitoredItems[0]);
-                expected_values.push(subscription_raw_notification_event!.getCall(2).args[0].notificationData[0].monitoredItems[0]);
-                expected_values.push(subscription_raw_notification_event!.getCall(3).args[0].notificationData[0].monitoredItems[0]);
+                expected_values.push(subscription_raw_notification_event?.getCall(1).args[0].notificationData[0].monitoredItems[0]);
+                expected_values.push(subscription_raw_notification_event?.getCall(2).args[0].notificationData[0].monitoredItems[0]);
+                expected_values.push(subscription_raw_notification_event?.getCall(3).args[0].notificationData[0].monitoredItems[0]);
 
-                spy_publish!.callCount.should.eql(4);
+                spy_publish?.callCount.should.eql(4);
 
                 sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
 

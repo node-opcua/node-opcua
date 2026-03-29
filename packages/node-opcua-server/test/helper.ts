@@ -1,17 +1,17 @@
 
-import { MonitoredItemNotification } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { Subscription } from "../source";
+import { MonitoredItemNotification } from "node-opcua-service-subscription";
+import type { Subscription } from "../source";
 
 interface M2 {
     simulateMonitoredItemAddingNotification: () => void;
-    queue: any[];
+    queue: unknown[];
 }
 
 export function add_mock_monitored_item(subscription: Subscription) {
     // pretend we have a monitored item
     const monitoredItem = {
-        queue: <any[]>[],
+        queue: <unknown[]>[],
 
         extractMonitoredItemNotifications() {
             const tmp = this.queue;
@@ -29,7 +29,7 @@ export function add_mock_monitored_item(subscription: Subscription) {
         async resendInitialValue() {
             this.simulateMonitoredItemAddingNotification();
         },
-        simulateMonitoredItemAddingNotification() {}
+        simulateMonitoredItemAddingNotification() { }
     };
     (monitoredItem as any).__defineGetter__("hasMonitoredItemNotifications", function (this: any) {
         return this.queue.length > 0;

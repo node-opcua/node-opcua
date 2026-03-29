@@ -1,18 +1,16 @@
 import chalk from "chalk";
 import {
-    AddressSpace,
+    type AddressSpace,
     AttributeIds,
-    CallbackT,
-    ClientSubscription,
+    type CallbackT,
     DataType,
     DataValue,
     OPCUAClient,
     OPCUAServer,
-    ReadValueIdOptions,
-    StatusCode,
+    type ReadValueIdOptions,
     StatusCodes,
     TimestampsToReturn,
-    UAVariable,
+    type UAVariable,
     Variant
 } from "node-opcua";
 import should from "should";
@@ -25,6 +23,7 @@ let _variableNode1: UAVariable;
 
 // tslint:disable:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing bug #635", () => {
     function createAddressSpace(addressSpace: AddressSpace) {
         const namespace = addressSpace.getOwnNamespace();

@@ -1,13 +1,20 @@
-
-import should from "should";
-import { OPCUAClient, DataType, AttributeIds, readUAAnalogItem, BrowseDirection, OPCUAServer, ClientSession, NodeIdLike }from "node-opcua";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import {
+    AttributeIds,
+    BrowseDirection,
+    type ClientSession,
+    DataType,
+    type NodeIdLike,
+    OPCUAClient,
+    type OPCUAServer,
+    readUAAnalogItem
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
 const port = 2009;
 
-
-describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
+describe("testing AnalogItem on client side", function (this: Mocha.Runnable) {
     let server: OPCUAServer;
     let client: OPCUAClient;
     let endpointUrl: string;
@@ -34,7 +41,7 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
         await client.disconnect();
     });
 
-    after(function(done) {
+    after((done) => {
         server.shutdown(done);
     });
 
@@ -46,7 +53,6 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
         data.should.have.ownProperty("instrumentRange");
         data.should.have.ownProperty("valuePrecision");
         data.should.have.ownProperty("definition");
-
     });
 
     it("readUAAnalogItem should return an error if not doesn't exist", async () => {
@@ -54,8 +60,8 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
         let err = null;
         try {
             await readUAAnalogItem(g_session!, nodeId);
-        } catch (_err) { 
-            err = _err; 
+        } catch (_err) {
+            err = _err;
         }
         should.exist(err);
     });
@@ -66,11 +72,7 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
      * @param browseName
      * @param callback
      */
-    async function findProperty(
-        session: ClientSession, 
-        nodeId: NodeIdLike, 
-        browseName: string
-    ) {
+    async function findProperty(session: ClientSession, nodeId: NodeIdLike, browseName: string) {
         const browseDescription = {
             nodeId: nodeId,
             referenceTypeId: "HasProperty",
@@ -81,8 +83,8 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
         if (result.statusCode.isNotGood()) {
             return null;
         }
-        let tmp = result.references!.filter((e) => e.browseName.name === browseName);
-        let tmp2 = tmp.map((e) => e.nodeId);
+        const tmp = result.references?.filter((e) => e.browseName.name === browseName);
+        const tmp2 = tmp!.map((e) => e.nodeId);
         const found = tmp2.length === 1 ? tmp2[0] : null;
         return found;
     }
@@ -102,10 +104,9 @@ describe("testing AnalogItem on client side", function(this: Mocha.Runnable) {
         const dataValue = await g_session!.read(nodeToRead);
 
         //xx console.log("result = ",result.toString());
-        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+        dataValue!.value.dataType.should.eql(DataType.ExtensionObject);
 
-        dataValue.value.value.low.should.eql(100);
-        dataValue.value.value.high.should.eql(200);
-
+        dataValue!.value.value.low.should.eql(100);
+        dataValue!.value.value.high.should.eql(200);
     });
 });

@@ -8,6 +8,7 @@
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {

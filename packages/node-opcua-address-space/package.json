@@ -10,6 +10,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "lint": "eslint source test src source_nodejs test_helpers",
         "format": "prettier --write source test src source_nodejs test_helpers",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",

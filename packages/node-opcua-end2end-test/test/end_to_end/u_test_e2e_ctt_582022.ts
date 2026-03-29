@@ -1,16 +1,13 @@
 import "should";
-import {
-    OPCUAClient,
-    coerceNodeId,
-    AttributeIds,
-    DataType,
-    VariantArrayType,
-    StatusCodes
-} from "node-opcua";
+import { AttributeIds, coerceNodeId, DataType, OPCUAClient, StatusCodes, VariantArrayType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * CTT case (AttributeWriteValue test7)
@@ -22,7 +19,7 @@ export function t(test: TestHarness) {
             const endpointUrl = test.endpointUrl;
             const client = OPCUAClient.create({});
 
-            await perform_operation_on_subscription_async(client, endpointUrl, async (session: any, subscription: any) => {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session: any, _subscription: any) => {
                 // 1. find simulator namespace index
                 const namespaceArray: string[] = await session.readNamespaceArray();
                 const simulationNamespaceIndex = namespaceArray.indexOf("urn://node-opcua-simulator");
@@ -33,7 +30,7 @@ export function t(test: TestHarness) {
                 const nodeToRead = { nodeId, attributeId: AttributeIds.Value };
                 const dataValue = await session.read(nodeToRead);
                 if (dataValue.statusCode.isNotGood()) {
-                    throw new Error("Cannot read value " + dataValue.toString());
+                    throw new Error(`Cannot read value ${dataValue.toString()}`);
                 }
                 dataValue.value.value.length.should.be.greaterThan(2);
                 const l: number = dataValue.value.value.length;

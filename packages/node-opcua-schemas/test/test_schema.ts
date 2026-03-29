@@ -9,7 +9,7 @@ import { hexDump } from "node-opcua-debug";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/test_helpers";
+import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/test_helpers";
 
 import { getOrCreateConstructor, parseBinaryXSD } from "..";
 
@@ -64,11 +64,11 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         if (doDebug) {
             console.log(workOrderType.toString());
         }
-        encode_decode_round_trip_test(workOrderType, (stream: BinaryStream) => {
+        encode_decode_round_trip_test(workOrderType, (buffer: Buffer) => {
             if (doDebug) {
-                console.log(hexDump(stream.buffer));
+                console.log(hexDump(buffer));
             }
-            stream.length.should.equal(66);
+            buffer.length.should.equal(66);
         });
     });
 
@@ -340,7 +340,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
         };
         const processingTimes: ProcessingTimes = new ProcessingTimesDataType(pojo);
 
-        encode_decode_round_trip_test(processingTimes, (buffer: Buffer) => {
+        encode_decode_round_trip_test(processingTimes as unknown as IExtensionObject, (buffer: Buffer) => {
             if (doDebug) {
                 console.log(hexDump(buffer));
             }
@@ -494,9 +494,10 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
             // buffer.length.should.eql(35);
         });
         console.log(reloaded6b.toString());
-        reloaded6b.switchField.should.eql(4);
-        reloaded6b.custom.dataType.should.eql(DataType.Double);
-        reloaded6b.custom.value.should.eql(36);
+        const reloaded = reloaded6b as unknown as { switchField: number; custom: { dataType: DataType; value: number } };
+        reloaded.switchField.should.eql(4);
+        reloaded.custom.dataType.should.eql(DataType.Double);
+        reloaded.custom.value.should.eql(36);
 
         const scanData1 = new ScanData({}); // should throw
         const reloaded1 = encode_decode_round_trip_test(scanData1, (buffer: Buffer) => {

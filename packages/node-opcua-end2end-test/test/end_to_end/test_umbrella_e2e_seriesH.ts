@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { beforeTest, afterTest, beforeEachTest, afterEachTest, UmbrellaTestContext } from "./_helper_umbrella";
+import { afterEachTest, afterTest, beforeEachTest, beforeTest, type UmbrellaTestContext } from "./_helper_umbrella";
 
 const port = 1994;
 
@@ -22,4 +22,3 @@ describe("testing Client - Umbrella-H", function (this: Mocha.Context) {
     require("./u_test_e2e_server_with_500_clients").t(test);
     require("./u_test_e2e_modifyMonitoredItem_onEvent").t(test);
 });
-

@@ -5,20 +5,20 @@ import { ExtensionObject } from "node-opcua-extension-object";
 
 import { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } from "..";
 
-describe("testing return sameVariant for pull request", function () {
-    it("testing same variants of type Boolean", function () {
+describe("testing return sameVariant for pull request", () => {
+    it("testing same variants of type Boolean", () => {
         const b1 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Scalar, value: true });
         const b1c = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Scalar, value: true });
         assert(sameVariant(b1, b1c), "should be true");
     });
 
-    it("testing different variants of type Boolean", function () {
+    it("testing different variants of type Boolean", () => {
         const b1 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Scalar, value: true });
         const b2 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Scalar, value: false });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Boolean array", function () {
+    it("testing same variants of type Boolean array", () => {
         const b1 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Array, value: [true, false] });
         const b1c = new Variant({
             dataType: DataType.Boolean,
@@ -28,13 +28,13 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Boolean array", function () {
+    it("testing different variants of type Boolean array", () => {
         const b1 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Array, value: [true, false] });
         const b2 = new Variant({ dataType: DataType.Boolean, arrayType: VariantArrayType.Array, value: [true, true] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Boolean matrix", function () {
+    it("testing same variants of type Boolean matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Boolean,
             arrayType: VariantArrayType.Matrix,
@@ -50,7 +50,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Boolean matrix", function () {
+    it("testing different variants of type Boolean matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Boolean,
             arrayType: VariantArrayType.Matrix,
@@ -66,7 +66,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing different variants of type Boolean matrix different dimension, same size", function () {
+    it("testing different variants of type Boolean matrix different dimension, same size", () => {
         const b1 = new Variant({
             dataType: DataType.Boolean,
             arrayType: VariantArrayType.Matrix,
@@ -82,31 +82,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Byte", function () {
+    it("testing same variants of type Byte", () => {
         const b1 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Byte", function () {
+    it("testing different variants of type Byte", () => {
         const b1 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Byte array", function () {
+    it("testing same variants of type Byte array", () => {
         const b1 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Byte array", function () {
+    it("testing different variants of type Byte array", () => {
         const b1 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Byte, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Byte matrix", function () {
+    it("testing same variants of type Byte matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Byte,
             arrayType: VariantArrayType.Matrix,
@@ -122,7 +122,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Byte matrix", function () {
+    it("testing different variants of type Byte matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Byte,
             arrayType: VariantArrayType.Matrix,
@@ -138,31 +138,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type SByte", function () {
+    it("testing same variants of type SByte", () => {
         const b1 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type SByte", function () {
+    it("testing different variants of type SByte", () => {
         const b1 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type SByte array", function () {
+    it("testing same variants of type SByte array", () => {
         const b1 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type SByte array", function () {
+    it("testing different variants of type SByte array", () => {
         const b1 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.SByte, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type SByte matrix", function () {
+    it("testing same variants of type SByte matrix", () => {
         const b1 = new Variant({
             dataType: DataType.SByte,
             arrayType: VariantArrayType.Matrix,
@@ -178,7 +178,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type SByte matrix", function () {
+    it("testing different variants of type SByte matrix", () => {
         const b1 = new Variant({
             dataType: DataType.SByte,
             arrayType: VariantArrayType.Matrix,
@@ -194,31 +194,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int16", function () {
+    it("testing same variants of type Int16", () => {
         const b1 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int16", function () {
+    it("testing different variants of type Int16", () => {
         const b1 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int16 array", function () {
+    it("testing same variants of type Int16 array", () => {
         const b1 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int16 array", function () {
+    it("testing different variants of type Int16 array", () => {
         const b1 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Int16, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int16 matrix", function () {
+    it("testing same variants of type Int16 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int16,
             arrayType: VariantArrayType.Matrix,
@@ -234,7 +234,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int16 matrix", function () {
+    it("testing different variants of type Int16 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int16,
             arrayType: VariantArrayType.Matrix,
@@ -250,31 +250,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int32", function () {
+    it("testing same variants of type Int32", () => {
         const b1 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int32", function () {
+    it("testing different variants of type Int32", () => {
         const b1 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int32 array", function () {
+    it("testing same variants of type Int32 array", () => {
         const b1 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int32 array", function () {
+    it("testing different variants of type Int32 array", () => {
         const b1 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int32 matrix", function () {
+    it("testing same variants of type Int32 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int32,
             arrayType: VariantArrayType.Matrix,
@@ -290,7 +290,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int32 matrix", function () {
+    it("testing different variants of type Int32 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int32,
             arrayType: VariantArrayType.Matrix,
@@ -306,31 +306,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int64", function () {
+    it("testing same variants of type Int64", () => {
         const b1 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         const b1c = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int64", function () {
+    it("testing different variants of type Int64", () => {
         const b1 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         const b2 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Scalar, value: [1, 1] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int64 array", function () {
+    it("testing same variants of type Int64 array", () => {
         const b1 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int64 array", function () {
+    it("testing different variants of type Int64 array", () => {
         const b1 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Int64, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Int64 matrix", function () {
+    it("testing same variants of type Int64 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int64,
             arrayType: VariantArrayType.Matrix,
@@ -360,7 +360,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Int64 matrix", function () {
+    it("testing different variants of type Int64 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Int64,
             arrayType: VariantArrayType.Matrix,
@@ -390,31 +390,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt16", function () {
+    it("testing same variants of type UInt16", () => {
         const b1 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt16", function () {
+    it("testing different variants of type UInt16", () => {
         const b1 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt16 array", function () {
+    it("testing same variants of type UInt16 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt16 array", function () {
+    it("testing different variants of type UInt16 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt16 matrix", function () {
+    it("testing same variants of type UInt16 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt16,
             arrayType: VariantArrayType.Matrix,
@@ -430,7 +430,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt16 matrix", function () {
+    it("testing different variants of type UInt16 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt16,
             arrayType: VariantArrayType.Matrix,
@@ -446,31 +446,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt32", function () {
+    it("testing same variants of type UInt32", () => {
         const b1 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt32", function () {
+    it("testing different variants of type UInt32", () => {
         const b1 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt32 array", function () {
+    it("testing same variants of type UInt32 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt32 array", function () {
+    it("testing different variants of type UInt32 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt32 matrix", function () {
+    it("testing same variants of type UInt32 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
@@ -486,7 +486,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt32 matrix", function () {
+    it("testing different variants of type UInt32 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Matrix,
@@ -502,31 +502,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt64", function () {
+    it("testing same variants of type UInt64", () => {
         const b1 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         const b1c = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt64", function () {
+    it("testing different variants of type UInt64", () => {
         const b1 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Scalar, value: [1, 0] });
         const b2 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Scalar, value: [1, 1] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt64 array", function () {
+    it("testing same variants of type UInt64 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt64 array", function () {
+    it("testing different variants of type UInt64 array", () => {
         const b1 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.UInt64, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type UInt64 matrix", function () {
+    it("testing same variants of type UInt64 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt64,
             arrayType: VariantArrayType.Matrix,
@@ -556,7 +556,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type UInt64 matrix", function () {
+    it("testing different variants of type UInt64 matrix", () => {
         const b1 = new Variant({
             dataType: DataType.UInt64,
             arrayType: VariantArrayType.Matrix,
@@ -586,31 +586,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Float", function () {
+    it("testing same variants of type Float", () => {
         const b1 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Float", function () {
+    it("testing different variants of type Float", () => {
         const b1 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Float array", function () {
+    it("testing same variants of type Float array", () => {
         const b1 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Float array", function () {
+    it("testing different variants of type Float array", () => {
         const b1 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Float, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Float matrix", function () {
+    it("testing same variants of type Float matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Matrix,
@@ -626,7 +626,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Float matrix", function () {
+    it("testing different variants of type Float matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Matrix,
@@ -642,31 +642,31 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Double", function () {
+    it("testing same variants of type Double", () => {
         const b1 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 1 });
         const b1c = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 1 });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Double", function () {
+    it("testing different variants of type Double", () => {
         const b1 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 1 });
         const b2 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 2 });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Double array", function () {
+    it("testing same variants of type Double array", () => {
         const b1 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b1c = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: [1, 1] });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Double array", function () {
+    it("testing different variants of type Double array", () => {
         const b1 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: [1, 1] });
         const b2 = new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: [1, 2] });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type Double matrix", function () {
+    it("testing same variants of type Double matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
@@ -682,7 +682,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type Double matrix", function () {
+    it("testing different variants of type Double matrix", () => {
         const b1 = new Variant({
             dataType: DataType.Double,
             arrayType: VariantArrayType.Matrix,
@@ -698,19 +698,19 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type String", function () {
+    it("testing same variants of type String", () => {
         const b1 = new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Scalar, value: "Hello" });
         const b1c = new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Scalar, value: "Hello" });
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type String", function () {
+    it("testing different variants of type String", () => {
         const b1 = new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Scalar, value: "Hello" });
         const b2 = new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Scalar, value: "Helloo" });
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type String array", function () {
+    it("testing same variants of type String array", () => {
         const b1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Array,
@@ -724,7 +724,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type String array", function () {
+    it("testing different variants of type String array", () => {
         const b1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Array,
@@ -738,7 +738,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type String matrix", function () {
+    it("testing same variants of type String matrix", () => {
         const b1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Matrix,
@@ -754,7 +754,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type String matrix", function () {
+    it("testing different variants of type String matrix", () => {
         const b1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Matrix,
@@ -770,7 +770,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type ByteString", function () {
+    it("testing same variants of type ByteString", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Scalar,
@@ -784,7 +784,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type ByteString", function () {
+    it("testing different variants of type ByteString", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Scalar,
@@ -798,7 +798,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type ByteString array", function () {
+    it("testing same variants of type ByteString array", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
@@ -812,7 +812,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type ByteString array", function () {
+    it("testing different variants of type ByteString array", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Array,
@@ -826,7 +826,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing same variants of type ByteString matrix", function () {
+    it("testing same variants of type ByteString matrix", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Matrix,
@@ -856,7 +856,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b1c).should.equal(true);
     });
 
-    it("testing different variants of type ByteString matrix", function () {
+    it("testing different variants of type ByteString matrix", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Matrix,
@@ -886,7 +886,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(false);
     });
 
-    it("testing difference variant matrix with different dimension", function () {
+    it("testing difference variant matrix with different dimension", () => {
         const b1 = new Variant({
             dataType: DataType.ByteString,
             arrayType: VariantArrayType.Matrix,
@@ -915,13 +915,13 @@ describe("testing return sameVariant for pull request", function () {
         });
         sameVariant(b1, b2).should.equal(false);
     });
-    it("testing  variants with empty array", function () {
+    it("testing  variants with empty array", () => {
         const b1 = new Variant({ dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [] });
         const b2 = new Variant({ dataType: DataType.ByteString, arrayType: VariantArrayType.Array, value: [] });
         sameVariant(b1, b2).should.equal(true);
     });
 
-    it("testing  variants with string array", function () {
+    it("testing  variants with string array", () => {
         const b1 = new Variant({
             dataType: DataType.String,
             arrayType: VariantArrayType.Array,
@@ -935,7 +935,7 @@ describe("testing return sameVariant for pull request", function () {
         sameVariant(b1, b2).should.equal(true);
     });
 
-    function test(dataType) {
+    function test(dataType: DataType) {
         const b1 = new Variant({
             dataType,
             arrayType: VariantArrayType.Array,
@@ -948,41 +948,41 @@ describe("testing return sameVariant for pull request", function () {
         });
         sameVariant(b1, b2).should.equal(false);
     }
-    it("testing  variants with SByte array", function () {
+    it("testing  variants with SByte array", () => {
         test(DataType.SByte);
     });
-    it("testing  variants with Byte array", function () {
+    it("testing  variants with Byte array", () => {
         test(DataType.Byte);
     });
-    it("testing  variants with UInt16 array", function () {
+    it("testing  variants with UInt16 array", () => {
         test(DataType.UInt16);
     });
-    it("testing  variants with Int16 array", function () {
+    it("testing  variants with Int16 array", () => {
         test(DataType.Int16);
     });
-    it("testing  variants with UInt32 array", function () {
+    it("testing  variants with UInt32 array", () => {
         test(DataType.UInt32);
     });
-    it("testing  variants with Int32 array", function () {
+    it("testing  variants with Int32 array", () => {
         test(DataType.Int32);
     });
-    it("testing  variants with Float array", function () {
+    it("testing  variants with Float array", () => {
         test(DataType.Float);
     });
-    it("testing  variants with Double array", function () {
+    it("testing  variants with Double array", () => {
         test(DataType.Double);
     });
 
     class SomeExtensionObjectA extends ExtensionObject {
-        public a: any;
-        constructor(options) {
+        public a: number;
+        constructor(options: { a: number }) {
             super();
             this.a = options.a;
         }
     }
     class SomeExtensionObjectB extends ExtensionObject {
-        public a: any;
-        constructor(options) {
+        public a: unknown;
+        constructor(options: { a: unknown }) {
             super();
             this.a = options.a;
         }
@@ -1017,7 +1017,7 @@ describe("testing return sameVariant for pull request", function () {
     });
     it("sameVariant with array of Extension objects - 4", () => {
         const ext1 = new SomeExtensionObjectA({ a: 32 });
-        const ext2 = new SomeExtensionObjectB({ a: 32 });
+        const _ext2 = new SomeExtensionObjectB({ a: 32 });
 
         const b1 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: [ext1] });
         const b2 = new Variant({ dataType: DataType.ExtensionObject, arrayType: VariantArrayType.Array, value: null });

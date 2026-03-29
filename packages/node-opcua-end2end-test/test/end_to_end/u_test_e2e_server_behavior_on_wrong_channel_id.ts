@@ -1,8 +1,4 @@
-import {
-    ClientSecureChannelLayer,
-    OPCUAClient
-} from "node-opcua";
-
+import { ClientSecureChannelLayer, OPCUAClient } from "node-opcua";
 
 interface OPCUAClientEx extends OPCUAClient {
     _secureChannel: ClientSecureChannelLayer;
@@ -15,9 +11,7 @@ export function t(test: { endpointUrl: string }) {
             });
 
             client.on("secure_channel_created", (channel) => {
-                channel.on("send_request", (
-                    request,
-                    msgType, securityHeader) => {
+                channel.on("send_request", (request, _msgType, securityHeader) => {
                     console.log(
                         " sending",
                         "channelId=",
@@ -67,4 +61,4 @@ export function t(test: { endpointUrl: string }) {
             errorHasBeenCaught.should.eql(true, "server must raise an error if channel is invalid");
         });
     });
-};
+}

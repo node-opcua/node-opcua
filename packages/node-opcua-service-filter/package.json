@@ -6,6 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b"
     },

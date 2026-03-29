@@ -2,40 +2,39 @@
 // tslint:disable: no-console
 import "should";
 import {
-    AddressSpace,
-    assert,
+    type AddressSpace,
     AttributeIds,
-    ClientMonitoredItem,
-    ClientSession,
-    ClientSidePublishEngine,
+    assert,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSidePublishEngine,
     ClientSubscription,
     DataChangeFilter,
-    DataChangeNotification,
+    type DataChangeNotification,
     DataChangeTrigger,
     DataType,
     DataValue,
     DeadbandType,
-    ExtensionObject,
+    type ExtensionObject,
     getCurrentClock,
+    type MonitoredItemNotification,
+    type MonitoringParametersOptions,
     makeBrowsePath,
-    MonitoredItem,
-    MonitoredItemNotification,
-    MonitoringParametersOptions,
-    Namespace,
-    NodeIdLike,
+    type Namespace,
+    type NodeIdLike,
     OPCUAClient,
     Range,
-    ServerSidePublishEngine,
-    StatusCode,
+    type StatusCode,
     StatusCodes,
     TimestampsToReturn,
-    UAVariable
+    type UAVariable
 } from "node-opcua";
-import sinon from "sinon";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import sinon from "sinon";
+
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const defaultRange = new Range({ low: -1000000, high: 100000 });
 
@@ -60,11 +59,11 @@ function makeValuesInsideDeadBand(currentValue: number, range: Range, percent: n
     assert(percent >= 0 && percent <= 100);
 
     const result: number[] = [];
-    let value = currentValue;
+    let _value = currentValue;
 
     const span = ((range.high - range.low) * percent) / 100.0 - 2.01;
     for (let i = 0; i < count; i++) {
-        value = currentValue + Math.ceil((Math.random() - 0.5) * span * 10) / 10;
+        _value = currentValue + Math.ceil((Math.random() - 0.5) * span * 10) / 10;
     }
     debugLog("cv = ", currentValue, result, range, span);
     return result;
@@ -83,7 +82,7 @@ async function readCurrentValue(session: ClientSession, nodeId: NodeIdLike): Pro
         attributeId: AttributeIds.Value,
         nodeId
     });
-    const currentValue = currentDataValue.value!.value;
+    const currentValue = currentDataValue.value?.value;
     return currentValue;
 }
 async function writeValue(session: ClientSession, nodeId: NodeIdLike, value: number): Promise<void> {
@@ -170,10 +169,10 @@ export function t(test: any) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems!.map((item: MonitoredItemNotification) => ({
+                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
                     statusCode: item.value.statusCode,
                     value: item.value.value.value
-                }));
+                })) ?? [];
                 return r;
             }
             // tslint:disable-next-line: no-console

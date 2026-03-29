@@ -13,7 +13,6 @@ import {
     type ConnectionStrategyOptions,
     DataType,
     MessageSecurityMode,
-    type NodeId,
     OPCUAClient,
     type OPCUAServer,
     SecurityPolicy,
@@ -165,7 +164,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         (client as any).protocolVersion = 0;
 
         const unused_port = 8909;
-        const bad_endpointUrl = "opc.tcp://" + os.hostname() + ":" + unused_port;
+        const bad_endpointUrl = `opc.tcp://${os.hostname()}:${unused_port}`;
 
         let _err: Error | undefined;
         try {
@@ -173,7 +172,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         } catch (err) {
             _err = err as Error;
         }
-        _err!.message.should.match(/connect ECONNREFUSED|The connection may have been rejected by server/);
+        _err?.message.should.match(/connect ECONNREFUSED|The connection may have been rejected by server/);
 
         await client.connect(endpointUrl);
         await client.disconnect();
@@ -212,7 +211,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         // the HostName in the endpointUrl of the EndpointDescription. Mismatches shall be reported and may
         // lead to channel closure. Here we append garbage to the valid endpoint to force the mismatch.
         (client as any).endpointMustExist = true;
-        const badEndpoint = endpointUrl + "/someCrap";
+        const badEndpoint = `${endpointUrl}/someCrap`;
 
         let connectSucceeded = false;
         let connectErr: Error | undefined;
@@ -252,7 +251,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
             _err = err as Error;
         }
         await client.disconnect();
-        _err!.should.be.instanceOf(Error);
+        _err?.should.be.instanceOf(Error);
     });
 });
 
@@ -293,7 +292,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         counterNode = namespace.addVariable({
             browseName: "Counter",
-            organizedBy: server!.engine.addressSpace!.rootFolder.objects,
+            organizedBy: server?.engine.addressSpace?.rootFolder.objects,
             dataType: "UInt32",
             value: new Variant({ dataType: DataType.UInt32, value: c })
         });
@@ -309,7 +308,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             clearInterval(timerId);
             timerId = undefined;
         }
-        await server!.shutdown();
+        await server?.shutdown();
         server = undefined;
     }
 
@@ -322,11 +321,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     // -----------------------------------------------------------------------------------------------------------------
     async function suspend_demo_server() {
-        await server!.suspendEndPoints();
+        await server?.suspendEndPoints();
     }
 
     async function resume_demo_server() {
-        await server!.resumeEndPoints();
+        await server?.resumeEndPoints();
     }
 
     async function restart_server() {
@@ -335,7 +334,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     async function verify_that_server_has_no_active_channel() {
-        server!.currentChannelCount.should.equal(0);
+        server?.currentChannelCount.should.equal(0);
     }
 
     async function wait_for(duration: number): Promise<void> {
@@ -357,8 +356,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     let backoff_counter = 0;
 
-    beforeEach(() => {
-    });
+    beforeEach(() => {});
     afterEach(() => {
         should.not.exist(client, "client must have been disposed");
     });
@@ -408,19 +406,19 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await trustClientCertificateOnServer(client, server!);
 
         if (_options.doNotWaitForConnection) {
-            client!.connect(endpointUrl);
+            client?.connect(endpointUrl);
         } else {
-            await client!.connect(endpointUrl);
+            await client?.connect(endpointUrl);
         }
     }
 
     async function disconnect_client() {
-        await client!.disconnect();
+        await client?.disconnect();
         client = undefined;
     }
 
     async function disconnect_client_while_reconnecting() {
-        await client!.disconnect();
+        await client?.disconnect();
     }
 
     async function reset_backoff_counter() {
@@ -459,7 +457,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     async function verify_that_client_is_trying_to_connect() {
         // wait a little bit and check that client has started the reconnection process
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        client!.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
+        client?.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
     }
 
     async function _waitUntil(lambda: () => boolean, timeout: number, errorMessage: string): Promise<void> {
@@ -509,7 +507,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function wait_for_reconnection_to_be_completed() {
         await new Promise<void>((resolve) => {
-            client!.once("after_reconnection", () => {
+            client?.once("after_reconnection", () => {
                 resolve();
             });
         });
@@ -539,7 +537,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         //---------------------------------------------------------------
 
         async function reuse_same_client_to_reconnect_to_server() {
-            await client!.connect(endpointUrl);
+            await client?.connect(endpointUrl);
         }
 
         await f(start_demo_server);
@@ -677,13 +675,13 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     let session: ClientSession | undefined;
     async function client_create_and_activate_session() {
-        session = await client!.createSession();
+        session = await client?.createSession();
     }
 
     let subscription: ClientSubscription | undefined;
 
     async function create_subscription() {
-        subscription = await session!.createSubscription2({
+        subscription = await session?.createSubscription2({
             requestedPublishingInterval: 250,
             requestedLifetimeCount: 12000,
             requestedMaxKeepAliveCount: 4 * 60 * 2, // 4 x 250 ms * 60* 2 = 2 min
@@ -695,10 +693,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function terminate_subscription() {
         //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
-        subscription!.on("terminated", () => {
+        subscription?.on("terminated", () => {
             //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
         });
-        await subscription!.terminate();
+        await subscription?.terminate();
     }
 
     let values_to_check: any[] = [];
@@ -713,7 +711,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             // return callback(new Error("Already monitoring"));
         }
 
-        monitoredItem = await subscription!.monitor(
+        monitoredItem = await subscription?.monitor(
             {
                 // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime);
                 nodeId: counterNode.nodeId,
@@ -727,7 +725,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             TimestampsToReturn.Both
         );
 
-        monitoredItem!.on("changed", (dataValue) => {
+        monitoredItem?.on("changed", (dataValue) => {
             if (doDebug) {
                 debugLog(" client ", " received value change ", dataValue.value.toString());
             }
@@ -737,7 +735,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function wait_until_next_notification() {
         await new Promise((resolve) => {
-            monitoredItem!.once("changed", (dataValue) => {
+            monitoredItem?.once("changed", (_dataValue) => {
                 setTimeout(resolve, 1);
             });
         });
@@ -747,7 +745,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     afterEach(async () => {
         if (monitoredItem) {
-            monitoredItem!.removeAllListeners();
+            monitoredItem?.removeAllListeners();
             monitoredItem = undefined;
         }
     });
@@ -772,9 +770,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         values_to_check.length.should.be.greaterThan(
             previous_value_count + 1,
             " expecting that new values have been received since last check : values_to_check = " +
-            values_to_check +
-            " != " +
-            (previous_value_count + 1)
+                values_to_check +
+                " != " +
+                (previous_value_count + 1)
         );
 
         if (values_to_check.length > 0) {
@@ -814,15 +812,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function get_server_side_subscription() {
-        const channels = (server!.endpoints[0] as any)._channels;
+        const channels = (server?.endpoints[0] as any)._channels;
         debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
         //xx assert(Object.keys(server.engine._sessions).length === 1);
 
-        const sessionKey = Object.keys((server!.engine as any)._sessions)[0];
-        const session = (server!.engine as any)._sessions[sessionKey];
+        const sessionKey = Object.keys((server?.engine as any)._sessions)[0];
+        const session = (server?.engine as any)._sessions[sessionKey];
 
         const subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
         subscriptionKeys.length.should.eql(1);

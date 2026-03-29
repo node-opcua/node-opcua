@@ -11,7 +11,8 @@
         "format": "prettier --write source test",
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "mocha "
+        "test": "mocha ",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "dependencies": {
         "async": "^3.2.6",

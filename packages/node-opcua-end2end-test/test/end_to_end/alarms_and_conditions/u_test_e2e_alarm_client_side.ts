@@ -1,30 +1,21 @@
-import sinon from "sinon";
-
-import {
-    installAlarmMonitoring,
-    uninstallAlarmMonitoring,
-    OPCUAClient,
-    acknowledgeAllConditions,
-    confirmAllConditions,
-    dumpEvent,
-    ClientAlarmList,
-    ClientAlarm,
-    NodeId,
-    NodeIdLike,
-    Variant
-} from "node-opcua-client";
-import {
-    construct_demo_alarm_in_address_space
-} from "node-opcua-address-space/testHelpers";
-
 import Table from "cli-table3";
 import truncate from "cli-truncate";
-import { 
-    perform_operation_on_subscription_async 
-} from "../../../test_helpers/perform_operation_on_client_session";
+import type { IEventData } from "node-opcua-address-space";
+import { construct_demo_alarm_in_address_space } from "node-opcua-address-space/testHelpers";
+import {
+    acknowledgeAllConditions,
+    type ClientAlarm,
+    type ClientAlarmList,
+    confirmAllConditions,
+    installAlarmMonitoring,
+    type NodeIdLike,
+    OPCUAClient,
+    uninstallAlarmMonitoring,
+    type Variant
+} from "node-opcua-client";
 // eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { IEventData, RaiseEventData } from "node-opcua-address-space";
+import { perform_operation_on_subscription_async } from "../../../test_helpers/perform_operation_on_client_session";
 
 const doDebug = false;
 
@@ -66,7 +57,7 @@ function displayAlarms(alarms: ClientAlarmList) {
             fields.enabledState.id.value.toString(),
             isEnabled ? fields.activeState.id.value : "-",
             isEnabled ? ellipsis(fields.message.value.text) : "-",
-            isEnabled ? fields.severity.value + " (" + fields.lastSeverity.value + ")" : "-",
+            isEnabled ? `${fields.severity.value} (${fields.lastSeverity.value})` : "-",
             isEnabled ? ellipsis(fields.comment.value.text) : "-",
             isEnabled ? fields.ackedState.id.value.toString() : "-",
             fields.confirmedState.id.value,
@@ -80,12 +71,7 @@ function displayAlarms(alarms: ClientAlarmList) {
 export function t(test: any) {
     describe("A&C3 client side alarm monitoring", () => {
         let client: OPCUAClient;
-        function resetConditions(test: {
-            tankLevelCondition: any;
-            tankLevelCondition2: any;
-            tankLevel: any;
-            tankLevel2: any;
-        }) {
+        function resetConditions(test: { tankLevelCondition: any; tankLevelCondition2: any; tankLevel: any; tankLevel2: any }) {
             // set alarms to a known state
             test.tankLevelCondition.setEnabledState(true);
             test.tankLevelCondition.currentBranch().setRetain(false);
@@ -121,8 +107,7 @@ export function t(test: any) {
         beforeEach(() => {
             resetConditions(test);
         });
-        after(() => {
-        });
+        after(() => {});
 
         function setAlarmInBound() {
             const value = 0.5;
@@ -135,7 +120,7 @@ export function t(test: any) {
             });
             /// test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
         }
-        function setAlarmHighHigh() {
+        function _setAlarmHighHigh() {
             const value = 0.99;
             console.log("set tankLevel to = ", value);
             // let's simulate the tankLevel going to 99%
@@ -161,18 +146,18 @@ export function t(test: any) {
             await new Promise((resolve) => setTimeout(resolve, 1500));
         }
         it("should monitor all alarms", async () => {
-            await perform_operation_on_subscription_async(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription_async(client, test.endpointUrl, async (session, _subscription) => {
                 setAlarmInBound();
                 // make sure no alarm exists anymore
                 try {
                     /**
                      * @param alarms {ClientAlarm[]}
                      */
-                    function d(alarms: ClientAlarm[]) {
+                    function _d(alarms: ClientAlarm[]) {
                         function n(o: NodeIdLike) {
                             const no = test.tankLevel.addressSpace.findNode(o);
                             return no
-                                ? no.browseName.toString() + " " + no.nodeId.toString(test.tankLevel.addressSpace)
+                                ? `${no.browseName.toString()} ${no.nodeId.toString(test.tankLevel.addressSpace)}`
                                 : o.toString();
                         }
                         function dd(alarm: ClientAlarm) {
@@ -180,8 +165,8 @@ export function t(test: any) {
                             console.log(
                                 n(alarm.eventType),
                                 n(alarm.conditionId),
-                                "retain: " + a.retain.value,
-                                "ackedState: " + a.ackedState.value
+                                `retain: ${a.retain.value}`,
+                                `ackedState: ${a.ackedState.value}`
                             );
                             //console.log(treeify.asTree(a.fields, true));
                         }
@@ -195,13 +180,13 @@ export function t(test: any) {
                         console.log(
                             "server send event ",
                             eventData.eventId.toString(),
-                            eventData.eventType!.value.toString({
+                            eventData.eventType?.value.toString({
                                 addressSpace: test.tankLevel.addressSpace
                             }),
                             "retain = ",
                             eventData.retain ? eventData.retain.value : false,
                             "message",
-                            eventData.message && eventData.message.value ? eventData.message.value.toString() : ""
+                            eventData.message?.value ? eventData.message.value.toString() : ""
                         );
                         if (doDebug) {
                             console.log("    event data = ", Object.keys(eventData).join(" "));
@@ -327,4 +312,4 @@ export function t(test: any) {
             });
         });
     });
-};
+}

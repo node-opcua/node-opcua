@@ -1,17 +1,14 @@
 import "should"; // assertion side effects
-import { OPCUAClient, OPCUAServer } from "node-opcua";
-
+import { OPCUAClient, type OPCUAServer } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 // declare function build_server_with_temperature_device(...args: any[]): void;
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-import { TestHarness } from "./helpers/index";
+import type { TestHarness } from "./helpers/index";
 
 const port = 2005;
 
-export function t(test: TestHarness) {
-
-    describe("DISCO6 - testing OPCUA-Service Discovery Endpoint", function () {
-        
+export function t(_test: TestHarness) {
+    describe("DISCO6 - testing OPCUA-Service Discovery Endpoint", () => {
         let server: OPCUAServer;
         let endpointUrl: string;
 

@@ -70,7 +70,7 @@ export function t(test: TestHarness) {
             const server = await createServerThatRegistersItselfToTheDiscoveryServer(
                 discoveryServerEndpointUrl,
                 port1,
-                "AZ" + test_counter
+                `AZ${test_counter}`
             );
             test_counter += 1;
             g_server = server;

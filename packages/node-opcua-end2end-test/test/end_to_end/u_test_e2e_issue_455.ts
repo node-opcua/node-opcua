@@ -1,8 +1,8 @@
 import "should";
-import { OPCUAClient, StatusCodes, AttributeIds } from "node-opcua";
+import { AttributeIds, OPCUAClient, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
 /**
  * Bug #455 - OPCUASession#readVariableValue
@@ -17,7 +17,10 @@ import { assertThrow } from "../../test_helpers/assert_throw";
  *
  */
 
-interface TestHarness { endpointUrl: string;[k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("Bug #455 - readVariableValue invalid nodeId handling", () => {
@@ -26,9 +29,7 @@ export function t(test: TestHarness) {
             await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
                 // (1) Pass an INVALID nodeId string (cannot be coerced) -> expect a synchronous client-side exception
                 await assertThrow(async () => {
-                    await session.readVariableValue(
-                        "ns=2;i=INVALID_NODE_ID_THAT_SHOULD_CAUSE_EXCEPTION_IN_CLIENT"
-                    );
+                    await session.readVariableValue("ns=2;i=INVALID_NODE_ID_THAT_SHOULD_CAUSE_EXCEPTION_IN_CLIENT");
                 }, /INVALID/i);
 
                 await assertThrow(async () => {

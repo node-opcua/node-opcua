@@ -1,13 +1,9 @@
 import "should";
-import os from "os";
-import {
-    MessageSecurityMode,
-    SecurityPolicy,
-    OPCUAClient
-} from "node-opcua";
+import os from "node:os";
+import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
 // Synchronous user manager
 const userManager = {
@@ -18,7 +14,7 @@ const userManager = {
 
 // Asynchronous user manager
 const userManagerAsync = {
-    isValidUserAsync(userName: string, password: string, callback: (err: Error|null, authorized?: boolean) => void) {
+    isValidUserAsync(userName: string, password: string, callback: (err: Error | null, authorized?: boolean) => void) {
         setImmediate(() => {
             const authorized = userName === "username" && password === "p@ssw0rd_@sync";
             callback(null, authorized);
@@ -43,7 +39,9 @@ async function perform_simple_connection(endpointUrl: string, connectionOption: 
 }
 
 describe("testing Client-Server with UserName/Password identity token", () => {
-    let server: any; let endpointUrl: string; const port = 2239;
+    let server: any;
+    let endpointUrl: string;
+    const port = 2239;
 
     before(async () => {
         server = await build_server_with_temperature_device({
@@ -54,7 +52,9 @@ describe("testing Client-Server with UserName/Password identity token", () => {
         });
         endpointUrl = server.getEndpointUrl();
     });
-    after(async () => { await server.shutdown(); });
+    after(async () => {
+        await server.shutdown();
+    });
 
     it("should not anonymously connect when anonymous is forbidden", async () => {
         await assertThrow(async () => {
@@ -74,26 +74,44 @@ describe("testing Client-Server with UserName/Password identity token", () => {
 
     it("should fail with invalid credentials (Sign,Basic256Sha256)", async () => {
         await assertThrow(async () => {
-            await perform_simple_connection(endpointUrl, { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 }, { userName: "username", password: "***invalid password***" });
+            await perform_simple_connection(
+                endpointUrl,
+                { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 },
+                { userName: "username", password: "***invalid password***" }
+            );
         }, /BadUserAccessDenied/);
     });
 
     it("should succeed with valid credentials (Sign,Basic256Sha256)", async () => {
-        await perform_simple_connection(endpointUrl, { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 }, { userName: "username", password: "p@ssw0rd" });
+        await perform_simple_connection(
+            endpointUrl,
+            { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 },
+            { userName: "username", password: "p@ssw0rd" }
+        );
     });
 
     it("should succeed with valid credentials - secure connection - 256 bits (Sign,Basic256Sha256)", async () => {
-        await perform_simple_connection(endpointUrl, { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 }, { userName: "username", password: (() => "p@ssw0rd")() });
+        await perform_simple_connection(
+            endpointUrl,
+            { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 },
+            { userName: "username", password: (() => "p@ssw0rd")() }
+        );
     });
 
     it("#158 LOCALHOST url with valid credentials (Sign,Basic256Sha256)", async () => {
         const endpointUrlTruncated = `opc.tcp://${os.hostname()}:${port}`;
-        await perform_simple_connection(endpointUrlTruncated, { endpointMustExist: false, securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 }, { userName: "username", password: (() => "p@ssw0rd")() });
+        await perform_simple_connection(
+            endpointUrlTruncated,
+            { endpointMustExist: false, securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 },
+            { userName: "username", password: (() => "p@ssw0rd")() }
+        );
     });
 });
 
 describe("testing Client-Server with UserName/Password identity token - Async", () => {
-    let server: any; let endpointUrl: string; const port = 2239;
+    let server: any;
+    let endpointUrl: string;
+    const port = 2239;
     before(async () => {
         server = await build_server_with_temperature_device({
             port,
@@ -102,9 +120,15 @@ describe("testing Client-Server with UserName/Password identity token - Async", 
         });
         endpointUrl = server.getEndpointUrl();
     });
-    after(async () => { await server.shutdown(); });
+    after(async () => {
+        await server.shutdown();
+    });
 
     it("should succeed with async user manager and valid credentials (Sign,Basic256Sha256)", async () => {
-        await perform_simple_connection(endpointUrl, { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 }, { userName: "username", password: (() => "p@ssw0rd_@sync")() });
+        await perform_simple_connection(
+            endpointUrl,
+            { securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256Sha256 },
+            { userName: "username", password: (() => "p@ssw0rd_@sync")() }
+        );
     });
 });

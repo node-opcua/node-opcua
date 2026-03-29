@@ -1,18 +1,18 @@
 /* eslint-disable max-statements */
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
+
 import {
-    VariableIds,
     AttributeIds,
-    makeBrowsePath,
+    type ClientSession,
+    type ClientSubscription,
+    CreateSubscriptionRequest,
     coerceNodeId,
+    DataType,
+    MonitoringMode,
+    makeBrowsePath,
     OPCUAClient,
     StatusCodes,
-    DataType,
-    VariantArrayType,
-    MonitoringMode,
-    CreateSubscriptionRequest,
-    ClientSession,
-    ClientSubscription
+    VariableIds,
+    VariantArrayType
 } from "node-opcua";
 
 const doDebug = false;
@@ -108,7 +108,7 @@ async function checkSubscriptionExists(session: ClientSession, subscriptionId: n
 }
 
 export function t(test: TestHarness): void {
-    describe("SubscriptionDiagnostics", function () {
+    describe("SubscriptionDiagnostics", () => {
         it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
@@ -127,28 +127,22 @@ export function t(test: TestHarness): void {
                     if (doDebug) console.log("subscriptionid", subscription.subscriptionId);
                     const browsePath = [
                         makeBrowsePath("RootFolder", relativePath),
-                        makeBrowsePath("RootFolder", relativePath + ".1:" + subscription.subscriptionId)
+                        makeBrowsePath("RootFolder", `${relativePath}.1:${subscription.subscriptionId}`)
                     ];
                     const result = await session.translateBrowsePath(browsePath);
-                    result[0].statusCode.should.eql(
-                        StatusCodes.Good,
-                        "server should expose a SubscriptionDiagnosticsArray node"
-                    );
-                    result[0].targets![0].targetId
+                    result[0].statusCode.should.eql(StatusCodes.Good, "server should expose a SubscriptionDiagnosticsArray node");
+                    result[0].targets?.[0].targetId
                         .toString()
-                        .should.eql(
-                            "ns=0;i=2290",
-                            "SubscriptionDiagnosticsArray must have well known node id i=2290"
-                        );
+                        .should.eql("ns=0;i=2290", "SubscriptionDiagnosticsArray must have well known node id i=2290");
                     result[1].statusCode.should.eql(
                         StatusCodes.Good,
                         "SubscriptionDiagnosticsArray should expose a SubscriptionDiagnostics node"
                     );
-                    result[1].targets![0].targetId.namespace.should.eql(
+                    result[1].targets?.[0].targetId.namespace.should.eql(
                         1,
                         "SubscriptionDiagnostics nodeId must be in namespace 1"
                     );
-                    const subscriptionDiagnosticNodeId = result[1].targets![0].targetId;
+                    const subscriptionDiagnosticNodeId = result[1].targets?.[0].targetId;
                     const dataValue1 = await session.read({
                         nodeId: subscriptionDiagnosticNodeId,
                         attributeId: AttributeIds.Value
@@ -157,7 +151,7 @@ export function t(test: TestHarness): void {
                     dataValue1.value.dataType.should.eql(DataType.ExtensionObject);
                     dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
                     dataValue1.value.value.constructor.name.should.eql("SubscriptionDiagnosticsDataType");
-                    const subscriptionDiagnosticArrayNodeId = result[0].targets![0].targetId;
+                    const subscriptionDiagnosticArrayNodeId = result[0].targets?.[0].targetId;
                     const dataValue2 = await session.read({
                         nodeId: subscriptionDiagnosticArrayNodeId,
                         attributeId: AttributeIds.Value
@@ -178,10 +172,7 @@ export function t(test: TestHarness): void {
                     const expectedSessionId = session.sessionId;
                     sessionDiagnostic.sessionId
                         .toString()
-                        .should.eql(
-                            expectedSessionId.toString(),
-                            "the session diagnostic should expose the correct sessionId"
-                        );
+                        .should.eql(expectedSessionId.toString(), "the session diagnostic should expose the correct sessionId");
                 }
             );
         });
@@ -189,29 +180,24 @@ export function t(test: TestHarness): void {
         it("SubscriptionDiagnostics-2 : server should remove SubscriptionDiagnostics when subscription is terminated", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            const [initial, after, final] = await (client as any).withSessionAsync(
-                endpointUrl,
-                async (session: ClientSession) => {
-                    const initial = await readSubscriptionDiagnosticArray(session);
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 10 * 60,
-                        requestedMaxKeepAliveCount: 5,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-                    const after = await readSubscriptionDiagnosticArray(session);
-                    await subscription.terminate();
-                    const final = await readSubscriptionDiagnosticArray(session);
-                    return [initial, after, final];
-                }
-            );
+            const [initial, after, final] = await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
+                const initial = await readSubscriptionDiagnosticArray(session);
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 10 * 60,
+                    requestedMaxKeepAliveCount: 5,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                const after = await readSubscriptionDiagnosticArray(session);
+                await subscription.terminate();
+                const final = await readSubscriptionDiagnosticArray(session);
+                return [initial, after, final];
+            });
             const beforeLen = initial.length;
             if (initial.length) {
-                console.log(
-                    " Warning : subscriptionDiagnosticArray is not zero : it looks like previous tests left subscriptions"
-                );
+                console.log(" Warning : subscriptionDiagnosticArray is not zero : it looks like previous tests left subscriptions");
             }
             after.length.should.eql(beforeLen + 1);
             final.length.should.eql(beforeLen + 0);
@@ -223,9 +209,7 @@ export function t(test: TestHarness): void {
             await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
                 const before = await readSubscriptionDiagnosticArray(session);
                 if (before.length) {
-                    console.log(
-                        " Warning : subscriptionDiagnosticArray is not zero : previous tests may not have cleaned up"
-                    );
+                    console.log(" Warning : subscriptionDiagnosticArray is not zero : previous tests may not have cleaned up");
                 }
                 const result = await (session as any).createSubscription(
                     new CreateSubscriptionRequest({
@@ -254,10 +238,7 @@ export function t(test: TestHarness): void {
                 const exist2 = await checkSubscriptionExists(session, subscriptionId);
                 exist2.should.eql(false, "Subscription should have timed out");
                 const array3 = await readSubscriptionDiagnosticArray(session);
-                array3.length.should.eql(
-                    before.length + 0,
-                    "SubscriptionDiagnostic for timed-out subscription should be deleted"
-                );
+                array3.length.should.eql(before.length + 0, "SubscriptionDiagnostic for timed-out subscription should be deleted");
             });
         });
 
@@ -294,8 +275,7 @@ export function t(test: TestHarness): void {
                 subscriptionsArray[1].subscriptionId.should.eql(session2.subscriptionId);
                 subscriptionsArray[1].sessionId.isEmpty().should.eql(true);
                 subscriptionsArray.length.should.eql(2);
-                const timeout =
-                    subscriptionsArray[1].maxLifetimeCount * subscriptionsArray[1].publishingInterval + 10 * 1000;
+                const timeout = subscriptionsArray[1].maxLifetimeCount * subscriptionsArray[1].publishingInterval + 10 * 1000;
                 await wait(timeout);
                 doDebug && console.log("waited ", timeout);
             }

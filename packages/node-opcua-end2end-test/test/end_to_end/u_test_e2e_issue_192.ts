@@ -1,9 +1,13 @@
 import "should";
-import sinon from "sinon";
 import { OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Enhancement #192 - Server emits 'newChannel' on secure channel open and 'closeChannel' on close.

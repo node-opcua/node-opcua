@@ -13,18 +13,11 @@
 // --------------------------------------------------------------------------------------------
 import "should";
 import chalk from "chalk";
-import {
-    OPCUAClient,
-    Variant,
-    DataType,
-    VariableIds,
-    makeNodeId,
-    ClientSession
-} from "node-opcua";
+import { type ClientSession, DataType, makeNodeId, OPCUAClient, VariableIds, Variant } from "node-opcua";
 import { UAProxyManager } from "node-opcua-client-proxy";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import  { createHVACSystem } from "../../test_helpers/hvac_system";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { createHVACSystem } from "../../test_helpers/hvac_system";
 
 const port = 2229;
 
@@ -38,7 +31,9 @@ describe("testing client Proxy", function (this: Mocha.Context) {
 
     // Start a dedicated test server with a temperature device & custom HVAC model
     before(async () => {
-        if ((global as any).gc) { (global as any).gc(); }
+        if ((global as any).gc) {
+            (global as any).gc();
+        }
         server = await build_server_with_temperature_device({ port });
         endpointUrl = server.getEndpointUrl();
         hvacNodeId = createHVACSystem(server.engine.addressSpace);
@@ -87,9 +82,9 @@ describe("testing client Proxy", function (this: Mocha.Context) {
             }
             // Access a selection of well-known Server object hierarchy attributes.
             await serverObject.serverStatus.currentTime.readValue(); // current server time
-            await serverObject.serverArray.readValue();              // server URI array
-            await serverObject.serverStatus.readValue();             // composite server status structure
-            await serverObject.serverStatus.buildInfo.readValue();   // build metadata
+            await serverObject.serverArray.readValue(); // server URI array
+            await serverObject.serverStatus.readValue(); // composite server status structure
+            await serverObject.serverStatus.buildInfo.readValue(); // build metadata
             // now call getMonitoredItems (method on Server object per Part 4 Diagnostics) to validate dynamic method binding
             const subscriptionId = proxyManager.subscription ? (proxyManager.subscription as any).subscriptionId || 1 : 1;
             await (serverObject as any).getMonitoredItems({ subscriptionId });

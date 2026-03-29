@@ -1,26 +1,26 @@
-import os from "os";
+import os from "node:os";
 import should from "should";
 import "mocha";
+import { compareSync, genSaltSync, hashSync } from "bcryptjs";
 import chalk from "chalk";
 import {
-    OPCUAClient,
-    UserTokenType,
     AttributeIds,
-    DataValue,
-    ClientSession,
-    StatusCodes,
-    OPCUAServer,
-    makeRoles,
-    WellKnownRoles,
-    makeUserManager,
+    type ClientSession,
     DataType,
+    type DataValue,
+    type IBasicSessionReadAsyncSimple,
     makePermissionFlag,
-    NodeId,
+    makeRoles,
+    makeUserManager,
+    type NodeId,
+    OPCUAClient,
+    OPCUAServer,
+    StatusCodes,
     TimestampsToReturn,
+    UserTokenType,
     Variant,
-    IBasicSessionReadAsyncSimple
+    WellKnownRoles
 } from "node-opcua";
-import { compareSync, genSaltSync, hashSync } from "bcryptjs";
 
 const salt = genSaltSync(10);
 
@@ -45,9 +45,7 @@ async function startServer() {
                     throw new Error("isValidUser has thrown an exception");
                 }
 
-                const uIndex = users.findIndex(function (u) {
-                    return u.username === username;
-                });
+                const uIndex = users.findIndex((u) => u.username === username);
                 if (uIndex < 0) {
                     console.error(chalk.red("No such user, wrong username!"));
                     return false;
@@ -55,9 +53,7 @@ async function startServer() {
                 return compareSync(password, users[uIndex].password);
             },
             getUserRoles: (username: string): NodeId[] => {
-                const uIndex = users.findIndex(function (x) {
-                    return x.username === username;
-                });
+                const uIndex = users.findIndex((x) => x.username === username);
                 if (uIndex < 0) {
                     return makeRoles("Anonymous");
                 }
@@ -101,7 +97,7 @@ async function startServer() {
     const timerId = setInterval(() => {
         secretVariable.setValueFromSource({
             dataType: DataType.String,
-            value: "confidential data - " + counter++
+            value: `confidential data - ${counter++}`
         });
     }, 100);
     addressSpace.registerShutdownTask(() => clearInterval(timerId));
@@ -121,7 +117,7 @@ async function doTest(session: IBasicSessionReadAsyncSimple): Promise<DataValue>
 }
 
 async function test_with_anonymous_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "A " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `A ${__filename}` });
 
     const dataValue = await client.withSessionAsync(
         {
@@ -136,7 +132,7 @@ async function test_with_anonymous_user() {
 }
 
 async function test_with_admin_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false,  clientName: "B "+ __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `B ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -154,9 +150,9 @@ async function test_with_admin_user() {
 }
 
 async function test_with_wrong_user_should_throw() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "C " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `C ${__filename}` });
 
-    let _err: Error | undefined = undefined;
+    let _err: Error | undefined;
     try {
         const dataValue = await client.withSessionAsync(
             {
@@ -171,7 +167,7 @@ async function test_with_wrong_user_should_throw() {
                 return await doTest(session);
             }
         );
-        console.log("Admin (wrong user)=>  Read => Expecting Good".padEnd(50) + " Got=", dataValue.statusCode.toString());
+        console.log(`${"Admin (wrong user)=>  Read => Expecting Good".padEnd(50)} Got=`, dataValue.statusCode.toString());
     } catch (err) {
         _err = err as Error;
         console.log((err as Error).message);
@@ -180,7 +176,7 @@ async function test_with_wrong_user_should_throw() {
 }
 
 async function test_with_admin_user_changing_to_anonymous() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "D " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `D ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -201,7 +197,7 @@ async function test_with_admin_user_changing_to_anonymous() {
 }
 
 async function test_with_anonymous_user_changing_to_admin() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "E " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `E ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -219,7 +215,7 @@ async function test_with_anonymous_user_changing_to_admin() {
     );
 }
 async function test_with_admin_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "F " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `F ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -244,7 +240,7 @@ async function test_with_admin_user_changing_to_wrong_user() {
 
 async function test_with_admin_changing_to_make_is_valid_user_crash() {
     // make_me_crash
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "G " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `G ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -254,7 +250,7 @@ async function test_with_admin_changing_to_make_is_valid_user_crash() {
             }
         },
         async (session: ClientSession) => {
-            const statusCode1 = await session.changeUser({
+            const _statusCode1 = await session.changeUser({
                 type: UserTokenType.UserName,
                 userName: "make_me_crash",
                 password: (() => "who cares ?")()
@@ -265,7 +261,7 @@ async function test_with_admin_changing_to_make_is_valid_user_crash() {
     );
 }
 async function test_with_anonymous_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "H " + __filename });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `H ${__filename}` });
 
     return await client.withSessionAsync(
         {
@@ -287,8 +283,10 @@ async function test_with_anonymous_user_changing_to_wrong_user() {
 }
 
 const doDebug = false;
+
 // tslint:disable-next-line:no-var-requires
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing user change security", () => {
     let server: OPCUAServer;
     before(async () => {
@@ -299,29 +297,29 @@ describe("Testing user change security", () => {
     });
     it("should **NOT** be possible to read the secret value when the session is anonymous", async () => {
         const dataValue = await test_with_anonymous_user();
-        doDebug && console.log("Anonymous => Expecting BadUserAccessDenied".padEnd(50) + " Got=", dataValue.statusCode.toString());
+        doDebug && console.log(`${"Anonymous => Expecting BadUserAccessDenied".padEnd(50)} Got=`, dataValue.statusCode.toString());
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
     });
     it("should  be possible to read the secret value when the session is admin", async () => {
         const dataValue = await test_with_admin_user();
-        doDebug && console.log("Admin => Expecting Good".padEnd(50) + " Got=", dataValue.statusCode.toString());
+        doDebug && console.log(`${"Admin => Expecting Good".padEnd(50)} Got=`, dataValue.statusCode.toString());
         dataValue.statusCode.should.eql(StatusCodes.Good);
     });
 
     it("should throw if a invalid is provided at session creation", async () => {
-        const dataValue = await test_with_wrong_user_should_throw();
+        const _dataValue = await test_with_wrong_user_should_throw();
     });
 
     it("should  be possible to read the secret value when the session is anonymous then changed to admin", async () => {
         const dataValue = await test_with_anonymous_user_changing_to_admin();
-        doDebug && console.log("Anonymous => Admin=> Read => Expecting Good".padEnd(50) + " Got=", dataValue.statusCode.toString());
+        doDebug && console.log(`${"Anonymous => Admin=> Read => Expecting Good".padEnd(50)} Got=`, dataValue.statusCode.toString());
         dataValue.statusCode.should.eql(StatusCodes.Good);
     });
     it("should  be possible to read the secret value when the session is admin then changed to anonymous", async () => {
         const dataValue = await test_with_admin_user_changing_to_anonymous();
         doDebug &&
             console.log(
-                "Admin=> Anonymous => Read => Expecting BadUserAccessDenied".padEnd(50) + " Got=",
+                `${"Admin=> Anonymous => Read => Expecting BadUserAccessDenied".padEnd(50)} Got=`,
                 dataValue.statusCode.toString()
             );
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
@@ -329,7 +327,7 @@ describe("Testing user change security", () => {
 
     it("should  be possible to read the secret value when the session is admin then failing to changed to wrong user", async () => {
         const dataValue = await test_with_admin_user_changing_to_wrong_user();
-        doDebug && console.log("Admin  => Wrong => Read => Expecting Good".padEnd(50) + " Got=", dataValue.statusCode.toString());
+        doDebug && console.log(`${"Admin  => Wrong => Read => Expecting Good".padEnd(50)} Got=`, dataValue.statusCode.toString());
         dataValue.statusCode.should.eql(StatusCodes.Good);
     });
 
@@ -337,7 +335,7 @@ describe("Testing user change security", () => {
         const dataValue = await test_with_anonymous_user_changing_to_wrong_user();
         doDebug &&
             console.log(
-                "Admin  => Wrong => Read => Expecting BadUserAccessDenied".padEnd(50) + " Got=",
+                `${"Admin  => Wrong => Read => Expecting BadUserAccessDenied".padEnd(50)} Got=`,
                 dataValue.statusCode.toString()
             );
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
@@ -361,7 +359,7 @@ describe("Testing subscription and  security", function (this: any) {
     });
 
     it("should not be possible to monitor a restricted variable", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "I " + __filename });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `I ${__filename}` });
 
         const dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -390,7 +388,7 @@ describe("Testing subscription and  security", function (this: any) {
                     },
                     TimestampsToReturn.Both
                 );
-                monitorItem.on("err", (err) => {
+                monitorItem.on("err", (_err) => {
                     console.log("on error");
                 });
                 monitorItem.on("changed", (dataValue) => {
@@ -412,7 +410,7 @@ describe("Testing subscription and  security", function (this: any) {
     });
 
     it("should stop monitoring a restricted variable when user change with lesser access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "J " + __filename });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `J ${__filename}` });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -445,7 +443,7 @@ describe("Testing subscription and  security", function (this: any) {
                     },
                     TimestampsToReturn.Both
                 );
-                monitorItem.on("err", (err) => {
+                monitorItem.on("err", (_err) => {
                     console.log("on error");
                 });
                 monitorItem.on("changed", (dataValue) => {
@@ -479,7 +477,7 @@ describe("Testing subscription and  security", function (this: any) {
         }
     });
     it("should start monitoring a restricted variable when user change with great access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "K " + __filename });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `K ${__filename}` });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -510,7 +508,7 @@ describe("Testing subscription and  security", function (this: any) {
                     },
                     TimestampsToReturn.Both
                 );
-                monitorItem.on("err", (err) => {
+                monitorItem.on("err", (_err) => {
                     console.log("on error");
                 });
                 monitorItem.on("changed", (dataValue) => {

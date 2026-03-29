@@ -1,11 +1,10 @@
-import sinon from "sinon";
-import should from "should";
-import { messageLogger } from "node-opcua-debug";
 import { OPCUAClient, TimestampsToReturn } from "node-opcua-client";
+import { messageLogger } from "node-opcua-debug";
+import sinon from "sinon";
 
 const doDebug = false;
 export function t(test: any) {
-    describe("testing long operation detection", function () {
+    describe("testing long operation detection", () => {
         it("should warning the user about long operations in monitoredItem.on('change', eventHandler)", async () => {
             const endpointUrl = test.endpointUrl;
             const client = OPCUAClient.create({});
@@ -24,7 +23,7 @@ export function t(test: any) {
                     requestedMaxKeepAliveCount: 10,
                     requestedPublishingInterval: 100
                 },
-                async (session, subscription) => {
+                async (_session, subscription) => {
                     const monitoredItem = await subscription.monitor(
                         {
                             nodeId: "ns=0;i=2258"
