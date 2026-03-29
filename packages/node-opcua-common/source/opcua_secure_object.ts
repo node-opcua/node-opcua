@@ -169,6 +169,8 @@ export interface IOPCUASecureObjectOptions {
  * Secrets are loaded lazily and stored in a module-private WeakMap
  * so they never appear on the instance.
  */
+
+// biome-ignore lint/suspicious/noExplicitAny: EventEmitter use any
 export class OPCUASecureObject<T extends Record<string | symbol, any> = any> extends EventEmitter<T> implements ICertificateKeyPairProvider, IHasCertificateFile {
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;

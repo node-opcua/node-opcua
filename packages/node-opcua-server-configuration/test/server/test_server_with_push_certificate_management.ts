@@ -10,7 +10,22 @@ import "should";
 import { makeRoles } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, makeApplicationUrn, OPCUAClient, type UserIdentityInfoUserName } from "node-opcua-client";
-import { certificateMatchesPrivateKey, convertPEMtoDER, exploreCertificate, exploreCertificateSigningRequest, makePrivateKeyThumbPrint, makeSHA1Thumbprint, readCertificateChain, readPrivateKey, split_der, toPem, toPem2, type Certificate, type PrivateKey } from "node-opcua-crypto";
+import { invalidateCachedSecrets } from "node-opcua-common";
+import {
+    type Certificate,
+    certificateMatchesPrivateKey,
+    convertPEMtoDER,
+    exploreCertificate,
+    exploreCertificateSigningRequest,
+    makePrivateKeyThumbPrint,
+    makeSHA1Thumbprint,
+    type PrivateKey,
+    readCertificateChain,
+    readPrivateKey,
+    split_der,
+    toPem,
+    toPem2
+} from "node-opcua-crypto";
 import { AttributeIds } from "node-opcua-data-model";
 import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -20,7 +35,6 @@ import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
-import { invalidateCachedSecrets } from "node-opcua-common";
 import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
@@ -28,6 +42,7 @@ import {
     produceCertificate,
     produceCertificateAndPrivateKey
 } from "../helpers/fake_certificate_authority.js";
+import { short_certificate_info_toString } from "../helpers/short_certificate_info.js";
 
 const { readFile } = fs.promises;
 
@@ -37,7 +52,8 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 
-describe("Testing server configured with push certificate management", () => {
+describe("Testing server configured with push certificate management", function (this: Mocha.Suite) {
+    this.timeout(Math.max(this.timeout(), 30_000));
     let _folder: string;
 
     let clientCertificateFile = "";
@@ -136,12 +152,12 @@ describe("Testing server configured with push certificate management", () => {
         const certificateChain1 = server.getCertificateChain();
         debugLog(
             "server.getCertificateChain() =",
-            `${makeSHA1Thumbprint(certificateChain1).toString("hex")} l=${certificateChain1.length}`
+            `${short_certificate_info_toString(certificateChain1)} l=${certificateChain1.length}`
         );
         const privateKey1 = server.getPrivateKey();
         debugLog("server.getPrivateKey()       =", makePrivateKeyThumbPrint(privateKey1).toString("hex"));
 
-        const match = certificateMatchesPrivateKey(certificateChain1, privateKey1);
+        const match = certificateMatchesPrivateKey(certificateChain1[0], privateKey1);
         debugLog("math                         =", match);
 
         for (const endpoint of server.endpoints) {
@@ -197,11 +213,10 @@ describe("Testing server configured with push certificate management", () => {
             const info = exploreCertificateSigningRequest(response.certificateSigningRequest);
             debugLog(JSON.stringify(info, null, " "));
 
-            const certificateFull = await produceCertificate(_folder, response.certificateSigningRequest);
+            const certificateFullChain = await produceCertificate(_folder, response.certificateSigningRequest);
 
-            const certificateChain = split_der(certificateFull);
-            const certificate = certificateChain[0];
-            const issuerCertificates = certificateChain.slice(1);
+            const certificate = certificateFullChain[0];
+            const issuerCertificates = certificateFullChain.slice(1);
 
             // generate some certificate
             const response2 = await pm.updateCertificate(
@@ -219,7 +234,7 @@ describe("Testing server configured with push certificate management", () => {
 
             await session.close();
 
-            return certificateFull;
+            return certificate;
         } catch (err) {
             console.log("err =", err);
             throw err;
@@ -322,11 +337,10 @@ describe("Testing server configured with push certificate management", () => {
             const info = exploreCertificateSigningRequest(response.certificateSigningRequest);
             debugLog(JSON.stringify(info, null, " "));
 
-            const certificateFull = await produceCertificate(_folder, response.certificateSigningRequest);
+            const certificateFullChain = await produceCertificate(_folder, response.certificateSigningRequest);
 
-            const certificateChain = split_der(certificateFull);
-            const certificate = certificateChain[0];
-            const issuerCertificates = certificateChain.slice(1);
+            const certificate = certificateFullChain[0];
+            const issuerCertificates = certificateFullChain.slice(1);
 
             // generate some certificate
             const response2 = await pm.updateCertificate(
@@ -459,18 +473,12 @@ describe("Testing server configured with push certificate management", () => {
         });
         onGoingClient.on("connection_reestablished", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
-            debugLog(
-                "    Server certificate is now ",
-                makeSHA1Thumbprint(onGoingClient.serverCertificate ?? Buffer.alloc(0)).toString("hex")
-            );
+            debugLog("    Server certificate is now ", short_certificate_info_toString(onGoingClient.serverCertificate));
         });
         onGoingClient.on("connection_lost", () => {
             debugLog(chalk.bgWhite.red("Client has lost connection ..."));
             debugLog(
-                chalk.bgWhite.red(
-                    "    Server certificate was ",
-                    makeSHA1Thumbprint(onGoingClient.serverCertificate ?? Buffer.alloc(0)).toString("hex")
-                )
+                chalk.bgWhite.red("    Server certificate was ", short_certificate_info_toString(onGoingClient.serverCertificate))
             );
         });
 
@@ -513,7 +521,7 @@ describe("Testing server configured with push certificate management", () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         debugLog(
             "stopOnGoingConnection - Server certificate is now ",
-            makeSHA1Thumbprint(onGoingClient.serverCertificate ?? Buffer.alloc(0)).toString("hex")
+            short_certificate_info_toString(onGoingClient.serverCertificate)
         );
         await onGoingSession.close();
         await onGoingClient.disconnect();
@@ -535,6 +543,7 @@ describe("Testing server configured with push certificate management", () => {
         step("Given that we known the server key pair before it is changed");
         const _privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
         const certificateBefore = server.getCertificate();
+        split_der(certificateBefore).length.should.eql(1, "certificateBefore should be a single certificate");
 
         const d1 = exploreCertificate(certificateBefore);
         debugLog(d1);
@@ -548,13 +557,19 @@ describe("Testing server configured with push certificate management", () => {
         try {
             step("when an administrative client replaces the certificate");
             const newCertificate = await replaceServerCertificateUsingPushCertificateManagerMethod(endpointUrl);
+            split_der(newCertificate).length.should.eql(1, "newCertificate should be a single certificate");
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();
+            split_der(certificateAfter).length.should.eql(1, "certificateAfter should be a single certificate");
+
             certificateBefore.toString("base64").should.not.eql(certificateAfter.toString("base64"));
 
             step("I should also verify that the same certificate is given by the certificateFile property ");
-            const certificateBefore2 = readCertificateChain(server.certificateFile);
+
+            const certificateBefore2Chain = readCertificateChain(server.certificateFile);
+            const certificateBefore2 = certificateBefore2Chain[0];
+
             certificateBefore2.toString("base64").should.not.eql(certificateBefore.toString("base64"));
 
             step("I should also verify that the new certificate matches the server private key");
@@ -564,7 +579,7 @@ describe("Testing server configured with push certificate management", () => {
             debugLog(d2);
 
             step("and I should verify that the new server certificate matches the new certificate provided by the admin client");
-            certificateAfter.toString("base64").should.not.eql(newCertificate.toString("base64"));
+            certificateAfter.toString("base64").should.eql(newCertificate.toString("base64"));
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
         } catch (err) {
@@ -626,19 +641,11 @@ describe("Testing server configured with push certificate management", () => {
         });
         client.on("connection_reestablished", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
-            debugLog(
-                "    Server certificate is now ",
-                makeSHA1Thumbprint(client.serverCertificate ?? Buffer.alloc(0)).toString("hex")
-            );
+            debugLog("    Server certificate is now ", short_certificate_info_toString(client.serverCertificate));
         });
         client.on("connection_lost", () => {
             debugLog(chalk.bgWhite.red("Client has lost connection ..."));
-            debugLog(
-                chalk.bgWhite.red(
-                    "    Server certificate was ",
-                    makeSHA1Thumbprint(client.serverCertificate ?? Buffer.alloc(0)).toString("hex")
-                )
-            );
+            debugLog(chalk.bgWhite.red("    Server certificate was ", short_certificate_info_toString(client.serverCertificate)));
         });
         client.on("close", () => {
             debugLog(chalk.bgWhite.red("Client has closed the connection"));
@@ -691,6 +698,9 @@ describe("Testing server configured with push certificate management", () => {
             step("when an administrative client replaces the certificate & private key");
             const { certificate, privateKey } =
                 await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(endpointUrl);
+
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();

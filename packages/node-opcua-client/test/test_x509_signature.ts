@@ -37,9 +37,9 @@ function readMessage(name: string): Buffer {
     return message;
 }
 
-async function decodeMessage(buffer: Buffer): Promise<any> {
+async function decodeMessage(buffer: Buffer): Promise<unknown> {
     const derivedKeyProvider: IDerivedKeyProvider = {
-        getDerivedKey(tokenId: number) {
+        getDerivedKey(_tokenId: number) {
             return null;
         }
     };
@@ -113,7 +113,7 @@ function rebuildSignature(
     securityPolicy: SecurityPolicy
 ) {
     // The signature generated with private key associated with the User Certificate
-    const userTokenSignature: SignatureDataOptions = computeSignature(certificate, serverNonce, privateKey, securityPolicy)!;
+    const userTokenSignature: SignatureDataOptions = computeSignature(certificate, serverNonce, privateKey, securityPolicy);
 
     return userTokenSignature;
 }

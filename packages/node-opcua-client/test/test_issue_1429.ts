@@ -1,6 +1,6 @@
 // This file shall show the connection problems with the v2.151 of
 // node-opcua-client in comparison to v2.150.0.
-import EventEmitter from "node:events";
+import type { EventEmitter } from "node:events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import {
@@ -17,7 +17,7 @@ import {
 export function patchEmitter(emitter: EventEmitter) {
     var oldEmit = emitter.emit;
 
-    emitter.emit = (eventName: string, ...eventArgs: any[]): boolean => {
+    emitter.emit = (eventName: string, ...eventArgs: unknown[]): boolean => {
         // Log the event name and arguments
         const _now = new Date();
         console.log(new Date().toISOString(), "Event emitted:", eventName);

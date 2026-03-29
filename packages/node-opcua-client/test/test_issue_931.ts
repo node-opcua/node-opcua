@@ -1,0 +1,128 @@
+import os from "node:os";
+import { make_debugLog } from "node-opcua-debug";
+import {
+    MessageSecurityMode,
+    OPCUAClient,
+    type OPCUAClientOptions,
+    SecurityPolicy,
+} from "..";
+
+const debugLog = make_debugLog("TEST");
+
+// eslint-disable-next-line import/order
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+async function wait(t: number) {
+    return await new Promise((resolve) => setTimeout(resolve, t));
+}
+
+describe("issue #931 investigation", function (this: Mocha.Suite) {
+
+    this.timeout(Math.max(40000, this.timeout()));
+
+    async function doTest(options: OPCUAClientOptions, host: string) {
+        const client = OPCUAClient.create(options);
+
+        let backoffCount = 0;
+        client.on("backoff", (retry: number, next: number) => {
+            backoffCount++;
+            debugLog("backoff", retry, next);
+        });
+
+        debugLog("Before Connect");
+        client.connect(`opc.tcp://${host}:20000`).catch((err: Error) => {
+            debugLog("connection failed !", err.message);
+        });
+        debugLog("Connect in progress");
+        await wait(3000);
+
+        backoffCount.should.be.aboveOrEqual(0);
+
+        const refBackoffCount = backoffCount;
+
+        debugLog("now disconnecting");
+        await client.disconnect();
+        await wait(1000);
+        backoffCount.should.eql(
+            refBackoffCount,
+            "Backoff should stops when disconnect is called while connection is still in progress"
+        );
+    }
+
+    it("931-A should be able to disconnect when the client is trying to initially connect to a server - No Security - Localhost", async () => {
+        const options: OPCUAClientOptions = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200
+            }
+        };
+        await doTest(options, "localhost");
+    });
+
+    it("931-B should be able to disconnect when the client is trying to initially connect to a server - No Security - hostname", async () => {
+        const options: OPCUAClientOptions = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200
+            }
+        };
+        await doTest(options, os.hostname());
+    });
+
+    it("931-C should be able to disconnect when the client is trying to initially connect to a server - With Security - localhost", async () => {
+        const options: OPCUAClientOptions = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200
+            },
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        };
+        await doTest(options, os.hostname());
+    });
+
+    it("931-B should be able to disconnect when the client is trying to initially connect to a server - With Security - hostname", async () => {
+        const options: OPCUAClientOptions = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200
+            },
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        };
+        await doTest(options, os.hostname());
+    });
+
+    it("931-Z connect disconnect no wait ", async () => {
+        const host = os.hostname();
+        const options: OPCUAClientOptions = {
+            connectionStrategy: {
+                maxRetry: 100,
+                initialDelay: 100,
+                maxDelay: 200
+            },
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        };
+        const client = OPCUAClient.create(options);
+
+        let backoffCount = 0;
+        client.on("backoff", (retry: number, next: number) => {
+            backoffCount++;
+            debugLog("backoff", retry, next);
+        });
+
+        debugLog("Before Connect");
+        client.connect(`opc.tcp://${host}:20000`).catch((err: Error) => {
+            debugLog("connection failed !", err.message);
+        });
+        debugLog("Connect in progress");
+        debugLog("now disconnecting");
+        await client.disconnect();
+        await wait(2000);
+        backoffCount.should.eql(0, "Backoff should stops when disconnect is called while connection is still in progress");
+    });
+});

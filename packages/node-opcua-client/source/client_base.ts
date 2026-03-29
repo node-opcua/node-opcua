@@ -2,7 +2,6 @@
  * @module node-opcua-client
  */
 // tslint:disable:no-unused-expression
-import type { EventEmitter } from "node:events";
 import type { LocaleId } from "node-opcua-basic-types";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import type { OPCUASecureObject } from "node-opcua-common";

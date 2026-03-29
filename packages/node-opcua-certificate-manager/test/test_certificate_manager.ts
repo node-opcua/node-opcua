@@ -263,7 +263,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test)
     });
 });
 
-describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: any) {
+describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: Mocha.Suite) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let acceptingCertificateMgr: OPCUACertificateManager;
