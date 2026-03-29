@@ -879,7 +879,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const err = new Error(msg);
             this.emit("abort", err);
             debugLog(err.message);
-            this.close((err) => {
+            this.close((_err) => {
                 debugLog("_install_wait_for_open_secure_channel_request_timeout:");
                 debugLog("  closed()");
             });
@@ -1350,7 +1350,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 securityHeader: securityHeader
             };
 
-            this.send_response("OPN", response, messageResponse, (err) => {
+            this.send_response("OPN", response, messageResponse, (_err) => {
                 const responseHeader = response.responseHeader;
                 if (responseHeader.serviceResult !== StatusCodes.Good) {
                     warningLog("OpenSecureChannelRequest Closing communication ", responseHeader.serviceResult.toString());

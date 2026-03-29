@@ -3,7 +3,7 @@ import path from "node:path";
 import { assert } from "node-opcua-assert";
 import type { ByteString } from "node-opcua-basic-types";
 import type { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { readPrivateKey } from "node-opcua-crypto";
+import { readPrivateKey, exploreCertificate } from "node-opcua-crypto";
 import {
     certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
@@ -19,7 +19,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { UpdateCertificateResult } from "../../push_certificate_manager.js";
 import { validateCertificateAndChain } from "../certificate_validation.js";
 import type { PushCertificateManagerInternalContext } from "./internal_context.js";
-import { resolveCertificateGroupContext, validateCertificateType } from "./util.js";
+import { resolveCertificateGroupContext, validateCertificateType, findCertificateGroupName } from "./util.js";
 
 const warningLog = make_warningLog("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
@@ -107,9 +107,20 @@ export async function executeUpdateCertificate(
         const { certificateManager, allowedTypes } = context;
 
         if (!validateCertificateType(certificate, certificateTypeId, allowedTypes ?? [], warningLog)) {
-            warningLog(
-                `Certificate type ${certificateTypeId} does not match expected certificateTypeId \n allowed types: ${allowedTypes?.map((t) => t.toString()).join(", ")} \n certificate: ${certificate.toString("base64")}`
-            );
+            try {
+                const info = exploreCertificate(certificate);
+                const groupName = findCertificateGroupName(certificateGroupId);
+                const certInfoStr = `subject: ${info.tbsCertificate.subject.commonName}, issuer: ${info.tbsCertificate.issuer.commonName}, validFrom: ${info.tbsCertificate.validity.notBefore.toISOString()}, validTo: ${info.tbsCertificate.validity.notAfter.toISOString()}`;
+
+                warningLog(
+                    `Certificate type ${certificateTypeId} does not match expected certificateTypeId for group '${groupName}' (${certificateGroupId.toString()})\n allowed types: ${allowedTypes?.map((t) => t.toString()).join(", ")} \n provided certificate: ${certInfoStr}`
+                );
+            } catch (err) {
+                // Fallback if certificate parsing fails
+                warningLog(
+                    `Certificate type ${certificateTypeId} does not match expected certificateTypeId for group '${certificateGroupId.toString()}'\n allowed types: ${allowedTypes?.map((t) => t.toString()).join(", ")} \n certificate could not be explored. ${(err as Error).message}`
+                );
+            }
             return { statusCode: StatusCodes.BadCertificateInvalid, applyChangesRequired: false };
         }
 

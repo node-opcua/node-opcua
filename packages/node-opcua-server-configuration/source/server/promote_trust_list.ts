@@ -289,6 +289,36 @@ async function _closeAndUpdate(
     };
 }
 
+/**
+ * Map a `VerificationStatus` returned by the PKI layer to the
+ * corresponding OPC UA `StatusCode`.
+ */
+function verificationStatusToStatusCode(status: VerificationStatus): StatusCode {
+    switch (status) {
+        case VerificationStatus.BadCertificateChainIncomplete:
+            return StatusCodes.BadCertificateChainIncomplete;
+        case VerificationStatus.BadCertificateRevoked:
+            return StatusCodes.BadCertificateRevoked;
+        case VerificationStatus.BadCertificateIssuerRevoked:
+            return StatusCodes.BadCertificateIssuerRevoked;
+        case VerificationStatus.BadCertificateRevocationUnknown:
+            return StatusCodes.BadCertificateRevocationUnknown;
+        case VerificationStatus.BadCertificateIssuerRevocationUnknown:
+            return StatusCodes.BadCertificateIssuerRevocationUnknown;
+        case VerificationStatus.BadCertificateTimeInvalid:
+            return StatusCodes.BadCertificateTimeInvalid;
+        case VerificationStatus.BadCertificateIssuerTimeInvalid:
+            return StatusCodes.BadCertificateIssuerTimeInvalid;
+        case VerificationStatus.BadCertificateUntrusted:
+            return StatusCodes.BadCertificateUntrusted;
+        case VerificationStatus.BadSecurityChecksFailed:
+            return StatusCodes.BadSecurityChecksFailed;
+        case VerificationStatus.BadCertificateInvalid:
+        default:
+            return StatusCodes.BadCertificateInvalid;
+    }
+}
+
 // in TrustList
 async function _addCertificate(
     this: UAMethod,
@@ -331,7 +361,7 @@ async function _addCertificate(
 
         if (status !== VerificationStatus.Good) {
             warningLog("Certificate validation failed:", status);
-            return { statusCode: StatusCodes.BadCertificateInvalid };
+            return { statusCode: verificationStatusToStatusCode(status) };
         }
 
         updateLastUpdateTime(trustList);
@@ -477,7 +507,7 @@ export async function promoteTrustList(trustList: UATrustList) {
                     callback(err, { statusCode: StatusCodes.BadInternalError });
                 });
         } else {
-            warningLog("certificateManager is not defined on trustlist do something to update the document before we open it");
+            warningLog("certificateManager is not defined on trustlist do something to update the trust list document before we open it");
             return _open_asyncExecutionFunction.call(this, inputArgs, context, callback);
         }
     }

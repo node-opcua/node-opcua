@@ -550,21 +550,24 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
     }
 
     /**
-     * close a session
+     * close a session, internal
      */
     public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
     public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
-
-    /**
-     * @internal
-     */
-    // biome-ignore lint/suspicious/noExplicitAny: overload implementation
-    public closeSession(...args: any[]): any {
+    public closeSession(
+        session: ClientSession,
+        deleteSubscriptions: boolean,
+        callback?: (err?: Error) => void
+    ): Promise<void> | void {
         if (this._retryCreateSessionTimer) {
             clearTimeout(this._retryCreateSessionTimer);
             this._retryCreateSessionTimer = undefined;
         }
-        super.closeSession(...args);
+        super.closeSession(
+            session as unknown as ClientSessionImpl,
+            deleteSubscriptions,
+            callback as (err?: Error) => void
+        );
     }
 
     public toString(): string {

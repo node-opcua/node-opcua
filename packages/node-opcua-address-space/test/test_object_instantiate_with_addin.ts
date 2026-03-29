@@ -2,7 +2,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import type { AddressSpace, UAObject } from "..";
+import { AddressSpace, UAObject } from "..";
 import { addDefaultInstanceBrowseName, getSymbols, instantiateAddIn, setSymbols } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
@@ -130,7 +130,7 @@ describe("testing addins - case 1", () => {
         });
 
         doDebug && debugLog(machine.toString());
-        doDebug && debugLog(machine.getChildByName("JobManager", 2)!.toString());
+        doDebug && debugLog(machine.getChildByName("JobManager", 2)?.toString());
 
         should.exist(machine.getChildByName("JobManager", 2));
 
@@ -208,7 +208,7 @@ describe("testing addins - case 1", () => {
         });
 
         doDebug && debugLog(machine.toString());
-        doDebug && debugLog(machine.getChildByName("JobManager", 2)!.toString());
+        doDebug && debugLog(machine.getChildByName("JobManager", 2)?.toString());
 
         should.exist(machine.getChildByName("JobManager", 2));
 

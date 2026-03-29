@@ -9,13 +9,39 @@ import { withLock } from "@ster5/global-mutex";
 import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
-import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
-import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { getHostname } from "node-opcua-hostname";
-import type { IBasicTransportSettings, ResponseCallback } from "node-opcua-pseudo-session";
+import {
+    getDefaultCertificateManager,
+    makeSubject,
+    type OPCUACertificateManager
+} from "node-opcua-certificate-manager";
+import {
+    type IOPCUASecureObjectOptions,
+    makeApplicationUrn,
+    OPCUASecureObject
+} from "node-opcua-common";
+import {
+    type Certificate,
+    makeSHA1Thumbprint,
+    split_der
+} from "node-opcua-crypto/web";
+import {
+    installPeriodicClockAdjustment,
+    periodicClockAdjustment,
+    uninstallPeriodicClockAdjustment
+} from "node-opcua-date-time";
+import {
+    checkDebugFlag,
+    make_debugLog,
+    make_errorLog,
+    make_warningLog
+} from "node-opcua-debug";
+import {
+    getHostname
+} from "node-opcua-hostname";
+import type {
+    IBasicTransportSettings,
+    ResponseCallback
+} from "node-opcua-pseudo-session";
 import {
     ClientSecureChannelLayer,
     type ConnectionStrategy,
@@ -24,7 +50,8 @@ import {
     coerceSecurityPolicy,
     type Request as Request1,
     type Response as Response1,
-    type SecurityPolicy
+    type SecurityPolicy,
+    type PerformTransactionCallback
 } from "node-opcua-secure-channel";
 import {
     FindServersOnNetworkRequest,
@@ -40,7 +67,10 @@ import {
     GetEndpointsRequest,
     GetEndpointsResponse
 } from "node-opcua-service-endpoints";
-import { type ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import {
+    type ChannelSecurityToken,
+    coerceMessageSecurityMode, MessageSecurityMode
+} from "node-opcua-service-secure-channel";
 import { CloseSessionRequest, type CloseSessionResponse } from "node-opcua-service-session";
 import { type ErrorCallback, StatusCodes } from "node-opcua-status-code";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
@@ -416,7 +446,6 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this._internalState = internalState;
     }
-    // @ts-ignore
     public emit<K>(eventName: K, ...others: unknown[]): boolean {
         // c8 ignore next
         if (doDebug) {
@@ -527,10 +556,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             this._secureChannel = null;
             callback();
         });
-        // @ts-expect-error
-        this.once("reconnection_canceled" as any, () => {
-            /* empty */
-        });
+
     }
 
     public _recreate_secure_channel(callback: ErrorCallback): void {
@@ -615,7 +641,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     }
 
                     if (err.message.match("Backoff aborted.")) {
-                        return _failAndRetry(err!, "cannot create secure channel (backoff aborted)", callback);
+                        _failAndRetry(err, "cannot create secure channel (backoff aborted)", callback);
+                        return;
                     }
 
                     if (
@@ -885,9 +912,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
      */
     public connect(endpointUrl: string): Promise<void>;
     public connect(endpointUrl: string, callback: ErrorCallback): void;
-    public connect(...args: any[]): any {
+    public connect(...args: unknown[]): Promise<void> | void {
         const endpointUrl = args[0];
-        const callback = args[1];
+        const callback = args[1] as ErrorCallback;
         assert(typeof callback === "function", "expecting a callback");
         if (typeof endpointUrl !== "string" || endpointUrl.length <= 0) {
             errorLog(`[NODE-OPCUA-E03] OPCUAClient#connect expects a valid endpoint : ${endpointUrl}`);
@@ -994,7 +1021,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         });
     }
 
-    public performMessageTransaction(request: Request, callback: ResponseCallback<Response>): void {
+    public performMessageTransaction(
+        request: Request,
+        callback: ResponseCallback<Response>
+    ): void {
         if (!this._secureChannel) {
             // this may happen if the Server has closed the connection abruptly for some unknown reason
             // or if the tcp connection has been broken.
@@ -1023,7 +1053,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         assert(request);
         assert(request.requestHeader);
         assert(typeof callback === "function");
-        this._secureChannel.performMessageTransaction(request, callback as any);
+        this._secureChannel.performMessageTransaction(
+            request,
+            callback as unknown as PerformTransactionCallback
+        );
     }
 
     /**
@@ -1069,9 +1102,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     public async getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
     public getEndpoints(options: GetEndpointsOptions, callback: ResponseCallback<EndpointDescription[]>): void;
     public getEndpoints(callback: ResponseCallback<EndpointDescription[]>): void;
-    public getEndpoints(...args: any[]): any {
+    public getEndpoints(...args: unknown[]): Promise<EndpointDescription[]> | undefined {
         if (args.length === 1) {
-            return this.getEndpoints({}, args[0]);
+            this.getEndpoints(
+                {} as GetEndpointsOptions,
+                args[0] as unknown as ResponseCallback<EndpointDescription[]>
+            );
+            return;
         }
         const options = args[0] as GetEndpointsOptions;
         const callback = args[1] as ResponseCallback<EndpointDescription[]>;
@@ -1091,18 +1128,21 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (err) {
-                return callback(err);
+                callback(err);
+                return;
             }
             this._serverEndpoints = [];
             // c8 ignore next
             if (!response || !(response instanceof GetEndpointsResponse)) {
-                return callback(new Error("Internal Error"));
+                callback(new Error("Internal Error"));
+                return;
             }
             if (response?.endpoints) {
                 this._serverEndpoints = response.endpoints;
             }
             callback(null, this._serverEndpoints);
         });
+        return;
     }
 
     /**
@@ -1116,12 +1156,27 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     /**
 
      */
-    public findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
-    public findServers(options: FindServersRequestLike, callback: ResponseCallback<ApplicationDescription[]>): void;
-    public findServers(callback: ResponseCallback<ApplicationDescription[]>): void;
-    public findServers(...args: any[]): any {
+    public findServers(
+        options?: FindServersRequestLike
+    ): Promise<ApplicationDescription[]>;
+    public findServers(
+        options: FindServersRequestLike,
+        callback: ResponseCallback<ApplicationDescription[]>
+    ): void;
+    public findServers(
+        callback: ResponseCallback<ApplicationDescription[]>
+    ): void;
+    public findServers(
+        ...args: unknown[]
+    ): Promise<ApplicationDescription[]> | void {
         if (args.length === 1) {
-            return this.findServers({}, args[0]);
+            if (typeof args[0] === "function") {
+                this.findServers(
+                    {} as FindServersRequestLike, args[0] as ResponseCallback<ApplicationDescription[]>);
+                return void 0;
+            } else {
+                throw new Error("Invalid arguments");
+            }
         }
         const options = args[0] as FindServersRequestLike;
         const callback = args[1] as ResponseCallback<ApplicationDescription[]>;
@@ -1134,11 +1189,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (err) {
-                return callback(err);
+                callback(err);
+                return;
             }
             /* c8 ignore next */
             if (!response || !(response instanceof FindServersResponse)) {
-                return callback(new Error("Internal Error"));
+                callback(new Error("Internal Error"));
+                return;
             }
             response.servers = response.servers || [];
 
@@ -1149,9 +1206,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     public findServersOnNetwork(options?: FindServersOnNetworkRequestLike): Promise<ServerOnNetwork[]>;
     public findServersOnNetwork(callback: ResponseCallback<ServerOnNetwork[]>): void;
     public findServersOnNetwork(options: FindServersOnNetworkRequestLike, callback: ResponseCallback<ServerOnNetwork[]>): void;
-    public findServersOnNetwork(...args: any[]): any {
+    public findServersOnNetwork(...args: unknown[]): Promise<ServerOnNetwork[]> | unknown {
         if (args.length === 1) {
-            return this.findServersOnNetwork({}, args[0]);
+            this.findServersOnNetwork(
+                {} as FindServersOnNetworkRequestOptions,
+                args[0] as ResponseCallback<ServerOnNetwork[]>
+            );
+            return;
         }
         const options = args[0] as FindServersOnNetworkRequestOptions;
         const callback = args[1] as ResponseCallback<ServerOnNetwork[]>;
@@ -1159,15 +1220,18 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (err) {
-                return callback(err);
+                callback(err);
+                return;
             }
             /* c8 ignore next */
             if (!response || !(response instanceof FindServersOnNetworkResponse)) {
-                return new Error("Internal Error");
+                callback(new Error("Internal Error"));
+                return;
             }
             response.servers = response.servers || [];
             callback(null, response.servers);
         });
+        return;
     }
 
     public _removeSession(session: ClientSessionImpl): void {
@@ -1213,13 +1277,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         });
     }
 
-    public closeSession(...args: any[]): any {
-        const session = args[0] as ClientSessionImpl;
-        const deleteSubscriptions = args[1];
-        const callback = args[2];
-
+    public closeSession(session: ClientSessionImpl, deleteSubscriptions: boolean): Promise<void>;
+    public closeSession(session: ClientSessionImpl, deleteSubscriptions: boolean, callback: ErrorCallback): void;
+    public closeSession(session: ClientSessionImpl, deleteSubscriptions: boolean, callback?: ErrorCallback): Promise<void> | void {
         assert(typeof deleteSubscriptions === "boolean");
-        assert(typeof callback === "function");
         assert(session);
         assert(session._client === this, "session must be attached to this");
         session._closed = true;
@@ -1234,7 +1295,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             assert(this._sessions.indexOf(session) === -1);
             assert(session._closed, "session must indicate it is closed");
 
-            callback(err ? err : undefined);
+            callback?.(err ? err : undefined);
         });
     }
 
@@ -1797,12 +1858,13 @@ class TmpClient extends ClientBaseImpl {
 
     async connect(endpoint: string): Promise<void>;
     connect(endpoint: string, callback: ErrorCallback): void;
-    connect(endpoint: string, callback?: ErrorCallback): any {
+    connect(endpoint: string, callback?: ErrorCallback): Promise<void> | void {
         debugLog("connecting to TmpClient");
 
         // c8 ignore next
         if (this._internalState !== "disconnected") {
-            callback?.(new Error(`TmpClient#connect: invalid internal state = ${this._internalState}`));
+            callback?.(
+                new Error(`TmpClient#connect: invalid internal state = ${this._internalState}`));
             return;
         }
 

@@ -50,6 +50,7 @@ CTTA/
 CTT/Node-OPCUA-Client
 demo/
 dist/
+dist-test/
 distHelpers/
 distNodeJS/
 doc1/
