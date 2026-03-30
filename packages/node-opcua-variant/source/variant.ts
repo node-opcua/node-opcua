@@ -187,7 +187,7 @@ function variantToString(self: Variant, _options?: Record<string, unknown>) {
     function asString(value: unknown): string {
         switch (self.dataType) {
             case DataType.ByteString:
-                return value ? (value as Buffer).toString("hex") : "<null>";
+                return value ? `0x${(value as Buffer).toString("hex")}` : "<null>";
             case DataType.NodeId:
                 return value instanceof NodeId ? value.displayText() : value ? String(value) : "";
             case DataType.Boolean:
@@ -471,7 +471,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             // we do nothing here ....
             throw new Error(
                 "Variant#constructor : when using UInt64 ou Int64" +
-                    " arrayType must be specified , as automatic detection cannot be made"
+                " arrayType must be specified , as automatic detection cannot be made"
             );
         } else {
             /* c8 ignore stop */
@@ -576,8 +576,8 @@ export type BufferedArray2 =
 
 interface BufferedArrayConstructor {
     BYTES_PER_ELEMENT: number;
-    new (length: number): BufferedArray2;
-    new (buffer: ArrayBufferLike, byteOffset?: number, length?: number): BufferedArray2;
+    new(length: number): BufferedArray2;
+    new(buffer: ArrayBufferLike, byteOffset?: number, length?: number): BufferedArray2;
 }
 
 function convertTo(
@@ -832,10 +832,10 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
 function isValidScalarVariant(dataType: DataType, value: any): boolean {
     assert(
         value === null ||
-            DataType.Int64 === dataType ||
-            DataType.ByteString === dataType ||
-            DataType.UInt64 === dataType ||
-            !Array.isArray(value)
+        DataType.Int64 === dataType ||
+        DataType.ByteString === dataType ||
+        DataType.UInt64 === dataType ||
+        !Array.isArray(value)
     );
     assert(value === null || !(value instanceof Int32Array));
     assert(value === null || !(value instanceof Uint32Array));
