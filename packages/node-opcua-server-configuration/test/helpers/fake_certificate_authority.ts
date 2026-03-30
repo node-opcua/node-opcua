@@ -11,6 +11,7 @@ import {
     type PrivateKey,
     readCertificateChain,
     readCertificateRevocationList,
+    readCertificateSigningRequest,
     readPrivateKey,
     split_der,
     toPem
@@ -260,4 +261,41 @@ export async function produceNotYetValidCertificate(subfolder: string, certifica
     const startDate = new Date(Date.now() + 3600 * 24 * 1000); // 1 day in the future
     const validity = 365;
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
+}
+
+/**
+ * Produce a CA-signed certificate chain [leaf, CA] using a fresh
+ * private key. The certificate is signed by the shared
+ * CertificateAuthority, so the returned chain always has length ≥ 2.
+ *
+ * This is useful for tests that need a non-self-signed certificate
+ * without depending on external certificate files.
+ */
+export async function produceSignedCertificateChain(
+    subfolder: string
+): Promise<Certificate[]> {
+    const uniqueId = crypto.randomBytes(8).toString("hex");
+    const certificateManager = new CertificateManager({
+        keySize: 2048,
+        location: path.join(subfolder, `tmpPKI_signed_${uniqueId}`)
+    });
+    await certificateManager.initialize();
+
+    try {
+        const csrFile = await certificateManager.createCertificateRequest({
+            applicationUri: "urn:test:signed-cert",
+            subject: "CN=TestSignedCert",
+            dns: [os.hostname()],
+            startDate: new Date(),
+            validity: 365
+        });
+
+        // The CSR file may be PEM or DER — readCertificateSigningRequest handles both
+        const csrDer = await readCertificateSigningRequest(csrFile);
+
+        // produceCertificate returns [leaf, CA] (signCertificateRequest writes full chain)
+        return await produceCertificate(subfolder, csrDer);
+    } finally {
+        await certificateManager.dispose();
+    }
 }
