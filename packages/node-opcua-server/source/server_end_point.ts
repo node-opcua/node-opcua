@@ -1224,13 +1224,6 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  * @private
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, parent: OPCUAServerEndPoint): EndpointDescriptionEx {
-    assert(Object.prototype.hasOwnProperty.call(options, "serverCertificateChain"));
-    assert(!Object.prototype.hasOwnProperty.call(options, "serverCertificate"));
-    assert(!!options.securityMode); // s.MessageSecurityMode
-    assert(!!options.securityPolicy);
-    assert(options.server !== null && typeof options.server === "object");
-    assert(!!options.hostname && typeof options.hostname === "string");
-    assert(typeof options.restricted === "boolean");
 
     const u = (n: string) => getUniqueName(n, options.collection);
     options.securityLevel =
@@ -1353,7 +1346,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
         endpointUrl: "<to be evaluated at run time>", // options.endpointUrl,
 
         server: undefined, // options.server,
-        serverCertificate: options.serverCertificateChain ? combine_der(options.serverCertificateChain) : undefined,
+        serverCertificate: options.serverCertificateChain.length > 0 ? combine_der(options.serverCertificateChain) : undefined,
 
         securityMode: options.securityMode,
         securityPolicyUri,
