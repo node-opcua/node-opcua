@@ -3,7 +3,7 @@
  */
 import type { ByteString } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import type { Certificate } from "node-opcua-crypto/web";
+import { combine_der, type Certificate } from "node-opcua-crypto/web";
 import { AttributeIds, coerceQualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -141,11 +141,23 @@ export class TrustListClient extends ClientFile implements ITrustList {
         return callMethodResult.outputArguments?.[0].value as boolean;
     }
 
-    async addCertificate(certificate: Certificate, isTrustedCertificate: boolean): Promise<StatusCode> {
+    async addCertificate(
+        certificateChain: Certificate | Certificate[],
+        isTrustedCertificate: boolean
+    ): Promise<StatusCode> {
         await this.ensureInitialized();
 
+        if (Array.isArray(certificateChain)) {
+            if (certificateChain.length === 0) {
+                return StatusCodes.BadInvalidArgument;
+            }
+        }
+
+        const compositeCertificate: Buffer =
+            Array.isArray(certificateChain) ? combine_der(certificateChain) : certificateChain;
+
         const inputArguments: VariantLike[] = [
-            { dataType: DataType.ByteString, value: certificate },
+            { dataType: DataType.ByteString, value: compositeCertificate },
             { dataType: DataType.Boolean, value: !!isTrustedCertificate }
         ];
         const methodToCall: CallMethodRequestLike = {
@@ -211,7 +223,7 @@ export class CertificateGroup {
     constructor(
         public session: IBasicSessionAsync,
         public nodeId: NodeId
-    ) {}
+    ) { }
     async getCertificateTypes(): Promise<NodeId[]> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
         if (browsePathResult.statusCode.isNotGood()) {
