@@ -6,12 +6,12 @@ import path from "node:path";
 
 import chalk from "chalk";
 
-import { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
+import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ICertificateKeyPairProvider, invalidateCachedSecrets } from "node-opcua-common";
 import { readPrivateKey } from "node-opcua-crypto";
-import { type Certificate, type PrivateKey, combine_der, convertPEMtoDER, split_der } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, convertPEMtoDER, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, getIpAddresses } from "node-opcua-hostname";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
@@ -19,8 +19,6 @@ import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers.js";
 import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
-
-
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -146,7 +144,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
             "Server must have a valid address space." +
-            "you need to call installPushCertificateManagementOnServer after server has been initialized"
+                "you need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
     await install.call(server as unknown as OPCUAServerPartial);

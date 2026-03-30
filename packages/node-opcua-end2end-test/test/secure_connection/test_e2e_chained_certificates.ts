@@ -59,7 +59,10 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             );
         }
     }
-    async function createSignedCertInManager(mgr: OPCUACertificateManager, name: string) {
+    async function createSignedCertInManager(
+        mgr: OPCUACertificateManager,
+        name: string
+    ) {
         const isClient = name.toLowerCase().includes("client");
 
         /// ---- Create CSR ----
@@ -160,11 +163,13 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             rootFolder: clientPki
         });
         await clientCertificateManager.initialize();
-        await createSignedCertInManager(clientCertificateManager, "client1");
 
         // Client trusts the CA
         await clientCertificateManager.addIssuer(caCertificate, false, true);
         await clientCertificateManager.addRevocationList(certificateRevocationList);
+
+        await createSignedCertInManager(clientCertificateManager, "client1");
+
 
         const client = OPCUAClient.create({
             applicationUri: "urn:localhost:client1",
@@ -186,7 +191,9 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     it("2/ verify that a client fitted with a chained certificate can automatically connect securely to a server in Configuration Mode", async () => {
         // Server in configuration mode: automaticallyAcceptUnknownCertificate=true
         const serverPki = path.join(tmpFolder, "server2_pki");
-        const server = await setupServer("server2", serverPki, { automaticallyAcceptUnknownCertificate: true });
+        const server = await setupServer("server2", serverPki, {
+            automaticallyAcceptUnknownCertificate: true
+        });
 
         await server.start();
         const endpointUrl = server.getEndpointUrl();
@@ -197,6 +204,12 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         });
         await clientCertificateManager.initialize();
         await createSignedCertInManager(clientCertificateManager, "client2");
+
+        // Client needs the CA issuer + CRL to verify the server's certificate
+        const caCertificateChain = readCertificateChain(ca.caCertificate);
+        await clientCertificateManager.addIssuer(caCertificateChain[0], false, true);
+        const certificateRevocationList = await readCertificateRevocationList(ca.revocationList);
+        await clientCertificateManager.addRevocationList(certificateRevocationList);
 
         // The client connects with its chain.
         const client = OPCUAClient.create({
@@ -209,17 +222,12 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
 
         try {
             await client.withSessionAsync(endpointUrl, async (_session) => {
-                // should fail initially because the server cannot verify the chain
-                // presented by the client because it cannot find the CA in its trust list
-                // and it didn't extract the CA from the chain sent by the client.
+                // The server is in configuration mode (automaticallyAcceptUnknownCertificate=true)
+                // and should be able to extract the CA from the client's chained certificate
+                // and accept the connection.
             });
-        } catch (err) {
-            console.log("Expected failure:", (err as Error).message);
-            // if it fails, it proves the bug
-            return;
         } finally {
             await server.shutdown();
         }
-        throw new Error("Test should have failed due to chain extraction bug");
     });
 });
