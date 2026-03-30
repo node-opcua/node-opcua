@@ -372,12 +372,14 @@ describe("ServerConfiguration", () => {
                 assert(fs.existsSync(certificateFile));
                 const certificates = await readCertificateChainAsync(certificateFile);
                 // Per OPC UA spec, AddCertificate with isTrustedCertificate=false returns BadCertificateInvalid
-                const sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ false);
+                const sc = await trustList.addCertificate(combine_der(certificates), /*isTrustedCertificate =*/ false);
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             }
             {
-                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
-                const sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ true);
+                const certificateFile = sampleSelfSignedCert2048;
+                assert(fs.existsSync(certificateFile));
+                const certificates = await readCertificateChainAsync(certificateFile);
+                const sc = await trustList.addCertificate(combine_der(certificates), /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
             }
 
