@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.165.0",
+    "version": "2.167.0",
     "description": "pure nodejs OPCUA SDK - module transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -15,15 +15,15 @@
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-assert": "2.164.0",
-        "node-opcua-basic-types": "2.165.0",
-        "node-opcua-binary-stream": "2.165.0",
-        "node-opcua-buffer-utils": "2.165.0",
-        "node-opcua-chunkmanager": "2.165.0",
+        "node-opcua-basic-types": "2.167.0",
+        "node-opcua-binary-stream": "2.167.0",
+        "node-opcua-buffer-utils": "2.167.0",
+        "node-opcua-chunkmanager": "2.167.0",
         "node-opcua-debug": "2.165.0",
-        "node-opcua-factory": "2.165.0",
+        "node-opcua-factory": "2.167.0",
         "node-opcua-object-registry": "2.165.0",
-        "node-opcua-packet-assembler": "2.165.0",
-        "node-opcua-status-code": "2.165.0",
+        "node-opcua-packet-assembler": "2.167.0",
+        "node-opcua-status-code": "2.167.0",
         "node-opcua-utils": "2.165.0"
     },
     "devDependencies": {

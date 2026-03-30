@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-for-conformance-testing",
-    "version": "2.166.1",
+    "version": "2.167.0",
     "description": "pure nodejs OPCUA SDK - module address-space-for-conformance-testing",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -12,17 +12,17 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.166.1",
+        "node-opcua-address-space": "2.167.0",
         "node-opcua-assert": "2.164.0",
-        "node-opcua-basic-types": "2.165.0",
-        "node-opcua-data-access": "2.165.0",
-        "node-opcua-data-model": "2.165.0",
-        "node-opcua-data-value": "2.165.0",
+        "node-opcua-basic-types": "2.167.0",
+        "node-opcua-data-access": "2.167.0",
+        "node-opcua-data-model": "2.167.0",
+        "node-opcua-data-value": "2.167.0",
         "node-opcua-debug": "2.165.0",
-        "node-opcua-factory": "2.165.0",
-        "node-opcua-nodeid": "2.165.0",
-        "node-opcua-status-code": "2.165.0",
-        "node-opcua-variant": "2.165.0"
+        "node-opcua-factory": "2.167.0",
+        "node-opcua-nodeid": "2.167.0",
+        "node-opcua-status-code": "2.167.0",
+        "node-opcua-variant": "2.167.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
