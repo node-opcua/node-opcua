@@ -1,5 +1,5 @@
-import { ClientSession, OPCUAClient } from "node-opcua";
-import { describeWithLeakDetector as  describe} from "node-opcua-leak-detector";
+import { type ClientSession, OPCUAClient } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
 const sessionLiveTime = 20 * 1000;
@@ -45,9 +45,8 @@ async function reactivate_existing_session(endpointUrl: string, session: ClientS
     return session;
 }
 
-export  function t(test: any) {
-    describe("Client and expired session activation", function () {
-
+export function t(test: any) {
+    describe("Client and expired session activation", () => {
         it("XKL1 it should be possible to re activate an active session which has not closed by a previous connection", async () => {
             const endpointUrl = test.endpointUrl;
             const session = await create_a_pending_session(endpointUrl);
@@ -79,4 +78,4 @@ export  function t(test: any) {
             await client1.disconnect();
         });
     });
-};
+}

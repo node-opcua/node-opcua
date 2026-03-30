@@ -1,7 +1,7 @@
 import path from "node:path";
-import { OPCUACertificateManager, OPCUAServer, OPCUAClientBase } from "node-opcua";
+import { OPCUACertificateManager, OPCUAClientBase, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { TestHarness } from "./helpers/harness";
+import type { TestHarness } from "./helpers/harness";
 
 describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable & TestHarness) {
     before(async () => {
@@ -24,15 +24,15 @@ describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable &
         this.discoveryServerCertificateManager.referenceCounter--;
         await this.discoveryServerCertificateManager.dispose();
     });
-       before(() => {
-            OPCUAServer.registry.count().should.eql(0);     
-            OPCUAClientBase.registry.count().should.eql(0);
-        });
+    before(() => {
+        OPCUAServer.registry.count().should.eql(0);
+        OPCUAClientBase.registry.count().should.eql(0);
+    });
 
-        after(async () => {
-            OPCUAServer.registry.count().should.eql(0);
-            OPCUAClientBase.registry.count().should.eql(0);
-        });
+    after(async () => {
+        OPCUAServer.registry.count().should.eql(0);
+        OPCUAClientBase.registry.count().should.eql(0);
+    });
 
     // typescripts tests starts here...
     require("./u_test_discovery_server").t(this);

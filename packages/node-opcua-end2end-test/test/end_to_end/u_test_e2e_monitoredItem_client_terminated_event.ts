@@ -1,22 +1,19 @@
-"use strict";
-
-import sinon from "sinon";
-
 import {
-    OPCUAClient,
-    ClientSubscription,
     AttributeIds,
-    resolveNodeId,
     ClientMonitoredItem,
     ClientMonitoredItemGroup,
-    TimestampsToReturn,
+    ClientSubscription,
+    OPCUAClient,
+    resolveNodeId,
+    TimestampsToReturn
 } from "node-opcua";
-import { describeWithLeakDetector  as describe } from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
 export function t(test: any) {
-    describe("Testing ClientMonitoredItem#on('terminated') event", function () {
+    describe("Testing ClientMonitoredItem#on('terminated') event", () => {
         let client: OPCUAClient;
-        let endpointUrl: string;
+        let _endpointUrl: string;
 
         beforeEach(async () => {
             if ((process as any).gc) {
@@ -28,9 +25,9 @@ export function t(test: any) {
             client.on("backoff", () => {
                 console.log("backoff");
             });
-            endpointUrl = test.endpointUrl;
+            _endpointUrl = test.endpointUrl;
 
-            client.on("lifetime_75", (token) => console.log("token about to expire", token ? token.toString() : "" ));
+            client.on("lifetime_75", (token) => console.log("token about to expire", token ? token.toString() : ""));
             if (false) {
                 client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
                 client.on("receive_chunk", (buf) => console.log("chunk <= ", buf.length));
@@ -42,7 +39,7 @@ export function t(test: any) {
         });
 
         async function common(
-            preset: (subscription: ClientSubscription) => Promise<void>, 
+            preset: (subscription: ClientSubscription) => Promise<void>,
             next: (subscription: ClientSubscription) => Promise<void>
         ) {
             await client.withSessionAsync(test.endpointUrl, async (session) => {
@@ -52,14 +49,14 @@ export function t(test: any) {
                     requestedMaxKeepAliveCount: 10,
                     maxNotificationsPerPublish: 20000,
                     publishingEnabled: true,
-                    priority: 6,
+                    priority: 6
                 });
 
                 await new Promise((resolve) => subscription.once("started", resolve));
 
                 try {
                     await preset(subscription);
-                } catch (err) {
+                } catch (_err) {
                     console.log("Preset has failed");
                 }
 
@@ -80,7 +77,7 @@ export function t(test: any) {
             "Scalar_Simulation_Boolean",
             "Scalar_Simulation_String",
             "Scalar_Simulation_Int64",
-            "Scalar_Simulation_LocalizedText",
+            "Scalar_Simulation_LocalizedText"
         ];
         const parameters = { samplingInterval: 10, discardOldest: true, queueSize: 1 };
 
@@ -90,7 +87,7 @@ export function t(test: any) {
             await common(
                 async (subscription: ClientSubscription) => {
                     for (const id of ids) {
-                        const nodeId = "ns=2;s=" + id;
+                        const nodeId = `ns=2;s=${id}`;
 
                         const monitoredItem = ClientMonitoredItem.create(
                             subscription,
@@ -107,10 +104,7 @@ export function t(test: any) {
                     await subscription.terminate();
                     for (const id of ids) {
                         const spy = terminatedSpies[id];
-                        spy.callCount.should.eql(
-                            1,
-                            "terminated should have been called once for monitoredItem on " + id
-                        );
+                        spy.callCount.should.eql(1, `terminated should have been called once for monitoredItem on ${id}`);
                     }
                 }
             );
@@ -124,7 +118,7 @@ export function t(test: any) {
             await common(
                 async (subscription: ClientSubscription) => {
                     for (const id of ids) {
-                        const nodeId = "ns=2;s=" + id;
+                        const nodeId = `ns=2;s=${id}`;
 
                         const monitoredItem = ClientMonitoredItem.create(
                             subscription,
@@ -146,20 +140,14 @@ export function t(test: any) {
                     }
                     for (const id of ids) {
                         const spy = terminatedSpies[id];
-                        spy.callCount.should.eql(
-                            1,
-                            "terminated should have been called once for monitoredItem on " + id
-                        );
+                        spy.callCount.should.eql(1, `terminated should have been called once for monitoredItem on ${id}`);
                     }
 
                     await subscription.terminate();
 
                     for (const id of ids) {
                         const spy = terminatedSpies[id];
-                        spy.callCount.should.eql(
-                            1,
-                            "terminated should have been called once for monitoredItem on " + id
-                        );
+                        spy.callCount.should.eql(1, `terminated should have been called once for monitoredItem on ${id}`);
                     }
                 }
             );
@@ -173,13 +161,13 @@ export function t(test: any) {
                 async (subscription) => {
                     const itemsToMonitor = [];
                     for (const id of ids) {
-                        const nodeId = "ns=2;s=" + id;
+                        const nodeId = `ns=2;s=${id}`;
                         itemsToMonitor.push({ nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value });
                     }
 
                     monitoredItemGroup = ClientMonitoredItemGroup.create(
-                        subscription, 
-                        itemsToMonitor, 
+                        subscription,
+                        itemsToMonitor,
                         parameters,
                         TimestampsToReturn.Both
                     );
@@ -192,17 +180,11 @@ export function t(test: any) {
 
                 async (subscription) => {
                     await monitoredItemGroup.terminate();
-                    terminatedSpy.callCount.should.eql(
-                        1,
-                        "terminated should have been called once for monitoredItemGroup"
-                    );
+                    terminatedSpy.callCount.should.eql(1, "terminated should have been called once for monitoredItemGroup");
 
                     await subscription.terminate();
 
-                    terminatedSpy.callCount.should.eql(
-                        1,
-                        "terminated should have been called once for monitoredItemGroup"
-                    );
+                    terminatedSpy.callCount.should.eql(1, "terminated should have been called once for monitoredItemGroup");
                 }
             );
         });
@@ -215,14 +197,14 @@ export function t(test: any) {
                 async (subscription) => {
                     const itemsToMonitor = [];
                     for (const id of ids) {
-                        const nodeId = "ns=2;s=" + id;
+                        const nodeId = `ns=2;s=${id}`;
                         itemsToMonitor.push({ nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value });
                     }
 
                     monitoredItemGroup = ClientMonitoredItemGroup.create(
-                        subscription, 
+                        subscription,
                         itemsToMonitor,
-                             parameters,
+                        parameters,
                         TimestampsToReturn.Both
                     );
 
@@ -234,12 +216,9 @@ export function t(test: any) {
 
                 async (subscription) => {
                     await subscription.terminate();
-                    terminatedSpy.callCount.should.eql(
-                        1,
-                        "terminated should have been called once for monitoredItemGroup"
-                    );
+                    terminatedSpy.callCount.should.eql(1, "terminated should have been called once for monitoredItemGroup");
                 }
             );
         });
     });
-};
+}

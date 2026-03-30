@@ -6,7 +6,8 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
-        "test": "mocha test"
+        "test": "mocha test",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

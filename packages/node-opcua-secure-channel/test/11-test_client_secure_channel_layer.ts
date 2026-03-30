@@ -1,21 +1,21 @@
+import { make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { GetEndpointsRequest } from "node-opcua-service-endpoints";
+import { packTcpMessage } from "node-opcua-transport";
+import * as fixture from "node-opcua-transport/dist/test-fixtures";
+import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
 import should from "should";
 import sinon from "sinon";
-import { make_debugLog } from "node-opcua-debug";
-import { packTcpMessage } from "node-opcua-transport";
-import { GetEndpointsRequest } from "node-opcua-service-endpoints";
-import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
-import * as fixture from "node-opcua-transport/dist/test-fixtures";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientSecureChannelLayer } from "../dist/source";
-import { MockServerTransport, fakeAcknowledgeMessage } from "../dist/test_helpers";
+import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helpers";
 
 const debugLog = make_debugLog(__filename);
 
 describe("testing ClientSecureChannelLayer ", function (this: any) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
 
-    it("should create and close a ClientSecureChannelLayer", function (done) {
+    it("should create and close a ClientSecureChannelLayer", (done) => {
         // here is a mock of the answer provided by the server
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
@@ -26,7 +26,7 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            function () {
+            () => {
                 return openSecureChannelResponse1; // OpenChannelResponse
             },
             // ---------------------------------------------------- Transaction 3
@@ -37,7 +37,7 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
                 this._mockTransport.server.end();
             },
 
-            function () {
+            () => {
                 done(new Error("no more packet to mock"));
             }
         ]);
@@ -46,17 +46,17 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
 
         const clientSecureChannel = new ClientSecureChannelLayer({});
 
-        clientSecureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+        clientSecureChannel.create("fake://localhost:2033/SomeAddress", (err) => {
             if (err) {
                 return done(err);
             }
-            clientSecureChannel.close(function (err) {
+            clientSecureChannel.close((err) => {
                 done(err);
             });
         });
     });
 
-    it("should use token provided by server in messages", function (done) {
+    it("should use token provided by server in messages", (done) => {
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
@@ -80,33 +80,30 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
 
         const secureChannel = new ClientSecureChannelLayer({});
 
-        
-        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+        secureChannel.create("fake://localhost:2033/SomeAddress", (err) => {
             if (err) {
                 return done(err);
             }
 
-          
-         
-            secureChannel.close(function (err) {
+            secureChannel.close((err) => {
                 done(err);
             });
         });
     });
 
-    it("should callback with an error if performMessageTransaction is called before connection", function (done) {
+    it("should callback with an error if performMessageTransaction is called before connection", (done) => {
         const secureChannel = new ClientSecureChannelLayer({});
 
         const message = new GetEndpointsRequest({});
 
-        secureChannel.performMessageTransaction(message, function (err /*, response*/) {
+        secureChannel.performMessageTransaction(message, (err /*, response*/) => {
             // err.message.should.equal("Client not connected");
             (err as Error).message.should.match(/ClientSecureChannelLayer => Socket is closed !/);
             done();
         });
     });
 
-    it("should expose the total number of bytes read and written", function (done) {
+    it("should expose the total number of bytes read and written", (done) => {
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
@@ -133,7 +130,7 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
         secureChannel.bytesRead.should.equal(0);
         secureChannel.bytesWritten.should.equal(0);
 
-        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
+        secureChannel.create("fake://localhost:2033/SomeAddress", (err) => {
             if (err) {
                 return done(err);
             }
@@ -147,7 +144,7 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
             const spyOnClose = sinon.spy();
             secureChannel.on("close", spyOnClose);
 
-            secureChannel.close(function (err) {
+            secureChannel.close((err) => {
                 spyOnClose.callCount.should.eql(1, "secureChannel#close must be called once");
                 done(err);
             });

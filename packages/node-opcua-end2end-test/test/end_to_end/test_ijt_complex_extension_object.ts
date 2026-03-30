@@ -1,66 +1,57 @@
 // https://reference.opcfoundation.org/Tightening/DataTypes/ResultDataType/
 import "should";
 import {
-    OPCUAServer,
-    nodesets,
-    DataType,
-    Variant,
-    standardUnits,
-    ClientSession,
-    randomGuid,
-    OPCUAClient,
+    AddressSpace,
     AttributeIds,
-    LocalizedText,
+    BinaryStream,
+    type ClientSession,
+    coerceInt64,
     coerceLocalizedText,
-    VariantOptions,
-    make_debugLog,
-    getExtraDataTypeManager,
+    coerceUInt64,
+    DataType,
     DataTypeExtractStrategy,
+    DataValue,
+    generateAddressSpace,
+    getExtraDataTypeManager,
+    type IAddressSpace,
+    LocalizedText,
+    make_debugLog,
+    nodesets,
+    OPCUAClient,
+    OPCUAServer,
+    PseudoSession,
+    promoteOpaqueStructure,
+    randomGuid,
     readNamespaceArray,
     resolveNodeId,
-    ExtensionObject,
-    IAddressSpace,
     StatusCodes,
-    DataValue,
-    AddressSpace,
-    generateAddressSpace,
-    UAVariable,
-    BinaryStream,
-    promoteOpaqueStructure,
-    PseudoSession,
-    coerceUInt64,
-    coerceInt64
+    standardUnits,
+    type UAVariable,
+    Variant,
+    type VariantOptions
 } from "node-opcua";
-
-import {
-    DTResult,
-    UDTResult,
-    UDTResultMeta
-} from "node-opcua-nodeset-machinery-result";
-
-
-import {
-    DTJoiningResultMeta,
-    DTJoiningResult,
-    UDTJoiningResultMeta,
-    UDTJoiningResult
-} from "node-opcua-nodeset-ijt-base";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+import type { DTJoiningResult, DTJoiningResultMeta, UDTJoiningResult, UDTJoiningResultMeta } from "node-opcua-nodeset-ijt-base";
+import type { DTResult, UDTResult, UDTResultMeta } from "node-opcua-nodeset-machinery-result";
 
 const debugLog = make_debugLog("TEST");
 
-interface JoiningResultMetaOptions extends Partial<DTJoiningResultMeta> { }
-interface JoiningResultOptions extends Partial<DTJoiningResult> { }
-interface ResultOptions extends Partial<DTResult> { }
+interface JoiningResultMetaOptions extends Partial<DTJoiningResultMeta> {}
+interface JoiningResultOptions extends Partial<DTJoiningResult> {}
+interface ResultOptions extends Partial<DTResult> {}
 
 const nodeId = "s=Result";
 
 const port = 2512;
 
-
 async function buildAddressSpace(addressSpace: IAddressSpace) {
-
-    debugLog(addressSpace.getNamespaceArray().map((a) => a.namespaceUri).join("\n"));
+    debugLog(
+        addressSpace
+            .getNamespaceArray()
+            .map((a) => a.namespaceUri)
+            .join("\n")
+    );
 
     const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/Tightening/");
     if (nsTightening === -1) throw new Error("cannot find Tightening namespace");
@@ -83,14 +74,11 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
     const JoiningResultDataType = addressSpace.findDataType("JoiningResultDataType", nsIJTBase);
     if (!JoiningResultDataType) throw new Error("cannot find JoiningResultDataType");
 
-
     const EntityDataType = addressSpace.findDataType("EntityDataType", nsIJTBase);
     if (!EntityDataType) throw new Error("cannot find EntityDataType");
 
-
     const joiningResultMetaDataInfo: JoiningResultMetaOptions = {
-
-        resultId: 'DB751F14-76CE-D949-A557-384FCC8126D4',
+        resultId: "DB751F14-76CE-D949-A557-384FCC8126D4",
         hasTransferableDataOnFile: undefined,
         isPartial: false,
         isSimulated: true,
@@ -106,28 +94,27 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
         creationTime: new Date(),
         processingTimes: {
             endTime: new Date(),
-            startTime: new Date(new Date().getTime() - 1000000),
+            startTime: new Date(Date.now() - 1000000),
             acquisitionDuration: 1000000,
-            processingDuration: 100,
+            processingDuration: 100
         },
         resultUri: undefined,
         resultEvaluation: 1,
         assemblyType: 1,
         associatedEntities: [
             {
-                name: 'VIN',
-                description: 'Vehicle Identification Number',
-                entityId: '4Y1SL65848Z411439',
-                entityOriginId: '',
+                name: "VIN",
+                description: "Vehicle Identification Number",
+                entityId: "4Y1SL65848Z411439",
+                entityOriginId: "",
                 isExternal: true,
                 entityType: 20
-
             },
             {
-                name: 'ProgramId',
-                description: 'Program_4_Steps',
-                entityId: '0952E9B4-05F6-4B43-B66C-B8027FBE966A',
-                entityOriginId: 'DCCA6C76-3926-455B-959B-EA3082FCD091',
+                name: "ProgramId",
+                description: "Program_4_Steps",
+                entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
                 isExternal: false,
                 entityType: 27
             },
@@ -137,22 +124,24 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
                 description: "aa",
                 entityOriginId: "AAA",
                 isExternal: false,
-                name: "AAA",
+                name: "AAA"
             }
         ],
         classification: 1,
         description: new LocalizedText({ text: "AAA" }),
         sequenceNumber: coerceInt64(32),
-        joiningTechnology: coerceLocalizedText({ locale: 'en', text: 'Tightening' })!,
+        joiningTechnology: coerceLocalizedText({ locale: "en", text: "Tightening" })!,
         operationMode: 1,
         name: "AAA",
         resultEvaluationCode: coerceInt64(12),
         resultEvaluationDetails: new LocalizedText({ text: "AAA" }),
-        resultCounters: [{
-            name: "1",
-            counterValue: 1,
-            counterType: 1
-        }],
+        resultCounters: [
+            {
+                name: "1",
+                counterValue: 1,
+                counterType: 1
+            }
+        ]
     };
     const example2: JoiningResultOptions = {
         overallResultValues: [
@@ -180,9 +169,8 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
             {
                 errorType: 1,
                 errorId: "1",
-                errorMessage: coerceLocalizedText("message")!,
-
-            },
+                errorMessage: coerceLocalizedText("message")!
+            }
         ],
         failureReason: 1,
         failingStepResultId: randomGuid(),
@@ -211,17 +199,18 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
                     }
                 ]
             }
-        ],
+        ]
     };
-    const joiningResultMetaData = addressSpace.constructExtensionObject(JoiningResultMetaDataType, joiningResultMetaDataInfo) as UDTJoiningResultMeta;
+    const joiningResultMetaData = addressSpace.constructExtensionObject(
+        JoiningResultMetaDataType,
+        joiningResultMetaDataInfo
+    ) as UDTJoiningResultMeta;
 
     const resultContent1 = addressSpace.constructExtensionObject(JoiningResultDataType, example2) as UDTJoiningResult;
 
     const result = addressSpace.constructExtensionObject(ResultDataType, <ResultOptions>{
         resultMetaData: joiningResultMetaData,
-        resultContent: [
-            new Variant({ dataType: DataType.ExtensionObject, value: resultContent1 })
-        ]
+        resultContent: [new Variant({ dataType: DataType.ExtensionObject, value: resultContent1 })]
     }) as UDTResult;
 
     const namespace = addressSpace.getOwnNamespace();
@@ -250,18 +239,11 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
     });
     debugLog("--------------------------");
     debugLog(joiningResultMetaData.toString());
-
-
-
-
 }
 
-
 describe("X-test complex dataStructure in tightening - server side", () => {
-
     let addressSpace: AddressSpace;
     before(async () => {
-
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
@@ -274,12 +256,10 @@ describe("X-test complex dataStructure in tightening - server side", () => {
             nodesets.tightening
         ]);
         await buildAddressSpace(addressSpace);
-
     });
     after(() => {
         addressSpace.dispose();
     });
-
 
     async function testDataValueEncodingDecoding(addressSpace: IAddressSpace, dataValue: DataValue) {
         console.log(dataValue.toString());
@@ -299,20 +279,16 @@ describe("X-test complex dataStructure in tightening - server side", () => {
         dataValue.toString().should.eql(reloaded.toString());
     }
     it("X-TestMeta: should read a complex data structure", async () => {
-
         const node = addressSpace.findNode("ns=1;s=TestMeta") as UAVariable;
         node.should.not.eql(null);
-        const dataValue: DataValue = node!.readValue();
+        const dataValue: DataValue = node?.readValue();
         await testDataValueEncodingDecoding(addressSpace, dataValue);
-
     });
     it("X-Result: should read a complex data structure", async () => {
-
         const node = addressSpace.findNode("ns=1;s=Result") as UAVariable;
         node.should.not.eql(null);
-        const dataValue: DataValue = node!.readValue();
+        const dataValue: DataValue = node?.readValue();
         await testDataValueEncodingDecoding(addressSpace, dataValue);
-
     });
 });
 async function buildServer() {
@@ -341,7 +317,6 @@ async function buildServer() {
 }
 
 describe("test complex dataStructure in tightening", function (this: Mocha.Suite) {
-
     this.timeout(Math.max(this.timeout(), 60000));
 
     let server: OPCUAServer;
@@ -352,7 +327,6 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
         await server.shutdown();
     });
     it("should read a complex data structure", async () => {
-
         const endpointUrl = server.getEndpointUrl();
 
         const client = OPCUAClient.create({
@@ -361,7 +335,7 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
 
         const result: UDTResult = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const d = await session.read({
-                nodeId: "ns=1;" + nodeId,
+                nodeId: `ns=1;${nodeId}`,
                 attributeId: AttributeIds.Value
             });
             return d.value.value as UDTResult;
@@ -372,10 +346,9 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
         const resultContent = result.resultContent[0] as VariantOptions;
 
         debugLog(resultContent.toString());
-        resultContent.dataType!.should.eql(DataType.ExtensionObject);
-        resultContent.value!.should.be.instanceOf(Object);
-        resultContent.value!.constructor.schema.name.should.eql("JoiningResultDataType");
-
+        resultContent.dataType?.should.eql(DataType.ExtensionObject);
+        resultContent.value?.should.be.instanceOf(Object);
+        resultContent.value?.constructor.schema.name.should.eql("JoiningResultDataType");
     });
 
     it("should encode and decode derived Union DataType", async () => {
@@ -386,8 +359,6 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
         });
 
         const resultMeta: UDTResultMeta = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
-
-
             const namespaceArray = await readNamespaceArray(session);
             const ijt = namespaceArray.indexOf("http://opcfoundation.org/UA/IJT/Base/");
             if (ijt === -1) {
@@ -398,71 +369,69 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
 
             const jointResultMetaDataTypeNodeId = resolveNodeId(`ns=${ijt};i=3020`);
 
-            const extObj = await session.constructExtensionObject(jointResultMetaDataTypeNodeId,
-                <DTJoiningResultMeta>{
-                    resultId: 'DB751F14-76CE-D949-A557-384FCC8126D5',
-                    hasTransferableDataOnFile: false,
-                    isPartial: false,
-                    isSimulated: true,
-                    resultState: 1,
-                    stepId: undefined,
-                    partId: undefined,
-                    externalRecipeId: undefined,
-                    internalRecipeId: undefined,
-                    productId: undefined,
-                    externalConfigurationId: undefined,
-                    internalConfigurationId: undefined,
-                    jobId: undefined,
-                    creationTime: new Date(),
-                    processingTimes: {
-                        startTime: new Date(),
-                        endTime: new Date(),
-                        acquisitionDuration: 100,
-                        processingDuration: 50
+            const extObj = await session.constructExtensionObject(jointResultMetaDataTypeNodeId, (<DTJoiningResultMeta>{
+                resultId: "DB751F14-76CE-D949-A557-384FCC8126D5",
+                hasTransferableDataOnFile: false,
+                isPartial: false,
+                isSimulated: true,
+                resultState: 1,
+                stepId: undefined,
+                partId: undefined,
+                externalRecipeId: undefined,
+                internalRecipeId: undefined,
+                productId: undefined,
+                externalConfigurationId: undefined,
+                internalConfigurationId: undefined,
+                jobId: undefined,
+                creationTime: new Date(),
+                processingTimes: {
+                    startTime: new Date(),
+                    endTime: new Date(),
+                    acquisitionDuration: 100,
+                    processingDuration: 50
+                },
+                resultUri: undefined,
+                resultEvaluation: 1,
+                resultEvaluationCode: coerceInt64(10),
+                resultEvaluationDetails: new LocalizedText({ locale: "en", text: "OK TIGHTENING" }),
+                fileFormat: undefined,
+                joiningTechnology: new LocalizedText({ locale: "en", text: "Tightening" }),
+                sequenceNumber: coerceUInt64(20),
+                name: "Single:Tightening:Result:2",
+                description: new LocalizedText({ locale: "en", text: "Single:Tightening:Result:2" }),
+                classification: 1,
+                operationMode: 2,
+                assemblyType: 1,
+                associatedEntities: [
+                    {
+                        name: "VIN",
+                        description: "Vehicle Identification Number",
+                        entityId: "4Y1SL65848Z411439",
+                        entityOriginId: "",
+                        isExternal: true,
+                        entityType: 20
                     },
-                    resultUri: undefined,
-                    resultEvaluation: 1,
-                    resultEvaluationCode: coerceInt64(10),
-                    resultEvaluationDetails: new LocalizedText({ locale: 'en', text: 'OK TIGHTENING' }),
-                    fileFormat: undefined,
-                    joiningTechnology: new LocalizedText({ locale: 'en', text: 'Tightening' }),
-                    sequenceNumber: coerceUInt64(20),
-                    name: 'Single:Tightening:Result:2',
-                    description: new LocalizedText({ locale: 'en', text: 'Single:Tightening:Result:2' }),
-                    classification: 1,
-                    operationMode: 2,
-                    assemblyType: 1,
-                    associatedEntities: [
-                        {
-                            name: 'VIN',
-                            description: 'Vehicle Identification Number',
-                            entityId: '4Y1SL65848Z411439',
-                            entityOriginId: '',
-                            isExternal: true,
-                            entityType: 20
-                        },
-                        {
-                            name: 'ProgramId',
-                            description: 'Program_4_Steps',
-                            entityId: '0952E9B4-05F6-4B43-B66C-B8027FBE966A',
-                            entityOriginId: 'DCCA6C76-3926-455B-959B-EA3082FCD091',
-                            isExternal: false,
-                            entityType: 27
-                        },
-                        {
-                            name: 'ProgramId',
-                            description: 'Program_4_Steps',
-                            entityId: '0952E9B4-05F6-4B43-B66C-B8027FBE966A',
-                            entityOriginId: 'DCCA6C76-3926-455B-959B-EA3082FCD091',
-                            isExternal: false,
-                            entityType: 27
-
-                        },
-                    ],
-                    interventionType: 0,
-                    isGeneratedOffline: false,
-                    extendedMetaData: undefined,
-                } as any);
+                    {
+                        name: "ProgramId",
+                        description: "Program_4_Steps",
+                        entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                        entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
+                        isExternal: false,
+                        entityType: 27
+                    },
+                    {
+                        name: "ProgramId",
+                        description: "Program_4_Steps",
+                        entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                        entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
+                        isExternal: false,
+                        entityType: 27
+                    }
+                ],
+                interventionType: 0,
+                isGeneratedOffline: false,
+                extendedMetaData: undefined
+            }) as any);
 
             const statusCode = await session.write({
                 nodeId: "ns=1;s=TestMeta",
@@ -473,7 +442,6 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
             });
             statusCode.should.eql(StatusCodes.Good);
 
-
             const d = await session.read({
                 nodeId: "ns=1;s=TestMeta",
                 attributeId: AttributeIds.Value
@@ -482,7 +450,5 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
         });
 
         debugLog(resultMeta.toString());
-
-
-    })
+    });
 });

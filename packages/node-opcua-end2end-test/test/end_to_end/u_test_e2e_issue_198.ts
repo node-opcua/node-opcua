@@ -2,7 +2,11 @@ import "should";
 import { OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Issue #198
@@ -19,7 +23,7 @@ export function t(test: TestHarness) {
             const client = OPCUAClient.create({});
 
             // Hijack internal method _nextSessionName to return null
-            (client as any)._nextSessionName = function () { return null; };
+            (client as any)._nextSessionName = () => null;
 
             let session: any;
             try {

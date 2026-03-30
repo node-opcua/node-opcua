@@ -4,27 +4,26 @@
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { TimestampsToReturn } from "node-opcua-data-value";
+import type { TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
     CreateMonitoredItemsRequest,
-    CreateMonitoredItemsResponse,
+    type CreateMonitoredItemsResponse,
     ModifyMonitoredItemsRequest,
     ModifyMonitoredItemsResponse,
     MonitoredItemModifyRequest,
-    MonitoredItemModifyResult,
-    MonitoringMode,
-    SetMonitoringModeResponse
+    type MonitoredItemModifyResult,
+    type MonitoringMode,
+    type SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
+import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { MonitoredItemCreateRequestOptions, MonitoringParametersOptions } from "node-opcua-types";
-import { ClientMonitoredItemBase } from "./client_monitored_item_base";
-import { SetMonitoringModeRequestLike } from "./client_session";
-import { ClientSubscription } from "./client_subscription";
-import { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
-import { ClientSessionImpl } from "./private/client_session_impl";
+import type { MonitoredItemCreateRequestOptions, MonitoringParametersOptions } from "node-opcua-types";
+import type { ClientMonitoredItemBase } from "./client_monitored_item_base";
+import type { SetMonitoringModeRequestLike } from "./client_session";
+import type { ClientSubscription } from "./client_subscription";
+import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
+import type { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

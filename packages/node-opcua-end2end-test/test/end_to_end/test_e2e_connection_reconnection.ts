@@ -1,40 +1,38 @@
 /* eslint-disable max-statements */
-"use strict";
-import { Socket } from "net";
-import fs from "fs";
-import os from "os";
-import should from "should";
+
+import fs from "node:fs";
+import type { Socket } from "node:net";
+import os from "node:os";
+import chalk from "chalk";
 import {
+    AttributeIds,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    type ConnectionStrategy,
+    type ConnectionStrategyOptions,
     DataType,
     MessageSecurityMode,
-    SecurityPolicy,
-    ClientSubscription,
-    AttributeIds,
     OPCUAClient,
+    type OPCUAServer,
+    SecurityPolicy,
     StatusCodes,
-    ClientMonitoredItem,
-    Variant,
     TimestampsToReturn,
-    OPCUAServer,
-    NodeId,
-    UAVariable,
-    ClientSession,
-    ConnectionStrategy,
-    ConnectionStrategyOptions
+    type UAVariable,
+    Variant
 } from "node-opcua";
-import chalk from "chalk";
+import should from "should";
 import "mocha";
-import { readCertificate } from "node-opcua-crypto";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { readCertificateChain } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { make_debugLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const port = 2014;
-
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -63,12 +61,12 @@ const infinite_connectivity_strategy = {
 };
 
 import { fAsync } from "../../test_helpers/display_function_name";
+
 const f = fAsync.bind(null, doDebug);
 
 describe("KJH1 testing basic Client-Server communication", function (this: Mocha.Test) {
     let server: OPCUAServer;
     let client: OPCUAClient;
-    let temperatureVariableId: NodeId;
     let endpointUrl: string;
 
     this.timeout(Math.max(20000, this.timeout()));
@@ -76,7 +74,6 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
     before(async () => {
         server = await build_server_with_temperature_device({ port });
         endpointUrl = server.getEndpointUrl();
-        temperatureVariableId = (server as any).temperatureVariableId;
     });
 
     beforeEach(async () => {
@@ -86,13 +83,13 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
             endpointMustExist: false
         };
         client = OPCUAClient.create(options);
-        client.on("connection_reestablished", function () {
+        client.on("connection_reestablished", () => {
             debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
-        client.on("backoff", function (number, delay) {
+        client.on("backoff", (number, delay) => {
             debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
         });
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", () => {
             debugLog(chalk.bgWhite.black(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
     });
@@ -127,7 +124,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         server.currentChannelCount.should.equal(0);
 
         debugLog(" connect");
-        let _err: Error | undefined = undefined;
+        let _err: Error | undefined;
         try {
             await client.connect(endpointUrl);
         } catch (err) {
@@ -167,15 +164,15 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         (client as any).protocolVersion = 0;
 
         const unused_port = 8909;
-        const bad_endpointUrl = "opc.tcp://" + os.hostname() + ":" + unused_port;
+        const bad_endpointUrl = `opc.tcp://${os.hostname()}:${unused_port}`;
 
-        let _err: Error | undefined = undefined;
+        let _err: Error | undefined;
         try {
             await client.connect(bad_endpointUrl);
         } catch (err) {
             _err = err as Error;
         }
-        _err!.message.should.match(/connect ECONNREFUSED|The connection may have been rejected by server/);
+        _err?.message.should.match(/connect ECONNREFUSED|The connection may have been rejected by server/);
 
         await client.connect(endpointUrl);
         await client.disconnect();
@@ -214,7 +211,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         // the HostName in the endpointUrl of the EndpointDescription. Mismatches shall be reported and may
         // lead to channel closure. Here we append garbage to the valid endpoint to force the mismatch.
         (client as any).endpointMustExist = true;
-        const badEndpoint = endpointUrl + "/someCrap";
+        const badEndpoint = `${endpointUrl}/someCrap`;
 
         let connectSucceeded = false;
         let connectErr: Error | undefined;
@@ -247,26 +244,25 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         (client as any).protocolVersion = 0;
         await client.connect(endpointUrl);
 
-        let _err: Error | undefined = undefined;
+        let _err: Error | undefined;
         try {
             await client.connect(endpointUrl);
         } catch (err) {
             _err = err as Error;
         }
         await client.disconnect();
-        _err!.should.be.instanceOf(Error);
+        _err?.should.be.instanceOf(Error);
     });
 });
 
 describe("KJH2 testing ability for client to reconnect when server close connection", function (this: Mocha.Test) {
     this.timeout(Math.max(60000, this.timeout()));
 
-    let server: OPCUAServer | undefined = undefined;
+    let server: OPCUAServer | undefined;
     let endpointUrl: string;
-    let temperatureVariableId: NodeId;
 
     let counterNode: UAVariable;
-    let timerId: NodeJS.Timeout | undefined = undefined;
+    let timerId: NodeJS.Timeout | undefined;
     // -----------------------------------------------------------------------------------------------------------------
     // Common Steps
     // -----------------------------------------------------------------------------------------------------------------
@@ -277,27 +273,30 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         }
         const clientCertificateFilename = client.certificateFile;
         fs.existsSync(clientCertificateFilename).should.eql(true, " certificate must exist");
-        const certificate = readCertificate(clientCertificateFilename);
+        const certificateChain = readCertificateChain(clientCertificateFilename);
+        const certificate = certificateChain[0];
         await server.serverCertificateManager.trustCertificate(certificate);
     }
 
     async function start_demo_server_async() {
         server = await build_server_with_temperature_device({ port });
 
-        endpointUrl = server!.getEndpointUrl();
-        temperatureVariableId = (server as any).temperatureVariableId;
+        endpointUrl = server.getEndpointUrl();
 
-        const namespace = server!.engine.addressSpace!.getOwnNamespace();
+        const namespace = server.engine.addressSpace?.getOwnNamespace();
+        if (!namespace) {
+            throw new Error("namespace not found");
+        }
 
         let c = 0;
 
         counterNode = namespace.addVariable({
             browseName: "Counter",
-            organizedBy: server!.engine.addressSpace!.rootFolder.objects,
+            organizedBy: server?.engine.addressSpace?.rootFolder.objects,
             dataType: "UInt32",
             value: new Variant({ dataType: DataType.UInt32, value: c })
         });
-        timerId = setInterval(function () {
+        timerId = setInterval(() => {
             c = c + 1;
             counterNode.setValueFromSource(new Variant({ dataType: "UInt32", value: c }), StatusCodes.Good);
         }, 100);
@@ -309,7 +308,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             clearInterval(timerId);
             timerId = undefined;
         }
-        await server!.shutdown();
+        await server?.shutdown();
         server = undefined;
     }
 
@@ -322,11 +321,11 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     // -----------------------------------------------------------------------------------------------------------------
     async function suspend_demo_server() {
-        await server!.suspendEndPoints();
+        await server?.suspendEndPoints();
     }
 
     async function resume_demo_server() {
-        await server!.resumeEndPoints();
+        await server?.resumeEndPoints();
     }
 
     async function restart_server() {
@@ -335,12 +334,12 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     async function verify_that_server_has_no_active_channel() {
-        server!.currentChannelCount.should.equal(0);
+        server?.currentChannelCount.should.equal(0);
     }
 
     async function wait_for(duration: number): Promise<void> {
         await new Promise<void>((resolve) => {
-            setTimeout(function () {
+            setTimeout(() => {
                 resolve();
             }, duration);
         });
@@ -350,18 +349,14 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await wait_for(800);
     }
 
-    let client: OPCUAClient | undefined = undefined;
+    let client: OPCUAClient | undefined;
     let client_has_received_close_event = 0;
     let client_has_received_start_reconnection_event = 0;
-    let client_has_received_connection_reestablished_event = 0;
     let client_has_received_connection_lost_event = 0;
 
     let backoff_counter = 0;
-    let requestedSessionTimeout = 30000;
 
-    beforeEach(() => {
-        requestedSessionTimeout = 30000;
-    });
+    beforeEach(() => {});
     afterEach(() => {
         should.not.exist(client, "client must have been disposed");
     });
@@ -385,13 +380,9 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         });
         client_has_received_close_event = 0;
         client_has_received_start_reconnection_event = 0;
-        client_has_received_connection_reestablished_event = 0;
         client_has_received_connection_lost_event = 0;
 
-        client.on("close", (err: Error) => {
-            if (err) {
-                //xx console.log("err=", err.message);
-            }
+        client.on("close", () => {
             client_has_received_close_event += 1;
         });
 
@@ -404,11 +395,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             debugLog(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
             backoff_counter += 1;
         });
-        client.on("connection_reestablished", function () {
-            client_has_received_connection_reestablished_event += 1;
+        client.on("connection_reestablished", () => {
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
         });
-        client.on("connection_lost", function () {
+        client.on("connection_lost", () => {
             client_has_received_connection_lost_event += 1;
             debugLog(chalk.whiteBright(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION LOST !!!!!!!!!!!!!!!!!!!"));
         });
@@ -416,19 +406,19 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await trustClientCertificateOnServer(client, server!);
 
         if (_options.doNotWaitForConnection) {
-            client!.connect(endpointUrl);
+            client?.connect(endpointUrl);
         } else {
-            await client!.connect(endpointUrl);
+            await client?.connect(endpointUrl);
         }
     }
 
     async function disconnect_client() {
-        await client!.disconnect();
+        await client?.disconnect();
         client = undefined;
     }
 
     async function disconnect_client_while_reconnecting() {
-        await client!.disconnect();
+        await client?.disconnect();
     }
 
     async function reset_backoff_counter() {
@@ -467,7 +457,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     async function verify_that_client_is_trying_to_connect() {
         // wait a little bit and check that client has started the reconnection process
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        client!.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
+        client?.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
     }
 
     async function _waitUntil(lambda: () => boolean, timeout: number, errorMessage: string): Promise<void> {
@@ -501,7 +491,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function verify_that_client_is_NOT_trying_to_reconnect(): Promise<void> {
         await new Promise<void>((resolve, reject) => {
-            setImmediate(function () {
+            setImmediate(() => {
                 if (!client) {
                     return resolve();
                 }
@@ -517,7 +507,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function wait_for_reconnection_to_be_completed() {
         await new Promise<void>((resolve) => {
-            client!.once("after_reconnection", () => {
+            client?.once("after_reconnection", () => {
                 resolve();
             });
         });
@@ -547,7 +537,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         //---------------------------------------------------------------
 
         async function reuse_same_client_to_reconnect_to_server() {
-            await client!.connect(endpointUrl);
+            await client?.connect(endpointUrl);
         }
 
         await f(start_demo_server);
@@ -663,7 +653,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
     it("TR14 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", async () => {
-        const endpointUrl = `opc.tcp://${os.hostname()}:11111`; // uri of an unavailable opcua server
+        const _endpointUrl = `opc.tcp://${os.hostname()}:11111`; // uri of an unavailable opcua server
 
         // use robust connectionStrategy
         await f(
@@ -683,15 +673,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await f(verify_that_client_is_NOT_trying_to_reconnect);
     });
 
-    let session: ClientSession | undefined = undefined;
+    let session: ClientSession | undefined;
     async function client_create_and_activate_session() {
-        session = await client!.createSession();
+        session = await client?.createSession();
     }
 
-    let subscription: ClientSubscription | undefined = undefined;
+    let subscription: ClientSubscription | undefined;
 
     async function create_subscription() {
-        subscription = await session!.createSubscription2({
+        subscription = await session?.createSubscription2({
             requestedPublishingInterval: 250,
             requestedLifetimeCount: 12000,
             requestedMaxKeepAliveCount: 4 * 60 * 2, // 4 x 250 ms * 60* 2 = 2 min
@@ -703,15 +693,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function terminate_subscription() {
         //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
-        subscription!.on("terminated", function () {
+        subscription?.on("terminated", () => {
             //xx console.log(" subscription.publish_engine.subscriptionCount", subscription.publish_engine.subscriptionCount);
         });
-        await subscription!.terminate();
+        await subscription?.terminate();
     }
 
     let values_to_check: any[] = [];
 
-    let monitoredItem: ClientMonitoredItem | undefined = undefined;
+    let monitoredItem: ClientMonitoredItem | undefined;
 
     async function monitor_monotonous_counter() {
         if (monitoredItem) {
@@ -721,7 +711,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             // return callback(new Error("Already monitoring"));
         }
 
-        monitoredItem = await subscription!.monitor(
+        monitoredItem = await subscription?.monitor(
             {
                 // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime);
                 nodeId: counterNode.nodeId,
@@ -735,7 +725,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
             TimestampsToReturn.Both
         );
 
-        monitoredItem!.on("changed", function (dataValue) {
+        monitoredItem?.on("changed", (dataValue) => {
             if (doDebug) {
                 debugLog(" client ", " received value change ", dataValue.value.toString());
             }
@@ -745,7 +735,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function wait_until_next_notification() {
         await new Promise((resolve) => {
-            monitoredItem!.once("changed", function (dataValue) {
+            monitoredItem?.once("changed", (_dataValue) => {
                 setTimeout(resolve, 1);
             });
         });
@@ -755,7 +745,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     afterEach(async () => {
         if (monitoredItem) {
-            monitoredItem!.removeAllListeners();
+            monitoredItem?.removeAllListeners();
             monitoredItem = undefined;
         }
     });
@@ -822,15 +812,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function get_server_side_subscription() {
-        const channels = (server!.endpoints[0] as any)._channels;
+        const channels = (server?.endpoints[0] as any)._channels;
         debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
         //xx assert(Object.keys(server.engine._sessions).length === 1);
 
-        const sessionKey = Object.keys((server!.engine as any)._sessions)[0];
-        const session = (server!.engine as any)._sessions[sessionKey];
+        const sessionKey = Object.keys((server?.engine as any)._sessions)[0];
+        const session = (server?.engine as any)._sessions[sessionKey];
 
         const subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
         subscriptionKeys.length.should.eql(1);
@@ -850,7 +840,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         _subscription._life_time_counter = _subscription.lifeTimeCount - 1;
 
         await new Promise((resolve) => {
-            subscription.once("terminated", function () {
+            subscription.once("terminated", () => {
                 setImmediate(resolve);
             });
         });
@@ -987,27 +977,23 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         //
         let client_has_received_close_event = 0;
         let client_has_received_connected_event = 0;
-        let client_has_received_start_reconnection_event = 0;
 
         const options = { connectionStrategy: infinite_connectivity_strategy };
         const client = OPCUAClient.create(options);
 
-        client.on("close", (err: Error) => {
-            if (err) {
-                console.log("err=", err.message);
-            }
+        client.on("close", () => {
             client_has_received_close_event += 1;
         });
         client.on("connected", () => {
             client_has_received_connected_event += 1;
         });
 
-        client.on("start_reconnection", function () {
+        client.on("start_reconnection", () => {
             client_has_received_start_reconnection_event += 1;
         });
 
         let backoff_event_counter = 0;
-        client.on("backoff", function () {
+        client.on("backoff", () => {
             backoff_event_counter += 1;
         });
 
@@ -1018,10 +1004,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         // the client with indefinitely try to connect, causing the callback function
         // passed to the client#connect method not to be called.
         let connect_done = false;
-        let connect_err: Error | undefined = undefined;
+        let _connect_err: Error | undefined;
         (async () => {
-            client.connect(endpointUrl, function (err) {
-                connect_err = err;
+            client.connect(endpointUrl, (err) => {
+                _connect_err = err;
                 //xx console.log("client.connect(err) err = ",err);
                 connect_done = true;
             });
@@ -1029,7 +1015,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
         async function waitBackoff() {
             await new Promise<void>((resolve) => {
-                client.once("backoff", function (/*number,delay*/) {
+                client.once("backoff", (/*number,delay*/) => {
                     resolve();
                 });
             });

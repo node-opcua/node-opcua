@@ -1,27 +1,27 @@
 import "should";
 import {
-    PublishRequest,
-    PublishResponse,
+    type ClientSession,
     CreateMonitoredItemsRequest,
     CreateMonitoredItemsResponse,
-    TimestampsToReturn,
-    MonitoringMode,
-    VariableIds,
-    makeNodeId,
     CreateSubscriptionRequest,
     CreateSubscriptionResponse,
     DeleteMonitoredItemsRequest,
-    DeleteMonitoredItemsResponse,
+    type DeleteMonitoredItemsResponse,
     DeleteSubscriptionsRequest,
     DeleteSubscriptionsResponse,
-    ClientSession,
-    SubscriptionId,
-    StatusCode
+    MonitoringMode,
+    makeNodeId,
+    PublishRequest,
+    PublishResponse,
+    type StatusCode,
+    type SubscriptionId,
+    TimestampsToReturn,
+    VariableIds
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_client_server_session, ClientServerSession } from "../test_helpers/build_client_server_session";
-import { wait } from "../test_helpers/utils";
 import { assertThrow } from "../test_helpers/assert_throw";
+import { build_client_server_session, type ClientServerSession } from "../test_helpers/build_client_server_session";
+import { wait } from "../test_helpers/utils";
 
 const port = 2020;
 // eslint-disable-next-line import/order
@@ -35,7 +35,6 @@ describe("testing basic Client Server dealing with subscription at low level", f
         deleteMonitoredItems: (request: DeleteMonitoredItemsRequest) => Promise<DeleteMonitoredItemsResponse>;
         publish: (request: PublishRequest) => Promise<PublishResponse>;
         setPublishingMode(publishingEnabled: boolean, subscriptionIds: SubscriptionId[]): Promise<StatusCode[]>;
-
     };
     let client_server: ClientServerSession;
 
@@ -49,7 +48,6 @@ describe("testing basic Client Server dealing with subscription at low level", f
     });
 
     it("server should create a subscription (CreateSubscriptionRequest)", async () => {
-
         // CreateSubscriptionRequest
         const request = new CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
@@ -62,7 +60,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
         const response = await g_session.createSubscription(request);
         response.should.be.instanceof(CreateSubscriptionResponse);
-        let subscriptionId = response.subscriptionId;
+        const subscriptionId = response.subscriptionId;
 
         await wait(0);
         const request2 = new DeleteSubscriptionsRequest({
@@ -71,13 +69,9 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
         const response2 = await g_session.deleteSubscriptions(request2);
         response2.should.be.instanceof(DeleteSubscriptionsResponse);
-
-
     });
 
     it("server should create a monitored item  (CreateMonitoredItems)", async () => {
-
-
         // CreateSubscriptionRequest
         const request = new CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
@@ -90,7 +84,7 @@ describe("testing basic Client Server dealing with subscription at low level", f
 
         const response = await g_session.createSubscription(request);
         response.should.be.instanceof(CreateSubscriptionResponse);
-        let subscriptionId = response.subscriptionId;
+        const subscriptionId = response.subscriptionId;
 
         // CreateMonitoredItemsRequest
         const request2 = new CreateMonitoredItemsRequest({
@@ -114,11 +108,9 @@ describe("testing basic Client Server dealing with subscription at low level", f
         });
         const response2 = await g_session.createMonitoredItems(request2);
         response2.should.be.instanceof(CreateMonitoredItemsResponse);
-
     });
 
     it("server should handle Publish request", async () => {
-
         // CreateSubscriptionRequest
         const request = new CreateSubscriptionRequest({
             requestedPublishingInterval: 100,
@@ -152,13 +144,12 @@ describe("testing basic Client Server dealing with subscription at low level", f
         });
         const result3 = await g_session.deleteSubscriptions(request3);
         result3.should.be.instanceOf(DeleteSubscriptionsResponse);
-
     });
 
     it("server should handle DeleteMonitoredItems  request", async () => {
         const request = new DeleteMonitoredItemsRequest({});
         await assertThrow(async () => {
-            const response = await g_session.deleteMonitoredItems(request)
+            const _response = await g_session.deleteMonitoredItems(request);
         }, /BadSubscriptionIdInvalid/);
     });
 

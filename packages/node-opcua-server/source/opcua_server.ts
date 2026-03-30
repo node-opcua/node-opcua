@@ -37,7 +37,7 @@ import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { type Certificate, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
     filterDiagnosticOperationLevel,
@@ -149,6 +149,7 @@ import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import { withCallback } from "thenify-ex";
 
 import { OPCUABaseServer, type OPCUABaseServerOptions } from "./base_server";
+import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob";
 import { Factory } from "./factory";
 import type { IChannelData } from "./i_channel_data";
 import type { IRegisterServerManager } from "./i_register_server_manager";
@@ -158,9 +159,15 @@ import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import type { SamplingFunc } from "./sampling_func";
-import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob";
 import type { ServerCapabilitiesOptions } from "./server_capabilities";
-import { type AdvertisedEndpoint, type EndpointDescriptionEx, type IServerTransportSettings, OPCUAServerEndPoint, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "./server_end_point";
+import {
+    type AdvertisedEndpoint,
+    type EndpointDescriptionEx,
+    type IServerTransportSettings,
+    normalizeAdvertisedEndpoints,
+    OPCUAServerEndPoint,
+    parseOpcTcpUrl
+} from "./server_end_point";
 import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine";
 import type { ServerSession } from "./server_session";
 import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
@@ -2113,7 +2120,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // If the securityPolicyUri is None and none of the UserTokenPolicies requires
             // encryption, the Server shall not send an ApplicationInstanceCertificate and the Client
             // shall ignore the ApplicationInstanceCertificate.
-            serverCertificate: hasEncryption ? serverCertificateChain : undefined,
+            serverCertificate: hasEncryption && serverCertificateChain.length > 0 ? combine_der(serverCertificateChain) : undefined,
 
             // The endpoints provided by the server.
             // The Server shall return a set of EndpointDescriptions available for the serverUri
@@ -3818,7 +3825,7 @@ export class OPCUAServer extends OPCUABaseServer {
             // xx                hostname,
             resourcePath: serverOption.resourcePath || "",
 
-            advertisedEndpoints: endpointOptions.advertisedEndpoints,
+            advertisedEndpoints: endpointOptions.advertisedEndpoints
 
             // TODO  userTokenTypes: endpointOptions.userTokenTypes || undefined,
 
@@ -4047,7 +4054,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData { }
+export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
@@ -4077,7 +4084,7 @@ export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCe
      */
     invalidUri: PseudoVariantString;
 }
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4089,7 +4096,7 @@ export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCerti
  * There are no additional Properties defined for this EventType.
  *
  */
-export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4099,7 +4106,7 @@ export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4109,7 +4116,7 @@ export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertifi
  * If a trust chain is involved then the certificate that failed in the trust chain should be described.
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4132,7 +4139,7 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType
  */
-export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
 
 const opts = { multiArgs: false };
 OPCUAServer.prototype.initialize = withCallback(OPCUAServer.prototype.initialize, opts);

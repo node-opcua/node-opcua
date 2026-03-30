@@ -1,21 +1,9 @@
-/* eslint-disable max-statements */
-"use strict";
-import { OPCUAClient, OPCUAServer, NodeId } from "node-opcua";
-import "mocha";
-import "should";
-import { make_debugLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { OPCUAClient, type OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { fAsync } from "../../test_helpers/display_function_name";
-
-const debugLog = make_debugLog("TEST");
-const errorLog = make_errorLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+import "should";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
 const port = 2014;
-
-
-const f=  fAsync.bind(null, doDebug);
 
 describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Test) {
     let server: OPCUAServer;
@@ -58,11 +46,11 @@ describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Te
         });
         client.isReconnecting.should.eql(true);
 
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
             (async () => {
                 server = await build_server_with_temperature_device({ port });
             })();
-            client.once("connection_reestablished", resolve);
+            client.once("connection_reestablished", () => resolve());
         });
 
         client.isReconnecting.should.eql(false);

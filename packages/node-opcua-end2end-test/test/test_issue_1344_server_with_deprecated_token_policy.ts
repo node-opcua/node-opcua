@@ -1,19 +1,19 @@
 import {
-    MessageSecurityMode,
-    OPCUAServer,
-    OPCUAClient,
-    UserTokenPolicy,
-    UserTokenType,
-    SecurityPolicy,
-    s,
     ActivateSessionRequest,
-    UserNameIdentityToken
+    MessageSecurityMode,
+    OPCUAClient,
+    OPCUAServer,
+    SecurityPolicy,
+    type UserNameIdentityToken,
+    UserTokenPolicy,
+    UserTokenType
 } from "node-opcua";
 import "should";
 
 const port = 2242;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("issue #1334 - client should avoid using userToken that have deprecated security policy like 192Rsa256 ", () => {
     const buildSecureServer = async () => {
         const server = new OPCUAServer({
@@ -53,7 +53,7 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
                 securityPolicyUri: SecurityPolicy.Basic256Sha256
             })
         ];
-        console.log(encryptedEndpoint.userIdentityTokens!.map((x) => x.toString()).join("\n"));
+        console.log(encryptedEndpoint.userIdentityTokens?.map((x) => x.toString()).join("\n"));
 
         await server.start();
         return server;
@@ -73,7 +73,7 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
         });
         await client.connect(server.getEndpointUrl());
 
-        let activeSessionRequest: ActivateSessionRequest;
+        let activeSessionRequest!: ActivateSessionRequest;
         client.on("send_request", (message) => {
             if (message instanceof ActivateSessionRequest) {
                 activeSessionRequest = message;
@@ -90,7 +90,7 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
 
         await client.disconnect();
 
-        const userToken = activeSessionRequest!.userIdentityToken! as UserNameIdentityToken;
-        userToken.policyId!.should.eql("UserName_Basic256Sha256_Token");
+        const userToken = activeSessionRequest?.userIdentityToken! as UserNameIdentityToken;
+        userToken.policyId?.should.eql("UserName_Basic256Sha256_Token");
     });
 });

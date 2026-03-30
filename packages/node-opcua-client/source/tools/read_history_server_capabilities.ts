@@ -4,15 +4,15 @@
 import { assert } from "node-opcua-assert";
 import { ObjectIds } from "node-opcua-constants";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { ReadValueIdOptions } from "node-opcua-service-read";
-import { BrowsePath, BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
+import { type BrowsePath, type BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { Variant } from "node-opcua-variant";
+import type { Variant } from "node-opcua-variant";
 
-import { ClientSession } from "../client_session";
+import type { ClientSession } from "../client_session";
 
 export interface HistoryServerCapabilities {
     [key: string]: any;
@@ -28,7 +28,14 @@ export function readHistoryServerCapabilities(
     callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
 ): any {
     if (!callback) {
-        throw new Error("Internal error");
+        return new Promise<HistoryServerCapabilities>((resolve, reject) => {
+            readHistoryServerCapabilities(session, (err, capabilities) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(capabilities!);
+            });
+        });
     }
     // display HistoryCapabilities of server
     const browsePath: BrowsePath = makeBrowsePath(ObjectIds.ObjectsFolder, "/Server/ServerCapabilities.HistoryServerCapabilities");
@@ -55,24 +62,24 @@ export function readHistoryServerCapabilities(
         const properties = [
             "AccessHistoryDataCapability",
             "AccessHistoryEventsCapability",
-          
+
             "DeleteAtTimeCapability",
             "DeleteRawCapability",
             "DeleteEventCapability",
-          
+
             "InsertAnnotationCapability",
             "InsertDataCapability",
             "InsertEventCapability",
-          
+
             "ReplaceDataCapability",
             "ReplaceEventCapability",
-          
+
             "UpdateDataCapability",
             "UpdateEventCapability",
-          
+
             "MaxReturnDataValues",
             "MaxReturnEventValues",
-          
+
             "AggregateFunctions/AnnotationCount",
             "AggregateFunctions/Average",
             "AggregateFunctions/Count",
@@ -95,9 +102,7 @@ export function readHistoryServerCapabilities(
             }
 
             const nodeIds = results.map((innerResult: BrowsePathResult) =>
-                innerResult.statusCode.isGood() && innerResult.targets
-                    ? innerResult.targets[0].targetId
-                    : new NodeId()
+                innerResult.statusCode.isGood() && innerResult.targets ? innerResult.targets[0].targetId : new NodeId()
             );
 
             const nodesToRead: ReadValueIdOptions[] = nodeIds.map((nodeId: NodeId) => ({
@@ -125,10 +130,3 @@ export function readHistoryServerCapabilities(
         });
     });
 }
-// tslint:disable:no-var-requires
-import { withCallback } from "thenify-ex";
-const opts = { multiArgs: false };
-(module as any).exports.readHistoryServerCapabilities = withCallback(
-    (module as any).exports.readHistoryServerCapabilities,
-    opts
-);

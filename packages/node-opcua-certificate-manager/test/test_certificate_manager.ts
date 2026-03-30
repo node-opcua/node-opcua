@@ -1,22 +1,17 @@
 // tslint:disable:no-console
 
-import path from "path";
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import "mocha";
 import "should";
 
-
+import { type Certificate, makeSHA1Thumbprint, readCertificateChainAsync, readCertificateRevocationList } from "node-opcua-crypto";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
-
-import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
-import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
 import { CertificateManager } from "..";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source";
 
-async function t(a: number) {
-    return await new Promise((resolve) => setTimeout(resolve, 1000));
-}
 
 // const _tmpFolder = os.tmpdir();
 const _tmpFolder = path.join(__dirname, "../temp");
@@ -74,7 +69,7 @@ async function initializeDemoCertificates() {
 }
 
 async function createFreshCertificateManager(options: OPCUACertificateManagerOptions): Promise<OPCUACertificateManager> {
-    const temporaryFolder = options.rootFolder!;
+    const temporaryFolder = options.rootFolder || "/tmp";
 
     if (fs.existsSync(temporaryFolder)) {
         fs.rmSync(temporaryFolder, { recursive: true, force: true });
@@ -85,14 +80,14 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
     return certificateMgr;
 }
 
-describe("Testing OPCUA Client Certificate Manager", function (this: any) {
+describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let certificateMgr: OPCUACertificateManager;
     let certificateMgrWithNoIssuerCert: OPCUACertificateManager;
 
-    let certificateIssuedByCA: Certificate;
-    let certificateSelfSigned: Certificate;
+    let _certificateIssuedByCAChain: Certificate[];
+    let _certificateSelfSignedChain: Certificate[];
 
     before(async () => await initializeDemoCertificates());
     after(async () => {
@@ -108,8 +103,10 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         const temporaryFolder = path.join(_tmpFolder, "testing_certificates_with_issuer");
         certificateMgr = await createFreshCertificateManager({ rootFolder: temporaryFolder });
 
-        const issuerCertificate = await readCertificate(issuerCertificateFile);
+        const issuerCertificateChain = await readCertificateChainAsync(issuerCertificateFile);
+        const issuerCertificate = issuerCertificateChain[0];
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
+
         await certificateMgr.addIssuer(issuerCertificate);
 
         await certificateMgr.trustCertificate(issuerCertificate);
@@ -117,8 +114,8 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         await certificateMgr.addRevocationList(issuerCrl);
 
         // read the various certificate to test
-        certificateIssuedByCA = await readCertificate(certificateIssuedByCAFilename);
-        certificateSelfSigned = await readCertificate(certificateSelfSignedFilename);
+        _certificateIssuedByCAChain = await readCertificateChainAsync(certificateIssuedByCAFilename);
+        _certificateSelfSignedChain = await readCertificateChainAsync(certificateSelfSignedFilename);
     });
 
     afterEach(async () => {
@@ -132,35 +129,35 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
 
     describe("With self-signed certificates", () => {
         it("AQS01- should reject a valid self-signed certificate that has never been seen before  with BadCertificateUntrusted", async () => {
-            const isTrusted = await certificateMgr.isCertificateTrusted(certificateSelfSigned);
+            const isTrusted = await certificateMgr.isCertificateTrusted(_certificateSelfSignedChain[0]);
             isTrusted.should.eql("BadCertificateUntrusted");
-            const statusCode = await certificateMgr.getTrustStatus(certificateSelfSigned);
+            const statusCode = await certificateMgr.getTrustStatus(_certificateSelfSignedChain[0]);
             statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
-            const statusCode2 = await certificateMgr.checkCertificate(certificateSelfSigned);
+            const statusCode2 = await certificateMgr.checkCertificate(_certificateSelfSignedChain[0]);
             statusCode2.should.eql(StatusCodes.BadCertificateUntrusted);
         });
         it("AQS02- should reject a valid self-signed certificate that appears in the rejected folder with BadCertificateUntrusted", async () => {
-            await certificateMgr.rejectCertificate(certificateSelfSigned);
+            await certificateMgr.rejectCertificate(_certificateSelfSignedChain[0]);
 
-            const isTrusted = await certificateMgr.isCertificateTrusted(certificateSelfSigned);
+            const isTrusted = await certificateMgr.isCertificateTrusted(_certificateSelfSignedChain[0]);
             isTrusted.should.eql("BadCertificateUntrusted");
-            const statusCode = await certificateMgr.getTrustStatus(certificateSelfSigned);
+            const statusCode = await certificateMgr.getTrustStatus(_certificateSelfSignedChain[0]);
             statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
-            const statusCode2 = await certificateMgr.checkCertificate(certificateSelfSigned);
+            const statusCode2 = await certificateMgr.checkCertificate(_certificateSelfSignedChain[0]);
             statusCode2.should.eql(StatusCodes.BadCertificateUntrusted);
 
-            await certificateMgr.trustCertificate(certificateSelfSigned);
+            await certificateMgr.trustCertificate(_certificateSelfSignedChain[0]);
         });
         it("AQS03- should accept a valid self-signed certificate that appears in the trusted certificate folder", async () => {
-            await certificateMgr.trustCertificate(certificateSelfSigned);
+            await certificateMgr.trustCertificate(_certificateSelfSignedChain[0]);
 
-            const isTrusted = await certificateMgr.isCertificateTrusted(certificateSelfSigned);
+            const isTrusted = await certificateMgr.isCertificateTrusted(_certificateSelfSignedChain[0]);
             isTrusted.should.eql("Good");
 
-            const statusCode = await certificateMgr.getTrustStatus(certificateSelfSigned);
+            const statusCode = await certificateMgr.getTrustStatus(_certificateSelfSignedChain[0]);
             statusCode.should.eql(StatusCodes.Good);
 
-            const statusCode2 = await certificateMgr.checkCertificate(certificateSelfSigned);
+            const statusCode2 = await certificateMgr.checkCertificate(_certificateSelfSignedChain);
             statusCode2.should.eql(StatusCodes.Good);
         });
     });
@@ -168,111 +165,111 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
         describe("when issuer (CA certificate) is trusted and has a revocation list", () => {
             // Not Specified => Automatically accept = FALSE
             it("AQT01- should accept a certificate (issued by CA) that has never been seen before with Good", async () => {
-                const isTrusted = await certificateMgr.isCertificateTrusted(certificateIssuedByCA);
+                const isTrusted = await certificateMgr.isCertificateTrusted(_certificateIssuedByCAChain[0]);
                 isTrusted.should.eql("BadCertificateUntrusted");
-                const statusCode = await certificateMgr.getTrustStatus(certificateIssuedByCA);
+                const statusCode = await certificateMgr.getTrustStatus(_certificateIssuedByCAChain[0]);
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-                const statusCode2 = await certificateMgr.checkCertificate(certificateIssuedByCA);
+                const statusCode2 = await certificateMgr.checkCertificate(_certificateIssuedByCAChain);
                 statusCode2.should.eql(StatusCodes.Good);
             });
             // Explicitly rejected
             it("AQT02- should reject a certificate (signed by CA) that appears in the rejected folder with BadCertificateUntrusted", async () => {
-                await certificateMgr.rejectCertificate(certificateIssuedByCA);
+                await certificateMgr.rejectCertificate(_certificateIssuedByCAChain[0]);
 
-                const isTrusted = await certificateMgr.isCertificateTrusted(certificateIssuedByCA);
+                const isTrusted = await certificateMgr.isCertificateTrusted(_certificateIssuedByCAChain[0]);
                 isTrusted.should.eql("BadCertificateUntrusted");
-                const statusCode = await certificateMgr.getTrustStatus(certificateIssuedByCA);
+                const statusCode = await certificateMgr.getTrustStatus(_certificateIssuedByCAChain[0]);
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-                await certificateMgr.trustCertificate(certificateIssuedByCA);
+                await certificateMgr.trustCertificate(_certificateIssuedByCAChain[0]);
             });
             it("AQT03- should accept a certificate (signed by CA) that appears in the trusted certificate folder - and check its validity", async () => {
-                await certificateMgr.trustCertificate(certificateIssuedByCA);
+                await certificateMgr.trustCertificate(_certificateIssuedByCAChain[0]);
 
-                const statusCode = await certificateMgr.checkCertificate(certificateIssuedByCA);
+                const statusCode = await certificateMgr.checkCertificate(_certificateIssuedByCAChain);
                 statusCode.should.eql(StatusCodes.Good);
             });
             it("AQT04- should accept a certificate (signed by CA) that appears in the trusted certificate folder", async () => {
-                await certificateMgr.trustCertificate(certificateIssuedByCA);
+                await certificateMgr.trustCertificate(_certificateIssuedByCAChain[0]);
 
-                const verif = await certificateMgr.verifyCertificate(certificateIssuedByCA);
+                const verif = await certificateMgr.verifyCertificate(_certificateIssuedByCAChain[0]);
                 verif.should.eql("Good");
 
-                const statusCode = await certificateMgr.checkCertificate(certificateIssuedByCA);
+                const statusCode = await certificateMgr.checkCertificate(_certificateIssuedByCAChain);
                 statusCode.should.eql(StatusCodes.Good);
             });
             it("AQT05- should accept a certificate (signed by CA) even if the certificate doesn't appear in the  trusted certificate folder", async () => {
-                const verif = await certificateMgr.verifyCertificate(certificateIssuedByCA, { acceptCertificateWithValidIssuerChain: true });
+                const verif = await certificateMgr.verifyCertificate(_certificateIssuedByCAChain[0], {
+                    acceptCertificateWithValidIssuerChain: true
+                });
                 verif.toString().should.eql("Good");
 
-                const statusCode = await certificateMgr.checkCertificate(certificateIssuedByCA);
+                const statusCode = await certificateMgr.checkCertificate(_certificateIssuedByCAChain);
                 statusCode.should.eql(StatusCodes.Good);
             });
         });
         describe("when issuer (CA certificate) is not trusted", () => {
             it("AQU01- should reject a certificate (signed by CA) that has never been seen before with BadCertificateUntrusted", async () => {
-                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(certificateIssuedByCA);
+                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(_certificateIssuedByCAChain[0]);
                 isTrusted.should.eql("BadCertificateUntrusted");
 
-                const statusCode = await certificateMgrWithNoIssuerCert.getTrustStatus(certificateIssuedByCA);
+                const statusCode = await certificateMgrWithNoIssuerCert.getTrustStatus(_certificateIssuedByCAChain[0]);
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
+                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
                 statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
             });
             it("AQU02- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer is not trusted !", async () => {
-                await certificateMgrWithNoIssuerCert.trustCertificate(certificateIssuedByCA);
+                await certificateMgrWithNoIssuerCert.trustCertificate(_certificateIssuedByCAChain[0]);
 
-                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(certificateIssuedByCA);
+                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(_certificateIssuedByCAChain[0]);
                 verif.should.eql("BadCertificateChainIncomplete");
 
-                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
+                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
                 statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
             });
             it("AQU03- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer certificate is also trusted  - and revocation list is missing!", async () => {
-                await certificateMgrWithNoIssuerCert.trustCertificate(certificateIssuedByCA);
+                await certificateMgrWithNoIssuerCert.trustCertificate(_certificateIssuedByCAChain[0]);
 
-                const issuerCertificate = await readCertificate(issuerCertificateFile);
-                await certificateMgrWithNoIssuerCert.trustCertificate(issuerCertificate);
+                const issuerCertificate = await readCertificateChainAsync(issuerCertificateFile);
+                await certificateMgrWithNoIssuerCert.trustCertificate(issuerCertificate[0]);
 
                 /// ==>  const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
                 /// ==>  await certificateMgrWithNoIssuerCert.addRevocationList(issuerCrl);
 
-                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(certificateIssuedByCA);
+                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(_certificateIssuedByCAChain[0]);
                 verif.should.eql("BadCertificateRevocationUnknown");
 
-                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
+                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
                 statusCode2.should.eql(StatusCodes.BadCertificateRevocationUnknown);
             });
             it("AQU04- should accept a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer certificate is also trusted  - and revocation list is known!", async () => {
-                await certificateMgrWithNoIssuerCert.trustCertificate(certificateIssuedByCA);
+                await certificateMgrWithNoIssuerCert.trustCertificate(_certificateIssuedByCAChain[0]);
 
-                const issuerCertificate = await readCertificate(issuerCertificateFile);
-                await certificateMgrWithNoIssuerCert.trustCertificate(issuerCertificate);
+                const issuerCertificate = await readCertificateChainAsync(issuerCertificateFile);
+                await certificateMgrWithNoIssuerCert.trustCertificate(issuerCertificate[0]);
 
                 const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
                 await certificateMgrWithNoIssuerCert.addRevocationList(issuerCrl);
 
-                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(certificateIssuedByCA);
+                const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(_certificateIssuedByCAChain[0]);
                 verif.should.eql("Good");
 
-                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
+                const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
                 statusCode2.should.eql(StatusCodes.Good);
             });
         });
     });
 });
 
-describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: any) {
+describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: Mocha.Suite) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let acceptingCertificateMgr: OPCUACertificateManager;
     let rejectingCertificateMgr: OPCUACertificateManager;
 
-    let certificateIssuedByCA: Certificate;
-    let certificateIssuedByCAThumbprint: string;
-    let certificateSelfSigned: Certificate;
+    let certificateSelfSignedChain: Certificate[];
     let certificateSelfSignedThumbprint: string;
 
     beforeEach(async () => {
@@ -282,13 +279,11 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
             fs.rmSync(pkiFolder, { recursive: true, force: true });
         }
 
-        certificateIssuedByCA = await readCertificate(certificateIssuedByCAFilename);
-        certificateIssuedByCAThumbprint = "NodeOPCUA[" + makeSHA1Thumbprint(certificateIssuedByCA).toString("hex") + "]";
+        certificateSelfSignedChain = await readCertificateChainAsync(certificateSelfSignedFilename);
+        certificateSelfSignedThumbprint = `NodeOPCUA[${makeSHA1Thumbprint(certificateSelfSignedChain[0]).toString("hex")}]`;
 
-        certificateSelfSigned = await readCertificate(certificateSelfSignedFilename);
-        certificateSelfSignedThumbprint = "NodeOPCUA[" + makeSHA1Thumbprint(certificateSelfSigned).toString("hex") + "]";
-
-        const issuerCertificate = await readCertificate(issuerCertificateFile);
+        const issuerCertificateChain = await readCertificateChainAsync(issuerCertificateFile);
+        const issuerCertificate = issuerCertificateChain[0];
         const issuerCrl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
 
         //        const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
@@ -320,27 +315,27 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
 
     it("BW01- should automatically accept 'unknown' self-signed certificate if  automaticallyAcceptUnknownCertificate is true", async () => {
         //
-        const statusCode = await acceptingCertificateMgr.checkCertificate(certificateSelfSigned);
+        const statusCode = await acceptingCertificateMgr.checkCertificate(certificateSelfSignedChain);
         statusCode.should.eql(StatusCodes.Good);
 
-        const trusted = path.join(acceptingCertificateMgr.rootDir, "trusted/certs/" + certificateSelfSignedThumbprint + ".pem");
+        const trusted = path.join(acceptingCertificateMgr.rootDir, `trusted/certs/${certificateSelfSignedThumbprint}.pem`);
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(true, trusted);
 
-        const rejected = path.join(acceptingCertificateMgr.rootDir, "rejected/" + certificateSelfSignedThumbprint + ".pem");
+        const rejected = path.join(acceptingCertificateMgr.rootDir, `rejected/${certificateSelfSignedThumbprint}.pem`);
         const existsInRejectedFolder = fs.existsSync(rejected);
         existsInRejectedFolder.should.eql(false, rejected);
     });
 
     it("BW02- should automatically reject 'unknown' self-signed certificate if  automaticallyAcceptUnknownCertificate is false", async () => {
-        const statusCode = await rejectingCertificateMgr.checkCertificate(certificateSelfSigned);
+        const statusCode = await rejectingCertificateMgr.checkCertificate(certificateSelfSignedChain);
         statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
-        const trusted = path.join(rejectingCertificateMgr.rootDir, "trusted/certs/" + certificateSelfSignedThumbprint + ".pem");
+        const trusted = path.join(rejectingCertificateMgr.rootDir, `trusted/certs/${certificateSelfSignedThumbprint}.pem`);
         const existsInTrustedFolder = fs.existsSync(trusted);
         existsInTrustedFolder.should.eql(false, trusted);
 
-        const rejected = path.join(rejectingCertificateMgr.rootDir, "rejected/" + certificateSelfSignedThumbprint + ".pem");
+        const rejected = path.join(rejectingCertificateMgr.rootDir, `rejected/${certificateSelfSignedThumbprint}.pem`);
         const existsInRejectedFolder = fs.existsSync(rejected);
         existsInRejectedFolder.should.eql(true, rejected);
     });

@@ -7,26 +7,25 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
+import { coerceTimestampsToReturn, type DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
-import { ReadValueId, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import { ReadValueId, type ReadValueIdOptions, type TimestampsToReturn } from "node-opcua-service-read";
 import {
-    MonitoredItemCreateResult,
-    MonitoredItemModifyResult,
+    type MonitoredItemCreateResult,
+    type MonitoredItemModifyResult,
     MonitoringMode,
     MonitoringParameters,
-    MonitoringParametersOptions
+    type MonitoringParametersOptions
 } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { Callback, ErrorCallback } from "node-opcua-status-code";
+import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { Variant } from "node-opcua-variant";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientMonitoredItemToolbox, ClientMonitoredItemBaseEx } from "../client_monitored_item_toolbox";
-import { ClientSubscription } from "../client_subscription";
-import { ClientMonitoredItem_create, ClientSubscriptionImpl } from "./client_subscription_impl";
+import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
+import type { ClientSubscription } from "../client_subscription";
+import { ClientMonitoredItem_create, type ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -35,11 +34,11 @@ const doDebug = checkDebugFlag(__filename);
 export type PrepareForMonitoringResult =
     | { error: string }
     | {
-        error?: null;
-        itemToMonitor: ReadValueIdOptions;
-        monitoringMode: MonitoringMode;
-        requestedParameters: MonitoringParameters;
-    };
+          error?: null;
+          itemToMonitor: ReadValueIdOptions;
+          monitoringMode: MonitoringMode;
+          requestedParameters: MonitoringParameters;
+      };
 
 /**
  * ClientMonitoredItem
@@ -390,6 +389,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 const opts = { multiArgs: false };
 
 ClientMonitoredItemImpl.prototype.terminate = withCallback(ClientMonitoredItemImpl.prototype.terminate);

@@ -5,7 +5,8 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "echo no test here  : see node-opcua-end-to-end"
+        "test": "echo no test here  : see node-opcua-end-to-end",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -47,6 +48,6 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-pki": "6.11.1"
+        "node-opcua-pki": "6.12.0"
     }
 }

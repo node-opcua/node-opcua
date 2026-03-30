@@ -10,7 +10,7 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type Certificate, makeSHA1Thumbprint, type PrivateKey, split_der } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -69,9 +69,8 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
-            s.sessionTimeout
-        } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
+            } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -98,7 +97,8 @@ function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     console.log("------------------------------------------------------");
 }
 
-const emptyCertificate = Buffer.alloc(0);
+const emptyCertificateChain: Certificate[] = [];
+
 // biome-ignore lint/suspicious/noExplicitAny: deliberate null→PrivateKey sentinel
 const emptyPrivateKey = null as any as PrivateKey;
 
@@ -116,7 +116,7 @@ export interface OPCUAServerEndPointOptions {
     /**
      * the DER certificate chain
      */
-    certificateChain: Certificate;
+    certificateChain: Certificate[];
 
     /**
      * privateKey
@@ -333,7 +333,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public _on_connectionRefused?: (socketData: ISocketData) => void;
     public _on_openSecureChannelFailure?: (socketData: ISocketData, channelData: IChannelData) => void;
 
-    private _certificateChain: Certificate;
+    private _certificateChain: Certificate[];
     private _privateKey: PrivateKey;
     private _channels: { [key: string]: ServerSecureChannelLayer };
     private _server?: Server;
@@ -390,7 +390,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public dispose(): void {
-        this._certificateChain = emptyCertificate;
+        this._certificateChain = emptyCertificateChain;
         this._privateKey = emptyPrivateKey;
 
         assert(Object.keys(this._channels).length === 0, "OPCUAServerEndPoint channels must have been deleted");
@@ -417,7 +417,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             " l = " +
             this._endpoints.length +
             " " +
-            makeSHA1Thumbprint(this.getCertificateChain()).toString("hex");
+            makeSHA1Thumbprint(this.getCertificate()).toString("hex");
         return txt;
     }
 
@@ -429,13 +429,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * Returns the X509 DER form of the server certificate
      */
     public getCertificate(): Certificate {
-        return split_der(this.getCertificateChain())[0];
+        return this.getCertificateChain()[0];
     }
 
     /**
      * Returns the X509 DER form of the server certificate
      */
-    public getCertificateChain(): Certificate {
+    public getCertificateChain(): Certificate[] {
         return this._certificateChain;
     }
 
@@ -687,7 +687,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._server.listen(
             listenOptions,
-            /*"::",*/ (err?: Error) => {
+            /*"::",*/(err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -877,7 +877,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -887,7 +887,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                        "The maximum number of connection has been reached - Connection is refused"
+                    "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = `maxConnections reached (${this.maxConnections})`;
@@ -1130,7 +1130,7 @@ interface MakeEndpointDescriptionOptions {
      */
     hostname: string;
 
-    serverCertificateChain: Certificate;
+    serverCertificateChain: Certificate[];
     /**
      *
      */
@@ -1224,13 +1224,6 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  * @private
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, parent: OPCUAServerEndPoint): EndpointDescriptionEx {
-    assert(Object.prototype.hasOwnProperty.call(options, "serverCertificateChain"));
-    assert(!Object.prototype.hasOwnProperty.call(options, "serverCertificate"));
-    assert(!!options.securityMode); // s.MessageSecurityMode
-    assert(!!options.securityPolicy);
-    assert(options.server !== null && typeof options.server === "object");
-    assert(!!options.hostname && typeof options.hostname === "string");
-    assert(typeof options.restricted === "boolean");
 
     const u = (n: string) => getUniqueName(n, options.collection);
     options.securityLevel =
@@ -1353,7 +1346,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
         endpointUrl: "<to be evaluated at run time>", // options.endpointUrl,
 
         server: undefined, // options.server,
-        serverCertificate: options.serverCertificateChain,
+        serverCertificate: options.serverCertificateChain.length > 0 ? combine_der(options.serverCertificateChain) : undefined,
 
         securityMode: options.securityMode,
         securityPolicyUri,

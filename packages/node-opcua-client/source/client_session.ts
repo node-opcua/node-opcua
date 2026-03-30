@@ -2,30 +2,35 @@
  * @module node-opcua-client
  */
 
-import { EventEmitter } from "events";
+import type { EventEmitter } from "events";
 
-import { DateTime, UInt8 } from "node-opcua-basic-types";
-import { ServerState } from "node-opcua-common";
-import { Certificate } from "node-opcua-crypto/web";
-import { LocalizedTextLike } from "node-opcua-data-model";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { DateTime, UInt8 } from "node-opcua-basic-types";
+import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import type { ServerState } from "node-opcua-common";
+import type { AggregateFunction } from "node-opcua-constants";
+import type { Certificate } from "node-opcua-crypto/web";
+import type { LocalizedTextLike } from "node-opcua-data-model";
+import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import {
+    type ArgumentDefinition,
     CallMethodRequestLike,
-    IBasicSession,
-    IBasicSessionBrowse,
-    IBasicSessionBrowseNext,
-    IBasicSessionCall,
-    IBasicSessionRead,
-    IBasicSessionTranslateBrowsePath,
-    IBasicSessionWrite,
-    ResponseCallback
+    type IBasicSession,
+    type IBasicSessionBrowse,
+    type IBasicSessionBrowseNext,
+    type IBasicSessionCall,
+    type IBasicSessionChangeUser,
+    type IBasicSessionRead,
+    type IBasicSessionTranslateBrowsePath,
+    type IBasicSessionWrite,
+    type MethodId,
+    type ResponseCallback
 } from "node-opcua-pseudo-session";
-import { ErrorCallback } from "node-opcua-status-code";
-import { EndpointDescription } from "node-opcua-service-endpoints";
-import { HistoryReadResult } from "node-opcua-service-history";
-import { QueryFirstRequestOptions, QueryFirstResponse } from "node-opcua-service-query";
-import {
+import type { EndpointDescription } from "node-opcua-service-endpoints";
+import type { HistoryReadResult } from "node-opcua-service-history";
+import type { QueryFirstRequestOptions, QueryFirstResponse } from "node-opcua-service-query";
+import type {
     CreateMonitoredItemsRequestOptions,
     CreateMonitoredItemsResponse,
     CreateSubscriptionRequestOptions,
@@ -44,35 +49,29 @@ import {
     RepublishResponse,
     SetMonitoringModeRequestOptions,
     SetMonitoringModeResponse,
-    TransferSubscriptionsRequestOptions,
-    TransferSubscriptionsResponse,
+    SetTriggeringRequestOptions,
     SetTriggeringResponse,
-    SetTriggeringRequestOptions
+    TransferSubscriptionsRequestOptions,
+    TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
-import { StatusCode } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
-import { Callback } from "node-opcua-status-code";
-import { IBasicSessionChangeUser } from "node-opcua-pseudo-session";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { ArgumentDefinition, MethodId } from "node-opcua-pseudo-session";
-import { AggregateFunction } from "node-opcua-constants";
+import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import {
-    AggregateConfigurationOptions,
+    type AggregateConfigurationOptions,
     CallMethodResult,
-    HistoryReadRequest,
-    HistoryReadResponse,
-    HistoryReadValueIdOptions,
+    type HistoryReadRequest,
+    type HistoryReadResponse,
+    type HistoryReadValueIdOptions,
     ReadValueId,
-    ReadValueIdOptions
+    type ReadValueIdOptions
 } from "node-opcua-types";
+import type { DataType, Variant } from "node-opcua-variant";
 
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
-import { ClientSubscription } from "./client_subscription";
+import type { ClientSubscription } from "./client_subscription";
 
 export interface MonitoredItemData {
     clientHandles: Uint32Array;
@@ -177,8 +176,6 @@ export interface ClientSessionQueryService {
 
 // call services
 export interface ClientSessionCallService extends IBasicSessionCall {
-
-
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 }

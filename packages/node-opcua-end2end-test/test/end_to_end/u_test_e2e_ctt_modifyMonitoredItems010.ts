@@ -1,18 +1,20 @@
 import "should";
 import {
-    OPCUAClient,
-    ClientSubscription,
     AttributeIds,
     ClientMonitoredItemGroup,
-    StatusCodes,
     ClientSidePublishEngine,
+    ClientSubscription,
+    OPCUAClient,
     Subscription,
     TimestampsToReturn
 } from "node-opcua";
-import sinon from "sinon";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 // Scalar nodes
 const itemsToMonitor1: { nodeId: string; attributeId: number }[] = [
@@ -45,7 +47,7 @@ const itemsToMonitor1: { nodeId: string; attributeId: number }[] = [
 ];
 
 // Array & data item nodes (plus discrete variants)
-const itemsToMonitor2: { nodeId: string; attributeId: number }[] = [
+const _itemsToMonitor2: { nodeId: string; attributeId: number }[] = [
     { nodeId: "ns=2;s=Static_Array_Boolean", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_Byte", attributeId: AttributeIds.Value },
     { nodeId: "ns=2;s=Static_Array_ByteString", attributeId: AttributeIds.Value },
@@ -179,7 +181,7 @@ export function t(test: TestHarness) {
                             const details = group.monitoredItems
                                 .map((it: any, i: number) => `${itemsToMonitor[i].nodeId.padEnd(30)} ${it.statusCode.toString()}`)
                                 .join("\n");
-                            return reject(new Error("Initialization failed for some nodeIds:\n" + details));
+                            return reject(new Error(`Initialization failed for some nodeIds:\n${details}`));
                         }
                         group.monitoredItems.length.should.eql(itemsToMonitor.length);
                         resolve();
@@ -191,7 +193,8 @@ export function t(test: TestHarness) {
 
                 // Wait for first raw notification (bounded wait)
                 const waitFirstNotification = async () => {
-                    for (let i = 0; i < 10; i++) { // up to ~30s
+                    for (let i = 0; i < 10; i++) {
+                        // up to ~30s
                         if (rawNotificationSpy.callCount > 0) return;
                         await new Promise((r) => setTimeout(r, 3000));
                     }

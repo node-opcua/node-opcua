@@ -1,30 +1,37 @@
 import "should";
 import {
-    OPCUAClient,
-    VariableIds,
-    makeNodeId,
-    resolveNodeId,
     AttributeIds,
-    Variant,
     DataType,
-    TimestampsToReturn
+    makeNodeId,
+    OPCUAClient,
+    resolveNodeId,
+    TimestampsToReturn,
+    VariableIds,
+    Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { waitUntilCondition, wait } from "../../test_helpers/utils";
+import { wait, waitUntilCondition } from "../../test_helpers/utils";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 export function t(test: TestHarness) {
     describe("Testing bug #119 - monitored item reports only real value changes", () => {
-        let client: OPCUAClient; let endpointUrl: string;
+        let client: OPCUAClient;
+        let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({ keepSessionAlive: true, requestedSessionTimeout: 40 * 60 * 1000 });
             endpointUrl = test.endpointUrl;
         });
         afterEach(async () => {
-            if (client) { await client.disconnect(); }
-            // @ts-ignore
+            if (client) {
+                await client.disconnect();
+            }
+            // @ts-expect-error
             client = null;
         });
 
@@ -47,10 +54,13 @@ export function t(test: TestHarness) {
                     { samplingInterval, discardOldest: true, queueSize: 1 },
                     TimestampsToReturn.Both
                 );
-                (monitoredItem.result!).revisedSamplingInterval.should.eql(samplingInterval);
+                monitoredItem.result!.revisedSamplingInterval.should.eql(samplingInterval);
 
                 let change_count = 0;
-                monitoredItem.on("changed", (dataValue: any) => { dataValue.should.be.ok(); change_count += 1; });
+                monitoredItem.on("changed", (dataValue: any) => {
+                    dataValue.should.be.ok();
+                    change_count += 1;
+                });
 
                 await waitUntilCondition(() => change_count === 1, 2000);
                 await wait(500);
@@ -93,10 +103,13 @@ export function t(test: TestHarness) {
                     { samplingInterval: 500, discardOldest: true, queueSize: 10 },
                     TimestampsToReturn.Both
                 );
-                (monitoredItem.result!).revisedSamplingInterval.should.eql(500);
+                monitoredItem.result!.revisedSamplingInterval.should.eql(500);
 
                 let change_count = 0;
-                monitoredItem.on("changed", (dataValue: any) => { dataValue.should.be.ok(); change_count += 1; });
+                monitoredItem.on("changed", (dataValue: any) => {
+                    dataValue.should.be.ok();
+                    change_count += 1;
+                });
 
                 await waitUntilCondition(() => change_count >= 1 && change_count <= 2, 1500);
                 await waitUntilCondition(() => change_count >= 2 && change_count <= 4, 1500);

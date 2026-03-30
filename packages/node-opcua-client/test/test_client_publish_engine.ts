@@ -1,40 +1,52 @@
-"use strict";
-const should = require("should");
-const sinon = require("sinon");
-const Dequeue = require("dequeue");
+import { assert } from "node-opcua-assert";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { type PublishRequest, PublishResponse, SubscriptionAcknowledgement } from "node-opcua-service-subscription";
+import should from "should";
+import sinon from "sinon";
 
-const { assert } = require("node-opcua-assert");
-const { SubscriptionAcknowledgement, PublishResponse } = require("node-opcua-service-subscription");
+import {
+    type ClientSession,
+    ClientSidePublishEngine,
+    type ClientSubscription,
+    ExtensionObject
+} from "..";
+import type {
+    ClientSessionImpl
+} from "../dist/private/client_session_impl";
 
-const { ClientSidePublishEngine } = require("..");
-
-function makeSubscription(subscriptionId, timeoutHint, callback) {
-    return { subscriptionId: subscriptionId, timeoutHint: timeoutHint, onNotificationMessage: callback };
+function makeSubscription(
+    subscriptionId: number,
+    timeoutHint: number,
+    callback: (...args: unknown[]) => void
+): ClientSubscription {
+    return {
+        subscriptionId: subscriptionId,
+        timeoutHint: timeoutHint,
+        onNotificationMessage: callback
+    } as unknown as ClientSubscription;
 }
 
 function noop() {
     /** */
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing the client publish engine", function () {
-    beforeEach(function () {
-        this.clock = sinon.useFakeTimers();
+describe("Testing the client publish engine", function (this: Mocha.Suite) {
+    let clock: sinon.SinonFakeTimers;
+    beforeEach(() => {
+        clock = sinon.useFakeTimers();
     });
 
-    afterEach(function () {
-        this.clock.restore();
+    afterEach(() => {
+        clock.restore();
     });
 
-    it("a client should send a publish request to the server for every new subscription", function () {
+    it("a client should send a publish request to the server for every new subscription", async () => {
         const fakeSession = {
-            publish: function (request, callback) {
+            publish: (_request: PublishRequest, _callback: (...args: unknown[]) => void) => {
                 /** */
             },
-            isChannelValid: function () {
-                return true;
-            }
-        };
+            isChannelValid: () => true
+        } as unknown as ClientSessionImpl;
         const publish_spy = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
@@ -46,7 +58,7 @@ describe("Testing the client publish engine", function () {
         clientPublishEngine.registerSubscription(makeSubscription(2, 10000, noop));
 
         // now advance the time artificially by 4.5 seconds
-        this.clock.tick(500 + 4 * 1000);
+        clock.tick(500 + 4 * 1000);
 
         // publish should have been called 10 times only ( since no Response have been received from server)
         publish_spy.callCount.should.be.equal(10);
@@ -58,21 +70,20 @@ describe("Testing the client publish engine", function () {
         publish_spy.restore();
     });
 
-    it("a client should keep sending a new publish request to the server after receiving a notification, when a subscription is active", function () {
+    it("a client should keep sending a new publish request to the server after receiving a notification, when a subscription is active", () => {
         const fakeSession = {
-            publish: function (request, callback) {
+            publish: (request: PublishRequest, callback: (...args: unknown[]) => void) => {
                 assert(request.schema.name === "PublishRequest");
                 // let simulate a server sending a PublishResponse for subscription:1
                 // after a short delay of 150 milliseconds
-                setTimeout(function () {
+                setTimeout(() => {
                     const fakeResponse = new PublishResponse({ subscriptionId: 1 });
                     callback(null, fakeResponse);
                 }, 100);
             },
-            isChannelValid: function () {
-                return true;
-            }
-        };
+            isChannelValid: () => true
+        } as unknown as ClientSessionImpl;
+
         const spy = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
@@ -86,7 +97,7 @@ describe("Testing the client publish engine", function () {
         clientPublishEngine.registerSubscription(makeSubscription(2, 10000, noop));
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
-        this.clock.tick(3000);
+        clock.tick(3000);
 
         // publish should have been called more than 20 times
         spy.callCount.should.be.greaterThan(20);
@@ -98,21 +109,20 @@ describe("Testing the client publish engine", function () {
         spy.restore();
     });
 
-    it("a client should stop sending publish request to the server after receiving a notification, when there is no more registered subscription ", function () {
+    it("a client should stop sending publish request to the server after receiving a notification, when there is no more registered subscription ", () => {
         const fakeSession = {
-            publish: function (request, callback) {
+            publish: (request: PublishRequest, callback: (...args: unknown[]) => void) => {
                 assert(request.schema.name === "PublishRequest");
                 // let simulate a server sending a PublishResponse for subscription:1
                 // after a short delay of 150 milliseconds
-                setTimeout(function () {
+                setTimeout(() => {
                     const fakeResponse = new PublishResponse({ subscriptionId: 1 });
                     callback(null, fakeResponse);
                 }, 100);
             },
-            isChannelValid: function () {
-                return true;
-            }
-        };
+            isChannelValid: () => true
+        } as unknown as ClientSessionImpl;
+
         const spy = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
@@ -121,7 +131,7 @@ describe("Testing the client publish engine", function () {
         clientPublishEngine.registerSubscription(makeSubscription(1, 10000, noop));
 
         // now advance the time artificially by 3 seconds ( 20*150ms)
-        this.clock.tick(3000);
+        clock.tick(3000);
 
         // publish should have been called more than 20 times
         spy.callCount.should.be.greaterThan(20);
@@ -131,7 +141,7 @@ describe("Testing the client publish engine", function () {
         clientPublishEngine.unregisterSubscription(1);
 
         // now advance the time artificially again by 3 seconds ( 20*150ms)
-        this.clock.tick(3000);
+        clock.tick(3000);
 
         // publish should be called no more
         spy.callCount.should.be.equal(callcount_after_3sec);
@@ -139,7 +149,7 @@ describe("Testing the client publish engine", function () {
         spy.restore();
     });
 
-    it("a client should acknowledge sequence numbers received in PublishResponse in next PublishRequest", function () {
+    it("a client should acknowledge sequence numbers received in PublishResponse in next PublishRequest", () => {
         // the spec says: Clients are required to acknowledge  Notification Messages as they are received.
         const response_maker = sinon.stub();
 
@@ -151,7 +161,11 @@ describe("Testing the client publish engine", function () {
             notificationMessage: {
                 sequenceNumber: 36,
                 publishTime: new Date(),
-                notificationData: [{}]
+                notificationData: [
+                    new ExtensionObject({
+
+                    })
+                ]
             }
         });
 
@@ -162,7 +176,11 @@ describe("Testing the client publish engine", function () {
             notificationMessage: {
                 sequenceNumber: 78,
                 publishTime: new Date(),
-                notificationData: [{}]
+                notificationData: [
+                    new ExtensionObject({
+
+                    })
+                ]
             }
         });
         response_maker.onCall(0).returns([null, response1]);
@@ -173,16 +191,14 @@ describe("Testing the client publish engine", function () {
 
         let count = 0;
         const fakeSession = {
-            publish: function (request, callback) {
+            publish: function (_request: PublishRequest, callback: (...args: unknown[]) => void) {
                 if (count < 4) {
                     callback.apply(this, response_maker());
                     count += 1;
                 }
             },
-            isChannelValid: function () {
-                return true;
-            }
-        };
+            isChannelValid: () => true
+        } as unknown as ClientSessionImpl;
         const spy = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
@@ -191,42 +207,41 @@ describe("Testing the client publish engine", function () {
 
         clientPublishEngine.registerSubscription(makeSubscription(1, 10000, noop));
 
-        this.clock.tick(4500);
+        clock.tick(4500);
 
         spy.callCount.should.be.greaterThan(1);
 
-        const publishRequest1 = spy.getCall(0).args[0];
+        const publishRequest1 = spy.getCall(0).args[0] as PublishRequest;
         publishRequest1.schema.name.should.equal("PublishRequest");
-        publishRequest1.subscriptionAcknowledgements.should.eql([]);
-        this.clock.tick(50);
+        should(publishRequest1.subscriptionAcknowledgements).eql([]);
+        clock.tick(50);
 
-        const publishRequest2 = spy.getCall(1).args[0];
+        const publishRequest2 = spy.getCall(1).args[0] as PublishRequest;
         publishRequest2.schema.name.should.equal("PublishRequest");
-        publishRequest2.subscriptionAcknowledgements.should.eql([
+        should(publishRequest2.subscriptionAcknowledgements).eql([
             new SubscriptionAcknowledgement({ sequenceNumber: 36, subscriptionId: 1 })
         ]);
 
-        const publishRequest3 = spy.getCall(2).args[0];
+        const publishRequest3 = spy.getCall(2).args[0] as PublishRequest;
         publishRequest3.schema.name.should.equal("PublishRequest");
-        publishRequest3.subscriptionAcknowledgements.should.eql([
+        should(publishRequest3.subscriptionAcknowledgements).eql([
             new SubscriptionAcknowledgement({ sequenceNumber: 78, subscriptionId: 44 })
         ]);
     });
 
-    it("a client publish engine shall adapt the timeoutHint of a publish request to take into account the number of awaiting publish requests ", function () {
-        let timerId;
+    it("a client publish engine shall adapt the timeoutHint of a publish request to take into account the number of awaiting publish requests ", () => {
+        let timerId: NodeJS.Timeout | undefined;
 
-        const publishQueue = new Dequeue();
+        const publishQueue: ((err: Error | null, response: PublishResponse) => void)[] = [];
 
         function start() {
-            timerId = setInterval(function () {
-                if (publishQueue.length === 0) {
+            timerId = setInterval(() => {
+                const callback = publishQueue.shift();
+                if (!callback) {
                     return;
                 }
 
-                const callback = publishQueue.shift();
                 const fakeResponse = new PublishResponse({ subscriptionId: 1 });
-                //xx console.log(" Time ", Date.now());
                 callback(null, fakeResponse);
             }, 1500);
         }
@@ -234,63 +249,57 @@ describe("Testing the client publish engine", function () {
             clearInterval(timerId);
         }
         const fakeSession = {
-            publish: function (request, callback) {
+            publish: (request: PublishRequest, callback: (err: Error | null, response: PublishResponse) => void) => {
                 assert(request.schema.name === "PublishRequest");
                 // let simulate a server sending a PublishResponse for subscription:1
                 // after a short delay of 150 milliseconds
                 publishQueue.push(callback);
-                //xx console.log("nbPendingPublishRequests",clientPublishEngine.nbPendingPublishRequests);
             },
-            isChannelValid: function () {
-                return true;
-            }
-        };
-        const spy = sinon.spy(fakeSession, "publish");
+            isChannelValid: () => true
+        } as unknown as ClientSessionImpl;
+
+
+        const _spyFakeSessionPublish = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
 
         start();
 
         // start a first new subscription
-        clientPublishEngine.registerSubscription({ subscriptionId: 1, timeoutHint: 20000, onNotificationMessage: noop });
+        clientPublishEngine.registerSubscription({ subscriptionId: 1, timeoutHint: 20000, onNotificationMessage: noop } as unknown as ClientSubscription);
 
-        this.clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
+        clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
         clientPublishEngine.nbPendingPublishRequests.should.eql(5);
 
-        this.clock.tick(20000);
+        clock.tick(20000);
         clientPublishEngine.unregisterSubscription(1);
 
         stop();
 
-        fakeSession.publish.getCall(0).args[0].requestHeader.timeoutHint.should.eql(20000 * 1);
-        fakeSession.publish.getCall(1).args[0].requestHeader.timeoutHint.should.eql(20000 * 2);
-        fakeSession.publish.getCall(2).args[0].requestHeader.timeoutHint.should.eql(20000 * 3);
-        fakeSession.publish.getCall(3).args[0].requestHeader.timeoutHint.should.eql(20000 * 4);
-        fakeSession.publish.getCall(4).args[0].requestHeader.timeoutHint.should.eql(20000 * 5);
+        _spyFakeSessionPublish.getCall(0).args[0].requestHeader.timeoutHint.should.eql(20000 * 1);
+        _spyFakeSessionPublish.getCall(1).args[0].requestHeader.timeoutHint.should.eql(20000 * 2);
+        _spyFakeSessionPublish.getCall(2).args[0].requestHeader.timeoutHint.should.eql(20000 * 3);
+        _spyFakeSessionPublish.getCall(3).args[0].requestHeader.timeoutHint.should.eql(20000 * 4);
+        _spyFakeSessionPublish.getCall(4).args[0].requestHeader.timeoutHint.should.eql(20000 * 5);
 
         // from now on timeoutHint shall be stable
-        fakeSession.publish.getCall(5).args[0].requestHeader.timeoutHint.should.eql(20000 * 5);
-        fakeSession.publish.getCall(6).args[0].requestHeader.timeoutHint.should.eql(20000 * 5);
-        fakeSession.publish.getCall(7).args[0].requestHeader.timeoutHint.should.eql(20000 * 5);
-
-        //xx        console.log(fakeSession.publish.getCall(6).args[0].requestHeader.timeoutHint);
-        //xx        console.log(fakeSession.publish.getCall(7).args[0].requestHeader.timeoutHint);
-        //xx        console.log(fakeSession.publish.getCall(8).args[0].requestHeader.timeoutHint);
+        should(_spyFakeSessionPublish.getCall(5).args[0].requestHeader?.timeoutHint).eql(20000 * 5);
+        should(_spyFakeSessionPublish.getCall(6).args[0].requestHeader?.timeoutHint).eql(20000 * 5);
+        should(_spyFakeSessionPublish.getCall(7).args[0].requestHeader?.timeoutHint).eql(20000 * 5);
     });
 
-    it("#390 should not send publish request if channel is not properly opened", function (done) {
-        let timerId;
+    it("#390 should not send publish request if channel is not properly opened", (done) => {
+        let timerId: NodeJS.Timeout | undefined;
 
-        const publishQueue = new Dequeue();
+        const publishQueue: ((err: Error | null, response: PublishResponse) => void)[] = [];
 
         function start() {
-            timerId = setInterval(function () {
-                if (publishQueue.length === 0) {
+            timerId = setInterval(() => {
+                const callback = publishQueue.shift();
+                if (!callback) {
                     return;
                 }
-                const callback = publishQueue.shift();
                 const fakeResponse = new PublishResponse({ subscriptionId: 1 });
-                //xx console.log(" Time ", Date.now());
                 callback(null, fakeResponse);
             }, 1500);
         }
@@ -299,57 +308,53 @@ describe("Testing the client publish engine", function () {
             clearInterval(timerId);
         }
 
+        let _publishCount = 0;
+        let _isChannelValid = true;
         const fakeSession = {
-            publishCount: 0,
-            _isChannelValid: true,
-            publish: function (request, callback) {
-                this.publishCount++;
+            publish: (request: PublishRequest, callback: (err: Error | null, response: PublishResponse) => void) => {
+                _publishCount++;
                 assert(request.schema.name === "PublishRequest");
-                // let simulate a server sending a PublishResponse for subscription:1
-                // after a short delay of 150 milliseconds
                 publishQueue.push(callback);
             },
-            isChannelValid: function () {
-                return this._isChannelValid;
-            }
-        };
+            isChannelValid: () => _isChannelValid
+        } as unknown as ClientSessionImpl;
 
-        const spy = sinon.spy(fakeSession, "publish");
+        const _spyFakeSessionPublish = sinon.spy(fakeSession, "publish");
 
-        const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
+        const clientPublishEngine = new ClientSidePublishEngine(
+            fakeSession as unknown as ClientSession);
 
         start();
 
-        fakeSession._isChannelValid = false;
+        _isChannelValid = false;
 
         // start a first new subscription
         clientPublishEngine.registerSubscription({
             subscriptionId: 1,
             timeoutHint: 20000,
             onNotificationMessage: noop
-        });
+        } as unknown as ClientSubscription);
 
         clientPublishEngine.subscriptionCount.should.eql(1);
 
-        this.clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
+        clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
         clientPublishEngine.nbPendingPublishRequests.should.eql(0);
-        fakeSession.publishCount.should.eql(0);
+        _spyFakeSessionPublish.callCount.should.eql(0);
 
-        this.clock.tick(20000);
-        fakeSession.publishCount.should.eql(0);
+        clock.tick(20000);
+        _spyFakeSessionPublish.callCount.should.eql(0);
 
-        fakeSession._isChannelValid = true;
-        this.clock.tick(1000); // wait a little bit as PendingRequests are send asynchronously
-        //xx clientPublishEngine.nbPendingPublishRequests.should.eql(0);
+        _isChannelValid = true;
+        clock.tick(1000); // wait a little bit as PendingRequests are send asynchronously
 
-        this.clock.tick(20000);
-        fakeSession.publishCount.should.eql(19);
+        clock.tick(20000);
+        _spyFakeSessionPublish.callCount.should.eql(19);
 
         clientPublishEngine.unregisterSubscription(1);
         clientPublishEngine.subscriptionCount.should.eql(0);
 
         stop();
 
-        done(); // new Error("implement me for #390 - "));
+        done();
     });
 });

@@ -1,24 +1,22 @@
-import  "should";
-import sinon from "sinon";
-import { ClientSession, OPCUAClient } from "node-opcua";
+import "should";
+import { type ClientSession, OPCUAClient } from "node-opcua";
+import type { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager";
 import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 import { waitUntilCondition } from "../../test_helpers/utils";
-import { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager";
 
 const warningLog = make_warningLog("TEST");
 
-const pause = (ms: number) => new Promise<void>((resolve)=>setTimeout(resolve,ms));
+const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 type OPCUAClientEx = OPCUAClient & { requestedSessionTimeout: number };
 type ClientSessionEx = ClientSession & {
     _keepAliveManager: ClientSessionKeepAliveManager;
-}; 
+};
 
 export function t(test: any) {
-
-    describe("ZZZA Testing timeout on session ", function() {
-
+    describe("ZZZA Testing timeout on session ", () => {
         it("An opened session will eventually time out on server side if the client doesn't make transactions", async () => {
             const endpointUrl = test.endpointUrl;
             const requestedSessionTimeout = 2000;
@@ -43,10 +41,10 @@ export function t(test: any) {
                     }
                 }
             } finally {
-                await client.disconnect().catch(()=>undefined);
+                await client.disconnect().catch(() => undefined);
             }
             if (test.server) {
-                await waitUntilCondition(()=>test.server.engine.currentSessionCount === 0, 10 * 1000);
+                await waitUntilCondition(() => test.server.engine.currentSessionCount === 0, 10 * 1000);
             }
         });
 
@@ -60,7 +58,7 @@ export function t(test: any) {
             client.on("connection_lost", connection_lost_spy);
             const endpointUrl = test.endpointUrl;
             await client.connect(endpointUrl);
-            const session = await client.createSession() as ClientSessionEx;
+            const session = (await client.createSession()) as ClientSessionEx;
             // Allow some tolerance
             session.timeout.should.be.within(requestedSessionTimeout * 0.8, requestedSessionTimeout * 1.2);
             const keepalive_spy = sinon.spy();
@@ -86,7 +84,7 @@ export function t(test: any) {
             const endpointUrl = test.endpointUrl;
             const keepalive_spy = sinon.spy();
             await client.connect(endpointUrl);
-            const session = await client.createSession() as ClientSessionEx;
+            const session = (await client.createSession()) as ClientSessionEx;
             warningLog("adjusted session timeout =", session.timeout);
             session.timeout.should.be.within(requestedSessionTimeout * 0.8, requestedSessionTimeout * 1.2);
             session._keepAliveManager.checkInterval.should.be.within(session.timeout * 0.5, session.timeout * 0.85);
@@ -107,7 +105,3 @@ export function t(test: any) {
         });
     });
 }
-
-
-
-

@@ -1,19 +1,23 @@
 import "should";
 import {
-    DataValue,
-    ReadRequest,
-    TimestampsToReturn,
     ClientSubscription,
-    OPCUAClient,
+    DataValue,
     MessageSecurityMode,
-    SecurityPolicy
+    OPCUAClient,
+    ReadRequest,
+    SecurityPolicy,
+    TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import Sinon from "sinon";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
@@ -21,7 +25,9 @@ const securityPolicy = SecurityPolicy.None;
 export function t(test: TestHarness) {
     describe("Testing bug #141 - Client publish timeoutHint and timed_out_request event", () => {
         const options = { securityMode, securityPolicy, serverCertificate: null as any, requestedSessionTimeout: 20000 };
-        let client: OPCUAClient; let endpointUrl: string; let server: any;
+        let client: OPCUAClient;
+        let endpointUrl: string;
+        let server: any;
 
         beforeEach(() => {
             client = OPCUAClient.create(options);
@@ -31,13 +37,11 @@ export function t(test: TestHarness) {
 
         afterEach(async () => {
             if (client) await client.disconnect();
-            // @ts-ignore
+            // @ts-expect-error
             client = null;
         });
 
         it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async () => {
-
-
             const timeout = 25000; // original test window
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const subscription = ClientSubscription.create(session, {
@@ -49,12 +53,19 @@ export function t(test: TestHarness) {
                     priority: 10
                 });
                 let keepaliveCounter = 0;
-                subscription.on("keepalive", () => { keepaliveCounter++; });
+                subscription.on("keepalive", () => {
+                    keepaliveCounter++;
+                });
 
                 await new Promise<void>((resolve, reject) => {
                     const to = setTimeout(() => resolve(), timeout);
-                    subscription.on("internal_error", (err) => { clearTimeout(to); reject(err); });
-                    subscription.on("terminated", () => { /* ignore */ });
+                    subscription.on("internal_error", (err) => {
+                        clearTimeout(to);
+                        reject(err);
+                    });
+                    subscription.on("terminated", () => {
+                        /* ignore */
+                    });
                 });
                 await new Promise((r) => subscription.terminate(r));
                 keepaliveCounter.should.be.greaterThan(1);
@@ -63,7 +74,6 @@ export function t(test: TestHarness) {
         });
 
         it("#141-B client emits timed_out_request when request timeoutHint exhausted", async () => {
-
             const node = server.engine.addressSpace.getOwnNamespace().addVariable({
                 browseName: "MySlowVariable",
                 dataType: "Int32",
@@ -71,34 +81,33 @@ export function t(test: TestHarness) {
                     refreshFunc: (callback: any) => {
                         const longTime = 10000; // simulate slow read
                         setTimeout(() => {
-                            callback(null, new DataValue({
-                                value: { value: 10, dataType: "Int32" },
-                                sourceTimestamp: new Date()
-                            }));
+                            callback(
+                                null,
+                                new DataValue({
+                                    value: { value: 10, dataType: "Int32" },
+                                    sourceTimestamp: new Date()
+                                })
+                            );
                         }, longTime);
                     }
                 }
             });
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
-
-
                 const time_out_request_spy = Sinon.spy();
 
                 client.once("timed_out_request", time_out_request_spy);
 
-                await assertThrow(async()=>{
-
+                await assertThrow(async () => {
                     const request = new ReadRequest({
                         nodesToRead: [{ nodeId: node.nodeId, attributeId: 13 }],
                         timestampsToReturn: TimestampsToReturn.Neither
                     });
                     request.requestHeader.timeoutHint = 10; // very short
                     await (session as any).performMessageTransaction(request);
-                },/Transaction has timed out/);
-                
-                
-                time_out_request_spy.callCount.should.eql(1, "expecting a single timed_out_request event"); 
+                }, /Transaction has timed out/);
+
+                time_out_request_spy.callCount.should.eql(1, "expecting a single timed_out_request event");
                 (client as any).timedOutRequestCount.should.eql(1);
             });
         });

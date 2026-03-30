@@ -1,21 +1,21 @@
-import path from "path";
+import path from "node:path";
 import chalk from "chalk";
 import {
-    TimestampsToReturn,
     AttributeIds,
-    OPCUAClient,
-    ClientSubscription,
-    ClientMonitoredItem,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
     coerceNodeId,
-    StatusCodes,
     DataType,
     MonitoringMode,
-    NodeIdLike,
-    ClientSession
+    type NodeIdLike,
+    OPCUAClient,
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { start_simple_server, crash_simple_server } from "../../test_helpers/external_server_fixture";
+import { crash_simple_server, start_simple_server } from "../../test_helpers/external_server_fixture";
 import "should";
 
 const doDebug = false;
@@ -31,10 +31,7 @@ const port = 2016;
 async function start_external_opcua_server() {
     const options = {
         silent: !doDebug,
-        server_sourcefile: path.join(
-            __dirname,
-            "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"
-        ),
+        server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };
     server_data = (await start_simple_server(options)) as ExternalServerData;
@@ -90,10 +87,7 @@ async function start_active_client(connectionStrategy: any | undefined) {
     });
 
     session.on("session_closed", (statusCode) => {
-        debugLog(
-            chalk.yellow("Session has closed : statusCode = "),
-            statusCode ? statusCode.toString() : "????"
-        );
+        debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
     });
 
     const parameters = {
@@ -107,7 +101,9 @@ async function start_active_client(connectionStrategy: any | undefined) {
 
     subscription = await session.createSubscription2(parameters);
     subscription
-        .on("started", () => { /* started */ })
+        .on("started", () => {
+            /* started */
+        })
         .on("internal_error", (err: Error) => debugLog(" received internal error", err.message))
         .on("keepalive", () => {
             if (doDebug) {
@@ -127,19 +123,19 @@ async function start_active_client(connectionStrategy: any | undefined) {
             "  revised maxKeepAliveCount  ",
             subscription.maxKeepAliveCount,
             " ( requested ",
-            parameters.requestedMaxKeepAliveCount + ")"
+            `${parameters.requestedMaxKeepAliveCount})`
         );
         debugLog(
             "  revised lifetimeCount      ",
             subscription.lifetimeCount,
             " ( requested ",
-            parameters.requestedLifetimeCount + ")"
+            `${parameters.requestedLifetimeCount})`
         );
         debugLog(
             "  revised publishingInterval ",
             subscription.publishingInterval,
             " ( requested ",
-            parameters.requestedPublishingInterval + ")"
+            `${parameters.requestedPublishingInterval})`
         );
         debugLog("  suggested timeout hint     ", (subscription as any).publishEngine.timeoutHint);
     }
@@ -156,11 +152,7 @@ async function start_active_client(connectionStrategy: any | undefined) {
 
     monitoredItem.on("changed", (dataValue) => {
         if (doDebug) {
-            debugLog(
-                chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"),
-                dataValue.statusCode.toString(),
-                dataValue.value.toString()
-            );
+            debugLog(chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"), dataValue.statusCode.toString(), dataValue.value.toString());
         }
     });
 
@@ -222,12 +214,7 @@ async function terminate_active_client() {
 }
 
 async function f(func: () => Promise<any>) {
-    debugLog(
-        "       * " +
-            func.name
-                .replace(/_/g, " ")
-                .replace(/(given|when|then)/, chalk.green("**$1**"))
-    );
+    debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
     return await func();
 }
 
@@ -240,21 +227,29 @@ describe("Testing client reconnection with crashing server", function (this: Moc
         await crash_external_opcua_server();
     });
 
-    async function given_a_running_opcua_server() { await start_external_opcua_server(); }
-    async function when_the_server_crash() { await crash_external_opcua_server(); }
-    async function when_the_server_restart() { await start_external_opcua_server(); }
+    async function given_a_running_opcua_server() {
+        await start_external_opcua_server();
+    }
+    async function when_the_server_crash() {
+        await crash_external_opcua_server();
+    }
+    async function when_the_server_restart() {
+        await start_external_opcua_server();
+    }
     async function when_the_server_restart_after_some_very_long_time() {
         await new Promise((resolve) => setTimeout(resolve, 10000));
         await when_the_server_restart();
     }
-    async function when_the_client_emit_a_keep_alive_failure() {
+    async function _when_the_client_emit_a_keep_alive_failure() {
         await new Promise((resolve) => (session as any)?.once("keepalive_failure", () => resolve(undefined)));
     }
-    async function when_the_server_restart_after_some_very_long_time_greater_then_session_timeout() {
+    async function _when_the_server_restart_after_some_very_long_time_greater_then_session_timeout() {
         await new Promise((resolve) => setTimeout(resolve, 10000));
         await when_the_server_restart();
     }
-    async function given_a_active_client_with_subscription_and_monitored_items() { await start_active_client(undefined); }
+    async function given_a_active_client_with_subscription_and_monitored_items() {
+        await start_active_client(undefined);
+    }
     async function given_a_active_client_with_subscription_and_monitored_items_AND_short_retry_strategy() {
         await start_active_client({ maxRetry: 2, initialDelay: 100, maxDelay: 200 });
     }
@@ -267,11 +262,11 @@ describe("Testing client reconnection with crashing server", function (this: Moc
                     if (doDebug) {
                         debugLog("Bingo !  Client has detected disconnection and is currently trying to reconnect");
                     }
-                    client!.removeListener("backoff", backoff_detector);
+                    client?.removeListener("backoff", backoff_detector);
                     resolve();
                 }
             }
-            client!.on("backoff", backoff_detector);
+            client?.on("backoff", backoff_detector);
         });
     }
     async function then_client_should_reconnect_and_restore_subscription() {
@@ -282,11 +277,11 @@ describe("Testing client reconnection with crashing server", function (this: Moc
                 change_counter += 1;
                 if (doDebug) debugLog(" |||||||||||||||||||| DataValue changed again !!!");
                 if (change_counter === 3) {
-                    monitoredItem!.removeListener("changed", on_value_changed);
+                    monitoredItem?.removeListener("changed", on_value_changed);
                     resolve();
                 }
             }
-            monitoredItem!.on("changed", on_value_changed);
+            monitoredItem?.on("changed", on_value_changed);
         });
     }
 

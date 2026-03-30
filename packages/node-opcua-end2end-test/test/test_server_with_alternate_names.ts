@@ -1,40 +1,30 @@
-import os from "os";
+import os from "node:os";
 import "should";
-import { types } from "util";
+import { types } from "node:util";
 import chalk from "chalk";
-
 import {
-    EndpointDescription,
-    makeApplicationUrn,
+    type EndpointDescription,
     MessageSecurityMode,
+    makeApplicationUrn,
     nodesets,
-    OPCUACertificateManager,
     OPCUAClient,
     OPCUAServer,
-    OPCUAServerOptions,
-    SecurityPolicy,
-    ServerSession
+    type OPCUAServerOptions,
+    SecurityPolicy
 } from "node-opcua";
-
-import {
-    checkDebugFlag,
-    make_debugLog,
-    make_errorLog,
-    make_warningLog
-} from "node-opcua-debug";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 const debugLog = make_debugLog("TEST");
 const warningLog = make_warningLog("TEST");
 const errorLog = make_errorLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const port1 = 3017;
 const port2 = 3018;
 
 Error.stackTraceLimit = Infinity;
-
 
 let server: OPCUAServer;
 
@@ -107,7 +97,6 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
 }
 
 async function startMultiHeadServer() {
-
     const serverCertificateManager = await createServerCertificateManager(port1);
     //  new OPCUACertificateManager({ rootFolder: pkiFolder }),
 

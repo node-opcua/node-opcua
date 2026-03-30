@@ -1,17 +1,15 @@
 import "should";
-import { types } from "util";
+import { types } from "node:util";
 import chalk from "chalk";
-
-import { ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, OPCUAServerOptions } from "node-opcua";
-
+import { type ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, type OPCUAServerOptions } from "node-opcua";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 const debugLog = make_debugLog("TEST");
-const warningLog = make_warningLog("TEST");
+const _warningLog = make_warningLog("TEST");
 const errorLog = make_errorLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const port = 3019;
 

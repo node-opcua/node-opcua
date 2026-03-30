@@ -3,25 +3,24 @@
  */
 
 // tslint:disable:unified-signatures
-import { EventEmitter } from "events";
-import { Byte, Double, UInt32 } from "node-opcua-basic-types";
+import type { EventEmitter } from "events";
+import type { Byte, Double, UInt32 } from "node-opcua-basic-types";
 
-import { DiagnosticInfo } from "node-opcua-data-model";
-import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import { IBasicSubscription } from "node-opcua-pseudo-session";
-import {
+import type { DiagnosticInfo } from "node-opcua-data-model";
+import type { IBasicSubscription } from "node-opcua-pseudo-session";
+import type { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import type {
     MonitoringMode,
     MonitoringParametersOptions,
     NotificationMessage,
     SetTriggeringResponse
 } from "node-opcua-service-subscription";
-import { Callback, StatusCode } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
+import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 
-import { ClientMonitoredItem } from "./client_monitored_item";
-import { ClientMonitoredItemBase } from "./client_monitored_item_base";
-import { ClientMonitoredItemGroup } from "./client_monitored_item_group";
-import { ClientSession, MonitoredItemData, SubscriptionId } from "./client_session";
+import type { ClientMonitoredItem } from "./client_monitored_item";
+import type { ClientMonitoredItemBase } from "./client_monitored_item_base";
+import type { ClientMonitoredItemGroup } from "./client_monitored_item_group";
+import type { ClientSession, MonitoredItemData, SubscriptionId } from "./client_session";
 
 export interface ClientSubscriptionOptions {
     requestedPublishingInterval?: number;

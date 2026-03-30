@@ -1,0 +1,15 @@
+{
+    "extends": "../../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "..",
+        "outDir": "../dist-test",
+        "noEmit": true,
+        "composite": false,
+        "incremental": false,
+        "declaration": false,
+        "sourceMap": false,
+        "skipLibCheck": true
+    },
+    "include": ["../source/**/*.ts", "./**/*.ts"],
+    "exclude": ["../node_modules", "../dist"]
+}

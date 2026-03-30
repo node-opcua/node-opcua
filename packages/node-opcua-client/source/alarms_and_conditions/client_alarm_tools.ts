@@ -1,15 +1,21 @@
+import {
+    ClientAlarmList,
+    callConditionRefresh,
+    type EventStuff,
+    extractConditionFields,
+    fieldsToJson
+} from "node-opcua-alarm-condition";
 import { AttributeIds } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
-import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { DataType, Variant } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { ClientAlarmList, EventStuff, callConditionRefresh, extractConditionFields, fieldsToJson } from "node-opcua-alarm-condition";
+import { type ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
+import { DataType, type Variant } from "node-opcua-variant";
 
-import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientSubscription } from "../client_subscription";
-import { ClientSession } from "../client_session";
+import type { ClientMonitoredItem } from "../client_monitored_item";
+import type { ClientSession } from "../client_session";
+import type { ClientSubscription } from "../client_subscription";
 
 const doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");

@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.common.json",
+    "compilerOptions": {
+        "sourceMap": false,
+        "moduleResolution": "node"
+    },
+    "include": [
+        "packages/node-opcua-variant/test/bench_variant_decoding.ts"
+    ]
+}

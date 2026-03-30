@@ -1,37 +1,30 @@
 // launch with mocha -r tsx test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
-import fs from "fs";
-import path from "path";
-import { } from "mocha";
-
-import "should";
+import fs from "node:fs";
+import path from "node:path";
 import chalk from "chalk";
-import { ErrorCallback } from "node-opcua-status-code";
+
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import {
-    Certificate,
-    readCertificate,
-    split_der,
-    readCertificateRevocationList,
-    PrivateKey,
-    readPrivateKey
-} from "node-opcua-crypto";
-import { EndpointDescription } from "node-opcua-service-endpoints";
-import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
-import { FindServersRequest, FindServersResponse } from "node-opcua-types";
+import { readCertificateChain, readCertificateRevocationList, readPrivateKey, split_der, type Certificate, type PrivateKey } from "node-opcua-crypto";
 import { hexDump } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
+import { EndpointDescription } from "node-opcua-service-endpoints";
+import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
+import type { ErrorCallback } from "node-opcua-status-code";
+import { FindServersRequest, FindServersResponse } from "node-opcua-types";
+import "should";
 import {
-    ClientSecureChannelLayer,
-    ClientSecureChannelParent,
     getThumbprint,
     invalidPrivateKey,
-    Message,
+    ClientSecureChannelLayer,
+    type ClientSecureChannelParent,
     MessageSecurityMode,
-    SecurityPolicy,
+    SecurityPolicy
+} from "../source";
+import {
+    type Message,
     ServerSecureChannelLayer,
-    ServerSecureChannelParent
+    type ServerSecureChannelParent
 } from "../dist/source";
 
 const doDebug = false;
@@ -68,8 +61,10 @@ describe("Testing secure client and server connection", function (this: any) {
         doDebug && console.log("certificateManager initialized", certificateManager.rootDir);
 
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
-        const issuerCertificate = readCertificate(issuerCertificateFile);
-        await certificateManager.addIssuer(issuerCertificate);
+        const issuerCertificates = readCertificateChain(issuerCertificateFile);
+        for (const cert of issuerCertificates) {
+            await certificateManager.addIssuer(cert);
+        }
 
         const issuerCertificateRevocationListFile = path.join(certificateFolder, "CA/crl/revocation_list.der");
         const crl = await readCertificateRevocationList(issuerCertificateRevocationListFile);
@@ -104,18 +99,18 @@ describe("Testing secure client and server connection", function (this: any) {
 
             // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
-                const firstCertificateInChain = split_der(this.getCertificateChain())[0];
-                return firstCertificateInChain!;
+                const firstCertificateInChain = this.getCertificateChain()[0];
+                return firstCertificateInChain;
             },
 
-            getCertificateChain: () => {
-                return param.serverCertificate!;
+            getCertificateChain: (): Certificate[] => {
+                return param.serverCertificate ? [param.serverCertificate] : [];
             },
 
             getEndpointDescription: (
-                securityMode: MessageSecurityMode,
-                securityPolicy: SecurityPolicy,
-                endpointUri: string | null
+                _securityMode: MessageSecurityMode,
+                _securityPolicy: SecurityPolicy,
+                _endpointUri: string | null
             ) => {
                 return new EndpointDescription({});
             },
@@ -167,7 +162,7 @@ describe("Testing secure client and server connection", function (this: any) {
                 });
             });
 
-            doDebug && console.log(" now sending a request " + request.constructor.name);
+            doDebug && console.log(` now sending a request ${request.constructor.name}`);
 
             await new Promise<void>((resolve, reject) => {
                 clientChannel.performMessageTransaction(request, (err, response) => {
@@ -183,12 +178,12 @@ describe("Testing secure client and server connection", function (this: any) {
         const parentC: ClientSecureChannelParent = {
             // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
-                const firstCertificateInChain = split_der(this.getCertificateChain())[0];
-                return firstCertificateInChain!;
+                const firstCertificateInChain = this.getCertificateChain()[0];
+                return firstCertificateInChain;
             },
 
-            getCertificateChain: () => {
-                return param.clientCertificate!;
+            getCertificateChain: (): Certificate[] => {
+                return param.clientCertificate ? [param.clientCertificate] : [];
             },
 
             getPrivateKey: (): PrivateKey => {
@@ -330,12 +325,12 @@ describe("Testing secure client and server connection", function (this: any) {
 
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);
         const serverPrivateKeyFile = m(`server_key_${sizeS}.pem`);
-        const serverCertificate = readCertificate(serverCertificateFile);
+        const serverCertificate = readCertificateChain(serverCertificateFile)[0];
         const serverPrivateKey = readPrivateKey(serverPrivateKeyFile);
 
         const clientCertificateFile = m(`client_cert_${sizeC}.pem`);
         const clientPrivateKeyFile = m(`client_key_${sizeC}.pem`);
-        const clientCertificate = readCertificate(clientCertificateFile);
+        const clientCertificate = readCertificateChain(clientCertificateFile)[0];
         const clientPrivateKey = readPrivateKey(clientPrivateKeyFile);
 
         await performTest({

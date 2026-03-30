@@ -1,99 +1,86 @@
-import should from 'should';
-import sinon from 'sinon';
-import { assert } from 'node-opcua-assert';
 import {
     AttributeIds,
-    CallbackT,
+    type CallbackT,
     ClientMonitoredItem,
-    ClientMonitoredItemGroup,
-    ClientSession,
-    ClientSidePublishEngine,
-    ClientSubscription,
+    type ClientSession,
+    type ClientSidePublishEngine,
+    type ClientSubscription,
     CreateMonitoredItemsRequest,
-    CreateMonitoredItemsRequestLike,
+    type CreateMonitoredItemsRequestLike,
     CreateMonitoredItemsResponse,
     CreateSubscriptionRequest,
-    CreateSubscriptionRequestLike,
-    CreateSubscriptionResponse,
-    DataChangeNotification,
+    type CreateSubscriptionRequestLike,
+    type CreateSubscriptionResponse,
+    type DataChangeNotification,
     DataType,
-    DataValue,
-    DataValueLike,
+    type DataValue,
     DeleteMonitoredItemsRequest,
-    DeleteMonitoredItemsRequestLike,
-    DeleteSubscriptionsRequestLike,
-    DeleteSubscriptionsResponse,
+    type DeleteMonitoredItemsRequestLike,
+    type DeleteSubscriptionsRequestLike,
+    type DeleteSubscriptionsResponse,
     installSessionLogging,
-    makeNodeId,
     ModifyMonitoredItemsRequest,
-    ModifyMonitoredItemsRequestLike,
-    ModifyMonitoredItemsResponse,
-    ModifySubscriptionRequestLike,
-    ModifySubscriptionResponse,
+    type ModifyMonitoredItemsRequestLike,
+    type ModifyMonitoredItemsResponse,
+    type ModifySubscriptionRequestLike,
+    type ModifySubscriptionResponse,
     MonitoredItem,
-    MonitoredItemCreateResult,
     MonitoredItemModifyRequest,
-    MonitoredItemModifyResult,
+    type MonitoredItemModifyResult,
     MonitoringMode,
-    MonitoringParametersOptions,
-    NodeId,
-    NodeIdLike,
+    type MonitoringParametersOptions,
+    makeNodeId,
+    type NodeId,
+    type NodeIdLike,
     NumericRange,
     OPCUAClient,
     OPCUAClientBase,
-    OPCUAServer,
+    type OPCUAServer,
     PublishRequest,
-    PublishRequestOptions,
+    type PublishRequestOptions,
     PublishResponse,
     ReadValueId,
-    ReadValueIdOptions,
+    type ReadValueIdOptions,
     RepublishRequest,
-    RepublishRequestOptions,
+    type RepublishRequestOptions,
     RepublishResponse,
+    type Response,
     resolveNodeId,
-    Response,
-    s,
-    ServerSession,
     ServiceFault,
     SetMonitoringModeRequest,
-    SetMonitoringModeRequestLike,
-    SetPublishingModeResponse,
-    StatusChangeNotification,
-    StatusCode,
+    type SetMonitoringModeRequestLike,
+    type SetPublishingModeResponse,
+    type StatusChangeNotification,
+    type StatusCode,
     StatusCodes,
     Subscription,
-    SubscriptionId,
-    SubscriptionState,
+    type SubscriptionId,
+    s,
     TimestampsToReturn,
-    UAVariable,
+    type UAVariable,
     VariableIds,
     Variant,
     VariantArrayType,
-    WriteValueOptions,
-} from 'node-opcua';
-
-import { make_debugLog, checkDebugFlag } from 'node-opcua-debug';
-
+    type WriteValueOptions
+} from "node-opcua";
+import { assert } from "node-opcua-assert";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import sinon from "sinon";
+import { assertThrow } from "../../test_helpers/assert_throw";
+import { fAsync } from "../../test_helpers/display_function_name";
 import {
     perform_operation_on_client_session,
-    perform_operation_on_subscription,
-    perform_operation_on_subscription_with_parameters,
     perform_operation_on_monitoredItem,
-    perform_operation_on_subscription_async
-} from '../../test_helpers/perform_operation_on_client_session';
-
-import { describeWithLeakDetector as describe } from 'node-opcua-leak-detector';
-import { fAsync } from "../../test_helpers/display_function_name";
-import { assertThrow } from '../../test_helpers/assert_throw';
-import {
-    stepLog,
-    wait,
-    tracelog
-} from '../../test_helpers/utils';
+    perform_operation_on_subscription,
+    perform_operation_on_subscription_async,
+    perform_operation_on_subscription_with_parameters
+} from "../../test_helpers/perform_operation_on_client_session";
+import { stepLog, tracelog, wait } from "../../test_helpers/utils";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
 
 interface ClientSessionEx extends ClientSession {
     createMonitoredItems(request: CreateMonitoredItemsRequestLike): Promise<CreateMonitoredItemsResponse>;
@@ -122,17 +109,15 @@ function f<T>(func: () => Promise<T>): () => Promise<T> {
     return fAsync(doDebug, func);
 }
 
-
-
-export function t(test: { endpointUrl: string, server: OPCUAServer }) {
-    describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
-        let server: OPCUAServer;
+export function t(test: { endpointUrl: string; server: OPCUAServer }) {
+    describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
+        let _server: OPCUAServer;
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            server = test.server;
+            _server = test.server;
             endpointUrl = test.endpointUrl;
         });
 
@@ -143,191 +128,164 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             OPCUAClientBase.registry.count().should.eql(0, "all clients must be disconnected");
         });
         it("AZA1-A should create a ClientSubscription to manage a subscription", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 5,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    await wait(200);
-
-                    await subscription.terminate();
-
-                    await wait(200);
-
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 5,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                await wait(200);
+
+                await subscription.terminate();
+
+                await wait(200);
+            });
         });
 
         it("AZA1-B should dump statistics ", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100, // ms
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 5,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    await wait(200);
-
-                    await subscription.terminate();
-
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100, // ms
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 5,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                await wait(200);
+
+                await subscription.terminate();
+            });
         });
 
         it("AZA1-C a ClientSubscription should receive keep-alive events from the server", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                let nb_keep_alive_received = 0;
 
-                    let nb_keep_alive_received = 0;
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-                    subscription.on("keepalive", function () {
-                        nb_keep_alive_received += 1;
-                    });
-                    subscription.on("terminated", function () {
-                        //xx console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)");
-                    });
-                    const timeout = subscription.publishingInterval * subscription.maxKeepAliveCount;
-
-                    await wait(timeout * 1.2);
-
-                    await subscription.terminate();
-
-                    nb_keep_alive_received.should.be.greaterThan(0);
-
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+                subscription.on("keepalive", () => {
+                    nb_keep_alive_received += 1;
+                });
+                subscription.on("terminated", () => {
+                    //xx console.log(" subscription has received ", nb_keep_alive_received, " keep-alive event(s)");
+                });
+                const timeout = subscription.publishingInterval * subscription.maxKeepAliveCount;
+
+                await wait(timeout * 1.2);
+
+                await subscription.terminate();
+
+                nb_keep_alive_received.should.be.greaterThan(0);
+            });
         });
 
         xit("AZA1-D a ClientSubscription should survive longer than the life time", async () => {
             // todo
-
         });
 
         it("AZA1-E should be possible to monitor an nodeId value with a ClientSubscription", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 150,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 50,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-                    await new Promise<void>((resolve) => monitoredItem.on("initialized", resolve));
-
-                    await monitoredItem.terminate();
-
-                    await subscription.terminate();
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 150,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
                 });
 
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 50,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
+                await new Promise<void>((resolve) => monitoredItem.on("initialized", resolve));
+
+                await monitoredItem.terminate();
+
+                await subscription.terminate();
+            });
         });
 
         it("AZA1-F should be possible to monitor several nodeId value with a single client subscription", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 50,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 2,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    let currentTime_changes = 0;
-                    const monitoredItemCurrentTime = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 20,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-
-                    // subscription.on("item_added",function(monitoredItem){
-                    monitoredItemCurrentTime.on("changed", function (dataValue) {
-                        should.exist(dataValue);
-                        //xx tracelog("xxxx current time", dataValue.value.value);
-                        currentTime_changes++;
-                    });
-
-                    const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
-                    const monitoredItemPumpSpeed = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId(pumpSpeedId),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 20,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-
-                    let pumpSpeed_changes = 0;
-                    monitoredItemPumpSpeed.on("changed", function (dataValue) {
-                        should.exist(dataValue);
-                        // tracelog(" pump speed ", dataValue.value.value);
-                        pumpSpeed_changes++;
-                    });
-
-                    await wait(2000);
-
-                    pumpSpeed_changes.should.be.greaterThan(1);
-                    currentTime_changes.should.be.greaterThan(1);
-
-                    await subscription.terminate();
-
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 50,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 2,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                let currentTime_changes = 0;
+                const monitoredItemCurrentTime = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 20,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
+
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItemCurrentTime.on("changed", (dataValue) => {
+                    should.exist(dataValue);
+                    //xx tracelog("xxxx current time", dataValue.value.value);
+                    currentTime_changes++;
+                });
+
+                const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
+                const monitoredItemPumpSpeed = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId(pumpSpeedId),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 20,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
+
+                let pumpSpeed_changes = 0;
+                monitoredItemPumpSpeed.on("changed", (dataValue) => {
+                    should.exist(dataValue);
+                    // tracelog(" pump speed ", dataValue.value.value);
+                    pumpSpeed_changes++;
+                });
+
+                await wait(2000);
+
+                pumpSpeed_changes.should.be.greaterThan(1);
+                currentTime_changes.should.be.greaterThan(1);
+
+                await subscription.terminate();
+            });
         });
 
         it("AZA1-G should terminate any pending subscription when the client is disconnected", async () => {
@@ -343,7 +301,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 priority: 6
             });
             // create a monitored item
-            const monitoredItem = ClientMonitoredItem.create(subscription,
+            const _monitoredItem = ClientMonitoredItem.create(
+                subscription,
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: 13
@@ -362,7 +321,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         });
 
         it("AZA1-H should terminate any pending subscription when the client is disconnected twice", async () => {
-
             // connect
             await client.connect(endpointUrl);
 
@@ -379,7 +337,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             });
 
             // monitor some
-            const monitoredItem = await subscription.monitor(
+            const _monitoredItem = await subscription.monitor(
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: 13
@@ -388,7 +346,9 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     samplingInterval: 100,
                     discardOldest: true,
                     queueSize: 1
-                }, TimestampsToReturn.Both);
+                },
+                TimestampsToReturn.Both
+            );
             // note that at this point the monitoredItem has bee declared in the client
             // but not created yet on the server side ....
 
@@ -413,7 +373,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 priority: 6
             });
             // monitor some again
-            const monitoredItem2 = (await subscription2).monitor(
+            const _monitoredItem2 = (await subscription2).monitor(
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: 13
@@ -426,7 +386,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 TimestampsToReturn.Both
             );
 
-
             // now disconnect the client, without terminating the subscription &
             // without closing the session first
             await wait(400);
@@ -434,7 +393,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         });
     });
 
-    describe("AZA2- testing server and subscription", function () {
+    describe("AZA2- testing server and subscription", () => {
         let server: OPCUAServer;
         let client: OPCUAClient;
         let endpointUrl: string;
@@ -473,28 +432,25 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             const subscriptionIds: number[] = [];
 
             async function create_an_other_subscription(session: ClientSession, expected_error: string | null) {
-
                 try {
-                    const subscription = await session.createSubscription2(
-                        {
-                            requestedPublishingInterval: 100, // Duration
-                            requestedLifetimeCount: 10, // Counter
-                            requestedMaxKeepAliveCount: 10, // Counter
-                            maxNotificationsPerPublish: 10, // Counter
-                            publishingEnabled: true, // Boolean
-                            priority: 14 // Byte
-                        });
+                    const subscription = await session.createSubscription2({
+                        requestedPublishingInterval: 100, // Duration
+                        requestedLifetimeCount: 10, // Counter
+                        requestedMaxKeepAliveCount: 10, // Counter
+                        maxNotificationsPerPublish: 10, // Counter
+                        publishingEnabled: true, // Boolean
+                        priority: 14 // Byte
+                    });
                     if (!expected_error) {
                         subscriptionIds.push(subscription.subscriptionId);
                     } else {
                         throw new Error("Expecting an error, but createSubscription2 succeeded");
                     }
-
                 } catch (err) {
                     if (expected_error) {
                         (err as Error).message.should.match(new RegExp(expected_error));
                     } else {
-                        throw new Error("Expecting create_an_other_subscription to succeed but got : " + (err as Error).message);
+                        throw new Error(`Expecting create_an_other_subscription to succeed but got : ${(err as Error).message}`);
                     }
                 }
             }
@@ -509,27 +465,22 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             server.engine.serverCapabilities.maxSubscriptions = 100;
 
             try {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const nbSessions = server.engine.currentSessionCount;
+                    server.engine.currentSessionCount.should.equal(nbSessions);
 
-                        const nbSessions = server.engine.currentSessionCount;
-                        server.engine.currentSessionCount.should.equal(nbSessions);
+                    await create_an_other_subscription(session, null);
+                    await create_an_other_subscription(session, null);
+                    await create_an_other_subscription(session, null);
+                    await create_an_other_subscription(session, null);
+                    await create_an_other_subscription(session, null);
+                    await create_an_other_subscription(session, "BadTooManySubscriptions");
+                    await create_an_other_subscription(session, "BadTooManySubscriptions");
 
-                        await create_an_other_subscription(session, null);
-                        await create_an_other_subscription(session, null);
-                        await create_an_other_subscription(session, null);
-                        await create_an_other_subscription(session, null);
-                        await create_an_other_subscription(session, null);
-                        await create_an_other_subscription(session, "BadTooManySubscriptions");
-                        await create_an_other_subscription(session, "BadTooManySubscriptions");
-
-                        await (session as ClientSessionEx).deleteSubscriptions({
-                            subscriptionIds: subscriptionIds
-                        });
-
+                    await (session as ClientSessionEx).deleteSubscriptions({
+                        subscriptionIds: subscriptionIds
                     });
+                });
             } finally {
                 server.engine.serverCapabilities.maxSubscriptionsPerSession = maxSubsriptionsPerSessionBackup;
                 server.engine.serverCapabilities.maxSubscriptions = maxSubsriptionsBackup;
@@ -575,17 +526,17 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 const _err = await tryToCreateSubscription();
                 if (expected_error) {
                     if (!_err) {
-                        tracelog("maxSubscriptionsPerSession=" + server.engine.serverCapabilities.maxSubscriptionsPerSession);
-                        tracelog("maxSubscriptions          =" + server.engine.serverCapabilities.maxSubscriptions);
-                        tracelog("serverCapabilities        =" + server.engine.serverCapabilities);
+                        tracelog(`maxSubscriptionsPerSession=${server.engine.serverCapabilities.maxSubscriptionsPerSession}`);
+                        tracelog(`maxSubscriptions          =${server.engine.serverCapabilities.maxSubscriptions}`);
+                        tracelog(`serverCapabilities        =${server.engine.serverCapabilities}`);
 
-                        throw new Error("Expected error " + expected_error + " but got no error instead");
+                        throw new Error(`Expected error ${expected_error} but got no error instead`);
                     } else {
                         _err.message.should.match(new RegExp(expected_error));
                     }
                 } else {
                     if (_err) {
-                        throw new Error("Expected no error but got " + _err.message);
+                        throw new Error(`Expected no error but got ${_err.message}`);
                     }
                 }
                 await tryToCreateSubscription();
@@ -620,254 +571,217 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
         it(
             "AZA2-B a server should accept several Publish Requests from the client without sending notification immediately," +
-            " and should still be able to reply to other requests",
+                " and should still be able to reply to other requests",
             async () => {
-
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-
-                        const subscription = await session.createSubscription2(
-                            {
-                                requestedPublishingInterval: 1000, // Duration
-                                requestedLifetimeCount: 1000, // Counter
-                                requestedMaxKeepAliveCount: 50, // Counter
-                                maxNotificationsPerPublish: 10, // Counter
-                                publishingEnabled: true, // Boolean
-                                priority: 14 // Byte
-                            });
-                        let subscriptionId = subscription.subscriptionId;
-
-
-                        const dataValue = await session.readVariableValue("RootFolder");
-
-
-                        function publish_callback(err: Error | null, response?: PublishResponse) {
-                            should.not.exist(response);
-                            const errEx = err as (Error & { response: Response });
-                            errEx!.response.should.be.instanceOf(ServiceFault);
-                            should(err!.message).match(/BadNoSubscription/);
-                        }
-
-                        const sessionEx = session as (typeof session & {
-                            publish: (
-                                publishRequest: PublishRequestOptions,
-                                callback: CallbackT<PublishResponse>
-                            ) => void
-                        });
-
-                        // send many publish requests, in one go
-                        sessionEx.publish({}, publish_callback);
-                        sessionEx.publish({}, publish_callback);
-                        sessionEx.publish({}, publish_callback);
-                        sessionEx.publish({}, publish_callback);
-                        sessionEx.publish({}, publish_callback);
-                        sessionEx.publish({}, publish_callback);
-
-
-                        const dataValue2 = await session.readVariableValue("RootFolder");
-
-                        await subscription.terminate();
-                    });
-            }
-        );
-
-        it("AZA2-C A Subscription can be added and then deleted", async () => {
-
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                     const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100, // Duration
-                        requestedLifetimeCount: 10, // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
+                        requestedPublishingInterval: 1000, // Duration
+                        requestedLifetimeCount: 1000, // Counter
+                        requestedMaxKeepAliveCount: 50, // Counter
                         maxNotificationsPerPublish: 10, // Counter
                         publishingEnabled: true, // Boolean
                         priority: 14 // Byte
                     });
-                    const response = await (session as ClientSessionEx).deleteSubscriptions({
-                        subscriptionIds: [subscription.subscriptionId]
-                    });
-                    should.exist(response);
+                    const _subscriptionId = subscription.subscriptionId;
+
+                    const _dataValue = await session.readVariableValue("RootFolder");
+
+                    function publish_callback(err: Error | null, response?: PublishResponse) {
+                        should.not.exist(response);
+                        const errEx = err as Error & { response: Response };
+                        errEx?.response.should.be.instanceOf(ServiceFault);
+                        should(err?.message).match(/BadNoSubscription/);
+                    }
+
+                    const sessionEx = session as typeof session & {
+                        publish: (publishRequest: PublishRequestOptions, callback: CallbackT<PublishResponse>) => void;
+                    };
+
+                    // send many publish requests, in one go
+                    sessionEx.publish({}, publish_callback);
+                    sessionEx.publish({}, publish_callback);
+                    sessionEx.publish({}, publish_callback);
+                    sessionEx.publish({}, publish_callback);
+                    sessionEx.publish({}, publish_callback);
+                    sessionEx.publish({}, publish_callback);
+
+                    const _dataValue2 = await session.readVariableValue("RootFolder");
+
+                    await subscription.terminate();
                 });
+            }
+        );
+
+        it("AZA2-C A Subscription can be added and then deleted", async () => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100, // Duration
+                    requestedLifetimeCount: 10, // Counter
+                    requestedMaxKeepAliveCount: 10, // Counter
+                    maxNotificationsPerPublish: 10, // Counter
+                    publishingEnabled: true, // Boolean
+                    priority: 14 // Byte
+                });
+                const response = await (session as ClientSessionEx).deleteSubscriptions({
+                    subscriptionIds: [subscription.subscriptionId]
+                });
+                should.exist(response);
+            });
         });
 
         it("AZA2-D #deleteSubscriptions -  should return serviceResult=BadNothingToDo if subscriptionIds is empty", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    await assertThrow(async () => {
-                        const response = await (session as ClientSessionEx).deleteSubscriptions({
-                            subscriptionIds: []
-                        });
-                    }, /BadNothingToDo/);
-                });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await assertThrow(async () => {
+                    const _response = await (session as ClientSessionEx).deleteSubscriptions({
+                        subscriptionIds: []
+                    });
+                }, /BadNothingToDo/);
+            });
         });
 
         it("AZA2-E A MonitoredItem can be added to a subscription and then deleted", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-                    await new Promise<void>((resolve) => monitoredItem.on("initialized", () => resolve()));
-
-                    // subscription.on("item_added",function(monitoredItem){
-                    await monitoredItem.terminate();
-                });
-        });
-
-        it("AZA2-F should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const itemToMonitor = {
-                        nodeId: resolveNodeId("ns=0;s=**unknown**"),
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
                         attributeId: AttributeIds.Value
-                    };
-                    const parameters = {
+                    },
+                    {
                         samplingInterval: 10,
                         discardOldest: true,
                         queueSize: 1
-                    };
+                    }
+                );
+                await new Promise<void>((resolve) => monitoredItem.on("initialized", () => resolve()));
 
-                    const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters);
+                // subscription.on("item_added",function(monitoredItem){
+                await monitoredItem.terminate();
+            });
+        });
 
-                    const statusMessage = await new Promise<string>((resolve, reject) => {
-                        // should received err
-                        monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
-                        // should not received initialize
-                        monitoredItem.on("initialized", () => {
-                            reject(new Error("Should not have been initialized"));
-                        });
+        it("AZA2-F should return BadNodeIdUnknown  if the client tries to monitored an non-existent node", async () => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const itemToMonitor = {
+                    nodeId: resolveNodeId("ns=0;s=**unknown**"),
+                    attributeId: AttributeIds.Value
+                };
+                const parameters = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                };
+
+                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters);
+
+                const statusMessage = await new Promise<string>((resolve, reject) => {
+                    // should received err
+                    monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
+                    // should not received initialize
+                    monitoredItem.on("initialized", () => {
+                        reject(new Error("Should not have been initialized"));
                     });
-                    statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
                 });
+                statusMessage.should.eql(StatusCodes.BadNodeIdUnknown.toString());
+            });
         });
 
         it("AZA2-G should return BadAttributeIdInvalid if the client tries to monitored an invalid attribute", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.INVALID
-                        },
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-                    const statusMessage = await new Promise<string>((resolve, reject) => {
-                        // should received err
-                        monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
-                        // should not received initialize
-                        monitoredItem.on("initialized", () => {
-                            reject(new Error("Should not have been initialized"));
-                        });
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.INVALID
+                    },
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
+                const statusMessage = await new Promise<string>((resolve, reject) => {
+                    // should received err
+                    monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
+                    // should not received initialize
+                    monitoredItem.on("initialized", () => {
+                        reject(new Error("Should not have been initialized"));
                     });
-                    statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
                 });
+                statusMessage.should.eql(StatusCodes.BadAttributeIdInvalid.toString());
+            });
         });
 
         it("AZA2-H should return BadIndexRangeInvalid if the client tries to monitored with an invalid index range", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value,
-                            indexRange: new NumericRange("5:3") // << INTENTIONAL : Invalid Range
-                        },
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value,
+                        indexRange: new NumericRange("5:3") // << INTENTIONAL : Invalid Range
+                    },
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
 
-                    const statusMessage = await new Promise<string>((resolve, reject) => {
-                        // should received err
-                        monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
-                        // should not received initialize
-                        monitoredItem.on("initialized", () => {
-                            reject(new Error("Should not have been initialized"));
-                        });
+                const statusMessage = await new Promise<string>((resolve, reject) => {
+                    // should received err
+                    monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
+                    // should not received initialize
+                    monitoredItem.on("initialized", () => {
+                        reject(new Error("Should not have been initialized"));
                     });
-
-                    statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                 });
+
+                statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
+            });
         });
 
         it("AZA2-I should return BadIndexRangeNoData on first notification if the client tries to monitored with 2D index range when a 1D index range is required", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const notificationMessageSpy = sinon.spy();
 
-                    const notificationMessageSpy = sinon.spy();
+                subscription.on("raw_notification", notificationMessageSpy);
 
-                    subscription.on("raw_notification", notificationMessageSpy);
+                subscription.publishingInterval.should.eql(100);
 
-                    subscription.publishingInterval.should.eql(100);
+                const nodeId = "ns=2;s=Static_Array_Boolean";
 
-                    const nodeId = "ns=2;s=Static_Array_Boolean";
+                const monitoredItem = await subscription.monitor(
+                    {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        indexRange: NumericRange.coerce("0:1,0:1") // << INTENTIONAL : 2D RANGE
+                    },
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Both
+                );
+                console.log("monitoredItem=", monitoredItem.toString());
+                console.log("statusCode =", monitoredItem.statusCode.toString());
+                monitoredItem.statusCode.should.equal(StatusCodes.Good);
 
-                    const monitoredItem = await subscription.monitor(
-                        {
-                            nodeId: nodeId,
-                            attributeId: AttributeIds.Value,
-                            indexRange: NumericRange.coerce("0:1,0:1") // << INTENTIONAL : 2D RANGE
-                        },
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        },
-                        TimestampsToReturn.Both
-                    );
-                    console.log("monitoredItem=", monitoredItem.toString());
-                    console.log("statusCode =", monitoredItem.statusCode.toString());
-                    monitoredItem.statusCode.should.equal(StatusCodes.Good);
-
-                    const monitoredItemOnChangedSpy = sinon.spy();
-                    monitoredItem.on("changed", monitoredItemOnChangedSpy);
-                    monitoredItem.on("changed", function (dataValue) {
-                        tracelog("Monitored Item changed", dataValue.toString());
-                    });
-
-                    // wait a long time
-                    await wait(10000);
-
-                    monitoredItemOnChangedSpy.callCount.should.eql(1);
-                    //xx tracelog(notificationMessageSpy.getCall(0).args[0].toString());
-                    monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
-                    monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
-
+                const monitoredItemOnChangedSpy = sinon.spy();
+                monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                monitoredItem.on("changed", (dataValue) => {
+                    tracelog("Monitored Item changed", dataValue.toString());
                 });
+
+                // wait a long time
+                await wait(10000);
+
+                monitoredItemOnChangedSpy.callCount.should.eql(1);
+                //xx tracelog(notificationMessageSpy.getCall(0).args[0].toString());
+                monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
+            });
         });
 
         it("AZA2-J should not report notification if a monitored value array changes outside the monitored indexRange - 1", async () => {
@@ -879,98 +793,86 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             //    call Publish(). We expect to receive data in the Publish response.
             //    Write to each data-type outside of the index range (e.g. elements 0 and 1) and then call Publish().
             //    We do not expect to receive data in the Publish response.
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const notificationMessageSpy = sinon.spy();
-                    subscription.on("raw_notification", notificationMessageSpy);
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const notificationMessageSpy = sinon.spy();
+                subscription.on("raw_notification", notificationMessageSpy);
 
-                    const monitoredItemOnChangedSpy = sinon.spy();
+                const monitoredItemOnChangedSpy = sinon.spy();
 
-                    subscription.publishingInterval.should.eql(100);
+                subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Static_Array_Int32";
+                const nodeId = "ns=2;s=Static_Array_Int32";
 
-                    async function write(value: number[], indexRange: string | null) {
-                        assert(Array.isArray(value));
+                async function write(value: number[], indexRange: string | null) {
+                    assert(Array.isArray(value));
 
-                        const nodeToWrite: WriteValueOptions = {
+                    const nodeToWrite: WriteValueOptions = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: /*new DataValue(*/ {
+                            serverTimestamp: null,
+                            sourceTimestamp: null,
+                            value: {
+                                /* Variant */
+                                dataType: DataType.Int32,
+                                arrayType: VariantArrayType.Array,
+                                value: value
+                            }
+                        },
+                        indexRange: indexRange ? NumericRange.coerce(indexRange) : undefined
+                    };
+
+                    const statusCode = await session.write(nodeToWrite);
+                    statusCode.should.eql(StatusCodes.Good);
+
+                    const _dataValueCheck = await session.read({
+                        attributeId: AttributeIds.Value,
+                        nodeId: nodeId
+                    });
+                }
+
+                async function create_monitored_item() {
+                    const monitoredItem = await subscription.monitor(
+                        {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
-                            value: /*new DataValue(*/ {
-                                serverTimestamp: null,
-                                sourceTimestamp: null,
-                                value: {
-                                    /* Variant */
-                                    dataType: DataType.Int32,
-                                    arrayType: VariantArrayType.Array,
-                                    value: value
-                                }
-                            },
-                            indexRange: indexRange ? NumericRange.coerce(indexRange) : undefined
-                        };
+                            indexRange: NumericRange.coerce("2:9")
+                        },
+                        {
+                            samplingInterval: 0, // event based
+                            discardOldest: true,
+                            queueSize: 1
+                        },
+                        TimestampsToReturn.Both
+                    );
+                    monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                }
 
-                        const statusCode = await session.write(nodeToWrite);
-                        statusCode.should.eql(StatusCodes.Good);
+                await write([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], null), await create_monitored_item();
 
-                        const dataValueCheck = await session.read({
-                            attributeId: AttributeIds.Value,
-                            nodeId: nodeId
-                        });
+                await wait(300);
 
-                    }
+                monitoredItemOnChangedSpy.callCount.should.eql(1);
+                monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
+                //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                monitoredItemOnChangedSpy.getCall(0).args[0].value.value.should.eql(new Int32Array([2, 3, 4, 5, 6, 7, 8, 9]));
 
-                    async function create_monitored_item() {
-                        const monitoredItem = await subscription.monitor(
-                            {
-                                nodeId: nodeId,
-                                attributeId: AttributeIds.Value,
-                                indexRange: NumericRange.coerce("2:9")
-                            },
-                            {
-                                samplingInterval: 0, // event based
-                                discardOldest: true,
-                                queueSize: 1
-                            },
-                            TimestampsToReturn.Both
-                        );
-                        monitoredItem.on("changed", monitoredItemOnChangedSpy);
-                    }
+                await write([100, 101], "0:1");
+                await wait(300);
 
-                    await write([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], null),
+                await write([200, 201], "0:1"), await wait(300);
 
-                        await create_monitored_item();
+                // no change ! there is no overlap
+                //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
+                monitoredItemOnChangedSpy.callCount.should.eql(1);
 
-                    await wait(300);
+                await write([222, 333], "2:3");
+                await wait(300);
 
-
-                    monitoredItemOnChangedSpy.callCount.should.eql(1);
-                    monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                    //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
-                    monitoredItemOnChangedSpy
-                        .getCall(0)
-                        .args[0].value.value.should.eql(new Int32Array([2, 3, 4, 5, 6, 7, 8, 9]));
-
-                    await write([100, 101], "0:1");
-                    await wait(300);
-
-                    await write([200, 201], "0:1"),
-                        await wait(300);
-
-                    // no change ! there is no overlap
-                    //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
-                    monitoredItemOnChangedSpy.callCount.should.eql(1);
-
-                    await write([222, 333], "2:3");
-                    await wait(300);
-
-                    // there is a overlap ! we should receive a monitoredItem On Change event
-                    monitoredItemOnChangedSpy.callCount.should.eql(2);
-                    monitoredItemOnChangedSpy
-                        .getCall(1)
-                        .args[0].value.value.should.eql(new Int32Array([222, 333, 4, 5, 6, 7, 8, 9]));
-                });
+                // there is a overlap ! we should receive a monitoredItem On Change event
+                monitoredItemOnChangedSpy.callCount.should.eql(2);
+                monitoredItemOnChangedSpy.getCall(1).args[0].value.value.should.eql(new Int32Array([222, 333, 4, 5, 6, 7, 8, 9]));
+            });
         });
 
         it("AZA2-K should not report notification if a monitored value array changes outside the monitored indexRange", async () => {
@@ -984,89 +886,80 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             //  - Write to each data-type outside of the index range (e.g. elements 0, 1 and 5) and then
             //  - call Publish()
             //  - VERIFY that no notification is sent.
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const notificationMessageSpy = sinon.spy();
-                    subscription.on("raw_notification", notificationMessageSpy);
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const notificationMessageSpy = sinon.spy();
+                subscription.on("raw_notification", notificationMessageSpy);
 
-                    const monitoredItemOnChangedSpy = sinon.spy();
+                const monitoredItemOnChangedSpy = sinon.spy();
 
-                    subscription.publishingInterval.should.eql(100);
+                subscription.publishingInterval.should.eql(100);
 
-                    const nodeId = "ns=2;s=Static_Array_Int32";
+                const nodeId = "ns=2;s=Static_Array_Int32";
 
-                    async function create_monitored_item() {
-                        const monitoredItem = await subscription.monitor(
-                            {
-                                nodeId: nodeId,
-                                attributeId: AttributeIds.Value,
-                                indexRange: NumericRange.coerce("2:4")
-                            },
-                            {
-                                samplingInterval: 100,
-                                discardOldest: true,
-                                queueSize: 1
-                            },
-                            TimestampsToReturn.Both
-                        );
-
-                        monitoredItem.on("changed", monitoredItemOnChangedSpy);
-                    }
-                    async function write(value: number[]) {
-                        const nodeToWrite = {
+                async function create_monitored_item() {
+                    const monitoredItem = await subscription.monitor(
+                        {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
-                            value: /*new DataValue(*/ {
-                                value: {
-                                    /* Variant */
-                                    dataType: DataType.Int32,
-                                    arrayType: VariantArrayType.Array,
-                                    value: value
-                                }
+                            indexRange: NumericRange.coerce("2:4")
+                        },
+                        {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 1
+                        },
+                        TimestampsToReturn.Both
+                    );
+
+                    monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                }
+                async function write(value: number[]) {
+                    const nodeToWrite = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: /*new DataValue(*/ {
+                            value: {
+                                /* Variant */
+                                dataType: DataType.Int32,
+                                arrayType: VariantArrayType.Array,
+                                value: value
                             }
-                        };
+                        }
+                    };
 
-                        const statusCode = await session.write(nodeToWrite);
-                        statusCode.should.eql(StatusCodes.Good);
+                    const statusCode = await session.write(nodeToWrite);
+                    statusCode.should.eql(StatusCodes.Good);
 
-                        const dataValue = await session.read({
-                            attributeId: AttributeIds.Value,
-                            nodeId: nodeId
-                        });
-                    }
+                    const _dataValue = await session.read({
+                        attributeId: AttributeIds.Value,
+                        nodeId: nodeId
+                    });
+                }
 
+                await write([0, 0, 0, 0, 0, 0]), await create_monitored_item();
 
-                    await write([0, 0, 0, 0, 0, 0]),
+                await wait(300);
+                await write([1, 2, 3, 4, 5]);
+                await wait(300);
+                await write([10, 20, 3, 4, 5, 60]);
+                await wait(300);
+                await write([10, 20, 13, 14, 15, 60]);
+                await wait(300);
 
-                        await create_monitored_item();
+                //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
+                //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
+                //xx tracelog(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
 
-                    await wait(300);
-                    await write([1, 2, 3, 4, 5]);
-                    await wait(300);
-                    await write([10, 20, 3, 4, 5, 60]);
-                    await wait(300);
-                    await write([10, 20, 13, 14, 15, 60]);
-                    await wait(300);
+                monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemOnChangedSpy.getCall(2).args[0].statusCode.should.eql(StatusCodes.Good);
 
+                monitoredItemOnChangedSpy.getCall(0).args[0].value.value.should.eql(new Int32Array([0, 0, 0]));
+                monitoredItemOnChangedSpy.getCall(1).args[0].value.value.should.eql(new Int32Array([3, 4, 5]));
+                monitoredItemOnChangedSpy.getCall(2).args[0].value.value.should.eql(new Int32Array([13, 14, 15]));
 
-
-                    //xx tracelog(monitoredItemOnChangedSpy.getCall(0).args[0].toString());
-                    //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].toString());
-                    //xx tracelog(monitoredItemOnChangedSpy.getCall(2).args[0].toString());
-
-                    monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                    monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.Good);
-                    monitoredItemOnChangedSpy.getCall(2).args[0].statusCode.should.eql(StatusCodes.Good);
-
-                    monitoredItemOnChangedSpy.getCall(0).args[0].value.value.should.eql(new Int32Array([0, 0, 0]));
-                    monitoredItemOnChangedSpy.getCall(1).args[0].value.value.should.eql(new Int32Array([3, 4, 5]));
-                    monitoredItemOnChangedSpy.getCall(2).args[0].value.value.should.eql(new Int32Array([13, 14, 15]));
-
-                    monitoredItemOnChangedSpy.callCount.should.eql(3);
-
-                });
+                monitoredItemOnChangedSpy.callCount.should.eql(3);
+            });
         });
 
         it("AZA2-K1 should not report notification if a monitored value & status are written but did not change", async () => {
@@ -1099,7 +992,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 async (session, subscription) => {
                     const notificationMessageSpy = sinon.spy();
                     subscription.on("raw_notification", notificationMessageSpy);
-                    subscription.on("raw_notification", (notification) => {
+                    subscription.on("raw_notification", (_notification) => {
                         // tracelog(notification.toString());
                     });
 
@@ -1112,7 +1005,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
                     async function create_monitored_item() {
                         const monitoredItem = await subscription.monitor(
-
                             {
                                 nodeId,
                                 attributeId: AttributeIds.Value
@@ -1152,21 +1044,17 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
                         statusCodeWrite.should.eql(StatusCodes.Good);
 
-                        const dataValue = session.read(
-                            {
-                                attributeId: AttributeIds.Value,
-                                nodeId: nodeId
-                            });
-
+                        const _dataValue = session.read({
+                            attributeId: AttributeIds.Value,
+                            nodeId: nodeId
+                        });
                     }
-
 
                     await write(1, StatusCodes.Good);
                     await wait(300);
 
                     await create_monitored_item();
                     await wait(300);
-
 
                     //  - Write a status code to the Value  attribute (don’t change the value of the Value attribute).
                     await write(1, StatusCodes.GoodWithOverflowBit);
@@ -1176,24 +1064,19 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     await write(1, StatusCodes.GoodWithOverflowBit);
                     await wait(300);
 
-
-
                     const waitUntilReceivedPublishResponse = async (client: OPCUAClient): Promise<PublishResponse> => {
-                        return await new Promise<PublishResponse>((resolve, reject) => {
+                        return await new Promise<PublishResponse>((resolve, _reject) => {
                             const lambda = (response: Response) => {
                                 if (doDebug) {
-                                    tracelog(
-                                        "response: ",
-                                        response.constructor.name,
-                                    );
+                                    tracelog("response: ", response.constructor.name);
                                 }
                                 if (response.constructor.name === "PublishResponse") {
-
                                     const publishResponse = response as PublishResponse;
 
                                     if (doDebug) {
-                                        tracelog("notificationData.length",
-                                            "" + publishResponse.notificationMessage?.notificationData?.length
+                                        tracelog(
+                                            "notificationData.length",
+                                            `${publishResponse.notificationMessage?.notificationData?.length}`
                                         );
                                     }
 
@@ -1202,24 +1085,20 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                                 }
                             };
                             client.on("receive_response", lambda);
-
                         });
-
-                    }
+                    };
 
                     // wait until next notification received;
                     const publishResponse = await waitUntilReceivedPublishResponse(client);
 
                     // tracelog(" xxxx ", response.toString());
-                    should(publishResponse.notificationMessage?.notificationData?.length).equal(0,
+                    should(publishResponse.notificationMessage?.notificationData?.length).equal(
+                        0,
                         "Test has failed because PublishResponse has a unexpected notification data"
                     );
 
-
                     if (doDebug) {
-                        tracelog(
-                            `subscription_raw_notificiationSpy = ${subscription_raw_notificationSpy.callCount}`
-                        );
+                        tracelog(`subscription_raw_notificiationSpy = ${subscription_raw_notificationSpy.callCount}`);
                         tracelog(`monitoredItemOnChangedSpy         = ${monitoredItemOnChangedSpy.callCount}`);
                         for (let i = 0; i < monitoredItemOnChangedSpy.callCount; i++) {
                             tracelog("    ", monitoredItemOnChangedSpy.getCall(i).args[0].statusCode.toString());
@@ -1228,18 +1107,16 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
                     monitoredItemOnChangedSpy.callCount.should.eql(2);
                     monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.Good);
-                    monitoredItemOnChangedSpy
-                        .getCall(1)
-                        .args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
-
-                });
+                    monitoredItemOnChangedSpy.getCall(1).args[0].statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
+                }
+            );
         });
 
         it("AZA2-L disabled monitored item", async () => {
             const nodeId = "ns=2;s=Static_Scalar_Int32";
 
             const monitoredItemOnChangedSpy = sinon.spy();
-            await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (_session, subscription) => {
                 // create a disabled monitored Item
                 const monitoredItem = await subscription.monitor(
                     /* itemToMonitor:*/
@@ -1262,199 +1139,218 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             });
         });
 
-
         it("AZA2-M #CreateMonitoredItemsRequest should return BadNothingToDo if CreateMonitoredItemsRequest has no nodes to monitored", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-
-                    const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
-                        subscriptionId: subscription.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToCreate: []
-                    });
-                    const err = await assertThrow(async () => {
-                        const createMonitoredItemsResponse = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
-                    }, /BadNothingToDo/);
-
-                    (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
-
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToCreate: []
                 });
+                const err = await assertThrow(async () => {
+                    const _createMonitoredItemsResponse = await (session as ClientSessionEx).createMonitoredItems(
+                        createMonitoredItemsRequest
+                    );
+                }, /BadNothingToDo/);
+
+                (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+            });
         });
 
         it("AZA2-N #CreateMonitoredItemsRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemsRequest ", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const nodeId = makeNodeId(VariableIds.Server_ServerArray);
-                    const samplingInterval = 1000;
-                    const itemToMonitor = new ReadValueId({
-                        nodeId: nodeId,
-                        attributeId: AttributeIds.Value,
-                        indexRange: NumericRange.coerce("1:2,3:4")
-                    });
-                    const parameters = {
-                        samplingInterval: samplingInterval,
-                        discardOldest: false,
-                        queueSize: 1
-                    };
-
-                    const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
-                        subscriptionId: subscription.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToCreate: [
-                            {
-                                itemToMonitor: itemToMonitor,
-                                requestedParameters: parameters,
-                                monitoringMode: MonitoringMode.Reporting
-                            }
-                        ]
-                    });
-                    const response = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                    response.results![0].statusCode.should.eql(StatusCodes.Good);
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const nodeId = makeNodeId(VariableIds.Server_ServerArray);
+                const samplingInterval = 1000;
+                const itemToMonitor = new ReadValueId({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value,
+                    indexRange: NumericRange.coerce("1:2,3:4")
                 });
+                const parameters = {
+                    samplingInterval: samplingInterval,
+                    discardOldest: false,
+                    queueSize: 1
+                };
+
+                const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToCreate: [
+                        {
+                            itemToMonitor: itemToMonitor,
+                            requestedParameters: parameters,
+                            monitoringMode: MonitoringMode.Reporting
+                        }
+                    ]
+                });
+                const response = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
+                response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                response.results?.[0].statusCode.should.eql(StatusCodes.Good);
+            });
         });
 
         it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemsRequest has no nodes to monitored", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
-                        subscriptionId: subscription.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToModify: []
-                    });
-
-                    const err = await assertThrow(async () => {
-                        await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
-                    }, /BadNothingToDo/);
-                    should(err.message).match(/BadNothingToDo/);
-                    (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
-
-
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const modifyMonitoredItemsRequest = new ModifyMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToModify: []
                 });
+
+                const err = await assertThrow(async () => {
+                    await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
+                }, /BadNothingToDo/);
+                should(err.message).match(/BadNothingToDo/);
+                (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+            });
         });
 
         it("AZA2-P should return BadNothingToDo if DeleteMonitoredItemsResponse has no nodes to delete", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const deleteMonitoredItemsRequest = new DeleteMonitoredItemsRequest({
-                        subscriptionId: subscription.subscriptionId,
-                        monitoredItemIds: []
-                    });
-
-                    const err = await assertThrow(async () => {
-                        await (session as ClientSessionEx).deleteMonitoredItems(deleteMonitoredItemsRequest);
-                    }, /BadNothingToDo/);
-
-                    (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const deleteMonitoredItemsRequest = new DeleteMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    monitoredItemIds: []
                 });
+
+                const err = await assertThrow(async () => {
+                    await (session as ClientSessionEx).deleteMonitoredItems(deleteMonitoredItemsRequest);
+                }, /BadNothingToDo/);
+
+                (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+            });
         });
 
         it("AZA2-Q A MonitoredItem should received changed event", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
 
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 100,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-
-                    monitoredItem.on("initialized", function () {
-                        debugLog("Initialized");
-                    });
-                    monitoredItem.on("terminated", function () {
-                        debugLog("monitored item terminated");
-                    });
-
-                    var dataValue = await new Promise<DataValue>((resolve, reject) => {
-                        const timerId = setTimeout(() => {
-                            reject(new Error("Didn't receive on changed event !"))
-                        }, 2000);
-                        monitoredItem.on("changed", (dataValue) => {
-                            resolve(dataValue);
-                        });
-                    });
-
-                    should.exist(dataValue);
-                    // the changed event has been received !
-                    // lets stop monitoring this item
-                    await monitoredItem.terminate();
+                monitoredItem.on("initialized", () => {
+                    debugLog("Initialized");
                 });
+                monitoredItem.on("terminated", () => {
+                    debugLog("monitored item terminated");
+                });
+
+                var dataValue = await new Promise<DataValue>((resolve, reject) => {
+                    const _timerId = setTimeout(() => {
+                        reject(new Error("Didn't receive on changed event !"));
+                    }, 2000);
+                    monitoredItem.on("changed", (dataValue) => {
+                        resolve(dataValue);
+                    });
+                });
+
+                should.exist(dataValue);
+                // the changed event has been received !
+                // lets stop monitoring this item
+                await monitoredItem.terminate();
+            });
         });
 
         it("AZA2-R A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on monitored item )", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Invalid
+                );
 
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
+                let err_counter = 0;
+                // subscription.on("item_added",function(monitoredItem){
+
+                const err = await new Promise<Error | string>((resolve, reject) => {
+                    monitoredItem.on("initialized", () => {
+                        // eslint-disable-next-line no-debugger
+                        // debugger;
+                        reject(new Error("Should not recevied initialized when invalid args"));
+                    });
+
+                    monitoredItem.on("changed", (dataValue) => {
+                        should.exist(dataValue);
+                    });
+
+                    monitoredItem.on("err", (err) => {
+                        err_counter++;
+                        resolve(err);
+                    });
+                });
+                should.exist(err);
+                tracelog("err received => terminated event expected ", (err as Error).message);
+
+                await monitoredItem.terminate();
+                err_counter.should.eql(1);
+            });
+        });
+
+        it("AZA2-SA A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", async () => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: 13
+                    },
+                    {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
+                );
+                await new Promise<any>((resolve, reject) => {
+                    monitoredItem.on("initialized", () => {
+                        reject(new Error("Should not get there"));
+                    });
+                    monitoredItem.on("err", (err) => {
+                        resolve(err);
+                    });
+                });
+            });
+        });
+
+        it("AZA2-SB - GROUP - A subscription.monitorItems should reject  if timestamp is invalid", async () => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                await assertThrow(async () => {
+                    const _group = await subscription.monitorItems(
+                        [
+                            {
+                                nodeId: resolveNodeId("ns=0;i=2258"),
+                                attributeId: 13
+                            }
+                        ],
                         {
                             samplingInterval: 100,
                             discardOldest: true,
                             queueSize: 1
                         },
-                        TimestampsToReturn.Invalid
+                        TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
                     );
-
-                    let err_counter = 0;
-                    // subscription.on("item_added",function(monitoredItem){
-
-                    const err = await new Promise<Error | string>((resolve, reject) => {
-                        monitoredItem.on("initialized", () => {
-                            // eslint-disable-next-line no-debugger
-                            // debugger;
-                            reject(new Error("Should not recevied initialized when invalid args"));
-                        });
-
-                        monitoredItem.on("changed", (dataValue) => {
-                            should.exist(dataValue);
-                        });
-
-                        monitoredItem.on("err", (err) => {
-                            err_counter++;
-                            resolve(err);
-                        });
-
-                    });
-                    should.exist(err);
-                    tracelog("err received => terminated event expected ", (err as Error).message);
-
-
-                    await monitoredItem.terminate();
-                    err_counter.should.eql(1);
-                });
+                }, /BadTimestampsToReturnInvalid/);
+            });
         });
 
-        it("AZA2-SA A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
+        it("AZA2-SC A subscription.monitor should reject a  if timestamp is invalid", async () => {
+            await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
+                await assertThrow(async () => {
+                    const _monitoredItem = await subscription.monitor(
                         {
                             nodeId: resolveNodeId("ns=0;i=2258"),
                             attributeId: 13
@@ -1464,66 +1360,10 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                             discardOldest: true,
                             queueSize: 1
                         },
-                        TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
+                        TimestampsToReturn.Invalid
                     );
-                    await new Promise<any>((resolve, reject) => {
-                        monitoredItem.on("initialized", () => {
-                            reject(new Error("Should not get there"));
-                        });
-                        monitoredItem.on("err", (err) => {
-                            resolve(err);
-                        });
-
-                    });
-                });
-        });
-
-        it("AZA2-SB - GROUP - A subscription.monitorItems should reject  if timestamp is invalid", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-
-                    await assertThrow(async () => {
-                        const group = await subscription.monitorItems(
-                            [
-                                {
-                                    nodeId: resolveNodeId("ns=0;i=2258"),
-                                    attributeId: 13
-                                }
-                            ],
-                            {
-                                samplingInterval: 100,
-                                discardOldest: true,
-                                queueSize: 1
-                            },
-                            TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
-                        );
-                    }, /BadTimestampsToReturnInvalid/);
-                });
-        });
-
-        it("AZA2-SC A subscription.monitor should reject a  if timestamp is invalid", async () => {
-            await perform_operation_on_subscription(
-                client,
-                endpointUrl,
-                async (session, subscription) => {
-
-                    await assertThrow(async () => {
-
-                        const monitoredItem = await subscription.monitor(
-                            {
-                                nodeId: resolveNodeId("ns=0;i=2258"),
-                                attributeId: 13
-                            },
-                            {
-                                samplingInterval: 100,
-                                discardOldest: true,
-                                queueSize: 1
-                            },
-                            TimestampsToReturn.Invalid);
-                    }, /BadTimestampsToReturnInvalid/);
-                });
+                }, /BadTimestampsToReturnInvalid/);
+            });
         });
 
         it("AZA2-T A Server should be able to revise publish interval to avoid trashing if client specify a very small or zero requestedPublishingInterval", async () => {
@@ -1532,80 +1372,71 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             // default sampling interval for MonitoredItems assigned to this Subscription.
             // If the requested value is 0 or negative, the server shall revise with the fastest
             // supported publishing interval.
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const response = await (session as ClientSessionEx).createSubscription({
-                        requestedPublishingInterval: -1,
-                    });
-                    response.revisedPublishingInterval.should.be.greaterThan(10);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const response = await (session as ClientSessionEx).createSubscription({
+                    requestedPublishingInterval: -1
                 });
+                response.revisedPublishingInterval.should.be.greaterThan(10);
+            });
         });
 
         it("AZA2-U should handle PublishRequest to confirm closed subscriptions", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-
-                    // #region create a subscription and close it
-                    const response = await (session as ClientSessionEx).createSubscription({
-                        requestedPublishingInterval: 200, // Duration
-                        requestedLifetimeCount: 30, // Counter
-                        requestedMaxKeepAliveCount: 10, // Counter
-                        maxNotificationsPerPublish: 10, // Counter
-                        publishingEnabled: true, // Boolean
-                        priority: 14 // Byte
-                    });
-
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-
-                    const subscriptionId = response.subscriptionId;
-
-
-                    // create a monitored item so we have pending notificiation
-                    const namespaceIndex = 2;
-                    const nodeId = "ns=2;s=" + "Static_Scalar_Int16";
-                    const node = server.engine.addressSpace!.findNode(nodeId);
-                    should.exist(node, " node for " + nodeId + " must exist");
-
-                    const parameters = {
-                        samplingInterval: 0,
-                        discardOldest: false,
-                        queueSize: 1
-                    };
-                    const itemToMonitor = {
-                        attributeId: 13,
-                        nodeId: nodeId
-                    };
-                    const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
-                        subscriptionId: subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Both,
-                        itemsToCreate: [
-                            {
-                                itemToMonitor: itemToMonitor,
-                                requestedParameters: parameters,
-                                monitoringMode: MonitoringMode.Reporting
-                            }
-                        ]
-                    });
-
-                    await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
-                    await wait(300);
-
-                    await (session as ClientSessionEx).deleteSubscriptions({
-                        subscriptionIds: [subscriptionId]
-                    });
-                    // #endregion
-
-                    // #region now calling publish should return BadSubscriptionIdInvalid
-                    await assertThrow(async () => {
-                        await (session as ClientSessionEx).publish({});
-                    }, /BadNoSubscription/);
-                    // #endregion
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                // #region create a subscription and close it
+                const response = await (session as ClientSessionEx).createSubscription({
+                    requestedPublishingInterval: 200, // Duration
+                    requestedLifetimeCount: 30, // Counter
+                    requestedMaxKeepAliveCount: 10, // Counter
+                    maxNotificationsPerPublish: 10, // Counter
+                    publishingEnabled: true, // Boolean
+                    priority: 14 // Byte
                 });
+
+                response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+
+                const subscriptionId = response.subscriptionId;
+
+                // create a monitored item so we have pending notificiation
+                const _namespaceIndex = 2;
+                const nodeId = "ns=2;s=" + "Static_Scalar_Int16";
+                const node = server.engine.addressSpace?.findNode(nodeId);
+                should.exist(node, ` node for ${nodeId} must exist`);
+
+                const parameters = {
+                    samplingInterval: 0,
+                    discardOldest: false,
+                    queueSize: 1
+                };
+                const itemToMonitor = {
+                    attributeId: 13,
+                    nodeId: nodeId
+                };
+                const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
+                    subscriptionId: subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Both,
+                    itemsToCreate: [
+                        {
+                            itemToMonitor: itemToMonitor,
+                            requestedParameters: parameters,
+                            monitoringMode: MonitoringMode.Reporting
+                        }
+                    ]
+                });
+
+                await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
+                await wait(300);
+
+                await (session as ClientSessionEx).deleteSubscriptions({
+                    subscriptionIds: [subscriptionId]
+                });
+                // #endregion
+
+                // #region now calling publish should return BadSubscriptionIdInvalid
+                await assertThrow(async () => {
+                    await (session as ClientSessionEx).publish({});
+                }, /BadNoSubscription/);
+                // #endregion
+            });
         });
     });
 
@@ -1615,7 +1446,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         let server: OPCUAServer & { temperatureVariableId: NodeId };
         let client: OPCUAClient;
 
-        let temperatureVariableId: NodeId;
+        let _temperatureVariableId: NodeId;
         let endpointUrl: string;
 
         const nodeIdVariant = "ns=1;s=SomeDouble";
@@ -1623,7 +1454,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         const nodeIdString = "ns=1;s=String";
 
         let subscriptionId = 0;
-        let samplingInterval = -1;
+        let _samplingInterval = -1;
 
         before(async () => {
             server = test.server as OPCUAServer & { temperatureVariableId: NodeId };
@@ -1631,7 +1462,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             installSessionLogging(server);
 
             endpointUrl = test.endpointUrl;
-            temperatureVariableId = server.temperatureVariableId;
+            _temperatureVariableId = server.temperatureVariableId;
 
             const namespace = server.engine.addressSpace!.getOwnNamespace();
 
@@ -1653,14 +1484,14 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             n1.minimumSamplingInterval.should.eql(0);
 
             let changeDetected = 0;
-            n1.on("value_changed", function (dataValue) {
+            n1.on("value_changed", (_dataValue) => {
                 changeDetected += 1;
             });
 
             n1.setValueFromSource({ dataType: DataType.Double, value: 3.14 }, StatusCodes.Good);
             changeDetected.should.equal(1);
 
-            namespace.addVariable({
+            namespace!.addVariable({
                 organizedBy: objectsFolder,
                 browseName: "SomeByteString",
                 nodeId: nodeIdByteString,
@@ -1670,7 +1501,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     value: Buffer.from("Lorem ipsum", "utf-8")
                 }
             });
-            namespace.addVariable({
+            namespace!.addVariable({
                 organizedBy: objectsFolder,
                 browseName: "Some String",
                 nodeId: nodeIdString,
@@ -1680,7 +1511,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     value: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 }
             });
-
         });
 
         beforeEach(async () => {
@@ -1690,9 +1520,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             });
         });
 
-        afterEach(async () => {
-        });
-
+        afterEach(async () => {});
 
         interface ClientSubscriptionEx extends ClientSubscription {
             nb_keep_alive_received: number;
@@ -1711,11 +1539,11 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
             // install a little keepalive counter
             (subscription as ClientSubscriptionEx).nb_keep_alive_received = 0;
-            subscription.on("keepalive", function () {
+            subscription.on("keepalive", () => {
                 (subscription as ClientSubscriptionEx).nb_keep_alive_received += 1;
             });
 
-            subscription.on("timeout", function () {
+            subscription.on("timeout", () => {
                 tracelog("Subscription has timed out");
             });
             return subscription as ClientSubscriptionEx;
@@ -1737,398 +1565,356 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             //    notificationMessage with the status code Bad_Timeout. The StatusChangeNotification
             //    notificationMessage type is defined in 7.19.4.
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                function setUnpublishing(session: ClientSession) {
+                    const sessionEx = session as ClientSessionEx;
+                    // replace internalSendPublishRequest so that it doesn't do anything for a little while
+                    // The publish engine is shared amongst all subscriptions and belongs to the  session object
+                    sessionEx.getPublishEngine().internalSendPublishRequest.should.be.instanceOf(Function);
+                    sinon.stub(sessionEx.getPublishEngine(), "internalSendPublishRequest").returns();
+                }
 
-                    function setUnpublishing(session: ClientSession) {
-                        const sessionEx = session as ClientSessionEx;
-                        // replace internalSendPublishRequest so that it doesn't do anything for a little while
-                        // The publish engine is shared amongst all subscriptions and belongs to the  session object
-                        sessionEx.getPublishEngine().internalSendPublishRequest.should.be.instanceOf(Function);
-                        sinon.stub(sessionEx.getPublishEngine(), "internalSendPublishRequest").returns();
-                    }
+                /**
+                 * restore the publishing mechanism on a unpublishing subscription
+                 * @param session
+                 */
+                function repairUnpublishing(session: ClientSession) {
+                    const sessionEx = session as ClientSessionEx;
+                    const spy = sessionEx.getPublishEngine().internalSendPublishRequest as any;
+                    spy.callCount.should.be.greaterThan(1);
+                    spy.restore();
+                    sessionEx.getPublishEngine().internalSendPublishRequest();
+                }
 
-                    /**
-                     * restore the publishing mechanism on a unpublishing subscription
-                     * @param session
-                     */
-                    function repairUnpublishing(session: ClientSession) {
-                        const sessionEx = session as ClientSessionEx;
-                        const spy = sessionEx.getPublishEngine().internalSendPublishRequest as any;
-                        spy.callCount.should.be.greaterThan(1);
-                        spy.restore();
-                        sessionEx.getPublishEngine().internalSendPublishRequest();
-                    }
+                // --------------------------------------------
+                stepLog("setUnpublishing: disable PublishRequest on session");
+                setUnpublishing(session);
 
-                    // --------------------------------------------
-                    stepLog("setUnpublishing: disable PublishRequest on session");
-                    setUnpublishing(session);
+                // in this test we need two subscriptions
+                //    - one subscription with a short live time
+                //    - one subscription with a long life time,
+                //
+                // at the beginning, both subscriptions will not send PublishRequest
 
-                    // in this test we need two subscriptions
-                    //    - one subscription with a short live time
-                    //    - one subscription with a long life time,
-                    //
-                    // at the beginning, both subscriptions will not send PublishRequest
-
-                    // --------------------------------------------
-                    stepLog("create long life subscription")
-                    const longLifeSubscription = await my_CreateSubscription(session, {
-                        requestedPublishingInterval: 100, // short publishing interval required here
-                        requestedLifetimeCount: 1000, // long lifetimeCount needed here !
-                        requestedMaxKeepAliveCount: 50,
-                        maxNotificationsPerPublish: 30,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-
-                    // --------------------------------------------
-                    stepLog("create short life subscription")
-                    const shortLifeSubscription = await my_CreateSubscription(session, {
-                        requestedPublishingInterval: 100, // short publishing interval required here
-                        requestedLifetimeCount: 30, // short lifetimeCount needed here !
-                        requestedMaxKeepAliveCount: 4,
-                        maxNotificationsPerPublish: 30,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    // --------------------------------------------
-                    stepLog("wait for short life subscription to timeout (no PublishRequest)");
-                    // let's make sure that the subscription will expired
-                    const timeToWaitBeforeResendingPublishInterval: number =
-                        shortLifeSubscription.publishingInterval *
-                        (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount * 4 + 20);
-                    tracelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
-                    if (doDebug) {
-                        tracelog(shortLifeSubscription.toString());
-                        tracelog("timetoWaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval);
-                        tracelog("Count To WaitBeforeResendingPublishInterval  :",
-                            timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
-                        );
-                    }
-                    await wait(timeToWaitBeforeResendingPublishInterval);
-                    if (true || doDebug) {
-                        tracelog(" Restoring default Publishing behavior");
-                    }
-                    repairUnpublishing(session);
-
-                    const statusCode = await new Promise<StatusCode>((resolve, reject) => {
-                        shortLifeSubscription.once("status_changed", (statusCode) => {
-                            resolve(statusCode);
-                        });
-                    });
-
-                    statusCode.should.eql(StatusCodes.BadTimeout);
-
-                    // --------------------------------------------
-                    stepLog("terminate short life subscription");
-                    const timeout =
-                        shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
-                    if (true || doDebug) {
-                        tracelog("timeout = ", timeout);
-                    }
-                    const verif = (shortLifeSubscription as any).nb_keep_alive_received;
-                    // let explicitly close the subscription by calling terminate
-                    // but delay a little bit so we can verify that internalSendPublishRequest
-                    // is not called
-                    await wait(timeout);
-                    tracelog("before shortLifeSubscription terminate");
-
-                    await shortLifeSubscription.terminate();
-
-                    // --------------------------------------------
-                    tracelog(" shortLifeSubscription terminated");
-                    (shortLifeSubscription as any).nb_keep_alive_received.should.be.equal(verif);
-
-
-
-                    stepLog("terminate_ long_ life_subscription");
-                    tracelog("before longLifeSubscription terminate");
-                    await longLifeSubscription.terminate();
-                    tracelog(" longLifeSubscription terminated");
+                // --------------------------------------------
+                stepLog("create long life subscription");
+                const longLifeSubscription = await my_CreateSubscription(session, {
+                    requestedPublishingInterval: 100, // short publishing interval required here
+                    requestedLifetimeCount: 1000, // long lifetimeCount needed here !
+                    requestedMaxKeepAliveCount: 50,
+                    maxNotificationsPerPublish: 30,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                // --------------------------------------------
+                stepLog("create short life subscription");
+                const shortLifeSubscription = await my_CreateSubscription(session, {
+                    requestedPublishingInterval: 100, // short publishing interval required here
+                    requestedLifetimeCount: 30, // short lifetimeCount needed here !
+                    requestedMaxKeepAliveCount: 4,
+                    maxNotificationsPerPublish: 30,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+
+                // --------------------------------------------
+                stepLog("wait for short life subscription to timeout (no PublishRequest)");
+                // let's make sure that the subscription will expired
+                const timeToWaitBeforeResendingPublishInterval: number =
+                    shortLifeSubscription.publishingInterval *
+                    (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount * 4 + 20);
+                tracelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
+                if (doDebug) {
+                    tracelog(shortLifeSubscription.toString());
+                    tracelog("timetoWaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval);
+                    tracelog(
+                        "Count To WaitBeforeResendingPublishInterval  :",
+                        timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
+                    );
+                }
+                await wait(timeToWaitBeforeResendingPublishInterval);
+                if (true || doDebug) {
+                    tracelog(" Restoring default Publishing behavior");
+                }
+                repairUnpublishing(session);
+
+                const statusCode = await new Promise<StatusCode>((resolve, _reject) => {
+                    shortLifeSubscription.once("status_changed", (statusCode) => {
+                        resolve(statusCode);
+                    });
+                });
+
+                statusCode.should.eql(StatusCodes.BadTimeout);
+
+                // --------------------------------------------
+                stepLog("terminate short life subscription");
+                const timeout = shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
+                if (true || doDebug) {
+                    tracelog("timeout = ", timeout);
+                }
+                const verif = (shortLifeSubscription as any).nb_keep_alive_received;
+                // let explicitly close the subscription by calling terminate
+                // but delay a little bit so we can verify that internalSendPublishRequest
+                // is not called
+                await wait(timeout);
+                tracelog("before shortLifeSubscription terminate");
+
+                await shortLifeSubscription.terminate();
+
+                // --------------------------------------------
+                tracelog(" shortLifeSubscription terminated");
+                (shortLifeSubscription as any).nb_keep_alive_received.should.be.equal(verif);
+
+                stepLog("terminate_ long_ life_subscription");
+                tracelog("before longLifeSubscription terminate");
+                await longLifeSubscription.terminate();
+                tracelog(" longLifeSubscription terminated");
+            });
         });
 
         it("AZA3-B A subscription without a monitored item should not dropped too early ( see #59)", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    async function termination_is_a_failure() {
-                        throw new Error("subscription has been terminated !!!!");
-                    }
-
-                    subscription.on("terminated", termination_is_a_failure);
-
-                    await wait(1000);
-
-                    subscription.removeListener("terminated", termination_is_a_failure);
-
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                async function termination_is_a_failure() {
+                    throw new Error("subscription has been terminated !!!!");
+                }
+
+                subscription.on("terminated", termination_is_a_failure);
+
+                await wait(1000);
+
+                subscription.removeListener("terminated", termination_is_a_failure);
+            });
         });
 
         it("AZA3-C #bytesRead #transactionsCount #bytesWritten", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    server.bytesRead.should.be.greaterThan(10);
-                    server.transactionsCount.should.be.greaterThan(3);
-                    server.bytesWritten.should.be.greaterThan(10);
-                });
+            await perform_operation_on_client_session(client, endpointUrl, async (_session) => {
+                server.bytesRead.should.be.greaterThan(10);
+                server.transactionsCount.should.be.greaterThan(3);
+                server.bytesWritten.should.be.greaterThan(10);
+            });
         });
 
         it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode:BadSubscriptionIdInvalid when appropriate  ", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const options = {
-                        subscriptionId: 999 // << invalide subscription id
-                    };
-                    await assertThrow(async () => {
-                        const result = await (session as ClientSessionEx).createMonitoredItems(options);
-                    }, /BadSubscriptionIdInvalid/);
-                });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const options = {
+                    subscriptionId: 999 // << invalide subscription id
+                };
+                await assertThrow(async () => {
+                    const _result = await (session as ClientSessionEx).createMonitoredItems(options);
+                }, /BadSubscriptionIdInvalid/);
+            });
         });
 
         it("AZA3-E #SetPublishingModeRequest: A server should set status codes to BadSubscriptionIdInvalid when appropriate  ", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const publishingEnabled = true;
-                    const subscriptionIds = [999]; //<< invalid subscription ID
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const publishingEnabled = true;
+                const subscriptionIds = [999]; //<< invalid subscription ID
 
-                    const statusCodes = await (session as ClientSessionEx).setPublishingMode(publishingEnabled, subscriptionIds);
-                    statusCodes.length.should.eql(1);
-                    statusCodes[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
-                });
+                const statusCodes = await (session as ClientSessionEx).setPublishingMode(publishingEnabled, subscriptionIds);
+                statusCodes.length.should.eql(1);
+                statusCodes[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
+            });
         });
 
         it("AZA3-F A server should suspend/resume publishing when client send a setPublishingMode Request ", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    stepLog("create subscription");
-                    const parameters = {
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    };
-                    const subscription =await session.createSubscription2(parameters);
-                    subscription.on("terminated", function () {
-                        debugLog("subscription terminated");
-                    });
-
-                    stepLog("monitor a item");
-                    const itemToMonitor = {
-                        nodeId: resolveNodeId("ns=0;i=2258"), // Date Time
-                        attributeId: AttributeIds.Value
-                    };
-                    const monitoringParameters = {
-                        samplingInterval: 10,
-                        discardOldest: true,
-                        queueSize: 1
-                    };
-                    const monitoredItem = await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
-
-
-                    let change_count = 0;
-                    monitoredItem.on("changed", (dataValue) => {
-                        change_count += 1;
-                        should.exist(dataValue);
-                        //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
-                    });
-
-                    stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification");
-                    await wait(3600);
-                    change_count.should.be.greaterThan(2);
-
-                    stepLog("suspend subscription");
-                    await subscription.setPublishingMode(false);
-                    change_count = 0;
-
-
-                    stepLog("wait 1400 milliseconds and verify that the subscription is  NOT sending any notification");
-                    await wait(1400);
-
-                    stepLog("verify that no notification has been received");
-                    change_count.should.equal(0);
-
-                    stepLog("resume subscription");
-                    await subscription.setPublishingMode(true);
-                    change_count = 0;
-
-                    stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification again");
-                    await wait(3600);
-
-                    stepLog("verify that some notification has been received");
-                    change_count.should.be.greaterThan(2);
-
-                    stepLog("terminate subscription");
-                    await subscription.terminate();
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                stepLog("create subscription");
+                const parameters = {
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
+                };
+                const subscription = await session.createSubscription2(parameters);
+                subscription.on("terminated", () => {
+                    debugLog("subscription terminated");
                 });
+
+                stepLog("monitor a item");
+                const itemToMonitor = {
+                    nodeId: resolveNodeId("ns=0;i=2258"), // Date Time
+                    attributeId: AttributeIds.Value
+                };
+                const monitoringParameters = {
+                    samplingInterval: 10,
+                    discardOldest: true,
+                    queueSize: 1
+                };
+                const monitoredItem = await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+
+                let change_count = 0;
+                monitoredItem.on("changed", (dataValue) => {
+                    change_count += 1;
+                    should.exist(dataValue);
+                    //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
+                });
+
+                stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification");
+                await wait(3600);
+                change_count.should.be.greaterThan(2);
+
+                stepLog("suspend subscription");
+                await subscription.setPublishingMode(false);
+                change_count = 0;
+
+                stepLog("wait 1400 milliseconds and verify that the subscription is  NOT sending any notification");
+                await wait(1400);
+
+                stepLog("verify that no notification has been received");
+                change_count.should.equal(0);
+
+                stepLog("resume subscription");
+                await subscription.setPublishingMode(true);
+                change_count = 0;
+
+                stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification again");
+                await wait(3600);
+
+                stepLog("verify that some notification has been received");
+                change_count.should.be.greaterThan(2);
+
+                stepLog("terminate subscription");
+                await subscription.terminate();
+            });
         });
 
         it("AZA3-G A client should be able to create a subscription that have  publishingEnable=false", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: false,
-                        priority: 6
-                    });
-
-                    subscription.on("terminated", function () {
-                        debugLog("subscription terminated");
-                    });
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        {
-                            nodeId: resolveNodeId("ns=0;i=2258"),
-                            attributeId: AttributeIds.Value
-                        },
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        }
-                    );
-
-                    let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
-                        should.exist(dataValue);
-                        change_count += 1;
-                    });
-
-
-                    // wait 400 ms and verify that the subscription is not sending notification.
-                    await wait(400);
-                    change_count.should.equal(0);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: false,
+                    priority: 6
                 });
+
+                subscription.on("terminated", () => {
+                    debugLog("subscription terminated");
+                });
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    }
+                );
+
+                let change_count = 0;
+                monitoredItem.on("changed", (dataValue) => {
+                    should.exist(dataValue);
+                    change_count += 1;
+                });
+
+                // wait 400 ms and verify that the subscription is not sending notification.
+                await wait(400);
+                change_count.should.equal(0);
+            });
         });
 
         it("AZA3-H #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const modifyMonitoredItemsRequest = {
-                        subscriptionId: 999,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToModify: [{}]
-                    };
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const modifyMonitoredItemsRequest = {
+                    subscriptionId: 999,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToModify: [{}]
+                };
 
-                    await assertThrow(async () => {
-                        await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
-                    }, /BadSubscriptionIdInvalid/);
-                });
+                await assertThrow(async () => {
+                    await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
+                }, /BadSubscriptionIdInvalid/);
+            });
         });
 
         it("AZA3-I #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 100,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 100,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    await assertThrow(async () => {
-                        const modifyMonitoredItemsRequest = {
-                            subscriptionId: subscription.subscriptionId,
-                            timestampsToReturn: TimestampsToReturn.Invalid
-                        };
-                        await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
-
-                    }, /BadTimestampsToReturnInvalid/);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 100,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                await assertThrow(async () => {
+                    const modifyMonitoredItemsRequest = {
+                        subscriptionId: subscription.subscriptionId,
+                        timestampsToReturn: TimestampsToReturn.Invalid
+                    };
+                    await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
+                }, /BadTimestampsToReturnInvalid/);
+            });
         });
 
         it("AZA3-J #ModifyMonitoredItemsRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 200,
-                        requestedLifetimeCount: 60000,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    const modifyMonitoredItemsRequest = {
-                        subscriptionId: subscription.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToModify: [
-                            new MonitoredItemModifyRequest({
-                                monitoredItemId: 999,
-                                requestedParameters: {}
-                            })
-                        ]
-                    };
-
-                    const modifyMonitoredItemsResponse = await (session as ClientSessionEx).modifyMonitoredItems(modifyMonitoredItemsRequest);
-                    modifyMonitoredItemsResponse.results!.length.should.eql(1);
-                    modifyMonitoredItemsResponse.results![0].statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 200,
+                    requestedLifetimeCount: 60000,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
 
+                const modifyMonitoredItemsRequest = {
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToModify: [
+                        new MonitoredItemModifyRequest({
+                            monitoredItemId: 999,
+                            requestedParameters: {}
+                        })
+                    ]
+                };
+
+                const modifyMonitoredItemsResponse = await (session as ClientSessionEx).modifyMonitoredItems(
+                    modifyMonitoredItemsRequest
+                );
+                modifyMonitoredItemsResponse.results?.length.should.eql(1);
+                modifyMonitoredItemsResponse.results?.[0].statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+            });
         });
 
         async function test_modify_monitored_item(
             itemToMonitor: ReadValueIdOptions | string,
-            parameters: MonitoringParametersOptions,
+            parameters: MonitoringParametersOptions
         ): Promise<MonitoredItemModifyResult> {
             return await perform_operation_on_monitoredItem(
                 client,
                 endpointUrl,
                 itemToMonitor,
                 async (session, subscription, monitoredItem) => {
-
                     let change_count = 0;
 
                     subscription.publishingInterval.should.be.aboveOrEqual(100);
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", (_dataValue) => {
                         //xx tracelog("xx changed",dataValue.value.toString());
                         change_count += 1;
                     });
 
                     await wait(1500);
 
-                    await new Promise<void>((resolve) => {                    // let's wait for first notification to be received
+                    await new Promise<void>((resolve) => {
+                        // let's wait for first notification to be received
                         monitoredItem.once("changed", () => {
                             // we reset change count,
                             resolve();
@@ -2150,7 +1936,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         ],
                         subscriptionId: subscription.subscriptionId,
                         timestampsToReturn: TimestampsToReturn.Both
-                    })
+                    });
                     // const result = await monitoredItem.modify(parameters);
 
                     // wait 1.5 ms and verify that the subscription is now sending notification.
@@ -2158,7 +1944,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     change_count.should.be.greaterThan(1);
 
                     return modifyMonitoredItemsResponse.results![0];
-                });
+                }
+            );
         }
 
         it("AZA3-K #ModifyMonitoredItemsRequest : server should handle samplingInterval === -1", async () => {
@@ -2178,10 +1965,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 discardOldest: false,
                 queueSize: 1
             };
-            await test_modify_monitored_item(
-                itemToMonitor,
-                parameters
-            );
+            await test_modify_monitored_item(itemToMonitor, parameters);
         });
 
         it("AZA3-L #ModifyMonitoredItemsRequest : server should handle samplingInterval === 0", async () => {
@@ -2192,10 +1976,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 discardOldest: false,
                 queueSize: 1
             };
-            await test_modify_monitored_item(
-                itemToMonitor,
-                parameters
-            );
+            await test_modify_monitored_item(itemToMonitor, parameters);
         });
         it("AZA3-M #ModifyMonitoredItemsRequest : a client should be able to modify a monitored item", async () => {
             const itemToMonitor = "ns=0;i=2258";
@@ -2205,14 +1986,11 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 queueSize: 1
             };
 
-            const monitoredItemResult = await test_modify_monitored_item(
-                itemToMonitor,
-                parameters);
-            monitoredItemResult.revisedSamplingInterval!.should.be.greaterThan(19);
+            const monitoredItemResult = await test_modify_monitored_item(itemToMonitor, parameters);
+            monitoredItemResult.revisedSamplingInterval?.should.be.greaterThan(19);
         });
 
         async function test_modify_monitored_item_on_noValue_attribute(parameters: any): Promise<void> {
-
             const nodeId = "ns=0;i=2258";
 
             const itemToMonitor = {
@@ -2224,7 +2002,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 client,
                 endpointUrl,
                 itemToMonitor,
-                async (session, subscription, monitoredItem) => {
+                async (_session, _subscription, monitoredItem) => {
                     let change_count = 0;
                     monitoredItem.on("changed", (dataValue) => {
                         //xx tracelog("xx changed",dataValue.value.toString());
@@ -2235,7 +2013,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     await wait(1100);
                     change_count.should.eql(1);
 
-                    const result = await monitoredItem.modify(parameters);
+                    const _result = await monitoredItem.modify(parameters);
                     // modifying monitoredItem parameters shall not cause the monitored Item to resend a data notification
                     await wait(1100);
                     change_count.should.eql(1);
@@ -2246,8 +2024,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
                     await wait(1100);
                     change_count.should.eql(2);
-
-                });
+                }
+            );
         }
 
         it("AZA3-N #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval === 0", async () => {
@@ -2289,63 +2067,59 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             // The filter is not used for these  Attributes. Any change in value for these  Attributes
             // causes a  Notification  to be  generated.
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    const subscription = await session.createSubscription2({
-                        requestedPublishingInterval: 10,
-                        requestedLifetimeCount: 6000,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    subscription.on("terminated", function () {
-                        //xx tracelog(chalk.yellow(" subscription terminated "));
-                    });
-
-                    const readValue = {
-                        nodeId: resolveNodeId("Server"),
-                        attributeId: AttributeIds.DisplayName
-                    };
-
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
-                        readValue,
-                        {
-                            samplingInterval: 10,
-                            discardOldest: true,
-                            queueSize: 1
-                        },
-                        TimestampsToReturn.Both
-                    );
-
-                    monitoredItem.on("err", function (err) {
-                        should.not.exist(err);
-                    });
-
-                    let change_count = 0;
-
-                    monitoredItem.on("changed", function (dataValue) {
-                        //xx tracelog("dataValue = ", dataValue.toString());
-                        change_count += 1;
-                    });
-
-                    await wait(1000);
-                    change_count.should.equal(1);
-
-                    // on server side : modify displayName
-                    const node = server.engine.addressSpace!.findNode(readValue.nodeId);
-                    node!.setDisplayName("Changed Value");
-
-                    await wait(1000);
-                    change_count.should.equal(2);
-
-                    await subscription.terminate();
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 10,
+                    requestedLifetimeCount: 6000,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                subscription.on("terminated", () => {
+                    //xx tracelog(chalk.yellow(" subscription terminated "));
+                });
+
+                const readValue = {
+                    nodeId: resolveNodeId("Server"),
+                    attributeId: AttributeIds.DisplayName
+                };
+
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    readValue,
+                    {
+                        samplingInterval: 10,
+                        discardOldest: true,
+                        queueSize: 1
+                    },
+                    TimestampsToReturn.Both
+                );
+
+                monitoredItem.on("err", (err) => {
+                    should.not.exist(err);
+                });
+
+                let change_count = 0;
+
+                monitoredItem.on("changed", (_dataValue) => {
+                    //xx tracelog("dataValue = ", dataValue.toString());
+                    change_count += 1;
+                });
+
+                await wait(1000);
+                change_count.should.equal(1);
+
+                // on server side : modify displayName
+                const node = server.engine.addressSpace?.findNode(readValue.nodeId);
+                node?.setDisplayName("Changed Value");
+
+                await wait(1000);
+                change_count.should.equal(2);
+
+                await subscription.terminate();
+            });
         });
 
         it("AZA3-R Server should revise publishingInterval to be at least server minimum publishing interval", async () => {
@@ -2353,24 +2127,20 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
             const too_small_PublishingInterval = 1;
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-
-                    const createSubscriptionRequest = new CreateSubscriptionRequest({
-                        requestedPublishingInterval: too_small_PublishingInterval,
-                        requestedLifetimeCount: 60,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    const response = await (session as ClientSessionEx).createSubscription(createSubscriptionRequest);
-                    doDebug && tracelog("response", response.toString());
-                    response.revisedPublishingInterval.should.eql(Subscription.minimumPublishingInterval);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const createSubscriptionRequest = new CreateSubscriptionRequest({
+                    requestedPublishingInterval: too_small_PublishingInterval,
+                    requestedLifetimeCount: 60,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                const response = await (session as ClientSessionEx).createSubscription(createSubscriptionRequest);
+                doDebug && tracelog("response", response.toString());
+                response.revisedPublishingInterval.should.eql(Subscription.minimumPublishingInterval);
+            });
         });
 
         // If the Server specifies a value for the
@@ -2380,14 +2150,14 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         async function test_revised_sampling_interval(
             requestedPublishingInterval: number,
             requestedSamplingInterval: number,
-            revisedSamplingInterval: number,
+            revisedSamplingInterval: number
         ) {
             const forcedMinimumInterval = 1;
             const nodeId = "ns=2;s=Static_Scalar_Int16";
 
-            const node = server.engine.addressSpace!.findNode(nodeId)!;
+            const _node = server.engine.addressSpace?.findNode(nodeId)!;
             //xx tracelog(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
-            const objectsFolder = test.server.engine.addressSpace!.rootFolder.objects!;
+            const objectsFolder = test.server.engine.addressSpace?.rootFolder.objects!;
             const server_node = (objectsFolder as any).simulation.static["all Profiles"].scalars.int16;
             //xx tracelog("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
@@ -2396,67 +2166,61 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 nodeId: nodeId,
                 attributeId: AttributeIds.Value
             });
-            let subscriptionId = -1;
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    await f<DataValue>(async function read_minimumSamplingInterval(): Promise<DataValue> {
-                        let minimumSamplingIntervalOnNode;
-                        const nodeToRead = {
-                            nodeId: nodeId,
-                            attributeId: AttributeIds.MinimumSamplingInterval
-                        };
-                        const dataValue = await session.read(nodeToRead);
-
-                        dataValue.statusCode.should.eql(StatusCodes.Good);
-                        minimumSamplingIntervalOnNode = dataValue.value.value;
-                        //xx tracelog("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
-
-                        minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
-                        return dataValue;
-                    })();
-
-                    const createSubscriptionRequest = new CreateSubscriptionRequest({
-                        requestedPublishingInterval: requestedPublishingInterval,
-                        requestedLifetimeCount: 60,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-
-                    const response = await (session as ClientSessionEx).createSubscription(createSubscriptionRequest);
-                    const subscriptionId = response.subscriptionId;
-
-                    const parameters = {
-                        samplingInterval: requestedSamplingInterval,
-                        discardOldest: false,
-                        queueSize: 1
+            const _subscriptionId = -1;
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await f<DataValue>(async function read_minimumSamplingInterval(): Promise<DataValue> {
+                    let minimumSamplingIntervalOnNode;
+                    const nodeToRead = {
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.MinimumSamplingInterval
                     };
-                    const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
-                        subscriptionId: subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Both,
-                        itemsToCreate: [
-                            {
-                                itemToMonitor: itemToMonitor,
-                                requestedParameters: parameters,
-                                monitoringMode: MonitoringMode.Reporting
-                            }
-                        ]
-                    });
+                    const dataValue = await session.read(nodeToRead);
 
-                    const response2 = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
-                    response2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                    //xx tracelog(response.results[0].toString());
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
+                    minimumSamplingIntervalOnNode = dataValue.value.value;
+                    //xx tracelog("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
 
-                    response2.results![0].statusCode.should.eql(StatusCodes.Good);
-                    const samplingInterval = response2.results![0].revisedSamplingInterval;
-                    samplingInterval.should.eql(
-                        revisedSamplingInterval,
-                        "expected revisedSamplingInterval to be modified"
-                    );
+                    minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
+                    return dataValue;
+                })();
+
+                const createSubscriptionRequest = new CreateSubscriptionRequest({
+                    requestedPublishingInterval: requestedPublishingInterval,
+                    requestedLifetimeCount: 60,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
                 });
+
+                const response = await (session as ClientSessionEx).createSubscription(createSubscriptionRequest);
+                const subscriptionId = response.subscriptionId;
+
+                const parameters = {
+                    samplingInterval: requestedSamplingInterval,
+                    discardOldest: false,
+                    queueSize: 1
+                };
+                const createMonitoredItemsRequest = new CreateMonitoredItemsRequest({
+                    subscriptionId: subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Both,
+                    itemsToCreate: [
+                        {
+                            itemToMonitor: itemToMonitor,
+                            requestedParameters: parameters,
+                            monitoringMode: MonitoringMode.Reporting
+                        }
+                    ]
+                });
+
+                const response2 = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
+                response2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                //xx tracelog(response.results[0].toString());
+
+                response2.results?.[0].statusCode.should.eql(StatusCodes.Good);
+                const samplingInterval = response2.results![0].revisedSamplingInterval;
+                samplingInterval.should.eql(revisedSamplingInterval, "expected revisedSamplingInterval to be modified");
+            });
         }
 
         const fastest_possible_sampling_rate = MonitoredItem.minimumSamplingInterval;
@@ -2492,21 +2256,15 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
         xit(
             "AZA3-W When a user adds a monitored item that the user is denied read access to, the add operation for the" +
-            " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
-            " returned in the Publish response",
-            async () => {
-
-
-            }
+                " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
+                " returned in the Publish response",
+            async () => {}
         );
 
         /**
          * see CTT createMonitoredItems591014 ( -009.js)
          */
-        async function writeValue(
-            nodeId: NodeIdLike,
-            session: ClientSession,
-            value: number) {
+        async function writeValue(nodeId: NodeIdLike, session: ClientSession, value: number) {
             const nodesToWrite = [
                 {
                     nodeId: nodeId,
@@ -2566,8 +2324,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             itemToMonitor: ReadValueIdOptions
         ) {
             /* backdoor */
-            const node = server.engine.addressSpace!.findNode(nodeId) as UAVariable;
-            should.exist(node, " " + nodeId.toString() + " must exist");
+            const node = server.engine.addressSpace?.findNode(nodeId) as UAVariable;
+            should.exist(node, ` ${nodeId.toString()} must exist`);
             node.minimumSamplingInterval.should.eql(0); // exception-based change notification
 
             //xx parameters.samplingInterval.should.eql(0);
@@ -2586,15 +2344,14 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
             const response = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            samplingInterval = response.results![0].revisedSamplingInterval;
+            _samplingInterval = response.results![0].revisedSamplingInterval;
             //xx tracelog(" revised Sampling interval ",samplingInterval);
         }
 
-        async function deleteSubscription(session: ClientSession) {
-            await (session as ClientSessionEx).deleteSubscriptions(
-                {
-                    subscriptionIds: [subscriptionId]
-                });
+        async function _deleteSubscription(session: ClientSession) {
+            await (session as ClientSessionEx).deleteSubscriptions({
+                subscriptionIds: [subscriptionId]
+            });
         }
 
         async function _test_with_queue_size_of_one(parameters: MonitoringParametersOptions) {
@@ -2605,38 +2362,32 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 attributeId: AttributeIds.Value
             });
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscriptionResponse = await createSubscription(session);
+                subscriptionResponse.subscriptionId.should.be.greaterThan(0);
 
-                    const subscriptionResponse = await createSubscription(session);
-                    subscriptionResponse.subscriptionId.should.be.greaterThan(0);
+                await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
-                    await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
+                await sendPublishRequest(session);
 
-                    await sendPublishRequest(session,);
+                await writeValue(nodeId, session, 1);
+                await writeValue(nodeId, session, 2);
+                await writeValue(nodeId, session, 3);
+                await writeValue(nodeId, session, 4);
+                await writeValue(nodeId, session, 5);
+                await writeValue(nodeId, session, 6);
+                await writeValue(nodeId, session, 7);
 
-                    await writeValue(nodeId, session, 1);
-                    await writeValue(nodeId, session, 2);
-                    await writeValue(nodeId, session, 3);
-                    await writeValue(nodeId, session, 4);
-                    await writeValue(nodeId, session, 5);
-                    await writeValue(nodeId, session, 6);
-                    await writeValue(nodeId, session, 7);
+                const response = await sendPublishRequest(session);
+                response.notificationMessage.notificationData?.length.should.eql(1);
 
-                    const response = await sendPublishRequest(session);
-                    response.notificationMessage.notificationData!.length.should.eql(1);
+                const notification = (response.notificationMessage.notificationData![0] as DataChangeNotification)
+                    .monitoredItems![0];
+                notification.value.value.value.should.eql(7);
 
-                    const notification = (response.notificationMessage!.notificationData![0] as DataChangeNotification).monitoredItems![0];
-                    notification.value.value.value.should.eql(7);
-
-                    parameters.queueSize!.should.eql(1);
-                    notification.value.statusCode.should.eql(
-                        StatusCodes.Good,
-                        "OverFlow bit shall not be set when queueSize =1"
-                    );
-                });
+                parameters.queueSize!.should.eql(1);
+                notification.value.statusCode.should.eql(StatusCodes.Good, "OverFlow bit shall not be set when queueSize =1");
+            });
         }
 
         it("#CTT1 - should make sure that only the latest value is returned when queue size is one and discard oldest is false", async () => {
@@ -2669,44 +2420,42 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 attributeId: AttributeIds.Value
             });
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    await createSubscription(session);
-                    await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await createSubscription(session);
+                await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
-                    const publishResponse1 = await sendPublishRequest(session);
-                    const notification1 = (publishResponse1.notificationMessage!.notificationData![0] as DataChangeNotification).monitoredItems![0];
+                const publishResponse1 = await sendPublishRequest(session);
+                const _notification1 = (publishResponse1.notificationMessage?.notificationData?.[0] as DataChangeNotification)
+                    .monitoredItems?.[0];
 
-                    await writeValue(nodeId, session, 1);
-                    await writeValue(nodeId, session, 2);
-                    await writeValue(nodeId, session, 3);
-                    await writeValue(nodeId, session, 4);
-                    await writeValue(nodeId, session, 5);
-                    await writeValue(nodeId, session, 6);
-                    await writeValue(nodeId, session, 7);
-                    await wait(1000);
+                await writeValue(nodeId, session, 1);
+                await writeValue(nodeId, session, 2);
+                await writeValue(nodeId, session, 3);
+                await writeValue(nodeId, session, 4);
+                await writeValue(nodeId, session, 5);
+                await writeValue(nodeId, session, 6);
+                await writeValue(nodeId, session, 7);
+                await wait(1000);
 
-                    const publishResponse2 = await sendPublishRequest(session);
-                    should(!!publishResponse2.notificationMessage.notificationData).eql(true);
-                    publishResponse2.notificationMessage.notificationData!.length.should.eql(1);
+                const publishResponse2 = await sendPublishRequest(session);
+                should(!!publishResponse2.notificationMessage.notificationData).eql(true);
+                publishResponse2.notificationMessage.notificationData?.length.should.eql(1);
 
-                    // we should have 2 elements in queue
-                    let dataChangeNotification = (publishResponse2.notificationMessage.notificationData![0] as DataChangeNotification);
-                    dataChangeNotification.monitoredItems!.length.should.eql(2);
-                    const notification2 = dataChangeNotification.monitoredItems![0];
-                    //xx tracelog(notification.value.value.value);
-                    notification2.value.value.value.should.eql(expected_values[0]);
-                    notification2.value.statusCode.should.eql(expected_statusCodes[0]);
+                // we should have 2 elements in queue
+                const dataChangeNotification = publishResponse2.notificationMessage.notificationData?.[0] as DataChangeNotification;
+                dataChangeNotification.monitoredItems?.length.should.eql(2);
+                const notification2 = dataChangeNotification.monitoredItems![0];
+                //xx tracelog(notification.value.value.value);
+                notification2.value.value.value.should.eql(expected_values[0]);
+                notification2.value.statusCode.should.eql(expected_statusCodes[0]);
 
-                    const notification3 = dataChangeNotification.monitoredItems![1];
-                    //xx tracelog(notification.value.value.value);
-                    notification3.value.value.value.should.eql(expected_values[1]);
-                    notification3.value.statusCode.should.eql(expected_statusCodes[1]);
-                    //xx parameters.queueSize.should.eql(2);
-                    //xx notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit, "OverFlow bit shall not be set when queueSize =2");
-                });
+                const notification3 = dataChangeNotification.monitoredItems![1];
+                //xx tracelog(notification.value.value.value);
+                notification3.value.value.value.should.eql(expected_values[1]);
+                notification3.value.statusCode.should.eql(expected_statusCodes[1]);
+                //xx parameters.queueSize.should.eql(2);
+                //xx notification.value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit, "OverFlow bit shall not be set when queueSize =2");
+            });
         }
 
         it("#CTT3 - should make sure that only the last 2 values are returned when queue size is two and discard oldest is TRUE", async () => {
@@ -2751,115 +2500,107 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 attributeId: AttributeIds.Description
             });
 
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    await createSubscription(session);
-                    await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
-                    const publishResponse1 = await sendPublishRequest(session);
-                    publishResponse1.notificationMessage.notificationData!.length.should.eql(1);
-                });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await createSubscription(session);
+                await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
+                const publishResponse1 = await sendPublishRequest(session);
+                publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+            });
         });
 
         it("#CTT6 Late Publish should have data", async () => {
-            await perform_operation_on_client_session(
-                client,
-                endpointUrl,
-                async (session) => {
-                    const nodeId = "ns=2;s=Static_Scalar_Double";
-                    const samplingInterval = 500;
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const nodeId = "ns=2;s=Static_Scalar_Double";
+                const samplingInterval = 500;
+                const parameters = {
+                    samplingInterval: samplingInterval,
+                    discardOldest: true,
+                    queueSize: 2
+                };
+                const itemToMonitor = new ReadValueId({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.Value
+                });
+
+                const publishingInterval = 100;
+                const createSubscriptionRequest = new CreateSubscriptionRequest({
+                    requestedPublishingInterval: publishingInterval,
+                    requestedLifetimeCount: 30,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                const response = await createSubscription2(session, createSubscriptionRequest);
+                const time_to_wait = response.revisedPublishingInterval * response.revisedLifetimeCount;
+
+                await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
+
+                await wait(time_to_wait + 1500);
+                //xx tracelog("--------------");
+                // we should get notified immediately that the session has timed out
+                const publishResponse1 = await sendPublishRequest(session);
+                publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+                const notificationData = publishResponse1.notificationMessage?.notificationData?.[0];
+                //xx tracelog(notificationData.toString());
+                //.monitoredItems[0];
+                notificationData?.constructor.name.should.eql("StatusChangeNotification");
+                (notificationData as StatusChangeNotification).status.should.eql(StatusCodes.BadTimeout);
+            });
+        });
+
+        describe("#CTT - Monitored Value Change", () => {
+            it("should monitor a substring ", async () => {
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const nodeId = nodeIdString;
+                    const samplingInterval = 0;
+
                     const parameters = {
                         samplingInterval: samplingInterval,
-                        discardOldest: true,
+                        discardOldest: false,
                         queueSize: 2
                     };
+
                     const itemToMonitor = new ReadValueId({
                         nodeId: nodeId,
-                        attributeId: AttributeIds.Value
+                        attributeId: AttributeIds.Value,
+                        indexRange: NumericRange.coerce("4:10")
                     });
 
-
-                    const publishingInterval = 100;
-                    const createSubscriptionRequest = new CreateSubscriptionRequest({
-                        requestedPublishingInterval: publishingInterval,
-                        requestedLifetimeCount: 30,
-                        requestedMaxKeepAliveCount: 10,
-                        maxNotificationsPerPublish: 10,
-                        publishingEnabled: true,
-                        priority: 6
-                    });
-                    const response = await createSubscription2(session, createSubscriptionRequest);
-                    const time_to_wait = response.revisedPublishingInterval * response.revisedLifetimeCount;
+                    await createSubscription(session);
 
                     await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
-                    await wait(time_to_wait + 1500);
-                    //xx tracelog("--------------");
-                    // we should get notified immediately that the session has timed out
                     const publishResponse1 = await sendPublishRequest(session);
-                    publishResponse1.notificationMessage.notificationData!.length.should.eql(1);
-                    const notificationData = publishResponse1.notificationMessage!.notificationData![0];
-                    //xx tracelog(notificationData.toString());
-                    //.monitoredItems[0];
-                    notificationData!.constructor.name.should.eql("StatusChangeNotification");
-                    (notificationData as StatusChangeNotification).status.should.eql(StatusCodes.BadTimeout);
-                });
-        });
+                    const notification = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification)
+                        .monitoredItems![0];
+                    notification.value.value.value.should.eql("EFGHIJK");
 
-        describe("#CTT - Monitored Value Change", function () {
-            it("should monitor a substring ", async () => {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-                        const nodeId = nodeIdString;
-                        const samplingInterval = 0;
-
-                        const parameters = {
-                            samplingInterval: samplingInterval,
-                            discardOldest: false,
-                            queueSize: 2
-                        };
-
-                        const itemToMonitor = new ReadValueId({
+                    const nodesToWrite = [
+                        {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
-                            indexRange: NumericRange.coerce("4:10")
-                        });
-
-                        await createSubscription(session);
-
-                        await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
-
-                        const publishResponse1 = await sendPublishRequest(session);
-                        const notification = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems![0];
-                        notification.value.value.value.should.eql("EFGHIJK");
-
-                        const nodesToWrite = [
-                            {
-                                nodeId: nodeId,
-                                attributeId: AttributeIds.Value,
-                                value: /*new DataValue(*/ {
-                                    value: {
-                                        /* Variant */
-                                        dataType: DataType.String,
-                                        //      01234567890123456789012345
-                                        value: "ZYXWVUTSRQPONMLKJIHGFEDCBA"
-                                    }
+                            value: /*new DataValue(*/ {
+                                value: {
+                                    /* Variant */
+                                    dataType: DataType.String,
+                                    //      01234567890123456789012345
+                                    value: "ZYXWVUTSRQPONMLKJIHGFEDCBA"
                                 }
                             }
-                        ];
+                        }
+                    ];
 
-                        const statusCodes = await session.write(nodesToWrite);
-                        statusCodes.length.should.eql(1);
-                        statusCodes[0].should.eql(StatusCodes.Good);
+                    const statusCodes = await session.write(nodesToWrite);
+                    statusCodes.length.should.eql(1);
+                    statusCodes[0].should.eql(StatusCodes.Good);
 
-                        const publishResponse2 = await sendPublishRequest(session);
-                        const notification2 = (publishResponse2.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems![0];
-                        //xx tracelog("notification", notification.toString());
-                        notification2.value.value.value.should.eql("VUTSRQP");
-                    });
+                    const publishResponse2 = await sendPublishRequest(session);
+                    const notification2 = (publishResponse2.notificationMessage.notificationData![0] as DataChangeNotification)
+                        .monitoredItems![0];
+                    //xx tracelog("notification", notification.toString());
+                    notification2.value.value.value.should.eql("VUTSRQP");
+                });
             });
 
             it("ZZE it should return a publish Response with Bad_IndexRangeNoData , when the size of the monitored item change", async () => {
@@ -2869,182 +2610,162 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 // ExpectedResults:
                 // All service and operation level results are Good. Second Publish response contains a DataChangeNotification
                 // with a value.statusCode of Bad_IndexRangeNoData.
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-                        samplingInterval = 0; // exception based
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    _samplingInterval = 0; // exception based
 
-                        const nodeId = "ns=2;s=Static_Array_Int32";
+                    const nodeId = "ns=2;s=Static_Array_Int32";
 
-                        const parameters = {
-                            samplingInterval: 0, // exception based : whenever value changes
-                            discardOldest: false,
-                            queueSize: 2
-                        };
+                    const parameters = {
+                        samplingInterval: 0, // exception based : whenever value changes
+                        discardOldest: false,
+                        queueSize: 2
+                    };
 
-                        const itemToMonitor = new ReadValueId({
+                    const itemToMonitor = new ReadValueId({
+                        nodeId: nodeId,
+                        attributeId: AttributeIds.Value,
+                        indexRange: NumericRange.coerce("2:4")
+                    });
+
+                    async function write_node(value: number[]) {
+                        assert(Array.isArray(value));
+                        const nodeToWrite = {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
-                            indexRange: NumericRange.coerce("2:4")
-                        });
-
-                        async function write_node(value: number[]) {
-                            assert(value instanceof Array);
-                            const nodeToWrite = {
-                                nodeId: nodeId,
-                                attributeId: AttributeIds.Value,
-                                value: /*new DataValue(*/ {
-                                    value: {
-                                        /* Variant */
-                                        arrayType: VariantArrayType.Array,
-                                        dataType: DataType.Int32,
-                                        value: new Int32Array(value)
-                                    }
+                            value: /*new DataValue(*/ {
+                                value: {
+                                    /* Variant */
+                                    arrayType: VariantArrayType.Array,
+                                    dataType: DataType.Int32,
+                                    value: new Int32Array(value)
                                 }
-                            };
-                            const statusCode = await session.write(nodeToWrite);
-                            statusCode.should.eql(StatusCodes.Good);
+                            }
+                        };
+                        const statusCode = await session.write(nodeToWrite);
+                        statusCode.should.eql(StatusCodes.Good);
 
-                            const dataValue = await session.read(
-                                {
-                                    attributeId: AttributeIds.Value,
-                                    nodeId: nodeId
-                                });
+                        const _dataValue = await session.read({
+                            attributeId: AttributeIds.Value,
+                            nodeId: nodeId
+                        });
+                    }
 
-                        }
+                    // write initial value => [1,2,3,4,5,6,7,8,9,10]
+                    await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), await createSubscription(session);
+                    await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
+                    await wait(100);
 
-                        // write initial value => [1,2,3,4,5,6,7,8,9,10]
-                        await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+                    const publishResponse1 = await sendPublishRequest(session);
+                    const notification1 = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification)
+                        .monitoredItems![0];
+                    notification1.value.statusCode.should.eql(StatusCodes.Good);
+                    notification1.value.value.value.should.eql(new Int32Array([2, 3, 4]));
 
+                    await write_node([-1, -2]);
 
-                            await createSubscription(session);
-                        await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
+                    const publishResponse2 = await sendPublishRequest(session);
+                    const dataChangeNotification2 = publishResponse2.notificationMessage
+                        .notificationData?.[0] as DataChangeNotification;
+                    const notification2 = dataChangeNotification2.monitoredItems![0];
+                    notification2.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
+                    should(notification2.value.value.value).eql(null);
 
-                        await wait(100);
+                    await write_node([-1, -2, -3]);
+                    await wait(100);
 
-                        const publishResponse1 = await sendPublishRequest(session);
-                        const notification1 = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems![0];
-                        notification1.value.statusCode.should.eql(StatusCodes.Good);
-                        notification1.value.value.value.should.eql(new Int32Array([2, 3, 4]));
+                    await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+                    await wait(100);
 
-                        await write_node([-1, -2]);
+                    const publishResponse3 = await sendPublishRequest(session);
+                    const dataChangeNotification3 = publishResponse3.notificationMessage
+                        .notificationData?.[0] as DataChangeNotification;
+                    dataChangeNotification3.monitoredItems?.length.should.be.aboveOrEqual(
+                        2,
+                        "expecting two monitoredItem in  notification data"
+                    );
+                    const notificationdv1 = dataChangeNotification3.monitoredItems![0];
+                    notificationdv1.value.statusCode.should.eql(StatusCodes.Good);
+                    notificationdv1.value.value.value.should.eql(new Int32Array([-3]));
+                    const notificationdv2 = dataChangeNotification3.monitoredItems![1];
+                    notificationdv2.value.statusCode.should.eql(StatusCodes.Good);
+                    notificationdv2.value.value.value.should.eql(new Int32Array([2, 3, 4]));
 
-                        const publishResponse2 = await sendPublishRequest(session);
-                        const dataChangeNotification2 = (publishResponse2.notificationMessage.notificationData![0] as DataChangeNotification);
-                        const notification2 = dataChangeNotification2.monitoredItems![0];
-                        notification2.value.statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
-                        should(notification2.value.value.value).eql(null);
+                    await write_node([0, 1, 2, 3]);
+                    await wait(100);
 
-                        await write_node([-1, -2, -3]);
-                        await wait(100);
+                    const publishResponse4 = await sendPublishRequest(session);
+                    const dataChangeNotification4 = publishResponse4.notificationMessage
+                        .notificationData?.[0] as DataChangeNotification;
+                    const notification4 = dataChangeNotification4.monitoredItems![0];
+                    notification4.value.statusCode.should.eql(StatusCodes.Good);
+                    notification4.value.value.value.should.eql(new Int32Array([2, 3]));
 
-                        await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-                        await wait(100);
-
-                        const publishResponse3 = await sendPublishRequest(session);
-                        const dataChangeNotification3 = (publishResponse3.notificationMessage.notificationData![0] as DataChangeNotification);
-                        dataChangeNotification3.monitoredItems!.length.should.be.aboveOrEqual(
-                            2,
-                            "expecting two monitoredItem in  notification data"
-                        );
-                        const notificationdv1 = dataChangeNotification3.monitoredItems![0];
-                        notificationdv1.value.statusCode.should.eql(StatusCodes.Good);
-                        notificationdv1.value.value.value.should.eql(new Int32Array([-3]));
-                        const notificationdv2 = dataChangeNotification3.monitoredItems![1];
-                        notificationdv2.value.statusCode.should.eql(StatusCodes.Good);
-                        notificationdv2.value.value.value.should.eql(new Int32Array([2, 3, 4]));
-
-
-                        await write_node([0, 1, 2, 3]);
-                        await wait(100);
-
-                        const publishResponse4 = await sendPublishRequest(session);
-                        const dataChangeNotification4 = (publishResponse4.notificationMessage.notificationData![0] as DataChangeNotification);
-                        const notification4 = dataChangeNotification4.monitoredItems![0];
-                        notification4.value.statusCode.should.eql(StatusCodes.Good);
-                        notification4.value.value.value.should.eql(new Int32Array([2, 3]));
-
-                        // restore orignal value
-                        write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); s
-                    });
+                    // restore orignal value
+                    write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+                    s;
+                });
             });
 
             it("#ModifySubscriptionRequest: should return BadSubscriptionIdInvalid if client specifies a invalid subscriptionId", async () => {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-                        const modifySubscriptionRequest = {
-                            subscriptionId: 999
-                        };
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const modifySubscriptionRequest = {
+                        subscriptionId: 999
+                    };
 
-                        await assertThrow(async () => {
-                            await (session as ClientSessionEx).modifySubscription(modifySubscriptionRequest);
-                        }, /BadSubscriptionIdInvalid/);
-                    });
+                    await assertThrow(async () => {
+                        await (session as ClientSessionEx).modifySubscription(modifySubscriptionRequest);
+                    }, /BadSubscriptionIdInvalid/);
+                });
             });
 
             it("#ModifySubscriptionRequest: should return StatusGood", async () => {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-
-                        const subscription = await session.createSubscription2({
-                            requestedPublishingInterval: 10,
-                            requestedLifetimeCount: 18000,
-                            requestedMaxKeepAliveCount: 10,
-                            maxNotificationsPerPublish: 10,
-                            publishingEnabled: true,
-                            priority: 6
-                        });
-
-                 
-                   
-                        const modifySubscriptionRequest = {
-                            subscriptionId: subscription.subscriptionId,
-                            requestedPublishingInterval: 200
-                        };
-                        const response = await (session as ClientSessionEx).modifySubscription(modifySubscriptionRequest);
-                        response.revisedPublishingInterval.should.eql(200);
-
-                        response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                        response.revisedMaxKeepAliveCount.should.eql(10);
-                        response.revisedLifetimeCount.should.eql(18000);
-
-                        await subscription.terminate();
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const subscription = await session.createSubscription2({
+                        requestedPublishingInterval: 10,
+                        requestedLifetimeCount: 18000,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 10,
+                        publishingEnabled: true,
+                        priority: 6
                     });
+
+                    const modifySubscriptionRequest = {
+                        subscriptionId: subscription.subscriptionId,
+                        requestedPublishingInterval: 200
+                    };
+                    const response = await (session as ClientSessionEx).modifySubscription(modifySubscriptionRequest);
+                    response.revisedPublishingInterval.should.eql(200);
+
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    response.revisedMaxKeepAliveCount.should.eql(10);
+                    response.revisedLifetimeCount.should.eql(18000);
+
+                    await subscription.terminate();
+                });
             });
 
             it("#SetMonitoringMode, should return BadSubscriptionIdInvalid when subscriptionId is invalid", async () => {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-                        await assertThrow(async () => {
-                            const setMonitoringModeRequest = {
-                                subscriptionId: 999
-                            };
-                            await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        }, /BadSubscriptionIdInvalid/);
-                    });
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    await assertThrow(async () => {
+                        const setMonitoringModeRequest = {
+                            subscriptionId: 999
+                        };
+                        await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
+                    }, /BadSubscriptionIdInvalid/);
+                });
             });
 
             it("#SetMonitoringMode, should return BadNothingToDo if monitoredItemId is empty", async () => {
-                await perform_operation_on_subscription(
-                    client,
-                    endpointUrl,
-                    async (session, subscription) => {
-                        await assertThrow(async () => {
-                            const setMonitoringModeRequest = {
-                                subscriptionId: subscription.subscriptionId,
-                                monitoredItemIds: []
-                            };
-                            await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        }, /BadNothingToDo/);
-                    });
+                await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                    await assertThrow(async () => {
+                        const setMonitoringModeRequest = {
+                            subscriptionId: subscription.subscriptionId,
+                            monitoredItemIds: []
+                        };
+                        await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
+                    }, /BadNothingToDo/);
+                });
             });
 
             it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid is monitoringMode is invalid", async () => {
@@ -3054,7 +2775,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     endpointUrl,
                     itemToMonitor,
                     async (session, subscription, monitoredItem) => {
-
                         const setMonitoringModeRequest = new SetMonitoringModeRequest({
                             subscriptionId: subscription.subscriptionId,
                             monitoringMode: MonitoringMode.Reporting,
@@ -3067,7 +2787,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         await assertThrow(async () => {
                             await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
                         }, /BadMonitoringModeInvalid/);
-                    });
+                    }
+                );
             });
 
             it("#SetMonitoringMode, should return BadMonitoredItemIdInvalid when monitoredItem is invalid", async () => {
@@ -3083,9 +2804,10 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                             monitoredItemIds: [monitoredItem.monitoredItemId + 9999]
                         };
                         const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        response.results!.length.should.eql(1);
-                        response.results![0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
-                    });
+                        response.results?.length.should.eql(1);
+                        response.results?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                    }
+                );
             });
 
             it("#SetMonitoringMode, should return Good when request is valid", async () => {
@@ -3101,15 +2823,14 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                             monitoredItemIds: [monitoredItem.monitoredItemId]
                         };
                         const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        response.results!.length.should.eql(1);
-                        response.results![0].should.eql(StatusCodes.Good);
-                    });
+                        response.results?.length.should.eql(1);
+                        response.results?.[0].should.eql(StatusCodes.Good);
+                    }
+                );
             });
 
             it("#subscription operations should extend subscription lifetime", async () => {
-
                 // see CTT test063
-
 
                 const publishingInterval = 100;
 
@@ -3118,98 +2839,89 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     endpointUrl: string,
                     do_func: (session: ClientSession, subscription: ClientSubscription) => Promise<void>
                 ) {
-
-                    await perform_operation_on_client_session(
-                        client,
-                        endpointUrl,
-                        async (session) => {
-                            const subscription = await session.createSubscription2({
-                                requestedPublishingInterval: publishingInterval,
-                                requestedLifetimeCount: 60,
-                                requestedMaxKeepAliveCount: 10, // 10 requested here !
-                                maxNotificationsPerPublish: 2,
-                                publishingEnabled: true,
-                                priority: 6
-                            });
-                            try {
-                                await do_func(session, subscription);
-                            } finally {
-                                await subscription.terminate();
-                            }
+                    await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                        const subscription = await session.createSubscription2({
+                            requestedPublishingInterval: publishingInterval,
+                            requestedLifetimeCount: 60,
+                            requestedMaxKeepAliveCount: 10, // 10 requested here !
+                            maxNotificationsPerPublish: 2,
+                            publishingEnabled: true,
+                            priority: 6
                         });
+                        try {
+                            await do_func(session, subscription);
+                        } finally {
+                            await subscription.terminate();
+                        }
+                    });
                 }
 
-                await my_perform_operation_on_subscription(
-                    client,
-                    endpointUrl,
-                    async (session, subscription) => {
+                await my_perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                    subscription.publishingInterval.should.eql(publishingInterval);
+                    subscription.maxKeepAliveCount.should.eql(10);
 
-                        subscription.publishingInterval.should.eql(publishingInterval);
-                        subscription.maxKeepAliveCount.should.eql(10);
+                    const waitingTime = subscription.publishingInterval * (subscription.maxKeepAliveCount - 3) - 100;
 
-                        const waitingTime = subscription.publishingInterval * (subscription.maxKeepAliveCount - 3) - 100;
-
-                        let nb_keep_alive_received = 0;
-                        subscription.on("keepalive", function () {
-                            nb_keep_alive_received += 1;
-                        });
-
-
-                        nb_keep_alive_received.should.eql(0);
-
-                        await wait(subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
-                        nb_keep_alive_received.should.eql(2);
-
-                        await wait(waitingTime);
-                        // -- step 1
-
-                        const monitoredItem = ClientMonitoredItem.create(
-                            subscription,
-                            {
-                                nodeId: resolveNodeId("ns=0;i=2254"),
-                                attributeId: AttributeIds.Value
-                            },
-                            {
-                                samplingInterval: 100,
-                                discardOldest: true,
-                                queueSize: 1
-                            }
-                        );
-
-                        await new Promise<void>((resolve) => {
-                            monitoredItem.on("initialized", () => {
-                                resolve();
-                            });
-                        })
-                        // --- 
-
-                        nb_keep_alive_received.should.eql(2);
-
-                        await wait(waitingTime);
-                        // ------ Step2 
-                        const setMonitoringModeRequest = {
-                            subscriptionId: subscription.subscriptionId,
-                            monitoringMode: MonitoringMode.Sampling,
-                            monitoredItemIds: [monitoredItem.monitoredItemId]
-                        };
-                        const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        response.results![0].should.eql(StatusCodes.Good);
-
-                        // ----
-                        nb_keep_alive_received.should.eql(2);
-
-                        await wait(waitingTime);
-                        // --- Step 3
-                        const response2 = await (session as ClientSessionEx).deleteSubscriptions({
-                            subscriptionIds: [subscription.subscriptionId]
-                        });
-                        // ---
-                        nb_keep_alive_received.should.eql(2);
+                    let nb_keep_alive_received = 0;
+                    subscription.on("keepalive", () => {
+                        nb_keep_alive_received += 1;
                     });
+
+                    nb_keep_alive_received.should.eql(0);
+
+                    await wait(subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
+                    nb_keep_alive_received.should.eql(2);
+
+                    await wait(waitingTime);
+                    // -- step 1
+
+                    const monitoredItem = ClientMonitoredItem.create(
+                        subscription,
+                        {
+                            nodeId: resolveNodeId("ns=0;i=2254"),
+                            attributeId: AttributeIds.Value
+                        },
+                        {
+                            samplingInterval: 100,
+                            discardOldest: true,
+                            queueSize: 1
+                        }
+                    );
+
+                    await new Promise<void>((resolve) => {
+                        monitoredItem.on("initialized", () => {
+                            resolve();
+                        });
+                    });
+                    // ---
+
+                    nb_keep_alive_received.should.eql(2);
+
+                    await wait(waitingTime);
+                    // ------ Step2
+                    const setMonitoringModeRequest = {
+                        subscriptionId: subscription.subscriptionId,
+                        monitoringMode: MonitoringMode.Sampling,
+                        monitoredItemIds: [monitoredItem.monitoredItemId]
+                    };
+                    const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
+                    response.results?.[0].should.eql(StatusCodes.Good);
+
+                    // ----
+                    nb_keep_alive_received.should.eql(2);
+
+                    await wait(waitingTime);
+                    // --- Step 3
+                    const _response2 = await (session as ClientSessionEx).deleteSubscriptions({
+                        subscriptionIds: [subscription.subscriptionId]
+                    });
+                    // ---
+                    nb_keep_alive_received.should.eql(2);
+                });
             });
         });
 
-        describe("#Republish", function () {
+        describe("#Republish", () => {
             let VALID_RETRANSMIT_SEQNUM = 0;
             let VALID_SUBSCRIPTION = 0;
             const INVALID_SUBSCRIPTION = 1234;
@@ -3219,75 +2931,71 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 VALID_RETRANSMIT_SEQNUM = 0;
 
                 client = OPCUAClient.create({});
-                fanSpeed = server.engine.addressSpace!.findNode("ns=1;s=FanSpeed") as UAVariable;
+                fanSpeed = server.engine.addressSpace?.findNode("ns=1;s=FanSpeed") as UAVariable;
                 should.exist(fanSpeed);
             });
 
             async function inner_test(the_test_function: (session: ClientSession) => Promise<void>) {
-                await perform_operation_on_client_session(
-                    client,
-                    endpointUrl,
-                    async (session) => {
-
-
-                        // CreateSubscriptionRequest
-                        const request = new CreateSubscriptionRequest({
-                            requestedPublishingInterval: 100,
-                            requestedLifetimeCount: 60,
-                            requestedMaxKeepAliveCount: 10,
-                            maxNotificationsPerPublish: 2000,
-                            publishingEnabled: true,
-                            priority: 6
-                        });
-                        const response = await (session as ClientSessionEx).createSubscription(request);
-                        VALID_SUBSCRIPTION = response.subscriptionId;
-
-                        // CreateMonitoredItemsRequest
-                        const createMonitoredItemRequest = new CreateMonitoredItemsRequest({
-                            subscriptionId: VALID_SUBSCRIPTION,
-                            timestampsToReturn: TimestampsToReturn.Both,
-                            itemsToCreate: [
-                                {
-                                    itemToMonitor: {
-                                        nodeId: fanSpeed.nodeId
-                                        // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
-                                    },
-                                    monitoringMode: MonitoringMode.Reporting,
-                                    requestedParameters: {
-                                        clientHandle: 26,
-                                        samplingInterval: 10,
-                                        filter: null,
-                                        queueSize: 100,
-                                        discardOldest: true
-                                    }
-                                }
-                            ]
-                        });
-
-                        const createMonitoredItemResponse = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemRequest);
-                        createMonitoredItemResponse.should.be.instanceof(CreateMonitoredItemsResponse);
-                        createMonitoredItemResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                        createMonitoredItemResponse.results!.length.should.eql(1);
-                        createMonitoredItemResponse.results![0].statusCode.should.eql(StatusCodes.Good);
-
-
-                        fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1 }));
-                        await wait(50);
-                        fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 2 }));
-
-                        //publish_republish,
-
-                        // publish request now requires a subscriptions
-                        const publisRequest = new PublishRequest({
-                            subscriptionAcknowledgements: []
-                        });
-                        const publisResponse = await (session as ClientSessionEx).publish(publisRequest);
-                        assert(publisResponse instanceof PublishResponse);
-                        assert(publisResponse.availableSequenceNumbers!.length > 0);
-                        VALID_RETRANSMIT_SEQNUM = publisResponse.availableSequenceNumbers![0];
-                        VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
-                        await the_test_function(session);
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    // CreateSubscriptionRequest
+                    const request = new CreateSubscriptionRequest({
+                        requestedPublishingInterval: 100,
+                        requestedLifetimeCount: 60,
+                        requestedMaxKeepAliveCount: 10,
+                        maxNotificationsPerPublish: 2000,
+                        publishingEnabled: true,
+                        priority: 6
                     });
+                    const response = await (session as ClientSessionEx).createSubscription(request);
+                    VALID_SUBSCRIPTION = response.subscriptionId;
+
+                    // CreateMonitoredItemsRequest
+                    const createMonitoredItemRequest = new CreateMonitoredItemsRequest({
+                        subscriptionId: VALID_SUBSCRIPTION,
+                        timestampsToReturn: TimestampsToReturn.Both,
+                        itemsToCreate: [
+                            {
+                                itemToMonitor: {
+                                    nodeId: fanSpeed.nodeId
+                                    // nodeId: makeNodeId(VariableIds.Server_ServerStatus_CurrentTime)
+                                },
+                                monitoringMode: MonitoringMode.Reporting,
+                                requestedParameters: {
+                                    clientHandle: 26,
+                                    samplingInterval: 10,
+                                    filter: null,
+                                    queueSize: 100,
+                                    discardOldest: true
+                                }
+                            }
+                        ]
+                    });
+
+                    const createMonitoredItemResponse = await (session as ClientSessionEx).createMonitoredItems(
+                        createMonitoredItemRequest
+                    );
+                    createMonitoredItemResponse.should.be.instanceof(CreateMonitoredItemsResponse);
+                    createMonitoredItemResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    createMonitoredItemResponse.results?.length.should.eql(1);
+                    createMonitoredItemResponse.results?.[0].statusCode.should.eql(StatusCodes.Good);
+
+                    fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1 }));
+                    await wait(50);
+                    fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 2 }));
+
+                    //publish_republish,
+
+                    // publish request now requires a subscriptions
+                    const publisRequest = new PublishRequest({
+                        subscriptionAcknowledgements: []
+                    });
+                    const publisResponse = await (session as ClientSessionEx).publish(publisRequest);
+                    assert(publisResponse instanceof PublishResponse);
+                    assert(publisResponse.availableSequenceNumbers!.length > 0);
+                    VALID_RETRANSMIT_SEQNUM = publisResponse.availableSequenceNumbers![0];
+                    VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
+                    await the_test_function(session);
+                });
             }
 
             it("RP-1 server should handle Republish request (BadMessageNotAvailable) ", async () => {

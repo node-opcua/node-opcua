@@ -1,22 +1,13 @@
 import "should";
-import {
-    OPCUAServer,
-    OPCUAClient,
-    MessageSecurityMode,
-    SecurityPolicy,
-    UserTokenPolicy,
-    UserTokenType
-} from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy, UserTokenPolicy, UserTokenType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 // require("node-opcua-service-session").UserNameIdentityToken;  (kept reference to original commented import)
 
 describe("Testing bug #574", function (this: Mocha.Context) {
-
     const port = 2222;
     let server: OPCUAServer | null = null;
     let endpointUrl = "";
-
 
     before(async () => {
         server = new OPCUAServer({
@@ -73,4 +64,3 @@ describe("Testing bug #574", function (this: Mocha.Context) {
         }
     });
 });
-

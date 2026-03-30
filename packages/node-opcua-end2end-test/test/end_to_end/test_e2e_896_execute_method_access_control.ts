@@ -1,8 +1,18 @@
-import os from "os";
-import { allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles } from "node-opcua";
+import os from "node:os";
+import {
+    type AddressSpace,
+    allPermissions,
+    makeRoles,
+    OPCUAClient,
+    OPCUAServer,
+    StatusCodes,
+    UserTokenType,
+    WellKnownRoles
+} from "node-opcua";
 import "should";
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Issue #896: Check Authorization for UAMethods", () => {
     const users = [
         {
@@ -17,10 +27,10 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
     const server = new OPCUAServer({
         port,
         userManager: {
-            getUserRoles: (username) => users.find((user) => user.username === username)!.roles,
+            getUserRoles: (username: string) => users.find((user) => user.username === username)?.roles ?? [],
 
             isValidUser: (username: string, password: string) => {
-                const user = users.find((user) => user.username === username);
+                const user = users.find((u) => u.username === username);
                 if (!user) return false;
                 return user.password === password;
             }
@@ -35,7 +45,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
 
     before(async () => {
         await server.initialize();
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace as AddressSpace;
         const namespace = addressSpace.getOwnNamespace();
         const folder = namespace.addFolder(addressSpace.rootFolder.objects, {
             browseName: "e2e",
@@ -57,7 +67,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
             }
             */
             })
-            .bindMethod((inputArguments, context, callback) => {
+            .bindMethod((_inputArguments, _context, callback) => {
                 wasExecuted = true;
                 callback(null, { statusCode: StatusCodes.Good });
             });
@@ -76,7 +86,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Gandalf",
-            password: (()=>"g")()
+            password: (() => "g")()
         });
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",
@@ -92,7 +102,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Frodo",
-            password: (()=>"f")()
+            password: (() => "f")()
         });
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",

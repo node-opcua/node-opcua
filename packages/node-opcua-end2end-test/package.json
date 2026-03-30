@@ -5,7 +5,8 @@
     "private": true,
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "mocha"
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "devDependencies": {
         "bcryptjs": "3.0.3",
@@ -22,7 +23,7 @@
         "node-opcua-client-crawler": "2.166.1",
         "node-opcua-client-proxy": "2.166.1",
         "node-opcua-constants": "2.157.0",
-        "node-opcua-crypto": "5.3.1",
+        "node-opcua-crypto": "5.3.3",
         "node-opcua-debug": "2.165.0",
         "node-opcua-extension-object": "2.165.0",
         "node-opcua-factory": "2.165.0",
@@ -33,7 +34,7 @@
         "node-opcua-nodeset-auto-id": "2.166.1",
         "node-opcua-nodeset-ijt-base": "2.166.1",
         "node-opcua-nodeset-machinery-result": "2.166.1",
-        "node-opcua-pki": "6.11.1",
+        "node-opcua-pki": "6.12.0",
         "node-opcua-server": "2.166.1",
         "node-opcua-server-discovery": "2.166.1",
         "node-opcua-service-browse": "2.165.0",

@@ -1,8 +1,8 @@
 import "should";
-import sinon from "sinon";
-import { OPCUAClient, OPCUAServer, nodesets } from "node-opcua";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { nodesets, OPCUAClient, OPCUAServer } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -35,7 +35,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
     it("TSC-1 should raise a close event once on normal disconnection", async () => {
         let close_counter = 0;
         const client = OPCUAClient.create({});
-        client.on("close", (err: Error | null) => {
+        client.on("close", (err?: Error | null) => {
             if (err) {
                 // Should not happen for client-initiated disconnect
                 err.message.should.not.match(/.*/); // force failure if triggered
@@ -92,7 +92,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
         client.on("backoff", () => {
             debugLog("client.on('backoff'): attempting reconnect isReconnecting=", (client as any).isReconnecting);
         });
-        client.on("close", (err: Error | null) => {
+        client.on("close", (err?: Error | null) => {
             debugLog("client 'close' event", err ? err.message : null);
         });
         debugLog(" 1--> Starting server");
@@ -111,7 +111,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
         });
         debugLog(" 6 --> client detected server shutdown; waiting for reconnect attempts");
         await new Promise((r) => setTimeout(r, 10000));
-        ((client as any).isReconnecting).should.eql(true);
+        (client as any).isReconnecting.should.eql(true);
         debugLog(" 7 --> disconnecting client (while reconnecting)");
         await client.disconnect();
         debugLog(" 8 --> client disconnected");

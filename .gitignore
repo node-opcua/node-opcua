@@ -50,10 +50,12 @@ CTTA/
 CTT/Node-OPCUA-Client
 demo/
 dist/
+dist-test/
 distHelpers/
 distNodeJS/
 doc1/
 docs2/
+obj/
 documentation/worldweatheronline.key
 lerna-debug.log
 node_modules/

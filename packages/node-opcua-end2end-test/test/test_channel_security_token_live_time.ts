@@ -1,16 +1,9 @@
-import path from "path";
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import "should";
-import {
-    is_valid_endpointUrl,
-    OPCUAServer,
-    OPCUAClient,
-    ServerSecureChannelLayer
-} from "node-opcua";
+import { is_valid_endpointUrl, OPCUAClient, OPCUAServer, ServerSecureChannelLayer } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-
-
 
 function getFixture(file: string) {
     file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
@@ -19,15 +12,14 @@ function getFixture(file: string) {
 }
 const empty_nodeset_filename = getFixture("fixture_empty_nodeset2.xml");
 
-
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const port = 2041;
 
-
 // eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable) {
     this.timeout(Math.max(100000, this.timeout()));
 
@@ -79,7 +71,7 @@ describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable
         await client.connect(endpointUrl);
 
         await new Promise<void>((resolve) => {
-            (client as any)._secureChannel.on("security_token_renewed", function () {
+            (client as any)._secureChannel.on("security_token_renewed", () => {
                 debugLog(" received security_token_renewed");
                 resolve();
             });
@@ -90,19 +82,19 @@ describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable
     it("A client should periodically renew the expiring security token", async () => {
         await client.connect(endpointUrl);
 
-        let waitingTime = (client.defaultSecureTokenLifetime + 1000) * 10;
+        const waitingTime = (client.defaultSecureTokenLifetime + 1000) * 10;
         console.log("waiting time = ", waitingTime);
 
         let security_token_renewed_counter = 0;
         await new Promise<void>((resolve, reject) => {
             const id = setTimeout(() => reject(new Error("security token not renewed")), waitingTime);
 
-            (client as any)._secureChannel.on("security_token_renewed", function () {
+            (client as any)._secureChannel.on("security_token_renewed", () => {
                 debugLog(" received security_token_renewed");
                 security_token_renewed_counter += 1;
                 if (security_token_renewed_counter > 3) {
                     resolve();
-                 
+
                     clearTimeout(id);
                 }
             });

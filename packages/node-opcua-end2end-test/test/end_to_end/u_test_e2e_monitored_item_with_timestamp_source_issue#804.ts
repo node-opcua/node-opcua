@@ -1,16 +1,12 @@
 import "should";
-import {
-    TimestampsToReturn,
-    OPCUAClient,
-    ClientSubscription,
-    ClientMonitoredItem,
-    AttributeIds,
-    resolveNodeId
-} from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, ClientSubscription, OPCUAClient, resolveNodeId, TimestampsToReturn } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
-interface TestHarness { endpointUrl: string; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    [k: string]: any;
+}
 
 /**
  * Issue #804 - Ensure monitoring with TimestampsToReturn.Source produces DataValues with only sourceTimestamp.
@@ -41,7 +37,7 @@ export function t(test: TestHarness) {
                 ];
 
                 for (const id of ids) {
-                    const nodeId = "ns=2;s=" + id;
+                    const nodeId = `ns=2;s=${id}`;
                     const monitoredItem = ClientMonitoredItem.create(
                         subscription,
                         { nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value },

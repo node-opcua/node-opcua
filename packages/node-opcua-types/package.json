@@ -8,6 +8,7 @@
         "generate": "tsc -b tsconfig.pre.json && tsx source/generate",
         "build": "tsc -b",
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "format": "prettier --write source test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo source/_generated_*"
     },

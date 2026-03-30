@@ -1,28 +1,41 @@
 /**
  * @module node-opcua-client-private
  */
-import { callbackify } from "util";
-import { randomBytes, createPublicKey } from "crypto";
+
+import { createPublicKey, randomBytes } from "node:crypto";
+import { callbackify } from "node:util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
+import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import {
-    Certificate,
+    type Certificate,
     exploreCertificate,
     extractPublicKeyFromCertificateSync,
     makePrivateKeyFromPem,
-    PrivateKey,
-    Nonce,
+    type Nonce,
+    type PrivateKey,
     toPem
 } from "node-opcua-crypto/web";
-
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
-import { ClientSecureChannelLayer, computeSignature, fromURI, getCryptoFactory, SecurityPolicy } from "node-opcua-secure-channel";
-import { ApplicationDescriptionOptions, ApplicationType, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
-import { MessageSecurityMode, UserTokenPolicy } from "node-opcua-service-secure-channel";
+import { readNamespaceArray } from "node-opcua-pseudo-session";
+import {
+    type ClientSecureChannelLayer,
+    computeSignature,
+    fromURI,
+    getCryptoFactory,
+    SecurityPolicy
+} from "node-opcua-secure-channel";
+import {
+    type ApplicationDescriptionOptions,
+    ApplicationType,
+    EndpointDescription,
+    UserTokenType
+} from "node-opcua-service-endpoints";
+import { MessageSecurityMode, type UserTokenPolicy } from "node-opcua-service-secure-channel";
 import {
     ActivateSessionRequest,
     ActivateSessionResponse,
@@ -32,30 +45,26 @@ import {
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-service-session";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback, Callback } from "node-opcua-status-code";
-
-import { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
+import { type Callback, type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined, matchUri } from "node-opcua-utils";
-import { readNamespaceArray } from "node-opcua-pseudo-session";
-
-import { ClientSession } from "../client_session";
-import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
-import { Response } from "../common";
+import type { NodeId } from "node-opcua-nodeid";
+import type { OPCUAClientBaseEvents } from "../client_base";
+import type { ClientSession } from "../client_session";
+import type { ClientSubscriptionOptions } from "../client_subscription";
+import type { Response } from "../common";
 import {
+    type EndpointWithUserIdentity,
     OPCUAClient,
-    OPCUAClientOptions,
-    WithSessionFuncP,
-    WithSubscriptionFuncP,
-    EndpointWithUserIdentity
+    type OPCUAClientOptions,
+    type WithSessionFuncP,
+    type WithSubscriptionFuncP
 } from "../opcua_client";
-import { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info";
-
-import { repair_client_sessions } from "./reconnection/reconnection";
+import type { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info";
 import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
-import { IClientBase } from "./i_private_client";
-import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
+import type { IClientBase } from "./i_private_client";
+import { repair_client_sessions } from "./reconnection/reconnection";
 
 interface TokenAndSignature {
     userIdentityToken: UserIdentityToken | null;
@@ -71,7 +80,7 @@ function validateServerNonce(serverNonce: Nonce | null): boolean {
     return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);
 }
 
-function verifyEndpointDescriptionMatches(client: OPCUAClientImpl, responseServerEndpoints: EndpointDescription[]): boolean {
+function verifyEndpointDescriptionMatches(_client: OPCUAClientImpl, _responseServerEndpoints: EndpointDescription[]): boolean {
     // The Server returns its EndpointDescriptions in the response. Clients use this information to
     // determine whether the list of EndpointDescriptions returned from the Discovery Endpoint matches
     // the Endpoints that the Server has. If there is a difference then the Client shall close the
@@ -108,8 +117,6 @@ const ordered: string[] = [
     SecurityPolicy.Basic256Rsa15,
     SecurityPolicy.Basic256Sha256,
 
-
-
     SecurityPolicy.Aes128_Sha256_RsaOaep,
     SecurityPolicy.Aes256_Sha256_RsaPss
 ];
@@ -120,8 +127,8 @@ const _compareSecurityPolicy = (a: string | null, b: string | null) => {
     }
     if (!a && b) return 1;
     if (a && !b) return -1;
-    const rankA = ordered.indexOf(a!);
-    const rankB = ordered.indexOf(b!);
+    const rankA = ordered.indexOf(a as string);
+    const rankB = ordered.indexOf(b as string);
     return rankB - rankA;
 };
 const compareSecurityPolicy = (a: UserTokenPolicy, b: UserTokenPolicy) => {
@@ -254,7 +261,7 @@ function createX509IdentityToken(
     // The data to sign is created by appending the last serverNonce to the serverCertificate
 
     // The signature generated with private key associated with the User Certificate
-    const userTokenSignature: SignatureDataOptions = computeSignature(serverCertificate, serverNonce, privateKey, securityPolicy)!;
+    const userTokenSignature = computeSignature(serverCertificate, serverNonce, privateKey, securityPolicy) as SignatureDataOptions;
 
     return { userIdentityToken, userTokenSignature };
 }
@@ -292,14 +299,14 @@ function createUserNameIdentityToken(
         securityPolicy = session.securityPolicy;
     }
 
-    let identityToken;
+    let identityToken: UserNameIdentityToken;
     let serverCertificate: Buffer | string | null = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
     if (!serverCertificate || serverCertificate.length === 0) {
         identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
             password: Buffer.from(password as string, "utf-8"),
-            policyId: userTokenPolicy ? userTokenPolicy!.policyId : null,
+            policyId: userTokenPolicy.policyId,
             userName
         });
         return identityToken;
@@ -321,7 +328,7 @@ function createUserNameIdentityToken(
     if (securityPolicy === SecurityPolicy.None) {
         identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
-            password: Buffer.from(password!, "utf-8"),
+            password: Buffer.from(password as string, "utf-8"),
             policyId: userTokenPolicy.policyId,
             userName
         });
@@ -333,7 +340,7 @@ function createUserNameIdentityToken(
 
     // c8 ignore next
     if (!cryptoFactory) {
-        throw new Error(" Unsupported security Policy " + securityPolicy.toString());
+        throw new Error(` Unsupported security Policy ${securityPolicy.toString()}`);
     }
 
     identityToken = new UserNameIdentityToken({
@@ -371,7 +378,7 @@ function _adjustRevisedSessionTimeout(revisedSessionTimeout: number, requestedTi
     return revisedSessionTimeout;
 }
 
-export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
+export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
     public static minimumRevisedSessionTimeout = 100.0;
     private _retryCreateSessionTimer?: NodeJS.Timeout;
 
@@ -399,8 +406,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         // if set to true , create Session will only accept connection from server which endpoint_url has been reported
         // by GetEndpointsRequest.
         // By default, the client is strict.
-        if (Object.prototype.hasOwnProperty.call(options, "endpoint_must_exist")) {
-            if (Object.prototype.hasOwnProperty.call(options, "endpointMustExist")) {
+        if (Object.hasOwn(options, "endpoint_must_exist")) {
+            if (Object.hasOwn(options, "endpointMustExist")) {
                 throw new Error(
                     "endpoint_must_exist is deprecated! you must now use endpointMustExist instead of endpoint_must_exist "
                 );
@@ -441,6 +448,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @param args
      *
      */
+    // biome-ignore lint/suspicious/noExplicitAny: overload implementation
     public createSession(...args: any[]): any {
         if (args.length === 1) {
             return this.createSession({ type: UserTokenType.Anonymous }, args[0]);
@@ -465,14 +473,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     session as ClientSessionImpl,
                     userIdentityInfo,
                     (err1: Error | null, session2?: ClientSessionImpl) => {
-
                         if (err1) {
-                            session.close(true).then(() => {
-                                callback(err1, null);
-                            }).catch((err2) => {
-                                err2;
-                                callback(err1, null);
-                            });
+                            session
+                                .close(true)
+                                .then(() => {
+                                    callback(err1, null);
+                                })
+                                .catch((err2) => {
+                                    err2;
+                                    callback(err1, null);
+                                });
                         } else {
                             callback(null, session2);
                         }
@@ -494,6 +504,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public async createSession2(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
     public createSession2(userIdentityInfo: UserIdentityInfo, callback: Callback<ClientSession>): void;
     public createSession2(callback: Callback<ClientSession>): void;
+    // biome-ignore lint/suspicious/noExplicitAny: overload implementation
     public createSession2(...args: any[]): any {
         if (args.length === 1) {
             return this.createSession2({ type: UserTokenType.Anonymous }, args[0]);
@@ -508,7 +519,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             return callback(new Error(`disconnecting`));
         }
         return this.createSession(args[0], (err: Error | null, session?: ClientSession) => {
-            if (err && err.message.match(/BadTooManySessions/)) {
+            if (err?.message.match(/BadTooManySessions/)) {
                 const delayToRetry = 5; // seconds
                 errorLog(`TooManySession .... we need to retry later  ... in  ${delayToRetry} secondes ${this._internalState}`);
                 this._retryCreateSessionTimer = setTimeout(() => {
@@ -526,6 +537,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      */
     public async changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
     public changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
+    // biome-ignore lint/suspicious/noExplicitAny: overload implementation
     public changeSessionIdentity(...args: any[]): any {
         warningLog(
             "[NODE-OPCUA-W34] OPCUAClient.changeSessionIdentity(session,userIdentity) is deprecated use ClientSession.changeUser(userIdentity) instead"
@@ -538,27 +550,31 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     /**
-     * close a session
+     * close a session, internal
      */
     public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
     public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
-
-    /**
-     * @internal
-     */
-    public closeSession(...args: any[]): any {
+    public closeSession(
+        session: ClientSession,
+        deleteSubscriptions: boolean,
+        callback?: (err?: Error) => void
+    ): Promise<void> | void {
         if (this._retryCreateSessionTimer) {
             clearTimeout(this._retryCreateSessionTimer);
             this._retryCreateSessionTimer = undefined;
         }
-        super.closeSession(...args);
+        super.closeSession(
+            session as unknown as ClientSessionImpl,
+            deleteSubscriptions,
+            callback as (err?: Error) => void
+        );
     }
 
     public toString(): string {
         let str = ClientBaseImpl.prototype.toString.call(this);
-        str += "  requestedSessionTimeout....... " + this.requestedSessionTimeout + "\n";
-        str += "  endpointUrl................... " + this.endpointUrl + "\n";
-        str += "  serverUri..................... " + this.serverUri + "\n";
+        str += `  requestedSessionTimeout....... ${this.requestedSessionTimeout}\n`;
+        str += `  endpointUrl................... ${this.endpointUrl}\n`;
+        str += `  serverUri..................... ${this.serverUri}\n`;
         return str;
     }
 
@@ -582,6 +598,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      *
      * const create
      */
+    // biome-ignore lint/suspicious/useAdjacentOverloadSignatures: static vs instance method
     public static async createSession(
         endpointUrl: string,
         userIdentity?: UserIdentityInfo,
@@ -592,7 +609,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         await client.connect(endpointUrl);
         const session = await client.createSession2(userIdentity);
 
+        // biome-ignore lint/suspicious/noExplicitAny: monkey patch close
         const oldClose = session.close as any;
+        // biome-ignore lint/suspicious/noExplicitAny: monkey patch close
         (session as any).close = withCallback((...args: any[]): any => {
             if (args.length === 1) {
                 return session.close(true, args[0]);
@@ -600,9 +619,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             const deleteSubscriptions = args[0] as boolean;
             const callback = args[1] as Callback<void>;
             session.close = oldClose;
-            oldClose.call(session, deleteSubscriptions, (err?: Error) => {
+            oldClose.call(session, deleteSubscriptions, (_err?: Error) => {
                 client.disconnect((err?: Error | null) => {
-                    callback(err!);
+                    callback(err as Error);
                 });
             });
         });
@@ -610,10 +629,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     /**
-     * 
-     * @param connectionPoint 
-     * @param func 
-     * @returns 
+     *
+     * @param connectionPoint
+     * @param func
+     * @returns
      */
     public async withSessionAsync<T>(connectionPoint: string | EndpointWithUserIdentity, func: WithSessionFuncP<T>): Promise<T> {
         assert(typeof func === "function");
@@ -624,16 +643,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             typeof connectionPoint === "string" ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
 
         this.on("backoff", (count, delay) => {
-            warningLog("cannot connect to ", endpointUrl, "attempt #" + count, " retrying in ", delay);
+            warningLog("cannot connect to ", endpointUrl, `attempt #${count}`, " retrying in ", delay);
         });
 
         await this.connect(endpointUrl);
 
         try {
             const session = await this.createSession2(userIdentity);
-            let result;
+            let result: T;
 
-            // always need this 
+            // always need this
             await readNamespaceArray(session);
 
             try {
@@ -688,19 +707,20 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      */
     public async reactivateSession(session: ClientSession): Promise<void>;
     public reactivateSession(session: ClientSession, callback: (err?: Error) => void): void;
+    // biome-ignore lint/suspicious/noExplicitAny: overload implementation
     public reactivateSession(session: ClientSession, callback?: (err?: Error) => void): any {
         const internalSession = session as ClientSessionImpl;
 
         assert(typeof callback === "function");
         if (!this._secureChannel) {
-            return callback!(new Error(" client must be connected first"));
+            return callback?.(new Error(" client must be connected first"));
         }
         // c8 ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
-            return callback!(
+            return callback?.(
                 new Error(
                     " End point must exist " +
-                    this._secureChannel!.endpointUrl +
+                    this._secureChannel?.endpointUrl +
                     "  securityMode = " +
                     MessageSecurityMode[this.securityMode] +
                     "  securityPolicy = " +
@@ -720,7 +740,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         this._activateSession(
             internalSession,
-            internalSession.userIdentityInfo!,
+            internalSession.userIdentityInfo as UserIdentityInfo,
             (err: Error | null /*, newSession?: ClientSessionImpl*/) => {
                 if (!err) {
                     if (old_client !== this) {
@@ -735,13 +755,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         assert(!internalSession._closed, "session should not vbe closed");
                         assert(this._sessions.indexOf(internalSession) !== -1);
                     }
-                    callback!();
+                    callback?.();
                 } else {
                     // c8 ignore next
                     if (doDebug) {
                         debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
                     }
-                    callback!(err);
+                    callback?.(err);
                 }
             }
         );
@@ -762,18 +782,16 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @internal
      * @private
      */
-    #createSession_step3(
-        session: ClientSessionImpl,
-        callback: (err: Error | null, session?: ClientSessionImpl) => void
-    ): void {
+    #createSession_step3(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void {
         assert(typeof callback === "function");
-        assert(this.serverUri !== undefined, " must have a valid server URI " + this.serverUri);
+        assert(this.serverUri !== undefined, ` must have a valid server URI ${this.serverUri}`);
         assert(this.endpointUrl !== undefined, " must have a valid server endpointUrl");
         assert(this.endpoint);
 
         // c8 ignore next
         if (!this._secureChannel) {
-            return callback(new Error("Invalid channel"));
+            callback(new Error("Invalid channel"));
+            return;
         }
 
         const applicationUri = this._getApplicationUri();
@@ -834,7 +852,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             if (response.responseHeader.serviceResult !== StatusCodes.Good) {
                 err = new Error(
-                    "Error " + response.responseHeader.serviceResult.name + " " + response.responseHeader.serviceResult.description
+                    `Error ${response.responseHeader.serviceResult.name} ${response.responseHeader.serviceResult.description}`
                 );
                 return callback(err);
             }
@@ -897,7 +915,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         // c8 ignore next
         if (!this._secureChannel) {
-            return callback(new Error(" No secure channel"));
+            callback(new Error(" No secure channel"));
+            return;
         }
 
         const serverCertificate = session.serverCertificate;
@@ -914,10 +933,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         session._client = this;
 
         const context: IdentityTokenContext = {
-            endpoint: this.endpoint!,
+            endpoint: this.endpoint as EndpointDescription,
             securityPolicy: this._secureChannel.securityPolicy,
             serverCertificate,
-            serverNonce: serverNonce! // please check this !
+            serverNonce: serverNonce as Buffer // please check this !
         };
 
         this.createUserIdentityToken(context, userIdentityInfo, (err: Error | null, data?: TokenAndSignature | null) => {
@@ -926,9 +945,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 return callback(err);
             }
 
-            data = data!;
-            const userIdentityToken: UserIdentityToken = data.userIdentityToken!;
-            const userTokenSignature: SignatureDataOptions = data.userTokenSignature!;
+            data = data as TokenAndSignature;
+            const userIdentityToken: UserIdentityToken = data.userIdentityToken as UserIdentityToken;
+            const userTokenSignature: SignatureDataOptions = data.userTokenSignature as SignatureDataOptions;
             // TODO. fill the ActivateSessionRequest
             // see 5.6.3.2 Parameters OPC Unified Architecture, Part 4 30 Release 1.02
             const request = new ActivateSessionRequest({
@@ -936,7 +955,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
                 // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
 
-                clientSignature: this.computeClientSignature(this._secureChannel!, serverCertificate, serverNonce) || undefined,
+                clientSignature: this.computeClientSignature(this._secureChannel as ClientSecureChannelLayer, serverCertificate, serverNonce) || undefined,
 
                 // These are the SoftwareCertificates which have been issued to the Client application.
                 // The productUri contained in the SoftwareCertificates shall match the productUri in the
@@ -977,7 +996,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 userTokenSignature
             });
 
-            request.requestHeader.authenticationToken = session.authenticationToken!;
+            request.requestHeader.authenticationToken = session.authenticationToken as NodeId;
             session.lastRequestSentTime = new Date();
 
             this.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
@@ -1053,7 +1072,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     private __resolveEndPoint() {
         this.securityPolicy = this.securityPolicy || SecurityPolicy.None;
 
-        let endpoint = this.findEndpoint(this._secureChannel!.endpointUrl, this.securityMode, this.securityPolicy);
+        let endpoint = this.findEndpoint(this._secureChannel?.endpointUrl || "", this.securityMode, this.securityPolicy);
         this.endpoint = endpoint;
 
         // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
@@ -1065,7 +1084,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             if (this.endpointMustExist) {
                 warningLog(
                     "OPCUAClientImpl#endpointMustExist = true and endpoint with url ",
-                    this._secureChannel!.endpointUrl,
+                    this._secureChannel?.endpointUrl,
                     " cannot be found"
                 );
                 const infos = this._serverEndpoints.map(
@@ -1073,7 +1092,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                         `${endpoint.endpointUrl} ${MessageSecurityMode[endpoint.securityMode]}, ${endpoint.securityPolicyUri} `
                 );
                 warningLog("Valid endpoints are ");
-                warningLog("   " + infos.join("\n   "));
+                warningLog(`   ${infos.join("\n   ")}`);
                 return false;
             } else {
                 // fallback :
@@ -1120,7 +1139,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             return callback(
                 new Error(
                     " End point must exist " +
-                    this._secureChannel!.endpointUrl +
+                    this._secureChannel?.endpointUrl +
                     "  securityMode = " +
                     MessageSecurityMode[this.securityMode] +
                     "  securityPolicy = " +
@@ -1129,7 +1148,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             );
         }
         this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
-        this.endpointUrl = this._secureChannel!.endpointUrl;
+        this.endpointUrl = this._secureChannel?.endpointUrl || "";
 
         const session = new ClientSessionImpl(this);
         session.name = this._nextSessionName();
@@ -1152,18 +1171,19 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         userIdentityInfo: UserIdentityInfo,
         callback: (err: Error | null, data?: TokenAndSignature) => void
     ) {
+        // biome-ignore lint/suspicious/noExplicitAny: user provided object that needs soft type coercion
         function coerceUserIdentityInfo(identityInfo: any): UserIdentityInfo {
             if (!identityInfo) {
                 return { type: UserTokenType.Anonymous };
             }
-            if (Object.prototype.hasOwnProperty.call(identityInfo, "type")) {
+            if (Object.hasOwn(identityInfo, "type")) {
                 return identityInfo as UserIdentityInfo;
             }
-            if (Object.prototype.hasOwnProperty.call(identityInfo, "userName")) {
+            if (Object.hasOwn(identityInfo, "userName")) {
                 identityInfo.type = UserTokenType.UserName;
                 return identityInfo as UserIdentityInfoUserName;
             }
-            if (Object.prototype.hasOwnProperty.call(identityInfo, "certificateData")) {
+            if (Object.hasOwn(identityInfo, "certificateData")) {
                 identityInfo.type = UserTokenType.Certificate;
                 return identityInfo as UserIdentityInfoX509;
             }
@@ -1214,7 +1234,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             }
         } catch (err) {
             if (typeof err === "string") {
-                return callback(new Error("Create identity token failed " + userIdentityInfo.type + " " + err));
+                return callback(new Error(`Create identity token failed ${userIdentityInfo.type} ${err}`));
             }
             return callback(err as Error);
         }
@@ -1225,6 +1245,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 /**
 
  *

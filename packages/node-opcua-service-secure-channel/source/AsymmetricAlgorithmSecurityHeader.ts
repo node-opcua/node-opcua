@@ -4,18 +4,21 @@
 // OPC UA Secure Conversation Message Header : Part 6 page 36
 // Asymmetric algorithms are used to secure the OpenSecureChannel messages.
 import {
-    ByteString,
+    type ByteString,
     decodeByteString,
     decodeString,
     encodeByteString,
     encodeString,
-    UAString
+    type UAString
 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
-    buildStructuredType, check_options_correctness_against_schema,
-    initialize_field, parameters, IStructuredTypeSchema
+    buildStructuredType,
+    check_options_correctness_against_schema,
+    type IStructuredTypeSchema,
+    initialize_field,
+    parameters
 } from "node-opcua-factory";
 
 const schemaAsymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStructuredType({
@@ -56,12 +59,7 @@ const schemaAsymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStru
 });
 
 export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
-
-    public static possibleFields: string[] = [
-      "securityPolicyUri",
-        "senderCertificate",
-        "receiverCertificateThumbprint"
-    ];
+    public static possibleFields: string[] = ["securityPolicyUri", "senderCertificate", "receiverCertificateThumbprint"];
     public static schema = schemaAsymmetricAlgorithmSecurityHeader;
     public securityPolicyUri: UAString;
     public senderCertificate: ByteString;

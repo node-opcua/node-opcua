@@ -1,22 +1,12 @@
-import os from "os";
+import os from "node:os";
 import "should";
+import { makeApplicationUrn, type OPCUADiscoveryServer, OPCUAServer, RegisterServerMethod } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
-import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
-
-import {
-    createDiscovery, 
-    createServerThatRegistersItselfToTheDiscoveryServer,
-     f, 
-     fa, 
-     pause, 
-} from "./helpers/_helper";
-import {
-    stepLog,
-    waitUntilCondition,
-} from "../../test_helpers/utils";
-
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { TestHarness } from "./helpers/harness";
+import { stepLog } from "../../test_helpers/utils";
+import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, fa, pause } from "./helpers/_helper";
+import type { TestHarness } from "./helpers/harness";
+
 const debugLog = make_debugLog("TEST");
 
 const port = 1435;
@@ -24,7 +14,7 @@ const port = 1435;
 // a non-existing discovery server
 const port_discovery = 1436;
 
-export function t(test: TestHarness) {
+export function t(_test: TestHarness) {
     describe("DISCO7 - Discovery server", function (this: any) {
         this.timeout(Math.max(50000, this.timeout()));
 
@@ -166,9 +156,7 @@ export function t(test: TestHarness) {
             await stop_discovery_server();
         });
 
-
         it("DISCO7-C a server shall try to register itself even if discovery server is not available", async () => {
-
             // #region given a opcua server trying to connect to an not started LDS
             stepLog("given a opcua server trying to connect to an not started LDS");
             const server = new OPCUAServer({
@@ -186,7 +174,6 @@ export function t(test: TestHarness) {
             await server.start();
 
             // #endregion
-
 
             // #region then it should try to connect to LDS and raise serverRegistrationPending
             stepLog("then it should try to connect to LDS and raise serverRegistrationPending");
@@ -247,27 +234,21 @@ export function t(test: TestHarness) {
             stepLog("server has renewed its registration");
             // #endregion
 
-
-
             // #region when the server shuts down it should unregistered itself from the LDS
             stepLog("when the server shuts down it should unregistered itself from the LDS");
-            const promiseReceiveUnRegisted = new Promise<void>((resolve) =>
-                server.once("serverUnregistered", () => resolve())
-            );
+            const promiseReceiveUnRegisted = new Promise<void>((resolve) => server.once("serverUnregistered", () => resolve()));
 
             await server.shutdown();
             stepLog("server has shut down");
-            // 
+            //
             await promiseReceiveUnRegisted;
             stepLog("the server has   unregister itself from the LDS !");
             // #endregion
 
             await stop_discovery_server();
-
         });
 
         it("DISCO7-D a server shall be able not to register itself to the LDS if needed to be hidden", async () => {
-
             // #region given a server hidden from the local discovery
             const server = new OPCUAServer({
                 port,
@@ -279,7 +260,6 @@ export function t(test: TestHarness) {
             (server.registerServerManager as any).timeout = 100;
             await server.start();
             // #endregion
-
 
             await server.shutdown();
         });
@@ -294,7 +274,6 @@ export function t(test: TestHarness) {
             });
             (server.registerServerManager as any).timeout = 100;
             await server.start();
-
 
             // when server s
             //  the_server_shall_shutdown(callback) {
@@ -311,7 +290,7 @@ export function t(test: TestHarness) {
             const discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
 
             // no discovery ...
-            const doTest = async (index: number, waitTime: number) => {
+            const doTest = async (_index: number, waitTime: number) => {
                 const server = new OPCUAServer({
                     port: port + 10000,
                     registerServerMethod: RegisterServerMethod.LDS,
@@ -320,7 +299,6 @@ export function t(test: TestHarness) {
                     serverInfo: {
                         applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
                     }
-
                 });
 
                 (server.registerServerManager as any).timeout = 100;
@@ -334,7 +312,7 @@ export function t(test: TestHarness) {
                 await pause(waitTime);
                 // no wait, but immpediate shutdown, so we are likely shutting donw while the registration is in progress
                 await server.shutdown();
-            }
+            };
             const promises: Promise<void>[] = [];
             for (let i = 0; i < 5; i += 4) {
                 // in this test, there is no discovery server available

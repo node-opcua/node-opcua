@@ -1,21 +1,26 @@
 import "should"; // side-effect assertion library
-import path from "path";
+import path from "node:path";
 import chalk from "chalk";
 import {
-    TimestampsToReturn,
     AttributeIds,
-    StatusCodes,
-    OPCUAClient,
-    ClientMonitoredItem,
-    coerceNodeId,
+    type ClientMonitoredItem,
+    type ClientSession,
     ClientSubscription,
+    type ConnectionStrategyOptions,
+    coerceNodeId,
     DataType,
+    type DataValue,
     MonitoringMode,
-    ClientSession
+    OPCUAClient,
+    StatusCodes,
+    TimestampsToReturn
 } from "node-opcua";
-import { make_debugLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
-import { start_simple_server, crash_simple_server } from "../../test_helpers/external_server_fixture";
+import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
+import type { ClientSubscriptionImpl } from "node-opcua-client/source/private/client_subscription_impl";
+import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
+import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture";
 
 // -------------------------------------------------------------------------------------------------
 // This test stresses the client reconnection pipeline with a server that (a) crashes, (b) drops the
@@ -30,12 +35,7 @@ const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 const errorLog = make_errorLog("TEST");
 
-interface ExternalServerData {
-    endpointUrl: string;
-    [k: string]: unknown; // other metadata not used directly in this test
-}
-
-let server_data: ExternalServerData | null = null;
+let server_data: ServerHandle | null = null;
 
 const port = 4850;
 const serverScript = "simple_server_that_terminate_session_too_early.js";
@@ -46,12 +46,12 @@ async function start_external_opcua_server(): Promise<void> {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/", serverScript),
         port
     };
-    server_data = (await start_simple_server(options)) as ExternalServerData;
+    server_data = await start_simple_server(options);
 }
 
 async function crash_external_opcua_server(): Promise<void> {
     if (server_data) {
-        await crash_simple_server(server_data as any);
+        await crash_simple_server(server_data);
         server_data = null;
     }
 }
@@ -80,12 +80,12 @@ async function break_connection(theClient: OPCUAClient, socketError: string): Pr
     debugLog(r.toString());
 
     // Brutally destroy underlying socket to emulate abrupt network failure
-    const secureChannel = (theClient as any)._secureChannel; // internal
-    const transport = secureChannel.getTransport();
-    const clientSocket: any = transport._socket;
-    clientSocket.end();
-    clientSocket.destroy();
-    clientSocket.emit("error", new Error(socketError));
+    const secureChannel = (theClient as OPCUAClientImpl)._secureChannel; // internal
+    const transport = secureChannel?.getTransport();
+    const clientSocket = transport?._socket;
+    clientSocket?.end();
+    clientSocket?.destroy();
+    clientSocket?.emit("error", new Error(socketError));
     await new Promise((resolve) => setImmediate(resolve));
 }
 
@@ -100,7 +100,7 @@ async function provoke_server_session_early_termination(): Promise<void> {
     await new Promise((resolve) => setImmediate(resolve));
 }
 
-async function start_active_client_no_subscription(connectionStrategy: any): Promise<void> {
+async function start_active_client_no_subscription(connectionStrategy: ConnectionStrategyOptions | undefined): Promise<void> {
     if (!server_data) throw new Error("Server not started");
     const endpointUrl = server_data.endpointUrl;
 
@@ -127,7 +127,7 @@ async function start_active_client_no_subscription(connectionStrategy: any): Pro
     });
 }
 
-async function start_active_client(connectionStrategy: any): Promise<void> {
+async function start_active_client(connectionStrategy: ConnectionStrategyOptions | undefined): Promise<void> {
     await start_active_client_no_subscription(connectionStrategy);
 
     const nodeId = coerceNodeId("ns=1;s=MyCounter");
@@ -144,17 +144,27 @@ async function start_active_client(connectionStrategy: any): Promise<void> {
     subscription = await ClientSubscription.create(session, parameters);
 
     subscription.on("initialized", () => {
-        debugLog("started subscription:", subscription!.subscriptionId);
+        debugLog("started subscription:", subscription?.subscriptionId);
         debugLog(" revised parameters ");
-        debugLog("  revised maxKeepAliveCount  ", subscription!.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-        debugLog("  revised lifetimeCount      ", subscription!.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
+        debugLog(
+            "  revised maxKeepAliveCount  ",
+            subscription?.maxKeepAliveCount,
+            " ( requested ",
+            `${parameters.requestedMaxKeepAliveCount})`
+        );
+        debugLog(
+            "  revised lifetimeCount      ",
+            subscription?.lifetimeCount,
+            " ( requested ",
+            `${parameters.requestedLifetimeCount})`
+        );
         debugLog(
             "  revised publishingInterval ",
-            subscription!.publishingInterval,
+            subscription?.publishingInterval,
             " ( requested ",
-            parameters.requestedPublishingInterval + ")"
+            `${parameters.requestedPublishingInterval})`
         );
-        debugLog("  suggested timeout hint     ", (subscription as any).publish_engine.timeoutHint);
+        debugLog("  suggested timeout hint     ", (subscription as ClientSubscriptionImpl).publishEngine.timeoutHint);
     });
 
     session.on("keepalive", (state) => {
@@ -163,7 +173,7 @@ async function start_active_client(connectionStrategy: any): Promise<void> {
                 chalk.yellow("KeepAlive state="),
                 state.toString(),
                 " pending request on server = ",
-                (subscription as any).publish_engine.nbPendingPublishRequests
+                (subscription as ClientSubscriptionImpl).publishEngine.nbPendingPublishRequests
             );
         }
     });
@@ -177,7 +187,7 @@ async function start_active_client(connectionStrategy: any): Promise<void> {
                 debugLog(
                     chalk.cyan("keepalive "),
                     chalk.cyan(" pending request on server = "),
-                    (subscription as any).publish_engine.nbPendingPublishRequests
+                    (subscription as ClientSubscriptionImpl).publishEngine.nbPendingPublishRequests
                 );
             }
         })
@@ -205,17 +215,18 @@ async function start_active_client(connectionStrategy: any): Promise<void> {
     let counter = 0;
     intervalId = setInterval(async () => {
         if (doDebug && subscription) {
+            const sessionImpl = session as ClientSessionImpl;
             debugLog(
                 " Session OK ? ",
-                (session as any).isChannelValid?.(),
+                sessionImpl.isChannelValid?.(),
                 "session expires in ",
-                ((session as any).evaluateRemainingLifetime?.() || 0) / 1000,
+                (sessionImpl.evaluateRemainingLifetime?.() || 0) / 1000,
                 " s",
                 chalk.red("subscription expires in "),
-                ((subscription as any).evaluateRemainingLifetime?.() || 0) / 1000,
+                ((subscription as ClientSubscriptionImpl).evaluateRemainingLifetime?.() || 0) / 1000,
                 " s",
                 chalk.red("subscription count"),
-                (session as any).subscriptionCount
+                sessionImpl.subscriptionCount
             );
         }
 
@@ -229,14 +240,14 @@ async function start_active_client(connectionStrategy: any): Promise<void> {
             }
         };
         try {
-            const statusCode = await (session as any).write(nodeToWrite);
+            const statusCode = await (session as ClientSessionImpl).write(nodeToWrite);
             if (doDebug) {
                 debugLog("       writing OK counter =", counter, statusCode.toString());
             }
             counter += 1;
-        } catch (err: any) {
+        } catch (err) {
             if (doDebug) {
-                debugLog(chalk.red("       writing Failed "), err.message);
+                debugLog(chalk.red("       writing Failed "), (err as Error).message);
             }
         }
     }, 250);
@@ -260,9 +271,9 @@ async function terminate_active_client(): Promise<void> {
 
 async function f(func: () => Promise<void>): Promise<void> {
     const nameDecorated = func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"));
-    debugLog("       * " + nameDecorated);
+    debugLog(`       * ${nameDecorated}`);
     await func();
-    debugLog("       ! " + nameDecorated);
+    debugLog(`       ! ${nameDecorated}`);
 }
 
 describeWithLeakDetector(
@@ -312,20 +323,18 @@ describeWithLeakDetector(
         async function then_client_should_detect_failure_and_enter_reconnection_mode() {
             let backoff_counter = 0;
             if (!client) throw new Error("Client not started");
-        await new Promise<void>((resolve) => {
-        const backoff_detector = () => {
+            await new Promise<void>((resolve) => {
+                const backoff_detector = () => {
                     backoff_counter += 1;
                     if (backoff_counter === 2) {
                         if (doDebug) {
-                            debugLog(
-                                "Bingo !  Client has detected disconnection and is currently trying to reconnect"
-                            );
+                            debugLog("Bingo !  Client has detected disconnection and is currently trying to reconnect");
                         }
-            client && client.removeListener("backoff", backoff_detector);
+                        client?.removeListener("backoff", backoff_detector);
                         resolve();
                     }
                 };
-        client && client.on("backoff", backoff_detector);
+                client?.on("backoff", backoff_detector);
             });
         }
 
@@ -345,17 +354,17 @@ describeWithLeakDetector(
             let change_counter = 0;
 
             await new Promise<void>((resolve) => {
-                const on_value_changed = (dataValue: any) => {
+                const on_value_changed = (dataValue: DataValue) => {
                     change_counter += 1;
                     if (doDebug) {
                         debugLog(" DataValue changed again", dataValue.toString());
                     }
                     if (change_counter === 3) {
-                        monitoredItem!.removeListener("value_changed", on_value_changed as any);
+                        monitoredItem?.removeListener("value_changed", on_value_changed);
                         resolve();
                     }
                 };
-                monitoredItem!.on("changed", on_value_changed as any);
+                monitoredItem?.on("changed", on_value_changed);
             });
         }
 
@@ -387,7 +396,7 @@ describeWithLeakDetector(
             const nodeId = coerceNodeId("ns=1;s=MyCounter");
 
             try {
-                const statusCode = await (session as any).write({
+                const statusCode = await (session as ClientSessionImpl).write({
                     nodeId,
                     attributeId: AttributeIds.Value,
                     value: {
@@ -396,8 +405,8 @@ describeWithLeakDetector(
                     }
                 });
                 debugLog("Write Status code =", statusCode.toString());
-            } catch (err: any) {
-                if (err.message.match(/BadSessionIdInvalid/)) {
+            } catch (err) {
+                if ((err as Error).message.match(/BadSessionIdInvalid/)) {
                     // expected: the previous session has been scrapped by the server
                     return;
                 }

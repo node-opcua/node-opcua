@@ -1,23 +1,31 @@
 import "should";
 import {
     AttributeIds,
-    DataType,
-    OPCUAClient,
-    StatusCodes,
-    WellKnownRoles,
     allPermissions,
+    DataType,
+    makeRoles,
+    OPCUAClient,
     PermissionType,
+    StatusCodes,
     UserTokenType,
-    makeRoles
+    WellKnownRoles
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
-interface TestUser { username: string; password: string; roles: any }
+interface TestUser {
+    username: string;
+    password: string;
+    roles: any;
+}
 
 const users: TestUser[] = [
     { username: "user1", password: (() => "1")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) },
-    { username: "user2", password: (() => "2")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) }
+    {
+        username: "user2",
+        password: (() => "2")(),
+        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
+    }
 ];
 
 const userManager = {
@@ -35,7 +43,10 @@ const userManager = {
 const port = 2225;
 
 describe("testing Client-Server with UserName/Password identity token (role-based access)", () => {
-    let server: any; let endpointUrl: string; let node1: any; let valueCounter = 45;
+    let server: any;
+    let endpointUrl: string;
+    let node1: any;
+    let valueCounter = 45;
 
     before(async () => {
         server = await build_server_with_temperature_device({ port, userManager });
@@ -58,7 +69,9 @@ describe("testing Client-Server with UserName/Password identity token (role-base
         });
     });
 
-    after(async () => { await server.shutdown(); });
+    after(async () => {
+        await server.shutdown();
+    });
 
     async function read(session: any) {
         const dv = await session.read({ nodeId: node1.nodeId.toString(), attributeId: AttributeIds.Value });
@@ -67,7 +80,11 @@ describe("testing Client-Server with UserName/Password identity token (role-base
     async function write(session: any) {
         valueCounter += 1.12;
         const statusCodes = await session.write([
-            { nodeId: node1.nodeId.toString(), attributeId: AttributeIds.Value, value: { value: { dataType: DataType.Double, value: valueCounter } } }
+            {
+                nodeId: node1.nodeId.toString(),
+                attributeId: AttributeIds.Value,
+                value: { value: { dataType: DataType.Double, value: valueCounter } }
+            }
         ]);
         return statusCodes[0];
     }
@@ -83,18 +100,24 @@ describe("testing Client-Server with UserName/Password identity token (role-base
 
             // Operator
             await session.changeUser({ type: UserTokenType.UserName, userName: "user1", password: (() => "1")() });
-            statusCode = await read(session); statusCode.should.eql(StatusCodes.Good);
-            statusCode = await write(session); statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+            statusCode = await read(session);
+            statusCode.should.eql(StatusCodes.Good);
+            statusCode = await write(session);
+            statusCode.should.eql(StatusCodes.BadUserAccessDenied);
 
             // Admin
             await session.changeUser({ type: UserTokenType.UserName, userName: "user2", password: (() => "2")() });
-            statusCode = await read(session); statusCode.should.eql(StatusCodes.Good);
-            statusCode = await write(session); statusCode.should.eql(StatusCodes.Good);
+            statusCode = await read(session);
+            statusCode.should.eql(StatusCodes.Good);
+            statusCode = await write(session);
+            statusCode.should.eql(StatusCodes.Good);
 
             // Back to Anonymous (deprecated path for coverage)
             await client.changeSessionIdentity(session, { type: UserTokenType.Anonymous });
-            statusCode = await read(session); statusCode.should.eql(StatusCodes.BadUserAccessDenied);
-            statusCode = await write(session); statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+            statusCode = await read(session);
+            statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+            statusCode = await write(session);
+            statusCode.should.eql(StatusCodes.BadUserAccessDenied);
         });
     });
 });

@@ -1,22 +1,21 @@
-import should from "should";
-import { 
-    OPCUAClientBase, 
-    OPCUAServer, 
-    OPCUAClient, 
-    UserTokenType, 
-    nodesets, 
-    makeRoles, 
-    WellKnownRoles, 
-    NodeId, 
-    EndpointWithUserIdentity 
+import {
+    type EndpointWithUserIdentity,
+    makeRoles,
+    type NodeId,
+    nodesets,
+    OPCUAClient,
+    OPCUAClientBase,
+    OPCUAServer,
+    UserTokenType,
+    WellKnownRoles
 } from "node-opcua";
-import { wait, waitUntilCondition } from  "../test_helpers/utils";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { wait, waitUntilCondition } from "../test_helpers/utils";
 
 const port = 2511;
 
 describe("Testing automatic reconnection to a server when credential have changed and client is not aware #1662", function (this: any) {
-
     this.timeout(5 * 60 * 1000);
     let server: OPCUAServer;
     const users = [
@@ -29,9 +28,7 @@ describe("Testing automatic reconnection to a server when credential have change
 
     const userManager = {
         isValidUser: (username: string, password: string): boolean => {
-            const uIndex = users.findIndex(function (u) {
-                return u.username === username;
-            });
+            const uIndex = users.findIndex((u) => u.username === username);
             if (uIndex < 0) {
                 return false;
             }
@@ -42,9 +39,7 @@ describe("Testing automatic reconnection to a server when credential have change
         },
 
         getUserRoles: (username: string): NodeId[] => {
-            const uIndex = users.findIndex(function (x) {
-                return x.username === username;
-            });
+            const uIndex = users.findIndex((x) => x.username === username);
             if (uIndex < 0) {
                 return makeRoles("Anonymous");
             }
@@ -104,7 +99,7 @@ describe("Testing automatic reconnection to a server when credential have change
     let clientCounter = 0;
 
     function getClientName() {
-        const clientName = "Client_1162_" + clientCounter;
+        const clientName = `Client_1162_${clientCounter}`;
         clientCounter++;
         return clientName;
     }
@@ -135,7 +130,6 @@ describe("Testing automatic reconnection to a server when credential have change
         return client;
     }
     async function createAndConnectClient() {
-
         const client = createClient();
 
         await client.connect(server.getEndpointUrl());
@@ -147,7 +141,7 @@ describe("Testing automatic reconnection to a server when credential have change
         });
         console.log(client.clientName, "session timeout = ", session.timeout);
 
-        const sub = await session.createSubscription2({
+        const _sub = await session.createSubscription2({
             maxNotificationsPerPublish: 10,
             priority: 1,
             publishingEnabled: true,
@@ -157,7 +151,8 @@ describe("Testing automatic reconnection to a server when credential have change
         });
 
         return {
-            client, session
+            client,
+            session
         };
     }
 
@@ -175,9 +170,9 @@ describe("Testing automatic reconnection to a server when credential have change
     it("#1662-A should try to reconnected automatically - but fail to do so", async () => {
         const { client, session } = await createAndConnectClient();
 
-        let reconnectingCount = 0;
+        let _reconnectingCount = 0;
         client.on("reconnecting", () => {
-            reconnectingCount++;
+            _reconnectingCount++;
         });
         try {
             await shutDownServerChangePasswordAndRestart(1, "password1-New");
@@ -198,8 +193,6 @@ describe("Testing automatic reconnection to a server when credential have change
             // await wait(10 * 1000);
             console.log("client.isReconnecting 3 = ", client.isReconnecting, session.toString());
             client.isReconnecting.should.eql(true, "client should be trying to reconnect constantly without success");
-
-
         } finally {
             console.log("now disconnecting");
             await session.close();
@@ -209,7 +202,6 @@ describe("Testing automatic reconnection to a server when credential have change
     });
 
     it("#1662-B should try to reconnection : using withSessionAsync test", async () => {
-
         const endpointUrl = server.getEndpointUrl();
         const client = createClient();
 
@@ -220,9 +212,8 @@ describe("Testing automatic reconnection to a server when credential have change
                 userName: "user1",
                 password: (() => "password1-Old")()
             }
-        }
+        };
         const err = await client.withSessionAsync(connectionInfo, async (session) => {
-
             const timerId = setInterval(async () => {
                 await session.read({ nodeId: "ns=1;s=Temperature" });
             }, 1000);
@@ -235,7 +226,6 @@ describe("Testing automatic reconnection to a server when credential have change
                     return client.isReconnecting;
                 }, 10000);
 
-
                 console.log("client.isReconnecting 1 = ", client.isReconnecting, session.toString());
                 client.isReconnecting.should.eql(true, "client should be trying to reconnect constantly without success");
                 await wait(5 * 1000);
@@ -244,17 +234,16 @@ describe("Testing automatic reconnection to a server when credential have change
                 client.isReconnecting.should.eql(true, "client should be trying to reconnect constantly without success");
                 await wait(5 * 1000);
 
-                console.log((new Date()).toISOString(),"now leaving ... ");
+                console.log(new Date().toISOString(), "now leaving ... ");
                 await wait(700);
             } catch (err) {
                 return err;
             } finally {
                 clearInterval(timerId);
-
             }
             return null;
         });
-        console.log("done!" , (err as Error|null)?.message);
+        console.log("done!", (err as Error | null)?.message);
         should.not.exist(err);
     });
 
@@ -272,13 +261,13 @@ describe("Testing automatic reconnection to a server when credential have change
     it("#1662-D should reconnected automatically - back again", async () => {
         const { client, session } = await createAndConnectClient();
 
-        await shutDownServerChangePasswordAndRestart(10*1000, "password1-New");
+        await shutDownServerChangePasswordAndRestart(10 * 1000, "password1-New");
         await wait(5 * 1000);
         await shutDownServerChangePasswordAndRestart(10 * 1000, "password1-Old");
         await wait(6 * 1000);
 
         await session.close();
         await client.disconnect();
-        await wait(10*1000);
+        await wait(10 * 1000);
     });
 });

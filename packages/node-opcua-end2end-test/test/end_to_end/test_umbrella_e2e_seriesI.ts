@@ -1,6 +1,6 @@
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { beforeTest, afterTest, beforeEachTest, afterEachTest, UmbrellaTestContext } from "./_helper_umbrella";
+import { afterEachTest, afterTest, beforeEachTest, beforeTest, type UmbrellaTestContext } from "./_helper_umbrella";
 
 const port = 1978;
 
@@ -24,4 +24,3 @@ describe("testing Client - Umbrella-I", function (this: Mocha.Context) {
     require("./u_test_e2e_BrowseRequest").t(test);
     require("./u_test_e2e_security_username_password").t(test);
 });
-

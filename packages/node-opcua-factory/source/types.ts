@@ -166,7 +166,7 @@ export interface BasicTypeDefinition extends CommonInterface {
     subType: string;
 }
 
-export interface BuiltInTypeDefinition extends BasicTypeDefinition {}
+export interface BuiltInTypeDefinition extends BasicTypeDefinition { }
 
 export interface EnumerationDefinition extends CommonInterface {
     //  enumValues: any;

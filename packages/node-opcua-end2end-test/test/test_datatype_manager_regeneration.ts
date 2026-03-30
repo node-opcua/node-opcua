@@ -1,6 +1,6 @@
-import { OPCUAServer, nodesets } from "node-opcua";
-import { AttributeIds, DataType, ExtensionObject, NodeId, OPCUAClient, readNamespaceArray } from "node-opcua-client";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { nodesets, OPCUAServer } from "node-opcua";
+import { AttributeIds, DataType, type ExtensionObject, type NodeId, OPCUAClient, readNamespaceArray } from "node-opcua-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
 
 const port = 2244;
@@ -12,14 +12,13 @@ describe("client with DataType Manager regeneration", () => {
 
     let startCount = 0;
     async function startServer() {
-
         // create a server that have the following property:
         //   - when the server restarts, the namespace indexes are arranged differently
-        
+
         server = new OPCUAServer({
             port,
             nodeset_filename:
-                startCount++ % 2 == 0
+                startCount++ % 2 === 0
                     ? [nodesets.standard, nodesets.di, nodesets.adi, nodesets.autoId, nodesets.commercialKitchenEquipment]
                     : [nodesets.standard, nodesets.di, nodesets.autoId, nodesets.adi]
         });
@@ -28,7 +27,7 @@ describe("client with DataType Manager regeneration", () => {
         const addressSpace = server.engine.addressSpace!;
         const namespace = addressSpace.getOwnNamespace();
 
-        let counter = 1;
+        const counter = 1;
         function nextValue() {
             const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
             const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
@@ -38,7 +37,7 @@ describe("client with DataType Manager regeneration", () => {
                 scanData: {
                     epc: {
                         pC: 12 + counter,
-                        uId: Buffer.from("Hello" + counter),
+                        uId: Buffer.from(`Hello${counter}`),
                         xpC_W1: 10,
                         xpC_W2: 12
                     }
@@ -91,7 +90,7 @@ describe("client with DataType Manager regeneration", () => {
 
     it("should read scan results twice", async () => {
         const client = OPCUAClient.create({});
-        const endpoint = server!.getEndpointUrl() || "";
+        const endpoint = server?.getEndpointUrl() || "";
         const [dv, namespaceArray] = await client.withSessionAsync(endpoint, async (session) => {
             const dv = await session.read([
                 { nodeId, attributeId: AttributeIds.Value },
@@ -119,12 +118,11 @@ describe("client with DataType Manager regeneration", () => {
         const socket = (client as any)._secureChannel.getTransport()._socket;
         socket.end();
         socket.emit("error", new Error("ECONNRESET"));
-        await new Promise((resolve)=>setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     it("should read scan results twice : short break and automatic reconnection , cached dataTypeManager not reloaded", async () => {
-
         const client = OPCUAClient.create({});
-        const endpoint = server!.getEndpointUrl() || "";
+        const endpoint = server?.getEndpointUrl() || "";
         const [dv1, namespaceArray1, transactionPerformed1, dv2, namespaceArray2, transactionPerformed2] =
             await client.withSessionAsync(endpoint, async (session) => {
                 const dv1 = await session.read([
@@ -134,7 +132,6 @@ describe("client with DataType Manager regeneration", () => {
                 const namespaceArray1 = await readNamespaceArray(session);
                 const transactionPerformed1 = client.transactionsPerformed;
                 console.log("sessionId before Reconnection", session.sessionId.toString());
-
 
                 // simulate network outage
                 await simulateConnectionBreak(client);
@@ -179,14 +176,12 @@ describe("client with DataType Manager regeneration", () => {
             dataType.value.should.equal(3007);
             dataType.toString().should.eql(extObj.schema.dataTypeNodeId.toString());
         }
-        
+
         (transactionPerformed2 - transactionPerformed1).should.be.lessThan(5);
-
-
     });
     it("should read scan results twice : server restarted and automatic reconnection , cached dataTypeManager automatically reloaded", async () => {
         const client = OPCUAClient.create({});
-        const endpoint = server!.getEndpointUrl() || "";
+        const endpoint = server?.getEndpointUrl() || "";
         const [dv1, namespaceArray1, transactionPerformed1, dv2, namespaceArray2, transactionPerformed2] =
             await client.withSessionAsync(endpoint, async (session) => {
                 const dv1 = await session.read([
@@ -239,7 +234,6 @@ describe("client with DataType Manager regeneration", () => {
             dataType.value.should.equal(3007);
             dataType.toString().should.eql(extObj.schema.dataTypeNodeId.toString());
         }
-        (transactionPerformed2-transactionPerformed1).should.be.greaterThan(250);
-
+        (transactionPerformed2 - transactionPerformed1).should.be.greaterThan(250);
     });
 });

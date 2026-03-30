@@ -7,7 +7,8 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source/**/*.ts"
+        "lint": "eslint source/**/*.ts",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "dependencies": {
         "node-opcua-utils": "2.165.0"

@@ -1,25 +1,22 @@
 import {
-    OPCUAServer,
-    OPCUAServerOptions,
-    OPCUAClient,
+    type ClientSession,
+    type EndpointWithUserIdentity,
     MessageSecurityMode,
-    SecurityPolicy,
-    OPCUAClientOptions,
-    EndpointWithUserIdentity,
-    UserTokenType,
-    ClientSession,
     nodesets,
-} from "node-opcua"
+    OPCUAClient,
+    type OPCUAClientOptions,
+    OPCUAServer,
+    type OPCUAServerOptions,
+    SecurityPolicy,
+    UserTokenType
+} from "node-opcua";
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
-
-
-
 const port = 2025;
 describe("issue_1442", function (this: any) {
-    this.timeout(60* 10 * 1000);
+    this.timeout(60 * 10 * 1000);
 
     let server: OPCUAServer;
     before(async () => {
@@ -27,14 +24,13 @@ describe("issue_1442", function (this: any) {
             port,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
-            securityModes: [ MessageSecurityMode.None],
+            securityModes: [MessageSecurityMode.None],
             allowAnonymous: false
         };
         // start server
         server = new OPCUAServer(serverOptions);
         await server.initialize();
         await server.start();
-
     });
     after(async () => {
         await server.shutdown();
@@ -45,8 +41,8 @@ describe("issue_1442", function (this: any) {
         connectionStrategy: {
             maxRetry: 2,
             initialDelay: 250,
-            maxDelay: 500,
-        },
+            maxDelay: 500
+        }
     };
     const endpoint: EndpointWithUserIdentity = {
         endpointUrl: `opc.tcp://localhost:${port}`,
@@ -56,7 +52,6 @@ describe("issue_1442", function (this: any) {
     };
 
     it("client.createSession: session which cannot be created should not be present in the client", async () => {
-
         // start client
         const client = OPCUAClient.create(clientOptions);
         try {
@@ -67,23 +62,19 @@ describe("issue_1442", function (this: any) {
                 // Will always fail, because of invalid authentication.
                 // Note: Bug is the same for OPCUAClient.createSession2() method.
                 session = await client.createSession(endpoint.userIdentity);
-            }
-            catch (err) {
-                console.log("err:", (err as Error).message)
-                failed = true
-            }
-            finally {
-                failed.should.be.true(); // createSession successfully failed 
+            } catch (err) {
+                console.log("err:", (err as Error).message);
+                failed = true;
+            } finally {
+                failed.should.be.true(); // createSession successfully failed
                 should(session).is.null(); // therefore no session should exist as return value
-                should(client).have.property('_sessions').with.lengthOf(0); // and not in the client
+                should(client).have.property("_sessions").with.lengthOf(0); // and not in the client
             }
-        }
-        finally {
+        } finally {
             await client.disconnect();
         }
     });
     it("client.createSession2: session which cannot be created should not be present in the client", async () => {
-
         // start client
         const client = OPCUAClient.create(clientOptions);
         try {
@@ -94,19 +85,16 @@ describe("issue_1442", function (this: any) {
                 // Will always fail, because of invalid authentication.
                 // Note: Bug is the same for OPCUAClient.createSession2() method.
                 session = await client.createSession2(endpoint.userIdentity);
-            }
-            catch (err) {
-                console.log("err:", (err as Error).message)
-                failed = true
-            }
-            finally {
-                failed.should.be.true(); // createSession successfully failed 
+            } catch (err) {
+                console.log("err:", (err as Error).message);
+                failed = true;
+            } finally {
+                failed.should.be.true(); // createSession successfully failed
                 should(session).is.null(); // therefore no session should exist as return value
-                should(client).have.property('_sessions').with.lengthOf(0); // and not in the client
+                should(client).have.property("_sessions").with.lengthOf(0); // and not in the client
             }
-        }
-        finally {
+        } finally {
             await client.disconnect();
         }
-    })
+    });
 });

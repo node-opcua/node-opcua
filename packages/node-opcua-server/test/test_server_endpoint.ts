@@ -1,20 +1,17 @@
-"use strict";
-
-import should from "should";
-
-import { invalidPrivateKey, SecurityPolicy } from "node-opcua-secure-channel";
-import { MessageSecurityMode } from "node-opcua-secure-channel";
-import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
-import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import type { Certificate } from "node-opcua-crypto/web";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { invalidPrivateKey, MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
+import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
+import should from "should";
 import { OPCUAServerEndPoint } from "../source";
 
 const it_with_crypto = it;
 
 const port = 2042;
 
-const certificateChain = Buffer.alloc(0);
+const certificateChain: Certificate[] = [];
 
 function getOptions() {
     const options = {
@@ -24,7 +21,8 @@ function getOptions() {
     };
     return options;
 }
-describe("OPCUAServerEndpoint#addEndpointDescription", function () {
+
+describe("OPCUAServerEndpoint#addEndpointDescription", function (this: Mocha.Suite) {
     let server_endpoint: OPCUAServerEndPoint;
     let certificateManager: OPCUACertificateManager;
     before(async () => {
@@ -35,7 +33,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
         certificateManager.dispose();
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
@@ -45,38 +43,38 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
         });
     });
 
-    const param = {};
+    const _param = {};
 
-    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None", function () {
+    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None", () => {
         const options = getOptions();
-        should(function () {
+        should(() => {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
         }).not.throwError();
     });
 
-    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None twice", function () {
+    it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None twice", () => {
         const options = getOptions();
         server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
-        should(function () {
+        should(() => {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
         }).throwError();
     });
 
-    it("should not accept to add endpoint with MessageSecurityMode.None and SecurityPolicy.Basic128", function () {
+    it("should not accept to add endpoint with MessageSecurityMode.None and SecurityPolicy.Basic128", () => {
         const options = getOptions();
-        should(function () {
+        should(() => {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.Basic128, options);
         }).throwError();
     });
-    it("should not accept  to add endpoint  MessageSecurityMode.Sign and SecurityPolicy.None", function () {
+    it("should not accept  to add endpoint  MessageSecurityMode.Sign and SecurityPolicy.None", () => {
         const options = getOptions();
-        should(function () {
+        should(() => {
             server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.None, options);
         }).throwError();
     });
 });
 
-describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
+describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function (this: Mocha.Suite) {
     let server_endpoint: OPCUAServerEndPoint;
     before(async () => {
         await extractFullyQualifiedDomainName();
@@ -89,7 +87,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
         certificateManager.dispose();
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
@@ -100,12 +98,12 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
         server_endpoint.addStandardEndpointDescriptions();
     });
 
-    it("should find a endpoint matching MessageSecurityMode.None", function () {
+    it("should find a endpoint matching MessageSecurityMode.None", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, null);
         should(endpoint_desc).be.instanceOf(EndpointDescription);
     });
 
-    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", function () {
+    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(
             MessageSecurityMode.SignAndEncrypt,
             SecurityPolicy.Basic256Sha256,
@@ -113,13 +111,13 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
         );
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
-    it_with_crypto("should find a endpoint matching SIGN / Basic256Sha256", function () {
+    it_with_crypto("should find a endpoint matching SIGN / Basic256Sha256", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256Sha256, null);
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
 });
 
-describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function () {
+describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function (this: Mocha.Suite) {
     let certificateManager: OPCUACertificateManager;
     before(async () => {
         certificateManager = new OPCUACertificateManager({});
@@ -129,7 +127,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
     });
 
     let server_endpoint: OPCUAServerEndPoint;
-    beforeEach(function () {
+    beforeEach(() => {
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
@@ -143,17 +141,17 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         });
     });
 
-    it("should not find a endpoint matching MessageSecurityMode.None", function () {
+    it("should not find a endpoint matching MessageSecurityMode.None", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, null);
         should(endpoint_desc).be.eql(null);
     });
 
-    it_with_crypto("should not find a endpoint matching Sign / Basic256Sha256", function () {
+    it_with_crypto("should not find a endpoint matching Sign / Basic256Sha256", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256Sha256, null);
         should(endpoint_desc).be.eql(null);
     });
 
-    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", function () {
+    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(
             MessageSecurityMode.SignAndEncrypt,
             SecurityPolicy.Basic256Sha256,
@@ -161,10 +159,10 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         );
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
-        endpoint_desc!.userIdentityTokens!.length.should.be.greaterThan(1);
+        endpoint_desc?.userIdentityTokens?.length.should.be.greaterThan(1);
     });
 });
-describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function () {
+describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function (this: Mocha.Suite) {
     let certificateManager: OPCUACertificateManager;
     before(async () => {
         certificateManager = new OPCUACertificateManager({});
@@ -174,7 +172,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
     });
 
     let server_endpoint: OPCUAServerEndPoint;
-    beforeEach(function () {
+    beforeEach(() => {
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
@@ -189,7 +187,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         });
     });
 
-    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", function () {
+    it_with_crypto("should find a endpoint matching SignAndEncrypt / Basic256Sha256", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(
             MessageSecurityMode.SignAndEncrypt,
             SecurityPolicy.Basic256Sha256,
@@ -197,11 +195,11 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         );
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
-        endpoint_desc!.userIdentityTokens!.length.should.eql(0);
+        endpoint_desc?.userIdentityTokens?.length.should.eql(0);
     });
 });
 
-describe("OPCUAServerEndpoint#getEndpointDescription", function () {
+describe("OPCUAServerEndpoint#getEndpointDescription", function (this: Mocha.Suite) {
     let certificateManager: OPCUACertificateManager;
     before(async () => {
         certificateManager = new OPCUACertificateManager({});
@@ -211,7 +209,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
     });
 
     let server_endpoint: OPCUAServerEndPoint;
-    beforeEach(function () {
+    beforeEach(() => {
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
@@ -221,10 +219,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
         });
     });
 
-
-
-    it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128", function () {
-
+    it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128", () => {
         const options = getOptions();
 
         let endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128, null);
@@ -240,11 +235,11 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
         should(endpoint_desc).be.instanceof(EndpointDescription);
     });
 
-    it("should not find a endpoint matching MessageSecurityMode.Sign and SecurityPolicy.None", function () {
+    it("should not find a endpoint matching MessageSecurityMode.Sign and SecurityPolicy.None", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.None, null);
         should(endpoint_desc).be.eql(null);
     });
-    it("should not find a endpoint matching MessageSecurityMode.SignAndEncrypt and SecurityPolicy.None", function () {
+    it("should not find a endpoint matching MessageSecurityMode.SignAndEncrypt and SecurityPolicy.None", () => {
         const endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.SignAndEncrypt, SecurityPolicy.None, null);
         should(endpoint_desc).be.eql(null);
     });

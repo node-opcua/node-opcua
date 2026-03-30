@@ -1,5 +1,5 @@
 import "should";
-import { OPCUAServer, OPCUAClient, IHelloAckLimits, adjustLimitsWithParameters } from "node-opcua";
+import { adjustLimitsWithParameters, type IHelloAckLimits, OPCUAClient, OPCUAServer } from "node-opcua";
 
 const myParameters = {
     minBufferSize: 8192,
@@ -29,8 +29,9 @@ async function startServer() {
     return server;
 }
 
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-describe("testing Server with maxChunk=1 (github#1335)", function () {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+describe("testing Server with maxChunk=1 (github#1335)", () => {
     let server: OPCUAServer;
     before(async () => {
         server = await startServer();

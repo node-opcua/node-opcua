@@ -20,7 +20,7 @@ import {
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { assert } from "node-opcua-assert";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { makeSHA1Thumbprint, readCertificate, split_der } from "node-opcua-crypto";
+import { combine_der, makeSHA1Thumbprint, readCertificateChainAsync, split_der } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -77,10 +77,12 @@ async function rebindServerConfiguration(
 
     const _folder = await initializeHelpers("AA", 0);
     applicationGroup = new CertificateManager({
-        location: path.join(_folder, "application")
+        location: path.join(_folder, "application"),
+        addCertificateValidationOptions: { ignoreMissingRevocationList: true }
     });
     userTokenGroup = new CertificateManager({
-        location: path.join(_folder, "user")
+        location: path.join(_folder, "user"),
+        addCertificateValidationOptions: { ignoreMissingRevocationList: true }
     });
     await applicationGroup.initialize();
     await userTokenGroup.initialize();
@@ -322,8 +324,7 @@ describe("ServerConfiguration", () => {
             const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
 
-            const certificate = await readCertificate(certificateFile);
-            const certificates = split_der(certificate);
+            const certificates = await readCertificateChainAsync(certificateFile);
 
             // Preload issuer certificates so AddCertificate validation succeeds
             const issuerTrustList = new TrustListDataType();
@@ -334,7 +335,7 @@ describe("ServerConfiguration", () => {
             issuerTrustList.issuerCrls = [];
             await trustList.writeTrustedCertificateList(issuerTrustList);
 
-            const sc = await trustList.addCertificate(certificate, true);
+            const sc = await trustList.addCertificate(combine_der(certificates), true);
             sc.should.eql(StatusCodes.Good);
 
             a = await trustList.readTrustedCertificateList();
@@ -369,14 +370,14 @@ describe("ServerConfiguration", () => {
             {
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificate = await readCertificate(certificateFile);
+                const certificates = await readCertificateChainAsync(certificateFile);
                 // Per OPC UA spec, AddCertificate with isTrustedCertificate=false returns BadCertificateInvalid
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ false);
+                const sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ false);
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             }
             {
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                const sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
             }
 
@@ -414,8 +415,7 @@ describe("ServerConfiguration", () => {
             // now add a certificate
             const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
-            const certificate = await readCertificate(certificateFile);
-            const certificates = split_der(certificate);
+            const certificates = await readCertificateChainAsync(certificateFile);
 
             // Preload issuer certificates so AddCertificate validation succeeds
             const issuerTrustList = new TrustListDataType();
@@ -427,7 +427,7 @@ describe("ServerConfiguration", () => {
             await trustList.writeTrustedCertificateList(issuerTrustList);
 
             {
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
+                const sc = await trustList.addCertificate(combine_der(certificates), /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
             }
 
@@ -744,8 +744,7 @@ describe("ServerConfiguration", () => {
             // First add a certificate using the addCertificate method
             const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
-            const certificate = await readCertificate(certificateFile);
-            const certificates = split_der(certificate);
+            const certificates = await readCertificateChainAsync(certificateFile);
 
             // Preload issuer certificates so AddCertificate validation succeeds
             const issuerTrustList = new TrustListDataType();
@@ -756,7 +755,7 @@ describe("ServerConfiguration", () => {
             issuerTrustList.issuerCrls = [];
             await trustList.writeTrustedCertificateList(issuerTrustList);
 
-            const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
+            const sc = await trustList.addCertificate(combine_der(certificates), /*isTrustedCertificate =*/ true);
             sc.should.eql(StatusCodes.Good);
 
             // Verify certificate was added
@@ -804,11 +803,11 @@ describe("ServerConfiguration", () => {
             // First, add a certificate
             const certificateFile = sampleCert2048;
             assert(fs.existsSync(certificateFile));
-            const certificate = await readCertificate(certificateFile);
+            const certificates = await readCertificateChainAsync(certificateFile);
 
             let newTrustList = new TrustListDataType();
             newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
-            newTrustList.trustedCertificates = [certificate];
+            newTrustList.trustedCertificates = [certificates[0]];
             newTrustList.issuerCertificates = [];
             newTrustList.trustedCrls = [];
             newTrustList.issuerCrls = [];
@@ -855,9 +854,9 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
 
-                let sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
+                let sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
 
                 // Verify certificate was added
@@ -865,7 +864,6 @@ describe("ServerConfiguration", () => {
                 a.trustedCertificates?.length.should.eql(1);
 
                 // Calculate thumbprint of the actual certificate (not the buffer which may contain chain)
-                const certificates = split_der(certificate);
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 sc = await trustList.removeCertificate(thumbprint, /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
@@ -892,9 +890,9 @@ describe("ServerConfiguration", () => {
                 // OPC UA Spec: "If FALSE Bad_CertificateInvalid is returned."
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificate = await readCertificate(certificateFile);
+                const certificates = await readCertificateChainAsync(certificateFile);
 
-                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ false);
+                const sc = await trustList.addCertificate(certificates[0], /*isTrustedCertificate =*/ false);
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             });
 
@@ -916,8 +914,7 @@ describe("ServerConfiguration", () => {
                 // we need to use writeTrustedCertificateList to add issuer certificates
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificate = await readCertificate(certificateFile);
-                const certificates = split_der(certificate);
+                const certificates = await readCertificateChainAsync(certificateFile);
 
                 // Create a trust list with issuer certificates
                 const newTrustList = new TrustListDataType();
@@ -964,18 +961,17 @@ describe("ServerConfiguration", () => {
                 assert(fs.existsSync(certFile1));
                 assert(fs.existsSync(certFile2));
 
-                const cert1 = await readCertificate(certFile1);
-                const cert2 = await readCertificate(certFile2);
+                const cert1Chain = await readCertificateChainAsync(certFile1);
+                const cert2Chain = await readCertificateChainAsync(certFile2);
 
-                await trustList.addCertificate(cert1, true);
-                await trustList.addCertificate(cert2, true);
+                await trustList.addCertificate(cert1Chain[0], true);
+                await trustList.addCertificate(cert2Chain[0], true);
 
                 let a = await trustList.readTrustedCertificateList();
                 a.trustedCertificates?.length.should.eql(2);
 
                 // Remove first certificate using plain hex format
-                const certs1 = split_der(cert1);
-                const thumbprint1 = makeSHA1Thumbprint(certs1[0]).toString("hex");
+                const thumbprint1 = makeSHA1Thumbprint(cert1Chain[0]).toString("hex");
                 let sc = await trustList.removeCertificate(thumbprint1, true);
                 sc.should.eql(StatusCodes.Good);
 
@@ -983,8 +979,7 @@ describe("ServerConfiguration", () => {
                 a.trustedCertificates?.length.should.eql(1);
 
                 // Remove second certificate using NodeOPCUA[hex] format
-                const certs2 = split_der(cert2);
-                const thumbprint2 = makeSHA1Thumbprint(certs2[0]).toString("hex");
+                const thumbprint2 = makeSHA1Thumbprint(cert2Chain[0]).toString("hex");
                 const thumbprintWithPrefix = `NodeOPCUA[${thumbprint2}]`;
                 sc = await trustList.removeCertificate(thumbprintWithPrefix, true);
                 sc.should.eql(StatusCodes.Good);
@@ -1028,14 +1023,13 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                await trustList.addCertificate(certificate, true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                await trustList.addCertificate(certificates[0], true);
 
                 // Open the trust list
                 await trustList.openWithMasks(TrustListMasks.All);
 
                 // Try to remove certificate while trust list is open
-                const certificates = split_der(certificate);
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 const sc = await trustList.removeCertificate(thumbprint, true);
                 sc.should.eql(StatusCodes.BadInvalidState);
@@ -1059,13 +1053,13 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Add a self-signed certificate as trusted
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                await trustList.addCertificate(certificate, true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                await trustList.addCertificate(certificates[0], true);
 
                 let a = await trustList.readTrustedCertificateList();
                 a.trustedCertificates?.length.should.eql(1);
 
-                const certificates = split_der(certificate);
+
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
 
                 // Try to remove from issuer folder (wrong folder) - should return BadInvalidArgument
@@ -1108,8 +1102,8 @@ describe("ServerConfiguration", () => {
                 await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Add a certificate - should update LastUpdateTime
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                await trustList.addCertificate(certificate, true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                await trustList.addCertificate(certificates[0], true);
 
                 const afterAddTime = lastUpdateTimeNode.readValue().value.value as Date;
                 afterAddTime.getTime().should.be.greaterThan(initialTime.getTime());
@@ -1118,7 +1112,6 @@ describe("ServerConfiguration", () => {
                 await new Promise((resolve) => setTimeout(resolve, 10));
 
                 // Remove the certificate - should update LastUpdateTime again
-                const certificates = split_der(certificate);
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 const sc = await trustList.removeCertificate(thumbprint, true);
                 sc.should.eql(StatusCodes.Good);
@@ -1132,7 +1125,7 @@ describe("ServerConfiguration", () => {
                 // Use writeTrustedCertificateList (which calls closeAndUpdate) - should update LastUpdateTime
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
-                newTrustList.trustedCertificates = [certificate];
+                newTrustList.trustedCertificates = [certificates[0]];
                 newTrustList.issuerCertificates = [];
                 newTrustList.trustedCrls = [];
                 newTrustList.issuerCrls = [];
@@ -1170,9 +1163,9 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
 
-                const sc = await trustList.addCertificate(certificate, true);
+                const sc = await trustList.addCertificate(certificates[0], true);
                 sc.should.eql(StatusCodes.BadSecurityModeInsufficient);
             });
 
@@ -1199,9 +1192,9 @@ describe("ServerConfiguration", () => {
                 const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
                 const trustList = await defaultApplicationGroup.getTrustList();
 
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
 
-                const sc = await trustList.addCertificate(certificate, true);
+                const sc = await trustList.addCertificate(certificates[0], true);
                 sc.should.eql(StatusCodes.BadUserAccessDenied);
             });
 
@@ -1224,9 +1217,9 @@ describe("ServerConfiguration", () => {
                 await trustList.open(OpenFileMode.WriteEraseExisting);
 
                 // Try to add certificate while trust list is open for write
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
 
-                const sc = await trustList.addCertificate(certificate, true);
+                const sc = await trustList.addCertificate(certificates[0], true);
                 sc.should.eql(StatusCodes.BadInvalidState);
 
                 // Clean up - close the trust list
@@ -1252,8 +1245,7 @@ describe("ServerConfiguration", () => {
                 // Use a certificate with a chain (leaf + CA)
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificateChain = await readCertificate(certificateFile);
-                const certificates = split_der(certificateChain);
+                const certificates = await readCertificateChainAsync(certificateFile);
 
                 // Verify this is actually a chain
                 certificates.length.should.be.greaterThan(1);
@@ -1268,7 +1260,7 @@ describe("ServerConfiguration", () => {
                 await trustList.writeTrustedCertificateList(newTrustList);
 
                 // Now add the certificate chain using AddCertificate
-                const sc = await trustList.addCertificate(certificateChain, true);
+                const sc = await trustList.addCertificate(combine_der(certificates), true);
                 sc.should.eql(StatusCodes.Good);
 
                 // Verify: only the leaf certificate should be in trusted certs
@@ -1359,8 +1351,7 @@ describe("ServerConfiguration", () => {
                 // Use a certificate with a chain (leaf + CA)
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificateChain = await readCertificate(certificateFile);
-                const certificates = split_der(certificateChain);
+                const certificates = await readCertificateChainAsync(certificateFile);
 
                 // Add the entire chain: leaf as trusted, CA as issuer
                 const newTrustList = new TrustListDataType();
@@ -1479,7 +1470,9 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.BadCertificateInvalid);
             });
 
-            it("should reject certificate in AddCertificate when issuer is not in TrustList", async () => {
+            it("should reject certificate in addCertificate when issuer is not in TrustList", async () => {
+
+
                 await installPushCertificateManagement(addressSpace, {
                     applicationGroup,
                     userTokenGroup,
@@ -1496,13 +1489,24 @@ describe("ServerConfiguration", () => {
                 // Use a certificate with a chain (leaf + CA) but don't add the CA first
                 const certificateFile = sampleCert2048;
                 assert(fs.existsSync(certificateFile));
-                const certificateChain = await readCertificate(certificateFile);
+                const certificateChain = await readCertificateChainAsync(certificateFile);
 
                 // Try to add the certificate without first adding its issuer to the trust list
-                // Per OPC UA spec: "This Method will return a validation error if the Certificate is issued by a CA
-                // and the Certificate for the issuer is not in the TrustList"
-                const sc = await trustList.addCertificate(certificateChain, true);
-                sc.should.eql(StatusCodes.BadCertificateInvalid);
+                // Per OPC UA spec: "This Method will return a validation error if the Certificate 
+                // is issued by a CA and the Certificate for the issuer is not in the TrustList"
+                const sc1 = await trustList.addCertificate(certificateChain[0], true);
+                console.log("sc1", sc1);
+                sc1.should.eql(StatusCodes.BadCertificateChainIncomplete);
+
+                // now try the full chain — the CA is still found in the chain
+                // but not registered in the issuers store, so validation
+                // returns BadCertificateChainIncomplete
+                const sc2 = await trustList.addCertificate(combine_der(certificateChain), true);
+                console.log("sc2", sc2);
+                sc2.should.eql(StatusCodes.BadCertificateChainIncomplete);
+
+
+
             });
 
             it("should reject invalid certificates in CloseAndUpdate", async () => {
@@ -1559,11 +1563,11 @@ describe("ServerConfiguration", () => {
                 const trustList = await defaultApplicationGroup.getTrustList();
 
                 // Write a valid trust list
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
 
                 const newTrustList = new TrustListDataType();
                 newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
-                newTrustList.trustedCertificates = [certificate];
+                newTrustList.trustedCertificates = [certificates[0]];
                 newTrustList.issuerCertificates = [];
                 newTrustList.trustedCrls = [];
                 newTrustList.issuerCrls = [];
@@ -1592,8 +1596,8 @@ describe("ServerConfiguration", () => {
                 const trustList2 = await defaultApplicationGroup.getTrustList();
 
                 // Add a certificate first
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                await trustList.addCertificate(certificate, true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                await trustList.addCertificate(certificates[0], true);
 
                 // Open for read twice (should be allowed per OPC UA spec)
 
@@ -1632,8 +1636,8 @@ describe("ServerConfiguration", () => {
                 await trustList.open(OpenFileMode.Read);
 
                 // Try to add certificate while open
-                const certificate = await readCertificate(sampleSelfSignedCert2048);
-                const sc = await trustList.addCertificate(certificate, true);
+                const certificates = await readCertificateChainAsync(sampleSelfSignedCert2048);
+                const sc = await trustList.addCertificate(certificates[0], true);
 
                 // Should return BadInvalidState per OPC UA spec
                 sc.should.eql(StatusCodes.BadInvalidState);

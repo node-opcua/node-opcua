@@ -1,57 +1,162 @@
 /**
  * @module node-opcua-common
  */
-import { EventEmitter } from "events";
-import fs from "fs";
-
+import { EventEmitter } from "node:events";
+import fs from "node:fs";
 import { assert } from "node-opcua-assert";
-import { Certificate, PrivateKey, split_der } from "node-opcua-crypto/web";
-import { readCertificate, readPrivateKey } from "node-opcua-crypto";
+import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
+import { type Certificate, type PrivateKey, split_der } from "node-opcua-crypto/web";
+
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
-    getCertificateChain(): Certificate;
+    getCertificateChain(): Certificate[];
     getPrivateKey(): PrivateKey;
 }
-export interface ICertificateKeyPairProviderPriv extends ICertificateKeyPairProvider {
-    $$certificate: null | Certificate;
-    $$certificateChain: null | Certificate;
-    $$privateKey: null | PrivateKey;
-}
-function _load_certificate(certificateFilename: string): Certificate {
-    const der = readCertificate(certificateFilename);
-    return der;
+
+interface IHasCertificateFile {
+    readonly certificateFile: string;
+    readonly privateKeyFile: string;
 }
 
-function _load_private_key(privateKeyFilename: string): PrivateKey {
-    return readPrivateKey(privateKeyFilename);
-}
+/**
+ * Holds cryptographic secrets (certificate chain and private key) for a
+ * certificate/key file pair. Secrets are lazily loaded from disk on first
+ * access and kept in truly private `#`-fields so they never appear in
+ * `JSON.stringify`, `console.log`, `Object.keys`, or `util.inspect`.
+ */
+export class SecretHolder {
+    #certificateChain: Certificate[] | null = null;
+    #privateKey: PrivateKey | null = null;
+    #obj: IHasCertificateFile;
 
-export function getPartialCertificateChain1(certificateChain?: Buffer| null, maxSize?: number ): Buffer| undefined {
-
-    return certificateChain  || undefined;
-}
-export function getPartialCertificateChain(certificateChain?: Buffer | null, maxSize?: number): Buffer | undefined {
-    
-    if (!certificateChain || certificateChain.length === 0) {
-         return undefined;
+    constructor(obj: IHasCertificateFile) {
+        this.#obj = obj;
     }
+
+    public getCertificate(): Certificate {
+        // Ensure the chain is loaded before accessing [0]
+        const chain = this.getCertificateChain();
+        return chain[0];
+    }
+
+    public getCertificateChain(): Certificate[] {
+        if (!this.#certificateChain) {
+            const file = this.#obj.certificateFile;
+            if (!fs.existsSync(file)) {
+                throw new Error(`Certificate file must exist: ${file}`);
+            }
+            const chain = readCertificateChain(file);
+            if (!chain || chain.length === 0) {
+                throw new Error(`Invalid certificate chain (length=0) ${file}`);
+            }
+            this.#certificateChain = chain;
+        }
+        return this.#certificateChain;
+    }
+
+    public getPrivateKey(): PrivateKey {
+        if (!this.#privateKey) {
+            const file = this.#obj.privateKeyFile;
+            if (!fs.existsSync(file)) {
+                throw new Error(`Private key file must exist: ${file}`);
+            }
+            const key = readPrivateKey(file);
+            if (key instanceof Buffer) {
+                throw new Error(`Invalid private key ${file}. Should not be a buffer`);
+            }
+            this.#privateKey = key;
+        }
+        return this.#privateKey;
+    }
+
+    /**
+     * Clears cached secrets so the GC can reclaim sensitive material.
+     * After calling dispose the holder will re-read from disk on next access.
+     */
+    public dispose(): void {
+        this.#certificateChain = null;
+        this.#privateKey = null;
+    }
+
+    // Prevent secrets from leaking through JSON serialization
+    public toJSON(): Record<string, string> {
+        return { certificateFile: this.#obj.certificateFile, privateKeyFile: this.#obj.privateKeyFile };
+    }
+
+    // Prevent secrets from leaking through console.log / util.inspect
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return `SecretHolder { certificateFile: "${this.#obj.certificateFile}", privateKeyFile: "${this.#obj.privateKeyFile}" }`;
+    }
+}
+
+/**
+ * Module-private WeakMap that associates an ICertificateKeyPairProvider
+ * with its SecretHolder. Using a WeakMap means:
+ * - The secret holder is invisible from the outside (no enumerable property)
+ * - If the owning object is GC'd, the SecretHolder is automatically collected
+ */
+const secretHolders = new WeakMap<object, SecretHolder>();
+
+function getSecretHolder(obj: ICertificateKeyPairProvider & IHasCertificateFile): SecretHolder {
+    let holder = secretHolders.get(obj);
+    if (!holder) {
+        holder = new SecretHolder(obj);
+        secretHolders.set(obj, holder);
+    }
+    return holder;
+}
+
+/**
+ * Invalidate any cached certificate chain and private key for the given
+ * provider so that the next `getCertificate()` / `getPrivateKey()` call
+ * re-reads from disk.
+ *
+ * This is the public replacement for the old `$$certificateChain = null`
+ * / `$$privateKey = null` pattern.
+ */
+export function invalidateCachedSecrets(obj: ICertificateKeyPairProvider): void {
+    const holder = secretHolders.get(obj);
+    if (holder) {
+        holder.dispose();
+    }
+}
+
+/**
+ * Extract a partial certificate chain from a certificate chain so that the
+ * total size of the chain does not exceed maxSize.
+ * If maxSize is not provided, the full certificate chain is returned.
+ * If the first certificate in the chain already exceeds maxSize, an error is thrown.
+ *
+ * @param certificateChain - full certificate chain (single DER buffer or array)
+ * @param maxSize          - optional byte budget
+ * @returns the truncated chain as an array of individual certificates
+ */
+export function getPartialCertificateChain(certificateChain?: Certificate | Certificate[] | null, maxSize?: number): Certificate[] {
+    if (
+        !certificateChain ||
+        (Array.isArray(certificateChain) && certificateChain.length === 0) ||
+        (certificateChain instanceof Buffer && certificateChain.length === 0)
+    ) {
+        return [];
+    }
+    const certificates = Array.isArray(certificateChain) ? certificateChain : split_der(certificateChain);
     if (maxSize === undefined) {
-        return certificateChain;
+        return certificates;
     }
-    const certificates = split_der(certificateChain);
     // at least include first certificate
-    let buffer = certificates.length == 1 ? certificateChain : Buffer.from(certificates[0]);
+    const chainToReturn: Certificate[] = [certificates[0]];
+    let cumulatedLength = certificates[0].length;
     // Throw if first certificate already exceed maxSize
-    if (buffer.length> maxSize) {
-        throw new Error(`getPartialCertificateChain not enough space for leaf certificate ${maxSize} < ${buffer.length}`);
+    if (cumulatedLength > maxSize) {
+        throw new Error(`getPartialCertificateChain not enough space for leaf certificate ${maxSize} < ${cumulatedLength}`);
     }
     let index = 1;
-    while (index < certificates.length && buffer.length + certificates[index].length < maxSize) {
-        buffer = Buffer.concat([buffer, certificates[index]]);
+    while (index < certificates.length && cumulatedLength + certificates[index].length <= maxSize) {
+        chainToReturn.push(certificates[index]);
+        cumulatedLength += certificates[index].length;
         index++;
     }
-    return buffer;
-
+    return chainToReturn;
 }
 
 export interface IOPCUASecureObjectOptions {
@@ -60,9 +165,13 @@ export interface IOPCUASecureObjectOptions {
 }
 
 /**
- * an object that provides a certificate and a privateKey
+ * An object that provides a certificate and a privateKey.
+ * Secrets are loaded lazily and stored in a module-private WeakMap
+ * so they never appear on the instance.
  */
-export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPairProvider {
+
+// biome-ignore lint/suspicious/noExplicitAny: EventEmitter use any
+export class OPCUASecureObject<T extends Record<string | symbol, any> = any> extends EventEmitter<T> implements ICertificateKeyPairProvider, IHasCertificateFile {
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;
 
@@ -70,41 +179,19 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
         super();
         assert(typeof options.certificateFile === "string");
         assert(typeof options.privateKeyFile === "string");
-
         this.certificateFile = options.certificateFile || "invalid certificate file";
         this.privateKeyFile = options.privateKeyFile || "invalid private key file";
     }
 
     public getCertificate(): Certificate {
-        const priv = this as unknown as ICertificateKeyPairProviderPriv;
-        if (!priv.$$certificate) {
-            const certChain = this.getCertificateChain();
-            priv.$$certificate = split_der(certChain)[0] as Certificate;
-        }
-        return priv.$$certificate;
+        return getSecretHolder(this).getCertificate();
     }
 
-    public getCertificateChain(): Certificate {
-        const priv = this as unknown as ICertificateKeyPairProviderPriv;
-        if (!priv.$$certificateChain) {
-            assert(fs.existsSync(this.certificateFile), "Certificate file must exist :" + this.certificateFile);
-            priv.$$certificateChain = _load_certificate(this.certificateFile);
-            if (priv.$$certificateChain && priv.$$certificateChain.length === 0) {
-                // do it again for debug purposes
-                priv.$$certificateChain = _load_certificate(this.certificateFile);
-                throw new Error("Invalid certificate length = 0 " + this.certificateFile);
-            }
-        }
-        return priv.$$certificateChain;
+    public getCertificateChain(): Certificate[] {
+        return getSecretHolder(this).getCertificateChain();
     }
 
     public getPrivateKey(): PrivateKey {
-        const priv = this as unknown as ICertificateKeyPairProviderPriv;
-        if (!priv.$$privateKey) {
-            assert(fs.existsSync(this.privateKeyFile), "private file must exist :" + this.privateKeyFile);
-            priv.$$privateKey = _load_private_key(this.privateKeyFile);
-        }
-        assert(!(priv.$$privateKey instanceof Buffer), "should not be a buffer");
-        return priv.$$privateKey;
+        return getSecretHolder(this).getPrivateKey();
     }
 }

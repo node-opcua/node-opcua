@@ -1,36 +1,32 @@
-"use strict";
-
-import  os from "os";
+import os from "node:os";
 import { assert } from "node-opcua-assert";
 import "should";
 import chalk from "chalk";
-import  { prepareFQDN, getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
-    nodesets,
-    standardUnits,
-    makeApplicationUrn,
-    OPCUAServer,
-    StatusCodes,
-    Variant,
+    type BaseNode,
+    type CallbackT,
     DataType,
     DataValue,
+    type DataValueOptions,
+    type INamespaceDataAccess,
     is_valid_endpointUrl,
+    makeApplicationUrn,
     makeRoles,
-    BaseNode,
-    UAVariable,
-    DataValueOptions,
-    INamespaceDataAccess,
-    OPCUAServerOptions,
-    CallbackT
+    nodesets,
+    OPCUAServer,
+    type OPCUAServerOptions,
+    StatusCodes,
+    standardUnits,
+    type UAVariable,
+    Variant
 } from "node-opcua";
-
 import { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { prepareFQDN } from "node-opcua-hostname";
 import { createServerCertificateManager } from "./createServerCertificateManager";
 
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
-
 
 /**
  * add a fake analog data item for testing
@@ -55,15 +51,13 @@ function addTestUAAnalogItem(parentNode: BaseNode) {
         dataType: "Double",
         minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
         value: {
-            get: function() {
-                return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
-            }
+            get: () => new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 })
         }
     });
 }
 
 const userManager = {
-    isValidUser: function(userName: string, password: string) {
+    isValidUser: (userName: string, password: string) => {
         if (userName === "user1" && password === "password1") {
             return true;
         }
@@ -85,7 +79,12 @@ const userManager = {
         return makeRoles([]);
     }
 };
-
+export interface ExtraServerProperties {
+    temperatureVariableId: UAVariable;
+    pumpSpeed: UAVariable;
+    asyncWriteNode: UAVariable;
+    set_point_temperature: number;
+}
 /**
  * @method build_server_with_temperature_device
  *
@@ -104,11 +103,11 @@ const userManager = {
  * @return {OPCUAServer}
  */
 export async function build_server_with_temperature_device(
-    options: OPCUAServerOptions & { 
-        port?: number; 
-        add_simulation?: boolean 
+    options: OPCUAServerOptions & {
+        port?: number;
+        add_simulation?: boolean;
     }
-) {
+): Promise<OPCUAServer & ExtraServerProperties> {
     assert(typeof nodesets.standard === "string");
     assert(options.port, "expecting a port number");
 
@@ -121,36 +120,35 @@ export async function build_server_with_temperature_device(
         applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
     };
 
-    options.serverCertificateManager ??= (await createServerCertificateManager(options.port || 0));
+    options.serverCertificateManager ??= await createServerCertificateManager(options.port || 0);
 
     const server = new OPCUAServer(options);
     // we will connect to first server end point
 
     await prepareFQDN();
-    await _build_server_with_temperature_device(server, options);
-    return server;
+    return await _build_server_with_temperature_device(server, options);
 }
 
-export async function _build_server_with_temperature_device(server_: OPCUAServer, options: { port?: number; add_simulation?: boolean}) {
-
-    const server = server_ as OPCUAServer & {
-        temperatureVariableId: UAVariable;
-        pumpSpeed: UAVariable;
-        asyncWriteNode: UAVariable;
-        set_point_temperature: number;
-    };
+export async function _build_server_with_temperature_device(
+    server_: OPCUAServer,
+    options: { port?: number; add_simulation?: boolean }
+): Promise<OPCUAServer & ExtraServerProperties> {
+    const server = server_ as OPCUAServer & ExtraServerProperties;
 
     assert(options.port, "expecting a port number");
     //xx console.log("xxx building server with temperature device");
 
-    server.on("session_closed", function(session, reason) {
+    server.on("session_closed", (session, reason) => {
         debugLog(" server_with_temperature_device has closed a session :", reason);
         debugLog(chalk.cyan("              session name: "), session.sessionName.toString());
     });
 
     await server.initialize();
 
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("addressSpace is not defined");
+    }
 
     const namespace = addressSpace.getOwnNamespace();
 
@@ -176,10 +174,8 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
         dataType: "Double",
         minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
         value: {
-            get: function() {
-                return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
-            },
-            set: function(variant: Variant) {
+            get: () => new Variant({ dataType: DataType.Double, value: server.set_point_temperature }),
+            set: (variant: Variant) => {
                 // to do : test if variant can be coerce to Float or Double
                 server.set_point_temperature = parseFloat(variant.value);
                 return StatusCodes.Good;
@@ -197,23 +193,24 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
         dataType: "Double",
         minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
         value: {
-            get: function() {
+            get: () => {
                 const pump_speed = 200 + Math.random();
                 return new Variant({ dataType: DataType.Double, value: pump_speed });
             },
-            set: function(variant: Variant) {
-                return StatusCodes.BadNotWritable;
-            }
+            set: (_variant: Variant) => StatusCodes.BadNotWritable
         }
     });
-    assert(server.pumpSpeed.nodeId.toString() === "ns=1;" + pumpSpeedId);
+    assert(server.pumpSpeed.nodeId.toString() === `ns=1;${pumpSpeedId}`);
 
     const endpointUrl = server.getEndpointUrl();
     debugLog("endpointUrl", endpointUrl);
     is_valid_endpointUrl(endpointUrl).should.equal(true);
 
+    if (!server.engine.addressSpace) {
+        throw new Error("addressSpace is not defined");
+    }
     if (options.add_simulation) {
-        await build_address_space_for_conformance_testing(server.engine.addressSpace!, {});
+        await build_address_space_for_conformance_testing(server.engine.addressSpace, {});
     }
 
     // add a Analog Data Item
@@ -231,7 +228,7 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
         minimumSamplingInterval: 100,
         value: {
             // asynchronous read
-            refreshFunc: function(callback: CallbackT<DataValue>) {
+            refreshFunc: (callback: CallbackT<DataValue>) => {
                 const dataValue = new DataValue({
                     value: {
                         dataType: DataType.Double,
@@ -240,16 +237,17 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
                     sourceTimestamp: new Date()
                 });
                 // simulate a asynchronous behaviour
-                setTimeout(function() {
+                setTimeout(() => {
                     callback(null, dataValue);
                 }, 10);
             },
-            set: function(variant: Variant) {
-                setTimeout(function() {
+            set: (variant: Variant) => {
+                setTimeout(() => {
                     asyncValue = variant.value;
                 }, 100);
                 return StatusCodes.GoodCompletesAsynchronously;
             }
+            // biome-ignore lint/suspicious/noExplicitAny: waiting for API signature in node-opcua
         } as any /* fix me */
     });
 
@@ -267,9 +265,9 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
         minimumSamplingInterval: 100,
         value: {
             // asynchronous read
-            timestamped_get: function(callback) {
+            timestamped_get: (callback) => {
                 assert(typeof callback === "function", "callback must be a function");
-                setTimeout(function() {
+                setTimeout(() => {
                     callback(null, new DataValue(asyncWriteFull_dataValue));
                 }, 10);
             },
@@ -277,10 +275,10 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
             // in this case, we are using timestamped_set and not set
             // as we want to control and deal with the dataValue provided by the client write
             // This will allow us to handle more specifically timestamps and statusCodes
-            timestamped_set: function(dataValue, callback) {
+            timestamped_set: (dataValue, callback) => {
                 assert(typeof callback === "function", "callback must be a function");
                 //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
-                setTimeout(function() {
+                setTimeout(() => {
                     asyncWriteFull_dataValue = new DataValue(dataValue);
                     callback(null);
                 }, 250);
@@ -290,13 +288,12 @@ export async function _build_server_with_temperature_device(server_: OPCUAServer
 
     server.set_point_temperature = 20.0;
 
-
     await server.start();
 
-    const shutdownReason = server.engine.addressSpace!.rootFolder.objects.server.serverStatus.shutdownReason;
-    const dataValue = shutdownReason.readValue();
+    const shutdownReason = server.engine.addressSpace?.rootFolder.objects.server.serverStatus.shutdownReason;
+    const _dataValue = shutdownReason?.readValue();
     // console.log("shutdown reason", dataValue.toString());
-    shutdownReason.setValueFromSource({
+    shutdownReason?.setValueFromSource({
         dataType: DataType.LocalizedText,
         value: { text: "No Shutdown in progress" }
     });

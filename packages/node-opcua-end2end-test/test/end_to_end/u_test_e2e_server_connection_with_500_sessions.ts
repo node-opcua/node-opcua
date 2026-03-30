@@ -1,6 +1,6 @@
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 import chalk from "chalk";
-import { OPCUAClient, OPCUAClientOptions, ClientSession } from "node-opcua";
+import { type ClientSession, OPCUAClient, type OPCUAClientOptions } from "node-opcua";
+import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 
 const doDebug = false;
 
@@ -15,7 +15,9 @@ interface TestHarness {
     };
 }
 
-interface SessionTaskData { index: number }
+interface SessionTaskData {
+    index: number;
+}
 
 export function t(test: TestHarness): void {
     const maxSessionsForTest = 50; // configurable upper bound for these tests
@@ -37,7 +39,6 @@ export function t(test: TestHarness): void {
     function r(t: number): number {
         return Math.ceil(t * 100) / 100;
     }
-
 
     async function perform<T>(msg: string, func: () => Promise<T>): Promise<T> {
         await delay(10);
@@ -66,25 +67,25 @@ export function t(test: TestHarness): void {
     async function client_session(data: SessionTaskData): Promise<void> {
         should.exist(client); // ensure instantiated in before hook
         if (!client) throw new Error("Client not initialized");
-
+        const activeClient = client;
 
         async function waitRandom() {
             await delay(Math.ceil(Math.random() * 10 + 1000));
         }
 
-        const the_session: ClientSession = await perform<ClientSession>("create session " + data.index, async () => {
-            return await client!.createSession();
+        const the_session: ClientSession = await perform<ClientSession>(`create session ${data.index}`, async () => {
+            return await activeClient.createSession();
         });
 
         await waitRandom();
 
-        await perform("closing session " + data.index, async () => {
+        await perform(`closing session ${data.index}`, async () => {
             doDebug && console.log("closing session ", data.index);
             await the_session.close();
         });
     }
 
-    describe("AAAY Testing " + maxSessionsForTest + " sessions on the same  connection ", function () {
+    describe(`AAAY Testing ${maxSessionsForTest} sessions on the same  connection `, () => {
         before(async () => {
             const options = {
                 connectionStrategy,
@@ -92,23 +93,23 @@ export function t(test: TestHarness): void {
             };
             client = OPCUAClient.create(options as OPCUAClientOptions);
             const endpointUrl = test.endpointUrl;
-            client.on("send_request", function (req) {
+            client.on("send_request", (req) => {
                 if (doDebug) {
                     console.log(req.constructor.name);
                 }
             });
-            client.on("receive_response", function (res) {
+            client.on("receive_response", (res) => {
                 if (doDebug) {
                     console.log(res.constructor.name, res.responseHeader.serviceResult.toString());
                 }
             });
 
-            client.on("start_reconnection", function (err: Error) {
+            client.on("start_reconnection", (_err?: Error) => {
                 if (doDebug) {
                     console.log(chalk.bgWhite.yellow("start_reconnection"));
                 }
             });
-            client.on("backoff", function (number, delay) {
+            client.on("backoff", (number, delay) => {
                 if (doDebug) {
                     console.log(chalk.bgWhite.yellow("backoff"), number, delay);
                 }
@@ -123,7 +124,7 @@ export function t(test: TestHarness): void {
                 await client.disconnect();
             }
         });
-        it("QZQ should be possible to open  many sessions on a single connection", async function () {
+        it("QZQ should be possible to open  many sessions on a single connection", async () => {
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
             const nb = maxSessionsForTest + 10;
@@ -133,7 +134,7 @@ export function t(test: TestHarness): void {
             });
             test.server.engine.serverCapabilities.maxSessions = maxSessionsBackup;
         });
-        it("QZQ should be possible to run 100 sessions with concurrency limited to 20", async function () {
+        it("QZQ should be possible to run 100 sessions with concurrency limited to 20", async () => {
             const totalSessions = 100;
             const concurrency = 20;
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;

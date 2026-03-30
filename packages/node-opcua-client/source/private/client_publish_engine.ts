@@ -2,15 +2,15 @@
  * @module node-opcua-client-private
  */
 import chalk from "chalk";
-import { getMinOPCUADate } from "node-opcua-date-time";
 import { assert } from "node-opcua-assert";
+import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
+import { PublishRequest, type PublishResponse } from "node-opcua-service-subscription";
 
-import { ClientSession, SubscriptionId } from "../client_session";
-import { ClientSubscription } from "../client_subscription";
-import { ClientSessionImpl } from "../private/client_session_impl";
-import { ClientSubscriptionImpl } from "./client_subscription_impl";
+import type { ClientSession, SubscriptionId } from "../client_session";
+import type { ClientSubscription } from "../client_subscription";
+import type { ClientSessionImpl } from "../private/client_session_impl";
+import type { ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -141,7 +141,7 @@ export class ClientSidePublishEngine {
         const _subscription = subscription as ClientSubscriptionImpl;
         assert(arguments.length === 1);
         assert(isFinite(subscription.subscriptionId));
-        assert(!Object.prototype.hasOwnProperty.call(this.subscriptionMap, subscription.subscriptionId)); // already registered ?
+        assert(!Object.hasOwn(this.subscriptionMap, subscription.subscriptionId)); // already registered ?
         assert(typeof _subscription.onNotificationMessage === "function");
         assert(isFinite(subscription.timeoutHint));
 
@@ -186,7 +186,7 @@ export class ClientSidePublishEngine {
         // note : it is possible that we get here while the server has already requested
         //        a session shutdown ... in this case it is possible that subscriptionId is already
         //        removed
-        if (Object.prototype.hasOwnProperty.call(this.subscriptionMap, subscriptionId)) {
+        if (Object.hasOwn(this.subscriptionMap, subscriptionId)) {
             delete this.subscriptionMap[subscriptionId];
         } else {
             debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ", subscriptionId);
@@ -202,13 +202,13 @@ export class ClientSidePublishEngine {
      */
     public getSubscription(subscriptionId: SubscriptionId): ClientSubscription {
         assert(isFinite(subscriptionId) && subscriptionId > 0);
-        assert(Object.prototype.hasOwnProperty.call(this.subscriptionMap, subscriptionId));
+        assert(Object.hasOwn(this.subscriptionMap, subscriptionId));
         return this.subscriptionMap[subscriptionId];
     }
 
     public hasSubscription(subscriptionId: SubscriptionId): boolean {
         assert(isFinite(subscriptionId) && subscriptionId > 0);
-        return Object.prototype.hasOwnProperty.call(this.subscriptionMap, subscriptionId);
+        return Object.hasOwn(this.subscriptionMap, subscriptionId);
     }
 
     public internalSendPublishRequest(): void {
@@ -334,8 +334,7 @@ export class ClientSidePublishEngine {
                     // transfer completes.
                     debugLog(
                         chalk.bgWhite.yellow(
-                            " WARNING: BadSecureChannelIdInvalid on PublishRequest"
-                            + " - session transfer may be in progress"
+                            " WARNING: BadSecureChannelIdInvalid on PublishRequest" + " - session transfer may be in progress"
                         )
                     );
                     active = false;

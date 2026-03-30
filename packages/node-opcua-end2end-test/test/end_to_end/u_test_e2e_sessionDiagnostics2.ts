@@ -1,23 +1,21 @@
-import should from "should";
 import {
-    OPCUAClient,
-    makeNodeId,
-    VariableIds,
     AttributeIds,
-    UserTokenType,
+    type ClientSession,
+    makeNodeId,
+    OPCUAClient,
     randomNodeId,
-    ClientSession,
-    UserIdentityInfo
+    type UserIdentityInfo,
+    UserTokenType,
+    VariableIds
 } from "node-opcua";
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import should from "should";
+
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
 
 export function t(test: any) {
-
-    describe("SDS3 Testing SessionDiagnostics 2/2", function () {
-
+    describe("SDS3 Testing SessionDiagnostics 2/2", () => {
         async function readServerDiagnostics(session: ClientSession) {
             const nodesToRead = [
                 {
@@ -43,7 +41,7 @@ export function t(test: any) {
                 {
                     nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_RejectedSessionCount),
                     attributeId: AttributeIds.Value
-                },
+                }
             ];
             const dataValues = await session.read(nodesToRead);
             return {
@@ -52,7 +50,7 @@ export function t(test: any) {
                 currentSessionCount: dataValues[2].value.value,
                 rejectedSessionCount: dataValues[5].value.value,
                 securityRejectedSessionCount: dataValues[4].value.value,
-                currentSubscriptionCount: dataValues[3].value.value,
+                currentSubscriptionCount: dataValues[3].value.value
             };
         }
         let data: any;
@@ -69,23 +67,20 @@ export function t(test: any) {
         });
 
         it("SDS3-A - should increase securityRejectedSessionCount and rejectedSessionCount if session is created with invalid credential", async () => {
-
             const { session, client } = data;
 
             const dataBefore = await readServerDiagnostics(session);
 
             //  create a session with invalid  userIdentity
             {
-
                 const client2 = OPCUAClient.create({ endpointMustExist: false });
                 await client2.connect(test.endpointUrl);
                 try {
-                    const session2 = await client2.createSession({
+                    const _session2 = await client2.createSession({
                         type: UserTokenType.UserName,
                         userName: "Invalid",
                         password: "Invalid Too"
                     });
-
                 } catch (err) {
                     doDebug && debugLog((err as Error).message);
                 } finally {
@@ -99,9 +94,11 @@ export function t(test: any) {
             /// console.log(dataAfter);
 
             dataAfter.cumulatedSessionCount.should.eql(dataBefore.cumulatedSessionCount + 1, "should stay identical");
-            dataAfter.securityRejectedSessionCount.should.eql(dataBefore.securityRejectedSessionCount + 1, "securityRejectedSessionCount should increase");
+            dataAfter.securityRejectedSessionCount.should.eql(
+                dataBefore.securityRejectedSessionCount + 1,
+                "securityRejectedSessionCount should increase"
+            );
             dataAfter.rejectedSessionCount.should.eql(dataBefore.rejectedSessionCount + 1, "rejectedSessionCount should increase");
-
         });
 
         interface OpcuaCientPriv extends OPCUAClient {
@@ -113,14 +110,12 @@ export function t(test: any) {
             ): void;
         }
         it("SDS3-B - should not increase securityRejectedSessionCount but increase rejectedSessionCount if session is created with invalid session ID", async () => {
-
             const { session, client } = data;
 
             const dataBefore = await readServerDiagnostics(session);
 
             //  create a session with an invalid userIdentity
             {
-
                 const client2 = OPCUAClient.create({
                     endpointMustExist: false
                 });
@@ -128,37 +123,32 @@ export function t(test: any) {
 
                 try {
                     await new Promise<void>((resolve, reject) => {
+                        (client2 as OpcuaCientPriv)._createSession((err /*: Error | null*/, session2 /*: ClientSession*/) => {
+                            if (err) return reject(err);
 
+                            const original = session2?.authenticationToken;
+                            session2!.authenticationToken = randomNodeId();
 
-                        (client2 as OpcuaCientPriv)._createSession(
-                            (err/*: Error | null*/, session2/*: ClientSession*/) => {
-                                if (err) return reject(err);
+                            const userIdentityInfo = (session2! as any).userIdentityInfo;
 
-                                const original = session2!.authenticationToken;
-                                session2!.authenticationToken = randomNodeId();
+                            (client2 as OpcuaCientPriv)._activateSession(session2!, userIdentityInfo, (err) => {
+                                if (err) {
+                                    debugLog("--> rejected - as expected A");
 
-                                const userIdentityInfo = (session2! as any).userIdentityInfo;
+                                    session2!.authenticationToken = original;
 
-                                (client2 as OpcuaCientPriv)._activateSession(session2!, userIdentityInfo, (err) => {
-                                    if (err) {
-                                        debugLog("--> rejected - as expected A");
-
-                                        session2!.authenticationToken = original;
-
-                                        client2.closeSession(session2!, true).then(() => {
-                                            debugLog("--> rejected - as expected B");
-                                            return reject(err);
-                                        });
-                                    } else {
-                                        resolve();
-                                    }
-                                });
-
+                                    client2.closeSession(session2!, true).then(() => {
+                                        debugLog("--> rejected - as expected B");
+                                        return reject(err);
+                                    });
+                                } else {
+                                    resolve();
+                                }
                             });
+                        });
                     });
 
-                    should.fail(0,0);
-
+                    should.fail(0, 0);
                 } catch (err) {
                     /* */
                     if (doDebug) {
@@ -175,10 +165,11 @@ export function t(test: any) {
             /// console.log(dataAfter);
 
             // dataAfter.cumulatedSessionCount.should.eql(dataBefore.cumulatedSessionCount + 1, "should stay identical");
-            dataAfter.securityRejectedSessionCount.should.eql(dataBefore.securityRejectedSessionCount, "securityRejectedSessionCount should *NOT* increase");
+            dataAfter.securityRejectedSessionCount.should.eql(
+                dataBefore.securityRejectedSessionCount,
+                "securityRejectedSessionCount should *NOT* increase"
+            );
             dataAfter.rejectedSessionCount.should.eql(dataBefore.rejectedSessionCount + 1, "rejectedSessionCount should increase");
-
         });
-
     });
 }

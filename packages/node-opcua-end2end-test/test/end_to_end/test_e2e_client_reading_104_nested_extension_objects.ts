@@ -1,8 +1,8 @@
-import path from "path";
-import fs from "fs";
-import os from "os";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import "should";
-import { DataType, OPCUAClient, OPCUAServer, nodesets, AttributeIds, UAObject, UAVariableT, UAVariable } from "node-opcua";
+import { AttributeIds, nodesets, OPCUAClient, OPCUAServer, type UAVariable } from "node-opcua";
 
 const port = 4893;
 const nodeId = "ns=3;i=6009";
@@ -26,9 +26,11 @@ async function startServer(): Promise<OPCUAServer> {
 
     return server;
 }
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-describe("testing github issue", function () {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+describe("testing github issue", () => {
     let server: OPCUAServer;
     before(async () => {
         server = await startServer();

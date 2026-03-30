@@ -9,6 +9,7 @@
         "build": "tsc -b",
         "generate": "tsc -b && tsx source/main.ts",
         "test": "mocha && npm run test-generated",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "test-generated": "tsc --build tsconfig-generated.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo tmp"
     },

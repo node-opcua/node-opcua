@@ -9,9 +9,10 @@ import {
     convertPEMtoDER,
     identifyDERContent,
     type PrivateKey,
-    readCertificate,
+    readCertificateChain,
     readCertificateRevocationList,
     readPrivateKey,
+    split_der,
     toPem
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -25,7 +26,7 @@ let sharedCAInitPromise: Promise<void> | null = null;
 export async function getSharedCertificateAuthority(): Promise<CertificateAuthority> {
     if (!sharedCA) {
         const caFolder = path.join(os.tmpdir(), `node-opcua2-shared-ca-${crypto.randomBytes(4).toString("hex")}`);
-        await fs.promises.rm(caFolder, { recursive: true, force: true }).catch(() => {});
+        await fs.promises.rm(caFolder, { recursive: true, force: true }).catch(() => { });
         sharedCA = new CertificateAuthority({
             keySize: 2048,
             location: caFolder
@@ -67,14 +68,17 @@ export async function initializeHelpers(prefix: string, _n: number): Promise<str
 export async function produceCertificateAndPrivateKey(
     subfolder: string
 ): Promise<{ certificate: Certificate; privateKey: PrivateKey; privateKeyPEM: string }> {
-    // Given a Certificate Authority
+    // Use a unique directory per invocation so CertificateManager
+    // always generates a fresh key pair rather than reusing an
+    // existing private key from a previous test.
+    const uniqueId = crypto.randomBytes(8).toString("hex");
     const certificateManager = new CertificateManager({
         keySize: 2048,
-        location: path.join(subfolder, "tmpPKI")
+        location: path.join(subfolder, `tmpPKI_${uniqueId}`)
     });
     await certificateManager.initialize();
 
-    const certFile = path.join(subfolder, "tmpPKI/certificate.pem");
+    const certFile = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
 
     await certificateManager.createSelfSignedCertificate({
         applicationUri: "applicationUri",
@@ -88,7 +92,7 @@ export async function produceCertificateAndPrivateKey(
         outputFile: certFile
     });
 
-    const certificate = readCertificate(certFile);
+    const certificateChain = readCertificateChain(certFile);
     const privateKey = readPrivateKey(certificateManager.privateKey);
 
     const privateKeyPEM = await fs.promises.readFile(certificateManager.privateKey, "utf8");
@@ -96,16 +100,16 @@ export async function produceCertificateAndPrivateKey(
     // Clean up internal watcher memory explicitly!
     await certificateManager.dispose();
 
-    return { certificate, privateKey, privateKeyPEM };
+    return { certificate: certificateChain[0], privateKey, privateKeyPEM };
 }
 
 export async function _getFakeAuthorityCertificate(
     _subfolder: string
 ): Promise<{ certificate: Certificate; crl: CertificateRevocationList }> {
     const certificateAuthority = await getSharedCertificateAuthority();
-    const certificate = readCertificate(certificateAuthority.caCertificate);
+    const certificateChain = readCertificateChain(certificateAuthority.caCertificate);
     const crl = await readCertificateRevocationList(certificateAuthority.revocationList);
-    return { certificate, crl };
+    return { certificate: certificateChain[0], crl };
 }
 
 async function _produceCertificate(
@@ -113,7 +117,7 @@ async function _produceCertificate(
     certificateSigningRequest: Buffer | undefined,
     startDate: Date,
     validity: number
-): Promise<Buffer> {
+): Promise<Certificate[]> {
     if (!certificateSigningRequest) {
         throw new Error("certificateSigningRequest is required");
     }
@@ -144,14 +148,14 @@ async function _produceCertificate(
     const certificatePEM = await readFile(certificate, "utf8");
     const certificateDER = convertPEMtoDER(certificatePEM);
 
-    await fs.promises.unlink(csrFile).catch(() => {});
-    await fs.promises.unlink(certificate).catch(() => {});
+    await fs.promises.unlink(csrFile).catch(() => { });
+    await fs.promises.unlink(certificate).catch(() => { });
 
     // signCertificateRequest already writes the full chain (cert + CA), so just return it
-    return certificateDER;
+    return split_der(certificateDER);
 }
 
-export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Buffer> {
+export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Certificate[]> {
     if (!certificateSigningRequest) {
         throw new Error("certificateSigningRequest is required");
     }
@@ -164,7 +168,7 @@ export async function produceOutdatedCertificate(subfolder: string, certificateS
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
-export async function produceCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Buffer> {
+export async function produceCertificate(subfolder: string, certificateSigningRequest?: Buffer): Promise<Certificate[]> {
     if (!certificateSigningRequest) {
         throw new Error("certificateSigningRequest is required");
     }
@@ -214,7 +218,7 @@ export async function createCertificateWithEndDate(
     certName: string,
     endDate: Date,
     validity: number
-): Promise<Certificate> {
+): Promise<Certificate[]> {
     const startDate = new Date(endDate.getTime() - validity * millisecondPerDay);
     const resultCSR = await certificateManager.createCertificateRequest({
         applicationUri: "applicationUri",
@@ -232,15 +236,15 @@ export async function createCertificateWithEndDate(
         validity
     });
 
-    const certificate = readCertificate(certName);
-    return certificate;
+    const certificateChain = readCertificateChain(certName);
+    return certificateChain;
 }
 
 export async function createSomeOutdatedCertificate(
     subfolder: string,
     certificateManager: CertificateManager,
     certName: string
-): Promise<Certificate> {
+): Promise<Certificate[]> {
     const now = Date.now();
     const startDate = new Date(now - 365 * millisecondPerDay);
     const validity = 10;
@@ -252,7 +256,7 @@ export async function createSomeOutdatedCertificate(
 /**
  * Produce a certificate that is not yet valid (startDate in the future)
  */
-export async function produceNotYetValidCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
+export async function produceNotYetValidCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Certificate[]> {
     const startDate = new Date(Date.now() + 3600 * 24 * 1000); // 1 day in the future
     const validity = 365;
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);

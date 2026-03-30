@@ -1,22 +1,30 @@
 import "should";
 import {
-    allPermissions,
-    AttributeIds,
-    PermissionType,
-    DataType,
-    OPCUAClient,
-    StatusCodes,
-    WellKnownRoles,
-    makeRoles,
     AccessLevelFlag,
-    UserIdentityInfo,
-    UserTokenType
+    AttributeIds,
+    allPermissions,
+    DataType,
+    makeRoles,
+    OPCUAClient,
+    PermissionType,
+    StatusCodes,
+    type UserIdentityInfo,
+    UserTokenType,
+    WellKnownRoles
 } from "node-opcua";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
-interface TestUser { username: string; password: string; roles: any; }
+interface TestUser {
+    username: string;
+    password: string;
+    roles: any;
+}
 const users: TestUser[] = [
-    { username: "user1", password: (() => "1")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
+    {
+        username: "user1",
+        password: (() => "1")(),
+        roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
+    },
     { username: "user2", password: (() => "2")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
 
@@ -39,15 +47,14 @@ const userManager = {
 // eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
-describe("issue171- testing Client-Server with UserName/Password identity token", function (this: Mocha.Context) {
 
+describe("issue171- testing Client-Server with UserName/Password identity token", function (this: Mocha.Context) {
     let server: any, endpointUrl: string;
     let node1: any;
 
     const port = 2224;
 
     before(async () => {
-
         const serverCertificateManager = await createServerCertificateManager(port);
         const options = {
             port,
@@ -75,8 +82,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         endpointUrl = server.getEndpointUrl();
         // replace user manager with our custom one
 
-    const addressSpace = server.engine.addressSpace;
-    const namespace = addressSpace.getOwnNamespace();
+        const addressSpace = server.engine.addressSpace;
+        const namespace = addressSpace.getOwnNamespace();
 
         // create a variable that can only be read and written by admin
         node1 = namespace.addVariable({
@@ -141,10 +148,10 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             // As admin user - access should be granted
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user1 on existing session (ConfigAdmin)");
-            const userIdentity: UserIdentityInfo = { 
+            const userIdentity: UserIdentityInfo = {
                 type: UserTokenType.UserName,
-                 userName: "user1", 
-                 password: (() => "1")() 
+                userName: "user1",
+                password: (() => "1")()
             }; // type: UserName
 
             const statusCodeChangeUser = await session.changeUser(userIdentity);
@@ -155,7 +162,6 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
 
             statusCode = await write(session);
             statusCode.should.eql(StatusCodes.Good);
-
         });
     });
 });

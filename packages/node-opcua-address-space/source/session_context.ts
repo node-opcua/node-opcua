@@ -1,25 +1,26 @@
 /**
  * @module node-opcua-address-space
  */
+/** biome-ignore-all lint/style/useLiteralEnumMembers: still needed */
 
+import type { BaseNode, ISessionBase, ISessionContext, UAObject, UAObjectType, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { Certificate, CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
-import { AccessRestrictionsFlag, allPermissions, AttributeIds, PermissionFlag } from "node-opcua-data-model";
-import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { ObjectIds } from "node-opcua-constants";
+import { type Certificate, type CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
+import { AccessRestrictionsFlag, AttributeIds, allPermissions, PermissionFlag } from "node-opcua-data-model";
+import type { PreciseClock } from "node-opcua-date-time";
+import { type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
     AnonymousIdentityToken,
     MessageSecurityMode,
     PermissionType,
-    RolePermissionType,
+    type RolePermissionType,
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-import { ISessionContext, UAObject, UAObjectType, UAVariable, BaseNode, ISessionBase } from "node-opcua-address-space-base";
-import { ObjectIds } from "node-opcua-constants";
-import { NamespacePrivate } from "../src/namespace_private";
+import type { NamespacePrivate } from "../src/namespace_private";
 
-export { RolePermissionType, RolePermissionTypeOptions, PermissionType } from "node-opcua-types";
+export { PermissionType, RolePermissionType, RolePermissionTypeOptions } from "node-opcua-types";
 
 type AnyUserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
@@ -28,7 +29,10 @@ function getUserName(userIdentityToken: AnyUserIdentityToken): string {
         return "anonymous";
     }
     if (userIdentityToken instanceof X509IdentityToken) {
-        const certInfo: CertificateInternals = exploreCertificate(userIdentityToken.certificateData);
+        const cert = Array.isArray(userIdentityToken.certificateData)
+            ? userIdentityToken.certificateData[0]
+            : userIdentityToken.certificateData;
+        const certInfo: CertificateInternals = exploreCertificate(cert);
         const userName = certInfo.tbsCertificate.subject.commonName || "";
         if (typeof userName !== "string") {
             throw new Error("Invalid username");
@@ -39,8 +43,7 @@ function getUserName(userIdentityToken: AnyUserIdentityToken): string {
         if (userIdentityToken.policyId === "anonymous") {
             return "anonymous";
         }
-        assert(Object.prototype.hasOwnProperty.call(userIdentityToken, "userName"));
-        return userIdentityToken.userName!;
+        return typeof userIdentityToken.userName === "string" ? userIdentityToken.userName : "";
     }
     throw new Error("Invalid user identity token");
 }
@@ -48,7 +51,6 @@ function getUserName(userIdentityToken: AnyUserIdentityToken): string {
 /**
  *
  */
-
 export enum WellKnownRoles {
     Anonymous = ObjectIds.WellKnownRole_Anonymous,
     AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
@@ -128,9 +130,12 @@ function getPermissionForRole(rolePermissions: RolePermissionType[] | null, role
         return allPermissions;
     }
     const a = rolePermissions.find((r) => {
-        return sameNodeId(resolveNodeId(r.roleId!), role);
+        if (!r.roleId) {
+            return false;
+        }
+        return sameNodeId(resolveNodeId(r.roleId), role);
     });
-    return a !== undefined ? a.permissions! | PermissionFlag.None : PermissionFlag.None;
+    return a?.permissions !== undefined ? a.permissions | PermissionFlag.None : PermissionFlag.None;
 }
 
 function isDefaultContext(context: SessionContext) {
@@ -152,7 +157,7 @@ function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: 
     const defaultAccessRestriction = namespaceObject.getChildByName("defaultAccessRestriction");
     if (defaultAccessRestriction) {
         const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
-        if (dataValue && dataValue.statusCode.isGood()) {
+        if (dataValue?.statusCode.isGood()) {
             return dataValue.value.value as AccessRestrictionsFlag;
         }
     }
@@ -179,14 +184,14 @@ function getDefaultUserRolePermissionsOnNamespace(
     const defaultUserRolePermissions = uaNamespaceObject.getChildByName("DefaultUserRolePermissions") as UAVariable;
     if (defaultUserRolePermissions) {
         const dataValue = defaultUserRolePermissions.readValue();
-        if (dataValue && dataValue.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
+        if (dataValue?.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
             return dataValue.value.value as RolePermissionType[];
         }
     }
     const defaultRolePermissions = uaNamespaceObject.getChildByName("DefaultRolePermissions") as UAVariable;
     if (defaultRolePermissions) {
         const dataValue = defaultRolePermissions.readValue();
-        if (dataValue && dataValue.statusCode.isGood()) {
+        if (dataValue?.statusCode.isGood()) {
             return dataValue.value.value as RolePermissionType[] | null;
         }
     }
@@ -198,14 +203,14 @@ export function makeRoles(roleIds: NodeIdLike[] | string | WellKnownRoles): Node
         roleIds = [roleIds];
     }
     if (typeof roleIds === "string") {
-        roleIds = roleIds.split(";").map((r) => resolveNodeId("WellKnownRole_" + r));
+        roleIds = roleIds.split(";").map((r) => resolveNodeId(`WellKnownRole_${r}`));
     }
     return roleIds.map((r) => resolveNodeId(r));
 }
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
-    public object: any;
+    public object: UAObject | UAObjectType | undefined;
     public currentTime?: PreciseClock;
     public continuationPoints: Buffer[] = [];
     public userIdentity?: string;
@@ -355,7 +360,9 @@ export class SessionContext implements ISessionContext {
                 return true;
             }
         }
-        if (!this.session) { return false; }
+        if (!this.session) {
+            return false;
+        }
         const securityMode = this.session?.channel?.securityMode;
         if (accessRestrictions & AccessRestrictionsFlag.SigningRequired) {
             if (securityMode !== MessageSecurityMode.Sign && securityMode !== MessageSecurityMode.SignAndEncrypt) {

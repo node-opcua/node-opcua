@@ -1,16 +1,12 @@
 import "should";
-import {
-    OPCUAClient,
-    AttributeIds,
-    ClientSubscription,
-    StatusCodes,
-    Variant,
-    DataType,
-    ClientMonitoredItem
-} from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, ClientSubscription, DataType, OPCUAClient, StatusCodes, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
+interface TestHarness {
+    endpointUrl: string;
+    server: any;
+    [k: string]: any;
+}
 
 /**
  * Bug #163 - Variable alternating between Good values and Bad status should not cause internal errors.
@@ -67,9 +63,11 @@ export function t(test: TestHarness) {
                     { nodeId: theVariable.nodeId, attributeId: AttributeIds.Value },
                     { samplingInterval: refreshRate / 2, discardOldest: true, queueSize: 100 }
                 );
-                monitoredItem.on("changed", () => { changes++; });
+                monitoredItem.on("changed", () => {
+                    changes++;
+                });
 
-                await new Promise(r => setTimeout(r, 3000));
+                await new Promise((r) => setTimeout(r, 3000));
                 changes.should.be.greaterThan(0, "should have received notifications, even with intermittent Bad status");
 
                 await subscription.terminate();

@@ -1,12 +1,21 @@
-import fs from "fs";
-import "should";
-import { AddressSpace } from "node-opcua-address-space";
-import { construct_demo_alarm_in_address_space, IAlarmTestData } from "node-opcua-address-space/testHelpers";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { PseudoSession } from "node-opcua-address-space";
-import { nodesets } from "node-opcua-nodesets";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import fs from "node:fs";
+import {
+    AddressSpace,
+    PseudoSession
+} from "node-opcua-address-space";
+import {
+    generateAddressSpace
+} from "node-opcua-address-space/nodeJS";
+import {
+    construct_demo_alarm_in_address_space,
+    type IAlarmTestData
+} from "node-opcua-address-space/testHelpers";
+import {
+    checkDebugFlag,
+} from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import should from "should";
 
 import {
     AttributeIds,
@@ -18,7 +27,7 @@ import {
     Variant
 } from "..";
 
-const debugLog = make_debugLog("TEST");
+// const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 describe("extractConditionFields", () => {
@@ -227,20 +236,18 @@ describe("extractConditionFields", () => {
 
         const eventFilter = constructEventFilter(fields);
 
-        eventFilter.selectClauses!.length.should.eql(
+        should(eventFilter.selectClauses?.length).eql(
             fields.length,
             "eventFilter selectClause must have the same number of element, including collect ConditionId, which is a special case"
         );
 
-        const conditionIdClause = eventFilter.selectClauses![eventFilter.selectClauses!.length - 1];
-        if (conditionIdClause.browsePath) {
-            conditionIdClause.browsePath.length.should.eql(0);
-        }
-        conditionIdClause.attributeId.should.eql(AttributeIds.NodeId);
+        const conditionIdClause = eventFilter.selectClauses?.[eventFilter.selectClauses?.length - 1];
+        should(conditionIdClause?.browsePath?.length).eql(0);
+        should(conditionIdClause?.attributeId).eql(AttributeIds.NodeId);
 
         const values = Array(fields.length)
             .fill(0)
-            .map((x, index) => new Variant({ dataType: DataType.Double, value: index }));
+            .map((_x, index) => new Variant({ dataType: DataType.Double, value: index }));
         doDebug && console.log(values);
 
         const json = fieldsToJson(fields, values);

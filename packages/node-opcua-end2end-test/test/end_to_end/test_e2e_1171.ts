@@ -1,25 +1,25 @@
 import "should";
-import path from "path";
+import path from "node:path";
 import {
+    AccessRestrictionsFlag,
     AttributeIds,
-    TimestampsToReturn,
+    DataType,
+    DataValue,
+    MessageSecurityMode,
+    OPCUACertificateManager,
     OPCUAClient,
     OPCUAServer,
-    OPCUACertificateManager,
-    AccessRestrictionsFlag,
-    DataType,
-    MessageSecurityMode,
     SecurityPolicy,
     StatusCodes,
-    DataValue
+    TimestampsToReturn
 } from "node-opcua";
-
 // eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-describe("Testing bug #1171- Subscription with Variable with restricted access", function () {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+describe("Testing bug #1171- Subscription with Variable with restricted access", () => {
     const port = 1171;
     let server: OPCUAServer;
-    let endpointUrl: string;
+    let _endpointUrl: string;
     let certificateManager: OPCUACertificateManager;
     before(async () => {
         const tmpFolder = path.join(__dirname, "../../tmp/1171");
@@ -57,7 +57,7 @@ describe("Testing bug #1171- Subscription with Variable with restricted access",
 
         await server.start();
 
-        endpointUrl = server.getEndpointUrl();
+        _endpointUrl = server.getEndpointUrl();
     });
     after(async () => {
         await server.shutdown();

@@ -1,28 +1,35 @@
-const os = require("os");
-const { make_debugLog } = require("node-opcua-debug");
-const { OPCUAClient, MessageSecurityMode, SecurityPolicy } = require("..");
+import os from "node:os";
+import { make_debugLog } from "node-opcua-debug";
+import {
+    MessageSecurityMode,
+    OPCUAClient,
+    type OPCUAClientOptions,
+    SecurityPolicy,
+} from "..";
 
 const debugLog = make_debugLog("TEST");
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("issue #931 investigation", function () {
-    this.timeout(Math.max(40000,this.timeout()));
-    async function wait(t) {
-        return await new Promise((resolve) => setTimeout(resolve, t));
-    }
+async function wait(t: number) {
+    return await new Promise((resolve) => setTimeout(resolve, t));
+}
 
-    async function doTest(options, host) {
+describe("issue #931 investigation", function (this: Mocha.Suite) {
+
+    this.timeout(Math.max(40000, this.timeout()));
+
+    async function doTest(options: OPCUAClientOptions, host: string) {
         const client = OPCUAClient.create(options);
 
         let backoffCount = 0;
-        client.on("backoff", (retry, next) => {
+        client.on("backoff", (retry: number, next: number) => {
             backoffCount++;
             debugLog("backoff", retry, next);
         });
 
         debugLog("Before Connect");
-        client.connect(`opc.tcp://${host}:20000`).catch((err) => {
+        client.connect(`opc.tcp://${host}:20000`).catch((err: Error) => {
             debugLog("connection failed !", err.message);
         });
         debugLog("Connect in progress");
@@ -40,8 +47,9 @@ describe("issue #931 investigation", function () {
             "Backoff should stops when disconnect is called while connection is still in progress"
         );
     }
+
     it("931-A should be able to disconnect when the client is trying to initially connect to a server - No Security - Localhost", async () => {
-        const options = {
+        const options: OPCUAClientOptions = {
             connectionStrategy: {
                 maxRetry: 100,
                 initialDelay: 100,
@@ -50,8 +58,9 @@ describe("issue #931 investigation", function () {
         };
         await doTest(options, "localhost");
     });
-    it("931-A should be able to disconnect when the client is trying to initially connect to a server - No Security - hostname", async () => {
-        const options = {
+
+    it("931-B should be able to disconnect when the client is trying to initially connect to a server - No Security - hostname", async () => {
+        const options: OPCUAClientOptions = {
             connectionStrategy: {
                 maxRetry: 100,
                 initialDelay: 100,
@@ -60,8 +69,9 @@ describe("issue #931 investigation", function () {
         };
         await doTest(options, os.hostname());
     });
-    it("931-B should be able to disconnect when the client is trying to initially connect to a server - With Security - localhost", async () => {
-        const options = {
+
+    it("931-C should be able to disconnect when the client is trying to initially connect to a server - With Security - localhost", async () => {
+        const options: OPCUAClientOptions = {
             connectionStrategy: {
                 maxRetry: 100,
                 initialDelay: 100,
@@ -72,8 +82,9 @@ describe("issue #931 investigation", function () {
         };
         await doTest(options, os.hostname());
     });
+
     it("931-B should be able to disconnect when the client is trying to initially connect to a server - With Security - hostname", async () => {
-        const options = {
+        const options: OPCUAClientOptions = {
             connectionStrategy: {
                 maxRetry: 100,
                 initialDelay: 100,
@@ -87,7 +98,7 @@ describe("issue #931 investigation", function () {
 
     it("931-Z connect disconnect no wait ", async () => {
         const host = os.hostname();
-        const options = {
+        const options: OPCUAClientOptions = {
             connectionStrategy: {
                 maxRetry: 100,
                 initialDelay: 100,
@@ -99,13 +110,13 @@ describe("issue #931 investigation", function () {
         const client = OPCUAClient.create(options);
 
         let backoffCount = 0;
-        client.on("backoff", (retry, next) => {
+        client.on("backoff", (retry: number, next: number) => {
             backoffCount++;
             debugLog("backoff", retry, next);
         });
 
         debugLog("Before Connect");
-        client.connect(`opc.tcp://${host}:20000`).catch((err) => {
+        client.connect(`opc.tcp://${host}:20000`).catch((err: Error) => {
             debugLog("connection failed !", err.message);
         });
         debugLog("Connect in progress");

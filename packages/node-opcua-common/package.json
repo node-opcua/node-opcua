@@ -4,6 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module common",
     "scripts": {
         "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts"
@@ -12,7 +13,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.164.0",
-        "node-opcua-crypto": "5.3.1",
+        "node-opcua-crypto": "5.3.3",
         "node-opcua-types": "2.165.0"
     },
     "author": "Etienne Rossignon",

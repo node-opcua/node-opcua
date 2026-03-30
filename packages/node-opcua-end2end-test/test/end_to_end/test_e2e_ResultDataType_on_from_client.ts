@@ -1,14 +1,5 @@
 import "should";
-import {
-    OPCUAServer,
-    OPCUAClient,
-    resolveNodeId,
-    AttributeIds,
-    readNamespaceArray,
-    DataType,
-    nodesets,
-    Variant
-} from "node-opcua";
+import { AttributeIds, DataType, nodesets, OPCUAClient, OPCUAServer, readNamespaceArray, resolveNodeId, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 async function startServer() {
@@ -18,18 +9,12 @@ async function startServer() {
         buildInfo: {
             productName: "MySampleServer1",
             buildNumber: "7658",
-            buildDate: new Date(),
-
+            buildDate: new Date()
         },
-        nodeset_filename: [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.machineryResult
-        ]
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.machineryResult]
     });
 
     await server.initialize();
-
 
     const addressSpace = server.engine.addressSpace!;
     const namespaceArray = addressSpace.getNamespaceArray();
@@ -54,7 +39,7 @@ async function startServer() {
         componentOf: uaMyDevice,
         nodeId: "s=MyDevice_ResultVariable",
         browseName: "Result",
-        dataType: resultDataType,
+        dataType: resultDataType
     });
 
     const content1 = new Variant({
@@ -78,12 +63,9 @@ async function startServer() {
     const extObj = addressSpace.constructExtensionObject(resultDataType, {
         ResultMetadata: {
             IsSimulated: true,
-            ProductId: "12345",
+            ProductId: "12345"
         },
-        ResultContent: [
-            content1,
-            content2
-        ]
+        ResultContent: [content1, content2]
     });
     uaVariable.setValueFromSource({ dataType: "ExtensionObject", value: extObj });
 
@@ -93,9 +75,7 @@ async function startServer() {
 
 const port = 28090;
 describe("testing ResultDataType extension (containing BaseDataType field) object on client ", function (this: Mocha.Context) {
-
-
-   this.timeout(Math.max(200_000, this.timeout()));
+    this.timeout(Math.max(200_000, this.timeout()));
 
     let server: OPCUAServer;
     before(async () => {
@@ -108,7 +88,7 @@ describe("testing ResultDataType extension (containing BaseDataType field) objec
 
     it("should be possible to write a ResultDataType extension object to the server with a client", async () => {
         const client = OPCUAClient.create({
-            endpointMustExist: false,
+            endpointMustExist: false
         });
         const endpointUrl = server.getEndpointUrl();
 
@@ -117,7 +97,7 @@ describe("testing ResultDataType extension (containing BaseDataType field) objec
 
             // #region Find MachineryResult namespace
             const namespaceArray = await readNamespaceArray(session);
-            const nsResult = namespaceArray.findIndex((ns) => ns === "http://opcfoundation.org/UA/Machinery/Result/");
+            const nsResult = namespaceArray.indexOf("http://opcfoundation.org/UA/Machinery/Result/");
             if (nsResult === -1) {
                 throw new Error("Failed to find MachineryResult namespace");
             }
@@ -134,12 +114,8 @@ describe("testing ResultDataType extension (containing BaseDataType field) objec
                 value: [1, 2, 3]
             });
 
-
             const extObj = await session.constructExtensionObject(resultDataTypeNodeId, {
-                ResultContent: [
-                    content1,
-                    content2
-                ]
+                ResultContent: [content1, content2]
             });
 
             const nodeId = "ns=1;s=MyDevice_ResultVariable";
@@ -156,6 +132,5 @@ describe("testing ResultDataType extension (containing BaseDataType field) objec
             return statusCode;
         });
         writeStatusCode.isGood().should.eql(true);
-
     });
 });

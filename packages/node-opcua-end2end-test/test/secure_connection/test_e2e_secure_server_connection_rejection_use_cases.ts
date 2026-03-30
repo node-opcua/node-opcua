@@ -1,27 +1,29 @@
 import "should";
-import should from "should";
-import { randomBytes } from "crypto";
-import sinon from "sinon";
+import { randomBytes } from "node:crypto";
 import {
-    OPCUAServer,
-    OPCUAClientBase,
-    OPCUAClient,
-    StatusCodes,
-    MessageSecurityMode,
-    SecurityPolicy,
     CreateSessionRequest,
-    get_empty_nodeset_filename
+    get_empty_nodeset_filename,
+    MessageSecurityMode,
+    OPCUAClient,
+    OPCUAClientBase,
+    OPCUAServer,
+    SecurityPolicy,
+    StatusCodes
 } from "node-opcua";
 import { SignatureData } from "node-opcua-service-secure-channel";
+import should from "should";
+import sinon from "sinon";
 
-const doDebug = false;
+const _doDebug = false;
 const port = 2237;
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing the server ability to deny client session request (server with maxSessions = 1)", () => {
-    let server: OPCUAServer; let endpointUrl: string; let clientOptions: any;
+    let server: OPCUAServer;
+    let endpointUrl: string;
+    let clientOptions: any;
 
     before(async () => {
         server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
@@ -67,7 +69,7 @@ describe("testing the server ability to deny client session request (server with
         client.computeClientSignature = function (...args: any[]) {
             const res = old_compute.apply(this, args);
             res.algorithm = "<bad algorithm>";
-           //  return res;
+            //  return res;
         };
         const err = await test_connection(client);
         (err as Error).message.should.match(/BadApplicationSignatureInvalid/);
@@ -99,7 +101,7 @@ describe("testing the server ability to deny client session request (server with
 
     it("E-Client shall deny server session if server nonce is too small", async () => {
         let bad_nonce = 0;
-        (server as any).makeServerNonce = function () {
+        (server as any).makeServerNonce = () => {
             bad_nonce += 1;
             return randomBytes(31); // instead of 32!
         };

@@ -1,7 +1,7 @@
-import should from "should";
 import { OPCUAClient, readHistoryServerCapabilities } from "node-opcua-client";
+import should from "should";
 export function t(test: any) {
-    describe("ReadHistoryServerCapabilities", function () {
+    describe("ReadHistoryServerCapabilities", () => {
         it("should read history server capabilities", async () => {
             const client = OPCUAClient.create({});
             await client.withSessionAsync(test.endpointUrl, async (session) => {

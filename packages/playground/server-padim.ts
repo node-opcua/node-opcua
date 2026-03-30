@@ -1,12 +1,9 @@
-import { types } from "util";
-process.env.NODEOPCUADEBUG = process.env.NODEOPCUADEBUG || "SERVER{TRACE}PERF";
 import {
-    DataType,
+    nodesets,
     OPCUACertificateManager,
     OPCUAServer,
-    ServerSecureChannelLayer,
-    nodesets
 } from "node-opcua";
+
 async function main() {
     try {
 
