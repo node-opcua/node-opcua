@@ -1127,10 +1127,30 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (this.securityMode === MessageSecurityMode.None) {
             return null;
         }
-        const derivedKeys = this.#tokenStack.getTokenDerivedKeys(tokenId);
+        let derivedKeys = this.#tokenStack.getTokenDerivedKeys(tokenId);
         // c8 ignore next
         if (!derivedKeys || !derivedKeys.derivedServerKeys) {
-            errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
+            // The request's token has expired or been removed.
+            // Per OPC UA Part 6 §6.7.3, the server should use
+            // the current active token to secure outgoing messages.
+            const fallbackToken = this.#tokenStack.getLatestTokenDerivedKeys();
+            if (fallbackToken) {
+                warningLog(
+                    `tokenId ${tokenId} expired — falling back to`
+                    + ` latest valid token ${fallbackToken.tokenId}`
+                    + ` (securityMode=${MessageSecurityMode[this.securityMode]})`
+                );
+                derivedKeys = fallbackToken.derivedKeys;
+            } else {
+                errorLog(
+                    "no valid token available at all,"
+                    + ` securityMode=${MessageSecurityMode[this.securityMode]}`
+                );
+                return null;
+            }
+        }
+        if (!derivedKeys.derivedServerKeys) {
+            errorLog("derivedServerKeys is null despite having a valid token");
             return null;
         }
         const options = getOptionsForSymmetricSignAndEncrypt(this.securityMode, derivedKeys.derivedServerKeys);
