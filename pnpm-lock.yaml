@@ -20,9 +20,12 @@ importers:
       '@types/bonjour':
         specifier: ^3.5.13
         version: 3.5.13
-      '@types/lodash':
-        specifier: 4.17.24
-        version: 4.17.24
+      '@types/lodash.partition':
+        specifier: ^4.6.9
+        version: 4.6.9
+      '@types/lodash.sortby':
+        specifier: ^4.7.9
+        version: 4.7.9
       '@types/long':
         specifier: 4.0.2
         version: 4.0.2
@@ -89,9 +92,12 @@ importers:
       humanize:
         specifier: 0.0.9
         version: 0.0.9
-      lodash:
-        specifier: 4.17.23
-        version: 4.17.23
+      lodash.partition:
+        specifier: ^4.6.0
+        version: 4.6.0
+      lodash.sortby:
+        specifier: ^4.7.0
+        version: 4.7.0
       long:
         specifier: 5.3.2
         version: 5.3.2
@@ -369,9 +375,6 @@ importers:
 
   packages/node-opcua-address-space:
     dependencies:
-      '@types/lodash':
-        specifier: 4.17.24
-        version: 4.17.24
       '@types/semver':
         specifier: 7.7.1
         version: 7.7.1
@@ -381,9 +384,6 @@ importers:
       dequeue:
         specifier: ^1.0.5
         version: 1.0.5
-      lodash:
-        specifier: 4.17.23
-        version: 4.17.23
       node-opcua-address-space-base:
         specifier: 2.167.0
         version: link:../node-opcua-address-space-base
@@ -2871,9 +2871,6 @@ importers:
       '@types/async':
         specifier: 3.2.25
         version: 3.2.25
-      '@types/lodash':
-        specifier: 4.17.24
-        version: 4.17.24
       async:
         specifier: ^3.2.6
         version: 3.2.6
@@ -2883,9 +2880,12 @@ importers:
       dequeue:
         specifier: ^1.0.5
         version: 1.0.5
-      lodash:
-        specifier: 4.17.23
-        version: 4.17.23
+      lodash.partition:
+        specifier: ^4.6.0
+        version: 4.6.0
+      lodash.sortby:
+        specifier: ^4.7.0
+        version: 4.7.0
       node-opcua-address-space:
         specifier: 2.167.0
         version: link:../node-opcua-address-space
@@ -3019,6 +3019,12 @@ importers:
         specifier: 4.4.0
         version: 4.4.0
     devDependencies:
+      '@types/lodash.partition':
+        specifier: ^4.6.9
+        version: 4.6.9
+      '@types/lodash.sortby':
+        specifier: ^4.7.9
+        version: 4.7.9
       node-opcua-data-access:
         specifier: 2.167.0
         version: link:../node-opcua-data-access
@@ -3640,15 +3646,6 @@ importers:
         specifier: 2.165.0
         version: link:../node-opcua-utils
     devDependencies:
-      '@types/lodash':
-        specifier: 4.17.24
-        version: 4.17.24
-      '@types/underscore':
-        specifier: 1.13.0
-        version: 1.13.0
-      lodash:
-        specifier: 4.17.23
-        version: 4.17.23
       node-opcua-benchmarker:
         specifier: 2.167.0
         version: link:../node-opcua-benchmarker
@@ -3664,9 +3661,6 @@ importers:
       node-opcua-status-code:
         specifier: 2.167.0
         version: link:../node-opcua-status-code
-      underscore:
-        specifier: ^1.13.8
-        version: 1.13.8
 
   packages/node-opcua-vendor-diagnostic:
     dependencies:
@@ -4338,6 +4332,12 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/lodash.partition@4.6.9':
+    resolution: {integrity: sha512-ANgnHyTw/C07oHr/8/jzoc1BlZZFRafAyDvc04Z8qR1IvWZpAGB8aHPUkd0UCgJWOauqoCsILhvPLXKsTc4rXQ==}
+
+  '@types/lodash.sortby@4.7.9':
+    resolution: {integrity: sha512-PDmjHnOlndLS59GofH0pnxIs+n9i4CWeXGErSB5JyNFHu2cmvW6mQOaUKjG8EDPkni14IgF8NsRW8bKvFzTm9A==}
 
   '@types/lodash@4.17.24':
     resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
@@ -5020,6 +5020,12 @@ packages:
 
   lodash.camelcase@4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
+
+  lodash.partition@4.6.0:
+    resolution: {integrity: sha512-35L3dSF3Q6V1w5j6V3NhNlQjzsRDC/pYKCTdYTmwqSib+Q8ponkAmt/PwEOq3EmI38DSCl+SkIVwLd+uSlVdrg==}
+
+  lodash.sortby@4.7.0:
+    resolution: {integrity: sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==}
 
   lodash@4.17.23:
     resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
@@ -6117,6 +6123,14 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/lodash.partition@4.6.9':
+    dependencies:
+      '@types/lodash': 4.17.24
+
+  '@types/lodash.sortby@4.7.9':
+    dependencies:
+      '@types/lodash': 4.17.24
+
   '@types/lodash@4.17.24': {}
 
   '@types/long@4.0.2': {}
@@ -6752,6 +6766,10 @@ snapshots:
       p-locate: 5.0.0
 
   lodash.camelcase@4.3.0: {}
+
+  lodash.partition@4.6.0: {}
+
+  lodash.sortby@4.7.0: {}
 
   lodash@4.17.23: {}
 

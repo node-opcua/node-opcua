@@ -1,23 +1,21 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { isEqual } from "lodash";
-
+import { isDeepStrictEqual as isEqual } from "node:util";
+import type { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
+import { make_debugLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantOptions } from "node-opcua-variant";
-import { make_debugLog } from "node-opcua-debug";
-import { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
-
+import { DataType, type VariantOptions } from "node-opcua-variant";
+import type { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
+import type { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
+import type { AddressSpacePrivate } from "../address_space_private";
+import { _clear_timer_if_any, UAShelvedStateMachineExImpl } from "../state_machine/ua_shelving_state_machine_ex";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { UAShelvedStateMachineExImpl, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
-import { AddressSpacePrivate } from "../address_space_private";
-import { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
-import { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
-import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 
 import { ConditionInfoImpl } from "./condition_info_impl";
 import { UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
@@ -35,7 +33,7 @@ export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAckn
 }
 
 export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl implements UAAlarmConditionEx {
-    public static MaxDuration = Math.pow(2, 31);
+    public static MaxDuration = 2 ** 31;
 
     public static instantiate(
         namespace: INamespace,
@@ -45,12 +43,12 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     ): UAAlarmConditionImpl {
         const addressSpace = namespace.addressSpace;
         // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
-        assert(Object.prototype.hasOwnProperty.call(options, "inputNode")); // must provide a inputNode
+        assert(Object.hasOwn(options, "inputNode")); // must provide a inputNode
         const alarmConditionType = addressSpace.findEventType(alarmConditionTypeId);
 
         /* c8 ignore next */
         if (!alarmConditionType) {
-            throw new Error(" cannot find Alarm Condition Type for " + alarmConditionTypeId);
+            throw new Error(` cannot find Alarm Condition Type for ${alarmConditionTypeId}`);
         }
 
         const alarmConditionTypeBase = addressSpace.findEventType("AlarmConditionType");
@@ -60,9 +58,9 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         }
 
         options.optionals = options.optionals || [];
-        if (Object.prototype.hasOwnProperty.call(options, "maxTimeShelved")) {
+        if (Object.hasOwn(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
-            assert(isFinite(options.maxTimeShelved!));
+            assert(Number.isFinite(options.maxTimeShelved!));
         }
 
         assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSubtypeOf(alarmConditionTypeBase));
@@ -142,12 +140,12 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          *
          */
         if (alarmNode.suppressedState) {
-            alarmNode.suppressedState.on("value_changed", (newDataValue: DataValue) => {
+            alarmNode.suppressedState.on("value_changed", (_newDataValue: DataValue) => {
                 _update_suppressedOrShelved(alarmNode);
             });
         }
         if (alarmNode.shelvingState) {
-            alarmNode.shelvingState.currentState.on("value_changed", (newDataValue: DataValue) => {
+            alarmNode.shelvingState.currentState.on("value_changed", (_newDataValue: DataValue) => {
                 _update_suppressedOrShelved(alarmNode);
             });
         }
@@ -220,7 +218,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     public isSuppressedOrShelved(): boolean {
         let suppressed = false;
         if (this.suppressedState) {
-            suppressed = this.suppressedState.id!.readValue().value.value;
+            suppressed = this.suppressedState.id?.readValue().value.value;
         }
         let shelved = false;
         if (this.shelvingState) {
@@ -241,8 +239,8 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      * note: duration must be greater than 10ms and lesser than 2**31 ms
      */
     public setMaxTimeShelved(duration: number): void {
-        if (duration < 10 || duration >= Math.pow(2, 31)) {
-            throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
+        if (duration < 10 || duration >= 2 ** 31) {
+            throw new Error(` Invalid maxTimeShelved duration: ${duration}  must be [10,2**31] `);
         }
         this.maxTimeShelved?.setValueFromSource({
             dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
@@ -280,7 +278,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         return this.addressSpace.findNode(nodeId) as UAVariable | null;
     }
     /**
-     * 
+     *
      */
     public getInputNodeValue(): any | null {
         const node = this.getInputNodeNode();
@@ -297,7 +295,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         this._onInputDataValueChange(dataValue);
     }
 
-    protected _onInputDataValueChange(newValue: DataValue): void {
+    protected _onInputDataValueChange(_newValue: DataValue): void {
         /**  */
     }
 
@@ -397,9 +395,9 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      */
     public _calculateConditionInfo(
         stateData: string | null,
-        isActive: boolean,
+        _isActive: boolean,
         value: string,
-        oldCondition: ConditionInfo
+        _oldCondition: ConditionInfo
     ): ConditionInfo {
         if (!stateData) {
             return new ConditionInfoImpl({
@@ -410,7 +408,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
             });
         } else {
             return new ConditionInfoImpl({
-                message: "Condition is " + value + " and state is " + stateData,
+                message: `Condition is ${value} and state is ${stateData}`,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150
@@ -441,7 +439,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
             debugLog("oldConditionInfo", oldConditionInfo);
             debugLog("oldConditionInfo", newConditionInfo);
             throw new Error(
-                "condition values have not change, shall we really raise an event ? alarm " + this.browseName.toString()
+                `condition values have not change, shall we really raise an event ? alarm ${this.browseName.toString()}`
             );
         }
         assert(!isEqual(oldConditionInfo, newConditionInfo), "condition values have not change, shall we really raise an event ?");

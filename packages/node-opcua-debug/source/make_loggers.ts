@@ -2,8 +2,8 @@
  * @module node-opcua-debug
  */
 // tslint:disable:no-console
-import { EventEmitter } from "events";
-import { format } from "util";
+import { EventEmitter } from "node:events";
+import { format } from "node:util";
 import chalk from "chalk";
 
 const debugFlags: { [id: string]: boolean } = {};
@@ -23,29 +23,28 @@ export enum LogLevel {
 }
 
 // c8 ignore next
-if (_process.env && false) {
+const _activateDebug = false;
+if (_process.env && _activateDebug) {
     // this code can be activated to help detecting
     // when a external module overwrite one of the
     // environment variable that we may be using as well.
     const old = { ..._process.env };
     const handler = {
-        get: function (obj: any, prop: string) {
-            return old[prop];
-        },
-        set: function (obj: any, prop: string, value: any) {
-            console.log("setting process.env = prop " + prop);
-            old[prop] = value;
+        get: (_obj: unknown, prop: string) => old[prop],
+        set: (_obj: unknown, prop: string, value: unknown) => {
+            console.log(`setting process.env = prop ${prop}`);
+            old[prop] = value as string;
             return true;
         }
     };
-    _process.env = new Proxy(old, handler);
+    _process.env = (new Proxy(old, handler)) as Record<string, string>;
 }
 const maxLines =
-    _process.env && _process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
+    _process.env?.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
         ? parseInt(_process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
         : 25;
 let g_logLevel: LogLevel = process.env.NODEOPCUA_LOG_LEVEL
-    ? (parseInt(process.env.NODEOPCUA_LOG_LEVEL) as LogLevel)
+    ? (parseInt(process.env.NODEOPCUA_LOG_LEVEL, 10) as LogLevel)
     : LogLevel.Warning;
 
 export function setLogLevel(level: LogLevel): void {
@@ -84,9 +83,9 @@ const increaseCounter = (context: Context) => {
 
 const threshold = 100;
 
-type PrintFunc = (data?: any, ...argN: any[]) => void;
+type PrintFunc = (data?: unknown, ...argN: unknown[]) => void;
 const loggers = {
-    errorLogger: (context: Context, ...args: [any, ...any[]]) => {
+    errorLogger: (context: Context, ...args: [unknown, ...unknown[]]) => {
         const occurrenceCount = increaseCounter(context);
         if (occurrenceCount > threshold) {
             return;
@@ -98,7 +97,7 @@ const loggers = {
             return;
         }
     },
-    warningLogger: (context: Context, ...args: [any, ...any[]]) => {
+    warningLogger: (context: Context, ...args: [unknown, ...unknown[]]) => {
         const occurrenceCount = increaseCounter(context);
         if (occurrenceCount > threshold) {
             return;
@@ -112,10 +111,10 @@ const loggers = {
             return;
         }
     },
-    traceLogger: (context: Context, ...args: [any, ...any[]]) => {
+    traceLogger: (context: Context, ...args: [unknown, ...unknown[]]) => {
         dump(context, "T", args);
     },
-    debugLogger: (context: Context, ...args: [any, ...any[]]) => {
+    debugLogger: (context: Context, ...args: [unknown, ...unknown[]]) => {
         dump(context, "D", args);
     }
 };
@@ -154,7 +153,7 @@ export function setDebugFlag(scriptFullPath: string, flag: boolean): void {
 export function checkDebugFlag(scriptFullPath: string): boolean {
     const filename = extractBasename(scriptFullPath);
     let doDebug: boolean = debugFlags[filename];
-    if (sTraceFlag && !Object.prototype.hasOwnProperty.call(debugFlags, filename)) {
+    if (sTraceFlag && !Object.hasOwn(debugFlags, filename)) {
         doDebug = sTraceFlag.indexOf(filename) >= 0 || sTraceFlag.indexOf("ALL") >= 0;
         setDebugFlag(filename, doDebug);
     }
@@ -169,13 +168,13 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
 function file_line(mode: "E" | "D" | "W" | "T", filename: string, callerLine: number): string {
     const d = new Date().toISOString().substring(11);
     if (mode === "T") {
-        return chalk.bgGreenBright.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+        return chalk.bgGreenBright.white(`${w(d, 14)}:${w(filename, 30)}:${w(callerLine.toString(), 5)}`);
     } else if (mode === "W") {
-        return chalk.bgCyan.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+        return chalk.bgCyan.white(`${w(d, 14)}:${w(filename, 30)}:${w(callerLine.toString(), 5)}`);
     } else if (mode === "D") {
-        return chalk.bgWhite.cyan(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+        return chalk.bgWhite.cyan(`${w(d, 14)}:${w(filename, 30)}:${w(callerLine.toString(), 5)}`);
     } else {
-        return chalk.bgRed.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+        return chalk.bgRed.white(`${w(d, 14)}:${w(filename, 30)}:${w(callerLine.toString(), 5)}`);
     }
 }
 
@@ -190,7 +189,7 @@ function getCallerContext(level: number) {
     return { filename, callerline };
 }
 
-function dump(ctx: Context, mode: "E" | "D" | "W" | "T", args1: [any?, ...any[]]) {
+function dump(ctx: Context, mode: "E" | "D" | "W" | "T", args1: [unknown?, ...unknown[]]) {
     const a2 = Object.values(args1) as [string, ...string[]];
     const output = format(...a2);
     const { filename, callerline } = ctx;
@@ -213,9 +212,6 @@ function dump(ctx: Context, mode: "E" | "D" | "W" | "T", args1: [any?, ...any[]]
 }
 
 export class MessageLogger extends EventEmitter {
-    constructor() {
-        super();
-    }
     public on(eventName: "warningMessage" | "errorMessage", eventHandler: () => void): this {
         return super.on(eventName, eventHandler);
     }
@@ -229,9 +225,9 @@ export const messageLogger = new MessageLogger();
  * if the DEBUG environment variable indicates that the provided source file shall display debug trace
  *
  */
-export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
+export function make_debugLog(scriptFullPath: string): (...arg: unknown[]) => void {
     const filename = extractBasename(scriptFullPath);
-    function debugLogFunc(...args: [any?, ...any[]]) {
+    function debugLogFunc(...args: [unknown?, ...unknown[]]) {
         if (debugFlags[filename] && g_logLevel >= LogLevel.Debug) {
             const ctxt = getCallerContext(3);
             loggers.debugLogger(ctxt, ...args);
@@ -240,31 +236,31 @@ export function make_debugLog(scriptFullPath: string): (...arg: any[]) => void {
     return debugLogFunc;
 }
 
-function errorLogFunc(...args: [any?, ...any[]]) {
+function errorLogFunc(...args: [unknown?, ...unknown[]]) {
     if (g_logLevel >= LogLevel.Error) {
         const ctxt = getCallerContext(3);
         loggers.errorLogger(ctxt, ...args);
     }
 }
 
-export function make_errorLog(context: string): PrintFunc {
+export function make_errorLog(_context: string): PrintFunc {
     return errorLogFunc;
 }
 
-function warningLogFunc(...args: [any?, ...any[]]) {
+function warningLogFunc(...args: [unknown?, ...unknown[]]) {
     if (g_logLevel >= LogLevel.Warning) {
         const ctxt = getCallerContext(3);
         loggers.warningLogger(ctxt, ...args);
     }
 }
-export function make_warningLog(context: string): PrintFunc {
+export function make_warningLog(_context: string): PrintFunc {
     return warningLogFunc;
 }
 
-function traceLogFunc(...args: [any?, ...any[]]) {
+function traceLogFunc(...args: [unknown?, ...unknown[]]) {
     const ctxt = getCallerContext(3);
     loggers.traceLogger(ctxt, ...args);
 }
-export function make_traceLog(context: string): PrintFunc {
+export function make_traceLog(_context: string): PrintFunc {
     return traceLogFunc;
 }
