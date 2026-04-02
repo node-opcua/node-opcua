@@ -1729,25 +1729,25 @@ describe("Preserving  null in Arrays or Matrices", () => {
     it("it should preserve empty array ... String", () => {
         const v = new Variant({ dataType: DataType.String, value: [], arrayType: VariantArrayType.Array });
         should(v.value).eql([]);
-        const v_reloaded = encode_decode_round_trip_test(v);
+        const v_reloaded = encode_decode_round_trip_test(v) as Variant;
         should(v_reloaded.value).eql([]);
     });
     it("it should preserve null array ... String", () => {
         const v = new Variant({ dataType: DataType.String, value: null, arrayType: VariantArrayType.Array });
         should(v.value).eql(null);
-        const v_reloaded = encode_decode_round_trip_test(v);
+        const v_reloaded = encode_decode_round_trip_test(v) as Variant;
         should(v_reloaded.value).eql(null);
     });
     it("it should preserve empty array ... UInt32 ", () => {
         const v = new Variant({ dataType: DataType.UInt16, value: [], arrayType: VariantArrayType.Array });
         should(v.value).instanceOf(Uint16Array);
-        const v_reloaded = encode_decode_round_trip_test(v);
+        const v_reloaded = encode_decode_round_trip_test(v) as Variant;
         should(v_reloaded.value).instanceOf(Uint16Array);
     });
     it("it should preserve null array ... UInt32", () => {
         const v = new Variant({ dataType: DataType.UInt16, value: null, arrayType: VariantArrayType.Array });
         should(v.value).eql(null);
-        const v_reloaded = encode_decode_round_trip_test(v);
+        const v_reloaded = encode_decode_round_trip_test(v) as Variant;
         should(v_reloaded.value).eql(null);
     });
 });
