@@ -93,6 +93,28 @@ export class TokenStack {
         return token.derivedKeys;
     }
 
+    /**
+     * Returns the derived keys for the most recent (newest) token
+     * that has not "really expired".
+     *
+     * This is used as a fallback when the tokenId from the original
+     * request has expired: as per OPC UA Part 6 §6.7.3, the server
+     * should use the current active token to secure outgoing messages.
+     */
+    public getLatestTokenDerivedKeys(): { tokenId: number; derivedKeys: DerivedKeys1 } | null {
+        // Walk backwards — newest tokens are at the end
+        for (let i = this.#tokenStack.length - 1; i >= 0; i--) {
+            const entry = this.#tokenStack[i];
+            if (!hasTokenReallyExpired(entry.securityToken) && entry.derivedKeys) {
+                return {
+                    tokenId: entry.securityToken.tokenId,
+                    derivedKeys: entry.derivedKeys
+                };
+            }
+        }
+        return null;
+    }
+
     public removeOldTokens() {
     
         // remove all expired tokens
