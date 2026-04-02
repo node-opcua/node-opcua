@@ -334,6 +334,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public objectFactory: unknown;
 
     public _on_new_channel?: (channel: ServerSecureChannelLayer) => void;
+    public _on_channel_secured?: (channel: ServerSecureChannelLayer) => void;
     public _on_close_channel?: (channel: ServerSecureChannelLayer) => void;
     public _on_connectionRefused?: (socketData: ISocketData) => void;
     public _on_openSecureChannelFailure?: (socketData: ISocketData, channelData: IChannelData) => void;

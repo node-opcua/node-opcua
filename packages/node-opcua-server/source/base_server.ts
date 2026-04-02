@@ -26,7 +26,7 @@ import {
     ipv4ToHex,
     resolveFullyQualifiedDomainName
 } from "node-opcua-hostname";
-import type { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import type { Message, Request, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { ServiceFault } from "node-opcua-service-secure-channel";
@@ -82,6 +82,11 @@ function cleanupEndpoint(endpoint: OPCUAServerEndPoint) {
         endpoint.removeListener("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
         endpoint._on_openSecureChannelFailure = undefined;
     }
+    if (endpoint._on_channel_secured) {
+        assert(typeof endpoint._on_channel_secured === "function");
+        endpoint.removeListener("channelSecured", endpoint._on_channel_secured);
+        endpoint._on_channel_secured = undefined;
+    }
 }
 
 /**
@@ -102,7 +107,18 @@ const emptyCallback = () => {
     /* empty */
 };
 
-export class OPCUABaseServer extends OPCUASecureObject {
+export interface OPCUABaseServerEvents {
+    request: [request: Request, channel: ServerSecureChannelLayer];
+    response: [response: Response, channel: ServerSecureChannelLayer];
+    newChannel: [channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint];
+    channelSecured: [channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint];
+    closeChannel: [channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint];
+    connectionRefused: [socketData: ISocketData, endpoint: OPCUAServerEndPoint];
+    openSecureChannelFailure: [socketData: ISocketData, channelData: IChannelData, endpoint: OPCUAServerEndPoint];
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: must propagate EventEmitter generic
+export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCUASecureObject<T> {
     public static makeServiceFault = makeServiceFault;
 
     /**
@@ -391,7 +407,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         installPeriodicClockAdjustment();
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const server = this;
+        const server: OPCUABaseServer<OPCUABaseServerEvents> = this;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
             server.emit("newChannel", channel, this);
         };
@@ -432,7 +448,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
             endpoint._on_new_channel = _on_new_channel;
             endpoint.on("newChannel", endpoint._on_new_channel);
 
-            endpoint.on("channelSecured", _on_channel_secured);
+            endpoint._on_channel_secured = _on_channel_secured;
+            endpoint.on("channelSecured", endpoint._on_channel_secured);
 
             endpoint._on_close_channel = _on_close_channel;
             endpoint.on("closeChannel", endpoint._on_close_channel);
@@ -523,7 +540,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         let errMessage: string;
         let response: Response;
 
-        this.emit("request", request, channel);
+        (this as OPCUABaseServer<OPCUABaseServerEvents>).emit("request", request, channel);
 
         try {
             // handler must be named _on_ActionRequest()
