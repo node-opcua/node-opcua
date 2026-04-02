@@ -10,6 +10,7 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { type ICertificateChainProvider, StaticCertificateChainProvider } from "node-opcua-common";
 import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -69,8 +70,9 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
-            } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
+            s.sessionTimeout
+        } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -333,8 +335,18 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public _on_connectionRefused?: (socketData: ISocketData) => void;
     public _on_openSecureChannelFailure?: (socketData: ISocketData, channelData: IChannelData) => void;
 
-    private _certificateChain: Certificate[];
-    private _privateKey: PrivateKey;
+    /**
+     * Certificate chain provider — delegates all cert/key access.
+     * Stored in a `#` private field so secrets are not visible
+     * in the debugger's property list or JSON serialization.
+     */
+    #certProvider: ICertificateChainProvider;
+    /**
+     * Combined DER cache — invalidated whenever the cert provider
+     * changes so that `EndpointDescription.serverCertificate`
+     * getters don't call `combine_der()` on every access.
+     */
+    #combinedDerCache: Certificate | undefined;
     private _channels: { [key: string]: ServerSecureChannelLayer };
     private _server?: Server;
     private _endpoints: EndpointDescription[];
@@ -347,9 +359,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     constructor(options: OPCUAServerEndPointOptions) {
         super();
 
-        assert(!Object.prototype.hasOwnProperty.call(options, "certificate"), "expecting a certificateChain instead");
-        assert(Object.prototype.hasOwnProperty.call(options, "certificateChain"), "expecting a certificateChain");
-        assert(Object.prototype.hasOwnProperty.call(options, "privateKey"));
+        assert(!Object.hasOwn(options, "certificate"), "expecting a certificateChain instead");
+        assert(Object.hasOwn(options, "certificateChain"), "expecting a certificateChain");
+        assert(Object.hasOwn(options, "privateKey"));
 
         this.certificateManager = options.certificateManager;
 
@@ -359,8 +371,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.host = options.host;
         assert(typeof this.port === "number");
 
-        this._certificateChain = options.certificateChain;
-        this._privateKey = options.privateKey;
+        this.#certProvider = new StaticCertificateChainProvider(options.certificateChain, options.privateKey);
 
         this._channels = {};
 
@@ -390,8 +401,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public dispose(): void {
-        this._certificateChain = emptyCertificateChain;
-        this._privateKey = emptyPrivateKey;
+        this.#certProvider = new StaticCertificateChainProvider(emptyCertificateChain, emptyPrivateKey);
+        this.#combinedDerCache = undefined;
 
         assert(Object.keys(this._channels).length === 0, "OPCUAServerEndPoint channels must have been deleted");
 
@@ -436,14 +447,78 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * Returns the X509 DER form of the server certificate
      */
     public getCertificateChain(): Certificate[] {
-        return this._certificateChain;
+        return this.#certProvider.getCertificateChain();
+    }
+
+    /**
+     * Replace the certificate chain provider for this endpoint.
+     *
+     * Used by push certificate management to switch from the
+     * default static provider to a disk-based one that re-reads
+     * certificates on demand.
+     *
+     * Invalidates the cached `combine_der` result so that
+     * `EndpointDescription.serverCertificate` getters pick up
+     * the new chain immediately.
+     */
+    public setCertificateProvider(provider: ICertificateChainProvider): void {
+        this.#certProvider = provider;
+        this.#combinedDerCache = undefined;
+    }
+
+    /**
+     * Return the current certificate chain provider.
+     * Useful for calling `invalidate()` after certificate rotation.
+     */
+    public getCertificateProvider(): ICertificateChainProvider {
+        return this.#certProvider;
+    }
+
+    /**
+     * Invalidate the combined DER cache.
+     *
+     * Called after the underlying provider's chain changes
+     * (e.g. after `provider.invalidate()` or `provider.update()`).
+     * The next `EndpointDescription.serverCertificate` access
+     * will recompute the combined DER from the provider.
+     */
+    public invalidateCombinedDerCache(): void {
+        this.#combinedDerCache = undefined;
+    }
+
+    /**
+     * Convenience method: invalidate both the provider's cache
+     * (so it re-reads from disk) and the combined DER cache
+     * (so endpoint descriptions recompute `serverCertificate`).
+     *
+     * Prefer this over calling `getCertificateProvider().invalidate()`
+     * and `invalidateCombinedDerCache()` separately.
+     */
+    public invalidateCertificates(): void {
+        this.#certProvider.invalidate();
+        this.#combinedDerCache = undefined;
+    }
+
+    /**
+     * Get the combined DER certificate (all certs concatenated)
+     * for use in EndpointDescription.serverCertificate.
+     * Cached internally; invalidated by provider changes.
+     * @internal
+     */
+    public getCombinedCertificate(): Certificate | undefined {
+        const chain = this.#certProvider.getCertificateChain();
+        if (chain.length === 0) return undefined;
+        if (!this.#combinedDerCache) {
+            this.#combinedDerCache = combine_der(chain);
+        }
+        return this.#combinedDerCache;
     }
 
     /**
      * the private key
      */
     public getPrivateKey(): PrivateKey {
-        return this._privateKey;
+        return this.#certProvider.getPrivateKey();
     }
 
     /**
@@ -512,7 +587,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                     collection: this._policy_deduplicator,
                     hostname,
                     server: this.serverInfo,
-                    serverCertificateChain: this.getCertificateChain(),
 
                     securityMode,
                     securityPolicy,
@@ -687,7 +761,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._server.listen(
             listenOptions,
-            /*"::",*/(err?: Error) => {
+            /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -877,7 +951,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -887,7 +961,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "The maximum number of connection has been reached - Connection is refused"
+                        "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = `maxConnections reached (${this.maxConnections})`;
@@ -964,7 +1038,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // as they will need to be interrupted when OPCUAServerEndPoint is closed
         assert(this._started, "OPCUAServerEndPoint must be started");
 
-        assert(!Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey), " channel already preregistered!");
+        assert(!Object.hasOwn(this._channels, channel.hashKey), " channel already preregistered!");
 
         const channelPriv = <ServerSecureChannelLayerPriv>channel;
         this._channels[channel.hashKey] = channelPriv;
@@ -1021,11 +1095,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     private _unregisterChannel(channel: ServerSecureChannelLayer): void {
         debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
-        if (!Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey)) {
+        if (!Object.hasOwn(this._channels, channel.hashKey)) {
             return;
         }
 
-        assert(Object.prototype.hasOwnProperty.call(this._channels, channel.hashKey), "channel is not registered");
+        assert(Object.hasOwn(this._channels, channel.hashKey), "channel is not registered");
 
         /**
          * @event closeChannel
@@ -1130,7 +1204,6 @@ interface MakeEndpointDescriptionOptions {
      */
     hostname: string;
 
-    serverCertificateChain: Certificate[];
     /**
      *
      */
@@ -1224,7 +1297,6 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
  * @private
  */
 function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, parent: OPCUAServerEndPoint): EndpointDescriptionEx {
-
     const u = (n: string) => getUniqueName(n, options.collection);
     options.securityLevel =
         options.securityLevel === undefined
@@ -1346,7 +1418,8 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
         endpointUrl: "<to be evaluated at run time>", // options.endpointUrl,
 
         server: undefined, // options.server,
-        serverCertificate: options.serverCertificateChain.length > 0 ? combine_der(options.serverCertificateChain) : undefined,
+        // serverCertificate is set as a dynamic getter below
+        serverCertificate: undefined,
 
         securityMode: options.securityMode,
         securityPolicyUri,
@@ -1357,15 +1430,27 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
     }) as EndpointDescriptionEx;
     endpoint._parent = parent;
 
+    // serverCertificate — always dynamic.
+    // Delegates to the parent endpoint's combined DER cache
+    // which in turn reads from the current ICertificateChainProvider.
+    // This ensures GetEndpoints always returns the current chain,
+    // whether the provider is static or disk-based.
+    Object.defineProperty(endpoint, "serverCertificate", {
+        get: () => parent.getCombinedCertificate(),
+        configurable: true
+    });
+
     // endpointUrl is dynamic as port number may be adjusted
     // when the tcp socket start listening
-    // biome-ignore lint/suspicious/noExplicitAny: __defineGetter__ not in standard typings
-    (endpoint as any).__defineGetter__("endpointUrl", () => {
-        const port = options.advertisedPort ?? endpoint._parent.port;
-        const resourcePath = options.resourcePath || "";
-        const hostname = options.hostname;
-        const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;
-        return resolveFullyQualifiedDomainName(endpointUrl);
+    Object.defineProperty(endpoint, "endpointUrl", {
+        get: () => {
+            const port = options.advertisedPort ?? endpoint._parent.port;
+            const resourcePath = options.resourcePath || "";
+            const hostname = options.hostname;
+            const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;
+            return resolveFullyQualifiedDomainName(endpointUrl);
+        },
+        configurable: true
     });
 
     endpoint.server = options.server;
