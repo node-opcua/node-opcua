@@ -639,8 +639,35 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
         });
         if (statusCode.isNotGood()) {
-            // the message has not been sent, we need to raise an exception
-            this.send_response(msgType, new ServiceFault({ responseHeader: { serviceResult: statusCode } }), message, callback);
+            if (response instanceof ServiceFault) {
+                // We are already trying to send a ServiceFault and
+                // it failed again (e.g. security layer error or
+                // message size exceeded). Do NOT recurse — that would
+                // cause infinite recursion and a stack overflow.
+                errorLog(
+                    "send_response: failed to send ServiceFault, "
+                    + "aborting to prevent infinite recursion. "
+                    + "statusCode =",
+                    statusCode.toString()
+                );
+                callback?.(
+                    new Error(
+                        "Failed to send ServiceFault: "
+                        + statusCode.toString()
+                    )
+                );
+                return;
+            }
+            // The original response could not be chunked.
+            // Try sending a ServiceFault instead.
+            this.send_response(
+                msgType,
+                new ServiceFault({
+                    responseHeader: { serviceResult: statusCode }
+                }),
+                message,
+                callback
+            );
             return;
         }
     }
