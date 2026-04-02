@@ -3777,17 +3777,13 @@ export class OPCUAServer extends OPCUABaseServer {
             transportSettings: serverOptions.transportSettings
         });
 
-        // Replace the initial static snapshot with a disk-backed
-        // SecretHolder so that endpoints always reflect the current
-        // on-disk certificate — even without push cert management.
-        // This makes invalidateCertificates() sufficient to pick up
-        // rotated certificates from any source.
-        endPoint.setCertificateProvider(
-            new SecretHolder({
-                certificateFile: this.certificateFile,
-                privateKeyFile: this.privateKeyFile
-            })
-        );
+        // SecretHolder reads certificateFile/privateKeyFile from `this`
+        // on each access, so it follows Object.defineProperty redirects
+        // (e.g. from push cert management) automatically.
+        // Note: creates a cycle (server → endpoint → SecretHolder → server)
+        // which is harmless — V8 mark-and-sweep handles it, and
+        // endpoint.dispose() breaks it by replacing #certProvider.
+        endPoint.setCertificateProvider(new SecretHolder(this));
 
         return endPoint;
     }
