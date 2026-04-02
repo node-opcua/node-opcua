@@ -2,8 +2,8 @@
  * @module node-opcua-server-configuration-server
  */
 import { EventEmitter } from "node:events";
-import { assert } from "node-opcua-assert";
 import type { ISessionContext } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
 import type { ByteString } from "node-opcua-basic-types";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { make_errorLog } from "node-opcua-debug";
@@ -70,10 +70,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public applicationUri: string;
 
     // ── typed event helpers ──────────────────────────────────────────
-    public on<K extends keyof PushCertificateManagerEvents>(
-        event: K,
-        listener: PushCertificateManagerEvents[K]
-    ): this;
+    public on<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public on(event: string | symbol, listener: (...args: any[]) => void): this;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,10 +78,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         return super.on(event, listener);
     }
 
-    public once<K extends keyof PushCertificateManagerEvents>(
-        event: K,
-        listener: PushCertificateManagerEvents[K]
-    ): this;
+    public once<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public once(event: string | symbol, listener: (...args: any[]) => void): this;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

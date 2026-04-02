@@ -1,36 +1,34 @@
 import fs from "fs";
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
 import {
+    AddressSpace,
+    type IEventData,
+    type PseudoVariantDateTime,
+    type PseudoVariantString,
+    type RaiseEventData,
+    SessionContext,
+    type UAEventType,
+    type UAExclusiveDeviationAlarmEx,
+    type UAObject,
+    type UAVariable,
+    type UAVariableT
+} from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { AttributeIds, NodeClass } from "node-opcua-data-model";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { checkFilter, ofType } from "node-opcua-service-filter";
+
+import { extractEventFields, FilterContextOnAddressSpace } from "node-opcua-service-filter/source/on_address_space/index";
+import {
+    ContentFilter,
+    ElementOperand,
     EventFilter,
     FilterOperator,
     LiteralOperand,
-    ContentFilter,
-    SimpleAttributeOperand,
-    ElementOperand
+    SimpleAttributeOperand
 } from "node-opcua-types";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
-import { resolveNodeId, NodeId } from "node-opcua-nodeid";
-import { Variant, DataType, VariantOptions } from "node-opcua-variant";
-import { ofType } from "node-opcua-service-filter";
-
-import { FilterContextOnAddressSpace, extractEventFields } from "node-opcua-service-filter/source/on_address_space/index";
-
-import {
-    AddressSpace,
-    UAObject,
-    SessionContext,
-    RaiseEventData,
-    UAEventType,
-    UAVariable,
-    IEventData,
-    UAVariableT,
-    UAExclusiveDeviationAlarmEx,
-    PseudoVariantString,
-    PseudoVariantDateTime
-} from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { checkFilter } from "node-opcua-service-filter";
+import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
+import should from "should";
 
 import { checkWhereClauseOnAdressSpace } from "../source/filter/check_where_clause_on_address_space";
 
@@ -46,8 +44,6 @@ interface This extends Mocha.Suite {
 // https://reference.opcfoundation.org/v105/Core/docs/Part4/7.7.3/
 
 describe("Testing extract EventField", function (this: Mocha.Suite) {
-
-
     let addressSpace: AddressSpace;
     let source: UAObject;
     const test = this as This;
@@ -108,10 +104,11 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         addressSpace.dispose();
     });
 
-    function createEventData(eventTypeName: string, options?:  
-        { message?: PseudoVariantString, localTime?: PseudoVariantDateTime }): IEventData {
-
-        const message = options?.message ;
+    function createEventData(
+        eventTypeName: string,
+        options?: { message?: PseudoVariantString; localTime?: PseudoVariantDateTime }
+    ): IEventData {
+        const message = options?.message;
         const localTime = options?.localTime;
 
         const eventTypeNode = addressSpace.findNode(eventTypeName)! as UAEventType;
@@ -123,11 +120,10 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = {
             dataType: DataType.NodeId,
-            value: test.source.nodeId,
-
+            value: test.source.nodeId
         };
         data.message = message;
-        data.localTime = localTime; 
+        data.localTime = localTime;
 
         const eventData = addressSpace.constructEventData(eventTypeNode, data);
         return eventData;
@@ -288,8 +284,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                                 dataType: DataType.NodeId,
                                 value: resolveNodeId("AuditCertificateExpiredEventType")
                             })
-                        }),
-
+                        })
                     ]
                 }
             ]
@@ -306,7 +301,6 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
     });
 
     it("EV06 - check Where Clause = with Equal FilterOperand and LocalTime as arguments", () => {
-
         const expectedDate = new Date("2019-01-01");
         const contentFilter = new ContentFilter({
             elements /* ContentFilterElem[] */: [
@@ -324,19 +318,22 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                                 dataType: DataType.DateTime,
                                 value: expectedDate
                             })
-                        }),
-
+                        })
                     ]
                 }
             ]
         });
         const sessionContext = SessionContext.defaultContext;
         {
-            const eventData1 = createEventData("AuditCertificateExpiredEventType", { localTime: { dataType: DataType.DateTime, value: new Date(expectedDate)} });
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", {
+                localTime: { dataType: DataType.DateTime, value: new Date(expectedDate) }
+            });
             checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
         }
         {
-            const eventData1 = createEventData("AuditCertificateExpiredEventType", { localTime: { dataType: DataType.DateTime, value: new Date("2000-01-01") } });
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", {
+                localTime: { dataType: DataType.DateTime, value: new Date("2000-01-01") }
+            });
             checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
         }
     });
@@ -358,23 +355,25 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                                 dataType: DataType.String,
                                 value: "Hello World"
                             })
-                        }),
-
+                        })
                     ]
                 }
             ]
         });
         const sessionContext = SessionContext.defaultContext;
         {
-            const eventData1 = createEventData("AuditCertificateExpiredEventType", { message: { dataType: DataType.String, value: "Hello World" } });
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", {
+                message: { dataType: DataType.String, value: "Hello World" }
+            });
             checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
         }
         {
-            const eventData1 = createEventData("DeviceFailureEventType", { message: { dataType:  DataType.String, value: "Bye Bye" } });
+            const eventData1 = createEventData("DeviceFailureEventType", {
+                message: { dataType: DataType.String, value: "Bye Bye" }
+            });
             checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
         }
     });
-
 
     it("EV08 - check WhereClause with Not Operand #810 (Not(OfType(...))", () => {
         const contentFilter1 = new ContentFilter({
@@ -392,11 +391,9 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
         const contentFilter2 = new ContentFilter({
             elements: [
-               
                 ofType("GeneralModelChangeEventType") // (ns = 0; i=2133))
             ]
         });
-
 
         const sessionContext = SessionContext.defaultContext;
 
@@ -453,19 +450,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
 
             const severityNode = test.alarmNode.getChildByName("Severity")! as UAVariableT<number, DataType.UInt16>;
             const filterContext = getFilterContext();
-
-            {
-                severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 2.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[0]);
-            }
-            {
-                severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[1]);
-            }
-            {
-                severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 100.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[2]);
-            }
+            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 2.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[0]);
+            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[1]);
+            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 100.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[2]);
         })
     );
 
@@ -519,32 +509,18 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const severityNode = test.alarmNode.getChildByName("Severity")! as UAVariableT<number, DataType.UInt16>;
 
         const filterContext = getFilterContext();
-
-        //  Value >= 10.0 OR Value <= 5.0
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 4.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 5.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 6.0 });
-            checkFilter(filterContext, contentFilter).should.eql(false);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 9.0 });
-            checkFilter(filterContext, contentFilter).should.eql(false);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 11.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 4.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 5.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 6.0 });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 9.0 });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 11.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
     });
 
     it("EV10 - checkFilter with Between operand", () => {
@@ -577,32 +553,18 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const severityNode = test.alarmNode.getChildByName("Severity")! as UAVariableT<number, DataType.UInt16>;
 
         const filterContext = getFilterContext();
-
-        //  true when 5.0 <= Value <= 10.0
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 4.0 });
-            checkFilter(filterContext, whereClause).should.eql(false);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 5.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 6.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 9.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-        }
-        {
-            severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 11.0 });
-            checkFilter(filterContext, whereClause).should.eql(false);
-        }
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 4.0 });
+        checkFilter(filterContext, whereClause).should.eql(false);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 5.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 6.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 9.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 10.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 11.0 });
+        checkFilter(filterContext, whereClause).should.eql(false);
     });
 
     it("EV11 - checkFilter with And operand", () => {
@@ -625,16 +587,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
 
         const filterContext = getFilterContext();
-        {
-            test.alarmNode.setEnabledState(true);
-            test.alarmNode.acknowledgeAndAutoConfirmBranch(test.alarmNode.currentBranch(), "Just a test");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
-        {
-            test.alarmNode.setEnabledState(false);
-            test.alarmNode.acknowledgeAndAutoConfirmBranch(test.alarmNode.currentBranch(), "Just a test");
-            checkFilter(filterContext, contentFilter).should.eql(false);
-        }
+        test.alarmNode.setEnabledState(true);
+        test.alarmNode.acknowledgeAndAutoConfirmBranch(test.alarmNode.currentBranch(), "Just a test");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        test.alarmNode.setEnabledState(false);
+        test.alarmNode.acknowledgeAndAutoConfirmBranch(test.alarmNode.currentBranch(), "Just a test");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV12 - checkFilter with (unsupported) Like operand", () => {
@@ -648,9 +606,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
 
         const filterContext = getFilterContext();
-        {
-            checkFilter(filterContext, contentFilter).should.eql(false);
-        }
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
     it("EV13 - checkFilter empty", () => {
         const contentFilter = new ContentFilter({
@@ -658,9 +614,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
 
         const filterContext = getFilterContext();
-        {
-            checkFilter(filterContext, contentFilter).should.eql(true);
-        }
+        checkFilter(filterContext, contentFilter).should.eql(true);
     });
 
     it("EV14 - checkFilter OfType with Variable", () => {

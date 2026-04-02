@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { BonjourHolder } from "node-opcua-service-discovery";
 import { OPCUABaseServer } from "./base_server";
-import { IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
+import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
 /**
  * a RegisterServerManager that declare the server the OPCUA Bonjour service
@@ -31,7 +31,6 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
 
     public async stop(): Promise<void> {
         if (this.bonjour) {
-
             this._state = RegisterServerManagerStatus.UNREGISTERING;
             await this.bonjour.stopAnnouncedOnMulticastSubnet();
             this.emit("serverUnregistered");
@@ -50,7 +49,6 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         const capabilities = this.server.capabilitiesForMDNS;
         const name = this.server.serverInfo.applicationUri!;
         const port = this.server.endpoints[0].port;
-
 
         this._state = RegisterServerManagerStatus.REGISTERING;
         await this.bonjour.announcedOnMulticastSubnet({

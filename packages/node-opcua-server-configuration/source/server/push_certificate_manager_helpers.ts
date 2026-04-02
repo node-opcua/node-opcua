@@ -17,7 +17,7 @@ import {
 import { EventNotifierFlags, type UAObject, type UAVariable } from "node-opcua-address-space-base";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
-import { readCertificateChainAsync, type Certificate } from "node-opcua-crypto";
+import { type Certificate, readCertificateChainAsync } from "node-opcua-crypto";
 import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

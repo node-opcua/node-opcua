@@ -3,53 +3,60 @@
  */
 // tslint:disable:no-console
 
-import { EventEmitter } from "events";
 import chalk from "chalk";
+import { EventEmitter } from "events";
 
 import {
-    SessionContext,
     AddressSpace,
-    BaseNode,
-    Duration,
-    UAObjectType,
-    ISessionContext,
-    IAddressSpace,
-    UAVariable,
-    UAObject,
-    UAMethod
+    type BaseNode,
+    type Duration,
+    type IAddressSpace,
+    type ISessionContext,
+    SessionContext,
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type UAVariable
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { Byte, UInt32 } from "node-opcua-basic-types";
+import type { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { NodeClass, AttributeIds, isValidDataEncoding, QualifiedNameLike } from "node-opcua-data-model";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { AttributeIds, isValidDataEncoding, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
+import type { NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { SequenceNumberGenerator } from "node-opcua-secure-channel";
-import { EventFilter, checkSelectClauses } from "node-opcua-service-filter";
-import { AggregateFilter } from "node-opcua-service-subscription";
+import { checkSelectClauses, EventFilter } from "node-opcua-service-filter";
 import {
+    AggregateFilter,
+    DataChangeFilter,
     DataChangeNotification,
     EventNotificationList,
-    MonitoringMode,
+    MonitoredItemCreateRequest,
     MonitoredItemCreateResult,
     MonitoredItemNotification,
-    PublishResponse,
+    MonitoringMode,
     NotificationMessage,
-    StatusChangeNotification,
-    DataChangeFilter,
-    MonitoredItemCreateRequest
+    PublishResponse,
+    StatusChangeNotification
 } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, MonitoringFilter, NotificationData } from "node-opcua-types";
-import { Queue } from "./queue";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import {
+    AggregateFilterResult,
+    ContentFilterResult,
+    EventFieldList,
+    EventFilterResult,
+    type MonitoringFilter,
+    NotificationData
+} from "node-opcua-types";
+import { type IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
 
-import { MonitoredItem, MonitoredItemOptions, QueueItem } from "./monitored_item";
-import { ServerSession } from "./server_session";
+import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item";
+import { Queue } from "./queue";
+import type { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";
-import { IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -1041,7 +1048,10 @@ export class Subscription extends EventEmitter {
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
 
         const node = addressSpace.findNode(itemToMonitor.nodeId) as UAObject | UAVariable | UAMethod;
-        if (!node || (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Method)) {
+        if (
+            !node ||
+            (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Method)
+        ) {
             return handle_error(StatusCodes.BadNodeIdUnknown);
         }
 
@@ -1147,7 +1157,7 @@ export class Subscription extends EventEmitter {
      */
     public removeMonitoredItem(monitoredItemId: number): StatusCode {
         debugLog("Removing monitoredIem ", monitoredItemId);
-        if (!Object.prototype.hasOwnProperty.call(this.monitoredItems, monitoredItemId.toString())) {
+        if (!Object.hasOwn(this.monitoredItems, monitoredItemId.toString())) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
 
@@ -1207,7 +1217,7 @@ export class Subscription extends EventEmitter {
      * @param notification
      */
     public notificationHasExpired(notification: { start_tick: number }): boolean {
-        assert(Object.prototype.hasOwnProperty.call(notification, "start_tick"));
+        assert(Object.hasOwn(notification, "start_tick"));
         assert(isFinite(notification.start_tick + this.maxKeepAliveCount));
         return notification.start_tick + this.maxKeepAliveCount < this.publishIntervalCount;
     }
@@ -1309,7 +1319,7 @@ export class Subscription extends EventEmitter {
             warningLog("resendInitialValues: error:", (err as any).message);
         }
         // make sure data will be sent immediately
-        this._keep_alive_counter = this.maxKeepAliveCount - 1 ;
+        this._keep_alive_counter = this.maxKeepAliveCount - 1;
         this.state = SubscriptionState.NORMAL;
         this._harvestMonitoredItems();
     }
@@ -1381,7 +1391,7 @@ export class Subscription extends EventEmitter {
      *  _publish_pending_notifications send a "notification" event:
      *
      * @private
-     * 
+     *
      * precondition
      *     - pendingPublishRequestCount > 0
      */
@@ -1402,8 +1412,8 @@ export class Subscription extends EventEmitter {
         // Update counters ....
         this._updateCounters(notificationMessage);
 
-        assert(Object.prototype.hasOwnProperty.call(notificationMessage, "sequenceNumber"));
-        assert(Object.prototype.hasOwnProperty.call(notificationMessage, "notificationData"));
+        assert(Object.hasOwn(notificationMessage, "sequenceNumber"));
+        assert(Object.hasOwn(notificationMessage, "notificationData"));
         // update diagnostics
         this.subscriptionDiagnostics.publishRequestCount += 1;
 

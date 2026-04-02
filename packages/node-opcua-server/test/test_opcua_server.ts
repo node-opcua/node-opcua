@@ -9,7 +9,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import should from "should";
 
-import { OPCUAServer, ServerSession } from "..";
+import { OPCUAServer, type ServerSession } from "..";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

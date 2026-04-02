@@ -3,7 +3,7 @@ import path from "node:path";
 import { assert } from "node-opcua-assert";
 import type { ByteString } from "node-opcua-basic-types";
 import type { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { readPrivateKey, exploreCertificate } from "node-opcua-crypto";
+import { exploreCertificate, readPrivateKey } from "node-opcua-crypto";
 import {
     certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
@@ -19,7 +19,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { UpdateCertificateResult } from "../../push_certificate_manager.js";
 import { validateCertificateAndChain } from "../certificate_validation.js";
 import type { PushCertificateManagerInternalContext } from "./internal_context.js";
-import { resolveCertificateGroupContext, validateCertificateType, findCertificateGroupName } from "./util.js";
+import { findCertificateGroupName, resolveCertificateGroupContext, validateCertificateType } from "./util.js";
 
 const warningLog = make_warningLog("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");

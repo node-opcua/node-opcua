@@ -7,7 +7,7 @@ async function findAvailablePort(): Promise<number> {
     return new Promise((resolve) => {
         const server = net.createServer();
         server.listen(0);
-        server.on("listening", function () {
+        server.on("listening", () => {
             const port = (server.address() as net.AddressInfo).port;
             console.log(`INFO: Found available port ${port}`);
             server.close(() => resolve(port));
@@ -67,7 +67,6 @@ async function testServerStartupAndShutdown(host: string | undefined, port: numb
 
         return results;
     } catch (err) {
-
         console.error(`ERROR: failed server startup/shutdown with msg: ${(err as Error).message}`);
         throw err;
     }

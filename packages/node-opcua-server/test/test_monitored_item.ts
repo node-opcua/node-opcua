@@ -3,29 +3,27 @@
 import { EventEmitter } from "events";
 import sinon from "sinon";
 import "should";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type IAddressSpace, type ISessionContext, SessionContext } from "node-opcua-address-space";
+import { AttributeIds, NodeClass, QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, makeNodeId, type NodeId } from "node-opcua-nodeid";
+import { TimestampsToReturn } from "node-opcua-service-read";
 import {
-    MonitoringMode,
-    MonitoringParameters,
     DataChangeFilter,
     DataChangeTrigger,
-    DeadbandType
+    DeadbandType,
+    MonitoringMode,
+    MonitoringParameters
 } from "node-opcua-service-subscription";
-import { NodeClass, AttributeIds, QualifiedName, QualifiedNameOptions } from "node-opcua-data-model";
-import { makeNodeId, coerceNodeId, NodeId } from "node-opcua-nodeid";
-import { TimestampsToReturn } from "node-opcua-service-read";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type MonitoredItemNotification, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
-import { MonitoredItemNotification, Range } from "node-opcua-types";
-import { IAddressSpace, ISessionContext, SessionContext } from "node-opcua-address-space";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { MonitoredItem, QueueItem } from "../source";
 
 function q(monitoredItem: IMonitoredItem) {
-    return monitoredItem.queue.map(function (a) {
-        return a.value.value.value;
-    });
+    return monitoredItem.queue.map((a) => a.value.value.value);
 }
 const o = false;
 const X = true;
@@ -161,7 +159,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.isSampling.should.eql(false);
 
         // set up a spying samplingFunc
-        const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
             callback(null, new DataValue({ value: {} }));
         });
         monitoredItem.samplingFunc = spy_samplingEventCall;
@@ -361,7 +359,7 @@ describe("Server Side MonitoredItem", () => {
 
     function install_spying_samplingFunc() {
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
             sample_value++;
             const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
             callback(null, dataValue);
@@ -524,32 +522,20 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1001]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1001, 1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1001, 1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.GoodWithOverflowBit);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
 
@@ -567,11 +553,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -600,29 +582,17 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1001]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1001]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1002]);
 
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.hasOverflowBit.should.equal(true);
@@ -641,11 +611,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.hasOverflowBit.should.equal(false);
         //xx        monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
@@ -674,29 +640,17 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1001]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1001]);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(3);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1001, 1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1001, 1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[2].value.statusCode.should.eql(StatusCodes.Good);
@@ -704,11 +658,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1003 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(4);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1001, 1002, 1003]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1001, 1002, 1003]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[1].value.statusCode.should.eql(StatusCodes.Good);
         monitoredItem.queue[2].value.statusCode.should.eql(StatusCodes.Good);
@@ -728,11 +678,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000, 1003]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000, 1003]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -740,7 +686,7 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
-    it("MonitoringItem#setMonitoringMode : setting the mode to DISABLED should cause all queued Notifications to be deleted", function () {
+    it("MonitoringItem#setMonitoringMode : setting the mode to DISABLED should cause all queued Notifications to be deleted", () => {
         // OPCUA 1.03 part 4 : $5.12.4
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
@@ -754,7 +700,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.setNode(fakeNode);
 
-        monitoredItem.samplingFunc = function (sessionContext, oldvalue, callback) {
+        monitoredItem.samplingFunc = (sessionContext, oldvalue, callback) => {
             /** */
             //callback();
         };
@@ -766,11 +712,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(true);
         monitoredItem.queue.length.should.eql(2);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1001, 1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1001, 1002]);
 
         monitoredItem.setMonitoringMode(MonitoringMode.Disabled);
         monitoredItem.overflow.should.eql(false);
@@ -780,7 +722,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.dispose();
     });
 
-    it("should set the OverflowBit as specified in the example in specification - Fig 17 Queue overflow handling    ", function () {
+    it("should set the OverflowBit as specified in the example in specification - Fig 17 Queue overflow handling    ", () => {
         // OPC Specification 1.03 part 4 page 60 - Figure 17
         const monitoredItemT = createMonitoredItem({
             clientHandle: 1,
@@ -876,31 +818,19 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1001]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -928,31 +858,19 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1000]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1000]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1001 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1001]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1001]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1002 } }));
         monitoredItem.overflow.should.eql(false);
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue
-            .map(function (a) {
-                return a.value.value.value;
-            })
-            .should.eql([1002]);
+        monitoredItem.queue.map((a) => a.value.value.value).should.eql([1002]);
         monitoredItem.queue[0].value.statusCode.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
@@ -1009,7 +927,7 @@ describe("Server Side MonitoredItem", () => {
         const statusCode6 = monitoredItem.setMonitoringMode(MonitoringMode.Invalid);
         statusCode6.should.eql(StatusCodes.BadInvalidArgument);
 
-        const statusCode8 = monitoredItem.setMonitoringMode(<MonitoringMode>  -2323);
+        const statusCode8 = monitoredItem.setMonitoringMode(<MonitoringMode>-2323);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
         statusCode8.should.eql(StatusCodes.BadInternalError);
         monitoredItem.monitoringMode.should.not.eql(MonitoringMode.Invalid);
@@ -1022,7 +940,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.dispose();
     });
 });
-describe("MonitoredItem with DataChangeFilter", function () {
+describe("MonitoredItem with DataChangeFilter", () => {
     let monitoredItem: IMonitoredItem | undefined;
     afterEach(() => {
         if (monitoredItem) {
@@ -1136,7 +1054,7 @@ describe("MonitoredItem with DataChangeFilter", function () {
         f(monitoredItem).should.eql([o, o, X, o]);
     });
 
-    it("DeadbandType.Absolute - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", function () {
+    it("DeadbandType.Absolute - should detect status change & value change when dataChangeFilter trigger is DataChangeTrigger.StatusValue and deadband is 8", () => {
         const dataChangeFilter = new DataChangeFilter({
             trigger: DataChangeTrigger.StatusValue,
             deadbandType: DeadbandType.Absolute,
@@ -1225,53 +1143,51 @@ describe("MonitoredItem with DataChangeFilter", function () {
         // node must provide a EURange property that expose a Range for DeadbandType.Percent to work
         fakeNode.getChildByName("EURange").readValue().value.value.low.should.eql(-100);
         fakeNode.getChildByName("EURange").readValue().value.value.high.should.eql(100);
-        {
-            // 20 percent = 40
-            monitoredItem.queue.length.should.eql(0);
+        // 20 percent = 40
+        monitoredItem.queue.length.should.eql(0);
 
-            writeValue(48);
-            monitoredItem.queue.length.should.eql(1);
-            q(monitoredItem).should.eql([48]);
-            f(monitoredItem).should.eql([o]);
+        writeValue(48);
+        monitoredItem.queue.length.should.eql(1);
+        q(monitoredItem).should.eql([48]);
+        f(monitoredItem).should.eql([o]);
 
-            // 48-> 49 no record
-            writeValue(49);
-            monitoredItem.queue.length.should.eql(1);
-            q(monitoredItem).should.eql([48]);
-            f(monitoredItem).should.eql([o]);
+        // 48-> 49 no record
+        writeValue(49);
+        monitoredItem.queue.length.should.eql(1);
+        q(monitoredItem).should.eql([48]);
+        f(monitoredItem).should.eql([o]);
 
-            // 48-> 49  + statusChange => Record
-            writeValue(49, StatusCodes.GoodCallAgain);
-            monitoredItem.queue.length.should.eql(2);
-            q(monitoredItem).should.eql([48, 49]);
-            f(monitoredItem).should.eql([o, X]);
+        // 48-> 49  + statusChange => Record
+        writeValue(49, StatusCodes.GoodCallAgain);
+        monitoredItem.queue.length.should.eql(2);
+        q(monitoredItem).should.eql([48, 49]);
+        f(monitoredItem).should.eql([o, X]);
 
-            // 49-> 49  + statusChange => Record
-            writeValue(49);
-            monitoredItem.queue.length.should.eql(3);
-            q(monitoredItem).should.eql([48, 49, 49]);
-            f(monitoredItem).should.eql([o, X, o]);
+        // 49-> 49  + statusChange => Record
+        writeValue(49);
+        monitoredItem.queue.length.should.eql(3);
+        q(monitoredItem).should.eql([48, 49, 49]);
+        f(monitoredItem).should.eql([o, X, o]);
 
-            // 49-> 49  + no statusChange => No Record
-            writeValue(49);
-            q(monitoredItem).should.eql([48, 49, 49]);
-            f(monitoredItem).should.eql([o, X, o]);
+        // 49-> 49  + no statusChange => No Record
+        writeValue(49);
+        q(monitoredItem).should.eql([48, 49, 49]);
+        f(monitoredItem).should.eql([o, X, o]);
 
-            // 49-> 59  + no statusChange => in Deadband => No Record
-            writeValue(59);
-            q(monitoredItem).should.eql([48, 49, 49]);
-            f(monitoredItem).should.eql([o, X, o]);
+        // 49-> 59  + no statusChange => in Deadband => No Record
+        writeValue(59);
+        q(monitoredItem).should.eql([48, 49, 49]);
+        f(monitoredItem).should.eql([o, X, o]);
 
-            // 49 -> 60 : in deadband => No record
-            writeValue(60);
-            q(monitoredItem).should.eql([48, 49, 49]);
-            f(monitoredItem).should.eql([o, X, o]);
+        // 49 -> 60 : in deadband => No record
+        writeValue(60);
+        q(monitoredItem).should.eql([48, 49, 49]);
+        f(monitoredItem).should.eql([o, X, o]);
 
-            // 49 -> 60 : node dead band =>  record
-            writeValue(0);
-            q(monitoredItem).should.eql([48, 49, 49, 0]);
-            f(monitoredItem).should.eql([o, X, o, o]);
-        }
+        // 49 -> 60 : node dead band =>  record
+        writeValue(0);
+        q(monitoredItem).should.eql([48, 49, 49, 0]);
+        f(monitoredItem).should.eql([o, X, o, o]);
     });
     it("DeadbandType.Percent - changing filter in the middle", () => {
         const dataChangeFilter1 = new DataChangeFilter({
@@ -1429,24 +1345,22 @@ describe("MonitoredItem with DataChangeFilter", function () {
         range.low.should.eql(-100);
         range.high.should.eql(100);
         const band = range.high - range.low;
-        {
-            monitoredItem.queue.length.should.eql(0);
+        monitoredItem.queue.length.should.eql(0);
 
-            writeValue(-100);
-            monitoredItem.queue.length.should.eql(1);
-            q(monitoredItem).should.eql([-100]);
-            f(monitoredItem).should.eql([o]);
+        writeValue(-100);
+        monitoredItem.queue.length.should.eql(1);
+        q(monitoredItem).should.eql([-100]);
+        f(monitoredItem).should.eql([o]);
 
-            writeValue(100);
-            monitoredItem.queue.length.should.eql(2);
-            q(monitoredItem).should.eql([-100, 100]);
-            f(monitoredItem).should.eql([o, o]);
+        writeValue(100);
+        monitoredItem.queue.length.should.eql(2);
+        q(monitoredItem).should.eql([-100, 100]);
+        f(monitoredItem).should.eql([o, o]);
 
-            writeValue(57);
-            monitoredItem.queue.length.should.eql(2);
-            q(monitoredItem).should.eql([-100, 100]);
-            f(monitoredItem).should.eql([o, o]);
-        }
+        writeValue(57);
+        monitoredItem.queue.length.should.eql(2);
+        q(monitoredItem).should.eql([-100, 100]);
+        f(monitoredItem).should.eql([o, o]);
     });
     it("ctt DataAccess PercentDeadBand 018", () => {
         /*  Test prepared by OPC Foundation: compliance@opcfoundation.org

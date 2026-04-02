@@ -1,24 +1,22 @@
 /**
  * @module node-opcua-server
  */
-import { assert } from "node-opcua-assert";
 
-import { BaseNode, UAVariable } from "node-opcua-address-space";
-import { AttributeIds } from "node-opcua-data-model";
-import { NodeClass } from "node-opcua-data-model";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import type { BaseNode, UAVariable } from "node-opcua-address-space";
+import { assert } from "node-opcua-assert";
+import { DataType } from "node-opcua-basic-types";
+import { AttributeIds, NodeClass } from "node-opcua-data-model";
+import { make_warningLog } from "node-opcua-debug";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ReadValueIdOptions } from "node-opcua-types";
-import { DataType } from "node-opcua-basic-types";
-import { make_warningLog } from "node-opcua-debug";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { ReadValueIdOptions } from "node-opcua-types";
 
 const warningLog = make_warningLog(__filename);
 
 function isNumberDataType(node: UAVariable): boolean {
-
     const n = node.dataType as INodeId;
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value < 22) {
         switch (n.value) {

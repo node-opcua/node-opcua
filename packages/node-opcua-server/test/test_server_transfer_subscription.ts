@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable max-statements */
 /// reference
-import should from "should";
-import sinon from "sinon";
 
-import { PublishRequest } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { ServerEngine, ServerSession, Subscription, SubscriptionState, installSessionLoggingOnEngine } from "../source";
+import { PublishRequest } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
+import sinon from "sinon";
+
+import { installSessionLoggingOnEngine, ServerEngine, type ServerSession, type Subscription, SubscriptionState } from "../source";
 
 import { add_mock_monitored_item } from "./helper";
 import { with_fake_timer } from "./helper_with_fake_timer";

@@ -5,44 +5,47 @@
 
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
-
-import { assert } from "node-opcua-assert";
 import {
+    type AddressSpace,
     addElement,
-    AddressSpace,
     ContinuationPointManager,
     createExtObjArrayNode,
+    type DTSessionDiagnostics,
+    type DTSessionSecurityDiagnostics,
     ensureObjectIsSecure,
-    ISessionBase,
+    type ISessionBase,
+    type IUserManager,
     removeElement,
-    UADynamicVariableArray,
-    UAObject,
-    UASessionDiagnosticsVariable,
-    UASessionSecurityDiagnostics,
-    DTSessionDiagnostics,
-    DTSessionSecurityDiagnostics,
     SessionContext,
-    IUserManager
+    type UADynamicVariableArray,
+    type UAObject,
+    type UASessionDiagnosticsVariable,
+    type UASessionSecurityDiagnostics
 } from "node-opcua-address-space";
-import { ISessionContext } from "node-opcua-address-space-base";
+import type { ISessionContext } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
 import { getMinOPCUADate, randomGuid } from "node-opcua-basic-types";
-import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { QualifiedName, NodeClass } from "node-opcua-data-model";
+import {
+    type SessionDiagnosticsDataType,
+    type SessionSecurityDiagnosticsDataType,
+    SubscriptionDiagnosticsDataType
+} from "node-opcua-common";
+import { NodeClass, QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { WatchDog } from "node-opcua-utils";
-import { lowerFirstLetter } from "node-opcua-utils";
-import { ISubscriber, IWatchdogData2 } from "node-opcua-utils";
-
-import { IServerSession, IServerSessionBase, ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import { ApplicationDescription, UserIdentityToken, CreateSubscriptionRequestOptions, EndpointDescription } from "node-opcua-types";
-
+import type { IServerSession, IServerSessionBase, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type {
+    ApplicationDescription,
+    CreateSubscriptionRequestOptions,
+    EndpointDescription,
+    UserIdentityToken
+} from "node-opcua-types";
+import { type ISubscriber, type IWatchdogData2, lowerFirstLetter, WatchDog } from "node-opcua-utils";
+import type { ServerEngine } from "./server_engine";
 import { ServerSidePublishEngine } from "./server_publish_engine";
-import { Subscription } from "./server_subscription";
-import { SubscriptionState } from "./server_subscription";
-import { ServerEngine } from "./server_engine";
+import { type Subscription, SubscriptionState } from "./server_subscription";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -277,9 +280,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         if (this._sessionDiagnostics) {
             // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
-            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentMonitoredItemsCount"));
-            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentSubscriptionsCount"));
-            assert(Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, "currentPublishRequestsInQueue"));
+            assert(Object.hasOwn(this._sessionDiagnostics, "currentMonitoredItemsCount"));
+            assert(Object.hasOwn(this._sessionDiagnostics, "currentSubscriptionsCount"));
+            assert(Object.hasOwn(this._sessionDiagnostics, "currentPublishRequestsInQueue"));
 
             // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
             // sessionDiagnostics extension object uses a different spelling
@@ -306,7 +309,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
             // c8 ignore next
-            if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
+            if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
             } else {
@@ -320,7 +323,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
             // c8 ignore next
-            if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
+            if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestErrorCounter: cannot find", propName);
                 // xx  return;
             } else {
@@ -535,7 +538,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public createSubscription(parameters: CreateSubscriptionRequestOptions): Subscription {
         const subscription = this.parent._createSubscriptionOnSession(this, parameters);
-        assert(!Object.prototype.hasOwnProperty.call(parameters, "id"));
+        assert(!Object.hasOwn(parameters, "id"));
         this.assignSubscription(subscription);
         assert(subscription.$session === this);
         assert(subscription.sessionId instanceof NodeId);
@@ -548,7 +551,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.channel = channel;
         this.channelId = channel.channelId;
         const key = this.authenticationToken.toString();
-        assert(!Object.prototype.hasOwnProperty.call(channel.sessionTokens, key), "channel has already a session");
+        assert(!Object.hasOwn(channel.sessionTokens, key), "channel has already a session");
 
         channel.sessionTokens[key] = this;
 
@@ -569,7 +572,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.nonce && this.nonce instanceof Buffer);
         assert(this.authenticationToken);
         const key = this.authenticationToken.toString();
-        assert(Object.prototype.hasOwnProperty.call(channel.sessionTokens, key));
+        assert(Object.hasOwn(channel.sessionTokens, key));
         assert(this.channel);
         assert(typeof this.channel_abort_event_handler === "function");
         channel.removeListener("abort", this.channel_abort_event_handler);

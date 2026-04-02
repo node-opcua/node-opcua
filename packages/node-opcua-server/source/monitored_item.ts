@@ -1,36 +1,36 @@
 /**
  * @module node-opcua-server
  */
-import { EventEmitter } from "events";
+
 import chalk from "chalk";
+import { EventEmitter } from "events";
+import {
+    type AddressSpace,
+    type BaseNode,
+    type IEventData,
+    makeAttributeEventName,
+    SessionContext,
+    type UAVariable
+} from "node-opcua-address-space";
+import type { ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
-import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";
-import { extractEventFields } from "node-opcua-service-filter";
-import { DateTime, UInt32 } from "node-opcua-basic-types";
-import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
+import type { DateTime, UInt32 } from "node-opcua-basic-types";
+import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import {
     apply_timestamps,
+    coerceTimestampsToReturn,
     DataValue,
     extractRange,
     sameDataValue,
-    coerceTimestampsToReturn,
     sameStatusCode
 } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId } from "node-opcua-nodeid";
-import { NumericalRange0, NumericRange } from "node-opcua-numeric-range";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+import { type NumericalRange0, NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { EventFilter } from "node-opcua-service-filter";
-import { ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
-import {
-    MonitoredItemModifyResult,
-    MonitoredItemNotification,
-    MonitoringMode,
-    MonitoringParameters
-} from "node-opcua-service-subscription";
+import { EventFilter, extractEventFields } from "node-opcua-service-filter";
+import { ReadValueId, type TimestampsToReturn } from "node-opcua-service-read";
 import {
     DataChangeFilter,
     DataChangeTrigger,
@@ -38,25 +38,28 @@ import {
     isOutsideDeadbandAbsolute,
     isOutsideDeadbandNone,
     isOutsideDeadbandPercent,
-    PseudoRange
+    MonitoredItemModifyResult,
+    MonitoredItemNotification,
+    MonitoringMode,
+    MonitoringParameters,
+    type PseudoRange
 } from "node-opcua-service-subscription";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     DataChangeNotification,
     EventFieldList,
     EventNotificationList,
-    MonitoringFilter,
-    ReadValueIdOptions,
-    SimpleAttributeOperand,
-    SubscriptionDiagnosticsDataType
+    type MonitoringFilter,
+    type ReadValueIdOptions,
+    type SimpleAttributeOperand,
+    type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
 import { sameVariant, Variant, VariantArrayType } from "node-opcua-variant";
-
-import { appendToTimer, removeFromTimer } from "./node_sampler";
-import { validateFilter } from "./validate_filter";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
-import { SamplingFunc } from "./sampling_func";
-import { MonitoredItemBase } from "./server_subscription";
+import { appendToTimer, removeFromTimer } from "./node_sampler";
+import type { SamplingFunc } from "./sampling_func";
+import type { MonitoredItemBase } from "./server_subscription";
+import { validateFilter } from "./validate_filter";
 
 const errorLog = make_errorLog(__filename);
 
@@ -100,8 +103,8 @@ function _adjust_queue_size(queueSize: number): number {
 
 function _validate_parameters(monitoringParameters: any) {
     // xx assert(options instanceof MonitoringParameters);
-    assert(Object.prototype.hasOwnProperty.call(monitoringParameters, "clientHandle"));
-    assert(Object.prototype.hasOwnProperty.call(monitoringParameters, "samplingInterval"));
+    assert(Object.hasOwn(monitoringParameters, "clientHandle"));
+    assert(Object.hasOwn(monitoringParameters, "samplingInterval"));
     assert(isFinite(monitoringParameters.clientHandle));
     assert(isFinite(monitoringParameters.samplingInterval));
     assert(typeof monitoringParameters.discardOldest === "boolean");
@@ -394,10 +397,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public overflow: boolean;
     public oldDataValue: DataValue;
 
-
     #monitoringMode: MonitoringMode = MonitoringMode.Invalid;
 
-    public get monitoringMode() { return this.#monitoringMode; }
+    public get monitoringMode() {
+        return this.#monitoringMode;
+    }
 
     public timestampsToReturn: TimestampsToReturn;
     public itemToMonitor: any;
@@ -424,7 +428,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     constructor(options: MonitoredItemOptions) {
         super();
 
-        assert(Object.prototype.hasOwnProperty.call(options, "monitoredItemId"));
+        assert(Object.hasOwn(options, "monitoredItemId"));
         assert(!options.monitoringMode, "use setMonitoring mode explicitly to activate the monitored item");
 
         options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;
@@ -470,7 +474,6 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     public setMonitoringMode(monitoringMode: MonitoringMode): StatusCode {
-
         if (monitoringMode === this.monitoringMode) {
             // nothing to do
             return StatusCodes.BadNothingToDo;
@@ -479,7 +482,6 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return StatusCodes.BadInvalidArgument;
         }
         const old_monitoringMode = this.monitoringMode;
-
 
         if (monitoringMode === MonitoringMode.Disabled) {
             this.#monitoringMode = monitoringMode;
@@ -1200,7 +1202,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     private _setOverflowBit(notification: any) {
-        if (Object.prototype.hasOwnProperty.call(notification, "value")) {
+        if (Object.hasOwn(notification, "value")) {
             assert(notification.value.statusCode.equals(StatusCodes.Good));
             notification.value.statusCode = StatusCode.makeStatusCode(
                 notification.value.statusCode,
@@ -1301,11 +1303,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                this.node!.browseName.toString() +
-                " " +
-                dataValue.toString() +
-                "  " +
-                chalk.cyan(this.oldDataValue.toString())
+                    this.node!.browseName.toString() +
+                    " " +
+                    dataValue.toString() +
+                    "  " +
+                    chalk.cyan(this.oldDataValue.toString())
             );
         }
 

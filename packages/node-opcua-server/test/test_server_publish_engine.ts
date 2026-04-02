@@ -33,16 +33,16 @@
  *
  */
 
-import sinon from "sinon";
-import should from "should";
-
-import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
 import { SessionContext } from "node-opcua-address-space";
-import { ServerSidePublishEngine, Subscription, SubscriptionOptions, SubscriptionState } from "../source";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const property = (key: string) => (obj: Record<string,any>) => obj[key];
+import { PublishRequest, type PublishResponse } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
+import sinon from "sinon";
+import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
+
+const property = (key: string) => (obj: Record<string, any>) => obj[key];
 
 // tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");
@@ -1034,7 +1034,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.callCount.should.equal(5);
             publish_server.pendingPublishRequestCount.should.eql(1);
             send_response_for_request_spy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            // 
+            //
             send_response_for_request_spy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
             send_response_for_request_spy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);
             send_response_for_request_spy.getCall(4).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTimeout);

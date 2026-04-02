@@ -1,5 +1,5 @@
-import { ISessionContext } from "node-opcua-address-space-base";
-import { DataValue } from "node-opcua-data-value";
+import type { ISessionContext } from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
 
 export type SamplingFunc = (
     context: ISessionContext,

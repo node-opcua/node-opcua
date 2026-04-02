@@ -1,35 +1,29 @@
-"use strict";
-
+import { EventEmitter } from "events";
+import {
+    type AddressSpace,
+    type BaseNode,
+    EventData,
+    IEventData,
+    type Namespace,
+    SessionContext,
+    type UAEventType,
+    type UAObject
+} from "node-opcua-address-space";
+import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
+import { AttributeIds, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId } from "node-opcua-nodeid";
+import { checkSelectClauses, EventFilter, extractEventFields, SimpleAttributeOperand } from "node-opcua-service-filter";
+import { EventFieldList } from "node-opcua-service-subscription";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 /* jslint */
 /*global require,describe, it, before, after */
 // tslint:disable: only-arrow-functions
 // tslint:disable: no-console
 // tslint:disable: ordered-imports
 import util from "util";
-import { EventEmitter } from "events";
-import should from "should";
-
-import {
-    AddressSpace,
-    IEventData,
-    EventData,
-    Namespace,
-    UAEventType,
-    UAObject,
-    SessionContext,
-    BaseNode
-} from "node-opcua-address-space";
-import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
-import { AttributeIds, NodeClass, coerceQualifiedName } from "node-opcua-data-model";
-import { EventFilter, SimpleAttributeOperand } from "node-opcua-service-filter";
-import { EventFieldList } from "node-opcua-service-subscription";
-import { DataType, Variant } from "node-opcua-variant";
-import { NodeId } from "node-opcua-nodeid";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { checkSelectClauses } from "node-opcua-service-filter";
-import { extractEventFields } from "node-opcua-service-filter";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -58,7 +52,7 @@ describe("testing Events  ", () => {
 
     util.inherits(Observer, EventEmitter);
 
-    it("should raise a new transitory event of  EventType", function (done: () => void) {
+    it("should raise a new transitory event of  EventType", (done: () => void) => {
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");
 
@@ -83,7 +77,7 @@ describe("testing Events  ", () => {
         });
     });
 
-    it("should extract EventData from an select clause", function () {
+    it("should extract EventData from an select clause", () => {
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
 
         const a = new EventFilter({
@@ -139,7 +133,7 @@ describe("testing Events  ", () => {
         // xx debugLog("xxxx ",eventField.toString());
     });
 
-    it("should filter an event", function (done: () => void) {
+    it("should filter an event", (done: () => void) => {
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");
 
@@ -178,14 +172,12 @@ describe("testing Events  ", () => {
         const eventFields = extractEventFields(SessionContext.defaultContext, eventFilter.selectClauses!, eventData);
 
         // make sure all event fields are Variant
-        eventFields.forEach(function (e) {
+        eventFields.forEach((e) => {
             e.should.instanceOf(Variant);
         });
 
         eventFields.length.should.eql(4);
-        eventFields.forEach(function (f) {
-            return debugLog(f.toString());
-        });
+        eventFields.forEach((f) => debugLog(f.toString()));
 
         eventFields[1].value.should.eql(serverObject.nodeId); // sourceNode
         eventFields[2].value.should.eql("Hello");
@@ -204,7 +196,7 @@ describe("testing Events  ", () => {
     //   /      \ hasEventSource
     //  Pump   TempSensor
     //
-    it("should bubble events up", function () {
+    it("should bubble events up", () => {
         const area1 = namespace.createNode({
             nodeClass: NodeClass.Object,
             browseName: "Area1",

@@ -9,14 +9,14 @@ import { hrtime } from "node-opcua-utils";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-import { MonitoredItem } from "./monitored_item";
+import type { MonitoredItem } from "./monitored_item";
 
 interface ITimer {
-    _samplingId: NodeJS.Timeout | false,
-    monitoredItems: Record<string,any>,
+    _samplingId: NodeJS.Timeout | false;
+    monitoredItems: Record<string, any>;
     monitoredItemsCount: number;
-    }
-const timers: Record<string,ITimer> = {};
+}
+const timers: Record<string, ITimer> = {};
 const NS_PER_SEC = 1e9;
 
 interface MonitoredItemPriv {
@@ -24,7 +24,7 @@ interface MonitoredItemPriv {
 }
 function sampleMonitoredItem(monitoredItem: MonitoredItem) {
     const _monitoredItem = monitoredItem as unknown as MonitoredItemPriv;
-    
+
     if (monitoredItem.monitoringMode === MonitoringMode.Disabled) {
         return;
     }
@@ -50,7 +50,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const m in _t.monitoredItems) {
-                if (Object.prototype.hasOwnProperty.call(_t.monitoredItems, m)) {
+                if (Object.hasOwn(_t.monitoredItems, m)) {
                     sampleMonitoredItem(_t.monitoredItems[m]);
                     counter++;
                 }
@@ -60,9 +60,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                 const elapsed = hrtime(start);
                 debugLog(
                     `Sampler ${samplingInterval}  ms : Benchmark took ${(
-                        (elapsed[0] * NS_PER_SEC + elapsed[1]) /
-                        1000 /
-                        1000.0
+                        (elapsed[0] * NS_PER_SEC + elapsed[1]) / 1000 / 1000.0
                     ).toFixed(3)} milliseconds for ${counter} elements`
                 );
             }
@@ -91,7 +89,7 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
     _t.monitoredItemsCount--;
     assert(_t.monitoredItemsCount >= 0);
     if (_t.monitoredItemsCount === 0) {
-        if (_t._samplingId !==false) {
+        if (_t._samplingId !== false) {
             clearInterval(_t._samplingId);
         }
         delete timers[key];

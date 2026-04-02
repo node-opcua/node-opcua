@@ -1,26 +1,20 @@
-"use strict";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+import type { NodeId } from "node-opcua-nodeid";
+import { TimestampsToReturn } from "node-opcua-service-read";
+import { MonitoredItemCreateRequest, MonitoringMode, PublishRequest } from "node-opcua-service-subscription";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type PublishResponse, ServiceFault } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
 
-import { NodeId } from "node-opcua-nodeid";
-import { MonitoringMode, PublishRequest } from "node-opcua-service-subscription";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { TimestampsToReturn } from "node-opcua-service-read";
-import { MonitoredItemCreateRequest } from "node-opcua-service-subscription";
-import { ServiceFault, PublishResponse } from "node-opcua-types";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
-
-import { ServerEngine, ServerSession, SubscriptionState } from "../source";
+import { ServerEngine, type ServerSession, SubscriptionState } from "../source";
 import { with_fake_timer } from "./helper_with_fake_timer";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 describe("ServerEngine Subscriptions service", function (this: any) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
-
     /**
      * @type {ServerEngine}
      */
@@ -35,9 +29,9 @@ describe("ServerEngine Subscriptions service", function (this: any) {
     let FolderTypeId: NodeId;
     let BaseDataVariableTypeId: NodeId;
 
-    beforeEach(function (done) {
+    beforeEach((done) => {
         engine = new ServerEngine();
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             FolderTypeId = engine.addressSpace!.findNode("FolderType")!.nodeId;
             BaseDataVariableTypeId = engine.addressSpace!.findNode("BaseDataVariableType")!.nodeId;
             done();
@@ -221,7 +215,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
     });
 
     it("ZDZ-1 create and terminate 2 subscriptions , with 4 publish requests", async () => {
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
@@ -237,7 +231,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             const subscription1 = session.createSubscription(subscription_parameters);
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
-            test.clock.tick(subscription1.publishingInterval);
+            this.clock.tick(subscription1.publishingInterval);
             subscription1.state.should.eql(SubscriptionState.LATE);
             subscription1.messageSent.should.eql(false);
 
@@ -247,7 +241,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             const subscription2 = session.createSubscription(subscription_parameters);
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
-            test.clock.tick(subscription2.publishingInterval * subscription2.maxKeepAliveCount);
+            this.clock.tick(subscription2.publishingInterval * subscription2.maxKeepAliveCount);
             subscription2.state.should.eql(SubscriptionState.LATE);
 
             const publishSpy = sinon.spy();
@@ -256,7 +250,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 102 } }), publishSpy);
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
 
-            test.clock.tick(subscription2.publishingInterval);
+            this.clock.tick(subscription2.publishingInterval);
             subscription2.state.should.eql(SubscriptionState.KEEPALIVE);
 
             await session.deleteSubscription(subscription2.id);
@@ -277,7 +271,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
     });
 
     it("ZDZ-2 LifetimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout - with 2 subscriptions", async () => {
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             session = engine.createSession({
                 sessionTimeout: 100000000
             });
@@ -300,24 +294,24 @@ describe("ServerEngine Subscriptions service", function (this: any) {
 
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
-            test.clock.tick(subscription1.publishingInterval);
+            this.clock.tick(subscription1.publishingInterval);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
-            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
             // wait until subscription expires entirely
-            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
-            test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
             subscription1.state.should.eql(SubscriptionState.CLOSED);
 
             const subscription2 = session.createSubscription(subscription_parameters);
             //xx console.log("subscription2", subscription2.subscriptionId);
             subscription2.state.should.eql(SubscriptionState.CREATING);
 
-            test.clock.tick(subscription2.publishingInterval * subscription2.maxKeepAliveCount);
+            this.clock.tick(subscription2.publishingInterval * subscription2.maxKeepAliveCount);
             subscription2.state.should.eql(SubscriptionState.LATE);
 
             const publishSpy = sinon.spy();
@@ -326,10 +320,10 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
-            test.clock.tick(subscription2.publishingInterval); //  * subscription2.maxKeepAliveCount);
+            this.clock.tick(subscription2.publishingInterval); //  * subscription2.maxKeepAliveCount);
 
             await session.deleteSubscription(subscription2.id);
-            test.clock.tick(subscription2.publishingInterval);
+            this.clock.tick(subscription2.publishingInterval);
 
             publishSpy.callCount.should.eql(4);
             // console.log(publishSpy.getCall(0).args[1].toString());
@@ -358,7 +352,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
@@ -375,8 +369,8 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             // wait until session expired by being late
-            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
-            test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
 
             subscription1.state.should.eql(SubscriptionState.CLOSED);
             subscription1.messageSent.should.eql(false);
@@ -387,7 +381,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 103 } }), publishSpy);
             session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 104 } }), publishSpy);
 
-            test.clock.tick(subscription1.publishingInterval * 2);
+            this.clock.tick(subscription1.publishingInterval * 2);
 
             publishSpy.getCall(0).args[1].subscriptionId.should.eql(subscription1.subscriptionId);
             publishSpy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -427,7 +421,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
         // When the subscription times out and closed
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             session = engine.createSession({ sessionTimeout: 100000000 });
 
             // CTT : deleteSub5106004
@@ -444,10 +438,10 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
             // wait until session expired by being late
-            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
 
             // wait until session expired by timeout
-            test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
 
             const subscription2 = session.createSubscription(subscription_parameters);
             subscription2.state.should.eql(SubscriptionState.CREATING);
@@ -477,7 +471,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
         // When the orphan subscription times out
         // Then subscription shall be disposed
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             session = engine.createSession({ sessionTimeout: 100000000 });
 
             const subscription_parameters = {
@@ -492,8 +486,8 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             const subscription = session.createSubscription(subscription_parameters);
             subscription.state.should.eql(SubscriptionState.CREATING);
 
-            subscription.on("monitoredItem", function (monitoredItem) {
-                monitoredItem.samplingFunc = function () {
+            subscription.on("monitoredItem", (monitoredItem) => {
+                monitoredItem.samplingFunc = () => {
                     /** */
                 };
             });
@@ -519,9 +513,9 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             engine.closeSession(session.authenticationToken, deleteSubscriptions, "CloseSession");
 
             // wait until session expired by being late
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+            this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             // wait until subscription expired by timeout
-            test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount);
+            this.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount);
         });
     });
 
@@ -543,7 +537,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             requestHandle++;
         };
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             if (!engine) throw new Error("expecting engine to be defined");
 
             session = engine.createSession({ sessionTimeout: 100000000 });
@@ -563,11 +557,11 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             const creationDate = new Date();
 
             await sendPublishRequest();
-            test.clock.tick(subscription1.publishingInterval);
+            this.clock.tick(subscription1.publishingInterval);
             publishSpy.callCount.should.eql(1);
 
             await sendPublishRequest();
-            test.clock.tick(subscription1.publishingInterval * 11);
+            this.clock.tick(subscription1.publishingInterval * 11);
             publishSpy.callCount.should.eql(2);
 
             await engine.closeSession(session.authenticationToken, true, "CloseSession");
@@ -623,11 +617,10 @@ describe("ServerEngine Subscriptions service", function (this: any) {
 
         const publishByMaxKeep =
             subscription_parameters.requestedPublishingInterval * subscription_parameters.requestedMaxKeepAliveCount;
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(this, async () => {
             if (!engine) throw new Error("expecting engine to be defined");
             session = engine.createSession({ sessionTimeout: 100000000 });
             const subscription1 = session.createSubscription(subscription_parameters);
-
 
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
@@ -649,11 +642,11 @@ describe("ServerEngine Subscriptions service", function (this: any) {
                     }),
                     publishSpy
                 );
-                test.clock.tick(0);
+                this.clock.tick(0);
             };
 
             // wait until session expired by being late
-            test.clock.tick(waitTime);
+            this.clock.tick(waitTime);
 
             subscription1.state.should.eql(SubscriptionState.LATE, "expecting subscription to be LATE");
 
@@ -663,7 +656,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
 
             // send a second publish request, no wait
             await sendPublishRequest();
-            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
+            this.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
             await engine.closeSession(session.authenticationToken, true, "CloseSession");
         }); // given a subscription with monitored Item
         // given that the client doesn't send Publish Request

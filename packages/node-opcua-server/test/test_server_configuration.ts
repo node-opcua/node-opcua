@@ -1,8 +1,8 @@
-import { nodesets } from "node-opcua-nodesets";
-import { UAVariable } from "node-opcua-address-space-base";
-import should from "should";
-import { ApplicationType } from "node-opcua-types";
+import type { UAVariable } from "node-opcua-address-space-base";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import { ApplicationType } from "node-opcua-types";
+import should from "should";
 import { OPCUAServer, RegisterServerMethod } from "../source";
 
 const port = 2022;
@@ -22,7 +22,6 @@ describe("OPCUAServer exposing serverConfiguration basic properties", () => {
                 productUri: "SampleServer"
             },
             registerServerMethod: RegisterServerMethod.MDNS
-
         });
         await server.start();
         server.serverInfo.applicationType!.should.eql(ApplicationType.ClientAndServer);

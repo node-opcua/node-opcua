@@ -25,11 +25,10 @@ import { VerificationStatus } from "node-opcua-pki";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import type { PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 import { rolePermissionAdminOnly } from "./roles_and_permissions.js";
-
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
 import { TrustListMasks, writeTrustList } from "./trust_list_server.js";
-import type { PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -46,13 +45,14 @@ function emitTrustListUpdated(trustList: UATrustList): void {
         const certificateGroup = trustList.parent;
         const groupName = certificateGroup?.browseName?.name ?? "Unknown";
 
-        const serverConfiguration = trustList.addressSpace.rootFolder
-            .objects.server.getChildByName("ServerConfiguration");
+        const serverConfiguration = trustList.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");
         if (!serverConfiguration) return;
 
-        const pushManager = (serverConfiguration as unknown as {
-            $pushCertificateManager?: PushCertificateManagerServerImpl;
-        }).$pushCertificateManager;
+        const pushManager = (
+            serverConfiguration as unknown as {
+                $pushCertificateManager?: PushCertificateManagerServerImpl;
+            }
+        ).$pushCertificateManager;
 
         if (pushManager) {
             pushManager.emit("trustListUpdated", groupName);
@@ -507,7 +507,9 @@ export async function promoteTrustList(trustList: UATrustList) {
                     callback(err, { statusCode: StatusCodes.BadInternalError });
                 });
         } else {
-            warningLog("certificateManager is not defined on trustlist do something to update the trust list document before we open it");
+            warningLog(
+                "certificateManager is not defined on trustlist do something to update the trust list document before we open it"
+            );
             return _open_asyncExecutionFunction.call(this, inputArgs, context, callback);
         }
     }

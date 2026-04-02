@@ -1,9 +1,9 @@
-import should from "should";
-import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
 import { getMinOPCUADate } from "node-opcua-date-time";
-import { Subscription, SubscriptionOptions, SubscriptionState } from "..";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import sinon from "sinon";
+import { Subscription, type SubscriptionOptions, SubscriptionState } from "..";
 
 const doDebug = false;
 function getFakePublishEngine() {
@@ -51,15 +51,13 @@ function makeSubscription(options: SubscriptionOptions2) {
 }
 
 describe("Subscription keepAlive behavior", function (this: any) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
-    beforeEach(function () {
-        test.clock = sinon.useFakeTimers(new Date("2024-01-01"));
+    beforeEach(() => {
+        this.clock = sinon.useFakeTimers(new Date("2024-01-01"));
         reconstruct_fake_publish_engine();
     });
 
-    afterEach(function () {
-        test.clock.restore();
+    afterEach(() => {
+        this.clock.restore();
     });
 
     it("subscription with publishEnabled:false should receive first keepAlive after 1 publishing interval and next keepAlive after publishingInterval*maxKeepAliveCount", async () => {
@@ -103,7 +101,7 @@ describe("Subscription keepAlive behavior", function (this: any) {
         // pretend we have received 20 PublishRequest from client
         fake_publish_engine.pendingPublishRequestCount = 20;
 
-        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2 + 1);
+        this.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2 + 1);
         // notification_event_spy.callCount.should.be.equal(0);
 
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
@@ -134,6 +132,5 @@ describe("Subscription keepAlive behavior", function (this: any) {
 
         subscription.terminate();
         subscription.dispose();
-
     });
 });

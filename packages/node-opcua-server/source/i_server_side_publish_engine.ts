@@ -1,6 +1,6 @@
-import { PublishResponseOptions, PublishResponse, StatusChangeNotification } from "node-opcua-types";
 import assert from "node-opcua-assert";
-import { Subscription } from "./server_subscription";
+import { PublishResponse, type PublishResponseOptions, type StatusChangeNotification } from "node-opcua-types";
+import type { Subscription } from "./server_subscription";
 
 export interface INotifMsg {
     subscriptionId: number;

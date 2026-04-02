@@ -1,9 +1,7 @@
 import "should";
 import { randomBytes } from "node:crypto";
 
-import {
-    extractPasswordFromDecryptedBlob
-} from "../dist/extract_password_from_blob";
+import { extractPasswordFromDecryptedBlob } from "../dist/extract_password_from_blob";
 
 /**
  * Build a valid password blob as OPC UA clients produce it:
@@ -13,10 +11,7 @@ import {
  *   │ (LE, 4 bytes)   │ (variable)   │ (32 bytes)   │
  *   └─────────────────┴──────────────┴──────────────┘
  */
-function buildPasswordBlob(
-    password: string,
-    serverNonce: Buffer
-): Buffer {
+function buildPasswordBlob(password: string, serverNonce: Buffer): Buffer {
     const passwordBuf = Buffer.from(password, "utf-8");
     const length = passwordBuf.length + serverNonce.length;
     const header = Buffer.alloc(4);
@@ -49,18 +44,12 @@ describe("extractPasswordFromDecryptedBlob", () => {
     });
 
     it("should reject a blob with no data", () => {
-        const result = extractPasswordFromDecryptedBlob(
-            Buffer.alloc(0),
-            serverNonce
-        );
+        const result = extractPasswordFromDecryptedBlob(Buffer.alloc(0), serverNonce);
         result.valid.should.eql(false);
     });
 
     it("should reject a blob that is too short", () => {
-        const result = extractPasswordFromDecryptedBlob(
-            Buffer.alloc(3),
-            serverNonce
-        );
+        const result = extractPasswordFromDecryptedBlob(Buffer.alloc(3), serverNonce);
         result.valid.should.eql(false);
     });
 
@@ -75,8 +64,7 @@ describe("extractPasswordFromDecryptedBlob", () => {
 
         // This should be rejected because the trailing nonce
         // does not match the session's serverNonce.
-        result.valid.should.eql(false,
-            "blob with mismatched nonce should be rejected");
+        result.valid.should.eql(false, "blob with mismatched nonce should be rejected");
     });
 
     it("should reject a truncated blob (length = nonceLen, no trailing nonce)", () => {
@@ -89,7 +77,6 @@ describe("extractPasswordFromDecryptedBlob", () => {
         const result = extractPasswordFromDecryptedBlob(blob, serverNonce);
 
         // This should be rejected — missing trailing nonce bytes.
-        result.valid.should.eql(false,
-            "truncated blob should be rejected");
+        result.valid.should.eql(false, "truncated blob should be rejected");
     });
 });
