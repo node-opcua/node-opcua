@@ -154,7 +154,11 @@ describe("testing Factory", () => {
         person.age = 50;
         person.address = "Paris";
 
-        const person_reloaded = encode_decode_round_trip_test(person);
+        const person_reloaded = encode_decode_round_trip_test(person) as unknown as {
+            lastName: string;
+            age: number;
+            address: string;
+        };
 
         person.lastName.should.equal(person_reloaded.lastName);
         person.age.should.equal(person_reloaded.age);

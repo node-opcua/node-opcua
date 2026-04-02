@@ -138,8 +138,8 @@ export async function _build_server_with_temperature_device(
     assert(options.port, "expecting a port number");
     //xx console.log("xxx building server with temperature device");
 
-    server.on("session_closed", (session, reason) => {
-        debugLog(" server_with_temperature_device has closed a session :", reason);
+    server.on("session_closed", (session, deleteSubscriptions) => {
+        debugLog(" server_with_temperature_device has closed a session :", deleteSubscriptions);
         debugLog(chalk.cyan("              session name: "), session.sessionName.toString());
     });
 

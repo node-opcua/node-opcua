@@ -12,7 +12,6 @@ import { analyze_object_binary_encoding, analyzePacket, type ObjectMessage } fro
 
 export interface IExtensionObject extends IBaseUAObject {
     encodingDefaultBinary?: ExpandedNodeId;
-    constructor: ConstructorFunc;
 }
 
 type TypedArrayLike = { buffer: ArrayBuffer } | null | undefined;
@@ -117,7 +116,9 @@ export function encode_decode_round_trip_test(
     // reconstruct an object (some objects may not have a
     // default Binary encoding and should be recreated)
     const expandedNodeId = obj.encodingDefaultBinary;
-    const objReloaded = expandedNodeId ? getStandardDataTypeFactory().constructObject(expandedNodeId) : new obj.constructor();
+    const objReloaded = expandedNodeId
+        ? getStandardDataTypeFactory().constructObject(expandedNodeId)
+        : new (obj.constructor as ConstructorFunc)();
 
     objReloaded.decode(stream);
 

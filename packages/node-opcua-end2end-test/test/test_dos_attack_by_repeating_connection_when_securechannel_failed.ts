@@ -116,8 +116,6 @@ describe("testing Server resilience to DDOS attacks 2", function () {
         is_valid_endpointUrl(endpointUrl).should.equal(true);
 
         // Instrumentation: track lifecycle events to ensure channels close / recycle
-        server.on("connectionError", () => console.log("connectionError"));
-
         server.on("newChannel", (channel) => {
             console.log(">newChannel =>", channel.remotePort, channel.remoteAddress);
             register(channel.remotePort);
