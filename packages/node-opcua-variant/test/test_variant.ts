@@ -1,11 +1,5 @@
-import ul from "lodash";
+import { isDeepStrictEqual as isEqual } from "node:util";
 import { assert } from "node-opcua-assert";
-import should from "should";
-import uu from "underscore";
-
-const sameVariantSlow1 = ul.isEqual;
-const sameVariantSlow2 = uu.isEqual;
-
 import { emptyGuid, encodeUInt8, encodeUInt32, randomGuid } from "node-opcua-basic-types";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -20,6 +14,7 @@ import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { StatusCodes } from "node-opcua-status-code";
 import { get_clock_tick } from "node-opcua-utils";
+import should from "should";
 
 import {
     buildVariantArray,
@@ -1381,17 +1376,10 @@ describe("testing sameVariant Performance", function () {
                     }
                 }
             })
-            .add("slow sameVariant 1", () => {
+            .add("slow loadash isEqual ", () => {
                 for (let i = 0; i < variousVariants.length; i++) {
                     for (let j = 0; j < variousVariants.length; j++) {
-                        sameVariantSlow1(variousVariants[i], variousVariants_clone[j]);
-                    }
-                }
-            })
-            .add("slow sameVariant 2", () => {
-                for (let i = 0; i < variousVariants.length; i++) {
-                    for (let j = 0; j < variousVariants.length; j++) {
-                        sameVariantSlow2(variousVariants[i], variousVariants_clone[j]);
+                        isEqual(variousVariants[i], variousVariants_clone[j]);
                     }
                 }
             })

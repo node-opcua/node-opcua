@@ -2,9 +2,9 @@
  * @module node-opcua-address-space
  */
 
+import { isDeepStrictEqual as isEqual } from "node:util";
 import { EventEmitter } from "node:events";
 import chalk from "chalk";
-import { isEqual } from "lodash";
 
 import type {
     AddReferenceOpts,
@@ -749,15 +749,15 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         // The type of reference to follow from the current node.
         // The current path cannot be followed any further if the referenceTypeId is not available on the Node instance.
         // If not specified then all References are included and the parameter includeSubtypes is ignored.
-        assert(Object.prototype.hasOwnProperty.call(relativePathElement, "referenceTypeId"));
+        assert(Object.hasOwn(relativePathElement, "referenceTypeId"));
 
         // Indicates whether the inverse Reference should be followed.
         // The inverse reference is followed if this value is TRUE.
-        assert(Object.prototype.hasOwnProperty.call(relativePathElement, "isInverse"));
+        assert(Object.hasOwn(relativePathElement, "isInverse"));
 
         // Indicates whether subtypes of the ReferenceType should be followed.
         // Subtypes are included if this value is TRUE.
-        assert(Object.prototype.hasOwnProperty.call(relativePathElement, "includeSubtypes"));
+        assert(Object.hasOwn(relativePathElement, "includeSubtypes"));
 
         const references = this.allReferences();
 
@@ -772,7 +772,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             ) {
                 return false;
             }
-            assert(Object.prototype.hasOwnProperty.call(reference, "isForward"));
+            assert(Object.hasOwn(reference, "isForward"));
             const referenceType = resolveReferenceType(this.addressSpace, reference);
             const referenceTypeId = referenceType.nodeId;
 
@@ -807,7 +807,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
                 // compare QualifiedName
 
                 const key = obj.nodeId.toString();
-                if (!Object.prototype.hasOwnProperty.call(nodeIdsMap, key)) {
+                if (!Object.hasOwn(nodeIdsMap, key)) {
                     nodeIds.push(obj.nodeId);
                     nodeIdsMap[key] = obj;
                 }
@@ -915,9 +915,9 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     public removeReference(referenceOpts: AddReferenceOpts): void {
         const _private = BaseNode_getPrivate(this);
 
-        assert(Object.prototype.hasOwnProperty.call(referenceOpts, "referenceType"));
+        assert(Object.hasOwn(referenceOpts, "referenceType"));
         // xx isForward is optional : assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
-        assert(Object.prototype.hasOwnProperty.call(referenceOpts, "nodeId"));
+        assert(Object.hasOwn(referenceOpts, "nodeId"));
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
 
@@ -1007,7 +1007,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         const childNode = resolveReferenceNode(addressSpace, reference);
 
         const name = lowerFirstLetter(childNode.browseName.name || "");
-        if (Object.prototype.hasOwnProperty.call(reservedNames, name)) {
+        if (Object.hasOwn(reservedNames, name)) {
             // c8 ignore next
             if (doDebug) {
                 // tslint:disable-next-line:no-console
@@ -1016,7 +1016,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             return;
         }
         /* c8 ignore next */
-        if (!Object.prototype.hasOwnProperty.call(this, name)) {
+        if (!Object.hasOwn(this, name)) {
             return;
         }
 
@@ -1285,9 +1285,9 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     private __addReference(referenceOpts: AddReferenceOpts): UAReference {
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         const _private = BaseNode_getPrivate(this);
-        assert(Object.prototype.hasOwnProperty.call(referenceOpts, "referenceType"));
+        assert(Object.hasOwn(referenceOpts, "referenceType"));
         // xx isForward is optional : assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
-        assert(Object.prototype.hasOwnProperty.call(referenceOpts, "nodeId"));
+        assert(Object.hasOwn(referenceOpts, "nodeId"));
 
         const reference: UAReference = addressSpace.normalizeReferenceTypes([referenceOpts])[0];
         assert(reference instanceof ReferenceImpl);
@@ -1821,7 +1821,7 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         // assumption: we ignore namespace here .
         const name = lowerFirstLetter(child.browseName.name || "");
 
-        if (Object.prototype.hasOwnProperty.call(reservedNames, name)) {
+        if (Object.hasOwn(reservedNames, name)) {
             // ignore reserved names
             if (doDebug) {
                 debugLog(chalk.bgWhite.red(`Ignoring reserved keyword                                               ${name}`));
@@ -1832,7 +1832,7 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         // ignore reserved names
         doDebug && debugLog(`Installing property ${name}`, " on ", parentObj.browseName.toString());
 
-        const hasProperty = Object.prototype.hasOwnProperty.call(parentObj, name);
+        const hasProperty = Object.hasOwn(parentObj, name);
         if (
             hasProperty &&
             (parentObj as unknown as Record<string, unknown>)[name] !== null &&

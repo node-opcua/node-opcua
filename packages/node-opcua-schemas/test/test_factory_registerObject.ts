@@ -1,24 +1,25 @@
 // tslint:disable:no-console
-import should from "should";
+
+import { BinaryStream } from "node-opcua-binary-stream";
 
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
 import { makeExpandedNodeId } from "node-opcua-nodeid";
-import { getObjectClassName } from "node-opcua-utils";
-import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-import { BinaryStream } from "node-opcua-binary-stream";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
+import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { getObjectClassName } from "node-opcua-utils";
+import should from "should";
 
 import {
-    AnyConstructorFunc,
+    type AnyConstructorFunc,
     createDynamicObjectConstructor,
     getOrCreateStructuredTypeSchema,
-    MapDataTypeAndEncodingIdProvider,
-    StructureTypeRaw,
-    InternalTypeDictionary
+    InternalTypeDictionary,
+    type StructureTypeRaw
 } from "../source";
 import { MockProvider } from "./mock_id_provider";
-const a = BaseUAObject;
+
+const _a = BaseUAObject;
 
 const typeDictionary = new InternalTypeDictionary();
 

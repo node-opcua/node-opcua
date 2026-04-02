@@ -15,11 +15,11 @@
     "dependencies": {
         "@ster5/global-mutex": "^3.3.0",
         "@types/async": "3.2.25",
-        "@types/lodash": "4.17.24",
         "async": "^3.2.6",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
-        "lodash": "4.17.23",
+        "lodash.partition": "^4.6.0",
+        "lodash.sortby": "^4.7.0",
         "node-opcua-address-space": "2.167.0",
         "node-opcua-address-space-base": "2.167.0",
         "node-opcua-assert": "2.164.0",
@@ -66,6 +66,8 @@
         "thenify-ex": "4.4.0"
     },
     "devDependencies": {
+        "@types/lodash.partition": "^4.6.9",
+        "@types/lodash.sortby": "^4.7.9",
         "node-opcua-data-access": "2.167.0",
         "node-opcua-leak-detector": "2.165.0",
         "node-opcua-test-helpers": "2.157.0"

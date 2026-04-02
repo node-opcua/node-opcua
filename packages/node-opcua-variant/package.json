@@ -24,15 +24,11 @@
         "node-opcua-utils": "2.165.0"
     },
     "devDependencies": {
-        "@types/lodash": "4.17.24",
-        "@types/underscore": "1.13.0",
-        "lodash": "4.17.23",
         "node-opcua-benchmarker": "2.167.0",
         "node-opcua-extension-object": "2.167.0",
         "node-opcua-numeric-range": "2.167.0",
         "node-opcua-packet-analyzer": "2.167.0",
-        "node-opcua-status-code": "2.167.0",
-        "underscore": "^1.13.8"
+        "node-opcua-status-code": "2.167.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
