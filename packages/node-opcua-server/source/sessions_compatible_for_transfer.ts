@@ -1,9 +1,8 @@
 import { assert } from "node-opcua-assert";
-import { UserIdentityToken, AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
-import { ServerSession } from "./server_session";
+import { AnonymousIdentityToken, UserIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import type { ServerSession } from "./server_session";
 
 export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefined, sessionDest: ServerSession): boolean {
-
     if (!sessionSrc) {
         return true;
     }
@@ -22,9 +21,7 @@ export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefi
             return false;
         }
         return sessionSrc.userIdentityToken.userName === sessionDest.userIdentityToken.userName;
-    }
-
-    else if (sessionSrc.userIdentityToken instanceof X509IdentityToken) {
+    } else if (sessionSrc.userIdentityToken instanceof X509IdentityToken) {
         if (!(sessionDest.userIdentityToken instanceof X509IdentityToken)) {
             return false;
         }
@@ -32,9 +29,8 @@ export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefi
             sessionSrc.userIdentityToken.certificateData.toString("hex") ===
             sessionDest.userIdentityToken.certificateData.toString("hex")
         );
-    }
-    /* c8 ignore next */
-    else {
+    } else {
+        /* c8 ignore next */
         throw new Error("Unsupported Identity token");
     }
 }

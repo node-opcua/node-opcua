@@ -1,13 +1,13 @@
-import should from "should";
-import { CallResponse } from "node-opcua-service-call";
 import { DiagnosticInfo, DiagnosticInfo_OperationLevelMask, DiagnosticInfo_ServiceLevelMask } from "node-opcua-data-model";
+import { CallResponse } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 import { filterDiagnosticInfo } from "../source";
 
-describe("filterDiagnosticInfo", function () {
+describe("filterDiagnosticInfo", () => {
     let response: CallResponse;
 
-    beforeEach(function () {
+    beforeEach(() => {
         response = new CallResponse({
             responseHeader: {
                 serviceDiagnostics: new DiagnosticInfo({
@@ -39,7 +39,7 @@ describe("filterDiagnosticInfo", function () {
         });
     });
 
-    it("should filter diagnostic information", function () {
+    it("should filter diagnostic information", () => {
         const levelMask =
             DiagnosticInfo_ServiceLevelMask.SymbolicId |
             DiagnosticInfo_ServiceLevelMask.LocalizedText |

@@ -4,9 +4,9 @@
 // tslint:disable:no-console
 
 import fs from "node:fs";
+import { isIP } from "node:net";
 import os from "node:os";
 import path from "node:path";
-import { isIP } from "node:net";
 import { withLock } from "@ster5/global-mutex";
 import async from "async";
 import chalk from "chalk";
@@ -348,8 +348,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
             if (missing.length > 0) {
                 warningLog(
                     `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
-                    "Clients with strict certificate validation may reject connections for these entries. " +
-                    "Use server.regenerateSelfSignedCertificate() to fix this."
+                        "Clients with strict certificate validation may reject connections for these entries. " +
+                        "Use server.regenerateSelfSignedCertificate() to fix this."
                 );
             }
         } catch (_err) {

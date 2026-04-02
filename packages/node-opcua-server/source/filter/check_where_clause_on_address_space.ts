@@ -1,7 +1,6 @@
-import { IAddressSpace, ISessionContext, IEventData } from "node-opcua-address-space-base";
-import { checkFilter } from "node-opcua-service-filter";
-import { FilterContextOnAddressSpace } from "node-opcua-service-filter";
-import { ContentFilter } from "node-opcua-types";
+import type { IAddressSpace, IEventData, ISessionContext } from "node-opcua-address-space-base";
+import { checkFilter, FilterContextOnAddressSpace } from "node-opcua-service-filter";
+import type { ContentFilter } from "node-opcua-types";
 
 export function checkWhereClauseOnAdressSpace(
     addressSpace: IAddressSpace,
@@ -9,8 +8,6 @@ export function checkWhereClauseOnAdressSpace(
     whereClause: ContentFilter,
     eventData: IEventData
 ): boolean {
-
-    
     // const filterContext: FilterContext = {
     //     addressSpace,
     //     sessionContext,
@@ -24,6 +21,6 @@ export function checkWhereClauseOnAdressSpace(
     //     }
     // };
     const filterContext = new FilterContextOnAddressSpace(sessionContext, eventData);
-    
+
     return checkFilter(filterContext, whereClause);
 }

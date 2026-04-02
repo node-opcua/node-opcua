@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server
  */
-import { EventEmitter } from "events";
+import type { EventEmitter } from "events";
 
 /**
  * Finite State Machine for RegisterServerManager.
@@ -46,11 +46,9 @@ export enum RegisterServerManagerStatus {
     UNREGISTERING = 7,
     UNREGISTERED = 8,
     NOT_APPLICABLE = -1,
-    
+
     DISPOSING = 9
 }
-
-
 
 export interface IRegisterServerManager extends EventEmitter {
     /** The URL of the discovery server the manager is configured to connect to. */

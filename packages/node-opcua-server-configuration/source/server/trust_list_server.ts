@@ -11,8 +11,8 @@ const errorLog = make_errorLog("TrustListServer");
 
 /**
  * Read all certificate (chains) and CRLs in a folder
- * @param folder 
- * @returns 
+ * @param folder
+ * @returns
  */
 async function readAll(folder: string): Promise<Buffer[]> {
     const results: Buffer[] = [];

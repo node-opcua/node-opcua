@@ -184,7 +184,7 @@ function requestServerStateChange(
 ) {
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
-    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
+    assert(Object.hasOwn(context, "session"), " expecting a session id in the context object");
     const session = context.session as ServerSession;
     if (!session) {
         return callback(null, { statusCode: StatusCodes.BadInternalError });
@@ -199,7 +199,7 @@ function _getSubscription(
     context: ISessionContext
 ): { subscription: Subscription; statusCode?: never } | { statusCode: StatusCode; subscription?: never } {
     assert(Array.isArray(inputArguments));
-    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
+    assert(Object.hasOwn(context, "session"), " expecting a session id in the context object");
     const session = context.session as ServerSession;
     if (!session) {
         return { statusCode: StatusCodes.BadInternalError };
@@ -466,11 +466,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // --------------------------------------------------- serverDiagnosticsSummary extension Object
         this.serverDiagnosticsSummary = new ServerDiagnosticsSummaryDataType();
-        assert(Object.prototype.hasOwnProperty.call(this.serverDiagnosticsSummary, "currentSessionCount"));
+        assert(Object.hasOwn(this.serverDiagnosticsSummary, "currentSessionCount"));
 
         // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
         //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
-        assert(Object.prototype.hasOwnProperty.call(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
+        assert(Object.hasOwn(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
 
         Object.defineProperty(this.serverDiagnosticsSummary, "currentSubscriptionCount", {
             get: () => {
@@ -505,7 +505,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled = Object.prototype.hasOwnProperty.call(options, "serverDiagnosticsEnable")
+        options.serverDiagnosticsEnabled = Object.hasOwn(options, "serverDiagnosticsEnable")
             ? options.serverDiagnosticsEnabled
             : true;
 
@@ -1954,12 +1954,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @return {Subscription}
      */
     public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike): Subscription {
-        assert(Object.prototype.hasOwnProperty.call(request, "requestedPublishingInterval")); // Duration
-        assert(Object.prototype.hasOwnProperty.call(request, "requestedLifetimeCount")); // Counter
-        assert(Object.prototype.hasOwnProperty.call(request, "requestedMaxKeepAliveCount")); // Counter
-        assert(Object.prototype.hasOwnProperty.call(request, "maxNotificationsPerPublish")); // Counter
-        assert(Object.prototype.hasOwnProperty.call(request, "publishingEnabled")); // Boolean
-        assert(Object.prototype.hasOwnProperty.call(request, "priority")); // Byte
+        assert(Object.hasOwn(request, "requestedPublishingInterval")); // Duration
+        assert(Object.hasOwn(request, "requestedLifetimeCount")); // Counter
+        assert(Object.hasOwn(request, "requestedMaxKeepAliveCount")); // Counter
+        assert(Object.hasOwn(request, "maxNotificationsPerPublish")); // Counter
+        assert(Object.hasOwn(request, "publishingEnabled")); // Boolean
+        assert(Object.hasOwn(request, "priority")); // Byte
 
         // adjust publishing parameters
         const publishingInterval = request.requestedPublishingInterval || 0;

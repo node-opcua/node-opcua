@@ -1,18 +1,17 @@
 import "should";
-import sinon from "sinon";
-import { DataType } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, Namespace, SessionContext } from "node-opcua-address-space";
-import { DataChangeFilter, DataChangeTrigger, MonitoredItemCreateRequest, MonitoringMode } from "node-opcua-types";
+import { type AddressSpace, type Namespace, SessionContext } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-basic-types";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { coerceNodeId, NodeId } from "node-opcua-nodeid";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { Subscription } from "../source/server_subscription";
+import { DataChangeFilter, DataChangeTrigger, MonitoredItemCreateRequest, MonitoringMode } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
+import sinon from "sinon";
 import { ServerEngine } from "../source/server_engine";
+import { Subscription } from "../source/server_subscription";
 
 // tslint:disable-next-line: no-var-requires
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
@@ -114,7 +113,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             nodeId: coerceNodeId("i=5;s=tmp"),
             sessionContext: SessionContext.defaultContext
         };
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
         return subscription;

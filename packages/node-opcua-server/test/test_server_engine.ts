@@ -1,28 +1,40 @@
 /* eslint-disable max-statements */
-import util from "util";
-import should from "should";
-import sinon from "sinon";
-import { SinonFakeTimers } from "sinon";
-import { assert } from "node-opcua-assert";
-import { INamespace, ISessionContext, SessionContext, UAObject, UAVariable } from "node-opcua-address-space";
-import { ServerState } from "node-opcua-common";
-import { VariableIds, ObjectIds } from "node-opcua-constants";
-import { NodeClass, QualifiedName, AttributeIds, BrowseDirection, LocalizedText, ResultMask } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { coerceNodeId, resolveNodeId, makeNodeId, makeExpandedNodeId, NodeId, NodeIdLike, ExpandedNodeId } from "node-opcua-nodeid";
-import { BrowseRequest, BrowseDescription, ReferenceDescription, BrowseDescriptionOptions } from "node-opcua-service-browse";
-import { TimestampsToReturn, ReadRequest, ReadValueId, ReadRequestOptions } from "node-opcua-service-read";
-import { HistoryReadRequest, HistoryReadDetails, HistoryReadResult, HistoryData } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { assert_arrays_are_equal } from "node-opcua-test-helpers";
-import { nodesets } from "node-opcua-nodesets";
-import { getCurrentClock } from "node-opcua-date-time";
 
+import { type INamespace, type ISessionContext, SessionContext, type UAObject, type UAVariable } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { assert } from "node-opcua-assert";
 import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
-import { NumericRange } from "node-opcua-numeric-range";
+import { ServerState } from "node-opcua-common";
+import { ObjectIds, VariableIds } from "node-opcua-constants";
+import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
+import { getCurrentClock } from "node-opcua-date-time";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import {
+    coerceNodeId,
+    type ExpandedNodeId,
+    makeExpandedNodeId,
+    makeNodeId,
+    NodeId,
+    type NodeIdLike,
+    resolveNodeId
+} from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { NumericRange } from "node-opcua-numeric-range";
+import {
+    BrowseDescription,
+    type BrowseDescriptionOptions,
+    BrowseRequest,
+    type ReferenceDescription
+} from "node-opcua-service-browse";
+import { HistoryData, HistoryReadDetails, HistoryReadRequest, HistoryReadResult } from "node-opcua-service-history";
+import { ReadRequest, ReadRequestOptions, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
+import { StatusCodes } from "node-opcua-status-code";
+import { assert_arrays_are_equal } from "node-opcua-test-helpers";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
+import sinon, { type SinonFakeTimers } from "sinon";
+import util from "util";
 
 import { ServerEngine } from "../source";
 
@@ -37,7 +49,7 @@ function resolveExpandedNodeId(nodeId: NodeIdLike): ExpandedNodeId {
 
 async function refreshAndRead(engine: ServerEngine, readRequest: ReadRequest, maxAge = 0) {
     await new Promise<void>((resolve, reject) => {
-        engine.refreshValues(readRequest.nodesToRead!, maxAge, function (err) {
+        engine.refreshValues(readRequest.nodesToRead!, maxAge, (err) => {
             if (err) reject(err);
             else resolve();
         });
@@ -50,7 +62,7 @@ async function pause(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe("testing ServerEngine", function () {
+describe("testing ServerEngine", () => {
     let engine: ServerEngine;
     let namespace: INamespace;
     let FolderTypeId: NodeId;
@@ -63,7 +75,7 @@ describe("testing ServerEngine", function () {
         softwareVersion: "1.0"
     };
 
-    before(function (done) {
+    before((done) => {
         engine = new ServerEngine({
             applicationUri: "URI:NODEOPCUA-SERVER",
             buildInfo: defaultBuildInfo
@@ -91,13 +103,12 @@ describe("testing ServerEngine", function () {
                 dataType: "Double",
                 minimumSamplingInterval: 100,
                 value: {
-                    get: function () {
-                        return new Variant({
+                    get: () =>
+                        new Variant({
                             dataType: DataType.Double,
                             arrayType: VariantArrayType.Array,
                             value: testArray
-                        });
-                    },
+                        }),
                     set: null // read only
                 }
             });
@@ -110,14 +121,13 @@ describe("testing ServerEngine", function () {
                 dataType: DataType.Int32,
                 minimumSamplingInterval: 100,
                 value: {
-                    get: function () {
-                        return new Variant({
+                    get: () =>
+                        new Variant({
                             dataType: DataType.Int32,
                             arrayType: VariantArrayType.Array,
                             value: testArray
-                        });
-                    },
-                    set: function (variant: Variant) {
+                        }),
+                    set: (variant: Variant) => {
                         // Variation 1 : synchronous
                         // assert(typeof callback === "function");
                         return StatusCodes.Good;
@@ -133,13 +143,12 @@ describe("testing ServerEngine", function () {
                 dataType: "UInt32",
                 minimumSamplingInterval: 100,
                 value: {
-                    get: function () {
-                        return new Variant({
+                    get: () =>
+                        new Variant({
                             dataType: DataType.UInt32,
                             arrayType: VariantArrayType.Array,
                             value: testArray
-                        });
-                    }
+                        })
                 }
             });
 
@@ -150,7 +159,7 @@ describe("testing ServerEngine", function () {
             function check_if_allow(n: number, context: ISessionContext) {
                 //xx console.log(" check_if_allow", n, context.session ? (context.session as any).testFilterArray : null)
                 const _session: any = context ? context.session : null;
-                if (context && _session && Object.prototype.hasOwnProperty.call(_session, "testFilterArray")) {
+                if (context && _session && Object.hasOwn(_session, "testFilterArray")) {
                     if (_session["testFilterArray"].indexOf(n) > -1) {
                         return true;
                     } else {
@@ -282,7 +291,7 @@ describe("testing ServerEngine", function () {
 
         const newFolder1 = namespace.addFolder("ObjectsFolder", "NoUniqueName");
 
-        (function () {
+        (() => {
             namespace.addFolder("ObjectsFolder", "NoUniqueName");
         }).should.throw("browseName already registered");
 
@@ -290,7 +299,7 @@ describe("testing ServerEngine", function () {
         uaNode.should.eql(newFolder1);
     });
 
-    it("should be possible to create a variable in a folder", function (done) {
+    it("should be possible to create a variable in a folder", (done) => {
         const addressSpace = engine.addressSpace!;
         const namespace = addressSpace.getOwnNamespace();
 
@@ -302,18 +311,14 @@ describe("testing ServerEngine", function () {
             dataType: "Float",
             minimumSamplingInterval: 100,
             value: {
-                get: function () {
-                    return new Variant({ dataType: DataType.Float, value: 10.0 });
-                },
-                set: function () {
-                    return StatusCodes.BadNotWritable;
-                }
+                get: () => new Variant({ dataType: DataType.Float, value: 10.0 }),
+                set: () => StatusCodes.BadNotWritable
             }
         });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
         newVariable.parent!.nodeId.should.equal(newFolder.nodeId);
 
-        newVariable.readValueAsync(context, function (err, dataValue) {
+        newVariable.readValueAsync(context, (err, dataValue) => {
             if (!err) {
                 dataValue!.statusCode.should.eql(StatusCodes.Good);
                 dataValue!.value.should.be.instanceOf(Variant);
@@ -337,7 +342,7 @@ describe("testing ServerEngine", function () {
         newVariable.nodeId.toString().should.eql("ns=1;b=01020304ffaa");
     });
 
-    it("should be possible to create a variable in a folder that returns a timestamped value", function (done) {
+    it("should be possible to create a variable in a folder that returns a timestamped value", (done) => {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder4");
 
         const temperature = new DataValue({
@@ -352,13 +357,11 @@ describe("testing ServerEngine", function () {
             dataType: "Double",
             minimumSamplingInterval: 100,
             value: {
-                timestamped_get: function () {
-                    return temperature;
-                }
+                timestamped_get: () => temperature
             }
         });
 
-        newVariable.readValueAsync(context, function (err, dataValue) {
+        newVariable.readValueAsync(context, (err, dataValue) => {
             if (!err) {
                 dataValue = newVariable.readAttribute(context, AttributeIds.Value, undefined, undefined);
                 dataValue.should.be.instanceOf(DataValue);
@@ -386,10 +389,8 @@ describe("testing ServerEngine", function () {
             userAccessLevel: 7,
             minimumSamplingInterval: 100,
             value: {
-                timestamped_get: function () {
-                    return readValue;
-                },
-                historyRead: function (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) {
+                timestamped_get: () => readValue,
+                historyRead: (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) => {
                     assert(context instanceof SessionContext);
                     assert(typeof callback === "function");
 
@@ -484,9 +485,7 @@ describe("testing ServerEngine", function () {
         };
         const browseResult = await browseNode(engine, browseDescription);
 
-        const browseNames = browseResult.references!.map(function (r) {
-            return r.browseName.name;
-        });
+        const browseNames = browseResult.references!.map((r) => r.browseName.name);
         //xx console.log(browseNames);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
@@ -878,7 +877,7 @@ describe("testing ServerEngine", function () {
 
     describe("readSingleNode on ReferenceType", () => {
         let ref_Organizes_nodeId: NodeIdLike;
-        beforeEach(function () {
+        beforeEach(() => {
             ref_Organizes_nodeId = engine.addressSpace!.findReferenceType("Organizes")!.nodeId;
         });
 
@@ -1571,12 +1570,13 @@ describe("testing ServerEngine", function () {
         it("should read all attributes of Server_ServerStatus_CurrentTime", async () => {
             const readRequest = new ReadRequest({
                 timestampsToReturn: TimestampsToReturn.Neither,
-                nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(function (attributeId) {
-                    return new ReadValueId({
-                        nodeId: VariableIds.Server_ServerStatus_CurrentTime,
-                        attributeId: attributeId
-                    });
-                })
+                nodesToRead: [1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20].map(
+                    (attributeId) =>
+                        new ReadValueId({
+                            nodeId: VariableIds.Server_ServerStatus_CurrentTime,
+                            attributeId: attributeId
+                        })
+                )
             });
 
             const dataValues = await refreshAndRead(engine, readRequest);
@@ -1590,14 +1590,14 @@ describe("testing ServerEngine", function () {
     describe("ServerEngine read maxAge", () => {
         let clock: SinonFakeTimers;
         let timerId: NodeJS.Timeout;
-        beforeEach(function () {
+        beforeEach(() => {
             const old_setInterval = setInterval;
             clock = sinon.useFakeTimers(new Date(2000, 11, 25, 0, 0, 0));
             timerId = old_setInterval(() => {
                 clock.tick(2000);
             }, 100);
         });
-        afterEach(function () {
+        afterEach(() => {
             clock.restore();
             clearInterval(timerId);
         });
@@ -1626,7 +1626,7 @@ describe("testing ServerEngine", function () {
                 let value = 0;
                 const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
                 variable.bindVariable({
-                    refreshFunc: function (callback) {
+                    refreshFunc: (callback) => {
                         setTimeout(() => {
                             const dataValue = new DataValue({
                                 value: new Variant({ dataType: "Double", value: value + 1 }),
@@ -1875,7 +1875,7 @@ describe("testing ServerEngine", function () {
                 dataType: "Double",
                 minimumSamplingInterval: 100,
                 value: {
-                    get: function () {
+                    get: () => {
                         // we return a StatusCode here instead of a Variant
                         // this means : "Houston ! we have a problem"
                         return StatusCodes.BadResourceUnavailable;
@@ -1913,9 +1913,9 @@ describe("testing ServerEngine", function () {
                 nodeId: "ns=1;s=RefreshedOnDemandValue",
                 dataType: "Double",
                 value: {
-                    refreshFunc: function (callback) {
+                    refreshFunc: (callback) => {
                         // add some delay to simulate a long operation to perform the asynchronous read
-                        setTimeout(function () {
+                        setTimeout(() => {
                             value1 += 1;
                             const clock = getCurrentClock();
                             const dataValue = new DataValue({
@@ -1938,8 +1938,8 @@ describe("testing ServerEngine", function () {
                 nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                 dataType: "Double",
                 value: {
-                    refreshFunc: function (callback) {
-                        setTimeout(function () {
+                    refreshFunc: (callback) => {
+                        setTimeout(() => {
                             value2 += 1;
                             const clock = getCurrentClock();
                             const dataValue = new DataValue({
@@ -1954,7 +1954,7 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        beforeEach(function () {
+        beforeEach(() => {
             // reset counters;
             value1 = 0;
             value2 = 0;
@@ -1975,13 +1975,13 @@ describe("testing ServerEngine", function () {
             dataValue.value.value.should.eql(1);
         });
 
-        it("should refresh multiple variable values asynchronously", function (done) {
+        it("should refresh multiple variable values asynchronously", (done) => {
             const nodesToRefresh = [
                 new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }),
                 new ReadValueId({ nodeId: "ns=1;s=OtherRefreshedOnDemandValue" })
             ];
 
-            engine.refreshValues(nodesToRefresh, 0, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, (err, values) => {
                 if (!err) {
                     values!.length.should.equal(2, " expecting two node asynchronous refresh call");
 
@@ -1997,13 +1997,13 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should  refresh nodes only once if they are duplicated ", function (done) {
+        it("should  refresh nodes only once if they are duplicated ", (done) => {
             const nodesToRefresh = [
                 new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }),
                 new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue" }), // <== duplicated node
                 new ReadValueId({ nodeId: "ns=1;s=RefreshedOnDemandValue", attributeId: AttributeIds.DisplayName })
             ];
-            engine.refreshValues(nodesToRefresh, 0, function (err, values) {
+            engine.refreshValues(nodesToRefresh, 0, (err, values) => {
                 if (!err) {
                     values!.length.should.equal(1, " expecting only one node asynchronous refresh call");
 
@@ -2015,7 +2015,7 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should ignore nodes with attributeId!=AttributeIds.Value ", function (done) {
+        it("should ignore nodes with attributeId!=AttributeIds.Value ", (done) => {
             value1.should.equal(0);
             value2.should.equal(0);
             const nodesToRefresh = [
@@ -2031,11 +2031,11 @@ describe("testing ServerEngine", function () {
             });
         });
 
-        it("should perform readValueAsync on Variable", function (done) {
+        it("should perform readValueAsync on Variable", (done) => {
             const variable = engine.addressSpace!.findNode("ns=1;s=RefreshedOnDemandValue")! as UAVariable;
 
             value1.should.equal(0);
-            variable.readValueAsync(context, function (err, value) {
+            variable.readValueAsync(context, (err, value) => {
                 value1.should.equal(1);
 
                 done(err);
@@ -2112,14 +2112,14 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
     after(async () => {
         await engine.shutdown();
     });
-    beforeEach(function () {
+    beforeEach(() => {
         test.clock = sinon.useFakeTimers(Date.now());
     });
-    afterEach(function () {
+    afterEach(() => {
         test.clock.restore();
     });
 
-    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", function (done) {
+    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", (done) => {
         const serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
 
@@ -2132,7 +2132,7 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
         done();
     });
 
-    it("ServerEngine#ServerStatus should expose currentTime", function (done) {
+    it("ServerEngine#ServerStatus should expose currentTime", (done) => {
         const currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
         currentTimeId.value.should.eql(2258);
 
@@ -2156,10 +2156,10 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
     });
 });
 
-describe("US-031: ServerEngine.setServerState", function () {
+describe("US-031: ServerEngine.setServerState", () => {
     let engine: ServerEngine;
 
-    before(function (done) {
+    before((done) => {
         engine = new ServerEngine({
             applicationUri: "URI:NODEOPCUA-SERVER-STATE-TEST",
             buildInfo: {
@@ -2175,27 +2175,20 @@ describe("US-031: ServerEngine.setServerState", function () {
     });
 
     it("should update Server.ServerStatus.State variable", () => {
-        const stateVariable = engine.addressSpace!.rootFolder.objects.server
-            .serverStatus.state;
+        const stateVariable = engine.addressSpace!.rootFolder.objects.server.serverStatus.state;
 
         engine.setServerState(ServerState.NoConfiguration);
-        stateVariable.readValue().value.value.should.eql(
-            ServerState.NoConfiguration
-        );
+        stateVariable.readValue().value.value.should.eql(ServerState.NoConfiguration);
 
         engine.setServerState(ServerState.Running);
-        stateVariable.readValue().value.value.should.eql(
-            ServerState.Running
-        );
+        stateVariable.readValue().value.value.should.eql(ServerState.Running);
 
         engine.setServerState(ServerState.Shutdown);
-        stateVariable.readValue().value.value.should.eql(
-            ServerState.Shutdown
-        );
+        stateVariable.readValue().value.value.should.eql(ServerState.Shutdown);
     });
 });
 
-describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", function () {
+describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", () => {
     let engine: ServerEngine;
 
     before(function (done) {
@@ -2223,8 +2216,9 @@ describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", f
         engine.getInApplicationSetup().should.eql(true);
 
         // also verify via address space read
-        const serverConfiguration = engine.addressSpace!.rootFolder.objects.server
-            .getChildByName("ServerConfiguration") as UAObject;
+        const serverConfiguration = engine.addressSpace!.rootFolder.objects.server.getChildByName(
+            "ServerConfiguration"
+        ) as UAObject;
         const prop = serverConfiguration.getPropertyByName("InApplicationSetup") as UAVariable;
         prop.readValue().value.value.should.eql(true);
     });

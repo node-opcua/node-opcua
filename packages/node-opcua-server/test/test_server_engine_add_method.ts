@@ -1,17 +1,25 @@
 import "should";
-import { resolveNodeId, NodeId } from "node-opcua-nodeid";
-import { VariantArrayType, DataType, Variant } from "node-opcua-variant";
-import { StatusCodes } from "node-opcua-status-code";
-import { NodeClass } from "node-opcua-data-model";
-import { getMethodDeclaration_ArgumentList, IAddressSpace, INamespace, ISessionContext, SessionContext, UAMethod } from "node-opcua-address-space";
-import { BrowsePath } from "node-opcua-service-translate-browse-path";
+import {
+    getMethodDeclaration_ArgumentList,
+    type IAddressSpace,
+    type INamespace,
+    type ISessionContext,
+    SessionContext,
+    UAMethod
+} from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { BrowsePath } from "node-opcua-service-translate-browse-path";
+import { StatusCodes } from "node-opcua-status-code";
+import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
 import { ServerEngine } from "../source";
+
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-describe("ServerEngine - addMethod", function () {
+describe("ServerEngine - addMethod", () => {
     let addressSpace: IAddressSpace;
     let namespace: INamespace;
     let FolderTypeId: NodeId;
@@ -20,10 +28,10 @@ describe("ServerEngine - addMethod", function () {
 
     let engine: ServerEngine;
 
-    before(function (done) {
+    before((done) => {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 

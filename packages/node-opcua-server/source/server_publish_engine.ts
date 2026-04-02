@@ -2,19 +2,19 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import { EventEmitter } from "events";
+
 import chalk from "chalk";
+import { EventEmitter } from "events";
 import { partition, sortBy } from "lodash";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { PublishRequest, PublishResponse, ServiceFault, SubscriptionAcknowledgement } from "node-opcua-types";
-import { Subscription } from "./server_subscription";
-import { SubscriptionState } from "./server_subscription";
-import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferredSubscription } from "./i_server_side_publish_engine";
+import { PublishRequest, PublishResponse, ServiceFault, type SubscriptionAcknowledgement } from "node-opcua-types";
+import { type IClosedOrTransferredSubscription, INotifMsg, type IServerSidePublishEngine } from "./i_server_side_publish_engine";
+import { Subscription, SubscriptionState } from "./server_subscription";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -160,8 +160,6 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         assert(destPublishEngine.getSubscriptionById(subscription.id));
         assert(!srcPublishEngine.getSubscriptionById(subscription.id));
-
-       
 
         return subscription;
     }
@@ -405,7 +403,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      */
     public _on_PublishRequest(
         request: PublishRequest,
-        callback?: (request1: PublishRequest, response: PublishResponse| ServiceFault) => void
+        callback?: (request1: PublishRequest, response: PublishResponse | ServiceFault) => void
     ): void {
         callback = callback || dummy_function;
         assert(typeof callback === "function");

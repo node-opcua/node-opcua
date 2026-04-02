@@ -1,38 +1,38 @@
 import chalk from "chalk";
 import {
-    AddressSpace,
+    type AddressSpace,
+    callMethodHelper,
     ensureDatatypeExtracted,
-    SessionContext,
     resolveOpaqueOnAddressSpace,
-    callMethodHelper
+    SessionContext
 } from "node-opcua-address-space";
-import { ISessionContext, ContinuationData, BaseNode, UAVariable } from "node-opcua-address-space-base";
+import type { BaseNode, ContinuationData, ISessionContext, UAVariable } from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
-import { AttributeIds } from "node-opcua-basic-types";
-import { TimestampsToReturn, DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
+import type { AttributeIds } from "node-opcua-basic-types";
+import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
-import { resolveNodeId, coerceNodeId, NodeId } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { coerceNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
-    BrowseDescriptionOptions,
-    BrowseResult,
-    ReadValueIdOptions,
-    WriteValue,
-    CallMethodRequest,
-    CallMethodResultOptions,
-    HistoryReadValueId,
-    HistoryReadDetails,
-    HistoryReadResult,
-    ReadRequestOptions,
-    HistoryReadRequest,
-    ReadProcessedDetails,
+    AggregateConfiguration,
     BrowseDescription,
-    AggregateConfiguration
+    type BrowseDescriptionOptions,
+    type BrowseResult,
+    type CallMethodRequest,
+    type CallMethodResultOptions,
+    HistoryReadDetails,
+    HistoryReadRequest,
+    HistoryReadResult,
+    type HistoryReadValueId,
+    ReadProcessedDetails,
+    type ReadRequestOptions,
+    type ReadValueIdOptions,
+    type WriteValue
 } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import { IAddressSpaceAccessor } from "./i_address_space_accessor";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import type { IAddressSpaceAccessor } from "./i_address_space_accessor";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -95,7 +95,7 @@ interface IAddressSpaceAccessorSingle {
 }
 
 export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpaceAccessorSingle {
-    constructor(public addressSpace: AddressSpace) { }
+    constructor(public addressSpace: AddressSpace) {}
 
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
         const results: BrowseResult[] = [];
@@ -219,7 +219,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             const continuationPoint = nodeToRead.continuationPoint;
             return await this.historyReadNode(context, nodeToRead, historyReadDetails, timestampsToReturn, {
                 continuationPoint,
-                releaseContinuationPoints,
+                releaseContinuationPoints
             });
         };
         const promises: Promise<HistoryReadResult>[] = [];

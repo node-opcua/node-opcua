@@ -7,6 +7,7 @@ import sinon from "sinon";
 import { Subscription } from "../source";
 import { add_mock_monitored_item } from "./helper";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
+
 let fake_publish_engine = {
     pendingPublishRequestCount: 0
 };
@@ -24,15 +25,13 @@ function makeSubscription(options: any) {
 }
 
 describe("Subscription#resendInitialValues", function (this: any) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
     beforeEach(() => {
-        test.clock = sinon.useFakeTimers();
+        this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
     });
 
     afterEach(() => {
-        test.clock.restore();
+        this.clock.restore();
     });
 
     it("SRD-1 subscription resend data should resend data", async () => {
@@ -70,25 +69,25 @@ describe("Subscription#resendInitialValues", function (this: any) {
         subscription.on("keepalive", keepalive_event_spy);
         subscription.on("expired", expire_event_spy);
 
-        test.clock.tick(200);
+        this.clock.tick(200);
         keepalive_event_spy.callCount.should.equal(0);
         notification_event_spy.callCount.should.eql(0);
 
-        test.clock.tick(1000);
+        this.clock.tick(1000);
         keepalive_event_spy.callCount.should.equal(0);
         notification_event_spy.callCount.should.eql(1);
 
-        test.clock.tick(1000);
+        this.clock.tick(1000);
         keepalive_event_spy.callCount.should.equal(0);
         notification_event_spy.callCount.should.eql(1);
 
-        test.clock.tick(30000);
+        this.clock.tick(30000);
         keepalive_event_spy.callCount.should.equal(1);
         notification_event_spy.callCount.should.eql(1);
 
         await subscription.resendInitialValues();
 
-        test.clock.tick(1000);
+        this.clock.tick(1000);
 
         subscription.terminate();
         subscription.dispose();

@@ -1,14 +1,14 @@
 import { promisify } from "node:util";
-import should from "should";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = false;
 
-describe("Testing the server  engine - View related ", function () {
+describe("Testing the server  engine - View related ", () => {
     let engine: ServerEngine;
     beforeEach(async () => {
         engine = new ServerEngine();
@@ -21,7 +21,7 @@ describe("Testing the server  engine - View related ", function () {
         await engine.shutdown();
     });
 
-    it("should create a view in the address space", function () {
+    it("should create a view in the address space", () => {
         const viewsFolder = engine.addressSpace!.findNode("ViewsFolder")!;
         should.exist(viewsFolder);
 

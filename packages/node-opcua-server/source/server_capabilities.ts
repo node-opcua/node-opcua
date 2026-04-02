@@ -2,11 +2,11 @@
  * @module node-opcua-server
  */
 // tslint:disable:max-classes-per-file
-import { Double, UInt32 } from "node-opcua-basic-types";
+import type { Double, UInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { QualifiedName } from "node-opcua-data-model";
+import type { QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
-import { SignedSoftwareCertificate } from "node-opcua-types";
+import type { SignedSoftwareCertificate } from "node-opcua-types";
 
 const warningLog = make_warningLog(__filename);
 
@@ -237,13 +237,16 @@ export class ServerCapabilities implements IServerCapabilities {
         this.maxByteStringLength = options.maxByteStringLength || defaultServerCapabilities.maxByteStringLength;
 
         if (BinaryStream.maxStringLength < this.maxStringLength) {
-            warningLog(`ServerCapabilities.maxStringLength ${this.maxStringLength} is greater that the allowed limite BinaryStream.maxStringLength = ${BinaryStream.maxStringLength}\nPlease adjust the value.`);
+            warningLog(
+                `ServerCapabilities.maxStringLength ${this.maxStringLength} is greater that the allowed limite BinaryStream.maxStringLength = ${BinaryStream.maxStringLength}\nPlease adjust the value.`
+            );
         }
 
         if (BinaryStream.maxByteStringLength < this.maxByteStringLength) {
-            warningLog(`ServerCapabilities.maxByteStringLength ${this.maxByteStringLength} is greater that the allowed limite BinaryStream.maxByteStringLength = ${BinaryStream.maxByteStringLength}\nPlease adjust the value.`);
+            warningLog(
+                `ServerCapabilities.maxByteStringLength ${this.maxByteStringLength} is greater that the allowed limite BinaryStream.maxByteStringLength = ${BinaryStream.maxByteStringLength}\nPlease adjust the value.`
+            );
         }
-
 
         this.maxBrowseContinuationPoints =
             options.maxBrowseContinuationPoints || defaultServerCapabilities.maxBrowseContinuationPoints;

@@ -1,8 +1,8 @@
 import util from "util";
-import { OPCUAServer } from "./opcua_server";
-import { ServerEngine } from "./server_engine";
-import { ServerSession } from "./server_session";
-import { Subscription, SubscriptionState } from "./server_subscription";
+import type { OPCUAServer } from "./opcua_server";
+import type { ServerEngine } from "./server_engine";
+import type { ServerSession } from "./server_session";
+import { type Subscription, SubscriptionState } from "./server_subscription";
 
 const consolelog = (...args: any) => {
     const d = new Date();
@@ -25,13 +25,9 @@ const info = (subscription: Subscription) => {
         SubscriptionState[subscription.state].padEnd(9),
         subscription.state,
         "kac=",
-        subscription.currentKeepAliveCount.toString().padStart(3)+
-        "/"+
-        subscription.maxKeepAliveCount.toString().padStart(3),
+        subscription.currentKeepAliveCount.toString().padStart(3) + "/" + subscription.maxKeepAliveCount.toString().padStart(3),
         "ltc=",
-        subscription.currentLifetimeCount.toString().padStart(3)+
-        "/"+
-        subscription.lifeTimeCount.toString().padStart(3),
+        subscription.currentLifetimeCount.toString().padStart(3) + "/" + subscription.lifeTimeCount.toString().padStart(3),
         "prc=",
         subscription.publishEngine?.pendingPublishRequestCount.toString().padStart(3),
         "pi=",
@@ -65,14 +61,14 @@ export function installSubscriptionMonitoring(subscription: Subscription) {
 export function installSessionLoggingOnEngine(serverEngine: ServerEngine) {
     function on_create_session(session: ServerSession) {
         try {
-            session.on("activate_session", function () {
+            session.on("activate_session", () => {
                 consolelog("activate_session");
             });
 
             session.on("statusChanged", (status) => {
                 consolelog("session status changed: ", status);
             });
-            session.on("new_subscription", function (subscription) {
+            session.on("new_subscription", (subscription) => {
                 installSubscriptionMonitoring(subscription);
             });
         } catch (err) {
@@ -80,7 +76,7 @@ export function installSessionLoggingOnEngine(serverEngine: ServerEngine) {
         }
     }
     serverEngine.on("create_session", on_create_session);
-    serverEngine.once("session_closed", function (session) {
+    serverEngine.once("session_closed", (session) => {
         consolelog("session is closed");
         serverEngine.removeListener("create_session", on_create_session);
     });

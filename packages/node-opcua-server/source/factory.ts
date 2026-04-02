@@ -5,11 +5,9 @@
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { getStandardDataTypeFactory } from "node-opcua-factory";
-import { ExpandedNodeId } from "node-opcua-nodeid";
+import type { ExpandedNodeId } from "node-opcua-nodeid";
 
-export interface EngineForFactory {
-    /** */
-}
+export type EngineForFactory = {};
 export class Factory {
     public engine: EngineForFactory;
 

@@ -7,8 +7,8 @@ import chalk from "chalk";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 
-import { ServerSidePublishEngine, ServerSidePublishEngineOptions } from "./server_publish_engine";
-import { Subscription } from "./server_subscription";
+import { ServerSidePublishEngine, type ServerSidePublishEngineOptions } from "./server_publish_engine";
+import type { Subscription } from "./server_subscription";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -32,7 +32,7 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
 
         // detach subscription from old session
         subscription.$session = undefined;
-        
+
         super.add_subscription(subscription);
         // also add an event handler to detected when the subscription has ended
         // so we can automatically remove it from the orphan table

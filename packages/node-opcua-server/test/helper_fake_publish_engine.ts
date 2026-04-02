@@ -1,11 +1,11 @@
-import { PublishResponse, PublishResponseOptions } from "node-opcua-types";
-import { Subscription } from "../source";
-import { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
+import { PublishResponse, type PublishResponseOptions } from "node-opcua-types";
+import type { Subscription } from "../source";
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
 
 export function getFakePublishEngine_bad() {
     return {
         pendingPublishRequestCount: 0,
-        send_notification_message: function () {
+        send_notification_message: () => {
             /**  empty */
         },
         send_keep_alive_response: function () {
@@ -15,10 +15,10 @@ export function getFakePublishEngine_bad() {
             this.pendingPublishRequestCount -= 1;
             return true;
         },
-        on_close_subscription: function (/*subscription*/) {
+        on_close_subscription: (/*subscription*/) => {
             /**  empty */
         },
-        cancelPendingPublishRequestBeforeChannelChange: function () {
+        cancelPendingPublishRequestBeforeChannelChange: () => {
             /**  empty */
         }
     };

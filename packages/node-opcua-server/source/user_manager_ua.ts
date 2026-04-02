@@ -1,9 +1,8 @@
+import { ensureObjectIsSecure, type IAddressSpace, type UAObject, type UARole, type UARoleSet } from "node-opcua-address-space";
 import { ObjectIds } from "node-opcua-constants";
-import { IAddressSpace, UAObject, UARole , UARoleSet} from "node-opcua-address-space";
-import { ensureObjectIsSecure } from "node-opcua-address-space";
-import { Variant, DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
-import { UAUserManagerBase } from "./user_manager";
+import { DataType, Variant } from "node-opcua-variant";
+import type { UAUserManagerBase } from "./user_manager";
 
 export function bindRoleSet(userManager: UAUserManagerBase, addressSpace: IAddressSpace) {
     const roleSet = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_RoleSet) as UARoleSet;
@@ -40,5 +39,4 @@ export function bindRoleSet(userManager: UAUserManagerBase, addressSpace: IAddre
     }
 
     userManager.bind(roleSet);
-
 }

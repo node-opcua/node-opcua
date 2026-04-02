@@ -1,9 +1,9 @@
-import { types } from "util";
-import { IUserManager, UARoleSet } from "node-opcua-address-space";
-import { NodeId } from "node-opcua-nodeid";
-import { IdentityMappingRuleType } from "node-opcua-types";
+import type { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { make_errorLog } from "node-opcua-debug";
-import { ServerSession } from "./server_session";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IdentityMappingRuleType } from "node-opcua-types";
+import { types } from "util";
+import type { ServerSession } from "./server_session";
 
 const errorLog = make_errorLog(__filename);
 
@@ -57,7 +57,7 @@ export class UAUserManager1 extends UAUserManagerBase {
                 errorLog(
                     "[NODE-OPCUA-E27] userManager provided getUserRoles method has thrown an exception, please fix your code! "
                 );
-                errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0,2).join("\n"));
+                errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0, 2).join("\n"));
             }
             return [];
         }
@@ -80,7 +80,7 @@ export class UAUserManager1 extends UAUserManagerBase {
                     errorLog(
                         "[NODE-OPCUA-E26] userManager provided isValidUser method has thrown an exception, please fix your code!"
                     );
-                    errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0,2).join("\n"));
+                    errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0, 2).join("\n"));
                 }
                 return false;
             }

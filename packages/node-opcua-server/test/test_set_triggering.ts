@@ -1,25 +1,23 @@
 /* eslint-disable max-statements */
 import "should";
-import sinon from "sinon";
-
+import { type AddressSpace, type Namespace, SessionContext, type UAVariable } from "node-opcua-address-space";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { AttributeIds } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
+import { TimestampsToReturn } from "node-opcua-service-read";
 import {
-    MonitoringMode,
+    type DataChangeNotification,
     MonitoredItemCreateRequest,
+    MonitoringMode,
     PublishRequest,
-    PublishResponse,
-    DataChangeNotification
+    type PublishResponse
 } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { TimestampsToReturn } from "node-opcua-service-read";
-
 import { DataType } from "node-opcua-variant";
-import { AttributeIds } from "node-opcua-data-model";
-import { NodeId, coerceNodeId } from "node-opcua-nodeid";
-import { AddressSpace, Namespace, UAVariable, SessionContext } from "node-opcua-address-space";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
 
-import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "../source";
+import { ServerEngine, ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
@@ -386,9 +384,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
         const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
         const publishedResponse0 = waitInitialNotification();
-        {
-            publishedResponse0.notificationMessage.notificationData!.length.should.eql(0);
-        }
+        publishedResponse0.notificationMessage.notificationData!.length.should.eql(0);
 
         const result = subscription.setTriggering(
             createResult1.monitoredItemId,

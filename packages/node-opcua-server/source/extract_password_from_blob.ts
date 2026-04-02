@@ -28,10 +28,7 @@ export interface ExtractPasswordResult {
  * @param serverNonce     - the nonce that was sent during
  *                          CreateSession / last ActivateSession
  */
-export function extractPasswordFromDecryptedBlob(
-    decryptedBuffer: Buffer,
-    serverNonce: Nonce
-): ExtractPasswordResult {
+export function extractPasswordFromDecryptedBlob(decryptedBuffer: Buffer, serverNonce: Nonce): ExtractPasswordResult {
     const invalidResult: ExtractPasswordResult = {
         valid: false,
         password: ""
@@ -56,16 +53,11 @@ export function extractPasswordFromDecryptedBlob(
         return invalidResult;
     }
 
-    const password = decryptedBuffer
-        .subarray(4, 4 + passwordLength)
-        .toString("utf-8");
+    const password = decryptedBuffer.subarray(4, 4 + passwordLength).toString("utf-8");
 
     // verify that the trailing bytes match the server nonce
     // (nonce binding — ensures session integrity)
-    const trailingNonce = decryptedBuffer.subarray(
-        4 + passwordLength,
-        4 + passwordLength + serverNonce.length
-    );
+    const trailingNonce = decryptedBuffer.subarray(4 + passwordLength, 4 + passwordLength + serverNonce.length);
     if (!trailingNonce.equals(serverNonce)) {
         return invalidResult;
     }

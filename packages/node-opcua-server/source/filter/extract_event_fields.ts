@@ -1,8 +1,7 @@
-import { IEventData, ISessionContext } from "node-opcua-address-space-base";
-import { extractEventFieldsBase } from "node-opcua-service-filter";
-import { FilterContextOnAddressSpace } from "node-opcua-service-filter";
-import { SimpleAttributeOperand } from "node-opcua-types";
-import { Variant } from "node-opcua-variant";
+import type { IEventData, ISessionContext } from "node-opcua-address-space-base";
+import { extractEventFieldsBase, FilterContextOnAddressSpace } from "node-opcua-service-filter";
+import type { SimpleAttributeOperand } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 //
 
 /**

@@ -1,6 +1,5 @@
-
-import { StatusCodes } from "node-opcua-status-code";
 import { MonitoredItemNotification } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
 import type { Subscription } from "../source";
 
 interface M2 {
@@ -29,7 +28,7 @@ export function add_mock_monitored_item(subscription: Subscription) {
         async resendInitialValue() {
             this.simulateMonitoredItemAddingNotification();
         },
-        simulateMonitoredItemAddingNotification() { }
+        simulateMonitoredItemAddingNotification() {}
     };
     (monitoredItem as any).__defineGetter__("hasMonitoredItemNotifications", function (this: any) {
         return this.queue.length > 0;
@@ -63,4 +62,3 @@ export function add_mock_monitored_item(subscription: Subscription) {
 
     return monitoredItem;
 }
-

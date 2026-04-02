@@ -1,12 +1,11 @@
 /**
  * @module node-opcua-common
  */
-import {createHash} from "crypto";
+import { createHash } from "crypto";
 
 import { assert } from "node-opcua-assert";
 
 export function makeApplicationUrn(hostname: string, suffix: string): string {
-    
     assert(!suffix.match(/urn:/), "already a application URN ?");
     // beware : Openssl doesn't support urn with length greater than 64 !!
     //          sometimes hostname length could be too long ...

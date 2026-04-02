@@ -1,51 +1,48 @@
 /* eslint-disable max-statements */
-"use strict";
 
+import {
+    type IAddressSpace,
+    type INamespace,
+    type INamespaceDataAccess,
+    type ISessionContext,
+    SessionContext,
+    type UAVariable
+} from "node-opcua-address-space";
+import { add_eventGeneratorObject, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import type { Int64 } from "node-opcua-basic-types";
+import * as encode_decode from "node-opcua-basic-types";
+import type { ResponseCallback } from "node-opcua-client";
+import { standardUnits } from "node-opcua-data-access";
+import { AttributeIds } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { TimestampsToReturn } from "node-opcua-service-read";
+import {
+    DataChangeFilter,
+    DataChangeTrigger,
+    DeadbandType,
+    MonitoredItemCreateRequest,
+    MonitoredItemCreateResult,
+    MonitoringMode,
+    MonitoringParameters,
+    PublishRequest
+} from "node-opcua-service-subscription";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type MonitoredItemNotification, type PublishResponse, Range, WriteValue } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
-import { TimestampsToReturn } from "node-opcua-service-read";
 import {
-    IAddressSpace,
-    INamespace,
-    INamespaceDataAccess,
-    ISessionContext,
-    SessionContext,
-    UAVariable
-} from "node-opcua-address-space";
-import { DataValue } from "node-opcua-data-value";
-import { AttributeIds } from "node-opcua-data-model";
-import { NodeId, coerceNodeId } from "node-opcua-nodeid";
-import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import {
-    MonitoringParameters,
-    MonitoredItemCreateRequest,
-    MonitoringMode,
-    PublishRequest,
-    MonitoredItemCreateResult,
-    DataChangeFilter,
-    DataChangeTrigger,
-    DeadbandType
-} from "node-opcua-service-subscription";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import * as encode_decode from "node-opcua-basic-types";
-import { nodesets } from "node-opcua-nodesets";
-import { MonitoredItemNotification, PublishResponse, Range, WriteValue } from "node-opcua-types";
-import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
-import { standardUnits } from "node-opcua-data-access";
-import { ResponseCallback } from "node-opcua-client";
-import { Int64 } from "node-opcua-basic-types";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import {
-    Subscription,
-    SubscriptionState,
-    ServerSidePublishEngine,
     MonitoredItem,
     ServerEngine,
-    SubscriptionOptions
+    ServerSidePublishEngine,
+    Subscription,
+    type SubscriptionOptions,
+    SubscriptionState
 } from "../source";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
 
@@ -55,7 +52,6 @@ const fake_publish_engine = getFakePublishEngine();
 const context = SessionContext.defaultContext;
 
 const doDebug = false;
-
 
 let dataSourceFrozen = false;
 
@@ -70,7 +66,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -115,7 +111,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
     before((done) => {
         engine = new ServerEngine();
-        engine.initialize({ nodeset_filename: nodesets.standard }, function () {
+        engine.initialize({ nodeset_filename: nodesets.standard }, () => {
             addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
@@ -229,7 +225,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -258,7 +254,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
         createResult.revisedSamplingInterval.should.eql(100);
 
-        subscription.on("terminated", function () {
+        subscription.on("terminated", () => {
             // monitored Item shall be deleted at this stage
             subscription.monitoredItemCount.should.eql(0);
         });
@@ -274,7 +270,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -297,7 +293,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             monitoredItemCreateRequest
         );
 
-        subscription.on("terminated", function () {
+        subscription.on("terminated", () => {
             // monitored Item shall be deleted at this stage
         });
         subscription.terminate();
@@ -322,7 +318,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -395,7 +391,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         subscription.state.should.eql(SubscriptionState.LATE);
 
         // Monitored item will report a new value every tick => 100 ms
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -485,7 +481,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -527,7 +523,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -744,7 +740,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
         subscription1.state.should.eql(SubscriptionState.LATE);
 
-        subscription1.on("monitoredItem", function (monitoredItem) {
+        subscription1.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -764,7 +760,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         });
         publishEngine.add_subscription(subscription2);
 
-        subscription2.on("monitoredItem", function (monitoredItem) {
+        subscription2.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -784,7 +780,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         });
         publishEngine.add_subscription(subscription3);
 
-        subscription3.on("monitoredItem", function (monitoredItem) {
+        subscription3.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -812,7 +808,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -858,7 +854,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         });
 
         let createdMonitoredItemId = 0;
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             createdMonitoredItemId = monitoredItem.monitoredItemId;
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
@@ -893,8 +889,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         subscription.dispose();
         removeMonitoredItemStub.callCount.should.eql(1);
 
-        let removedMonitoredItem = removeMonitoredItemStub.getCall(0).args[0];
-        removedMonitoredItem.monitoredItemId.should.eql(0);        
+        const removedMonitoredItem = removeMonitoredItemStub.getCall(0).args[0];
+        removedMonitoredItem.monitoredItemId.should.eql(0);
         should(removedMonitoredItem.$subscription).be.undefined;
         should(removedMonitoredItem.itemToMonitor).be.null;
 
@@ -902,7 +898,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     });
 
     describe("SM1-A MonitoredItem - Access Right - and Unknown Nodes", () => {
-        let subscription: Subscription | undefined = undefined;
+        let subscription: Subscription | undefined;
 
         beforeEach(() => {
             subscription = makeSubscription({
@@ -919,7 +915,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
-            subscription.on("monitoredItem", function (monitoredItem) {
+            subscription.on("monitoredItem", (monitoredItem) => {
                 monitoredItem.samplingFunc = sinon.spy((sessionContext, oldValue, callback) => {
                     const dataValue = monitoredItem.node.readAttribute(null, monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
@@ -1093,8 +1089,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         });
     });
 
-    describe("SM1-B DeadBandFilter !!!", function () {
-        let subscription: Subscription | undefined = undefined;
+    describe("SM1-B DeadBandFilter !!!", () => {
+        let subscription: Subscription | undefined;
 
         before(() => {
             subscription = makeSubscription({
@@ -1111,8 +1107,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
-            subscription.on("monitoredItem", function (monitoredItem) {
-                monitoredItem.samplingFunc = function () {
+            subscription.on("monitoredItem", (monitoredItem) => {
+                monitoredItem.samplingFunc = () => {
                     /** empty */
                 }; //install_spying_samplingFunc();
 
@@ -1264,18 +1260,18 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             simulate_publish_request_and_check_one(currentValue);
         }
 
-        ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach(function (dataType) {
+        ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach((dataType) => {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
             });
         });
-        ["Float", "Double"].forEach(function (dataType) {
+        ["Float", "Double"].forEach((dataType) => {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
             });
         });
 
-        ["Int64", "UInt64"].forEach(function (dataType) {
+        ["Int64", "UInt64"].forEach((dataType) => {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, integer64Deadband, integer64WritesPass, integer64WritesFail);
             });
@@ -1355,7 +1351,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         }
     });
 
-    describe("SM1-D matching minimumSamplingInterval", function () {
+    describe("SM1-D matching minimumSamplingInterval", () => {
         it("SM1-D-1 server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", async () => {
             uaSomeVariable.minimumSamplingInterval = 1000;
             uaSomeVariable.minimumSamplingInterval.should.eql(1000);
@@ -1369,7 +1365,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             });
 
             try {
-                subscription.on("monitoredItem", function (monitoredItem) {
+                subscription.on("monitoredItem", (monitoredItem) => {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
 
@@ -1439,7 +1435,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             });
 
             try {
-                subscription.on("monitoredItem", function (monitoredItem) {
+                subscription.on("monitoredItem", (monitoredItem) => {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
 
@@ -1518,7 +1514,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         }
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
@@ -1568,14 +1564,14 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         test.clock = null;
     });
 
-    describe("SM2A - #maxNotificationsPerPublish", function () {
+    describe("SM2A - #maxNotificationsPerPublish", () => {
         it("should have a proper maxNotificationsPerPublish default value", async () => {
             const subscription = makeSubscription({
                 publishEngine: publishEngine,
                 globalCounter: { totalMonitoredItemCount: 0 },
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
-            subscription.on("monitoredItem", function (monitoredItem) {
+            subscription.on("monitoredItem", (monitoredItem) => {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
@@ -1633,7 +1629,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
 
             publishEngine.add_subscription(subscription);
 
-            subscription.on("monitoredItem", function (monitoredItem) {
+            subscription.on("monitoredItem", (monitoredItem) => {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
@@ -1719,8 +1715,8 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         //
         xit(
             '#monitoringMode Publish / should always result in the server sending an "initial" data change. ' +
-            " after monitoringMode is set to Disabled and then Reporting,",
-            function (done) {
+                " after monitoringMode is set to Disabled and then Reporting,",
+            (done) => {
                 // todo
 
                 done();
@@ -1728,9 +1724,9 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         );
     });
 
-    describe("SM2B - Subscription.subscriptionDiagnostics", function () {
+    describe("SM2B - Subscription.subscriptionDiagnostics", () => {
         let subscription: Subscription;
-        beforeEach(function () {
+        beforeEach(() => {
             fake_publish_engine.pendingPublishRequestCount = 1000;
 
             subscription = new Subscription({
@@ -1750,7 +1746,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
             };
             // console.log(subscription.subscriptionDiagnostics.toString());
 
-            subscription.on("monitoredItem", function (monitoredItem) {
+            subscription.on("monitoredItem", (monitoredItem) => {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
         });
@@ -1777,50 +1773,50 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
             return monitoredItem;
         }
 
-        afterEach(function () {
+        afterEach(() => {
             subscription.terminate();
             subscription.dispose();
         });
 
-        it("should update Subscription.subscriptionDiagnostics.sessionId", function () {
+        it("should update Subscription.subscriptionDiagnostics.sessionId", () => {
             subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());
         });
 
-        it("should update Subscription.subscriptionDiagnostics.subscriptionId", function () {
+        it("should update Subscription.subscriptionDiagnostics.subscriptionId", () => {
             subscription.subscriptionDiagnostics.subscriptionId.should.eql(subscription.id);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.priority", function () {
+        it("should update Subscription.subscriptionDiagnostics.priority", () => {
             subscription.priority.should.eql(10);
             subscription.subscriptionDiagnostics.priority.should.eql(subscription.priority);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingInterval", function () {
+        it("should update Subscription.subscriptionDiagnostics.publishingInterval", () => {
             subscription.publishingInterval.should.eql(100);
             subscription.subscriptionDiagnostics.publishingInterval.should.eql(subscription.publishingInterval);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount", function () {
+        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount", () => {
             subscription.lifeTimeCount.should.be.above(subscription.maxKeepAliveCount * 3 - 1);
             subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount", function () {
+        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount", () => {
             subscription.maxKeepAliveCount.should.eql(21);
             subscription.subscriptionDiagnostics.maxKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish", function () {
+        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish", () => {
             subscription.maxNotificationsPerPublish.should.eql(123);
             subscription.subscriptionDiagnostics.maxNotificationsPerPublish.should.eql(subscription.maxNotificationsPerPublish);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingEnabled", function () {
+        it("should update Subscription.subscriptionDiagnostics.publishingEnabled", () => {
             subscription.publishingEnabled.should.eql(true);
             subscription.subscriptionDiagnostics.publishingEnabled.should.eql(subscription.publishingEnabled);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber", function () {
+        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber", () => {
             subscription.futureSequenceNumber.should.eql(1);
             subscription.subscriptionDiagnostics.nextSequenceNumber.should.eql(subscription.futureSequenceNumber);
         });
@@ -1883,7 +1879,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
         });
 
-        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount", function () {
+        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount", () => {
             // todo
         });
     });

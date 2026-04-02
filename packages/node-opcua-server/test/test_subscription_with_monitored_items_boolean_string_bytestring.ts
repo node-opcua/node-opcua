@@ -1,26 +1,23 @@
 import "should";
-import sinon, { SinonStatic } from "sinon";
-
+import { type IAddressSpace, type INamespace, SessionContext } from "node-opcua-address-space";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { AttributeIds } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
+import { TimestampsToReturn } from "node-opcua-service-read";
 import {
-    MonitoringMode,
-    MonitoredItemCreateRequest,
     DataChangeFilter,
     DataChangeTrigger,
-    DeadbandType
+    DeadbandType,
+    MonitoredItemCreateRequest,
+    MonitoringMode
 } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { TimestampsToReturn } from "node-opcua-service-read";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import sinon, { SinonStatic } from "sinon";
 
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
-import { AttributeIds } from "node-opcua-data-model";
-import { NodeId, coerceNodeId, NodeIdLike } from "node-opcua-nodeid";
-import { IAddressSpace, INamespace, SessionContext } from "node-opcua-address-space";
-
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { MonitoredItem, Subscription, ServerEngine } from "..";
+import { MonitoredItem, ServerEngine, Subscription } from "..";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -43,7 +40,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -68,13 +65,11 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
     let namespace: INamespace;
 
     let engine: ServerEngine;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
 
-    before(function (done) {
+    before((done) => {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
@@ -122,7 +117,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
         this.clock.restore();
     });
 
-    it("SM4-1 should return Good if DeadBandFilter is NOT specified on boolean value monitored item", async function () {
+    it("SM4-1 should return Good if DeadBandFilter is NOT specified on boolean value monitored item", async () => {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -130,7 +125,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -166,7 +161,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
         subscription.terminate();
         subscription.dispose();
     });
-    it("SM4-2 should return Good if DeadBandFilter is NOT specified on String value monitored item", async function () {
+    it("SM4-2 should return Good if DeadBandFilter is NOT specified on String value monitored item", async () => {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -174,7 +169,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -216,7 +211,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -259,7 +254,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -294,7 +289,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
         subscription.dispose();
     });
 
-    it("SM4-5 should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", async function () {
+    it("SM4-5 should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", async () => {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -302,7 +297,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -345,7 +340,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -380,7 +375,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
         subscription.dispose();
         statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
     });
-    it("SM4-7 should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", async function () {
+    it("SM4-7 should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", async () => {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -388,7 +383,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -432,7 +427,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function (monitoredItem) {
+        subscription.on("monitoredItem", (monitoredItem) => {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
