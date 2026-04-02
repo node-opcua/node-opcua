@@ -43,7 +43,7 @@ import {
     ServerTCP_transport,
     StatusCodes2
 } from "node-opcua-transport";
-import { get_clock_tick, timestamp } from "node-opcua-utils";
+import { get_clock_tick } from "node-opcua-utils";
 import { getThumbprint, type ICertificateKeyPairProvider, type Request, type Response } from "../common";
 import { invalidPrivateKey, MessageBuilder, type ObjectFactory } from "../message_builder";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";
@@ -244,7 +244,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public static registry = new ObjectRegistry();
-    public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
+    #onResponse: ((msgType: string, response: Response, message: Message) => void) | null;
+
+    /**
+     * Install a callback invoked after every response is sent on this channel.
+     * Used by the server to emit "response" events for diagnostics.
+     */
+    public setResponseInterceptor(cb: (msgType: string, response: Response, message: Message) => void): void {
+        this.#onResponse = cb;
+    }
+
     public sessionTokens: { [key: string]: IServerSessionBase };
     public channelId: number;
     public timeout: number;
@@ -298,7 +307,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public constructor(options: ServerSecureChannelLayerOptions) {
         super();
 
-        this._on_response = null;
+        this.#onResponse = null;
         this.#idVerification = {};
         this.#abort_has_been_called = false;
         this.#_remoteAddress = "";
@@ -527,7 +536,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // detect transport closure
         this.#transport_socket_close_listener = (err?: Error) => {
-            debugLog("transport has send 'close' event " + (err ? err.message : "null"));
+            debugLog(`transport has send 'close' event ${err ? err.message : "null"}`);
             this.#_abort(err || new Error("Transport closed abruptly"));
         };
         this.#transport.on("close", this.#transport_socket_close_listener);
@@ -605,8 +614,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             traceResponseMessage(response, tokenId, channelId, this.#counter);
         }
 
-        if (this._on_response) {
-            this._on_response(msgType, response, message);
+        if (this.#onResponse) {
+            this.#onResponse(msgType, response, message);
         }
 
         this.#transactionsCount += 1;
@@ -1006,7 +1015,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 //    BadCertificateUseNotAllowed
                 //
                 // the client will decided what to do next
-                return this.#_on_OpenSecureChannelRequestError(statusCode!, "certificate invalid", message);
+                return this.#_on_OpenSecureChannelRequestError(statusCode, "certificate invalid", message);
             }
             this.#_handle_OpenSecureChannelRequest(message);
         });
@@ -1056,10 +1065,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         const senderPrivateKey = this.getPrivateKey();
         /* c8 ignore next */
-        if (!senderPrivateKey) {
+        if (!senderPrivateKey || !this.#messageBuilder) {
             throw new Error("invalid or missing senderPrivateKey : necessary to sign");
         }
-        const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy!);
+        const cryptoFactory = getCryptoFactory(this.#messageBuilder.securityPolicy);
         /* c8 ignore next */
         if (!cryptoFactory) {
             throw new Error("Internal Error: ServerSecureChannelLayer must have a crypto strategy");
@@ -1119,10 +1128,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 if (statusCode.isNotGood()) {
                     const description = `Sender Certificate Error ${statusCode.toString()}`;
                     warningLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode?.toString()));
-                    const chain = split_der(clientCertificate!);
+                    const chain = split_der(clientCertificate || Buffer.alloc(0));
                     warningLog(
                         "Sender Certificate = ",
-                        chain.map((c) => getThumbprint(clientCertificate)?.toString("hex")).join("\n")
+                        chain.map((c) => getThumbprint(c)?.toString("hex")).join("\n")
                     );
                 }
 
@@ -1180,6 +1189,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
         };
 
         switch (request.securityMode) {
+            case MessageSecurityMode.Invalid:
+                this.securityPolicy = SecurityPolicy.Invalid;
+                securityHeader = new AsymmetricAlgorithmSecurityHeader({
+                    receiverCertificateThumbprint: null, // message not encrypted
+                    securityPolicyUri: SecurityPolicy.Invalid,
+                    senderCertificate: null // message not signed
+                });
+                break;
             case MessageSecurityMode.None:
                 this.securityPolicy = SecurityPolicy.None;
                 securityHeader = new AsymmetricAlgorithmSecurityHeader({
@@ -1189,8 +1206,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 });
                 break;
             case MessageSecurityMode.Sign:
-            case MessageSecurityMode.SignAndEncrypt:
-            default: {
+            case MessageSecurityMode.SignAndEncrypt: {
                 const receiverCertificateThumbprint = evaluateReceiverThumbprint();
                 const asymmClientSecurityHeader = message.securityHeader as AsymmetricAlgorithmSecurityHeader;
                 this.securityPolicy = coerceSecurityPolicy(asymmClientSecurityHeader.securityPolicyUri || SecurityPolicy.Invalid);
@@ -1304,11 +1320,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // ReceiverCertificateThumbprint were specified in the SecurityHeader.
             /* c8 ignore next */
             if (!messageRequest.securityHeader) {
-                throw new Error("Internal Error");
+                return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityModeRejected, "invalid security header", messageRequest);
             }
 
             const request = messageRequest.request as OpenSecureChannelRequest;
             const requestId = messageRequest.requestId;
+
+            /* c8 ignore next */
+            if (request.securityMode === MessageSecurityMode.Invalid) {
+                return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityModeRejected, "invalid security mode", messageRequest);
+            }
+
 
             // let prepare self.securityHeader;
             const securityHeader = this.#_prepare_response_security_header(request, messageRequest);

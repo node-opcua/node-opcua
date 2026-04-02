@@ -393,6 +393,11 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const server = this;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
+            // Install a response interceptor once per channel so the
+            // server can emit "response" events for diagnostics.
+            channel.setResponseInterceptor((_msg, response1) => {
+                server.emit("response", response1, channel);
+            });
             server.emit("newChannel", channel, this);
         };
 
@@ -494,13 +499,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
         assert(message.request);
         assert(message.requestId !== 0);
         const request = message.request;
-
-        // install channel._on_response so we can intercept its call and  emit the "response" event.
-        if (!channel._on_response) {
-            channel._on_response = (_msg: string, response1: Response /*, inner_message: Message*/) => {
-                this.emit("response", response1, channel);
-            };
-        }
 
         // prepare request
         this.prepare(message, channel);
