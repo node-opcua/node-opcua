@@ -297,8 +297,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     #_remoteAddress: string;
     #_remotePort: number;
     #abort_has_been_called: boolean;
-    #idVerification: any;
-    #transport_socket_close_listener?: any;
+    #idVerification: Record<number, number>;
+    #transport_socket_close_listener?: (err: Error | null) => void;
     #tokenStack: TokenStack;
 
     public get status() {
@@ -519,7 +519,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     if (doTraceIncomingChunk) {
                         console.log(hexDump(messageChunk));
                     }
-                    this.#messageBuilder!.feed(messageChunk);
+                    this.#messageBuilder?.feed(messageChunk);
                 });
                 debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
                 debugLog("... now waiting for OpenSecureChannelRequest...");
@@ -535,7 +535,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
 
         // detect transport closure
-        this.#transport_socket_close_listener = (err?: Error) => {
+        this.#transport_socket_close_listener = (err: Error | null) => {
             debugLog(`transport has send 'close' event ${err ? err.message : "null"}`);
             this.#_abort(err || new Error("Transport closed abruptly"));
         };
