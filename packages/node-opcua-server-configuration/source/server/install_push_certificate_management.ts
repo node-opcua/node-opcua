@@ -9,8 +9,8 @@ import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-spa
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ICertificateKeyPairProvider, invalidateCachedSecrets } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { type OPCUAServer, invalidateServerCertificateCache } from "node-opcua-server";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { invalidateServerCertificateCache, type OPCUAServer } from "node-opcua-server";
 import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers.js";
@@ -18,6 +18,7 @@ import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certi
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+const errorLog = make_errorLog("ServerConfiguration");
 
 /** Relative path from cert manager root to the leaf certificate PEM. */
 const CERT_PEM_RELATIVE_PATH = "own/certs/certificate.pem";
@@ -41,28 +42,32 @@ async function onCertificateAboutToChange(server: OPCUAServer) {
  * onCertificateChange is called when the serverConfiguration notifies
  * that the server certificate and/or private key has changed.
  *
- * This function invalidates all cached certificates so that the next
- * getCertificate() / getPrivateKey() call re-reads from disk,
- * then waits briefly for in-flight requests to complete before
- * shutting down channels and resuming endpoints.
+ * This function invalidates all cached certificates so that new
+ * connections immediately serve the updated certificate.
+ *
+ * Channel teardown is deferred to the `applyChangesCompleted` event
+ * so the ApplyChanges OPC-UA method can return its response before
+ * the admin client's own channel is destroyed.
  */
 async function onCertificateChange(server: OPCUAServer) {
     doDebug && debugLog("on CertificateChanged");
-
     invalidateServerCertificateCache(server);
+}
 
-    // Allow a grace period for in-flight OPC UA requests to complete
-    // before tearing down secure channels.
-    const gracePeriodMs = 2000;
-    await new Promise<void>((resolve) => setTimeout(resolve, gracePeriodMs));
-
-    doDebug && debugLog(chalk.yellow(" onCertificateChange => shutting down channels"));
+/**
+ * Deferred channel restart: called after the ApplyChanges method
+ * response has been sent.  Shuts down all existing secure channels
+ * (which forces clients to reconnect with the new cert) and resumes
+ * the endpoints.
+ */
+async function onApplyChangesCompleted(server: OPCUAServer) {
+    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => shutting down channels"));
     await server.shutdownChannels();
-    doDebug && debugLog(chalk.yellow(" onCertificateChange => channels shut down"));
+    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => channels shut down"));
 
-    doDebug && debugLog(chalk.yellow(" onCertificateChange => resuming end points"));
+    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => resuming end points"));
     await server.resumeEndPoints();
-    doDebug && debugLog(chalk.yellow(" onCertificateChange => end points resumed"));
+    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => end points resumed"));
 
     debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
 }
@@ -104,7 +109,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
             "Server must have a valid address space. " +
-                "You need to call installPushCertificateManagementOnServer after server has been initialized"
+            "You need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
     await install.call(server as unknown as OPCUAServerPartial);
@@ -138,6 +143,18 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
             doDebug && debugLog("CertificateChanged Event received");
             await onCertificateChange(server);
             doDebug && debugLog("CertificateChanged Event processed");
+        });
+    });
+
+    serverConfigurationPriv.$pushCertificateManager.on("applyChangesCompleted", () => {
+        // Fire-and-forget: schedule channel teardown + endpoint
+        // resumption AFTER the method response is sent.
+        setImmediate(async () => {
+            try {
+                await onApplyChangesCompleted(server);
+            } catch (err) {
+                errorLog("onApplyChangesCompleted error:", (err as Error).message);
+            }
         });
     });
 }

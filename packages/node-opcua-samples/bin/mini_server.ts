@@ -1,22 +1,21 @@
-// tslint:disable:no-console
-import path from "path";
-import os from "os";
-
+import os from "node:os";
+import path from "node:path";
 import chalk from "chalk";
-
 import {
-    makeApplicationUrn,
     get_mini_nodeset_filename,
-    OPCUAServer,
-    ServerSession,
+    makeApplicationUrn,
     OPCUACertificateManager,
-    OPCUAServerOptions
+    OPCUAServer,
+    type OPCUAServerOptions,
+    type ServerSession
 } from "node-opcua";
+
 Error.stackTraceLimit = Infinity;
 
 const port = 26544;
 
 import envPaths from "env-paths";
+
 const config = envPaths("MiniNodeOPCUA-Server").config;
 const pkiFolder = path.join(config, "PKI");
 
@@ -49,7 +48,7 @@ const serverOptions: OPCUAServerOptions = {
 
     serverCapabilities: {
         maxSessions: 10,
-    
+
         maxBrowseContinuationPoints: 10,
         maxHistoryContinuationPoints: 10,
         // maxInactiveLockTime
@@ -67,19 +66,19 @@ const serverOptions: OPCUAServerOptions = {
 };
 
 async function main() {
-    process.title = "Node OPCUA Server on port : " + serverOptions.port;
+    process.title = `Node OPCUA Server on port : ${serverOptions.port}`;
 
     const server = new OPCUAServer(serverOptions);
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     try {
         await server.start();
-    } catch (err) {
+    } catch (_err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
 
-    const endpointUrl = server.getEndpointUrl()!;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), server.endpoints[0].port.toString());
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
@@ -87,17 +86,17 @@ async function main() {
 
     server.on("create_session", (session: ServerSession) => {
         console.log(" SESSION CREATED");
-        console.log(chalk.cyan("    client application URI: "), session.clientDescription!.applicationUri);
-        console.log(chalk.cyan("        client product URI: "), session.clientDescription!.productUri);
-        console.log(chalk.cyan("   client application name: "), session.clientDescription!.applicationName.toString());
-        console.log(chalk.cyan("   client application type: "), session.clientDescription!.applicationType.toString());
+        console.log(chalk.cyan("    client application URI: "), session.clientDescription?.applicationUri);
+        console.log(chalk.cyan("        client product URI: "), session.clientDescription?.productUri);
+        console.log(chalk.cyan("   client application name: "), session.clientDescription?.applicationName.toString());
+        console.log(chalk.cyan("   client application type: "), session.clientDescription?.applicationType.toString());
         console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
         console.log(chalk.cyan("           session timeout: "), session.sessionTimeout);
         console.log(chalk.cyan("                session id: "), session.nodeId);
     });
 
-    server.on("session_closed", (session: ServerSession, reason: string) => {
-        console.log(" SESSION CLOSED :", reason);
+    server.on("session_closed", (session: ServerSession, deleteSubscriptions: boolean) => {
+        console.log(" SESSION CLOSED :", deleteSubscriptions);
         console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
     });
 }
