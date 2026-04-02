@@ -1,19 +1,19 @@
-import { DerivedKeys } from "node-opcua-crypto/web";
-import { assert } from "node-opcua-assert";
-import { make_debugLog, checkDebugFlag, make_warningLog } from "node-opcua-debug";
 import chalk from "chalk";
-import { DerivedKeys1 } from "./security_policy";
-import { DateTime } from "node-opcua-basic-types";
+import { assert } from "node-opcua-assert";
+import type { DateTime } from "node-opcua-basic-types";
+import type { DerivedKeys } from "node-opcua-crypto/web";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import type { DerivedKeys1 } from "./security_policy";
 
 const debugLog = make_debugLog("TOKEN");
 const doDebug = checkDebugFlag("TOKEN");
-const warningLog = make_warningLog("TOKEN");
+const _warningLog = make_warningLog("TOKEN");
 
 export interface ISecurityToken {
     tokenId: number;
     createdAt: DateTime;
     revisedLifetime: number;
-    channelId: number;  
+    channelId: number;
 }
 
 export interface SecurityTokenAndDerivedKeys {
@@ -22,10 +22,9 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys1 | null;
 }
 
-
- function hasTokenReallyExpired(token: ISecurityToken): boolean {
+function hasTokenReallyExpired(token: ISecurityToken): boolean {
     const now = new Date();
-    const age = now.getTime() - token.createdAt!.getTime();
+    const age = now.getTime() - (token.createdAt?.getTime() ?? 0);
     return age > token.revisedLifetime * 1.25;
 }
 
@@ -38,28 +37,31 @@ export class TokenStack {
     #clientKeyProvider: IDerivedKeyProvider;
     #serverKeyProvider: IDerivedKeyProvider;
 
-    private id:number = 0;
-    constructor(channelId: number){
+    private id: number = 0;
+    constructor(channelId: number) {
         this.id = channelId;
         this.#clientKeyProvider = {
             getDerivedKey: (tokenId: number): DerivedKeys | null => {
-                const d = this.getTokenDerivedKeys(tokenId); 
+                const d = this.getTokenDerivedKeys(tokenId);
                 if (!d) return null;
                 return d.derivedClientKeys;
             }
-        }
+        };
         this.#serverKeyProvider = {
             getDerivedKey: (tokenId: number): DerivedKeys | null => {
                 const d = this.getTokenDerivedKeys(tokenId);
                 if (!d) return null;
                 return d.derivedServerKeys;
             }
-        }
+        };
     }
-    public serverKeyProvider(): IDerivedKeyProvider { return this.#serverKeyProvider; }
-    public clientKeyProvider(): IDerivedKeyProvider { return this.#clientKeyProvider; }
-    public pushNewToken(securityToken: ISecurityToken, derivedKeys: DerivedKeys1  | null): void {
-     
+    public serverKeyProvider(): IDerivedKeyProvider {
+        return this.#serverKeyProvider;
+    }
+    public clientKeyProvider(): IDerivedKeyProvider {
+        return this.#clientKeyProvider;
+    }
+    public pushNewToken(securityToken: ISecurityToken, derivedKeys: DerivedKeys1 | null): void {
         this.removeOldTokens();
 
         // TODO: make sure this list doesn't grow indefinitely
@@ -82,9 +84,8 @@ export class TokenStack {
         if (!token) return null;
         return token.securityToken;
     }
-    public getTokenDerivedKeys(tokenId: number): DerivedKeys1 | null 
-    {
-        const token = this.#tokenStack.find((a)=> a.securityToken.tokenId === tokenId);
+    public getTokenDerivedKeys(tokenId: number): DerivedKeys1 | null {
+        const token = this.#tokenStack.find((a) => a.securityToken.tokenId === tokenId);
         if (!token) return null;
 
         if (hasTokenReallyExpired(token.securityToken)) {
@@ -116,9 +117,7 @@ export class TokenStack {
     }
 
     public removeOldTokens() {
-    
         // remove all expired tokens
         this.#tokenStack = this.#tokenStack.filter((token) => !hasTokenReallyExpired(token.securityToken));
-
     }
 }
