@@ -304,9 +304,12 @@ function getUniqueName(name: string, collection: { [key: string]: number }) {
     }
 }
 
-interface ServerSecureChannelLayerPriv extends ServerSecureChannelLayer {
-    _unpreregisterChannelEvent?: () => void;
-}
+/**
+ * Stores the abort listener for channels in the pre-registration phase.
+ * Using a WeakMap instead of monkey-patching the channel object keeps
+ * this internal state invisible to debuggers and external code.
+ */
+const preregisterAbortListeners = new WeakMap<ServerSecureChannelLayer, () => void>();
 /**
  * OPCUAServerEndPoint a Server EndPoint.
  * A sever end point is listening to one port
@@ -1040,14 +1043,14 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         assert(!Object.hasOwn(this._channels, channel.hashKey), " channel already preregistered!");
 
-        const channelPriv = <ServerSecureChannelLayerPriv>channel;
-        this._channels[channel.hashKey] = channelPriv;
-        channelPriv._unpreregisterChannelEvent = () => {
+        this._channels[channel.hashKey] = channel;
+        const onAbort = () => {
             debugLog("Channel received an abort event during the preregistration phase");
             this._un_pre_registerChannel(channel);
             channel.dispose();
         };
-        channel.on("abort", channelPriv._unpreregisterChannelEvent);
+        preregisterAbortListeners.set(channel, onAbort);
+        channel.on("abort", onAbort);
     }
 
     private _un_pre_registerChannel(channel: ServerSecureChannelLayer) {
@@ -1056,10 +1059,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             return;
         }
         delete this._channels[channel.hashKey];
-        const channelPriv = <ServerSecureChannelLayerPriv>channel;
-        if (typeof channelPriv._unpreregisterChannelEvent === "function") {
-            channel.removeListener("abort", channelPriv._unpreregisterChannelEvent);
-            channelPriv._unpreregisterChannelEvent = undefined;
+        const onAbort = preregisterAbortListeners.get(channel);
+        if (onAbort) {
+            channel.removeListener("abort", onAbort);
+            preregisterAbortListeners.delete(channel);
         }
     }
 
