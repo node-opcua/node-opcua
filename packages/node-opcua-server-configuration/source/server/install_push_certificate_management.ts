@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server-configuration-server
  */
-import fs from "node:fs";
 import path from "node:path";
 
 import chalk from "chalk";
@@ -9,9 +8,8 @@ import chalk from "chalk";
 import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type ICertificateKeyPairProvider, SecretHolder, invalidateCachedSecrets } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { getFullyQualifiedDomainName, getIpAddresses } from "node-opcua-hostname";
+import { type ICertificateKeyPairProvider, invalidateCachedSecrets } from "node-opcua-common";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { type OPCUAServer, invalidateServerCertificateCache } from "node-opcua-server";
 import type { ApplicationDescriptionOptions } from "node-opcua-types";
 
@@ -19,7 +17,6 @@ import { installPushCertificateManagement } from "./push_certificate_manager_hel
 import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
-const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
 /** Relative path from cert manager root to the leaf certificate PEM. */
@@ -31,6 +28,7 @@ export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     privateKeyFile: string;
     certificateFile: string;
     engine: { addressSpace?: AddressSpace };
+    createDefaultCertificate(): Promise<void>;
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -45,73 +43,53 @@ async function onCertificateAboutToChange(server: OPCUAServer) {
  *
  * This function invalidates all cached certificates so that the next
  * getCertificate() / getPrivateKey() call re-reads from disk,
- * then shuts down all channels and resumes endpoints.
+ * then waits briefly for in-flight requests to complete before
+ * shutting down channels and resuming endpoints.
  */
 async function onCertificateChange(server: OPCUAServer) {
     doDebug && debugLog("on CertificateChanged");
 
     invalidateServerCertificateCache(server);
 
-    setTimeout(async () => {
-        try {
-            doDebug && debugLog(chalk.yellow(" onCertificateChange => shutting down channels"));
-            await server.shutdownChannels();
-            doDebug && debugLog(chalk.yellow(" onCertificateChange => channels shut down"));
+    // Allow a grace period for in-flight OPC UA requests to complete
+    // before tearing down secure channels.
+    const gracePeriodMs = 2000;
+    await new Promise<void>((resolve) => setTimeout(resolve, gracePeriodMs));
 
-            doDebug && debugLog(chalk.yellow(" onCertificateChange => resuming end points"));
-            await server.resumeEndPoints();
-            doDebug && debugLog(chalk.yellow(" onCertificateChange => end points resumed"));
+    doDebug && debugLog(chalk.yellow(" onCertificateChange => shutting down channels"));
+    await server.shutdownChannels();
+    doDebug && debugLog(chalk.yellow(" onCertificateChange => channels shut down"));
 
-            debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
-        } catch (err) {
-            errorLog("Error in CertificateChanged handler ", (err as Error).message);
-            debugLog("err = ", err);
-        }
-    }, 2000);
+    doDebug && debugLog(chalk.yellow(" onCertificateChange => resuming end points"));
+    await server.resumeEndPoints();
+    doDebug && debugLog(chalk.yellow(" onCertificateChange => end points resumed"));
+
+    debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
 }
 
 /**
- * Install push certificate management on the server.
- *
- * This redirects `getCertificate`, `getCertificateChain` and
- * `getPrivateKey` to read from the serverCertificateManager's
- * PEM files via a SecretHolder, and wires up the push certificate
- * management address-space nodes.
+ * Redirect the server's `certificateFile` and `privateKeyFile`
+ * properties to the cert manager's paths, create a default
+ * certificate if none exists, and invalidate cached secrets.
  */
 async function install(this: OPCUAServerPartial): Promise<void> {
     doDebug && debugLog("install push certificate management", this.serverCertificateManager.rootDir);
 
     Object.defineProperty(this, "privateKeyFile", {
         get: () => this.serverCertificateManager.privateKey,
-        configurable: true
+        configurable: true,
+        enumerable: true
     });
     Object.defineProperty(this, "certificateFile", {
         get: () => path.join(this.serverCertificateManager.rootDir, CERT_PEM_RELATIVE_PATH),
-        configurable: true
+        configurable: true,
+        enumerable: true
     });
 
-    const certificateFile = this.certificateFile;
-    if (!fs.existsSync(certificateFile)) {
-        // this is the first time server is launched
-        // let's create a default self signed certificate with limited validity
-        const fqdn = getFullyQualifiedDomainName();
-        const ipAddresses = getIpAddresses();
-
-        const applicationUri = (this.serverInfo ? this.serverInfo.applicationUri : null) || "uri:MISSING";
-
-        const options = {
-            applicationUri,
-            dns: [fqdn],
-            ip: ipAddresses,
-            subject: `/CN=${applicationUri};/L=Paris`,
-            startDate: new Date(),
-            validity: 365 * 5, // five years
-            outputFile: certificateFile
-        };
-
-        doDebug && debugLog("creating self signed certificate", options);
-        await this.serverCertificateManager.createSelfSignedCertificate(options);
-    }
+    // Delegate to the base server's createDefaultCertificate() which
+    // handles DNS (fqdn + hostname + configured), IPs (auto + configured),
+    // proper subject via makeSubject(), mutex locking, and file checks.
+    await this.createDefaultCertificate();
 
     // Invalidate any previously cached secrets so that
     // getCertificateChain() / getPrivateKey() will re-read from disk.
@@ -122,35 +100,20 @@ interface UAServerConfigurationEx extends UAServerConfiguration {
     $pushCertificateManager: PushCertificateManagerServerImpl;
 }
 
-/**
- * Create a disk-backed SecretHolder pointing at the cert manager's
- * PEM files. This reuses SecretHolder's lazy caching and #-private
- * security model instead of duplicating it.
- */
-function createCertManagerSecretHolder(cm: OPCUACertificateManager): SecretHolder {
-    return new SecretHolder({
-        certificateFile: path.join(cm.rootDir, CERT_PEM_RELATIVE_PATH),
-        privateKeyFile: cm.privateKey
-    });
-}
-
 export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
     if (!server.engine || !server.engine.addressSpace) {
         throw new Error(
-            "Server must have a valid address space." +
-                "you need to call installPushCertificateManagementOnServer after server has been initialized"
+            "Server must have a valid address space. " +
+                "You need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
     await install.call(server as unknown as OPCUAServerPartial);
 
-    // Replace the default static provider on each endpoint with
-    // a SecretHolder that reads from the cert manager's PEM files.
-    // SecretHolder already provides lazy caching, #-private fields,
-    // and invalidate() — no need for a separate provider class.
-    for (const endpoint of server.endpoints) {
-        const holder = createCertManagerSecretHolder(server.serverCertificateManager);
-        endpoint.setCertificateProvider(holder);
-    }
+    // After install() redirected certificateFile / privateKeyFile,
+    // the SecretHolder(this) in each endpoint already follows the
+    // new paths. Just invalidate their cached values so the next
+    // access re-reads from the cert manager's files.
+    invalidateServerCertificateCache(server);
 
     await installPushCertificateManagement(server.engine.addressSpace, {
         applicationGroup: server.serverCertificateManager,

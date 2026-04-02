@@ -208,7 +208,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         return [];
     }
 
-    protected async createDefaultCertificate(): Promise<void> {
+    public async createDefaultCertificate(): Promise<void> {
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
