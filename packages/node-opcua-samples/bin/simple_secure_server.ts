@@ -131,8 +131,8 @@ async function main() {
         console.log(chalk.cyan("                session id: "), session.nodeId);
     });
 
-    server.on("session_closed", (session: ServerSession, reason: string) => {
-        console.log(" SESSION CLOSED :", reason);
+    server.on("session_closed", (session: ServerSession, deleteSubscriptions: boolean) => {
+        console.log(" SESSION CLOSED :", deleteSubscriptions);
         console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
     });
 
