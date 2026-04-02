@@ -3901,12 +3901,23 @@ export class OPCUAServer extends OPCUABaseServer {
     public on(event: "response", eventHandler: (request: Response, channel: ServerSecureChannelLayer) => void): this;
 
     /**
-     * event raised when a new secure channel is opened
+     * event raised when a new secure channel transport is initialized (HEL/ACK complete).
+     * Note: securityPolicy and securityMode are NOT yet established at this point.
+     * Use "channelSecured" for post-handshake notifications.
      */
     public on(event: "newChannel", eventHandler: (channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint) => void): this;
 
     /**
-     * event raised when a new secure channel is closed
+     * event raised when a secure channel has completed the OpenSecureChannel handshake.
+     * At this point securityPolicy, securityMode, and clientCertificate are available.
+     */
+    public on(
+        event: "channelSecured",
+        eventHandler: (channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint) => void
+    ): this;
+
+    /**
+     * event raised when a secure channel is closed
      */
     public on(
         event: "closeChannel",

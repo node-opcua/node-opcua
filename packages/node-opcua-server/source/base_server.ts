@@ -393,12 +393,19 @@ export class OPCUABaseServer extends OPCUASecureObject {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const server = this;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
+            server.emit("newChannel", channel, this);
+        };
+
+        const _on_channel_secured = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
             // Install a response interceptor once per channel so the
             // server can emit "response" events for diagnostics.
+            // Done here (after OpenSecureChannel) rather than at
+            // newChannel time, so the interceptor can rely on
+            // securityPolicy/securityMode being populated.
             channel.setResponseInterceptor((_msg, response1) => {
                 server.emit("response", response1, channel);
             });
-            server.emit("newChannel", channel, this);
+            server.emit("channelSecured", channel, this);
         };
 
         const _on_close_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
@@ -424,6 +431,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
             endpoint._on_new_channel = _on_new_channel;
             endpoint.on("newChannel", endpoint._on_new_channel);
+
+            endpoint.on("channelSecured", _on_channel_secured);
 
             endpoint._on_close_channel = _on_close_channel;
             endpoint.on("closeChannel", endpoint._on_close_channel);

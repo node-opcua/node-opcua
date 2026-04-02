@@ -1380,6 +1380,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     this.close();
                 } else {
                     this.#status = "open";
+                    this.emit("open");
                 }
             });
         });
