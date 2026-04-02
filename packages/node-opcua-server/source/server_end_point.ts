@@ -1077,10 +1077,21 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             this._channels[channel.hashKey] = channel;
 
             /**
-             * @event newChannel
+             * @event newChannel — fired after transport init (HEL/ACK).
+             * Note: securityPolicy/securityMode are NOT yet established.
              * @param channel
              */
             this.emit("newChannel", channel);
+
+            channel.once("open", () => {
+                /**
+                 * @event channelSecured — fired after OpenSecureChannel
+                 * handshake succeeds. securityPolicy, securityMode, and
+                 * clientCertificate are available at this point.
+                 * @param channel
+                 */
+                this.emit("channelSecured", channel);
+            });
 
             channel.on("abort", () => {
                 this._unregisterChannel(channel);

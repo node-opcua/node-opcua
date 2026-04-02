@@ -2,12 +2,19 @@
  * @module node-opcua-secure-channel
  */
 // tslint:disable:max-line-length
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { ChunkManager, EncryptBufferFunc, IChunkManagerOptions, Mode, SequenceHeader, SignBufferFunc } from "node-opcua-chunkmanager";
+import {
+    ChunkManager,
+    type EncryptBufferFunc,
+    type IChunkManagerOptions,
+    type Mode,
+    SequenceHeader,
+    type SignBufferFunc
+} from "node-opcua-chunkmanager";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SequenceNumberGenerator } from "./sequence_number_generator";
+import type { SequenceNumberGenerator } from "./sequence_number_generator";
 
 export type SecurityHeader = AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader;
 
@@ -38,7 +45,7 @@ export class SecureMessageChunkManager extends EventEmitter {
     readonly #securityHeader: SecurityHeader;
     readonly #sequenceHeader: SequenceHeader;
     readonly #chunkManager: ChunkManager;
-   
+
     constructor(
         mode: Mode,
         msgType: string,
@@ -135,7 +142,6 @@ export class SecureMessageChunkManager extends EventEmitter {
 
         // write Security Header -----------------
         this.#securityHeader.encode(stream);
-        
     }
 
     public writeSequenceHeader(buffer: Buffer): void {
