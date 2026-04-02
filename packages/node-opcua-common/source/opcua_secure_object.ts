@@ -7,13 +7,15 @@ import { assert } from "node-opcua-assert";
 import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { type Certificate, type PrivateKey, split_der } from "node-opcua-crypto/web";
 
+import type { ICertificateChainProvider } from "./certificate_chain_provider";
+
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
     getCertificateChain(): Certificate[];
     getPrivateKey(): PrivateKey;
 }
 
-interface IHasCertificateFile {
+export interface IHasCertificateFile {
     readonly certificateFile: string;
     readonly privateKeyFile: string;
 }
@@ -24,7 +26,7 @@ interface IHasCertificateFile {
  * access and kept in truly private `#`-fields so they never appear in
  * `JSON.stringify`, `console.log`, `Object.keys`, or `util.inspect`.
  */
-export class SecretHolder {
+export class SecretHolder implements ICertificateChainProvider {
     #certificateChain: Certificate[] | null = null;
     #privateKey: PrivateKey | null = null;
     #obj: IHasCertificateFile;
@@ -76,6 +78,14 @@ export class SecretHolder {
     public dispose(): void {
         this.#certificateChain = null;
         this.#privateKey = null;
+    }
+
+    /**
+     * Alias for {@link dispose}.
+     * Implements `ICertificateChainProvider.invalidate()`.
+     */
+    public invalidate(): void {
+        this.dispose();
     }
 
     // Prevent secrets from leaking through JSON serialization
@@ -171,7 +181,10 @@ export interface IOPCUASecureObjectOptions {
  */
 
 // biome-ignore lint/suspicious/noExplicitAny: EventEmitter use any
-export class OPCUASecureObject<T extends Record<string | symbol, any> = any> extends EventEmitter<T> implements ICertificateKeyPairProvider, IHasCertificateFile {
+export class OPCUASecureObject<T extends Record<string | symbol, any> = any>
+    extends EventEmitter<T>
+    implements ICertificateKeyPairProvider, IHasCertificateFile
+{
     public readonly certificateFile: string;
     public readonly privateKeyFile: string;
 

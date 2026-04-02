@@ -36,7 +36,7 @@ import {
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { ServerState } from "node-opcua-common";
+import { SecretHolder, ServerState } from "node-opcua-common";
 import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
@@ -3776,6 +3776,19 @@ export class OPCUAServer extends OPCUABaseServer {
             serverInfo: this.serverInfo,
             transportSettings: serverOptions.transportSettings
         });
+
+        // Replace the initial static snapshot with a disk-backed
+        // SecretHolder so that endpoints always reflect the current
+        // on-disk certificate — even without push cert management.
+        // This makes invalidateCertificates() sufficient to pick up
+        // rotated certificates from any source.
+        endPoint.setCertificateProvider(
+            new SecretHolder({
+                certificateFile: this.certificateFile,
+                privateKeyFile: this.privateKeyFile
+            })
+        );
+
         return endPoint;
     }
 
