@@ -20,7 +20,7 @@ export function t(test: TestHarness) {
         let oldMin: number;
         beforeEach(() => {
             oldMin = (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime;
-            (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime = 250;
+            (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime = 500;
             endpointUrl = test.endpointUrl;
         });
         afterEach(() => {
@@ -36,7 +36,7 @@ export function t(test: TestHarness) {
                     securityMode,
                     securityPolicy,
                     serverCertificate: null as any,
-                    defaultSecureTokenLifetime: 200
+                    defaultSecureTokenLifetime: 500
                 });
                 const sequenceNumbers: number[] = [];
                 const messages: string[] = [];
