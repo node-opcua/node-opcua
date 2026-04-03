@@ -1,4 +1,4 @@
-import { PublishResponse, type PublishResponseOptions } from "node-opcua-types";
+import type { PublishResponseOptions } from "node-opcua-types";
 import type { Subscription } from "../source";
 import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
 
@@ -30,20 +30,20 @@ export interface IServerSidePublishEngine2 extends IServerSidePublishEngine {
 export function getFakePublishEngine(): IServerSidePublishEngine2 {
     return {
         pendingPublishRequestCount: 0,
-        _send_response(subscription: Subscription | null, response?: PublishResponseOptions) {
+        _send_response(_subscription: Subscription | null, _response?: PublishResponseOptions) {
             if (this.pendingPublishRequestCount <= 0) {
                 throw new Error("Invalid send");
             }
             this.pendingPublishRequestCount--;
         },
-        send_keep_alive_response(subscriptionId: number, _get_future_sequence_number: any) {
+        send_keep_alive_response(_subscriptionId: number, _get_future_sequence_number: unknown) {
             if (this.pendingPublishRequestCount <= 0) {
                 return false;
             }
-            this._send_response(null as any as Subscription, null as any);
+            this._send_response(null as unknown as Subscription, null as unknown as PublishResponseOptions);
             return true;
         },
-        on_close_subscription(subscription: Subscription) {
+        on_close_subscription(_subscription: Subscription) {
             /**  empty */
         },
         _on_tick() {

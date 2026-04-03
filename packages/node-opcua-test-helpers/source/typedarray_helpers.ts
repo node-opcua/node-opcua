@@ -1,46 +1,52 @@
-import should from "should";
-const _should: any = should;
+import "should";
 
-const errorLog = console.log;
+/**
+ * An array-like value: a regular Array or any TypedArray
+ * (Uint8Array, Float64Array, Int32Array, etc.).
+ */
+type ArrayOrTypedArray = ArrayLike<unknown> & { readonly length: number };
 
-function __isEqual(a: any, b: any): boolean {
-    if (!a && !b) {
-        return true;
-    }
-    return a.toString() === b.toString();
+function elementsAreEqual(a: unknown, b: unknown): boolean {
+    if (a === b) return true;
+    if (a == null && b == null) return true;
+    return String(a) === String(b);
 }
 
-function _is_equal(arr1: any[], arr2: any[]) {
+function arraysAreEqual(arr1: ArrayOrTypedArray, arr2: ArrayOrTypedArray): boolean {
     if (arr1.length !== arr2.length) {
         return false;
     }
-    let i;
-    const n = arr1.length;
-    for (i = 0; i < n; i++) {
-        if (!__isEqual(arr1[i], arr2[i])) {
+    for (let i = 0; i < arr1.length; i++) {
+        if (!elementsAreEqual(arr1[i], arr2[i])) {
             return false;
         }
     }
     return true;
 }
 
-function dump_array(arr: any[]) {
-    const a = [];
-    let i;
-    const n = arr.length;
-    for (i = 0; i < n; i++) {
-        a.push(arr[i]);
+function formatArray(arr: ArrayOrTypedArray): string {
+    const items: unknown[] = [];
+    for (let i = 0; i < arr.length; i++) {
+        items.push(arr[i]);
     }
-    return "[ " + a.join(",") + "]";
+    return `[${items.join(", ")}]`;
 }
 
-export function assert_arrays_are_equal(arr1: any[], arr2: any[]) {
+/**
+ * Assert that two arrays (or TypedArrays) have the same type and
+ * contain the same elements (compared via string coercion).
+ *
+ * On mismatch the actual and expected values are logged before
+ * the assertion fails.
+ */
+export function assert_arrays_are_equal(arr1: ArrayOrTypedArray, arr2: ArrayOrTypedArray): void {
     if (arr1.constructor.name !== arr2.constructor.name) {
-        throw new Error("the two arrays do not have the same type " + arr1.constructor.name + " " + arr2.constructor.name);
+        throw new Error(`array type mismatch: ${arr1.constructor.name} vs ${arr2.constructor.name}`);
     }
-    if (!_is_equal(arr1, arr2)) {
-        errorLog("arr1 = ", dump_array(arr1));
-        errorLog("arr2 = ", dump_array(arr2));
+    const equal = arraysAreEqual(arr1, arr2);
+    if (!equal) {
+        console.error("arr1 =", formatArray(arr1));
+        console.error("arr2 =", formatArray(arr2));
     }
-    _is_equal(arr1, arr2).should.eql(true);
+    equal.should.eql(true);
 }

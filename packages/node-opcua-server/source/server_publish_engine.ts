@@ -88,7 +88,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         );
 
         for (const subscription of Object.values(srcPublishEngine._subscriptions)) {
-            assert((subscription.publishEngine as any) === srcPublishEngine);
+            assert(subscription.publishEngine === srcPublishEngine);
 
             if (subscription.$session) {
                 subscription.$session._unexposeSubscriptionDiagnostics(subscription);
@@ -118,7 +118,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         destPublishEngine: ServerSidePublishEngine,
         sendInitialValues: boolean
     ): Promise<Subscription> {
-        const srcPublishEngine = subscription.publishEngine as any as ServerSidePublishEngine;
+        const srcPublishEngine = subscription.publishEngine as ServerSidePublishEngine;
 
         assert(!destPublishEngine.getSubscriptionById(subscription.id));
         assert(srcPublishEngine.getSubscriptionById(subscription.id));

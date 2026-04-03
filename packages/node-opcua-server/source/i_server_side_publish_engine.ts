@@ -1,11 +1,13 @@
 import assert from "node-opcua-assert";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { SequenceNumberGenerator } from "node-opcua-secure-channel";
 import { PublishResponse, type PublishResponseOptions, type StatusChangeNotification } from "node-opcua-types";
 import type { Subscription } from "./server_subscription";
 
 export interface INotifMsg {
     subscriptionId: number;
     sequenceNumber: number;
-    notificationData: any;
+    notificationData: (ExtensionObject | null)[] | null;
     moreNotifications: boolean;
 }
 
@@ -25,10 +27,10 @@ export interface IClosedOrTransferredSubscription {
 }
 export class TransferredSubscription implements IClosedOrTransferredSubscription {
     public id: number;
-    public publishEngine: any;
+    public publishEngine: IServerSidePublishEngine | null;
     public _pending_notification?: StatusChangeNotification;
-    private _sequence_number_generator: any;
-    constructor(options: { id: number; generator: any; publishEngine: any }) {
+    private _sequence_number_generator: SequenceNumberGenerator | null;
+    constructor(options: { id: number; generator: SequenceNumberGenerator; publishEngine: IServerSidePublishEngine }) {
         this.id = options.id;
         this._sequence_number_generator = options.generator;
         this.publishEngine = options.publishEngine;
@@ -41,8 +43,10 @@ export class TransferredSubscription implements IClosedOrTransferredSubscription
         this.publishEngine = null;
     }
     _publish_pending_notifications(): void {
-        assert(this._pending_notification);
-        const notificationMessage = this._pending_notification!;
+        if (!this._pending_notification) {
+            throw new Error("Internal Error: no pending notification");
+        }
+        const notificationMessage = this._pending_notification;
         this._pending_notification = undefined;
         const moreNotifications = false;
         const subscriptionId = this.id;
@@ -68,7 +72,10 @@ export class TransferredSubscription implements IClosedOrTransferredSubscription
                 availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
         );
         response.availableSequenceNumbers = availableSequenceNumbers;
-        this.publishEngine._send_response(this, response);
+        if (!this.publishEngine) {
+            throw new Error("Internal Error: publishEngine is null");
+        }
+        this.publishEngine._send_response(this as unknown as Subscription, response);
     }
     private _get_next_sequence_number(): number {
         return this._sequence_number_generator ? this._sequence_number_generator.next() : 0;

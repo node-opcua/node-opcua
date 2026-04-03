@@ -1,5 +1,9 @@
 import { assert } from "node-opcua-assert";
-import { AnonymousIdentityToken, UserIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import {
+    AnonymousIdentityToken,
+    UserNameIdentityToken,
+    X509IdentityToken
+} from "node-opcua-types";
 import type { ServerSession } from "./server_session";
 
 export function sessionsCompatibleForTransfer(sessionSrc: ServerSession | undefined, sessionDest: ServerSession): boolean {

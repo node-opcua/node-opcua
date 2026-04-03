@@ -42,22 +42,22 @@ import should from "should";
 import sinon from "sinon";
 import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
 
-const property = (key: string) => (obj: Record<string, any>) => obj[key];
+const property = <K extends string>(key: K) => <T extends { [P in K]: unknown }>(obj: T): T[K] => obj[key];
 
 // tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    (subscription1 as unknown as { $session: { sessionContext: SessionContext } }).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
 }
 
-describe("Testing the server publish engine", function (this: any) {
+describe("Testing the server publish engine", function (this: Mocha.Suite) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
+    const test = this as unknown as { clock: sinon.SinonFakeTimers };
 
     beforeEach(() => {
         test.clock = sinon.useFakeTimers();
@@ -174,7 +174,7 @@ describe("Testing the server publish engine", function (this: any) {
 
             let response = send_response_for_request_spy.getCall(0).args[1] as PublishResponse;
             response.subscriptionId.should.eql(1234);
-            response.availableSequenceNumbers!.should.eql([1]);
+            should(response.availableSequenceNumbers).eql([1]);
 
             // client sends a PublishRequest to the server ( with no acknowledgement)
             const fakeRequest2 = new PublishRequest({ subscriptionAcknowledgements: [] });
@@ -192,7 +192,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
             response = send_response_for_request_spy.getCall(1).args[1] as PublishResponse;
             response.subscriptionId.should.eql(1234);
-            response.availableSequenceNumbers!.should.eql([1, 2]);
+            should(response.availableSequenceNumbers).eql([1, 2]);
         } finally {
             // send_response_for_request_spy.
             subscription.terminate();
@@ -313,7 +313,7 @@ describe("Testing the server publish engine", function (this: any) {
             const response = send_response_for_request_spy.getCall(0).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             response.responseHeader.requestHandle.should.eql(1);
-            response.results!.should.eql([]);
+            should(response.results).eql([]);
 
             publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 2 } }));
             publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 3 } }));
@@ -391,7 +391,7 @@ describe("Testing the server publish engine", function (this: any) {
 
             let response = send_response_for_request_spy.getCall(0).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([]);
+            should(response.results).eql([]);
 
             // --------------------------------
             publish_server._on_PublishRequest(new PublishRequest());
@@ -407,7 +407,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
             response = send_response_for_request_spy.getCall(1).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([]);
+            should(response.results).eql([]);
 
             publish_server._on_PublishRequest(new PublishRequest());
             flushPending();
@@ -421,7 +421,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(2).args[1].schema.name.should.equal("PublishResponse");
             response = send_response_for_request_spy.getCall(2).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([]);
+            should(response.results).eql([]);
 
             publish_server._on_PublishRequest(
                 new PublishRequest({
@@ -439,7 +439,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(3).args[1].schema.name.should.equal("PublishResponse");
             response = send_response_for_request_spy.getCall(3).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([StatusCodes.Good]);
+            should(response.results).eql([StatusCodes.Good]);
 
             publish_server._on_PublishRequest(
                 new PublishRequest({
@@ -461,7 +461,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(4).args[1].schema.name.should.equal("PublishResponse");
             response = send_response_for_request_spy.getCall(4).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([StatusCodes.Good, StatusCodes.Good]);
+            should(response.results).eql([StatusCodes.Good, StatusCodes.Good]);
         } finally {
             subscription.terminate();
             subscription.dispose();
@@ -512,7 +512,7 @@ describe("Testing the server publish engine", function (this: any) {
             send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
             const response = send_response_for_request_spy.getCall(0).args[1] as PublishResponse;
             response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            response.results!.should.eql([StatusCodes.BadSequenceNumberUnknown]);
+            should(response.results).eql([StatusCodes.BadSequenceNumberUnknown]);
         } finally {
             subscription.terminate();
             subscription.dispose();
@@ -680,7 +680,7 @@ describe("Testing the server publish engine", function (this: any) {
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         publish_server.add_subscription(subscription);
-        const monitoredItem = add_mock_monitored_item(subscription);
+        const _monitoredItem = add_mock_monitored_item(subscription);
         try {
             subscription.lifeTimeCount.should.eql(60);
             subscription.timeToExpiration.should.eql(1000 * 60);
@@ -943,7 +943,7 @@ describe("Testing the server publish engine", function (this: any) {
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
         publish_server.add_subscription(subscription);
-        const monitoredItem = add_mock_monitored_item(subscription);
+        const _monitoredItem = add_mock_monitored_item(subscription);
 
         try {
             subscription.maxKeepAliveCount.should.eql(20);
@@ -970,8 +970,10 @@ describe("Testing the server publish engine", function (this: any) {
 
             const response = send_response_for_request_spy.firstCall.args[1] as PublishResponse;
             response.subscriptionId.should.eql(1234);
-            response.notificationMessage.notificationData!.length.should.eql(1);
-            (response.notificationMessage.notificationData![0]! as any).status.should.eql(StatusCodes.BadTimeout);
+            response.notificationMessage.notificationData?.length.should.eql(1);
+            should((response.notificationMessage.notificationData?.[0] as unknown as { status: StatusCodes })?.status).eql(
+                StatusCodes.BadTimeout
+            );
 
             subscription.state.should.eql(SubscriptionState.CLOSED);
 

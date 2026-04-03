@@ -47,7 +47,7 @@ function compare(objReloaded: Record<string, unknown>, obj: Record<string, unkno
     Object.keys(objReloaded).forEach((p: string) => {
         try {
             if (isArrayOrTypedArray(obj[p])) {
-                assert_arrays_are_equal(objReloaded[p] as unknown[], obj[p] as unknown[]);
+                assert_arrays_are_equal(objReloaded[p] as ArrayLike<unknown>, obj[p] as ArrayLike<unknown>);
             } else {
                 if (objReloaded[p] === undefined || obj[p] === undefined) {
                     return;

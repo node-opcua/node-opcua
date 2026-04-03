@@ -1,10 +1,10 @@
 /* eslint-disable max-statements */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import sinon from "sinon";
 import "should";
 import { type IAddressSpace, type ISessionContext, SessionContext } from "node-opcua-address-space";
-import { AttributeIds, NodeClass, QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
+import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId, makeNodeId, type NodeId } from "node-opcua-nodeid";
@@ -13,6 +13,7 @@ import {
     DataChangeFilter,
     DataChangeTrigger,
     DeadbandType,
+    type MonitoredItemModifyResult,
     MonitoringMode,
     MonitoringParameters
 } from "node-opcua-service-subscription";
@@ -20,7 +21,7 @@ import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type MonitoredItemNotification, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { MonitoredItem, QueueItem } from "../source";
+import { MonitoredItem, type MonitoredItemOptions } from "../source";
 
 function q(monitoredItem: IMonitoredItem) {
     return monitoredItem.queue.map((a) => a.value.value.value);
@@ -30,7 +31,7 @@ const X = true;
 
 function f(monitoredItem: IMonitoredItem) {
     return monitoredItem.queue.map((a) => {
-        return !!(a.value.statusCode.value != StatusCodes.Good.value);
+        return !!(a.value.statusCode.value !== StatusCodes.Good.value);
     });
 }
 class FakeNode extends EventEmitter {
@@ -39,7 +40,7 @@ class FakeNode extends EventEmitter {
     browseName: QualifiedNameOptions = { name: "toto" };
     nodeClass: NodeClass = NodeClass.Variable;
     dataType: NodeId = coerceNodeId(DataType.Double);
-    _euRange: any;
+    _euRange: { nodeClass: NodeClass; readValue(): DataValue };
 
     public dataValue?: DataValue;
 
@@ -69,7 +70,7 @@ class FakeNode extends EventEmitter {
         });
     }
 
-    readAttribute(context: ISessionContext | null, attributeId: AttributeIds) {
+    readAttribute(_context: ISessionContext | null, _attributeId: AttributeIds) {
         return new DataValue({ statusCode: StatusCodes.BadInvalidArgument });
     }
     getChildByName(name: string) {
@@ -96,22 +97,22 @@ const createMonitoredItem = (options: {
     discardOldest?: boolean;
     filter?: DataChangeFilter;
 }) => {
-    const monitoredItem = new MonitoredItem(options as any);
-    return monitoredItem as any as Omit<MonitoredItem, "queue"> & {
-        $subscription: any;
-        setNode: (a: any) => void;
-        _enqueue_value: (a: any) => any;
+    const monitoredItem = new MonitoredItem(options as unknown as MonitoredItemOptions);
+    return monitoredItem as unknown as Omit<MonitoredItem, "queue" | "$subscription"> & {
+        $subscription: typeof fakeSubscription;
+        setNode: (a: FakeNode) => void;
+        _enqueue_value: (a: DataValue) => void;
         queue: MonitoredItemNotification[];
     };
 };
 type IMonitoredItem = ReturnType<typeof createMonitoredItem>;
 
 describe("Server Side MonitoredItem", () => {
-    beforeEach(function (this: any) {
+    beforeEach(function (this: Mocha.Context) {
         this.clock = sinon.useFakeTimers();
     });
 
-    afterEach(function (this: any) {
+    afterEach(function (this: Mocha.Context) {
         this.clock.restore();
     });
 
@@ -143,7 +144,7 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
-    it("MI1 - a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", function (this: any, done) {
+    it("MI1 - a MonitoredItem should trigger a read event according to sampling interval in Reporting mode", function (this: Mocha.Context, done) {
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
             discardOldest: true,
@@ -159,7 +160,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.isSampling.should.eql(false);
 
         // set up a spying samplingFunc
-        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
             callback(null, new DataValue({ value: {} }));
         });
         monitoredItem.samplingFunc = spy_samplingEventCall;
@@ -308,8 +309,8 @@ describe("Server Side MonitoredItem", () => {
         );
 
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue[0].value.serverTimestamp!.should.eql(now);
-        monitoredItem.queue[0].value.sourceTimestamp!.should.eql(now);
+        monitoredItem.queue[0].value.serverTimestamp?.should.eql(now);
+        monitoredItem.queue[0].value.sourceTimestamp?.should.eql(now);
 
         monitoredItem.terminate();
         monitoredItem.dispose();
@@ -317,7 +318,7 @@ describe("Server Side MonitoredItem", () => {
     });
 
     // #21
-    it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", function (this: any) {
+    it("should set timestamp to the recorded value with a given sourceTimestamp (variation 2)", function (this: Mocha.Context) {
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -348,9 +349,9 @@ describe("Server Side MonitoredItem", () => {
         );
 
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue[0].value.serverTimestamp!.should.eql(now);
+        monitoredItem.queue[0].value.serverTimestamp?.should.eql(now);
 
-        monitoredItem.queue[0].value.sourceTimestamp!.should.eql(sourceTimestamp);
+        monitoredItem.queue[0].value.sourceTimestamp?.should.eql(sourceTimestamp);
         monitoredItem.queue[0].value.sourcePicoseconds.should.eql(picoseconds);
 
         monitoredItem.terminate();
@@ -359,7 +360,7 @@ describe("Server Side MonitoredItem", () => {
 
     function install_spying_samplingFunc() {
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
             sample_value++;
             const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
             callback(null, dataValue);
@@ -367,7 +368,7 @@ describe("Server Side MonitoredItem", () => {
         return spy_samplingEventCall;
     }
 
-    it("a MonitoredItem should trigger a read event according to sampling interval", function (this: any) {
+    it("a MonitoredItem should trigger a read event according to sampling interval", function (this: Mocha.Context) {
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -398,7 +399,7 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.dispose();
     });
 
-    it("a MonitoredItem should not trigger any read event after terminate has been called", function (this: any) {
+    it("a MonitoredItem should not trigger any read event after terminate has been called", function (this: Mocha.Context) {
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
             samplingInterval: 100,
@@ -472,7 +473,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.setNode(fakeNode);
 
-        let result; // MonitoredItemModifyResult
+        let result: MonitoredItemModifyResult;
         result = monitoredItem.modify(
             null,
             new MonitoringParameters({
@@ -700,7 +701,7 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.setNode(fakeNode);
 
-        monitoredItem.samplingFunc = (sessionContext, oldvalue, callback) => {
+        monitoredItem.samplingFunc = (_sessionContext, _oldvalue, _callback) => {
             /** */
             //callback();
         };
@@ -1222,8 +1223,8 @@ describe("MonitoredItem with DataChangeFilter", () => {
         range.low.should.eql(-100);
         range.high.should.eql(100);
         const band = range.high - range.low;
-        const step2 = (band * dataChangeFilter2.deadbandValue) / 100;
-        const step1 = (band * dataChangeFilter1.deadbandValue) / 100;
+        const _step2 = (band * dataChangeFilter2.deadbandValue) / 100;
+        const _step1 = (band * dataChangeFilter1.deadbandValue) / 100;
         {
             // 20 percent = 40
             monitoredItem.queue.length.should.eql(0);
@@ -1344,7 +1345,7 @@ describe("MonitoredItem with DataChangeFilter", () => {
         const range = fakeNode.getChildByName("EURange").readValue().value.value;
         range.low.should.eql(-100);
         range.high.should.eql(100);
-        const band = range.high - range.low;
+        const _band = range.high - range.low;
         monitoredItem.queue.length.should.eql(0);
 
         writeValue(-100);

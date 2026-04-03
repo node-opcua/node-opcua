@@ -1,9 +1,10 @@
 /* eslint-disable max-statements */
 
 import { type INamespace, type ISessionContext, SessionContext, type UAObject, type UAVariable } from "node-opcua-address-space";
+import type { UAVariableImpl } from "node-opcua-address-space/dist/src/ua_variable_impl";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { assert } from "node-opcua-assert";
-import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
+import { BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
 import { ServerState } from "node-opcua-common";
 import { ObjectIds, VariableIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
@@ -28,14 +29,12 @@ import {
     type ReferenceDescription
 } from "node-opcua-service-browse";
 import { HistoryData, HistoryReadDetails, HistoryReadRequest, HistoryReadResult } from "node-opcua-service-history";
-import { ReadRequest, ReadRequestOptions, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
+import { ReadRequest, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
 import { StatusCodes } from "node-opcua-status-code";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon, { type SinonFakeTimers } from "sinon";
-import util from "util";
-
 import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
@@ -49,7 +48,7 @@ function resolveExpandedNodeId(nodeId: NodeIdLike): ExpandedNodeId {
 
 async function refreshAndRead(engine: ServerEngine, readRequest: ReadRequest, maxAge = 0) {
     await new Promise<void>((resolve, reject) => {
-        engine.refreshValues(readRequest.nodesToRead!, maxAge, (err) => {
+        engine.refreshValues(readRequest.nodesToRead || [], maxAge, (err) => {
             if (err) reject(err);
             else resolve();
         });
@@ -82,12 +81,15 @@ describe("testing ServerEngine", () => {
         });
 
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
-            const addressSpace = engine.addressSpace!;
+            const addressSpace = engine.addressSpace;
+            if (!addressSpace) {
+                throw new Error("addressSpace is null");
+            }
             namespace = addressSpace.getOwnNamespace();
 
-            FolderTypeId = addressSpace.findObjectType("FolderType")!.nodeId;
-            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType")!.nodeId;
-            ref_Organizes_Id = addressSpace.findReferenceType("Organizes")!.nodeId;
+            FolderTypeId = addressSpace.findObjectType("FolderType")?.nodeId || NodeId.nullNodeId;
+            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType")?.nodeId || NodeId.nullNodeId;
+            ref_Organizes_Id = addressSpace.findReferenceType("Organizes")?.nodeId || NodeId.nullNodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
             // add a variable as a Array of Double with some values
@@ -97,7 +99,7 @@ describe("testing ServerEngine", () => {
             }
 
             namespace.addVariable({
-                organizedBy: addressSpace.findNode("ObjectsFolder")!,
+                organizedBy: addressSpace.findNode("ObjectsFolder") || NodeId.nullNodeId,
                 browseName: "TestArray",
                 nodeId: "s=TestArray",
                 dataType: "Double",
@@ -115,7 +117,7 @@ describe("testing ServerEngine", () => {
 
             // add a writable Int32
             namespace.addVariable({
-                organizedBy: addressSpace.findNode("ObjectsFolder")!,
+                organizedBy: addressSpace.findNode("ObjectsFolder") || NodeId.nullNodeId,
                 browseName: "WriteableInt32",
                 nodeId: "s=WriteableInt32",
                 dataType: DataType.Int32,
@@ -127,7 +129,7 @@ describe("testing ServerEngine", () => {
                             arrayType: VariantArrayType.Array,
                             value: testArray
                         }),
-                    set: (variant: Variant) => {
+                    set: (_variant: Variant) => {
                         // Variation 1 : synchronous
                         // assert(typeof callback === "function");
                         return StatusCodes.Good;
@@ -137,7 +139,7 @@ describe("testing ServerEngine", () => {
 
             // add a writable UInt32
             namespace.addVariable({
-                organizedBy: addressSpace.findNode("ObjectsFolder")!,
+                organizedBy: addressSpace.findNode("ObjectsFolder") || NodeId.nullNodeId,
                 browseName: "WriteableUInt32Async",
                 nodeId: "s=WriteableUInt32Async",
                 dataType: "UInt32",
@@ -158,9 +160,9 @@ describe("testing ServerEngine", () => {
 
             function check_if_allow(n: number, context: ISessionContext) {
                 //xx console.log(" check_if_allow", n, context.session ? (context.session as any).testFilterArray : null)
-                const _session: any = context ? context.session : null;
+                const _session = context ? context.session : null;
                 if (context && _session && Object.hasOwn(_session, "testFilterArray")) {
-                    if (_session["testFilterArray"].indexOf(n) > -1) {
+                    if ((_session as unknown as { testFilterArray: number[] }).testFilterArray.indexOf(n) > -1) {
                         return true;
                     } else {
                         return false;
@@ -197,23 +199,26 @@ describe("testing ServerEngine", () => {
     });
 
     it("should have a rootFolder ", () => {
-        engine.addressSpace!.rootFolder.typeDefinition.should.eql(FolderTypeId);
+        engine.addressSpace?.rootFolder.typeDefinition.should.eql(FolderTypeId);
     });
 
     it("should find the rootFolder by browseName", () => {
-        const browseNode = engine.addressSpace!.findNode("RootFolder")! as UAObject;
+        const browseNode = engine.addressSpace?.findNode("RootFolder") as UAObject;
         browseNode.typeDefinition.should.eql(FolderTypeId);
-        browseNode.should.equal(engine.addressSpace!.rootFolder);
+        browseNode.should.equal(engine.addressSpace?.rootFolder);
     });
 
     it("should find the rootFolder by nodeId", () => {
-        const browseNode = engine.addressSpace!.findNode("i=84")! as UAObject;
+        const browseNode = engine.addressSpace?.findNode("i=84") as UAObject;
         browseNode.typeDefinition.should.eql(FolderTypeId);
-        browseNode.should.equal(engine.addressSpace!.rootFolder);
+        browseNode.should.equal(engine.addressSpace?.rootFolder);
     });
 
     it("should have an 'Objects' folder", () => {
-        const rootFolder = engine.addressSpace!.rootFolder;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const rootFolder = engine.addressSpace.rootFolder;
         assert(rootFolder.objects);
         rootFolder.objects.findReferences("Organizes", false)[0].nodeId.should.eql(rootFolder.nodeId);
         rootFolder.objects.typeDefinitionObj.browseName.toString().should.eql("FolderType");
@@ -221,39 +226,51 @@ describe("testing ServerEngine", () => {
     });
 
     it("should have a 'Server' object in the Objects Folder", () => {
-        const server = engine.addressSpace!.rootFolder.objects.server;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const server = engine.addressSpace.rootFolder.objects.server;
         assert(server);
-        server.findReferences("Organizes", false)[0].nodeId.should.eql(engine.addressSpace!.rootFolder.objects.nodeId);
+        server.findReferences("Organizes", false)[0].nodeId.should.eql(engine.addressSpace.rootFolder.objects.nodeId);
     });
 
     it("should have a 'Server.NamespaceArray' Variable ", () => {
-        const server = engine.addressSpace!.rootFolder.objects.server;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const server = engine.addressSpace.rootFolder.objects.server;
 
         const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
-        const server_NamespaceArray = engine.addressSpace!.findNode(server_NamespaceArray_Id) as UAVariable;
+        const server_NamespaceArray = engine.addressSpace.findNode(server_NamespaceArray_Id) as UAVariable;
         assert(server_NamespaceArray !== null);
 
         server_NamespaceArray.should.have.property("parent");
         // TODO : should(server_NamespaceArray.parent !==  null).ok;
-        server_NamespaceArray.parent!.nodeId.should.eql(server.nodeId);
+        server_NamespaceArray.parent?.nodeId.should.eql(server.nodeId);
     });
 
     it("should have a 'Server.Server_ServerArray' Variable", () => {
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
         // find 'Objects' folder
-        const objects = engine.addressSpace!.rootFolder.objects;
-        const server = objects.server;
+        const objects = engine.addressSpace.rootFolder.objects;
+        const _server = objects.server;
 
         const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_ServerArray);
-        const server_NamespaceArray = engine.addressSpace!.findNode(server_NamespaceArray_Id);
+        const server_NamespaceArray = engine.addressSpace?.findNode(server_NamespaceArray_Id);
         assert(server_NamespaceArray !== null);
         //xx server_NamespaceArray.parent.nodeId.should.eql(serverObject.nodeId);
     });
 
     it("should be possible to create a new folder under the 'Root' folder", () => {
-        const namespace = engine.addressSpace!.getOwnNamespace();
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         // find 'Objects' folder
-        const objects = engine.addressSpace!.rootFolder.objects;
+        const objects = engine.addressSpace.rootFolder.objects;
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
         assert(newFolder);
@@ -265,7 +282,10 @@ describe("testing ServerEngine", () => {
     });
 
     it("should be possible to find a newly created folder by nodeId", () => {
-        const namespace = engine.addressSpace!.getOwnNamespace();
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder");
 
@@ -273,21 +293,26 @@ describe("testing ServerEngine", () => {
         assert(newFolder.nodeId instanceof NodeId);
         newFolder.nodeId.namespace.should.eql(1);
 
-        const result = engine.addressSpace!.findNode(newFolder.nodeId)!;
-        result.should.eql(newFolder);
+        const result = engine.addressSpace.findNode(newFolder.nodeId);
+        should(result).eql(newFolder);
     });
 
     it("should be possible to find a newly created folder by 'browse name'", () => {
-        const namespace = engine.addressSpace!.getOwnNamespace();
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const namespace = engine.addressSpace.getOwnNamespace();
         const newFolder = namespace.addFolder("ObjectsFolder", "MySecondNewFolder");
 
-        const uaMySecondFolder = engine.addressSpace!.rootFolder.objects.getFolderElementByName("MySecondNewFolder")!;
-        assert(uaMySecondFolder !== null);
-        uaMySecondFolder.should.eql(newFolder);
+        const uaMySecondFolder = engine.addressSpace.rootFolder.objects.getFolderElementByName("MySecondNewFolder");
+        should(uaMySecondFolder).eql(newFolder);
     });
 
     xit("should not be possible to create a object with an existing 'browse name'", () => {
-        const namespace = engine.addressSpace!.getOwnNamespace();
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const namespace = engine.addressSpace.getOwnNamespace();
 
         const newFolder1 = namespace.addFolder("ObjectsFolder", "NoUniqueName");
 
@@ -295,12 +320,15 @@ describe("testing ServerEngine", () => {
             namespace.addFolder("ObjectsFolder", "NoUniqueName");
         }).should.throw("browseName already registered");
 
-        const uaNode = engine.addressSpace!.rootFolder.objects.getFolderElementByName("NoUniqueName")!;
-        uaNode.should.eql(newFolder1);
+        const uaNode = engine.addressSpace.rootFolder.objects.getFolderElementByName("NoUniqueName");
+        should(uaNode).eql(newFolder1);
     });
 
     it("should be possible to create a variable in a folder", (done) => {
-        const addressSpace = engine.addressSpace!;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const addressSpace = engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
 
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolder1");
@@ -316,13 +344,13 @@ describe("testing ServerEngine", () => {
             }
         });
         newVariable.typeDefinition.should.equal(BaseDataVariableTypeId);
-        newVariable.parent!.nodeId.should.equal(newFolder.nodeId);
+        newVariable.parent?.nodeId.should.equal(newFolder.nodeId);
 
         newVariable.readValueAsync(context, (err, dataValue) => {
             if (!err) {
-                dataValue!.statusCode.should.eql(StatusCodes.Good);
-                dataValue!.value.should.be.instanceOf(Variant);
-                dataValue!.value.value.should.equal(10.0);
+                dataValue?.statusCode.should.eql(StatusCodes.Good);
+                dataValue?.value.should.be.instanceOf(Variant);
+                dataValue?.value.value.should.equal(10.0);
             }
             done(err);
         });
@@ -365,7 +393,7 @@ describe("testing ServerEngine", () => {
             if (!err) {
                 dataValue = newVariable.readAttribute(context, AttributeIds.Value, undefined, undefined);
                 dataValue.should.be.instanceOf(DataValue);
-                dataValue.sourceTimestamp!.should.eql(new Date(Date.UTC(1999, 9, 9)));
+                dataValue.sourceTimestamp?.should.eql(new Date(Date.UTC(1999, 9, 9)));
                 dataValue.sourcePicoseconds.should.eql(10);
             }
             done(err);
@@ -390,7 +418,7 @@ describe("testing ServerEngine", () => {
             minimumSamplingInterval: 100,
             value: {
                 timestamped_get: () => readValue,
-                historyRead: (context, historyReadDetails, indexRange, dataEncoding, continuationPoint, callback) => {
+                historyRead: (context, _historyReadDetails, _indexRange, _dataEncoding, _continuationPoint, callback) => {
                     assert(context instanceof SessionContext);
                     assert(typeof callback === "function");
 
@@ -434,11 +462,11 @@ describe("testing ServerEngine", () => {
         historyReadResults[0].should.be.instanceOf(HistoryReadResult);
         const historyReadResult = historyReadResults[0] as HistoryReadResult;
         const historyData = historyReadResult.historyData as HistoryData;
-        historyData.dataValues!.length.should.eql(50);
+        historyData.dataValues?.length.should.eql(50);
     });
 
     it("should be possible to create a object in a folder", () => {
-        const simulation = namespace.addObject({
+        const _simulation = namespace.addObject({
             organizedBy: resolveNodeId("ObjectsFolder"),
             browseName: "Scalar_Simulation",
             description: "This folder will contain one item per supported data-type.",
@@ -463,15 +491,15 @@ describe("testing ServerEngine", () => {
         const browseResult = await browseNode(engine, browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
-        browseResult.references!.length.should.equal(1);
+        browseResult.references?.length.should.equal(1);
 
-        browseResult.references![0].referenceTypeId.should.eql(ref_Organizes_Id);
-        browseResult.references![0].isForward.should.equal(false);
-        browseResult.references![0].browseName.name!.should.equal("Root");
-        browseResult.references![0].nodeId.toString().should.equal("ns=0;i=84");
+        browseResult.references?.[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references?.[0].isForward.should.equal(false);
+        browseResult.references?.[0].browseName.name?.should.equal("Root");
+        browseResult.references?.[0].nodeId.toString().should.equal("ns=0;i=84");
         //xx browseResult.references[0].displayName.text.should.equal("Root");
-        browseResult.references![0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
-        browseResult.references![0].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references?.[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
+        browseResult.references?.[0].nodeClass.should.eql(NodeClass.Object);
     });
 
     it("should browse root folder with referenceTypeId", async () => {
@@ -485,34 +513,34 @@ describe("testing ServerEngine", () => {
         };
         const browseResult = await browseNode(engine, browseDescription);
 
-        const browseNames = browseResult.references!.map((r) => r.browseName.name);
+        const _browseNames = browseResult.references?.map((r) => r.browseName.name);
         //xx console.log(browseNames);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
-        browseResult.references!.length.should.equal(3);
+        browseResult.references?.length.should.equal(3);
 
-        browseResult.references![0].referenceTypeId.should.eql(ref_Organizes_Id);
-        browseResult.references![0].isForward.should.equal(true);
-        browseResult.references![0].browseName.name!.should.equal("Objects");
-        browseResult.references![0].nodeId.toString().should.equal("ns=0;i=85");
-        browseResult.references![0].displayName.text!.should.equal("Objects");
-        browseResult.references![0].nodeClass.should.eql(NodeClass.Object);
-        browseResult.references![0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
+        browseResult.references?.[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references?.[0].isForward.should.equal(true);
+        browseResult.references?.[0].browseName.name?.should.equal("Objects");
+        browseResult.references?.[0].nodeId.toString().should.equal("ns=0;i=85");
+        browseResult.references?.[0].displayName.text?.should.equal("Objects");
+        browseResult.references?.[0].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references?.[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
 
-        browseResult.references![0].referenceTypeId.should.eql(ref_Organizes_Id);
-        browseResult.references![1].isForward.should.equal(true);
-        browseResult.references![1].browseName.name!.should.equal("Types");
-        browseResult.references![1].nodeId.toString().should.equal("ns=0;i=86");
-        browseResult.references![1].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
-        browseResult.references![1].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references?.[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references?.[1].isForward.should.equal(true);
+        browseResult.references?.[1].browseName.name?.should.equal("Types");
+        browseResult.references?.[1].nodeId.toString().should.equal("ns=0;i=86");
+        browseResult.references?.[1].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
+        browseResult.references?.[1].nodeClass.should.eql(NodeClass.Object);
 
-        browseResult.references![0].referenceTypeId.should.eql(ref_Organizes_Id);
-        browseResult.references![2].isForward.should.equal(true);
-        browseResult.references![2].browseName.name!.should.equal("Views");
-        browseResult.references![2].nodeId.toString().should.equal("ns=0;i=87");
-        browseResult.references![2].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
-        browseResult.references![2].nodeClass.should.eql(NodeClass.Object);
+        browseResult.references?.[0].referenceTypeId.should.eql(ref_Organizes_Id);
+        browseResult.references?.[2].isForward.should.equal(true);
+        browseResult.references?.[2].browseName.name?.should.equal("Views");
+        browseResult.references?.[2].nodeId.toString().should.equal("ns=0;i=87");
+        browseResult.references?.[2].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
+        browseResult.references?.[2].nodeClass.should.eql(NodeClass.Object);
     });
 
     it("should browse root and find all hierarchical children of the root node (includeSubtypes: true)", async () => {
@@ -525,7 +553,7 @@ describe("testing ServerEngine", () => {
             resultMask: 0x3f
         };
         const browseResult1 = await browseNode(engine, browseDescription1);
-        browseResult1.references!.length.should.equal(3);
+        browseResult1.references?.length.should.equal(3);
 
         const browseDescription2 = {
             nodeId: resolveNodeId("RootFolder"),
@@ -535,11 +563,15 @@ describe("testing ServerEngine", () => {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult2 = await browseNode(engine, browseDescription2);
+        const _browseResult2 = await browseNode(engine, browseDescription2);
     });
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", async () => {
-        const ref_hierarchical_Ref_Id = engine.addressSpace!.findReferenceType("HierarchicalReferences")!.nodeId;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const ref_hierarchical_Ref_Id =
+            engine.addressSpace.findReferenceType("HierarchicalReferences")?.nodeId || NodeId.nullNodeId;
         ref_hierarchical_Ref_Id.toString().should.eql("ns=0;i=33");
 
         const browseDescription = new BrowseDescription({
@@ -563,22 +595,22 @@ describe("testing ServerEngine", () => {
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[0].isForward.should.equal(true);
-        browseResult.references[0].browseName.name!.should.equal("Objects");
+        browseResult.references[0].browseName.name?.should.equal("Objects");
         browseResult.references[0].nodeId.toString().should.equal("ns=0;i=85");
-        browseResult.references[0].displayName.text!.should.equal("Objects");
+        browseResult.references[0].displayName.text?.should.equal("Objects");
         browseResult.references[0].nodeClass.should.eql(NodeClass.Object);
         browseResult.references[0].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[1].isForward.should.equal(true);
-        browseResult.references[1].browseName.name!.should.equal("Types");
+        browseResult.references[1].browseName.name?.should.equal("Types");
         browseResult.references[1].nodeId.toString().should.equal("ns=0;i=86");
         browseResult.references[1].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[1].nodeClass.should.eql(NodeClass.Object);
 
         browseResult.references[0].referenceTypeId.should.eql(ref_Organizes_Id);
         browseResult.references[2].isForward.should.equal(true);
-        browseResult.references[2].browseName.name!.should.equal("Views");
+        browseResult.references[2].browseName.name?.should.equal("Views");
         browseResult.references[2].nodeId.toString().should.equal("ns=0;i=87");
         browseResult.references[2].typeDefinition.should.eql(resolveExpandedNodeId("FolderType"));
         browseResult.references[2].nodeClass.should.eql(NodeClass.Object);
@@ -595,10 +627,10 @@ describe("testing ServerEngine", () => {
         const browseResult = await browseNode(engine, browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
-        browseResult.references!.length.should.be.greaterThan(1);
+        browseResult.references?.length.should.be.greaterThan(1);
         //xx console.log(browseResult.references[0].browseName.name);
 
-        browseResult.references![0].browseName.name!.should.equal("Server");
+        browseResult.references?.[0].browseName.name?.should.equal("Server");
     });
 
     it("should handle a BrowseRequest and set StatusCode if node doesn't exist", async () => {
@@ -611,13 +643,13 @@ describe("testing ServerEngine", () => {
         };
         const browseResult = await browseNode(engine, browseDescription);
         browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
-        browseResult.references!.length.should.equal(0);
+        browseResult.references?.length.should.equal(0);
     });
 
     it("should handle a BrowseRequest and set StatusCode if browseDescription is not provided", async () => {
         const browseResult = await browseNode(engine, { nodeId: "ns=46;i=123456", browseDirection: BrowseDirection.Invalid });
         browseResult.statusCode.should.equal(StatusCodes.BadBrowseDirectionInvalid);
-        browseResult.references!.length.should.equal(0);
+        browseResult.references?.length.should.equal(0);
     });
 
     it("should handle a BrowseRequest with multiple nodes to browse", async () => {
@@ -638,19 +670,25 @@ describe("testing ServerEngine", () => {
             ]
         });
 
-        browseRequest.nodesToBrowse!.length.should.equal(2);
+        browseRequest.nodesToBrowse?.length.should.equal(2);
         const context = SessionContext.defaultContext;
-        const results = await engine.browse(context, browseRequest.nodesToBrowse!);
+        const results = await engine.browse(context, browseRequest.nodesToBrowse || []);
 
         results.length.should.equal(2);
 
         // RootFolder should have 4 nodes ( 1 hasTypeDefinition , 3 sub-folders)
-        results[0].references!.length.should.equal(4);
+        results[0].references?.length.should.equal(4);
     });
 
     it("should handle a BrowseRequest of a session with a filtered result", async () => {
-        const objects = engine.addressSpace!.rootFolder.objects;
-        const filteredItemsFolder = objects.getFolderElementByName("filteredItemsFolder")!;
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const objects = engine.addressSpace.rootFolder.objects;
+        const filteredItemsFolder = objects.getFolderElementByName("filteredItemsFolder");
+        if (!filteredItemsFolder) {
+            throw new Error("filteredItemsFolder not found");
+        }
         const browseDescription = {
             nodesToBrowse: [
                 {
@@ -670,17 +708,17 @@ describe("testing ServerEngine", () => {
 
         const _session = session as unknown as { testFilterArray: number[] };
         _session.testFilterArray = [1, 3];
-        const results1 = await engine.browse(context, browseRequest.nodesToBrowse!);
-        results1[0].references!.length.should.equal(2);
+        const results1 = await engine.browse(context, browseRequest.nodesToBrowse || []);
+        results1[0].references?.length.should.equal(2);
 
         _session.testFilterArray = [1, 2, 3];
-        const results2 = await engine.browse(context, browseRequest.nodesToBrowse!);
-        results2[0].references!.length.should.equal(3);
+        const results2 = await engine.browse(context, browseRequest.nodesToBrowse || []);
+        results2[0].references?.length.should.equal(3);
 
         _session.testFilterArray = [3];
-        const results3 = await engine.browse(context, browseRequest.nodesToBrowse!);
-        results3[0].references!.length.should.equal(1);
-        results3[0].references![0].displayName.text!.should.equal("filteredFolder3");
+        const results3 = await engine.browse(context, browseRequest.nodesToBrowse || []);
+        results3[0].references?.length.should.equal(1);
+        results3[0].references?.[0].displayName.text?.should.equal("filteredFolder3");
 
         engine.closeSession(session.authenticationToken, true, "CloseSession");
 
@@ -717,8 +755,8 @@ describe("testing ServerEngine", () => {
             });
             const browseResult = await browseNode(engine, browseDescription);
 
-            browseResult.references!.length.should.be.greaterThan(1);
-            for (const referenceDescription of browseResult.references!) {
+            browseResult.references?.length.should.be.greaterThan(1);
+            for (const referenceDescription of browseResult.references || []) {
                 test_referenceDescription(referenceDescription, resultMask);
             }
         }
@@ -730,7 +768,10 @@ describe("testing ServerEngine", () => {
     });
 
     it("browseWithAutomaticExpansion", async () => {
-        const namespace = engine.addressSpace!.getOwnNamespace();
+        if (!engine.addressSpace) {
+            throw new Error("addressSpace is null");
+        }
+        const namespace = engine.addressSpace.getOwnNamespace();
         const expandableNode = namespace.addObject({
             browseName: "Expandable"
         });
@@ -776,12 +817,12 @@ describe("testing ServerEngine", () => {
         const context = SessionContext.defaultContext;
         const browseResults = await engine.browseWithAutomaticExpansion(nodesToBrowse, context);
         browseResults.length.should.eql(2);
-        browseResults[0].references!.length.should.eql(2);
-        browseResults[0].references![0].browseName.toString().should.eql("1:SubObject1");
-        browseResults[0].references![1].browseName.toString().should.eql("1:SubObject2");
-        browseResults[1].references!.length.should.eql(2);
-        browseResults[1].references![0].browseName.toString().should.eql("1:SubObject1");
-        browseResults[1].references![1].browseName.toString().should.eql("1:SubObject2");
+        browseResults[0].references?.length.should.eql(2);
+        browseResults[0].references?.[0].browseName.toString().should.eql("1:SubObject1");
+        browseResults[0].references?.[1].browseName.toString().should.eql("1:SubObject2");
+        browseResults[1].references?.length.should.eql(2);
+        browseResults[1].references?.[0].browseName.toString().should.eql("1:SubObject1");
+        browseResults[1].references?.[1].browseName.toString().should.eql("1:SubObject2");
 
         nbCalls.should.eql(1, "Node must have been expanded only once");
     });
@@ -878,7 +919,10 @@ describe("testing ServerEngine", () => {
     describe("readSingleNode on ReferenceType", () => {
         let ref_Organizes_nodeId: NodeIdLike;
         beforeEach(() => {
-            ref_Organizes_nodeId = engine.addressSpace!.findReferenceType("Organizes")!.nodeId;
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            ref_Organizes_nodeId = engine.addressSpace.findReferenceType("Organizes")?.nodeId || NodeId.nullNodeId;
         });
 
         //  --- on reference Type ....
@@ -993,21 +1037,29 @@ describe("testing ServerEngine", () => {
     describe("readSingleNode on DataType", () => {
         // for views
         it("should have ServerStatusDataType dataType exposed", () => {
-            const obj = engine.addressSpace!.findDataType("ServerStatusDataType")!;
-            obj.browseName.toString().should.eql("ServerStatusDataType");
-            obj.nodeClass.should.eql(NodeClass.DataType);
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            const obj = engine.addressSpace.findDataType("ServerStatusDataType");
+
+            should(obj?.browseName.toString()).eql("ServerStatusDataType");
+            should(obj?.nodeClass).eql(NodeClass.DataType);
         });
         it("should handle a readSingleNode - ServerStatusDataType - BrowseName", async () => {
-            const obj = engine.addressSpace!.findDataType("ServerStatusDataType")!;
-            const serverStatusDataType_id = obj.nodeId;
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            const serverStatusDataType_id = engine.addressSpace?.findDataType("ServerStatusDataType")?.nodeId || NodeId.nullNodeId;
             const readResult = await readSingleNode(engine, context, serverStatusDataType_id, AttributeIds.BrowseName);
             readResult.value.dataType.should.eql(DataType.QualifiedName);
             readResult.value.value.name.should.equal("ServerStatusDataType");
         });
 
         it("should handle a readSingleNode - ServerStatusDataType - Description", async () => {
-            const obj = engine.addressSpace!.findDataType("ServerStatusDataType")!;
-            const serverStatusDataType_id = obj.nodeId;
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            const serverStatusDataType_id = engine.addressSpace?.findDataType("ServerStatusDataType")?.nodeId || NodeId.nullNodeId;
             const readResult = await readSingleNode(engine, context, serverStatusDataType_id, AttributeIds.Description);
             readResult.value.dataType.should.eql(DataType.LocalizedText);
         });
@@ -1046,7 +1098,7 @@ describe("testing ServerEngine", () => {
                 browseName: "TestVar",
                 dataType: "Double",
                 nodeId: nodeId,
-                organizedBy: engine.addressSpace!.findNode("ObjectsFolder")!,
+                organizedBy: engine.addressSpace?.findNode("ObjectsFolder") || NodeId.nullNodeId,
                 value: new Variant({
                     dataType: DataType.Double,
                     value: 0
@@ -1074,7 +1126,7 @@ describe("testing ServerEngine", () => {
             dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         }
 
-        const attributes = [
+        const attributes: (keyof typeof AttributeIds)[] = [
             "AccessLevel",
             "BrowseName",
             "DataType",
@@ -1085,13 +1137,10 @@ describe("testing ServerEngine", () => {
             "UserAccessLevel",
             "ValueRank"
         ];
-        attributes.forEach((attribute: any) => {
-            it(
-                "shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = " + attribute + " ",
-                async () => {
-                    await read_shall_get_BadIndexRangeNoData((AttributeIds as any)[attribute as any]);
-                }
-            );
+        attributes.forEach((attribute: keyof typeof AttributeIds) => {
+            it(`shall return BadIndexRangeNoData when performing a read with a  indexRange and attributeId = ${attribute} `, async () => {
+                await read_shall_get_BadIndexRangeNoData(AttributeIds[attribute]);
+            });
         });
 
         it("should return BadDataEncodingInvalid", async () => {
@@ -1328,7 +1377,7 @@ describe("testing ServerEngine", () => {
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
         dataValues[0].value.value.should.be.instanceOf(Float64Array);
         dataValues[0].value.value.length.should.be.eql(4);
-        assert_arrays_are_equal(dataValues[0].value.value, new Float64Array([2.0, 3.0, 4.0, 5.0]) as any);
+        assert_arrays_are_equal(dataValues[0].value.value, new Float64Array([2.0, 3.0, 4.0, 5.0]));
     });
 
     it("should receive BadIndexRangeNoData when indexRange try to access outside boundary", async () => {
@@ -1430,7 +1479,7 @@ describe("testing ServerEngine", () => {
             browsePathResult.should.be.instanceOf(BrowsePathResult);
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
-            browsePathResult.targets!.length.should.eql(0);
+            browsePathResult.targets?.length.should.eql(0);
         });
         it("The Server shall return BadNoMatch if the targetName doesn't exist. ", async () => {
             const browsePath = new BrowsePath({
@@ -1450,7 +1499,7 @@ describe("testing ServerEngine", () => {
             const browsePathResult = await engine.translateBrowsePath(browsePath);
             browsePathResult.should.be.instanceOf(BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.BadNoMatch);
-            browsePathResult.targets!.length.should.eql(0);
+            browsePathResult.targets?.length.should.eql(0);
         });
 
         it("The Server shall return Good if the targetName does exist. ", async () => {
@@ -1471,10 +1520,10 @@ describe("testing ServerEngine", () => {
             const browsePathResult = await engine.translateBrowsePath(browsePath);
             browsePathResult.should.be.instanceOf(BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.Good);
-            browsePathResult.targets!.length.should.eql(1);
-            browsePathResult.targets![0].targetId.should.eql(makeExpandedNodeId(85));
+            browsePathResult.targets?.length.should.eql(1);
+            browsePathResult.targets?.[0].targetId.should.eql(makeExpandedNodeId(85));
             const UInt32_MaxValue = 0xffffffff;
-            browsePathResult.targets![0].remainingPathIndex.should.equal(UInt32_MaxValue);
+            browsePathResult.targets?.[0].remainingPathIndex.should.equal(UInt32_MaxValue);
         });
     });
 
@@ -1536,9 +1585,10 @@ describe("testing ServerEngine", () => {
             engine.serverStatus.buildInfo.buildNumber = "1234";
 
             const nodeid = VariableIds.Server_ServerStatus_BuildInfo_BuildNumber;
-            const node = engine.addressSpace!.findNode(nodeid)!;
+            const node = engine.addressSpace?.findNode(nodeid);
             should.exist(node);
 
+            if (!node) return;
             const dataValue = node.readAttribute(context, AttributeIds.Value);
 
             dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -1548,8 +1598,9 @@ describe("testing ServerEngine", () => {
 
         it("should read  Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount", async () => {
             const nodeid = VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount;
-            const node = engine.addressSpace!.findNode(nodeid)!;
+            const node = engine.addressSpace?.findNode(nodeid);
             should.exist(node);
+            if (!node) return;
 
             const readRequest = new ReadRequest({
                 nodesToRead: [
@@ -1619,12 +1670,14 @@ describe("testing ServerEngine", () => {
         }
 
         it("MAXA-1 should not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
-            const ns = engine.addressSpace!.getOwnNamespace();
+            const ns = engine.addressSpace?.getOwnNamespace();
+            if (!ns) return;
+            const nss = ns as INamespace;
             const nodeId = "ns=1;s=MyVar";
-            let refreshFuncSpy;
+
             function given_a_variable_that_have_async_refresh() {
                 let value = 0;
-                const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
+                const variable = nss.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
                 variable.bindVariable({
                     refreshFunc: (callback) => {
                         setTimeout(() => {
@@ -1640,52 +1693,55 @@ describe("testing ServerEngine", () => {
                     }
                 });
 
-                refreshFuncSpy = sinon.spy(variable, "refreshFunc" as any);
+                return variable as UAVariableImpl;
             }
 
-            given_a_variable_that_have_async_refresh();
+            const variable = given_a_variable_that_have_async_refresh();
+            const refreshFuncSpy = sinon.spy(variable, "refreshFunc");
 
             {
                 const dataValue = await when_I_read_the_value_with_max_age(nodeId, 0);
                 //xx console.log(dataValue.toString());
                 dataValue.value.value.should.eql(1);
-                refreshFuncSpy!.callCount.should.eql(1);
-                refreshFuncSpy!.resetHistory();
-                refreshFuncSpy!.callCount.should.eql(0);
+                refreshFuncSpy.callCount.should.eql(1);
+                refreshFuncSpy.resetHistory();
+                refreshFuncSpy.callCount.should.eql(0);
             }
             {
                 const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
                 //xx console.log(dataValue1.toString());
                 dataValue1.value.value.should.eql(1);
-                refreshFuncSpy!.callCount.should.eql(0);
+                refreshFuncSpy?.callCount.should.eql(0);
             }
             {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
                 const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
                 //xx console.log(dataValue2.toString());
                 dataValue2.value.value.should.eql(2);
-                refreshFuncSpy!.callCount.should.eql(1);
+                refreshFuncSpy?.callCount.should.eql(1);
             }
             {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
                 const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
                 //xx console.log(dataValue3.toString());
                 dataValue3.value.value.should.eql(3);
-                refreshFuncSpy!.callCount.should.eql(2);
+                refreshFuncSpy?.callCount.should.eql(2);
             }
         });
         it("MAXA-2 should set serverTimestamp to current time on none updated variable - server time should be stable then ", async () => {
-            const ns = engine.addressSpace!.getOwnNamespace();
+            const ns = engine.addressSpace?.getOwnNamespace();
+            if (!ns) return;
+            const nss = ns as INamespace;
             const nodeId = "ns=1;s=MyVar2";
             function given_a_static_variable() {
-                const variable = ns.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
+                const variable = nss.addVariable({ browseName: "SomeVarX", dataType: "Double", nodeId });
                 variable.setValueFromSource({ dataType: "Double", value: 42 });
             }
 
             given_a_static_variable();
 
             const dataValue = await when_I_read_the_value_with_max_age(nodeId, 0);
-            const refSourceTimestamp = dataValue.sourceTimestamp!.getTime();
+            const refSourceTimestamp = dataValue.sourceTimestamp?.getTime();
             //xx console.log(dataValue.toString());
             dataValue.value.value.should.eql(42);
 
@@ -1693,22 +1749,22 @@ describe("testing ServerEngine", () => {
             const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
             //xx console.log(dataValue1.toString());
             dataValue1.value.value.should.eql(42);
-            dataValue1.serverTimestamp!.getTime().should.eql(dataValue.serverTimestamp!.getTime());
-            dataValue1.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
+            dataValue1.serverTimestamp?.getTime().should.eql(dataValue.serverTimestamp?.getTime());
+            dataValue1.sourceTimestamp?.getTime().should.eql(refSourceTimestamp);
 
             await pause(2000);
             const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
             //xx console.log(dataValue2.toString());
             dataValue2.value.value.should.eql(42);
-            dataValue2.serverTimestamp!.getTime().should.eql(dataValue1.serverTimestamp!.getTime());
-            dataValue2.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
+            dataValue2.serverTimestamp?.getTime().should.eql(dataValue1.serverTimestamp?.getTime());
+            dataValue2.sourceTimestamp?.getTime().should.eql(refSourceTimestamp);
 
             await pause(2000);
             const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
             //xx console.log(dataValue3.toString());
             dataValue3.value.value.should.eql(42);
-            dataValue3.serverTimestamp!.getTime().should.eql(dataValue2.serverTimestamp!.getTime());
-            dataValue3.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
+            dataValue3.serverTimestamp?.getTime().should.eql(dataValue2.serverTimestamp?.getTime());
+            dataValue3.sourceTimestamp?.getTime().should.eql(refSourceTimestamp);
         });
     });
 
@@ -1790,7 +1846,7 @@ describe("testing ServerEngine", () => {
             });
 
             const statusCode = await writeNode(engine, nodeToWrite);
-            statusCode!.should.eql(StatusCodes.Good);
+            statusCode?.should.eql(StatusCodes.Good);
         });
 
         it("should return BadNotWritable when trying to write a Executable attribute", async () => {
@@ -1807,7 +1863,7 @@ describe("testing ServerEngine", () => {
                 }
             });
             const statusCode = await writeNode(engine, nodeToWrite);
-            statusCode!.should.eql(StatusCodes.BadNotWritable);
+            statusCode?.should.eql(StatusCodes.BadNotWritable);
         });
 
         it("should write many nodes", async () => {
@@ -1839,9 +1895,9 @@ describe("testing ServerEngine", () => {
             ];
 
             const results = await engine.write(context, nodesToWrite);
-            results!.length.should.eql(2);
-            results![0].should.eql(StatusCodes.Good);
-            results![1].should.eql(StatusCodes.Good);
+            results?.length.should.eql(2);
+            results?.[0].should.eql(StatusCodes.Good);
+            results?.[1].should.eql(StatusCodes.Good);
         });
 
         it(" write a single node with a null variant shall return BadTypeMismatch", async () => {
@@ -1855,10 +1911,10 @@ describe("testing ServerEngine", () => {
                 }
             });
 
-            nodeToWrite.value.value = null as any as Variant;
+            nodeToWrite.value.value = null as unknown as Variant;
 
             const statusCode = await writeNode(engine, nodeToWrite);
-            statusCode!.should.eql(StatusCodes.BadTypeMismatch);
+            statusCode?.should.eql(StatusCodes.BadTypeMismatch);
         });
     });
 
@@ -1869,7 +1925,7 @@ describe("testing ServerEngine", () => {
             // and for some reason, the server cannot access the PLC.
             // In this case we expect the value getter to return a StatusCode rather than a Variant
             namespace.addVariable({
-                organizedBy: engine.addressSpace!.findNode("ObjectsFolder")!,
+                organizedBy: engine.addressSpace?.findNode("ObjectsFolder") || NodeId.nullNodeId,
                 browseName: "FailingPLCValue",
                 nodeId: "ns=1;s=FailingPLCValue",
                 dataType: "Double",
@@ -1908,7 +1964,7 @@ describe("testing ServerEngine", () => {
         before(() => {
             // add a variable that provide a on demand refresh function
             namespace.addVariable({
-                organizedBy: engine.addressSpace!.findNode("ObjectsFolder")!,
+                organizedBy: engine.addressSpace?.findNode("ObjectsFolder") || undefined,
                 browseName: "RefreshedOnDemandValue",
                 nodeId: "ns=1;s=RefreshedOnDemandValue",
                 dataType: "Double",
@@ -1933,7 +1989,7 @@ describe("testing ServerEngine", () => {
             });
             // add an other variable that provide a on demand refresh function
             namespace.addVariable({
-                organizedBy: engine.addressSpace!.findNode("ObjectsFolder")!,
+                organizedBy: engine.addressSpace?.findNode("ObjectsFolder") || undefined,
                 browseName: "OtherRefreshedOnDemandValue",
                 nodeId: "ns=1;s=OtherRefreshedOnDemandValue",
                 dataType: "Double",
@@ -1983,12 +2039,12 @@ describe("testing ServerEngine", () => {
 
             engine.refreshValues(nodesToRefresh, 0, (err, values) => {
                 if (!err) {
-                    values!.length.should.equal(2, " expecting two node asynchronous refresh call");
+                    values?.length.should.equal(2, " expecting two node asynchronous refresh call");
 
-                    values![0].value.value.should.equal(1);
-                    values![1].value.value.should.equal(1);
+                    values?.[0].value.value.should.equal(1);
+                    values?.[1].value.value.should.equal(1);
                     if (value1 !== 1 || value2 !== 1) {
-                        console.log("value1 = ", values![0].toString(), "value2 = ", values![1].toString());
+                        console.log("value1 = ", values?.[0].toString(), "value2 = ", values?.[1].toString());
                     }
                     value1.should.equal(1);
                     value2.should.equal(1);
@@ -2005,7 +2061,7 @@ describe("testing ServerEngine", () => {
             ];
             engine.refreshValues(nodesToRefresh, 0, (err, values) => {
                 if (!err) {
-                    values!.length.should.equal(1, " expecting only one node asynchronous refresh call");
+                    values?.length.should.equal(1, " expecting only one node asynchronous refresh call");
 
                     value1.should.equal(1);
                     value2.should.equal(0);
@@ -2023,7 +2079,7 @@ describe("testing ServerEngine", () => {
             ];
             engine.refreshValues(nodesToRefresh, 0, (err, values?: DataValue[]) => {
                 if (!err) {
-                    values!.length.should.equal(0, " expecting no asynchronous refresh call");
+                    values?.length.should.equal(0, " expecting no asynchronous refresh call");
                     value1.should.equal(0);
                     value2.should.equal(0);
                 }
@@ -2032,10 +2088,10 @@ describe("testing ServerEngine", () => {
         });
 
         it("should perform readValueAsync on Variable", (done) => {
-            const variable = engine.addressSpace!.findNode("ns=1;s=RefreshedOnDemandValue")! as UAVariable;
+            const variable = engine.addressSpace?.findNode("ns=1;s=RefreshedOnDemandValue") as UAVariable;
 
             value1.should.equal(0);
-            variable.readValueAsync(context, (err, value) => {
+            variable.readValueAsync(context, (err, _value) => {
                 value1.should.equal(1);
 
                 done(err);
@@ -2045,7 +2101,8 @@ describe("testing ServerEngine", () => {
 
     describe("ServerEngine Diagnostic", () => {
         it("should have ServerDiagnosticObject", () => {
-            const server = engine.addressSpace!.rootFolder.objects.server;
+            const server = engine.addressSpace?.rootFolder.objects.server;
+            if (!server) return;
             server.browseName.toString().should.eql("Server");
             server.serverDiagnostics.browseName.toString().should.eql("ServerDiagnostics");
             server.serverDiagnostics.enabledFlag.browseName.toString().should.eql("EnabledFlag");
@@ -2096,9 +2153,9 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
     };
 
     this.timeout(40000);
-    let test: any;
-    before((done) => {
-        test = this as any;
+    let test: Mocha.Context;
+    before(function (this: Mocha.Context, done) {
+        test = this;
 
         engine = new ServerEngine({
             applicationUri: "application:uri",
@@ -2119,25 +2176,24 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
         test.clock.restore();
     });
 
-    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", (done) => {
+    it("ServerEngine#ServerCapabilities should expose ServerCapabilities ", () => {
         const serverCapabilitiesId = makeNodeId(ObjectIds.Server_ServerCapabilities); // ns=0;i=2268
         serverCapabilitiesId.toString().should.eql("ns=0;i=2268");
 
-        const addressSpace = engine.addressSpace!;
-        const serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId)!;
-
-        serverCapabilitiesNode.nodeClass.should.eql(NodeClass.Object);
-
-        // ->
-        done();
+        const addressSpace = engine.addressSpace;
+        if (!addressSpace) return;
+        const serverCapabilitiesNode = addressSpace.findNode(serverCapabilitiesId);
+        should(serverCapabilitiesNode?.nodeClass).eql(NodeClass.Object);
     });
 
-    it("ServerEngine#ServerStatus should expose currentTime", (done) => {
+    it("ServerEngine#ServerStatus should expose currentTime", () => {
         const currentTimeId = makeNodeId(VariableIds.Server_ServerStatus_CurrentTime); // ns=0;i=2258
         currentTimeId.value.should.eql(2258);
 
-        const addressSpace = engine.addressSpace!;
-        const currentTimeNode = addressSpace.findNode(currentTimeId)! as UAVariable;
+        const addressSpace = engine.addressSpace;
+        if (!addressSpace) return;
+        const currentTimeNode = addressSpace.findNode(currentTimeId) as UAVariable;
+        if (!currentTimeNode) return;
         const d1 = currentTimeNode.readValue();
 
         test.clock.tick(1000);
@@ -2151,8 +2207,6 @@ describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha
         test.clock.tick(1000);
         const d4 = currentTimeNode.readValue();
         d4.value.value.getTime().should.be.greaterThan(d3.value.value.getTime() + 900);
-
-        done();
     });
 });
 
@@ -2175,7 +2229,8 @@ describe("US-031: ServerEngine.setServerState", () => {
     });
 
     it("should update Server.ServerStatus.State variable", () => {
-        const stateVariable = engine.addressSpace!.rootFolder.objects.server.serverStatus.state;
+        const stateVariable = engine.addressSpace?.rootFolder.objects.server.serverStatus.state;
+        if (!stateVariable) return;
 
         engine.setServerState(ServerState.NoConfiguration);
         stateVariable.readValue().value.value.should.eql(ServerState.NoConfiguration);
@@ -2216,7 +2271,7 @@ describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", (
         engine.getInApplicationSetup().should.eql(true);
 
         // also verify via address space read
-        const serverConfiguration = engine.addressSpace!.rootFolder.objects.server.getChildByName(
+        const serverConfiguration = engine.addressSpace?.rootFolder.objects.server.getChildByName(
             "ServerConfiguration"
         ) as UAObject;
         const prop = serverConfiguration.getPropertyByName("InApplicationSetup") as UAVariable;

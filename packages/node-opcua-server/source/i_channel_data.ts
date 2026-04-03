@@ -1,4 +1,4 @@
-import { AsymmetricAlgorithmSecurityHeader, type MessageSecurityMode, type SecurityPolicy } from "node-opcua-secure-channel";
+import type { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 
 export interface IChannelData {
     channelId: number | null;

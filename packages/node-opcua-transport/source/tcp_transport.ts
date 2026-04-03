@@ -9,7 +9,7 @@ import { assert } from "node-opcua-assert";
 import { make_debugLog, checkDebugFlag, make_errorLog, hexDump, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";
-import { ErrorCallback, CallbackWithData, StatusCode } from "node-opcua-status-code";
+import { type CallbackWithData, type ErrorCallback, StatusCode } from "node-opcua-status-code";
 
 import { StatusCodes2 } from "./status_codes";
 import { readRawMessageHeader } from "./message_builder_base";
@@ -60,7 +60,7 @@ export interface ISocketLike extends EventEmitter {
 export interface IMockSocket extends ISocketLike {
     invalid?: boolean;
     // [key: string]: any;
-    write(data: string | Buffer, callback?: (err?: Error) => void | undefined): void;
+    write(data: string | Buffer, callback?: (err?: Error) => void): void;
     destroy(): void;
     end(): void;
 
@@ -72,7 +72,7 @@ export interface IMockSocket extends ISocketLike {
 const defaultFakeSocket = {
     invalid: true,
     destroyed: false,
-    destroy(err?: Error) {
+    destroy(_err?: Error) {
         this.destroyed = true;
         errorLog("MockSocket.destroy");
     },
@@ -81,20 +81,20 @@ const defaultFakeSocket = {
         errorLog("MockSocket.end");
     },
 
-    write(data: string | Buffer, callback?: (err?: Error) => void | undefined): void {
+    write(_data: string | Buffer, callback?: (err?: Error) => void | undefined): void {
         /** */
         if (callback) {
             callback();
         }
     },
 
-    setKeepAlive(enable?: boolean, initialDelay?: number) {
+    setKeepAlive(_enable?: boolean, _initialDelay?: number) {
         return this;
     },
-    setNoDelay(noDelay?: boolean) {
+    setNoDelay(_noDelay?: boolean) {
         return this;
     },
-    setTimeout(timeout: number, callback?: () => void) {
+    setTimeout(_timeout: number, _callback?: () => void) {
         return this;
     }
 };
@@ -200,17 +200,17 @@ export class TCP_transport extends EventEmitter {
 
     public toString() {
         let str = "\n";
-        str += " name.............. = " + this.name + "\n";
-        str += " protocolVersion... = " + this.protocolVersion + "\n";
-        str += " maxMessageSize.... = " + this.maxMessageSize + "\n";
-        str += " maxChunkCount..... = " + this.maxChunkCount + "\n";
-        str += " receiveBufferSize. = " + this.receiveBufferSize + "\n";
-        str += " sendBufferSize.... = " + this.sendBufferSize + "\n";
-        str += " bytesRead......... = " + this.bytesRead + "\n";
-        str += " bytesWritten...... = " + this.bytesWritten + "\n";
-        str += " chunkWrittenCount. = " + this.chunkWrittenCount + "\n";
-        str += " chunkReadCount.... = " + this.chunkReadCount + "\n";
-        str += " closeEmitted ? ....= " + this.#_closedEmitted + "\n";
+        str += ` name.............. = ${this.name}\n`;
+        str += ` protocolVersion... = ${this.protocolVersion}\n`;
+        str += ` maxMessageSize.... = ${this.maxMessageSize}\n`;
+        str += ` maxChunkCount..... = ${this.maxChunkCount}\n`;
+        str += ` receiveBufferSize. = ${this.receiveBufferSize}\n`;
+        str += ` sendBufferSize.... = ${this.sendBufferSize}\n`;
+        str += ` bytesRead......... = ${this.bytesRead}\n`;
+        str += ` bytesWritten...... = ${this.bytesWritten}\n`;
+        str += ` chunkWrittenCount. = ${this.chunkWrittenCount}\n`;
+        str += ` chunkReadCount.... = ${this.chunkReadCount}\n`;
+        str += ` closeEmitted ? ....= ${this.#_closedEmitted}\n`;
         return str;
     }
 
@@ -254,7 +254,7 @@ export class TCP_transport extends EventEmitter {
     }
     public set timeout(value: number) {
         assert(!this.#_timerId);
-        doDebug && debugLog("Setting socket " + this.name + " timeout = ", value);
+        doDebug && debugLog(`Setting socket ${this.name} timeout = ${value}`);
         this.#_timeout = value;
     }
 
@@ -287,7 +287,7 @@ export class TCP_transport extends EventEmitter {
         const c = header.messageHeader.isFinal;
         assert(c === "F" || c === "C" || c === "A");
         this._write_chunk(messageChunk, (err) => {
-            callback && callback(err);
+            callback?.(err);
         });
     }
 
@@ -300,7 +300,6 @@ export class TCP_transport extends EventEmitter {
      *
      */
     public disconnect(callback: ErrorCallback): void {
-        assert(typeof callback === "function", "expecting a callback function, but got " + callback);
         if (!this._socket || this.#_isDisconnecting) {
             if (!this.#_isDisconnecting) {
                 this.#_isDisconnecting = true;
@@ -320,7 +319,7 @@ export class TCP_transport extends EventEmitter {
             });
         });
 
-        this._socket && this._socket.destroy(new Error("ClientTCP_transport disconnected"));
+        this._socket?.destroy(new Error("ClientTCP_transport disconnected"));
         this._socket = null;
     }
 
@@ -328,7 +327,7 @@ export class TCP_transport extends EventEmitter {
         return this._socket !== null && !this._socket.destroyed;
     }
 
-    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error | null) => void | undefined): void {
+    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error | null) => void): void {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
@@ -366,7 +365,7 @@ export class TCP_transport extends EventEmitter {
             }
 
             this.sendErrorMessage(statusCode, err.message);
-            this.prematureTerminate(new Error("Packet Assembler : " + err.message), statusCode);
+            this.prematureTerminate(new Error(`Packet Assembler : ${err.message}`), statusCode);
         });
     }
 
@@ -383,7 +382,7 @@ export class TCP_transport extends EventEmitter {
         // Setting true for noDelay will immediately fire off data each time socket.write() is called.
         this._socket.setNoDelay(true);
         // set socket timeout
-        debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
+        debugLog(`  TCP_transport#install => setting ${this.name} _socket.setTimeout to `, this.timeout);
         // let use a large timeout here to make sure that we not conflict with our internal timeout
         this._socket.setTimeout(this.timeout, () => {
         });
@@ -427,7 +426,7 @@ export class TCP_transport extends EventEmitter {
         doDebugFlow && errorLog("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
 
         if (this._socket) {
-            err.message = "premature socket termination " + err.message;
+            err.message = `premature socket termination ${err.message}`;
             // we consider this as an error
             const _s = this._socket;
             this._socket = null;
@@ -519,7 +518,7 @@ export class TCP_transport extends EventEmitter {
             // to do = intercept socket error as well
             this.#_on_error_during_one_time_message_receiver = (hadError: boolean) => {
                 const err = new Error(
-                    `ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms) hadError` + hadError
+                    `ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms) hadError${hadError}`
                 );
                 this._emitClose(err);
                 this._fulfill_pending_promises(err);
@@ -531,7 +530,7 @@ export class TCP_transport extends EventEmitter {
         this.#_theCallback = (err?: Error | null, data?: Buffer) => {
             _cleanUp();
             this.#_theCallback = undefined;
-            _callback(err!, data);
+            _callback(err ?? null, data);
         };
     }
 
@@ -589,13 +588,13 @@ export class TCP_transport extends EventEmitter {
             return;
         }
         //
-        debugLog(chalk.red(" Transport Connection ended") + " " + this.name);
-        const err = new Error(this.name + ": socket has been disconnected by third party");
+        debugLog(`${chalk.red(" Transport Connection ended")} ${this.name}`);
+        const err = new Error(`${this.name}: socket has been disconnected by third party`);
         debugLog(" bytesRead    = ", this.bytesRead);
         debugLog(" bytesWritten = ", this.bytesWritten);
         this._theCloseError = err;
 
-        this._fulfill_pending_promises(new Error("Connection aborted - ended by server : " + (err ? err.message : "")));
+        this._fulfill_pending_promises(new Error(`Connection aborted - ended by server : ${err ? err.message : ""}`));
     }
 
     private _on_socket_error(err: Error) {
