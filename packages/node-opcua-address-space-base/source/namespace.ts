@@ -29,17 +29,18 @@ import { BindVariableOptions, BindVariableOptionsVariation1, HistoryReadFunc } f
 import { UAView } from "./ua_view";
 import { UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
+import { AddressSpacePrivate } from "./address_space_private";
 
 
 export interface CreateNodeOptions {
 
-    addressSpace?: IAddressSpace;
-    browseName:  QualifiedNameLike;
-    nodeId? : NodeIdLike | BaseNode | null ;
+    addressSpace?: AddressSpacePrivate;
+    browseName: QualifiedNameLike;
+    nodeId?: NodeIdLike | BaseNode | null;
     nodeClass?: NodeClass;
 
     displayName?: LocalizedTextLike | LocalizedTextLike[] | null;
-    description?: LocalizedTextLike |  null;
+    description?: LocalizedTextLike | null;
 
     rolePermissions?: RolePermissionTypeOptions[];
 
@@ -51,8 +52,8 @@ export interface CreateNodeOptions {
     notifierOf?: NodeIdLike | BaseNode | null;
     organizedBy?: NodeIdLike | BaseNode | null;
     propertyOf?: NodeIdLike | BaseNode | null;
-    
-    subtypeOf?: NodeIdLike | string | BaseNode |null;
+
+    subtypeOf?: NodeIdLike | string | BaseNode | null;
 
     isAbstract?: boolean;
 
@@ -62,7 +63,7 @@ export interface CreateNodeOptions {
     eventNotifier?: number;
 
     postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void;
-   
+
 }
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
@@ -232,7 +233,7 @@ export interface VariableStuff {
     dataValue?: DataValueOptions;
 }
 
-export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {}
+export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff { }
 export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;

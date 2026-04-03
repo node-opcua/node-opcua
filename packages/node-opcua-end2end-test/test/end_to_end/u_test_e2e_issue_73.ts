@@ -30,7 +30,7 @@ export function t(test: TestHarness) {
         [
             { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None },
             { securityMode: MessageSecurityMode.SignAndEncrypt, securityPolicy: SecurityPolicy.Basic256Sha256 }
-        ].forEach(({ securityMode, securityPolicy }, index) =>
+        ].forEach(({ securityMode, securityPolicy }, index) => {
             it(`T73-${index} should not reset sequence number after secure channel renewal ${MessageSecurityMode[securityMode]} - ${securityPolicy}`, async () => {
                 const client = OPCUAClient.create({
                     securityMode,
@@ -76,6 +76,6 @@ export function t(test: TestHarness) {
                     sequenceNumbers[i].should.be.greaterThan(sequenceNumbers[i - 1]);
                 }
             })
-        );
+        });
     });
 }

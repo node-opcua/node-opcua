@@ -29,7 +29,7 @@
   "author": "node-opcua team",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "24.12.0",
+    "@types/node": "24.12.2",
     "typescript": "5.9.3",
     "tsx": "^4.21.0"
   },

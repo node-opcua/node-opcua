@@ -1,14 +1,14 @@
-import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
+import path from "node:path";
 
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-basic-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const fakeCertificate = Buffer.from(
     `
@@ -43,7 +43,7 @@ async function makeDump(): Promise<string> {
     await generateAddressSpace(addressSpace, [nodesets.standard]);
     const ns = addressSpace.registerNamespace("urn:MyPrivateNamespace");
 
-    const node = ns.addObject({
+    const _node = ns.addObject({
         browseName: "MyCertificate"
     });
 
@@ -63,7 +63,7 @@ async function makeDump(): Promise<string> {
         dataType: DataType.ByteString,
         value: fakeCertificate
     });
-    alarm1.expirationLimit!.setValueFromSource({
+    alarm1.expirationLimit?.setValueFromSource({
         dataType: DataType.Double,
         value: 31536000000
     });
@@ -76,7 +76,7 @@ async function makeDump(): Promise<string> {
     return filename;
 }
 
-describe("Reconstructed alarm", function () {
+describe("Reconstructed alarm", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -90,6 +90,6 @@ describe("Reconstructed alarm", function () {
         const other = await makeDump();
         await generateAddressSpace(addressSpace, [nodesets.standard, other]);
 
-        const ns = addressSpace.registerNamespace("urn:OwnNamespace");
+        const _ns = addressSpace.registerNamespace("urn:OwnNamespace");
     });
 });

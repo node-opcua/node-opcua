@@ -12,6 +12,7 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-client";
 import { makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { invalidateServerCertificateCache, OPCUAServer } from "../source";
 
 const tmpDir = path.join(os.tmpdir(), `test-cert-rotation-${process.pid}`);

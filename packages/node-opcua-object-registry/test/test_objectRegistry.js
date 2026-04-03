@@ -1,19 +1,19 @@
-const should = require("should");
+require("should");
 const { ObjectRegistry } = require("..");
 
-describe("testing ObjectRegistry", function () {
+describe("testing ObjectRegistry", () => {
     let oldValue = null;
 
     const registry = new ObjectRegistry();
-    before(function () {
+    before(() => {
         oldValue = ObjectRegistry.doDebug;
         ObjectRegistry.doDebug = true;
     });
-    after(function () {
+    after(() => {
         ObjectRegistry.doDebug = oldValue;
     });
 
-    it("should register and unregister an object", function () {
+    it("should register and unregister an object", () => {
         const myObj = {
             name: "HelloWorld"
         };

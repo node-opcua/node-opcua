@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-import should from "should";
+import "should";
 
+import { AddressSpace, type UAObject, type UAVariable } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";
-import { AddressSpace } from "../..";
 
 import { utest_acknowledgeable_condition } from "./utest_acknowledgeable_condition";
 import { utest_alarm_condition } from "./utest_alarm_condition";
@@ -13,17 +14,22 @@ import { utest_issue_316 } from "./utest_issue_316";
 import { utest_limit_alarm } from "./utest_limit_alarm";
 import { utest_non_exclusive_deviation_alarm } from "./utest_non_exclusive_deviation_alarm";
 import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-describe("AddressSpace : Conditions 1", function (this: any) {
+describe("AddressSpace : Conditions 1", function (this: Mocha.Suite) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
+    const test = this as unknown as {
+        addressSpace: AddressSpace;
+        source: UAObject;
+        green: UAObject;
+        variableWithAlarm: UAVariable;
+        setpointNodeNode: UAVariable;
+    };
 
     let addressSpace: AddressSpace;
 
     this.timeout(Math.max(this.timeout(), 50000));
 
-    let source;
+    let source: UAObject;
     before(async () => {
         addressSpace = AddressSpace.create();
         const ownNamespace = addressSpace.registerNamespace("PRIVATE_NAMESPACE");
