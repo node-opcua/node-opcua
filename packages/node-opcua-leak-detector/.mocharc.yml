@@ -1,0 +1,8 @@
+timeout: 60000
+require:
+  - tsx
+extension:
+  - .js
+  - .ts
+ignore:
+  - test/fixtures/**
