@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-server-discovery
  */
+import { EventEmitter } from "events";
 import { Service, Bonjour, Browser } from "sterfive-bonjour-service";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -11,7 +12,17 @@ const doDebug = checkDebugFlag("LDSSERVER") || true;
 
 const registry = new ObjectRegistry();
 
-export class MDNSResponder {
+export interface MDNSResponderEvents {
+    serverUp: (server: ServerOnNetwork) => void;
+    serverDown: (server: ServerOnNetwork) => void;
+}
+
+export declare interface MDNSResponder {
+    on<K extends keyof MDNSResponderEvents>(event: K, listener: MDNSResponderEvents[K]): this;
+    emit<K extends keyof MDNSResponderEvents>(event: K, ...args: Parameters<MDNSResponderEvents[K]>): boolean;
+}
+
+export class MDNSResponder extends EventEmitter {
     /**
      * the list of servers that have been activated as mDNS service
      */
@@ -24,6 +35,7 @@ export class MDNSResponder {
     public lastUpdateDate: Date = new Date();
 
     constructor() {
+        super();
         registry.register(this);
 
         this.registeredServers = [];
@@ -87,17 +99,18 @@ export class MDNSResponder {
             const path = service_txt.path || "";
             const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
 
-            this.registeredServers.push(
-                new ServerOnNetwork({
-                    discoveryUrl,
-                    recordId,
-                    serverCapabilities,
-                    serverName
-                })
-            );
+            const serverOnNetwork = new ServerOnNetwork({
+                discoveryUrl,
+                recordId,
+                serverCapabilities,
+                serverName
+            });
+
+            this.registeredServers.push(serverOnNetwork);
             this.lastUpdateDate = new Date(Date.now());
 
             debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
+            this.emit("serverUp", serverOnNetwork);
         };
 
         const removeService = (service: Service) => {
@@ -108,8 +121,9 @@ export class MDNSResponder {
                 debugLog("Cannot find server with name ", serverName, " in registeredServers");
                 return;
             }
-            this.registeredServers.splice(index, 1); // remove element at index
+            const [removed] = this.registeredServers.splice(index, 1); // remove element at index
             this.lastUpdateDate = new Date();
+            this.emit("serverDown", removed);
         };
 
         this.#mDNSBrowser.on("up", (service: Service) => {
