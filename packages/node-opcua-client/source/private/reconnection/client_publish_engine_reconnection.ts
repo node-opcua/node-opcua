@@ -1,11 +1,8 @@
-import async from "async";
 import chalk from "chalk";
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { StatusCodes } from "node-opcua-status-code";
 import { RepublishRequest, type RepublishResponse } from "node-opcua-types";
-import { types } from "util";
-import type { SubscriptionId } from "../../client_session";
 import type { ClientSidePublishEngine } from "../client_publish_engine";
 import type { ClientSessionImpl } from "../client_session_impl";
 import type { ClientSubscriptionImpl } from "../client_subscription_impl";
@@ -15,12 +12,12 @@ import { _shouldNotContinue2 } from "./reconnection";
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");
 
-function _republish(engine: ClientSidePublishEngine, subscription: ClientSubscriptionImpl, callback: (err?: Error) => void) {
-    let isDone = false;
-    const session = engine.session as ClientSessionImpl;
-
-    const sendRepublishFunc = (callback2: (err?: Error) => void) => {
-        assert(isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
+function _sendRepublish(
+    session: ClientSessionImpl,
+    subscription: ClientSubscriptionImpl
+): Promise<{ isDone: boolean }> {
+    return new Promise<{ isDone: boolean }>((resolve, reject) => {
+        assert(Number.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
 
         const request = new RepublishRequest({
             retransmitSequenceNumber: subscription.lastSequenceNumber + 1,
@@ -38,68 +35,76 @@ function _republish(engine: ClientSidePublishEngine, subscription: ClientSubscri
             );
         }
 
-        if (!session || session!._closeEventHasBeenEmitted) {
+        if (!session || session._closeEventHasBeenEmitted) {
             debugLog("ClientPublishEngine#_republish aborted ");
-            // has  client been disconnected in the mean time ?
-            isDone = true;
-            return callback2();
+            return resolve({ isDone: true });
         }
+
         session.republish(request, (err: Error | null, response?: RepublishResponse) => {
-            const statusCode = err ? StatusCodes.Bad : response!.responseHeader.serviceResult;
-            if (!err && (statusCode.equals(StatusCodes.Good) || statusCode.equals(StatusCodes.BadMessageNotAvailable))) {
-                // reprocess notification message  and keep going
-                if (statusCode.equals(StatusCodes.Good)) {
-                    subscription.onNotificationMessage(response!.notificationMessage);
-                }
-            } else {
-                if (!err) {
-                    err = new Error(response!.responseHeader.serviceResult.toString());
-                }
-                debugLog(" _send_republish ends with ", err.message);
-                isDone = true;
+            if (!response) {
+                reject(err);
+                return;
             }
-            callback2(err ? err : undefined);
+            const statusCode = err ? StatusCodes.Bad : response.responseHeader.serviceResult;
+            if (!err && (statusCode.equals(StatusCodes.Good) || statusCode.equals(StatusCodes.BadMessageNotAvailable))) {
+                // reprocess notification message and keep going
+                if (statusCode.equals(StatusCodes.Good)) {
+                    subscription.onNotificationMessage(response.notificationMessage);
+                }
+                return resolve({ isDone: false });
+            }
+            if (!err) {
+                err = new Error(response.responseHeader.serviceResult.toString());
+            }
+            debugLog(" _send_republish ends with ", err.message);
+            reject(err);
         });
-    };
-
-    const sendRepublishUntilDone = () => {
-        async.whilst(
-            (cb: (err: null, truth: boolean) => void) => cb(null, !isDone),
-            sendRepublishFunc,
-            ((err?: Error | null): void => {
-                debugLog("nbPendingPublishRequest = ", engine.nbPendingPublishRequests);
-                debugLog(" _republish ends with ", err ? err.message : "null");
-                callback(err!);
-            }) as any // Wait for @type/async bug to be fixed !
-        );
-    };
-
-    setImmediate(sendRepublishUntilDone);
+    });
 }
 
-function __askSubscriptionRepublish(
+async function _republish(
     engine: ClientSidePublishEngine,
-    subscription: ClientSubscriptionImpl,
-    callback: (err?: Error) => void
-) {
-    _republish(engine, subscription, (err?: Error) => {
+    subscription: ClientSubscriptionImpl
+): Promise<void> {
+    const session = engine.session as ClientSessionImpl;
+
+    // loop until done (all messages re-published or error)
+    let isDone = false;
+    while (!isDone) {
+        // yield to event loop before each iteration
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        const result = await _sendRepublish(session, subscription);
+        isDone = result.isDone;
+    }
+
+    debugLog("nbPendingPublishRequest = ", engine.nbPendingPublishRequests);
+    debugLog(" _republish ends with ", "null");
+}
+
+async function __askSubscriptionRepublish(
+    engine: ClientSidePublishEngine,
+    subscription: ClientSubscriptionImpl
+): Promise<void> {
+    try {
+        await _republish(engine, subscription);
+    } catch (err) {
         // prettier-ignore
         {
             const _err = _shouldNotContinue2(subscription);
             if (_err) {
-                return callback(_err);
+                throw _err;
             }
         }
 
-        assert(!err || types.isNativeError(err));
+        const error = err as Error;
 
-        debugLog("__askSubscriptionRepublish--------------------- err =", err ? err.message : null);
+        debugLog("__askSubscriptionRepublish--------------------- err =", error.message);
 
-        if (err && err.message.match(/BadSessionInvalid/)) {
+        if (error.message.match(/BadSessionInvalid/)) {
             // _republish failed because session is not valid anymore on server side.
-            return callback(err);
+            throw error;
         }
-        if (err && err.message.match(/SubscriptionIdInvalid/)) {
+        if (error.message.match(/SubscriptionIdInvalid/)) {
             // _republish failed because subscriptionId is not valid anymore on server side.
             //
             // This could happen when the subscription has timed out and has been deleted by server
@@ -112,15 +117,18 @@ function __askSubscriptionRepublish(
             debugLog(
                 chalk.bgWhite.red("__askSubscriptionRepublish failed " + " subscriptionId is not valid anymore on server side.")
             );
-            return recreateSubscriptionAndMonitoredItem(subscription)
-                .then(() => callback())
-                .catch((err) => callback(err));
+            await recreateSubscriptionAndMonitoredItem(subscription);
+            return;
         }
-        if (err && err.message.match(/|MessageNotAvailable/)) {
+        if (error.message.match(/|MessageNotAvailable/)) {
             // start engine and start monitoring
         }
-        callback();
-    });
+    }
+    // check after successful republish too
+    const _err = _shouldNotContinue2(subscription);
+    if (_err) {
+        throw _err;
+    }
 }
 
 export function republish(engine: ClientSidePublishEngine, callback: () => void): void {
@@ -135,13 +143,12 @@ export function republish(engine: ClientSidePublishEngine, callback: () => void)
      * call Republish continuously until all Notification messages of
      * un-acknowledged notifications are reprocessed.
      */
-    const askSubscriptionRepublish = (
-        subscription: ClientSubscriptionImpl,
-        subscriptionId: SubscriptionId | string,
-        innerCallback: () => void
-    ) => {
-        __askSubscriptionRepublish(engine, subscription, innerCallback);
+    const processAll = async () => {
+        const entries = Object.entries(engine.subscriptionMap);
+        for (const [_subscriptionId, subscription] of entries) {
+            await __askSubscriptionRepublish(engine, subscription as ClientSubscriptionImpl);
+        }
     };
 
-    async.forEachOf(engine.subscriptionMap, askSubscriptionRepublish, callback);
+    processAll().then(() => callback()).catch(() => callback());
 }

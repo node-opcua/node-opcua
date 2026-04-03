@@ -1,0 +1,29 @@
+refactor: replace async library with native
+async/await and Promise patterns
+
+- client_secure_channel_layer.ts: replace
+  async.series with Promise chain for
+  abortConnection
+- client_publish_engine_reconnection.ts:
+  replace async.whilst and async.forEachOf
+  with native while/for...of loops
+- reconnection.ts: replace async.series,
+  async.forEach, and async.map with
+  async/await and Promise-based patterns
+- client_base_impl.ts: replace 2x
+  async.series and async.map with Promise
+  chains for findEndpoint,
+  _internal_create_secure_channel, and
+  _close_pending_sessions
+- base_server.ts: replace 4x async.forEach
+  with Promise.all for shutdown,
+  shutdownChannels, suspendEndPoints,
+  and resumeEndPoints
+- server_engine.ts: replace async.map with
+  Promise.all for refreshValues
+
+Remove async dependency from
+node-opcua-client, node-opcua-server, and
+node-opcua-secure-channel package.json.
+Keep async in node-opcua-client-crawler
+(uses async.queue).

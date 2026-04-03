@@ -3,16 +3,13 @@
  */
 
 // tslint:disable:only-arrow-functions
-import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, type TransferSubscriptionsResponse } from "node-opcua-service-subscription";
-import { type CallbackT, type ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import { CloseSessionRequest } from "node-opcua-types";
-
-import type { SubscriptionId } from "../../client_session";
 import type { ClientSessionImpl, Reconnectable } from "../client_session_impl";
 import type { ClientSubscriptionImpl } from "../client_subscription_impl";
 import type { IClientBase } from "../i_private_client";
@@ -43,6 +40,12 @@ export function _shouldNotContinue2(subscription: ClientSubscriptionImpl) {
     }
     return _shouldNotContinue(subscription.session);
 }
+
+function _throwIfShouldNotContinue(session: ClientSessionImpl): void {
+    const err = _shouldNotContinue(session);
+    if (err) throw err;
+}
+
 //
 // a new secure channel has be created, we need to reactivate the corresponding session,
 // and reestablish the subscription and restart the publish engine.
@@ -107,7 +110,7 @@ export function _shouldNotContinue2(subscription: ClientSubscriptionImpl) {
 //                                  |
 //                                  v                    +-------------------+       +----------------------+
 //                                /   \                  | CreateSession     |       |                      |
-//                               / SR? \______Bad_______>| ActivateSession   |-----> | TransferSubscription |
+//                               / SR? \______Bad_____>  | ActivateSession   |----->  | TransferSubscription |
 //                               \     /                 |                   |       |                      |       (1)
 //                                \   /                  +-------------------+       +----------------------+        ^
 //                                  | Good                                                      |                    |
@@ -163,56 +166,195 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
     });
 }
 
-function create_session_and_repeat_if_failed(
-    client: IClientBase,
-    session: ClientSessionImpl,
-    callback: CallbackT<ClientSessionImpl>
-) {
-    // prettier-ignore
-    {
-        const err = _shouldNotContinue(session);
-        if (err) {
-            return callback(err);
-        }
-    }
+function create_session_and_repeat_if_failed(client: IClientBase, session: ClientSessionImpl): Promise<ClientSessionImpl> {
+    return new Promise<ClientSessionImpl>((resolve, reject) => {
+        _throwIfShouldNotContinue(session);
 
-    doDebug && debugLog(chalk.bgWhite.red("    => creating a new session ...."));
-    // create new session, based on old session,
-    // so we can reuse subscriptions data
-    client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
-        // prettier-ignore
-        {
-            const err = _shouldNotContinue(session);
-            if (err) {
-                return callback(err);
+        doDebug && debugLog(chalk.bgWhite.red("    => creating a new session ...."));
+        // create new session, based on old session,
+        // so we can reuse subscriptions data
+        client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
+            _throwIfShouldNotContinue(session);
+
+            if (!err && session1) {
+                assert(session === session1, "session should have been recycled");
+                resolve(session);
+            } else {
+                doDebug && debugLog("Cannot complete subscription republish err = ", err?.message);
+                reject(err || new Error("Failed to create session"));
             }
-        }
-
-        if (!err && session1) {
-            assert(session === session1, "session should have been recycled");
-            callback(err, session);
-            return;
-        } else {
-            doDebug && debugLog("Cannot complete subscription republish err = ", err?.message);
-            callback(err);
-        }
+        });
     });
 }
 
-function repair_client_session_by_recreating_a_new_session(
-    client: IClientBase,
+function activate_session(client: IClientBase, session: ClientSessionImpl, newSession: ClientSessionImpl): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        _throwIfShouldNotContinue(session);
+
+        doDebug && debugLog(chalk.bgWhite.red("    => activating a new session ...."));
+
+        client._activateSession(newSession, newSession.userIdentityInfo!, (err: Error | null, _session1?: ClientSessionImpl) => {
+            // c8 ignore next
+            doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
+            if (err) {
+                doDebug &&
+                    debugLog(
+                        "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
+                    );
+                // but just on the server side, not on the client side
+                const closeSessionRequest = new CloseSessionRequest({
+                    requestHeader: {
+                        authenticationToken: newSession.authenticationToken
+                    },
+                    deleteSubscriptions: true
+                });
+                newSession._client?.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
+                    if (err2) {
+                        warningLog("closing session", err2.message);
+                    }
+                    // c8 ignore next
+                    doDebug && debugLog("the temporary replacement session is now closed");
+                    // c8 ignore next
+                    doDebug && debugLog(" err ", err.message, "propagated upwards");
+                    reject(err);
+                });
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+async function recreateSubscriptions(
     session: ClientSessionImpl,
-    callback: (err?: Error) => void
-) {
-    // prettier-ignore
-    {
-        const err = _shouldNotContinue(session);
-        if (err) {
-            return callback(err);
+    newSession: ClientSessionImpl,
+    subscriptionsToRecreate: number[]
+): Promise<void> {
+    for (const subscriptionId of subscriptionsToRecreate) {
+        _throwIfShouldNotContinue(session);
+
+        if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
+            doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
+            continue;
+        }
+        const subscription = session.getPublishEngine().getSubscription(subscriptionId);
+        doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
+        assert(subscription.session === newSession, "must have the new session");
+
+        try {
+            await recreateSubscriptionAndMonitoredItem(subscription);
+            doDebug &&
+                debugLog(
+                    chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
+                    subscriptionId
+                );
+        } catch (err) {
+            doDebug && debugLog(`_recreateSubscription failed !${(err as Error).message}`);
         }
     }
+    _throwIfShouldNotContinue(session);
+}
 
-    // As we don"t know if server has been rebooted or not,
+function attempt_subscription_transfer(
+    _client: IClientBase,
+    session: ClientSessionImpl,
+    newSession: ClientSessionImpl
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        _throwIfShouldNotContinue(session);
+
+        // get the old subscriptions id from the old session
+        const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
+
+        doDebug && debugLog("  session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
+        if (subscriptionsIds.length === 0) {
+            doDebug && debugLog(" No subscriptions => skipping transfer subscriptions");
+            return resolve(); // no need to transfer subscriptions
+        }
+        doDebug && debugLog("    => asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
+
+        // Transfer subscriptions - ask for initial values....
+        const subscriptionsToTransfer = new TransferSubscriptionsRequest({
+            sendInitialValues: true,
+            subscriptionIds: subscriptionsIds
+        });
+
+        if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
+            warningLog("Warning : we should not be publishing here");
+        }
+        newSession.transferSubscriptions(
+            subscriptionsToTransfer,
+            (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
+                // may be the connection with server has been disconnected
+                _throwIfShouldNotContinue(session);
+
+                if (err || !transferSubscriptionsResponse) {
+                    warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
+                    // when transfer subscription has failed, we have no other choice but
+                    // recreate the subscriptions on the server side
+                    const subscriptionsToRecreate = [...(subscriptionsToTransfer.subscriptionIds || [])];
+                    warningLog(chalk.bgCyan("We need to recreate entirely the subscription"));
+                    recreateSubscriptions(session, newSession, subscriptionsToRecreate)
+                        .then(() => resolve())
+                        .catch((e) => reject(e));
+                    return;
+                }
+
+                const results = transferSubscriptionsResponse.results || [];
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(
+                        chalk.cyan("    =>  transfer subscriptions  done"),
+                        results.map((x) => x.statusCode.toString()).join(" ")
+                    );
+                }
+
+                const subscriptionsToRecreate = [];
+
+                // some subscriptions may be marked as invalid on the server side ..
+                // those one need to be recreated and repaired ....
+                for (let i = 0; i < results.length; i++) {
+                    const statusCode = results[i].statusCode;
+                    if (statusCode.equals(StatusCodes.BadSubscriptionIdInvalid)) {
+                        // repair subscription
+                        doDebug &&
+                            debugLog(
+                                chalk.red("         WARNING SUBSCRIPTION  "),
+                                subscriptionsIds[i],
+                                chalk.red(" SHOULD BE RECREATED")
+                            );
+
+                        subscriptionsToRecreate.push(subscriptionsIds[i]);
+                    } else {
+                        const availableSequenceNumbers = results[i].availableSequenceNumbers;
+
+                        doDebug &&
+                            debugLog(
+                                chalk.green("         SUBSCRIPTION "),
+                                subscriptionsIds[i],
+                                chalk.green(" CAN BE REPAIRED AND AVAILABLE "),
+                                availableSequenceNumbers
+                            );
+                        // should be Good.
+                    }
+                }
+                doDebug && debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
+
+                recreateSubscriptions(session, newSession, subscriptionsToRecreate)
+                    .then(() => resolve())
+                    .catch((e) => reject(e));
+            }
+        );
+    });
+}
+
+async function repair_client_session_by_recreating_a_new_session_async(
+    client: IClientBase,
+    session: ClientSessionImpl
+): Promise<void> {
+    _throwIfShouldNotContinue(session);
+
+    // As we don't know if server has been rebooted or not,
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
 
@@ -221,301 +363,67 @@ function repair_client_session_by_recreating_a_new_session(
         debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
     }
 
-    let newSession: ClientSessionImpl;
-
     const listenerCountBefore = session.listenerCount("");
 
-    function recreateSubscription(subscriptionsToRecreate: number[], innerCallback: ErrorCallback) {
-        async.forEach(
-            subscriptionsToRecreate,
-            (subscriptionId: SubscriptionId, next: ErrorCallback) => {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return next(err);
-                    }
-                }
+    // Step 1: suspend old session publish engine
+    _throwIfShouldNotContinue(session);
+    // c8 ignore next
+    doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
+    session.getPublishEngine().suspend(true);
 
-                if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
-                    doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
-                    return next();
-                }
-                const subscription = session.getPublishEngine().getSubscription(subscriptionId);
-                doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
-                assert(subscription.session === newSession, "must have the new session");
+    // Step 2: create new session
+    const newSession = await create_session_and_repeat_if_failed(client, session);
+    _throwIfShouldNotContinue(session);
 
-                recreateSubscriptionAndMonitoredItem(subscription)
-                    .then(() => {
-                        doDebug &&
-                            debugLog(
-                                chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
-                                subscriptionId
-                            );
-                        next();
-                    })
-                    .catch((err) => {
-                        doDebug && debugLog("_recreateSubscription failed !" + (err as Error).message);
-                        next();
-                    });
-            },
-            (err1?: Error | null) => {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
-                if (!err1) {
-                    // prettier-ignore
-                }
-                innerCallback(err1!);
-            }
-        );
+    // Step 3: activate new session
+    await activate_session(client, session, newSession);
+    _throwIfShouldNotContinue(session);
+
+    // Step 4: before subscription repair hook
+    if (client.beforeSubscriptionRecreate) {
+        const hookErr = await client.beforeSubscriptionRecreate(newSession);
+        _throwIfShouldNotContinue(session);
+        if (hookErr) {
+            throw hookErr;
+        }
     }
 
-    async.series(
-        [
-            function suspend_old_session_publish_engine(innerCallback: ErrorCallback) {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
+    // Step 5: attempt subscription transfer
+    await attempt_subscription_transfer(client, session, newSession);
+    _throwIfShouldNotContinue(session);
 
-                // c8 ignore next
-                doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
-                session.getPublishEngine().suspend(true);
-                innerCallback();
-            },
-
-            function create_new_session(innerCallback: ErrorCallback) {
-                create_session_and_repeat_if_failed(client, session, (err?: Error | null, _newSession?: ClientSessionImpl) => {
-                    // prettier-ignore
-                    {
-                        const err = _shouldNotContinue(session);
-                        if (err) {
-                            return innerCallback(err);
-                        }
-                    }
-
-                    if (_newSession) {
-                        newSession = _newSession;
-                    }
-                    innerCallback(err || undefined);
-                });
-            },
-
-            function activate_new_session(innerCallback: ErrorCallback) {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
-
-                doDebug && debugLog(chalk.bgWhite.red("    => activating a new session ...."));
-
-                client._activateSession(
-                    newSession,
-                    newSession.userIdentityInfo!,
-                    (err: Error | null, session1?: ClientSessionImpl) => {
-                        // c8 ignore next
-                        doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
-                        if (err) {
-                            doDebug &&
-                                debugLog(
-                                    "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
-                                );
-                            // but just on the server side, not on the client side
-                            const closeSessionRequest = new CloseSessionRequest({
-                                requestHeader: {
-                                    authenticationToken: newSession.authenticationToken
-                                },
-                                deleteSubscriptions: true
-                            });
-                            newSession._client!.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
-                                if (err2) {
-                                    warningLog("closing session", err2.message);
-                                }
-                                // c8 ignore next
-                                doDebug && debugLog("the temporary replacement session is now closed");
-                                // c8 ignore next
-                                doDebug && debugLog(" err ", err.message, "propagated upwards");
-                                innerCallback(err);
-                            });
-                        } else {
-                            innerCallback(err ? err : undefined);
-                        }
-                    }
-                );
-            },
-
-            function beforeSubscriptionRepair(innerCallback: ErrorCallback) {
-                if (!client.beforeSubscriptionRecreate) {
-                    innerCallback();
-                    return;
-                }
-                client
-                    .beforeSubscriptionRecreate(newSession)
-                    .then((err) => {
-                        {
-                            const err = _shouldNotContinue(session);
-                            if (err) {
-                                return innerCallback(err);
-                            }
-                        }
-                        if (!err) {
-                            innerCallback();
-                        } else {
-                            innerCallback(err);
-                        }
-                    })
-                    .catch((err) => {
-                        innerCallback(err);
-                    });
-            },
-
-            function attempt_subscription_transfer(innerCallback: ErrorCallback) {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
-
-                // get the old subscriptions id from the old session
-                const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
-
-                doDebug && debugLog("  session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
-                if (subscriptionsIds.length === 0) {
-                    doDebug && debugLog(" No subscriptions => skipping transfer subscriptions");
-                    return innerCallback(); // no need to transfer subscriptions
-                }
-                doDebug && debugLog("    => asking server to transfer subscriptions = [", subscriptionsIds.join(", "), "]");
-
-                // Transfer subscriptions - ask for initial values....
-                const subscriptionsToTransfer = new TransferSubscriptionsRequest({
-                    sendInitialValues: true,
-                    subscriptionIds: subscriptionsIds
-                });
-
-                if (newSession.getPublishEngine().nbPendingPublishRequests !== 0) {
-                    warningLog("Warning : we should not be publishing here");
-                }
-                newSession.transferSubscriptions(
-                    subscriptionsToTransfer,
-                    (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
-                        // may be the connection with server has been disconnected
-                        // prettier-ignore
-                        {
-                            const err = _shouldNotContinue(session);
-                            if (err) {
-                                return innerCallback(err);
-                            }
-                        }
-
-                        if (err || !transferSubscriptionsResponse) {
-                            warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
-                            // when transfer subscription has failed, we have no other choice but
-                            // recreate the subscriptions on the server side
-                            const subscriptionsToRecreate = [...(subscriptionsToTransfer.subscriptionIds || [])];
-                            warningLog(chalk.bgCyan("We need to recreate entirely the subscription"));
-                            recreateSubscription(subscriptionsToRecreate, innerCallback);
-                            return;
-                        }
-
-                        const results = transferSubscriptionsResponse.results || [];
-                        // c8 ignore next
-                        if (doDebug) {
-                            debugLog(
-                                chalk.cyan("    =>  transfer subscriptions  done"),
-                                results.map((x: any) => x.statusCode.toString()).join(" ")
-                            );
-                        }
-
-                        const subscriptionsToRecreate = [];
-
-                        // some subscriptions may be marked as invalid on the server side ...
-                        // those one need to be recreated and repaired ....
-                        for (let i = 0; i < results.length; i++) {
-                            const statusCode = results[i].statusCode;
-                            if (statusCode.equals(StatusCodes.BadSubscriptionIdInvalid)) {
-                                // repair subscription
-                                doDebug &&
-                                    debugLog(
-                                        chalk.red("         WARNING SUBSCRIPTION  "),
-                                        subscriptionsIds[i],
-                                        chalk.red(" SHOULD BE RECREATED")
-                                    );
-
-                                subscriptionsToRecreate.push(subscriptionsIds[i]);
-                            } else {
-                                const availableSequenceNumbers = results[i].availableSequenceNumbers;
-
-                                doDebug &&
-                                    debugLog(
-                                        chalk.green("         SUBSCRIPTION "),
-                                        subscriptionsIds[i],
-                                        chalk.green(" CAN BE REPAIRED AND AVAILABLE "),
-                                        availableSequenceNumbers
-                                    );
-                                // should be Good.
-                            }
-                        }
-                        doDebug && debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
-
-                        recreateSubscription(subscriptionsToRecreate, innerCallback);
-                    }
-                );
-            },
-
-            function ask_for_subscription_republish(innerCallback: ErrorCallback) {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
-
-                //  assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
-                //      call Republish
-                return _ask_for_subscription_republish(newSession, (err) => {
-                    if (err) {
-                        warningLog("warning: Subscription republished has failed ", err.message);
-                    }
-                    innerCallback(err);
-                });
-            },
-
-            function start_publishing_as_normal(innerCallback: ErrorCallback) {
-                // prettier-ignore
-                {
-                    const err = _shouldNotContinue(session);
-                    if (err) {
-                        return innerCallback(err);
-                    }
-                }
-
-                newSession.getPublishEngine().suspend(false);
-
-                const listenerCountAfter = session.listenerCount("");
-                assert(newSession === session);
-                doDebug && debugLog("listenerCountBefore =", listenerCountBefore, "listenerCountAfter = ", listenerCountAfter);
-                innerCallback();
+    // Step 6: ask for subscription republish
+    await new Promise<void>((resolve, reject) => {
+        _ask_for_subscription_republish(newSession, (err) => {
+            if (err) {
+                warningLog("warning: Subscription republished has failed ", err.message);
+                reject(err);
+            } else {
+                resolve();
             }
-        ],
-        (err) => {
-            doDebug && err && debugLog("repair_client_session_by_recreating_a_new_session failed with ", err.message);
-            callback(err!);
-        }
-    );
+        });
+    });
+    _throwIfShouldNotContinue(session);
+
+    // Step 7: start publishing as normal
+    newSession.getPublishEngine().suspend(false);
+
+    const listenerCountAfter = session.listenerCount("");
+    assert(newSession === session);
+    doDebug && debugLog("listenerCountBefore =", listenerCountBefore, "listenerCountAfter = ", listenerCountAfter);
+}
+
+function repair_client_session_by_recreating_a_new_session(
+    client: IClientBase,
+    session: ClientSessionImpl,
+    callback: (err?: Error) => void
+) {
+    repair_client_session_by_recreating_a_new_session_async(client, session)
+        .then(() => callback())
+        .catch((err) => {
+            doDebug && debugLog("repair_client_session_by_recreating_a_new_session failed with ", err.message);
+            callback(err);
+        });
 }
 
 function _repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: (err?: Error) => void): void {
@@ -543,7 +451,7 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
         }
     }
 
-    client._activateSession(session, session.userIdentityInfo!, (err: Error | null, session2?: ClientSessionImpl) => {
+    client._activateSession(session, session.userIdentityInfo!, (err: Error | null, _session2?: ClientSessionImpl) => {
         // prettier-ignore
         {
             const err = _shouldNotContinue(session);
@@ -575,7 +483,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     }
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
 
-    const privateSession = session as any as Reconnectable;
+    const privateSession = session as unknown as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pendingCallbacks: [] };
 
     if (session.hasBeenClosed()) {
@@ -656,35 +564,36 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         // c8 ignore next
         if (transactionQueue.length > 0) {
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-            transactionQueue.forEach((e: any) => privateSession._reconnecting.pendingTransactions.push(e));
+            transactionQueue.forEach((e) => privateSession._reconnecting.pendingTransactions.push(e));
         }
         otherCallbacks.forEach((c: EmptyCallback) => c(err));
         callback(err);
     });
 }
 
-export function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): void {
+export async function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): Promise<void> {
     // repair session
     const sessions = client.getSessions();
     doDebug && debugLog(chalk.red.bgWhite(" Starting sessions reactivation", sessions.length));
-    async.map(
-        sessions,
-        (session, next: (err: Error | null, err2: Error | null | undefined) => void) => {
-            repair_client_session(client, session as ClientSessionImpl, (err) => {
-                next(null, err);
-            });
-        },
-        (err, allErrors: (undefined | Error | null)[] | undefined) => {
-            err && errorLog("sessions reactivation completed with err: err ", err ? err.message : "null");
-            // prettier-ignore
-            {
-                const err = _shouldNotContinue3(client);
-                if (err) {
-                    return callback(err);
-                }
-            }
 
-            return callback(err!);
+    const allErrors: (Error | undefined)[] = [];
+    for (const session of sessions) {
+        await new Promise<void>((resolve) => {
+            repair_client_session(client, session as ClientSessionImpl, (err) => {
+                allErrors.push(err);
+                resolve();
+            });
+        });
+    }
+
+    // prettier-ignore
+    {
+        const err = _shouldNotContinue3(client);
+        if (err) {
+            return callback(err);
         }
-    );
+    }
+
+    const firstError = allErrors.find((e) => e != null);
+    callback(firstError);
 }

@@ -4,7 +4,7 @@
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
 
-import async from "async";
+
 import chalk from "chalk";
 import {
     AddressSpace,
@@ -1899,23 +1899,23 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             return;
         }
         // perform all asyncRefresh in parallel
-        async.map(
-            uaVariableArray,
-            (uaVariable: UAVariable, inner_callback: CallbackT<DataValue>) => {
+        const promises = uaVariableArray.map((uaVariable) => {
+            return new Promise<DataValue>((resolve, reject) => {
                 try {
                     uaVariable.asyncRefresh(referenceTime, (err, dataValue) => {
-                        inner_callback(err, dataValue);
+                        if (err) return reject(err);
+                        resolve(dataValue!);
                     });
                 } catch (err) {
                     const _err = err as Error;
                     errorLog("asyncRefresh internal error", _err.message);
-                    inner_callback(_err);
+                    reject(_err);
                 }
-            },
-            (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
-                callback(err || null, arrResult as DataValue[]);
-            }
-        );
+            });
+        });
+        Promise.all(promises)
+            .then((dataValues) => callback(null, dataValues))
+            .catch((err) => callback(err));
     }
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {

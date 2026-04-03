@@ -8,7 +8,7 @@ import { isIP } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { withLock } from "@ster5/global-mutex";
-import async from "async";
+
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -364,8 +364,8 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             if (missing.length > 0) {
                 warningLog(
                     `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
-                        "Clients with strict certificate validation may reject connections for these entries. " +
-                        "Use server.regenerateSelfSignedCertificate() to fix this."
+                    "Clients with strict certificate validation may reject connections for these entries. " +
+                    "Use server.regenerateSelfSignedCertificate() to fix this."
                 );
             }
         } catch (_err) {
@@ -473,17 +473,18 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         uninstallPeriodicClockAdjustment();
         this.serverCertificateManager.dispose().then(() => {
             debugLog("OPCUABaseServer#shutdown starting");
-            async.forEach(
-                this.endpoints,
-                (endpoint: OPCUAServerEndPoint, callback: (err?: Error) => void) => {
+            const promises = this.endpoints.map((endpoint) => {
+                return new Promise<void>((resolve, reject) => {
                     cleanupEndpoint(endpoint);
-                    endpoint.shutdown(callback);
-                },
-                (err?: Error | null) => {
+                    endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+                });
+            });
+            Promise.all(promises)
+                .then(() => {
                     debugLog("shutdown completed");
-                    done(err);
-                }
-            );
+                    done();
+                })
+                .catch((err) => done(err));
         });
     }
 
@@ -494,28 +495,16 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         // c8 ignore next
         if (!callback) throw new Error("thenify is not available");
         debugLog("OPCUABaseServer#shutdownChannels");
-        async.forEach(
-            this.endpoints,
-            (endpoint: OPCUAServerEndPoint, inner_callback: (err?: Error | null) => void) => {
+        const promises = this.endpoints.map((endpoint) => {
+            return new Promise<void>((resolve, reject) => {
                 debugLog(" shutting down endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
-                async.series(
-                    [
-                        // xx                  (callback2: (err?: Error| null) => void) => {
-                        // xx                      endpoint.suspendConnection(callback2);
-                        // xx                  },
-                        (callback2: (err?: Error | null) => void) => {
-                            endpoint.abruptlyInterruptChannels();
-                            endpoint.shutdown(callback2);
-                        }
-                        // xx              (callback2: (err?: Error| null) => void) => {
-                        // xx                 endpoint.restoreConnection(callback2);
-                        // xx              }
-                    ],
-                    inner_callback
-                );
-            },
-            callback
-        );
+                endpoint.abruptlyInterruptChannels();
+                endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback?.(err));
     }
 
     /**
@@ -630,24 +619,24 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         if (!callback) {
             throw new Error("Internal Error");
         }
-        async.forEach(
-            this.endpoints,
-            (ep: OPCUAServerEndPoint, _inner_callback) => {
+        const promises = this.endpoints.map((ep) => {
+            return new Promise<void>((resolve, reject) => {
                 /* c8 ignore next */
                 if (doDebug) {
                     debugLog("Suspending ", ep.endpointDescriptions()[0].endpointUrl);
                 }
-
                 ep.suspendConnection((err?: Error | null) => {
                     /* c8 ignore next */
                     if (doDebug) {
                         debugLog("Suspended ", ep.endpointDescriptions()[0].endpointUrl);
                     }
-                    _inner_callback(err);
+                    err ? reject(err) : resolve();
                 });
-            },
-            (err?: Error | null) => callback(err)
-        );
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback(err));
     }
 
     /**
@@ -660,13 +649,14 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     public resumeEndPoints(callback?: (err?: Error | null) => void): void | Promise<void> {
         // c8 ignore next
         if (!callback) throw new Error("thenify is not available");
-        async.forEach(
-            this.endpoints,
-            (ep: OPCUAServerEndPoint, _inner_callback) => {
-                ep.restoreConnection(_inner_callback);
-            },
-            (err?: Error | null) => callback(err)
-        );
+        const promises = this.endpoints.map((ep) => {
+            return new Promise<void>((resolve, reject) => {
+                ep.restoreConnection((err) => (err ? reject(err) : resolve()));
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback(err));
     }
 
     protected prepare(_message: Message, _channel: ServerSecureChannelLayer): void {

@@ -1,10 +1,10 @@
 #!node
-"use strict";
-
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const chalk = require("chalk");
 const Mocha = require("mocha");
+require("mocha-clean");
+
 const tsx = require("tsx/cjs/api");
 tsx.register();
 
@@ -16,8 +16,6 @@ const { pathToFileURL } = require("node:url");
 register("tsx/esm/api", pathToFileURL(__filename));
 
 Error.stackTraceLimit = 20;
-
-require("mocha-clean");
 
 const doDebug = !!process.env.DEBUG;
 
