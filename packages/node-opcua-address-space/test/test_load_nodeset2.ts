@@ -27,6 +27,7 @@ interface INamespacePrivate {
     _objectTypeCount(): number;
 }
 describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
+
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -43,7 +44,8 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         addressSpace.dispose();
     });
 
-    it("should load a nodeset xml file", async () => {
+    it("VU00 should load a nodeset xml file", async () => {
+
         const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
@@ -59,9 +61,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         namespace0._objectTypeCount().should.be.greaterThan(1);
     });
 
-    it("should load a large nodeset xml file", async () => {
-        // set a large timeout ( loading the large nodeset xml file could be very slow on RPI)
-        this.timeout(Math.max(400000, this.timeout()));
+    it("VU01 should load a large nodeset xml file", async () => {
 
         const xml_file = nodesets.standard;
 
@@ -79,7 +79,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         namespace0._objectTypeCount().should.be.greaterThan(10);
     });
 
-    it("should load the DI nodeset ", async () => {
+    it("VU02 should load the DI nodeset ", async () => {
         const xml_files = [nodesets.standard, nodesets.di];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         fs.existsSync(xml_files[1]).should.be.eql(true, " DI node set file shall exist");
@@ -107,8 +107,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         namespace1._objectTypeCount().should.be.greaterThan(9);
     });
 
-    it("should read accessLevel and userAccessLevel attributes", async () => {
-        this.timeout(Math.max(400000, this.timeout()));
+    it("VU03 should read accessLevel and userAccessLevel attributes", async () => {
 
         const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
@@ -118,21 +117,20 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         await generateAddressSpace(addressSpace, xml_files);
 
-        const someVariable = addressSpace.findNode("ns=1;i=2")! as UAVariable;
+        const someVariable = addressSpace.findNode("ns=1;i=2") as UAVariable;
         someVariable.browseName.toString().should.eql("1:SomeVariable");
         someVariable.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
 
-        const readOnlyVar = addressSpace.findNode("ns=1;i=3")! as UAVariable;
+        const readOnlyVar = addressSpace.findNode("ns=1;i=3") as UAVariable;
         readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
         readOnlyVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
 
-        const readWriteVar = addressSpace.findNode("ns=1;i=4")! as UAVariable;
+        const readWriteVar = addressSpace.findNode("ns=1;i=4") as UAVariable;
         readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
         readWriteVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
-    it("should read predefined values for variables", async () => {
-        this.timeout(Math.max(400000, this.timeout()));
+    it("VU04 should read predefined values for variables", async () => {
 
         const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
@@ -163,7 +161,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         someDoubleVariable.readValue().value.value.should.eql(0.0);
     });
 
-    it("Q1 should read a VariableType with a default value", async () => {
+    it("VU05 should read a VariableType with a default value", async () => {
         const xml_file1 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
         const xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
@@ -197,14 +195,14 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
             .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
     });
 
-    it("#339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", async () => {
+    it("VU06 #339 default ValueRank should be -1  for UAVariable and UAVariableType when loading nodeset2.xml files", async () => {
         const xml_files = [nodesets.standard];
         fs.existsSync(xml_files[0]).should.be.eql(true, " standard node set file shall exist");
         await generateAddressSpace(addressSpace, xml_files);
         addressSpace.rootFolder.objects.server.serverStatus.valueRank.should.eql(-1);
     });
 
-    it("VV0 should provide appropriate error when nodeset file doesn't exist", async () => {
+    it("VU07 should provide appropriate error when nodeset file doesn't exist", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
         const xml_files = [xml_file1, "./missing_xml_file.xml"];
 
@@ -217,19 +215,19 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         should.exists(_err);
         _err?.message.should.match(/.*NODE-OPCUA-E.*/);
     });
-    it("VV1 should load a nodeset file with a Models section", async () => {
+    it("VU08 should load a nodeset file with a Models section", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
     });
 
-    it("VV2 should load a nodeset file with hierarchy of Models", async () => {
+    it("VU09 should load a nodeset file with hierarchy of Models", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models_more_complex.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
     });
 
-    it("VV3 should load a nodeset from UAModeler", async () => {
+    it("VU10 should load a nodeset from UAModeler", async () => {
         const xml_file1 = nodesets.standard; // path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
         const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
         const xml_files = [xml_file1, xml_file2];
@@ -244,7 +242,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         // xx debugLog(value.toString());
     });
 
-    it("VV4 should parse a dataType made of bit sets", async () => {
+    it("VU11 should parse a dataType made of bit sets", async () => {
         /*
          *<UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
          *    <Definition Name="AccessRestrictionType" IsOptionSet="true">
@@ -259,7 +257,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
-        const dataType = addressSpace.findNode("i=95")! as UADataType;
+        const dataType = addressSpace.findNode("i=95") as UADataType;
 
         should.exist(dataType);
 
@@ -267,7 +265,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         // (dataType as any)._getDefinition(false).should.be.instanceOf(StructureDefinition);
     });
 
-    it("VV5 read datatype ", async () => {
+    it("VU12 read datatype ", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_withEnumeration.xml");
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
@@ -291,7 +289,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         v.value.value[4].toString().should.eql("locale=null text=MAINTENANCE_REQUIRED");
         // debugLog(v.value.toString());
 
-        const namespace = addressSpace.getNamespace(1)!;
+        const namespace = addressSpace.getNamespace(1);
         const xml = namespace.toNodeset2XML();
 
         // xx debugLog(xml);
@@ -372,7 +370,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         );
     });
 
-    it("VV6 Coordinates 3DFrame (which is from namespace 0)", async () => {
+    it("VU13 Coordinates 3DFrame (which is from namespace 0)", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
@@ -393,7 +391,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         const frame = addressSpace.constructExtensionObject(dataType);
         debugLog("frame", frame.toString());
     });
-    it("VV7 ----------", async () => {
+    it("VU14 ----------", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace.xml");
         const xml_files = [xml_file1, xml_file2];
@@ -405,7 +403,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         const _frame = addressSpace.constructExtensionObject(dataType, {});
     });
 
-    it("VV8 ----------", async () => {
+    it("VU15 ----------", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_basic.xml");
@@ -439,7 +437,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         HW_SUBMODULE_DataType.basicDataType.should.eql(DataType.UInt16);
     });
 
-    it("VV9 ----------", async () => {
+    it("VU16 ----------", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_mix.xml");
@@ -464,147 +462,166 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         });
         a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
     });
+});
 
-    async function testEncodeDecode(object: ExtensionObject, extObjDataType: UADataType, session: IBasicSessionAsync2) {
-        doDebug && console.log("------------ Before");
-        doDebug && console.log(object.toString());
+async function testEncodeDecode(
+    addressSpace: AddressSpace,
+    object: ExtensionObject,
+    extObjDataType: UADataType,
+    session: IBasicSessionAsync2
+) {
+    doDebug && console.log("------------ Before");
+    doDebug && console.log(object.toString());
 
-        const dataTypeManager: ExtraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
+    const dataTypeManager: ExtraDataTypeManager = await ensureDatatypeExtracted(addressSpace);
 
-        const stream = new BinaryStream(10000);
-        object.encode(stream);
-        stream.rewind();
+    const stream = new BinaryStream(10000);
+    object.encode(stream);
+    stream.rewind();
 
-        const object2 = addressSpace.constructExtensionObject(extObjDataType);
+    const object2 = addressSpace.constructExtensionObject(extObjDataType);
 
-        object2.decode(stream);
-        doDebug && console.log("------------ After");
-        doDebug && console.log(object2.toString());
+    object2.decode(stream);
+    doDebug && console.log("------------ After");
+    doDebug && console.log(object2.toString());
 
-        await resolveOpaqueStructureInExtensionObject(session, dataTypeManager, object2);
+    await resolveOpaqueStructureInExtensionObject(session, dataTypeManager, object2);
 
-        doDebug && console.log("------------ After");
-        doDebug && console.log(object2.toString());
+    doDebug && console.log("------------ After");
+    doDebug && console.log(object2.toString());
 
-        object2.toString().should.eql(object.toString());
-    }
+    object2.toString().should.eql(object.toString());
+}
 
-    describe("VVA", () => {
-        let session: IBasicSessionAsync2;
-        let nsIndex: number;
-        beforeEach(async () => {
-            addressSpace.registerNamespace("PRIVATE");
-            const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_with_allow_subtype.xml");
-            const xml_files = [nodesets.standard, xml_file1];
-            await generateAddressSpace(addressSpace, xml_files);
+describe("VVA", () => {
 
-            session = new PseudoSession(addressSpace);
-            nsIndex = addressSpace.getNamespaceIndex("http://acme");
-            nsIndex.should.be.greaterThan(0);
+    let addressSpace: AddressSpace;
+    let session: IBasicSessionAsync2;
+    let nsIndex: number;
+    beforeEach(async () => {
+        addressSpace = AddressSpace.create();
+        addressSpace.registerNamespace("PRIVATE");
+        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_with_allow_subtype.xml");
+        const xml_files = [nodesets.standard, xml_file1];
+        await generateAddressSpace(addressSpace, xml_files);
+
+        session = new PseudoSession(addressSpace);
+        nsIndex = addressSpace.getNamespaceIndex("http://acme");
+        nsIndex.should.be.greaterThan(0);
+    });
+    afterEach(() => {
+        addressSpace.dispose();
+    });
+
+    it("VVA-1 should expose ConnectionEndpointConfigurationDataType", async () => {
+        const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+            "ConnectionEndpointConfigurationDataType",
+            nsIndex
+        ) as UADataType;
+        connectionEndpointConfigurationDataType.nodeId.namespace.should.eql(nsIndex);
+        connectionEndpointConfigurationDataType.subtypeOf?.toString().should.eql(`ns=${0};i=22`);
+        connectionEndpointConfigurationDataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${0};i=22`);
+        connectionEndpointConfigurationDataType.basicDataType.should.eql(DataType.ExtensionObject);
+    });
+
+    it("VVA-2 ----------- load datatype with AllowSubtype", async () => {
+        const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+            "PubSubCommunicationLinkConfigurationDataType",
+            nsIndex
+        ) as UADataType;
+
+        const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+            field1: 1,
+            field2: 2,
+            field3: new Variant({ dataType: DataType.Int32, value: 3 })
+        });
+        (communicationLink as any).field1.should.eql(1);
+        (communicationLink as any).field2.should.eql(2);
+        (communicationLink as any).field3.dataType.should.eql(DataType.Int32);
+        (communicationLink as any).field3.value.should.eql(3);
+        (communicationLink as any).field3.constructor.name.should.eql("Variant");
+
+        await testEncodeDecode(
+            addressSpace, communicationLink,
+            pubSubcommunicationLinksDatType, session);
+    });
+
+    it("VVA-3 ----------- load datatype with AllowSubtype", async () => {
+        const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+            "ConnectionEndpointConfigurationDataType",
+            nsIndex
+        ) as UADataType;
+        const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+            "PubSubCommunicationLinkConfigurationDataType",
+            nsIndex
+        ) as UADataType;
+
+        const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+            field1: 1,
+            field2: 2,
+            field3: { dataType: DataType.Int32, value: 3 }
+        }) as unknown as {
+            field1: number;
+            field2: number;
+            field3: Variant;
+        };
+
+        console.log("communicationLink =", communicationLink.toString());
+        communicationLink.field1.should.eql(1);
+        communicationLink.field2.should.eql(2);
+        communicationLink.field3.dataType.should.eql(DataType.Int32);
+
+        const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
+            id: "00000000-0000-0000-0000-000000000000",
+            communicationLinks: [communicationLink]
         });
 
-        it("VVA-1 should expose ConnectionEndpointConfigurationDataType", async () => {
-            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
-                "ConnectionEndpointConfigurationDataType",
-                nsIndex
-            ) as UADataType;
-            connectionEndpointConfigurationDataType.nodeId.namespace.should.eql(nsIndex);
-            connectionEndpointConfigurationDataType.subtypeOf?.toString().should.eql(`ns=${0};i=22`);
-            connectionEndpointConfigurationDataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${0};i=22`);
-            connectionEndpointConfigurationDataType.basicDataType.should.eql(DataType.ExtensionObject);
-        });
+        console.log(object.toString());
 
-        it("VVA-2 ----------- load datatype with AllowSubtype", async () => {
-            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
-                "PubSubCommunicationLinkConfigurationDataType",
-                nsIndex
-            ) as UADataType;
+        (object as any).constructor.name.should.eql("ConnectionEndpointConfigurationDataType");
+        (object as any).communicationLinks.length.should.eql(1);
+        (object as any).communicationLinks[0].should.be.instanceOf(ExtensionObject);
+        (object as any).communicationLinks[0].constructor.name.should.eql("PubSubCommunicationLinkConfigurationDataType");
+        (object as any).communicationLinks[0].field1.should.eql(1);
+        (object as any).communicationLinks[0].field2.should.eql(2);
+        (object as any).communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
 
-            const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
+        await testEncodeDecode(
+            addressSpace, object, connectionEndpointConfigurationDataType, session);
+    });
+
+    it("VVA-4 - should reject invalid combination at construction- Number", async () => {
+        const pubSubcommunicationLinksDatType = addressSpace.findDataType(
+            "PubSubCommunicationLinkConfigurationDataType",
+            nsIndex
+        ) as UADataType;
+
+        should.throws(() => {
+            addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
                 field1: 1,
                 field2: 2,
-                field3: new Variant({ dataType: DataType.Int32, value: 3 })
+                field3: { dataType: DataType.String, value: "Wrong Type Should Bark !" }
             });
-            (communicationLink as any).field1.should.eql(1);
-            (communicationLink as any).field2.should.eql(2);
-            (communicationLink as any).field3.dataType.should.eql(DataType.Int32);
-            (communicationLink as any).field3.value.should.eql(3);
-            (communicationLink as any).field3.constructor.name.should.eql("Variant");
-
-            await testEncodeDecode(communicationLink, pubSubcommunicationLinksDatType, session);
         });
+    });
 
-        it("VVA-3 ----------- load datatype with AllowSubtype", async () => {
-            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
-                "ConnectionEndpointConfigurationDataType",
-                nsIndex
-            ) as UADataType;
-            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
-                "PubSubCommunicationLinkConfigurationDataType",
-                nsIndex
-            ) as UADataType;
+    it("VVA-5 - should reject invalid combination at construction- Complex", async () => {
+        const connectionEndpointConfigurationDataType = addressSpace.findDataType(
+            "ConnectionEndpointConfigurationDataType",
+            nsIndex
+        ) as UADataType;
 
-            const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
-                field1: 1,
-                field2: 2,
-                field3: { dataType: DataType.Int32, value: 3 }
-            }) as any;
+        const unexpetecedExtensionObject = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {});
 
-            console.log("communicationLink =", communicationLink.toString());
-            communicationLink.field1.should.eql(1);
-            communicationLink.field2.should.eql(2);
-            communicationLink.field3.dataType.should.eql(DataType.Int32);
-
-            const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
+        should.throws(() => {
+            const _object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
                 id: "00000000-0000-0000-0000-000000000000",
-                communicationLinks: [communicationLink]
-            });
-
-            console.log(object.toString());
-
-            (object as any).constructor.name.should.eql("ConnectionEndpointConfigurationDataType");
-            (object as any).communicationLinks.length.should.eql(1);
-            (object as any).communicationLinks[0].should.be.instanceOf(ExtensionObject);
-            (object as any).communicationLinks[0].constructor.name.should.eql("PubSubCommunicationLinkConfigurationDataType");
-            (object as any).communicationLinks[0].field1.should.eql(1);
-            (object as any).communicationLinks[0].field2.should.eql(2);
-            (object as any).communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
-
-            await testEncodeDecode(object, connectionEndpointConfigurationDataType, session);
-        });
-
-        it("VVA-4 - should reject invalid combination at construction- Number", async () => {
-            const pubSubcommunicationLinksDatType = addressSpace.findDataType(
-                "PubSubCommunicationLinkConfigurationDataType",
-                nsIndex
-            ) as UADataType;
-
-            should.throws(() => {
-                addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
-                    field1: 1,
-                    field2: 2,
-                    field3: { dataType: DataType.String, value: "Wrong Type Should Bark !" }
-                });
-            });
-        });
-
-        it("VVA-5 - should reject invalid combination at construction- Complex", async () => {
-            const connectionEndpointConfigurationDataType = addressSpace.findDataType(
-                "ConnectionEndpointConfigurationDataType",
-                nsIndex
-            ) as UADataType;
-
-            const unexpetecedExtensionObject = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {});
-
-            should.throws(() => {
-                const _object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
-                    id: "00000000-0000-0000-0000-000000000000",
-                    communicationLinks: [unexpetecedExtensionObject]
-                });
+                communicationLinks: [unexpetecedExtensionObject]
             });
         });
     });
 });
+
 
 describe("Testing variables loading ", function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -658,7 +675,7 @@ describe("Testing variables loading ", function (this: any) {
             .should.eql(new Variant({ dataType: "Boolean", value: false }).toString());
     });
 
-    it("should load ListOfString variables as an array of strings", () => {
+    it("GG2 - should load ListOfString variables as an array of strings", () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
         const variable = addressSpace.findNode(new NodeId(NodeIdType.STRING, "ListOfString", ns)) as UAVariable;
@@ -692,7 +709,7 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         addressSpace.dispose();
     });
 
-    it("should compose new  basic type ", () => {
+    it("GB-1 should compose new  basic type ", () => {
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/model_with_custom_datatype/");
 
         const myIdentifierDataType = addressSpace.findDataType("MyIdentifierString", ns)!;
