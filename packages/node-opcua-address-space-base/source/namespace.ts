@@ -1,40 +1,36 @@
-import { QualifiedNameLike, AccessRestrictionsFlag, LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import {
+import type { UInt32 } from "node-opcua-basic-types";
+import type { AccessRestrictionsFlag, LocalizedTextLike, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValueOptions } from "node-opcua-data-value";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type {
     ArgumentOptions,
     AxisInformationOptions,
     AxisScaleEnumeration,
     EnumFieldOptions,
-    EUInformation,
     EUInformationOptions,
     RangeOptions,
     RolePermissionType,
     RolePermissionTypeOptions,
     StructureFieldOptions
 } from "node-opcua-types";
-import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
-import { StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
-import { DataValue, DataValueOptions } from "node-opcua-data-value";
+import type { VariantLike } from "node-opcua-variant";
 
-import { IAddressSpace } from "./address_space";
-import { AddReferenceOpts, BaseNode, ConstructNodeIdOptions } from "./base_node";
-import { ModellingRuleType } from "./modelling_rule_type";
-import { UADataType } from "./ua_data_type";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAReferenceType } from "./ua_reference_type";
-import { UAVariable } from "./ua_variable";
-import { UAVariableType } from "./ua_variable_type";
-import { BindVariableOptions, BindVariableOptionsVariation1, HistoryReadFunc } from "./bind_variable";
-import { UAView } from "./ua_view";
-import { UAEventType } from "./ua_event_type";
-import { UAMethod } from "./ua_method";
-import { AddressSpacePrivate } from "./address_space_private";
-
+import type { IAddressSpace } from "./address_space";
+import type { AddReferenceOpts, BaseNode, ConstructNodeIdOptions } from "./base_node";
+import type { BindVariableOptions } from "./bind_variable";
+import type { ModellingRuleType } from "./modelling_rule_type";
+import type { UADataType } from "./ua_data_type";
+import type { UAEventType } from "./ua_event_type";
+import type { UAMethod } from "./ua_method";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAReferenceType } from "./ua_reference_type";
+import type { UAVariable } from "./ua_variable";
+import type { UAVariableType } from "./ua_variable_type";
+import type { UAView } from "./ua_view";
 
 export interface CreateNodeOptions {
-
-    addressSpace?: AddressSpacePrivate;
+    addressSpace?: IAddressSpace;
     browseName: QualifiedNameLike;
     nodeId?: NodeIdLike | BaseNode | null;
     nodeClass?: NodeClass;
@@ -62,8 +58,8 @@ export interface CreateNodeOptions {
     modellingRule?: ModellingRuleType;
     eventNotifier?: number;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void;
-
 }
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
@@ -284,8 +280,6 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
     xAxisDefinition?: AxisInformationOptions;
 }
 
-
-
 export interface RequiredModel {
     modelUri: string;
     version: string;
@@ -340,7 +334,7 @@ export declare interface INamespace {
 
     addView(options: AddViewOptions): UAView;
 
-    addFolder(parentFolder: NodeIdLike | UAObject, options: any): UAObject;
+    addFolder(parentFolder: NodeIdLike | UAObject, options: AddBaseNodeOptions | string): UAObject;
 
     createNode(options: CreateNodeOptions): BaseNode;
 

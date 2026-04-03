@@ -1282,6 +1282,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     senderCertificate: combine_der(partialCertificateChain) // certificate of the private key used to sign the message
                 });
             }
+            default:
+                throw new Error(
+                    `BadSecurityModeRejected: unexpected securityMode ${request.securityMode}`
+                );
         }
         return securityHeader;
     }

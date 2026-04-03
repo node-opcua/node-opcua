@@ -54,14 +54,18 @@ async function main() {
     // Rotate certificate periodically
     let n = 0;
     const rotateTimer = setInterval(async () => {
-        n++;
-        const subject = `/CN=Rotation-${n}`;
-        await generateCert(cm, subject);
-        invalidateCachedSecrets(server);
-        for (const ep of server.endpoints) {
-            ep.invalidateCertificates();
+        try {
+            n++;
+            const subject = `/CN=Rotation-${n}`;
+            await generateCert(cm, subject);
+            invalidateCachedSecrets(server);
+            for (const ep of server.endpoints) {
+                ep.invalidateCertificates();
+            }
+            console.log(`[server] Certificate rotated → ${subject}`);
+        } catch (err) {
+            console.error("[server] rotation error:", (err as Error).message);
         }
-        console.log(`[server] Certificate rotated → ${subject}`);
     }, ROTATION_INTERVAL_MS);
 
     // Poll GetEndpoints periodically
@@ -74,11 +78,16 @@ async function main() {
         try {
             await client.connect(`opc.tcp://localhost:${port}`);
             const eps = await client.getEndpoints();
-            await client.disconnect();
             const cert = eps[0].serverCertificate;
             console.log(`[client] thumbprint: ${cert ? makeSHA1Thumbprint(cert).toString("hex") : "none"}`);
         } catch (err) {
             console.error("[client] error:", (err as Error).message);
+        } finally {
+            try {
+                await client.disconnect();
+            } catch {
+                // ignore disconnect errors
+            }
         }
     }, POLL_INTERVAL_MS);
 
