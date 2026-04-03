@@ -4,12 +4,11 @@ import { BinaryStream } from "node-opcua-binary-stream";
 
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
-import { makeExpandedNodeId } from "node-opcua-nodeid";
+import { makeExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { getObjectClassName } from "node-opcua-utils";
 import should from "should";
-
 import {
     type AnyConstructorFunc,
     createDynamicObjectConstructor,
@@ -270,15 +269,15 @@ describe("Factories: testing encodingDefaultBinary and constructObject", () => {
             .should.eql(makeExpandedNodeId(Company.schema.encodingDefaultBinary).toString());
         company.constructor.encodingDefaultXml
             .toString()
-            .should.eql(makeExpandedNodeId(Company.schema.encodingDefaultXml!).toString());
+            .should.eql(makeExpandedNodeId(Company.schema.encodingDefaultXml).toString());
         // company.constructor.encodingDefaultJson.toString().should.eql(makeExpandedNodeId(Company.schema.encodingDefaultJson!).toString());
     });
 
     xit("XF2 should create a object from a encodingDefaultBinaryId", () => {
         should.exist(Company.schema.encodingDefaultBinary);
-        const obj = dataTypeFactory.constructObject(Company.schema.encodingDefaultBinary!);
+        const obj = dataTypeFactory.constructObject(Company.schema.encodingDefaultBinary || NodeId.nullNodeId);
         console.log(obj);
-        (obj.constructor as any).schema.name.should.equal("Company");
+        (obj.constructor as unknown as { schema: { name: string } }).schema.name.should.equal("Company");
         getObjectClassName(obj).should.equal("Object");
     });
 

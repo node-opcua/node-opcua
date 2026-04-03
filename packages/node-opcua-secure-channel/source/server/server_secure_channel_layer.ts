@@ -282,7 +282,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     readonly #messageChunker: MessageChunker;
 
     #timeoutId: NodeJS.Timeout | null;
-    #open_secure_channel_onceClose: ErrorCallback | null = null;
+    #open_secure_channel_onceClose: ((err: Error | null) => void) | null = null;
     #securityTokenTimeout: NodeJS.Timeout | null;
     #transactionsCount: number;
     readonly #transport: ServerTCP_transport;
@@ -645,17 +645,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // message size exceeded). Do NOT recurse — that would
                 // cause infinite recursion and a stack overflow.
                 errorLog(
-                    "send_response: failed to send ServiceFault, "
-                    + "aborting to prevent infinite recursion. "
-                    + "statusCode =",
+                    "send_response: failed to send ServiceFault, " + "aborting to prevent infinite recursion. " + "statusCode =",
                     statusCode.toString()
                 );
-                callback?.(
-                    new Error(
-                        "Failed to send ServiceFault: "
-                        + statusCode.toString()
-                    )
-                );
+                callback?.(new Error("Failed to send ServiceFault: " + statusCode.toString()));
                 return;
             }
             // The original response could not be chunked.
@@ -885,7 +878,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         assert(!this.#timeoutId, " timeout already started");
         assert(!this.#open_secure_channel_onceClose, " close listener already installed");
 
-        this.#open_secure_channel_onceClose = (_err?: Error) => {
+        this.#open_secure_channel_onceClose = (_err: Error | null) => {
             // c8 ignore next
             if (doDebug) {
                 debugLog("_install_wait_for_open_secure_channel_request_timeout:");
@@ -1136,16 +1129,13 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const fallbackToken = this.#tokenStack.getLatestTokenDerivedKeys();
             if (fallbackToken) {
                 warningLog(
-                    `tokenId ${tokenId} expired — falling back to`
-                    + ` latest valid token ${fallbackToken.tokenId}`
-                    + ` (securityMode=${MessageSecurityMode[this.securityMode]})`
+                    `tokenId ${tokenId} expired — falling back to` +
+                    ` latest valid token ${fallbackToken.tokenId}` +
+                    ` (securityMode=${MessageSecurityMode[this.securityMode]})`
                 );
                 derivedKeys = fallbackToken.derivedKeys;
             } else {
-                errorLog(
-                    "no valid token available at all,"
-                    + ` securityMode=${MessageSecurityMode[this.securityMode]}`
-                );
+                errorLog("no valid token available at all," + ` securityMode=${MessageSecurityMode[this.securityMode]}`);
                 return null;
             }
         }
@@ -1176,10 +1166,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     const description = `Sender Certificate Error ${statusCode.toString()}`;
                     warningLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode?.toString()));
                     const chain = split_der(clientCertificate || Buffer.alloc(0));
-                    warningLog(
-                        "Sender Certificate = ",
-                        chain.map((c) => getThumbprint(c)?.toString("hex")).join("\n")
-                    );
+                    warningLog("Sender Certificate = ", chain.map((c) => getThumbprint(c)?.toString("hex")).join("\n"));
                 }
 
                 this.#clientCertificate = null;
@@ -1301,7 +1288,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     #_check_client_nonce(clientNonce: Nonce): StatusCode {
         if (this.securityMode !== MessageSecurityMode.None) {
-            const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy);
+            // c8 ignore next
+            if (!this.#messageBuilder?.securityPolicy) {
+                return StatusCodes.BadSecurityModeRejected;
+            }
+            const cryptoFactory = getCryptoFactory(this.#messageBuilder.securityPolicy);
             if (!cryptoFactory) {
                 return StatusCodes.BadSecurityModeRejected;
             }
@@ -1367,7 +1358,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // ReceiverCertificateThumbprint were specified in the SecurityHeader.
             /* c8 ignore next */
             if (!messageRequest.securityHeader) {
-                return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityModeRejected, "invalid security header", messageRequest);
+                return this.#_on_OpenSecureChannelRequestError(
+                    StatusCodes.BadSecurityModeRejected,
+                    "invalid security header",
+                    messageRequest
+                );
             }
 
             const request = messageRequest.request as OpenSecureChannelRequest;
@@ -1375,9 +1370,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             /* c8 ignore next */
             if (request.securityMode === MessageSecurityMode.Invalid) {
-                return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityModeRejected, "invalid security mode", messageRequest);
+                return this.#_on_OpenSecureChannelRequestError(
+                    StatusCodes.BadSecurityModeRejected,
+                    "invalid security mode",
+                    messageRequest
+                );
             }
-
 
             // let prepare self.securityHeader;
             const securityHeader = this.#_prepare_response_security_header(request, messageRequest);

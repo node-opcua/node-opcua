@@ -5,7 +5,7 @@ import {
     type INamespace,
     type ISessionContext,
     SessionContext,
-    UAMethod
+    type UAMethod
 } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { NodeClass } from "node-opcua-data-model";
@@ -14,7 +14,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
-
+import should from "should";
 import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
@@ -22,8 +22,8 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 describe("ServerEngine - addMethod", () => {
     let addressSpace: IAddressSpace;
     let namespace: INamespace;
-    let FolderTypeId: NodeId;
-    let BaseDataVariableTypeId: NodeId;
+    let _FolderTypeId: NodeId;
+    let _BaseDataVariableTypeId: NodeId;
     let ref_Organizes_Id: NodeId;
 
     let engine: ServerEngine;
@@ -32,12 +32,23 @@ describe("ServerEngine - addMethod", () => {
         engine = new ServerEngine();
 
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
-            addressSpace = engine.addressSpace!;
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
-            FolderTypeId = addressSpace.findObjectType("FolderType")!.nodeId;
-            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType")!.nodeId;
-            ref_Organizes_Id = addressSpace.findReferenceType("Organizes")!.nodeId;
+            const folderType = addressSpace.findObjectType("FolderType");
+            if (!folderType) throw new Error("FolderType not found");
+            _FolderTypeId = folderType.nodeId;
+
+            const baseDataVariableType = addressSpace.findVariableType("BaseDataVariableType");
+            if (!baseDataVariableType) throw new Error("BaseDataVariableType not found");
+            _BaseDataVariableTypeId = baseDataVariableType.nodeId;
+
+            const organizesRef = addressSpace.findReferenceType("Organizes");
+            if (!organizesRef) throw new Error("Organizes not found");
+            ref_Organizes_Id = organizesRef.nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
             done();
@@ -48,7 +59,8 @@ describe("ServerEngine - addMethod", () => {
     });
 
     it("should be able to attach a method on a object of the address space and call it", async () => {
-        const objectFolder = addressSpace!.findNode("ObjectsFolder")!;
+        const objectFolder = addressSpace.findNode("ObjectsFolder");
+        if (!objectFolder) throw new Error("ObjectsFolder not found");
 
         const object = namespace.addObject({
             organizedBy: objectFolder,
@@ -80,13 +92,14 @@ describe("ServerEngine - addMethod", () => {
         method.nodeClass.should.eql(NodeClass.Method);
 
         method.nodeId.should.be.instanceOf(NodeId);
-        const objectMethod = object.getMethodById(method.nodeId)!;
+        const objectMethod = object.getMethodById(method.nodeId) as UAMethod;
         (objectMethod !== null && typeof objectMethod === "object").should.eql(true);
 
         const arg = getMethodDeclaration_ArgumentList(addressSpace, object.nodeId, method.nodeId);
 
         arg.statusCode.should.eql(StatusCodes.Good);
-        arg.methodDeclaration!.should.eql(objectMethod);
+        if (!arg.methodDeclaration) throw new Error("methodDeclaration is null");
+        arg.methodDeclaration.should.eql(objectMethod);
 
         const methodInputArguments = objectMethod.getInputArguments();
         Array.isArray(methodInputArguments).should.eql(true);
@@ -94,7 +107,7 @@ describe("ServerEngine - addMethod", () => {
         const methodOutputArguments = objectMethod.getOutputArguments();
         Array.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(async (inputArguments: Variant[], context?: ISessionContext) => {
+        method.bindMethod(async (inputArguments: Variant[], _context?: ISessionContext) => {
             const nbBarks: number = inputArguments[0].value;
             const barks: string[] = [];
             for (let i = 0; i < nbBarks; i++) {
@@ -157,9 +170,11 @@ describe("ServerEngine - addMethod", () => {
         result = await engine.translateBrowsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        const callMethodResponse = await objectMethod.execute(null, inputArguments, context)!;
-        callMethodResponse.statusCode!.should.eql(StatusCodes.Good);
-        callMethodResponse.outputArguments!.length.should.eql(1);
-        callMethodResponse.outputArguments![0]!.value.should.eql(["Whaff", "Whaff", "Whaff"]);
+        const callMethodResponse = await objectMethod.execute(null, inputArguments, context);
+        if (!callMethodResponse.statusCode) throw new Error("statusCode is null");
+        callMethodResponse.statusCode.should.eql(StatusCodes.Good);
+        if (!callMethodResponse.outputArguments) throw new Error("outputArguments is null");
+        callMethodResponse.outputArguments.length.should.eql(1);
+        should(callMethodResponse.outputArguments[0]?.value).eql(["Whaff", "Whaff", "Whaff"]);
     });
 });
