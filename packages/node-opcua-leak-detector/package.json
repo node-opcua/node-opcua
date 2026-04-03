@@ -7,7 +7,7 @@
     "scripts": {
         "lint": "eslint src/**/*.js",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "echo no test"
+        "test": "mocha test"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
