@@ -41,18 +41,12 @@ importers:
       '@types/yargs':
         specifier: 17.0.35
         version: 17.0.35
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       backoff:
         specifier: ^2.5.0
         version: 2.5.0
       bomstrip:
         specifier: ^0.1.4
         version: 0.1.4
-      byline:
-        specifier: ^5.0.0
-        version: 5.0.0
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -65,12 +59,6 @@ importers:
       csv-parse:
         specifier: 6.2.1
         version: 6.2.1
-      deassertify:
-        specifier: ^0.2.0
-        version: 0.2.0
-      delayed:
-        specifier: ^2.0.0
-        version: 2.0.0
       dequeue:
         specifier: ^1.0.5
         version: 1.0.5
@@ -113,9 +101,6 @@ importers:
       node-opcua-pki:
         specifier: 6.12.0
         version: 6.12.0
-      progress:
-        specifier: ^2.0.3
-        version: 2.0.3
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -143,9 +128,6 @@ importers:
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
-      underscore:
-        specifier: ^1.13.8
-        version: 1.13.8
       winston:
         specifier: '*'
         version: 3.17.0
@@ -819,9 +801,6 @@ importers:
       '@ster5/global-mutex':
         specifier: ^3.3.0
         version: 3.3.0
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -1326,9 +1305,6 @@ importers:
       cli-truncate:
         specifier: 2.1.0
         version: 2.1.0
-      delayed:
-        specifier: ^2.0.0
-        version: 2.0.0
       node-opcua:
         specifier: 2.167.0
         version: link:../node-opcua
@@ -2777,9 +2753,6 @@ importers:
 
   packages/node-opcua-secure-channel:
     dependencies:
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       backoff:
         specifier: ^2.5.0
         version: 2.5.0
@@ -2868,12 +2841,6 @@ importers:
       '@ster5/global-mutex':
         specifier: ^3.3.0
         version: 3.3.0
-      '@types/async':
-        specifier: 3.2.25
-        version: 3.2.25
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -4386,11 +4353,6 @@ packages:
     peerDependencies:
       acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
 
-  acorn@7.4.1:
-    resolution: {integrity: sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
-
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
     engines: {node: '>=0.4.0'}
@@ -4609,9 +4571,6 @@ packages:
     resolution: {integrity: sha512-jRFi8UDGo6j+odZiEpjazZaWqEal3w/basFjQHQEwVtZJGDpxbH1MeYluwCS8Xq5wmLJooDlMgvVarmWfGM44g==}
     engines: {node: '>=0.10'}
 
-  deassertify@0.2.0:
-    resolution: {integrity: sha512-gzZt+Py9MDYx6TlU6uqGuyiweQAOe8b4Gu+TztvvzfV5VxGUIBrWNoOpgUVI8guML8B+BuEeipQP+DyFKFXPbw==}
-
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
@@ -4642,9 +4601,6 @@ packages:
 
   defaults@1.0.4:
     resolution: {integrity: sha512-eFuaLoy/Rxalv2kr+lqMlUnrDWV+3j4pljOIJgLIhI058IQfWJ7vXhyEIHu+HtC738klGALYxOKDO0bQP3tg8A==}
-
-  delayed@2.0.0:
-    resolution: {integrity: sha512-egVMG7oyLvt0hQTCFkk15ly065RcPYr4ePCjxETESVX5UJLe+kh9MGD8TFkDWHOhga/ljNPZE1AEM2/sL0KK0w==}
 
   dequeue@1.0.5:
     resolution: {integrity: sha512-2FIVJZTaWhUj0Y2uKmDAasTP6ZwFWRjkRc01MYN5jFm96iIzkYyNzGADfJ13C5W7CTN7XO9mBYDcVB68eNybBA==}
@@ -4779,10 +4735,6 @@ packages:
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
-
-  falafel@2.2.5:
-    resolution: {integrity: sha512-HuC1qF9iTnHDnML9YZAdCDQwT0yKl/U55K4XSUXqGAA2GLoafFgWRqdAbhWJxXaYD4pyoVxAJ8wH670jMpI9DQ==}
-    engines: {node: '>=0.4.0'}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -4969,9 +4921,6 @@ packages:
   is-unicode-supported@0.1.0:
     resolution: {integrity: sha512-knxG2q4UC3u8stRGyAVJCOdxFmv5DZiRcdlIaAQXAbSfJya+OhopNotLQrstBhququ4ZpuKbDc/8S6mgXgPFPw==}
     engines: {node: '>=10'}
-
-  isarray@2.0.5:
-    resolution: {integrity: sha512-xHjhDr3cNBK0BzdUJSPXZntQUx/mwMS5Rw4A7lPJ90XGAO6ISP/ePDNuo0vhqOZU+UD5JoodwCAAoZQd3FeAKw==}
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
@@ -5401,9 +5350,6 @@ packages:
     peerDependencies:
       tslib: ^2
 
-  through2@4.0.2:
-    resolution: {integrity: sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==}
-
   thunky@1.1.0:
     resolution: {integrity: sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==}
 
@@ -5474,9 +5420,6 @@ packages:
   typical@7.3.0:
     resolution: {integrity: sha512-ya4mg/30vm+DOWfBg4YK3j2WD6TWtRkCbasOJr40CseYENzCUby/7rIvXA99JGsQHeNxLbnXdyLLxKSv3tauFw==}
     engines: {node: '>=12.17'}
-
-  underscore@1.13.8:
-    resolution: {integrity: sha512-DXtD3ZtEQzc7M8m4cXotyHR+FAS18C64asBYY5vqZexfYryNNnDc02W4hKg3rdQuqOYas1jkseX0+nZXjTXnvQ==}
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
@@ -6175,8 +6118,6 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
-  acorn@7.4.1: {}
-
   acorn@8.16.0: {}
 
   ajv@6.14.0:
@@ -6384,12 +6325,6 @@ snapshots:
     dependencies:
       assert-plus: 1.0.0
 
-  deassertify@0.2.0:
-    dependencies:
-      falafel: 2.2.5
-      minimist: 1.2.8
-      through2: 4.0.2
-
   debug@2.6.9:
     dependencies:
       ms: 2.0.0
@@ -6410,8 +6345,6 @@ snapshots:
     dependencies:
       clone: 1.0.4
     optional: true
-
-  delayed@2.0.0: {}
 
   dequeue@1.0.5: {}
 
@@ -6575,11 +6508,6 @@ snapshots:
 
   esutils@2.0.3: {}
 
-  falafel@2.2.5:
-    dependencies:
-      acorn: 7.4.1
-      isarray: 2.0.5
-
   fast-deep-equal@3.1.3: {}
 
   fast-diff@1.3.0: {}
@@ -6721,8 +6649,6 @@ snapshots:
   is-stream@2.0.1: {}
 
   is-unicode-supported@0.1.0: {}
-
-  isarray@2.0.5: {}
 
   isexe@2.0.0: {}
 
@@ -7166,10 +7092,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  through2@4.0.2:
-    dependencies:
-      readable-stream: 3.6.2
-
   thunky@1.1.0: {}
 
   tinyglobby@0.2.15:
@@ -7226,8 +7148,6 @@ snapshots:
   typescript@5.9.3: {}
 
   typical@7.3.0: {}
-
-  underscore@1.13.8: {}
 
   undici-types@7.16.0: {}
 

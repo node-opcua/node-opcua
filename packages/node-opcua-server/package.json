@@ -14,8 +14,6 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^3.3.0",
-        "@types/async": "3.2.25",
-        "async": "^3.2.6",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
         "lodash.partition": "^4.6.0",

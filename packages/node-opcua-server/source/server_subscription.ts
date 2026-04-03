@@ -1108,9 +1108,8 @@ export class Subscription extends EventEmitter {
             timestampsToReturn,
             monitoredItemCreateRequest
         );
-        // c8 ignore next
         if (!monitoredItem) {
-            throw new Error("monitoredItem is null");
+            return createResult;
         }
         this.postCreateMonitoredItem(monitoredItem, monitoredItemCreateRequest, createResult);
         return createResult;

@@ -6,7 +6,7 @@ import { createPublicKey, randomBytes } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
 
-import async from "async";
+
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -633,43 +633,41 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         this.#_isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
 
-        async.series(
-            [
-                (inner_callback: ErrorCallback) => {
-                    if (this.__call) {
-                        if (typeof this.__call !== "number") {
-                            this.__call.once("abort", () => inner_callback());
-                            this.__call._cancelBackoff = true;
-                            this.__call.abort();
-                        } else {
-                            inner_callback();
-                        }
-                        this.__call = null;
-                    } else {
-                        inner_callback();
-                    }
-                },
-                (inner_callback: ErrorCallback) => {
-                    if (!this.#_pending_transport) {
-                        return inner_callback();
-                    }
-                    this.#_pending_transport.disconnect(() => {
-                        inner_callback();
-                    });
-                },
-                (inner_callback: ErrorCallback) => {
-                    if (!this.#_transport) {
-                        return inner_callback();
-                    }
-                    this.#_transport.disconnect(() => {
-                        inner_callback();
-                    });
-                }
-            ],
-            () => {
-                callback();
+        const step1_abortBackoff = (): Promise<void> => {
+            if (!this.__call) return Promise.resolve();
+            if (typeof this.__call !== "number") {
+                return new Promise<void>((resolve) => {
+                    (this.__call as Backoff).once("abort", () => resolve());
+                    (this.__call as Backoff)._cancelBackoff = true;
+                    (this.__call as Backoff).abort();
+                    this.__call = null;
+                });
             }
-        );
+            this.__call = null;
+            return Promise.resolve();
+        };
+
+        const step2_disconnectPendingTransport = (): Promise<void> => {
+            const transport = this.#_pending_transport;
+            if (!transport) return Promise.resolve();
+            return new Promise<void>((resolve) => {
+                transport.disconnect(() => resolve());
+            });
+        };
+
+        const step3_disconnectTransport = (): Promise<void> => {
+            const transport = this.#_transport;
+            if (!transport) return Promise.resolve();
+            return new Promise<void>((resolve) => {
+                transport.disconnect(() => resolve());
+            });
+        };
+
+        step1_abortBackoff()
+            .then(() => step2_disconnectPendingTransport())
+            .then(() => step3_disconnectTransport())
+            .then(() => callback())
+            .catch(() => callback());
     }
 
     /**

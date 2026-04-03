@@ -15,7 +15,6 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^3.3.0",
-        "async": "^3.2.6",
         "chalk": "4.1.2",
         "node-opcua-alarm-condition": "2.167.0",
         "node-opcua-assert": "2.164.0",
