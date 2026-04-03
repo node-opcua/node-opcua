@@ -1,11 +1,11 @@
 /* eslint-disable import/order */
-"use strict";
+
 import "should";
-import sinon from "sinon";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { compare_buffers } from "node-opcua-utils";
-import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { compare_buffers } from "node-opcua-utils";
+import sinon from "sinon";
+import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
 
 function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" | "F" | "C") {
     const total_length = subarray.length + 12;
@@ -15,14 +15,14 @@ function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" | "F" | "C") {
     subarray.copy(buf, 12);
     return buf;
 }
-describe("MessageBuilderBase", function () {
-    it("should assemble a message body composed of a single chunk ", function (done) {
+describe("MessageBuilderBase", () => {
+    it("should assemble a message body composed of a single chunk ", (done) => {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         const original_message_chunk = wrap_message_in_chunk(message_body, "F");
 
         const builder = new MessageBuilderBase();
 
-        builder.on("full_message_body", function (full_message_body) {
+        builder.on("full_message_body", (full_message_body) => {
             compare_buffers(full_message_body, message_body, message_body.length);
             done();
         });
@@ -34,7 +34,7 @@ describe("MessageBuilderBase", function () {
         builder.feed(original_message_chunk);
     });
 
-    it("should assemble a message body composed of a two chunks ", function (done) {
+    it("should assemble a message body composed of a two chunks ", (done) => {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
         const original_message_chunk_1 = wrap_message_in_chunk(message_body.subarray(0, 10), "C");
@@ -42,7 +42,7 @@ describe("MessageBuilderBase", function () {
 
         const builder = new MessageBuilderBase();
 
-        builder.on("full_message_body", function (full_message_body) {
+        builder.on("full_message_body", (full_message_body) => {
             compare_buffers(full_message_body, message_body, message_body.length);
             done();
         });
@@ -59,11 +59,10 @@ describe("MessageBuilderBase", function () {
         builder.feed(original_message_chunk_2);
     });
 
-    it("should not allow more chunks that maxChunkCount ", function (done) {
-
+    it("should not allow more chunks that maxChunkCount ", (done) => {
         const builder = new MessageBuilderBase({
             maxChunkCount: 5,
-            maxMessageSize: 64 * 1024,
+            maxMessageSize: 64 * 1024
         });
 
         const onChunkSpy = sinon.spy();
@@ -99,13 +98,11 @@ describe("MessageBuilderBase", function () {
         onErrorSpy.getCall(0).args[0].should.match(/max chunk count exceeded/);
 
         done();
-
     });
-    it("should not allow message bigger than maxMessageSize ", function (done) {
-
+    it("should not allow message bigger than maxMessageSize ", () => {
         const builder = new MessageBuilderBase({
             maxChunkCount: 1000,
-            maxMessageSize: 4 * 1024,
+            maxMessageSize: 4 * 1024
         });
 
         const onChunkSpy = sinon.spy();
@@ -139,8 +136,6 @@ describe("MessageBuilderBase", function () {
         onFullMessageBodySpy.callCount.should.eql(0);
 
         onErrorSpy.getCall(0).args[0].should.match(/maxMessageSize/);
-
-        done();
 
     });
 });

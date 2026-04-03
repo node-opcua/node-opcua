@@ -2,20 +2,20 @@
 /**
  * @module node-opcua-transport
  */
-import { EventEmitter } from "events";
+
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { make_debugLog, checkDebugFlag, make_errorLog, hexDump, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";
-import { type CallbackWithData, type ErrorCallback, StatusCode } from "node-opcua-status-code";
-
-import { StatusCodes2 } from "./status_codes";
+import type { CallbackWithData, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import { readRawMessageHeader } from "./message_builder_base";
-import { doTraceIncomingChunk } from "./utils";
+import { StatusCodes2 } from "./status_codes";
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { packTcpMessage } from "./tools";
+import { doTraceIncomingChunk } from "./utils";
 
 const debugLog = make_debugLog("TRANSPORT");
 const doDebug = checkDebugFlag("TRANSPORT");
@@ -28,7 +28,7 @@ export interface ISocketLike extends EventEmitter {
     remoteAddress?: string;
     remotePort?: number;
 
-    write(data: string | Buffer, callback?: (err?: Error | null) => void | undefined): void;
+    write(data: string | Buffer, callback?: (err?: Error | null) => undefined | undefined): void;
     end(): void;
     setKeepAlive(enable?: boolean, initialDelay?: number): this;
     setNoDelay(noDelay?: boolean): this;
@@ -81,7 +81,7 @@ const defaultFakeSocket = {
         errorLog("MockSocket.end");
     },
 
-    write(_data: string | Buffer, callback?: (err?: Error) => void | undefined): void {
+    write(_data: string | Buffer, callback?: (err?: Error) => undefined | undefined): void {
         /** */
         if (callback) {
             callback();
@@ -116,27 +116,20 @@ export function getFakeTransport(): ISocketLike {
 
 let counter = 0;
 
-export interface TCP_transport {
+export interface TCP_transportEvents {
     /**
      * notify the observers that a message chunk has been received
      * @event chunk
      * @param message_chunk the message chunk
      */
-    on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
+    chunk: [messageChunk: Buffer];
     /**
      * notify the observers that the transport layer has been disconnected.
      * @event close
      */
-    on(eventName: "close", eventHandler: (err: Error | null) => void): this;
-
-    once(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
-    once(eventName: "close", eventHandler: (err: Error | null) => void): this;
-
-    emit(eventName: "close", err?: Error | null): boolean;
-    emit(eventName: "chunk", messageChunk: Buffer): boolean;
+    close: [err: Error | null];
 }
-// tslint:disable:class-name
-export class TCP_transport extends EventEmitter {
+export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     private static registry = new ObjectRegistry();
     /**
      * the size of the header in bytes
@@ -281,7 +274,7 @@ export class TCP_transport extends EventEmitter {
 
      * @param messageChunk
      */
-    public write(messageChunk: Buffer, callback?: (err?: Error | null) => void | undefined): void {
+    public write(messageChunk: Buffer, callback?: (err?: Error | null) => undefined | undefined): void {
         const header = readRawMessageHeader(messageChunk);
         assert(header.length === messageChunk.length);
         const c = header.messageHeader.isFinal;
@@ -327,15 +320,13 @@ export class TCP_transport extends EventEmitter {
         return this._socket !== null && !this._socket.destroyed;
     }
 
-    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error | null) => void): void {
+    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error | null) => undefined): void {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
             this._socket.write(messageChunk, callback);
         } else {
-            if (callback) {
-                callback();
-            }
+            callback?.();
         }
     }
 
@@ -384,8 +375,7 @@ export class TCP_transport extends EventEmitter {
         // set socket timeout
         debugLog(`  TCP_transport#install => setting ${this.name} _socket.setTimeout to `, this.timeout);
         // let use a large timeout here to make sure that we not conflict with our internal timeout
-        this._socket.setTimeout(this.timeout, () => {
-        });
+        this._socket.setTimeout(this.timeout, () => {});
 
         // c8 ignore next
         doDebug && debugLog("  TCP_transport#_install_socket ", this.name);
@@ -409,7 +399,7 @@ export class TCP_transport extends EventEmitter {
             debugLog(chalk.red(" extraErrorDescription   ") + chalk.cyan(extraErrorDescription));
         }
 
-        const reason = `${statusCode.toString()}:${extraErrorDescription || ""}`;
+        const reason = `${statusCode.toString()}:${extraErrorDescription || ""} `;
         const errorResponse = new TCPErrorMessage({
             statusCode,
             reason
@@ -426,7 +416,7 @@ export class TCP_transport extends EventEmitter {
         doDebugFlow && errorLog("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
 
         if (this._socket) {
-            err.message = `premature socket termination ${err.message}`;
+            err.message = `premature socket termination ${err.message} `;
             // we consider this as an error
             const _s = this._socket;
             this._socket = null;
@@ -449,7 +439,7 @@ export class TCP_transport extends EventEmitter {
      * Rules:
      * * TCP_transport will not emit the ```message``` event, while the "one time message receiver" is in operation.
      * * the TCP_transport will wait for the next complete message chunk and call the provided callback func
-     *   ```callback(null,messageChunk);```
+     *   ```callback(null, messageChunk); ```
      *
      * if a messageChunk is not received within ```TCP_transport.timeout``` or if the underlying socket reports
      * an error, the callback function will be called with an Error.
@@ -502,9 +492,7 @@ export class TCP_transport extends EventEmitter {
 
         const onTimeout = () => {
             _cleanUp();
-            this._fulfill_pending_promises(
-                new Error(`Timeout(A) in waiting for data on socket ( timeout was = ${this.timeout} ms)`)
-            );
+            this._fulfill_pending_promises(new Error(`Timeout(A) in waiting for data on socket(timeout was = ${this.timeout} ms)`));
             this.dispose();
         };
         // Setup timeout detection timer ....
@@ -517,9 +505,7 @@ export class TCP_transport extends EventEmitter {
         if (this._socket) {
             // to do = intercept socket error as well
             this.#_on_error_during_one_time_message_receiver = (hadError: boolean) => {
-                const err = new Error(
-                    `ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms) hadError${hadError}`
-                );
+                const err = new Error(`ERROR in waiting for data on socket(timeout was = ${this.timeout} ms) hadError${hadError} `);
                 this._emitClose(err);
                 this._fulfill_pending_promises(err);
             };
@@ -573,39 +559,37 @@ export class TCP_transport extends EventEmitter {
             //     callback(err || null);
             // }
         } else {
-            debugLog("Already emitted close event", (this.#_closedEmitted as any).message);
-            debugLog("err = ", err?.message);
-            debugLog("");
-            debugLog("Already emitted close event", this.#_closedEmitted);
+            const prevClose = this.#_closedEmitted instanceof Error ? this.#_closedEmitted.message : this.#_closedEmitted;
+            debugLog("Already emitted close event", prevClose);
             debugLog("err = ", err?.message, err);
         }
     }
 
     private _on_socket_end() {
         // c8 ignore next
-        doDebug && debugLog(chalk.red(` SOCKET END : ${this.name}`), "is disconnecting  ", this.isDisconnecting());
+        doDebug && debugLog(chalk.red(` SOCKET END: ${this.name} `), "is disconnecting  ", this.isDisconnecting());
         if (this.isDisconnecting()) {
             return;
         }
         //
-        debugLog(`${chalk.red(" Transport Connection ended")} ${this.name}`);
+        debugLog(`${chalk.red(" Transport Connection ended")} ${this.name} `);
         const err = new Error(`${this.name}: socket has been disconnected by third party`);
         debugLog(" bytesRead    = ", this.bytesRead);
         debugLog(" bytesWritten = ", this.bytesWritten);
         this._theCloseError = err;
 
-        this._fulfill_pending_promises(new Error(`Connection aborted - ended by server : ${err ? err.message : ""}`));
+        this._fulfill_pending_promises(new Error(`Connection aborted - ended by server: ${err ? err.message : ""} `));
     }
 
     private _on_socket_error(err: Error) {
         // c8 ignore next
-        debugLog(chalk.red(` _on_socket_error:  ${this.name}`), chalk.yellow(err.message));
+        debugLog(chalk.red(` _on_socket_error:  ${this.name} `), chalk.yellow(err.message));
         // node The "close" event will be called directly following this event.
         // this._emitClose(err);
     }
 
     private _on_socket_timeout() {
-        const msg = `socket timeout : timeout=${this.timeout}  ${this.name}`;
+        const msg = `socket timeout: timeout = ${this.timeout}  ${this.name} `;
         doDebug && debugLog(msg);
         this.prematureTerminate(new Error(msg), StatusCodes2.BadTimeout);
     }

@@ -1,24 +1,22 @@
-import should from "should";
-import sinon from "sinon";
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
+import sinon from "sinon";
+import type { ISocketLike } from "../source";
 import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
-import { ITransportPair } from "../test_helpers/ITransportPair";
-import { ISocketLike } from "../source";
+import type { ITransportPair } from "../test_helpers/ITransportPair";
 
 const doDebug = false;
 
 const port = 5879;
 
 let counter = 0;
-function installTestFor(Transport: any) {
-    describe("Testing behavior of  " + Transport.name + "  to emulate client/server communication in tests", function () {
-        let transportPair: ITransportPair | undefined = undefined;
+function installTestFor(Transport: new (options: { port: number }) => ITransportPair) {
+    describe(`Testing behavior of  ${Transport.name}  to emulate client/server communication in tests`, () => {
+        let transportPair: ITransportPair | undefined;
 
         let events: string[] = [];
 
-        beforeEach(function (done) {
+        beforeEach((done) => {
             events = [];
             transportPair = new Transport({ port });
             if (!transportPair) throw new Error("internal error");
@@ -27,35 +25,35 @@ function installTestFor(Transport: any) {
                 assert(transportPair.client);
                 assert(transportPair.server);
 
-                (transportPair.client as any).name = "client" + counter;
-                (transportPair.server as any).name = "server" + counter;
+                (transportPair.client as unknown as { name: string }).name = `client${counter}`;
+                (transportPair.server as unknown as { name: string }).name = `server${counter}`;
                 counter += 1;
 
                 doDebug && console.log("--------------------------------------------");
 
-                transportPair.server.on("data", (data) => events.push("server data"));
-                transportPair.server.on("error", (err) => events.push("server error " + (err ? err.message : "")));
-                transportPair.server.on("close", (hadError) => events.push("server close " + hadError));
+                transportPair.server.on("data", (_data) => events.push("server data"));
+                transportPair.server.on("error", (err) => events.push(`server error ${err ? err.message : ""}`));
+                transportPair.server.on("close", (hadError) => events.push(`server close ${hadError}`));
                 transportPair.server.on("timeout", () => events.push("server timeout"));
                 transportPair.server.on("end", () => events.push("server end"));
 
-                transportPair.client.on("data", (data) => events.push("client data"));
-                transportPair.client.on("error", (err) => events.push("client error " + (err ? err.message : "")));
-                transportPair.client.on("close", (hadError) => events.push("client close " + hadError));
+                transportPair.client.on("data", (_data) => events.push("client data"));
+                transportPair.client.on("error", (err) => events.push(`client error ${err ? err.message : ""}`));
+                transportPair.client.on("close", (hadError) => events.push(`client close ${hadError}`));
                 transportPair.client.on("timeout", () => events.push("client timeout"));
                 transportPair.client.on("end", () => events.push("client end"));
 
                 done();
             });
         });
-        afterEach(function (done) {
+        afterEach((done) => {
             if (transportPair) {
                 transportPair.shutdown(done);
                 transportPair = undefined;
             }
         });
 
-        it("FS-1 server side should receive data send by the client only", function (done) {
+        it("FS-1 server side should receive data send by the client only", (done) => {
             if (!transportPair) throw new Error("internal error");
 
             transportPair.client.on("data", (data) => {
@@ -65,7 +63,7 @@ function installTestFor(Transport: any) {
             transportPair.server.write("Some Data");
         });
 
-        it("FS-2 client side should receive data send by the server only", function (done) {
+        it("FS-2 client side should receive data send by the server only", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.server.on("data", (data) => {
                 data.toString().should.equal("Some Data");
@@ -74,14 +72,14 @@ function installTestFor(Transport: any) {
             transportPair.client.write("Some Data");
         });
 
-        it("FS-3 server side should receive 'end' event when connection ends  on the client side", function (done) {
+        it("FS-3 server side should receive 'end' event when connection ends  on the client side", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.server.on("end", () => {
                 done();
             });
             transportPair.client.end();
         });
-        it("FS-4 client side should receive 'end' event when connection ends  on the server side", function (done) {
+        it("FS-4 client side should receive 'end' event when connection ends  on the server side", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.on("end", () => {
                 done();
@@ -89,7 +87,7 @@ function installTestFor(Transport: any) {
             transportPair.server.end();
         });
 
-        it("FS-5 client side should receive 'end' event when connection ends  on the client side", function (done) {
+        it("FS-5 client side should receive 'end' event when connection ends  on the client side", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.on("end", () => {
                 done();
@@ -97,7 +95,7 @@ function installTestFor(Transport: any) {
             transportPair.client.end();
         });
 
-        it("FS-6 server side should receive 'end' event when connection ends  on the server side", function (done) {
+        it("FS-6 server side should receive 'end' event when connection ends  on the server side", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.server.on("end", () => {
                 done();
@@ -115,7 +113,7 @@ function installTestFor(Transport: any) {
         });
 
         function decorateSocket(socket: ISocketLike) {
-            const name = (socket as any).name;
+            const name = (socket as unknown as { name?: string }).name;
 
             socket.on("data", (data) => {
                 doDebug && console.log(name, "socket received chunk", data.toString("hex"));
@@ -204,7 +202,7 @@ function installTestFor(Transport: any) {
         it("FS-11 client should timeout if server doesn't send data fast enough - destroy with error", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.setTimeout(100);
-            const { spyOnClose, spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
+            const {  spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
             transportPair.client.on("timeout", () => {
                 transportPair?.client.destroy(new Error("somme error"));
                 //     done();
@@ -219,7 +217,7 @@ function installTestFor(Transport: any) {
         it("FS-12 client should timeout if server doesn't send data fast enough - close", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.setTimeout(100);
-            const { spyOnClose, spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
+            const {  spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
             transportPair.client.on("timeout", () => {
                 transportPair?.client.end(); /// will raise end and close
                 //     done();
@@ -238,12 +236,7 @@ function installTestFor(Transport: any) {
             const socket = transportPair.server;
             socket.setTimeout(100);
 
-            const {
-                spyOnClose: spyOnCloseServer,
-                spyOnTimeOut: spyOnTimeOutServer,
-                spyOnEnd: spyOnEndServer,
-                spyOnError: spyOnErrorServer
-            } = decorateSocket(transportPair.server);
+            decorateSocket(transportPair.server);
 
             const {
                 spyOnClose: spyOnCloseClient,
@@ -280,12 +273,7 @@ function installTestFor(Transport: any) {
 
             transportPair.server.setTimeout(100);
 
-            const {
-                spyOnClose: spyOnCloseServer,
-                spyOnTimeOut: spyOnTimeOutServer,
-                spyOnEnd: spyOnEndServer,
-                spyOnError: spyOnErrorServer
-            } = decorateSocket(transportPair.server);
+            decorateSocket(transportPair.server);
 
             const {
                 spyOnClose: spyOnCloseClient,
@@ -296,7 +284,7 @@ function installTestFor(Transport: any) {
 
             transportPair.server.on("timeout", () => {
                 setTimeout(() => {
-                    transportPair!.server.destroy(new Error("some error")); // will raise close but no end
+                    transportPair?.server.destroy(new Error("some error")); // will raise close but no end
                 }, 100);
             });
             transportPair.server.on("close", () => {
@@ -323,12 +311,7 @@ function installTestFor(Transport: any) {
 
             transportPair.server.setTimeout(100);
 
-            const {
-                spyOnClose: spyOnCloseServer,
-                spyOnTimeOut: spyOnTimeOutServer,
-                spyOnEnd: spyOnEndServer,
-                spyOnError: spyOnErrorServer
-            } = decorateSocket(transportPair.server);
+            decorateSocket(transportPair.server);
 
             const {
                 spyOnClose: spyOnCloseClient,
@@ -339,7 +322,7 @@ function installTestFor(Transport: any) {
 
             transportPair.server.on("timeout", () => {
                 setTimeout(() => {
-                    transportPair!.server.end();
+                    transportPair?.server.end();
                 }, 100);
             });
             transportPair.server.on("close", () => {

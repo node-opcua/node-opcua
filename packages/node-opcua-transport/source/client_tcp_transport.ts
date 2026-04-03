@@ -1,22 +1,22 @@
 /**
  * @module node-opcua-transport
  */
-import os from "os";
-import { createConnection } from "net";
-import { types } from "util";
+
+import { createConnection } from "node:net";
+import os from "node:os";
+import { types } from "node:util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
-import { ErrorCallback } from "node-opcua-status-code";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { getFakeTransport, ISocketLike, TCP_transport } from "./tcp_transport";
-import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
-
+import type { ErrorCallback } from "node-opcua-status-code";
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
 import { TCPErrorMessage } from "./TCPErrorMessage";
+import { getFakeTransport, type ISocketLike, TCP_transport } from "./tcp_transport";
+import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
 import { doTraceHelloAck } from "./utils";
 
 const doDebug = checkDebugFlag(__filename);
@@ -37,22 +37,17 @@ function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {
             socket = createConnection({ host: hostname, port, timeout }, () => {
                 doDebug && debugLog(`connected to server! ${hostname}:${port} timeout:${timeout} `);
             });
-            
+
             socket.setNoDelay(false);
             socket.setKeepAlive(true, timeout >> 1);
-
 
             return socket;
         case "fake:":
             assert(ep.protocol === "fake:", " Unsupported transport protocol");
             socket = getFakeTransport();
             return socket;
-
-        case "websocket:":
-        case "http:":
-        case "https:":
         default: {
-            const msg = "[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol;
+            const msg = `[NODE-OPCUA-E05] this transport protocol is not supported :${ep.protocol}`;
             errorLog(msg);
             throw new Error(msg);
         }
@@ -117,6 +112,7 @@ export interface TransportSettingsOptions {
  *
  *
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: typed EventEmitter events - extending parent's event map in subclass hierarchy
 export class ClientTCP_transport extends TCP_transport {
     public static defaultMaxChunk = 0; // 0 - no limits
     public static defaultMaxMessageSize = 0; // 0 - no limits
@@ -168,25 +164,24 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public connect(endpointUrl: string, callback: ErrorCallback): void {
-
         this.endpointUrl = endpointUrl;
-        this.serverUri = "urn:" + gHostname + ":Sample";
+        this.serverUri = `urn:${gHostname}:Sample`;
         /* c8 ignore next */
-        doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = " + endpointUrl + ")"));
+        doDebug && debugLog(chalk.cyan(`ClientTCP_transport#connect(endpointUrl = ${endpointUrl})`));
         let socket: ISocketLike | null = null;
         try {
-            const ep = parseEndpointUrl(endpointUrl);
+            const _ep = parseEndpointUrl(endpointUrl);
             socket = createClientSocket(endpointUrl, this.timeout);
-          
+
             socket.setTimeout(this.timeout >> 1, () => {
                 this.forceConnectionBreak();
             });
-            
         } catch (err) {
             /* c8 ignore next */
             doDebug && debugLog("CreateClientSocket has failed");
 
-            return callback(err as Error);
+            callback(err as Error);
+            return;
         }
 
         /**
@@ -226,7 +221,7 @@ export class ClientTCP_transport extends TCP_transport {
                 if (!err) {
                     /* c8 ignore next */
                     if (!this._socket) {
-                        return callback(new Error("Abandoned"));                        
+                        return callback(new Error("Abandoned"));
                     }
                     // install error handler to detect connection break
                     this._socket.on("error", _on_socket_error_after_connection);
@@ -270,30 +265,30 @@ export class ClientTCP_transport extends TCP_transport {
 
         this._install_socket(socket);
 
-        this._socket!.once("error", _on_socket_error_for_connect);
-        this._socket!.once("end", _on_socket_end_for_connect);
-        this._socket!.once("connect", _on_socket_connect);
+        this._socket?.once("error", _on_socket_error_for_connect);
+        this._socket?.once("end", _on_socket_end_for_connect);
+        this._socket?.once("connect", _on_socket_connect);
     }
 
     private _handle_ACK_response(messageChunk: Buffer, callback: ErrorCallback) {
         const _stream = new BinaryStream(messageChunk);
         const messageHeader = readMessageHeader(_stream);
-        let err;
+        let err: Error | null = null;
         /* c8 ignore next */
         if (messageHeader.isFinal !== "F") {
             err = new Error(" invalid ACK message");
             return callback(err);
         }
 
-        let responseClass;
-        let response;
+        let responseClass: typeof AcknowledgeMessage | typeof TCPErrorMessage;
+        let response: AcknowledgeMessage | TCPErrorMessage;
 
         if (messageHeader.msgType === "ERR") {
             responseClass = TCPErrorMessage;
             _stream.rewind();
             response = decodeMessage(_stream, responseClass) as TCPErrorMessage;
 
-            err = new Error("ACK: ERR received " + response.statusCode.toString() + " : " + response.reason);
+            err = new Error(`ACK: ERR received ${response.statusCode.toString()} : ${response.reason}`);
             (err as any).statusCode = response.statusCode;
             // c8 ignore next
             doTraceHelloAck && warningLog("receiving ERR instead of Ack", response.toString());
@@ -302,10 +297,10 @@ export class ClientTCP_transport extends TCP_transport {
         } else {
             responseClass = AcknowledgeMessage;
             _stream.rewind();
-            response = decodeMessage(_stream, responseClass);
+            response = decodeMessage(_stream, responseClass) as AcknowledgeMessage;
 
-            this.parameters = response as AcknowledgeMessage;
-            this.setLimits(response as AcknowledgeMessage);
+            this.parameters = response;
+            this.setLimits(response);
 
             // c8 ignore next
             doTraceHelloAck && warningLog("receiving Ack\n", response.toString());
@@ -319,7 +314,7 @@ export class ClientTCP_transport extends TCP_transport {
         doDebug && debugLog("entering _send_HELLO_request");
 
         assert(this._socket);
-        assert(isFinite(this.protocolVersion));
+        assert(Number.isFinite(this.protocolVersion));
         assert(this.endpointUrl.length > 0, " expecting a valid endpoint url");
 
         const { maxChunkCount, maxMessageSize, receiveBufferSize, sendBufferSize } = this._helloSettings;

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { ISocketLike } from "../source";
+import type { ISocketLike } from "../source";
 
-export class HalfComChannel extends EventEmitter implements ISocketLike{
+export class HalfComChannel extends EventEmitter implements ISocketLike {
     private _hasEnded: boolean;
     public destroyed = false;
     private _ended = false;
@@ -26,7 +26,7 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
         this.emit("send_data", copy);
     }
 
-    public onReceiveEnd(err?: Error): void {
+    public onReceiveEnd(_err?: Error): void {
         this.end();
     }
     public onReceiveData(data: Buffer): void {
@@ -36,7 +36,7 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
     }
 
     private _disconnectOtherParty() {
-       if (!this._hasEnded) {
+        if (!this._hasEnded) {
             assert(!this._hasEnded, "half communication channel has already ended !");
             this._hasEnded = true;
             this.emit("ending");
@@ -44,10 +44,11 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
     }
     public end(): void {
         if (this._hasEnded) return;
-         if (this._ended) return;
+        if (this._ended) return;
         this._ended = true;
         if (this._timeoutId) clearTimeout(this._timeoutId);
-        this._timeoutId = null;HalfComChannel;
+        this._timeoutId = null;
+        HalfComChannel;
         this.timeout = 0;
         this._disconnectOtherParty();
         this.emit("end");
@@ -70,13 +71,13 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
         this.emit("close", hasError);
     }
 
-    public setKeepAlive(enable?: boolean, initialDelay?: number) {
+    public setKeepAlive(_enable?: boolean, _initialDelay?: number) {
         return this;
     }
-    public setNoDelay(noDelay?: boolean) {
+    public setNoDelay(_noDelay?: boolean) {
         return this;
     }
-    public setTimeout(timeout: number, callback?: () => void) {
+    public setTimeout(timeout: number, _callback?: () => void) {
         this.timeout = timeout;
         this._triggerTimeoutTimer();
         return this;
@@ -89,7 +90,7 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
         }
         if (this.timeout > 0 && !this._hasEnded) {
             this._timeoutId = setTimeout(() => {
-               this.emit("timeout");
+                this.emit("timeout");
             }, this.timeout);
         }
     }

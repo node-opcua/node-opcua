@@ -1,4 +1,4 @@
-import { UInt32 } from "node-opcua-basic-types";
+import type { UInt32 } from "node-opcua-basic-types";
 
 export interface IHelloAckLimits {
     receiveBufferSize: UInt32;

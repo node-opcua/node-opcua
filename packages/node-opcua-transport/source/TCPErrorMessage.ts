@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-transport
  */
-import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { decodeString, encodeString, type UAString } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -10,7 +10,7 @@ import {
     initialize_field,
     parameters
 } from "node-opcua-factory";
-import { decodeStatusCode, encodeStatusCode, StatusCode } from "node-opcua-status-code";
+import { decodeStatusCode, encodeStatusCode, type StatusCode } from "node-opcua-status-code";
 
 // TCP Error Message  OPC Unified Architecture, Part 6 page 46
 // the server always close the connection after sending the TCPError message

@@ -1,8 +1,8 @@
 import { BinaryStream } from "node-opcua-binary-stream";
-import { HelloMessage, packTcpMessage, decodeMessage } from "..";
+import { decodeMessage, HelloMessage, packTcpMessage } from "..";
 
-describe("testing message encoding and decoding", function () {
-    it("should encode and decode HelloMessage ", function () {
+describe("testing message encoding and decoding", () => {
+    it("should encode and decode HelloMessage ", () => {
         const helloMessage1 = new HelloMessage({});
 
         const message = packTcpMessage("HEL", helloMessage1);
@@ -16,6 +16,6 @@ describe("testing message encoding and decoding", function () {
         helloMessage1.receiveBufferSize.should.eql(helloMessage2.receiveBufferSize);
         helloMessage1.sendBufferSize.should.eql(helloMessage2.sendBufferSize);
         helloMessage1.maxMessageSize.should.eql(helloMessage2.maxMessageSize);
-        helloMessage1.endpointUrl!.should.eql(helloMessage2.endpointUrl);
+        helloMessage1.endpointUrl?.should.eql(helloMessage2.endpointUrl);
     });
 });

@@ -1,14 +1,11 @@
-"use strict";
-import should from "should";
 import chalk from "chalk";
-import sinon from "sinon";
-
 import { assert } from "node-opcua-assert";
-import { hexDump } from "node-opcua-debug";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
-import { compare_buffers } from "node-opcua-utils";
+import { hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { compare_buffers } from "node-opcua-utils";
+import should from "should";
+import sinon from "sinon";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -17,16 +14,8 @@ import { FakeServer } from "../dist/test_helpers";
 
 const port = 5678;
 
-import {
-    AcknowledgeMessage,
-    TCPErrorMessage,
-    ClientTCP_transport,
-    packTcpMessage,
-    TCP_transport,
-    writeTCPMessageHeader
-} from "..";
 import { BinaryStream } from "../../node-opcua/dist";
-
+import { AcknowledgeMessage, ClientTCP_transport, packTcpMessage, TCP_transport, TCPErrorMessage, writeTCPMessageHeader } from "..";
 
 describe("testing ClientTCP_transport", function (this: any) {
     this.timeout(Math.max(15 * 1000, this.timeout()));
@@ -61,7 +50,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     });
 
     afterEach((done) => {
-        clientTransport.disconnect((err) => {
+        clientTransport.disconnect((_err) => {
             spyOnConnect.callCount.should.be.oneOf([0, 1]);
             spyOnClose.callCount.should.be.oneOf([0, 1]);
             if (spyOnConnect.callCount === 1) {
@@ -84,7 +73,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     });
 
     it("TCS-1 should create and connect to a client TCP", (done) => {
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             assert(data);
             // received Fake HEL Message
             // send Fake ACK response
@@ -94,7 +83,7 @@ describe("testing ClientTCP_transport", function (this: any) {
 
         fakeServer.pushResponse(spyOnServerWrite);
 
-        clientTransport.connect(endpointUrl, (err) => {
+        clientTransport.connect(endpointUrl, (_err) => {
             spyOnConnect.callCount.should.eql(1);
             spyOnClose.callCount.should.eql(0);
             spyOnConnectionBreak.callCount.should.eql(0);
@@ -112,7 +101,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     });
 
     it("TCS-2 should report a time out error if trying to connect to a non responding server", (done) => {
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((_socket, _data) => {
             // DO NOTHING !!
         });
         fakeServer.pushResponse(spyOnServerWrite);
@@ -136,7 +125,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     });
 
     it("TCS-3 should report an error if the server close the socket unexpectedly", (done) => {
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             should.exist(data);
             // received Fake HEL Message
             // Pretend the message is malformed or that the server crashed for some reason : abort now !
@@ -166,7 +155,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     }
 
     it("TCS-4 should report an error if the server reports a protocol version mismatch", (done) => {
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, _data) => {
             // received Fake HEL Message
 
             // Pretend the protocol version is wrong.
@@ -174,7 +163,7 @@ describe("testing ClientTCP_transport", function (this: any) {
             const messageChunk = packTcpMessage("ERR", errorResponse);
             socket.write(messageChunk);
 
-            setImmediate(function () {
+            setImmediate(() => {
                 socket.end();
             });
         });
@@ -205,7 +194,7 @@ describe("testing ClientTCP_transport", function (this: any) {
         message1.writeUInt16BE(0xffff, 8);
 
         let counter = 1;
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
@@ -230,7 +219,7 @@ describe("testing ClientTCP_transport", function (this: any) {
 
         clientTransport.timeout = 1000; // very short timeout;
 
-        clientTransport.on("chunk", function (message_chunk) {
+        clientTransport.on("chunk", (message_chunk) => {
             debugLog(chalk.cyan.bold(hexDump(message_chunk)));
             compare_buffers(message_chunk.slice(8), message1);
 
@@ -282,7 +271,7 @@ describe("testing ClientTCP_transport", function (this: any) {
         let server_confirms_that_server_socket_has_been_closed = false;
         let transport_confirms_that_close_event_has_been_processed = false;
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
@@ -297,7 +286,7 @@ describe("testing ClientTCP_transport", function (this: any) {
         fakeServer.pushResponse(spyOnServerWrite);
         fakeServer.pushResponse(spyOnServerWrite);
 
-        fakeServer.on("end", function () {
+        fakeServer.on("end", () => {
             server_confirms_that_server_socket_has_been_closed = true;
         });
 
@@ -321,7 +310,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                     errorLog(chalk.bgWhite.red(" err = "), err.message);
                 }
                 assert(!err);
-                setImmediate(function () {
+                setImmediate(() => {
                     server_confirms_that_server_socket_has_been_closed.should.equal(true);
                     transport_confirms_that_close_event_has_been_processed.should.equal(true);
                     done(err);
@@ -333,10 +322,10 @@ describe("testing ClientTCP_transport", function (this: any) {
     it("TCS-7 should dispose the socket and emit a close event when socket is closed by the other end", (done) => {
         let counter = 1;
 
-        let server_confirms_that_server_socket_has_been_closed = false;
+        let _server_confirms_that_server_socket_has_been_closed = false;
         let transport_confirms_that_close_event_has_been_processed = false;
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             debugLog(chalk.cyan.bold("\ncounter = "), counter);
             debugLog(chalk.yellow.bold(hexDump(data)));
             if (counter === 1) {
@@ -345,7 +334,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                 counter += 1;
                 socket.write(messageChunk);
 
-                setTimeout(function () {
+                setTimeout(() => {
                     debugLog(" Aborting server ");
                     socket.end(); // close after 10 ms
                 }, 10);
@@ -357,8 +346,8 @@ describe("testing ClientTCP_transport", function (this: any) {
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
-        fakeServer.on("end", function () {
-            server_confirms_that_server_socket_has_been_closed = true;
+        fakeServer.on("end", () => {
+            _server_confirms_that_server_socket_has_been_closed = true;
         });
 
         clientTransport.timeout = 1000; // very short timeout;
@@ -383,7 +372,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     it("TCS-8 should send 'close' event on internal timeout - #1205", (done) => {
         clientTransport.timeout = 100;
 
-        const spyOnServerWrite = sinon.spy(function (socket, data) {
+        const spyOnServerWrite = sinon.spy((socket, data) => {
             assert(data);
             // received Fake HEL Message
             // send Fake ACK response
@@ -392,12 +381,11 @@ describe("testing ClientTCP_transport", function (this: any) {
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
-
         clientTransport.on("connect", () => {
             console.log("A - transport connected");
         });
 
-        clientTransport.on("close", function () {
+        clientTransport.on("close", () => {
             clearTimeout(timeoutId);
             done();
         });
@@ -431,7 +419,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                 const test6 = !!err.message.match(regexp_6);
                 (test1 || test2 || test3 || test4 || test5 || test6).should.eql(
                     true,
-                    "expecting one of those error message. got: " + err.message
+                    `expecting one of those error message. got: ${err.message}`
                 );
                 done();
             } else {
