@@ -1,20 +1,20 @@
 /**
  * @module node-opcua-address-space.Private
  */
-import { assert } from "node-opcua-assert";
-import { NodeId } from "node-opcua-nodeid";
-import {
+import type {
     AddReferenceOpts,
     BaseNode,
     ConstructNodeIdOptions,
     CreateNodeOptions,
-    ModellingRuleType,
     INamespace,
+    ModellingRuleType,
+    RequiredModel,
     UADataType,
-    RequiredModel
 } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
+import type { NodeId } from "node-opcua-nodeid";
 
-import { AddressSpacePrivate } from "./address_space_private";
+import type { AddressSpacePrivate } from "./address_space_private";
 
 
 export interface NamespacePrivate extends INamespace {
@@ -40,10 +40,16 @@ export interface NamespacePrivate extends INamespace {
 
     registerSymbolicNames: boolean;
 
+    _aliasCount(): number;
+    _objectTypeCount(): number;
+    _variableTypeCount(): number;
+    _dataTypeCount(): number;
+    _referenceTypeCount(): number;
+
 
 }
 
-export declare const NamespacePrivate: new (options: any) => NamespacePrivate;
+export declare const NamespacePrivate: new (options: unknown) => NamespacePrivate;
 
 function isValidModellingRule(ruleName: string) {
     return (
@@ -62,12 +68,12 @@ function isValidModellingRule(ruleName: string) {
  * @private
  */
 export function UANamespace_process_modelling_rule(
-    references: AddReferenceOpts[], 
+    references: AddReferenceOpts[],
     modellingRule?: ModellingRuleType
 ): void {
     if (modellingRule) {
         assert(isValidModellingRule(modellingRule), "expecting a valid modelling rule");
-        const modellingRuleName = "ModellingRule_" + modellingRule;
+        const modellingRuleName = `ModellingRule_${modellingRule}`;
         // assert(this.findNode(modellingRuleName),"Modelling rule must exist");
         references.push({
             nodeId: modellingRuleName,

@@ -1,35 +1,38 @@
 // tslint:disable:no-bitwise
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { type ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { getFixture } from "node-opcua-test-fixtures";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { EnumDefinition } from "node-opcua-types";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
-import { BinaryStream } from "node-opcua-binary-stream";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "node-opcua-client-dynamic-extension-object";
-
-import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, ensureDatatypeExtracted, PseudoSession, type UADataType, type UAVariable, type UAVariableType } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
-describe("testing NodeSet XML file loading", function (this: any) {
+interface INamespacePrivate {
+    _aliasCount(): number;
+    _variableTypeCount(): number;
+    _referenceTypeCount(): number;
+    _dataTypeCount(): number;
+    _objectTypeCount(): number;
+}
+describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
     beforeEach(() => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        const namespace0 = addressSpace.getDefaultNamespace() as unknown as INamespacePrivate;
         namespace0._aliasCount().should.equal(0);
         namespace0._variableTypeCount().should.equal(0);
         namespace0._referenceTypeCount().should.equal(0);
@@ -117,15 +120,15 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const someVariable = addressSpace.findNode("ns=1;i=2")! as UAVariable;
         someVariable.browseName.toString().should.eql("1:SomeVariable");
-        someVariable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        someVariable.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
 
         const readOnlyVar = addressSpace.findNode("ns=1;i=3")! as UAVariable;
         readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
-        readOnlyVar.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        readOnlyVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
 
         const readWriteVar = addressSpace.findNode("ns=1;i=4")! as UAVariable;
         readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
-        readWriteVar.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        readWriteVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
     it("should read predefined values for variables", async () => {
@@ -140,21 +143,21 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         await generateAddressSpace(addressSpace, xml_files);
 
-        const someStringVariable = addressSpace.findNode("ns=1;i=2")! as UAVariable;
+        const someStringVariable = addressSpace.findNode("ns=1;i=2") as UAVariable;
         someStringVariable.browseName.toString().should.eql("1:SomeStringVariable");
         someStringVariable.readValue().value.value.should.eql("any predefined string value");
 
-        const someBoolVariable = addressSpace.findNode("ns=1;i=3")! as UAVariable;
+        const someBoolVariable = addressSpace.findNode("ns=1;i=3") as UAVariable;
         someBoolVariable.browseName.toString().should.eql("1:SomeBoolVariable");
         someBoolVariable.readValue().value.dataType.should.equal(DataType.Boolean);
         someBoolVariable.readValue().value.value.should.eql(true);
 
-        const someFloatVariable = addressSpace.findNode("ns=1;i=4")! as UAVariable;
+        const someFloatVariable = addressSpace.findNode("ns=1;i=4") as UAVariable;
         someFloatVariable.browseName.toString().should.eql("1:SomeFloatVariable");
         someFloatVariable.readValue().value.dataType.should.equal(DataType.Float);
         someFloatVariable.readValue().value.value.should.eql(0.0);
 
-        const someDoubleVariable = addressSpace.findNode("ns=1;i=5")! as UAVariable;
+        const someDoubleVariable = addressSpace.findNode("ns=1;i=5") as UAVariable;
         someDoubleVariable.browseName.toString().should.eql("1:SomeDoubleVariable");
         someDoubleVariable.readValue().value.dataType.should.equal(DataType.Double);
         someDoubleVariable.readValue().value.value.should.eql(0.0);
@@ -169,15 +172,15 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const ns = addressSpace.getNamespaceIndex("MYNAMESPACE");
         ns.should.eql(1);
-        const my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns)!;
+        const my3x3MatrixType = addressSpace.findVariableType("My3x3MatrixType", ns) as UAVariableType;
         should.exist(my3x3MatrixType);
 
         my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
-        addressSpace.findDataType(my3x3MatrixType.dataType)!.browseName.toString().should.eql("Float");
+        addressSpace.findDataType(my3x3MatrixType.dataType)?.browseName.toString().should.eql("Float");
 
         my3x3MatrixType.valueRank.should.eql(2);
-        my3x3MatrixType.arrayDimensions!.should.eql([3, 3]);
+        my3x3MatrixType.arrayDimensions?.should.eql([3, 3]);
         (my3x3MatrixType as any).value.toString().should.eql(
             new Variant({
                 dataType: "Float",
@@ -185,10 +188,10 @@ describe("testing NodeSet XML file loading", function (this: any) {
             }).toString()
         );
 
-        const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns)!;
+        const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns) as UAVariableType;
         myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
         myDoubleArrayType.valueRank.should.eql(1);
-        myDoubleArrayType.arrayDimensions!.should.eql([5]);
+        myDoubleArrayType.arrayDimensions?.should.eql([5]);
         (myDoubleArrayType as any).value
             .toString()
             .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
@@ -212,7 +215,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             _err = err as Error;
         }
         should.exists(_err);
-        _err!.message.should.match(/.*NODE-OPCUA-E.*/);
+        _err?.message.should.match(/.*NODE-OPCUA-E.*/);
     });
     it("VV1 should load a nodeset file with a Models section", async () => {
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
@@ -237,7 +240,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
-        const variableType1 = addressSpace.findVariableType("MyStructureType", ns)!;
+        const _variableType1 = addressSpace.findVariableType("MyStructureType", ns) as UAVariableType;
         // xx debugLog(value.toString());
     });
 
@@ -269,14 +272,14 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
-        const dataType = addressSpace.findDataType("DeviceHealthEnumeration", 1)!;
+        const dataType = addressSpace.findDataType("DeviceHealthEnumeration", 1) as UADataType;
 
         dataType.nodeId.toString().should.eql("ns=1;i=6244");
 
         dataType.getDefinition().should.be.instanceOf(EnumDefinition);
 
         // must have a EnumString property
-        const enumStrings = dataType.getChildByName("EnumStrings")!;
+        const enumStrings = dataType.getChildByName("EnumStrings") as UAVariable;
         enumStrings.nodeId.toString().should.eql("ns=1;i=6450");
 
         const v = enumStrings.readAttribute(null, AttributeIds.Value);
@@ -374,7 +377,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
-        const dataType = addressSpace.findDataType("3DFrame", 0)!;
+        const dataType = addressSpace.findDataType("3DFrame", 0) as UADataType;
         dataType.browseName.toString().should.eql("3DFrame");
         dataType.symbolicName.toString().should.eql("ThreeDFrame");
 
@@ -395,11 +398,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
-        const dataType = addressSpace.findDataType("3DFrame", 0)!;
+        const dataType = addressSpace.findDataType("3DFrame", 0) as UADataType;
         should.exist(dataType, " expected to find 3DFrame DataType in addressSpace");
 
         // now instantiate it
-        const frame = addressSpace.constructExtensionObject(dataType, {});
+        const _frame = addressSpace.constructExtensionObject(dataType, {});
     });
 
     it("VV8 ----------", async () => {
@@ -412,7 +415,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/");
         nsIndex.should.be.greaterThan(0);
 
-        const dataType = addressSpace.findDataType("ANY", nsIndex)!;
+        const dataType = addressSpace.findDataType("ANY", nsIndex) as UADataType;
         dataType.nodeId.namespace.should.eql(nsIndex);
         should.exist(dataType.subtypeOf);
         dataType.subtypeOf?.toString().should.eql("ns=0;i=3");
@@ -420,7 +423,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         dataType.basicDataType.should.eql(DataType.Byte);
 
         should.throws(() => {
-            const object = addressSpace.constructExtensionObject(dataType);
+            const _object = addressSpace.constructExtensionObject(dataType);
         });
 
         const a = addressSpace.getOwnNamespace().addVariable({
@@ -430,9 +433,9 @@ describe("testing NodeSet XML file loading", function (this: any) {
         });
         a.setValueFromSource({ dataType: DataType.Byte, value: 23 });
 
-        const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex)!;
+        const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex) as UADataType;
         HW_SUBMODULE_DataType.nodeId.namespace.should.eql(nsIndex);
-        HW_SUBMODULE_DataType.subtypeOf!.toString().should.eql("ns=2;i=3034");
+        HW_SUBMODULE_DataType.subtypeOf?.toString().should.eql("ns=2;i=3034");
         HW_SUBMODULE_DataType.basicDataType.should.eql(DataType.UInt16);
     });
 
@@ -446,10 +449,10 @@ describe("testing NodeSet XML file loading", function (this: any) {
         const nsIndex = addressSpace.getNamespaceIndex("urn:MyNamespace/mix");
         nsIndex.should.be.greaterThan(0);
 
-        const dataType = addressSpace.findDataType("F_SYSINFO", nsIndex)!;
+        const dataType = addressSpace.findDataType("F_SYSINFO", nsIndex) as UADataType;
         dataType.nodeId.namespace.should.eql(nsIndex);
-        dataType.subtypeOf!.toString().should.eql(`ns=${nsIndex};i=3500`);
-        dataType.subtypeOfObj!.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.subtypeOf?.toString().should.eql(`ns=${nsIndex};i=3500`);
+        dataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
         dataType.basicDataType.should.eql(DataType.ExtensionObject);
 
         const object = addressSpace.constructExtensionObject(dataType);
@@ -462,7 +465,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
     });
 
-    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSessionAsync2) {
+    async function testEncodeDecode(object: ExtensionObject, extObjDataType: UADataType, session: IBasicSessionAsync2) {
         doDebug && console.log("------------ Before");
         doDebug && console.log(object.toString());
 
@@ -472,7 +475,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         object.encode(stream);
         stream.rewind();
 
-        const object2 = addressSpace.constructExtensionObject(constructor);
+        const object2 = addressSpace.constructExtensionObject(extObjDataType);
 
         object2.decode(stream);
         doDebug && console.log("------------ After");
@@ -504,10 +507,10 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const connectionEndpointConfigurationDataType = addressSpace.findDataType(
                 "ConnectionEndpointConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
             connectionEndpointConfigurationDataType.nodeId.namespace.should.eql(nsIndex);
-            connectionEndpointConfigurationDataType.subtypeOf!.toString().should.eql(`ns=${0};i=22`);
-            connectionEndpointConfigurationDataType.subtypeOfObj!.nodeId.toString().should.eql(`ns=${0};i=22`);
+            connectionEndpointConfigurationDataType.subtypeOf?.toString().should.eql(`ns=${0};i=22`);
+            connectionEndpointConfigurationDataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${0};i=22`);
             connectionEndpointConfigurationDataType.basicDataType.should.eql(DataType.ExtensionObject);
         });
 
@@ -515,7 +518,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const pubSubcommunicationLinksDatType = addressSpace.findDataType(
                 "PubSubCommunicationLinkConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
 
             const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
                 field1: 1,
@@ -535,11 +538,11 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const connectionEndpointConfigurationDataType = addressSpace.findDataType(
                 "ConnectionEndpointConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
             const pubSubcommunicationLinksDatType = addressSpace.findDataType(
                 "PubSubCommunicationLinkConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
 
             const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
                 field1: 1,
@@ -574,7 +577,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const pubSubcommunicationLinksDatType = addressSpace.findDataType(
                 "PubSubCommunicationLinkConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
 
             should.throws(() => {
                 addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
@@ -589,12 +592,12 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const connectionEndpointConfigurationDataType = addressSpace.findDataType(
                 "ConnectionEndpointConfigurationDataType",
                 nsIndex
-            )!;
+            ) as UADataType;
 
             const unexpetecedExtensionObject = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {});
 
             should.throws(() => {
-                const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
+                const _object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
                     id: "00000000-0000-0000-0000-000000000000",
                     communicationLinks: [unexpetecedExtensionObject]
                 });
@@ -637,13 +640,13 @@ describe("Testing variables loading ", function (this: any) {
     it("GG1 - should have a variable with pre-fetched values", () => {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
-        let variable = addressSpace.rootFolder.objects.getFolderElementByName("VariableTwoStateDiscrete", ns)! as UAVariable;
+        const variable = addressSpace.rootFolder.objects.getFolderElementByName("VariableTwoStateDiscrete", ns) as UAVariable;
         should.exists(variable);
 
-        const trueState = variable.getChildByName("TrueState")! as UAVariable;
+        const trueState = variable.getChildByName("TrueState") as UAVariable;
         should.exists(trueState);
 
-        const falseState = variable.getChildByName("FalseState")! as UAVariable;
+        const falseState = variable.getChildByName("FalseState") as UAVariable;
         should.exists(falseState);
 
         trueState.readValue().value.toString().should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=PoweredOn)");
@@ -681,7 +684,7 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
     before(async () => {
         addressSpace = AddressSpace.create();
         const xml_file = path.join(__dirname, "../../../modeling/model_with_custom_datatype.xml");
-        fs.existsSync(xml_file).should.be.eql(true, " should find " + xml_file);
+        fs.existsSync(xml_file).should.be.eql(true, ` should find ${xml_file}`);
 
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
     });

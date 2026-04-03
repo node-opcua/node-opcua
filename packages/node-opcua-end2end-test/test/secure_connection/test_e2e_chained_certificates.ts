@@ -9,8 +9,10 @@ import {
     readCertificateRevocationList,
     split_der
 } from "node-opcua-crypto";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import should from "should";
+import "mocha";
 
 describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);
