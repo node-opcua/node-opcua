@@ -1281,6 +1281,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                      */
                     senderCertificate: combine_der(partialCertificateChain) // certificate of the private key used to sign the message
                 });
+                break;
             }
             default:
                 throw new Error(

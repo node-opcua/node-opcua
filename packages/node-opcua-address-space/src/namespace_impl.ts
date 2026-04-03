@@ -202,7 +202,7 @@ interface NamespaceConstructorOptions {
     version: string;
 }
 
-function toNodeId(nodeId: NodeId | { nodeId: NodeId } | string | undefined): NodeId | undefined {
+function toNodeId(nodeId: NodeId | { nodeId: NodeId } | string | number | undefined): NodeId | undefined {
     if (!nodeId) {
         return undefined;
     }
@@ -210,6 +210,9 @@ function toNodeId(nodeId: NodeId | { nodeId: NodeId } | string | undefined): Nod
         return nodeId;
     }
     if (typeof nodeId === "string") {
+        return coerceNodeId(nodeId);
+    }
+    if (typeof nodeId === "number") {
         return coerceNodeId(nodeId);
     }
     return nodeId.nodeId;
@@ -1053,7 +1056,7 @@ export class NamespaceImpl implements NamespacePrivate {
             throw new Error("expecting YArrayItemType to be defined , check nodeset xml file");
         }
 
-        const dataType = toNodeId(options.dataType as any);
+        const dataType = toNodeId(options.dataType as unknown as NodeId) || toNodeId((options.value as Variant)?.dataType);
         const optionals = [];
         if (Object.hasOwn(options, "instrumentRange")) {
             optionals.push("InstrumentRange");

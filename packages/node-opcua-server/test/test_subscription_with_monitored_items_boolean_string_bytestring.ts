@@ -4,7 +4,7 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
+import { coerceNodeId, type NodeIdLike } from "node-opcua-nodeid";
 import { TimestampsToReturn } from "node-opcua-service-read";
 import {
     DataChangeFilter,
@@ -14,14 +14,14 @@ import {
     MonitoringMode
 } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import sinon, { SinonStatic } from "sinon";
+import { DataType } from "node-opcua-variant";
+import sinon from "sinon";
 
-import { MonitoredItem, ServerEngine, Subscription } from "..";
+import { ServerEngine, Subscription, type SubscriptionOptions } from "..";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-const context = SessionContext.defaultContext;
+const _context = SessionContext.defaultContext;
 
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
@@ -29,7 +29,7 @@ const fake_publish_engine = getFakePublishEngine();
 
 let dataSourceFrozen = false;
 
-function freeze_data_source() {
+function _freeze_data_source() {
     dataSourceFrozen = true;
 }
 
@@ -40,7 +40,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+    const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -50,16 +50,16 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-function makeSubscription(options: any) {
+function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    (subscription1 as unknown as { $session: { sessionContext: SessionContext } }).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
 }
 
-describe("Subscriptions and MonitoredItems", function (this: any) {
-    this.timeout(Math.max(300000, this._timeout));
+describe("Subscriptions and MonitoredItems", function (this: Mocha.Suite) {
+    this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: IAddressSpace;
     let namespace: INamespace;
@@ -70,14 +70,17 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
         engine = new ServerEngine();
 
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
-            addressSpace = engine.addressSpace!;
+            if (!engine.addressSpace) {
+                return done(new Error("addressSpace is null"));
+            }
+            addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
-            function addVar(typeName: keyof typeof DataType, value: any) {
+            function addVar(typeName: keyof typeof DataType, value: unknown) {
                 namespace.addVariable({
                     organizedBy: "RootFolder",
-                    nodeId: "s=Static_" + typeName,
-                    browseName: "Static_" + typeName,
+                    nodeId: `s=Static_${typeName}`,
+                    browseName: `Static_${typeName}`,
                     dataType: typeName,
                     value: { dataType: DataType[typeName], value: value }
                 });
@@ -110,7 +113,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
     });
 
     beforeEach(function () {
-        const now = new Date().getTime();
+        const now = Date.now();
         this.clock = sinon.useFakeTimers(now);
     });
     afterEach(function () {
