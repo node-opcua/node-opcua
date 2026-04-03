@@ -3,24 +3,22 @@
  */
 // tslint:disable:class-name
 // system
-import { types } from "util";
+
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-
-// opcua requires
-import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
+// opcua requires
+import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 // this package requires
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
-import { ISocketLike, TCP_transport } from "./tcp_transport";
+import type { IHelloAckLimits } from "./i_hello_ack_limits";
+import { type ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
-import { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const debugLog = make_debugLog("TRANSPORT");
 const errorLog = make_errorLog("TRANSPORT");
@@ -65,8 +63,6 @@ const defaultTransportParameters = {
     maxMaxChunkCount: 9000
 };
 
-
-
 export function adjustLimitsWithParameters(helloMessage: IHelloAckLimits, params: ITransportParameters): IHelloAckLimits {
     const defaultReceiveBufferSize = 64 * 1024;
     const defaultSendBufferSize = 64 * 1024;
@@ -104,7 +100,6 @@ export function adjustLimitsWithParameters(helloMessage: IHelloAckLimits, params
     };
 }
 
-
 const defaultAdjustLimits = (hello: IHelloAckLimits) => adjustLimitsWithParameters(hello, defaultTransportParameters);
 interface ServerTCP_transportOptions {
     adjustLimits?: (hello: IHelloAckLimits) => IHelloAckLimits;
@@ -134,8 +129,8 @@ export class ServerTCP_transport extends TCP_transport {
 
     public toString() {
         let str = super.toString();
-        str += "helloReceived...... = " + this._helloReceived + "\n";
-        str += "aborted............ = " + this._aborted + "\n";
+        str += `helloReceived...... = ${this._helloReceived}\n`;
+        str += `aborted............ = ${this._aborted}\n`;
         return str;
     }
 
@@ -170,7 +165,7 @@ export class ServerTCP_transport extends TCP_transport {
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
         // c8 ignore next
-        debugLog && debugLog(chalk.cyan("init socket"));
+        debugLog?.(chalk.cyan("init socket"));
 
         assert(!this._socket, "init already called!");
         this._install_socket(socket);
@@ -186,12 +181,13 @@ export class ServerTCP_transport extends TCP_transport {
         if (this._aborted) {
             errorLog("Internal Er!ror: _abortWithError already called! Should not happen here");
             // already called
-            return callback(new Error(statusCode.name));
+            callback(new Error(statusCode.name));
+            return;
         }
         this._aborted = 1;
 
         this._socket?.setTimeout(0);
-        const err = new Error(extraErrorDescription + " StatusCode = " + statusCode.name);
+        const err = new Error(`${extraErrorDescription} StatusCode = ${statusCode.name}`);
         this._theCloseError = err;
         setTimeout(() => {
             // send the error message and close the connection
@@ -235,8 +231,8 @@ export class ServerTCP_transport extends TCP_transport {
         /* c8 ignore next*/
         if (doDebug) {
             verify_message_chunk(messageChunk);
-            debugLog("server send: " + chalk.yellow("ACK"));
-            debugLog("server send: " + hexDump(messageChunk));
+            debugLog(`server send: ${chalk.yellow("ACK")}`);
+            debugLog(`server send: ${hexDump(messageChunk)}`);
             debugLog("acknowledgeMessage=", acknowledgeMessage);
         }
 
@@ -252,8 +248,13 @@ export class ServerTCP_transport extends TCP_transport {
             if (err) {
                 callback(err);
             } else {
+                // c8 ignore next
+                if (!data) {
+                    callback(new Error("No data received"));
+                    return;
+                }
                 // pass to next stage handle the HEL message
-                this._on_HEL_message(data!, callback);
+                this._on_HEL_message(data, callback);
             }
         });
     }
@@ -268,14 +269,18 @@ export class ServerTCP_transport extends TCP_transport {
 
         /* c8 ignore next*/
         if (doDebug) {
-            debugLog("SERVER received " + chalk.yellow(msgType));
-            debugLog("SERVER received " + hexDump(data));
+            debugLog(`SERVER received ${chalk.yellow(msgType)}`);
+            debugLog(`SERVER received ${hexDump(data)}`);
         }
 
         if (msgType === "HEL") {
             try {
                 assert(data.length >= 24);
-                const helloMessage = decodeMessage(stream, HelloMessage) as HelloMessage;
+                const decoded = decodeMessage(stream, HelloMessage);
+                if (!(decoded instanceof HelloMessage)) {
+                    throw new Error("expecting a HelloMessage");
+                }
+                const helloMessage = decoded;
 
                 // OPCUA Spec 1.03 part 6 - page 41
                 // The Server shall always accept versions greater than what it supports.
@@ -292,11 +297,12 @@ export class ServerTCP_transport extends TCP_transport {
                 if (helloMessage.protocolVersion === 0xdeadbeef || helloMessage.protocolVersion < this.protocolVersion) {
                     // Note: 0xDEADBEEF is our special version number to simulate BadProtocolVersionUnsupported in tests
                     // invalid protocol version requested by client
-                    return this._abortWithError(
+                    this._abortWithError(
                         StatusCodes.BadProtocolVersionUnsupported,
-                        "Protocol Version Error" + this.protocolVersion,
+                        `Protocol Version Error${this.protocolVersion}`,
                         callback
                     );
+                    return;
                 }
 
                 // OPCUA Spec 1.04 part 6 - page 45
@@ -305,11 +311,12 @@ export class ServerTCP_transport extends TCP_transport {
                 // pieces (called ‘MessageChunks’) that are smaller than the buffer size allowed by the
                 // TransportProtocol. UASC requires a TransportProtocol buffer size that is at least 8 192 bytes
                 if (helloMessage.receiveBufferSize < minimumBufferSize || helloMessage.sendBufferSize < minimumBufferSize) {
-                    return this._abortWithError(
+                    this._abortWithError(
                         StatusCodes.BadConnectionRejected,
-                        "Buffer size too small (should be at least " + minimumBufferSize,
+                        `Buffer size too small (should be at least ${minimumBufferSize}`,
                         callback
                     );
+                    return;
                 }
                 // the helloMessage shall only be received once.
                 this._helloReceived = true;
@@ -317,16 +324,13 @@ export class ServerTCP_transport extends TCP_transport {
                 callback(); // no Error
             } catch (err) {
                 // connection rejected because of malformed message
-                return this._abortWithError(
-                    StatusCodes.BadConnectionRejected,
-                    types.isNativeError(err) ? err.message : "",
-                    callback
-                );
+                this._abortWithError(StatusCodes.BadConnectionRejected, err instanceof Error ? err.message : "", callback);
+                return;
             }
         } else {
             // invalid packet , expecting HEL
             /* c8 ignore next*/
-            doDebug && debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
+            doDebug && debugLog(`${chalk.red("BadCommunicationError ")}Expecting 'HEL' message to initiate communication`);
             this._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
         }
     }

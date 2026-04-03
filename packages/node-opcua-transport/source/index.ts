@@ -9,10 +9,10 @@
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  *   The above copyright notice and this permission notice shall be included in all
  *   copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -26,11 +26,11 @@
 export * from "./AcknowledgeMessage";
 export * from "./client_tcp_transport";
 export * from "./HelloMessage";
+export * from "./i_hello_ack_limits";
 export * from "./message_builder_base";
 export * from "./server_tcp_transport";
 export * from "./status_codes";
-export * from "./tcp_transport";
 export * from "./TCPErrorMessage";
+export * from "./tcp_transport";
 export * from "./tools";
 export * from "./utils";
-export * from "./i_hello_ack_limits";

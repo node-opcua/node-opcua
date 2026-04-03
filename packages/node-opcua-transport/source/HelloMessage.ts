@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-transport
  */
-import { decodeUAString, decodeUInt32, encodeUAString, encodeUInt32, UAString, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { decodeUAString, decodeUInt32, encodeUAString, encodeUInt32, type UAString, type UInt32 } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -10,7 +10,7 @@ import {
     initialize_field,
     parameters
 } from "node-opcua-factory";
-import { IHelloAckLimits } from "./i_hello_ack_limits";
+import type { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const schemaHelloMessage = buildStructuredType({
     name: "HelloMessage",
@@ -120,12 +120,12 @@ export class HelloMessage extends BaseUAObject implements IHelloAckLimits {
     }
     public toString(): string {
         let str = "";
-        str += "protocolVersion   = " + this.protocolVersion + "\n";
-        str += "receiveBufferSize = " + this.receiveBufferSize + "\n";
-        str += "sendBufferSize    = " + this.sendBufferSize + "\n";
-        str += "maxMessageSize    = " + this.maxMessageSize + "\n";
-        str += "maxChunkCount     = " + this.maxChunkCount + "\n";
-        str += "endpointUrl       = " + this.endpointUrl + "\n";
+        str += `protocolVersion   = ${this.protocolVersion}\n`;
+        str += `receiveBufferSize = ${this.receiveBufferSize}\n`;
+        str += `sendBufferSize    = ${this.sendBufferSize}\n`;
+        str += `maxMessageSize    = ${this.maxMessageSize}\n`;
+        str += `maxChunkCount     = ${this.maxChunkCount}\n`;
+        str += `endpointUrl       = ${this.endpointUrl}\n`;
         return str;
     }
 }

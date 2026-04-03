@@ -1,8 +1,5 @@
-
 import { Benchmarker } from "../../node-opcua-benchmarker/source/benchmarker";
 import { MessageBuilderBase } from "../source/message_builder_base";
-import { PacketAssembler } from "node-opcua-packet-assembler";
-import { BinaryStream } from "node-opcua-binary-stream";
 
 const bench = new Benchmarker();
 
@@ -24,16 +21,17 @@ const chunk = Buffer.concat([header, chunkBody]);
 const mb = new MessageBuilderBase({
     maxChunkSize: 1024 * 100 // 100KB
 });
-mb.on("full_message_body", (body) => {
+mb.on("full_message_body", (_body) => {
     // no-op
 });
 mb.on("error", (err) => {
     console.error("Error:", err);
 });
 
-bench.add("MessageBuilderBase#feed", () => {
-    mb.feed(chunk);
-})
+bench
+    .add("MessageBuilderBase#feed", () => {
+        mb.feed(chunk);
+    })
     .on("cycle", (message) => console.log(message))
     .on("complete", () => console.log("Done"))
     .run({ max_time: 2 });

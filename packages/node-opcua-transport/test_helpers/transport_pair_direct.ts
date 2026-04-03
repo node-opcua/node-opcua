@@ -1,6 +1,6 @@
 import { setFakeTransport } from "../source";
 import { HalfComChannel } from "./half_com_channel";
-import { ITransportPair } from "./ITransportPair";
+import type { ITransportPair } from "./ITransportPair";
 
 export class TransportPairDirect implements ITransportPair {
     public client: HalfComChannel;
@@ -25,7 +25,7 @@ export class TransportPairDirect implements ITransportPair {
             this.server.onReceiveEnd();
         });
 
-        this.server.on("end", (err?: Error) => {
+        this.server.on("end", (_err?: Error) => {
             //
         });
 
@@ -52,9 +52,9 @@ export class TransportPairDirect implements ITransportPair {
         }
     }
 
-    public popResponse(): any {
+    public popResponse(): ((socket: HalfComChannel, data: Buffer) => void) | undefined {
         if (!this._responses) {
-            return null;
+            return undefined;
         }
         return this._responses.shift();
     }

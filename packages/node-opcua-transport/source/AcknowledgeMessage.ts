@@ -1,17 +1,16 @@
 /**
  * @module node-opcua-transport
  */
-import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { decodeUInt32, encodeUInt32, type UInt32 } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
     initialize_field,
-    parameters,
-    IStructuredTypeSchema
+    parameters
 } from "node-opcua-factory";
-import { IHelloAckLimits } from "./i_hello_ack_limits";
+import type { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const schemaAcknowledgeMessage = buildStructuredType({
     name: "AcknowledgeMessage",
@@ -37,7 +36,7 @@ const schemaAcknowledgeMessage = buildStructuredType({
     ]
 });
 
-interface AcknowledgeMessageOptions extends Partial<IHelloAckLimits>{
+interface AcknowledgeMessageOptions extends Partial<IHelloAckLimits> {
     protocolVersion?: UInt32;
 }
 
@@ -95,11 +94,11 @@ export class AcknowledgeMessage extends BaseUAObject implements IHelloAckLimits 
 
     public toString(): string {
         let str = "";
-        str += "protocolVersion   = " + this.protocolVersion + "\n";
-        str += "receiveBufferSize = " + this.receiveBufferSize + "\n";
-        str += "sendBufferSize    = " + this.sendBufferSize + "\n";
-        str += "maxMessageSize    = " + this.maxMessageSize + "\n";
-        str += "maxChunkCount     = " + this.maxChunkCount + "\n";
+        str += `protocolVersion   = ${this.protocolVersion}\n`;
+        str += `receiveBufferSize = ${this.receiveBufferSize}\n`;
+        str += `sendBufferSize    = ${this.sendBufferSize}\n`;
+        str += `maxMessageSize    = ${this.maxMessageSize}\n`;
+        str += `maxChunkCount     = ${this.maxChunkCount}\n`;
         return str;
     }
 }

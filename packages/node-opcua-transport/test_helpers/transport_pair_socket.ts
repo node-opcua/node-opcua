@@ -1,7 +1,7 @@
-import net from "net";
-import { ISocketLike } from "../source";
+import net from "node:net";
+import type { ISocketLike } from "../source";
 import { FakeServer } from "./fake_server";
-import { ITransportPair } from "./ITransportPair";
+import type { ITransportPair } from "./ITransportPair";
 
 export class TransportPairSocket implements ITransportPair {
     public client: net.Socket;
@@ -12,7 +12,7 @@ export class TransportPairSocket implements ITransportPair {
         this.server = null as unknown as ISocketLike;
         this._server = new FakeServer({ port });
         this.client = new net.Socket();
-        this.client.connect(port, (err?: Error): void => {
+        this.client.connect(port, (_err?: Error): void => {
             /** */
         });
     }

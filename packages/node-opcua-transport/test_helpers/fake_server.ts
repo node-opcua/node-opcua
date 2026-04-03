@@ -1,8 +1,7 @@
-import { EventEmitter } from "events";
-import net from "net";
+import { EventEmitter } from "node:events";
+import net from "node:net";
 import { assert } from "node-opcua-assert";
-import { ISocketLike } from "../source";
-
+import type { ISocketLike } from "../source";
 
 export class FakeServer extends EventEmitter {
     public port: number;
@@ -15,7 +14,7 @@ export class FakeServer extends EventEmitter {
         super();
         this.port = port;
 
-        this.url = "opc.tcp://localhost:" + port;
+        this.url = `opc.tcp://localhost:${port}`;
 
         this.tcpServer = new net.Server();
 
@@ -31,10 +30,10 @@ export class FakeServer extends EventEmitter {
                     func(this._serverSocket, data);
                 }
             });
-            this._serverSocket.on("err", (err: Error) => {
+            this._serverSocket.on("err", (_err: Error) => {
                 // console.log(" @@@@ socket err ",err);
             });
-            this._serverSocket.on("close", (err?: Error) => {
+            this._serverSocket.on("close", (_err?: Error) => {
                 // console.log(" @@@@ socket closed ",err);
             });
             this._serverSocket.on("end", (err?: Error) => {
@@ -45,7 +44,11 @@ export class FakeServer extends EventEmitter {
     }
 
     public getSocket(): ISocketLike {
-        return this._serverSocket!;
+        // c8 ignore next
+        if (!this._serverSocket) {
+            throw new Error("No socket available");
+        }
+        return this._serverSocket;
     }
 
     public initialize(done: () => void): void {

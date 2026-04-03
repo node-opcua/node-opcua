@@ -1,14 +1,14 @@
 import "should";
-import sinon from "sinon";
 
 import { assert } from "node-opcua-assert";
-import { compare_buffers } from "node-opcua-utils";
-import { make_debugLog } from "node-opcua-debug";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
+import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { compare_buffers } from "node-opcua-utils";
+import sinon from "sinon";
 
-import { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } from "..";
+import { AcknowledgeMessage, decodeMessage, HelloMessage, packTcpMessage, ServerTCP_transport, TCPErrorMessage } from "..";
 
 import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers";
 
@@ -21,15 +21,13 @@ const altered_helloMessage = packets.altered_helloMessage1;
 const openChannelRequest = packets.openChannelRequest1;
 const not_an_helloMessage = packets.getEndpointsRequest1;
 
-const { altered_openChannelRequest1, altered_openChannelRequest2 } = packets;
 const { altered_helloMessage2, altered_helloMessage3 } = packets;
-
 
 const doDebugFlow = false;
 const port = 5878;
 
 function installTestFor(TransportPair: typeof TransportPairDirect | typeof TransportPairSocket) {
-    describe("testing ServerTCP_transport with " + TransportPair.name, function (this: Mocha.Test) {
+    describe(`testing ServerTCP_transport with ${TransportPair.name}`, function (this: Mocha.Test) {
         let transportPair: TransportPairDirect | TransportPairSocket;
         beforeEach((done) => {
             transportPair = new TransportPair({ port });
@@ -45,7 +43,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
 
         let serverTransport: ServerTCP_transport;
         let spyOnClose: any;
-      
+
         let oldThrottle = 0;
         beforeEach((done) => {
             oldThrottle = ServerTCP_transport.throttleTime;
@@ -57,7 +55,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             spyOnClose = sinon.spy();
             serverTransport.on("close", spyOnClose);
 
-            transportPair.server.on("data", (data) => {
+            transportPair.server.on("data", (_data) => {
                 doDebugFlow && console.log("Server Socket : Data");
             });
             transportPair.server.on("error", (error) => {
@@ -170,7 +168,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
                 debugLog("failed !", (err as Error)?.message);
             });
 
-            serverTransport.on("chunk", (messageChunk) => {
+            serverTransport.on("chunk", (_messageChunk) => {
                 // console.log("message ", messageChunk);
                 done(new Error("Not expecting an message"));
             });
@@ -232,10 +230,10 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         });
 
         let lastReceivedChunk: Buffer;
-        let counter = 0;
+        let _counter = 0;
 
         function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario() {
-            counter = 0;
+            _counter = 0;
             serverTransport.setLimits({
                 maxChunkCount: 10000,
                 maxMessageSize: 10000,
@@ -254,9 +252,9 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
                 lastReceivedChunk = messageChunk;
             });
 
-            transportPair.client.on("data", (data) => {
+            transportPair.client.on("data", (_data) => {
                 // console.log("client", debug.hexDump(data));
-                counter++;
+                _counter++;
             });
 
             serverTransport.bytesRead.should.equal(0);
@@ -374,7 +372,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         });
 
         it("TSS-B  (issue#504)  server transport accept bufferSize greater than 8192 byes", (done) => {
-            serverTransport.init(transportPair.server, (err) => {
+            serverTransport.init(transportPair.server, (_err) => {
                 /** */
             });
             const helloMessage = new HelloMessage({
@@ -402,7 +400,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         });
 
         it("TSS-C  (issue#504) server transport should not accept bufferSize lower than 8192 byes", (done) => {
-            serverTransport.init(transportPair.server, (err) => {
+            serverTransport.init(transportPair.server, (_err) => {
                 /** */
             });
             const helloMessage = new HelloMessage({
@@ -429,24 +427,24 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         });
 
         it("TSS-D Test CLO message at transport end ", async () => {
-            serverTransport.init(transportPair.server, (err) => {
+            serverTransport.init(transportPair.server, (_err) => {
                 /** */
             });
 
-            serverTransport.on("chunk", (messageChunk) => {
+            serverTransport.on("chunk", (_messageChunk) => {
                 // console.log("message ", messageChunk);
             });
 
-            const b = Buffer.from("434c4f46180000000c000000010000000f0000000f000000", "hex");
+            const _b = Buffer.from("434c4f46180000000c000000010000000f0000000f000000", "hex");
             // xx console.log(debug.hexDump(b, 80));
             // xx console.log(debug.hexDump(packets.packect_outtec, 80));
 
             transportPair.client.on("data", (data) => {
                 const stream = new BinaryStream(data);
-                const messageHeader = readMessageHeader(stream);
+                const _messageHeader = readMessageHeader(stream);
                 //  console.log(messageHeader);
                 stream.rewind();
-                const response = decodeMessage(stream, AcknowledgeMessage);
+                const _response = decodeMessage(stream, AcknowledgeMessage);
                 //  console.log("response = ", response);
             });
 
@@ -468,7 +466,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             const timeout = 400;
             serverTransport.timeout = timeout;
 
-            serverTransport.init(transportPair.server, (err) => {
+            serverTransport.init(transportPair.server, (_err) => {
                 /** */
 
                 transportPair.client.setTimeout(0);
