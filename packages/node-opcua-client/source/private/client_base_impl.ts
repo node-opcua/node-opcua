@@ -203,10 +203,10 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
                 return callback(
                     new Error(
                         "Cannot find an Endpoint matching " +
-                            " security mode: " +
-                            securityMode.toString() +
-                            " policy: " +
-                            securityPolicy.toString()
+                        " security mode: " +
+                        securityMode.toString() +
+                        " policy: " +
+                        securityPolicy.toString()
                     )
                 );
             }
@@ -295,8 +295,7 @@ let g_ClientCounter = 0;
 // tslint:disable-next-line: max-classes-per-file
 export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBaseEvents>
     extends OPCUASecureObject<Events>
-    implements OPCUAClientBase<Events>, IClientBase
-{
+    implements OPCUAClientBase<Events>, IClientBase {
     /**
      * total number of requests that been canceled due to timeout
      */
@@ -842,8 +841,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             // disconnect
             errorLog(
                 "[NODE-OPCUA-E08] initializeCM: clientCertificateManager is null\n" +
-                    "                 This happen when you disconnected the client, to free resources.\n" +
-                    "                 Please create a new OPCUAClient instance if you want to reconnect"
+                "                 This happen when you disconnected the client, to free resources.\n" +
+                "                 Please create a new OPCUAClient instance if you want to reconnect"
             );
             return;
         }
@@ -980,10 +979,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Server is not reachable.`));
                     err = new Error(
                         `The connection cannot be established with server ${endpointUrl} .\n` +
-                            "Please check that the server is up and running or your network configuration.\n" +
-                            "Err = (" +
-                            err.message +
-                            ")"
+                        "Please check that the server is up and running or your network configuration.\n" +
+                        "Err = (" +
+                        err.message +
+                        ")"
                     );
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 } else if (err.message.match(/disconnecting/)) {
@@ -1015,9 +1014,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             callback(
                 new Error(
                     "performMessageTransaction: Invalid client state = " +
-                        this._internalState +
-                        " while performing a transaction " +
-                        request.schema.name
+                    this._internalState +
+                    " while performing a transaction " +
+                    request.schema.name
                 )
             );
             return;
@@ -1130,10 +1129,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         if (args.length === 1) {
             if (typeof args[0] === "function") {
                 this.findServers({} as FindServersRequestLike, args[0] as ResponseCallback<ApplicationDescription[]>);
-                return void 0;
-            } else {
-                throw new Error("Invalid arguments");
+                return;
             }
+            throw new Error("Invalid arguments");
         }
         const options = args[0] as FindServersRequestLike;
         const callback = args[1] as ResponseCallback<ApplicationDescription[]>;
@@ -1158,15 +1156,16 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
             callback(null, response.servers);
         });
+        return undefined;
     }
 
     public findServersOnNetwork(options?: FindServersOnNetworkRequestLike): Promise<ServerOnNetwork[]>;
     public findServersOnNetwork(callback: ResponseCallback<ServerOnNetwork[]>): void;
     public findServersOnNetwork(options: FindServersOnNetworkRequestLike, callback: ResponseCallback<ServerOnNetwork[]>): void;
-    public findServersOnNetwork(...args: unknown[]): Promise<ServerOnNetwork[]> | unknown {
+    public findServersOnNetwork(...args: unknown[]): Promise<ServerOnNetwork[]> | undefined {
         if (args.length === 1) {
             this.findServersOnNetwork({} as FindServersOnNetworkRequestOptions, args[0] as ResponseCallback<ServerOnNetwork[]>);
-            return;
+            return undefined;
         }
         const options = args[0] as FindServersOnNetworkRequestOptions;
         const callback = args[1] as ResponseCallback<ServerOnNetwork[]>;
@@ -1185,7 +1184,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             response.servers = response.servers || [];
             callback(null, response.servers);
         });
-        return;
+        return undefined;
     }
 
     public _removeSession(session: ClientSessionImpl): void {
@@ -1463,9 +1462,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 // no matching end point can be found ...
                 const err1 = new Error(
                     "cannot find endpoint for securityMode=" +
-                        MessageSecurityMode[this.securityMode] +
-                        " policy = " +
-                        this.securityPolicy
+                    MessageSecurityMode[this.securityMode] +
+                    " policy = " +
+                    this.securityPolicy
                 );
                 callback(err1);
                 return;
@@ -1494,7 +1493,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     if (chain.length > 1) {
                         warningLog(
                             "                 verify also that the issuer certificate is trusted and the issuer's certificate is present in the issuer.cert folder\n" +
-                                "                 of the client certificate manager located in ",
+                            "                 of the client certificate manager located in ",
                             this.clientCertificateManager.rootDir
                         );
                     } else {
@@ -1821,7 +1820,7 @@ class TmpClient extends ClientBaseImpl {
         this._setInternalState("connecting");
         this._connectStep2(endpoint, (err?: Error) => {
             if (this.isUnusable()) {
-                this._handleUnrecoverableConnectionFailure(new Error("premature disconnection 4"), callback || (() => {}));
+                this._handleUnrecoverableConnectionFailure(new Error("premature disconnection 4"), callback || (() => { }));
                 return;
             }
             callback?.(err);

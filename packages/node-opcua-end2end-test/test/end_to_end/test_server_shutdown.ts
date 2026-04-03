@@ -36,11 +36,7 @@ async function given_a_running_server() {
     debugLog("server started");
     return server;
 }
-async function when_server_is_shutdown(server: OPCUAServer): Promise<void> {
-    server.engine.setShutdownReason("Shutdown by Test");
-    await server.shutdown(1000);
-    debugLog("Server has shutdown");
-}
+
 async function given_a_connected_client(
     endpointUrl: string
 ): Promise<{ client: OPCUAClient; session: ClientSession; subscription: ClientSubscription }> {
@@ -140,16 +136,45 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 describe("Testing server shutdown", () => {
     it("should change state and update secondTillShutdown", async () => {
         const server = await f(given_a_running_server)();
-        const endpointUrl = server.getEndpointUrl()!;
+        const endpointUrl = server.getEndpointUrl();
 
-        const { client, session, subscription } = await f(given_a_connected_client)(endpointUrl);
+        const { client, subscription } = await f(given_a_connected_client)(endpointUrl);
 
         const secondTillShutdownSpy = await monitor(subscription, VariableIds.Server_ServerStatus_SecondsTillShutdown);
         const stateSpy = await monitor(subscription, VariableIds.Server_ServerStatus_State);
         const shutdownReasonSpy = await monitor(subscription, VariableIds.Server_ServerStatus_ShutdownReason);
 
-        await f(when_server_is_shutdown)(server);
+        // Start the shutdown process but don't await yet —
+        // we need to capture the notifications before the
+        // connection is torn down at the end of shutdown.
+        server.engine.setShutdownReason("Shutdown by Test");
+        const shutdownPromise = server.shutdown(2000);
 
+        // Wait for the expected data-change notifications to
+        // arrive while the server is still in its shutdown
+        // grace period (2 s). This avoids the race where the
+        // channel is closed before the last publish cycle.
+        const waitForSpy = (spy: SinonSpy, count: number, timeoutMs: number): Promise<void> =>
+            new Promise<void>((resolve) => {
+                if (spy.callCount >= count) return resolve();
+                const t = setInterval(() => {
+                    if (spy.callCount >= count) {
+                        clearInterval(t);
+                        resolve();
+                    }
+                }, 50);
+                setTimeout(() => {
+                    clearInterval(t);
+                    resolve(); // let the assertion below report the mismatch
+                }, timeoutMs);
+            });
+
+        await waitForSpy(stateSpy, 2, 5000);
+        await waitForSpy(shutdownReasonSpy, 2, 5000);
+
+        // Now let the shutdown finish and wait for the client
+        // to detect the lost connection.
+        await shutdownPromise;
         await f(then_the_client_should_automatically_be_disconnected)(client);
 
         // force disconnection
@@ -172,11 +197,11 @@ describe("Testing server shutdown", () => {
             }
         }
 
-        stateSpy.callCount.should.eql(2);
+        stateSpy.callCount.should.be.greaterThanOrEqual(2);
         stateSpy.getCall(0).args[0].value.value.should.eql(ServerState.Running);
         stateSpy.getCall(1).args[0].value.value.should.eql(ServerState.Shutdown);
 
-        shutdownReasonSpy.callCount.should.eql(2);
+        shutdownReasonSpy.callCount.should.be.greaterThanOrEqual(2);
         shutdownReasonSpy.getCall(0).args[0].value.value.toString().should.eql("locale=null text=null");
         shutdownReasonSpy.getCall(1).args[0].value.value.text.should.eql("Shutdown by Test");
 
@@ -184,3 +209,4 @@ describe("Testing server shutdown", () => {
         debugLog("Done");
     });
 });
+

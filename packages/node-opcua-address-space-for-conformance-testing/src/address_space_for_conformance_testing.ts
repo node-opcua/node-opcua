@@ -409,7 +409,12 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     function delete_Timer() {
         // delete previous timer if any
         if (timer) {
-            clearInterval(timer);
+            try {
+                clearInterval(timer);
+            } catch (_err) {
+                /* c8 ignore next */
+                // the leak detector may throw if the timer handle is already disposed
+            }
             timer = undefined;
         }
     }
