@@ -1,23 +1,21 @@
 /**
  * @module node-opcua-certificate-manager
  */
-// tslint:disable:no-empty
-
+import fs from "node:fs";
+import path from "node:path";
 import envPaths from "env-paths";
-import fs from "fs";
 import { assert } from "node-opcua-assert";
-import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
+import { type Certificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CertificateManager, type CertificateManagerOptions } from "node-opcua-pki";
 import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
-import path from "path";
 
 const paths = envPaths("node-opcua-default");
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 
 export interface ICertificateManager {
     getTrustStatus(certificate: Certificate): Promise<StatusCode>;
@@ -41,8 +39,6 @@ export interface ICertificateManager {
 
     rejectCertificate(certificate: Certificate): Promise<void>;
 }
-
-type ReadFileFunc = (filename: string, encoding: string, callback: (err: Error | null, content?: Buffer) => void) => void;
 
 export interface OPCUACertificateManagerOptions {
     /**
@@ -79,7 +75,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         if (!fs.existsSync(location)) {
             try {
                 fs.mkdirSync(location, { recursive: true });
-            } catch (err) {
+            } catch (_err) {
                 errorLog(" cannot create folder ", location, fs.existsSync(location));
             }
         }
@@ -97,13 +93,13 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
     public async initialize(): Promise<void>;
     public initialize(callback: (err?: Error) => void): void;
-    public initialize(...args: any[]): any {
-        const callback = args[0];
+    public initialize(...args: unknown[]): unknown {
+        const callback = args[0] as (err?: Error) => void;
         assert(callback && typeof callback === "function");
         return super
             .initialize()
             .then(() => callback())
-            .catch((err) => callback(err));
+            .catch((err) => callback(err as Error));
     }
 
     public async dispose(): Promise<void> {

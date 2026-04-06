@@ -471,21 +471,29 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     public shutdown(done: (err?: Error | null) => void): void {
         assert(typeof done === "function");
         uninstallPeriodicClockAdjustment();
-        this.serverCertificateManager.dispose().then(() => {
-            debugLog("OPCUABaseServer#shutdown starting");
-            const promises = this.endpoints.map((endpoint) => {
-                return new Promise<void>((resolve, reject) => {
-                    cleanupEndpoint(endpoint);
-                    endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+        this.serverCertificateManager
+            .dispose()
+            .catch((err) => {
+                // The certificate manager may already be disposing if
+                // userCertificateManager and serverCertificateManager
+                // point to the same instance (common in tests).
+                debugLog("OPCUABaseServer#shutdown serverCertificateManager.dispose() error:", err.message);
+            })
+            .then(() => {
+                debugLog("OPCUABaseServer#shutdown starting");
+                const promises = this.endpoints.map((endpoint) => {
+                    return new Promise<void>((resolve, reject) => {
+                        cleanupEndpoint(endpoint);
+                        endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+                    });
                 });
+                Promise.all(promises)
+                    .then(() => {
+                        debugLog("shutdown completed");
+                        done();
+                    })
+                    .catch((err) => done(err));
             });
-            Promise.all(promises)
-                .then(() => {
-                    debugLog("shutdown completed");
-                    done();
-                })
-                .catch((err) => done(err));
-        });
     }
 
     public async shutdownChannels(): Promise<void>;

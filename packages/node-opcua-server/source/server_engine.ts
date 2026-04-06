@@ -746,10 +746,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     public setServerState(serverState: ServerState): void {
         assert(serverState !== null && serverState !== undefined);
+        const oldState = this._serverStatus.state;
         this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
             dataType: DataType.Int32,
             value: serverState
         });
+        if (oldState !== serverState) {
+            this.emit("serverStateChanged", oldState, serverState);
+        }
     }
 
     public getServerState(): ServerState {

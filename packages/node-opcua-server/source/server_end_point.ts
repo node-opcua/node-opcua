@@ -25,6 +25,7 @@ import {
     toURI
 } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
+import type { StatusCode } from "node-opcua-status-code";
 import type { IHelloAckLimits } from "node-opcua-transport";
 import type { UserTokenPolicyOptions } from "node-opcua-types";
 
@@ -338,6 +339,35 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public _on_close_channel?: (channel: ServerSecureChannelLayer) => void;
     public _on_connectionRefused?: (socketData: ISocketData) => void;
     public _on_openSecureChannelFailure?: (socketData: ISocketData, channelData: IChannelData) => void;
+
+    /**
+     * Optional callback to adjust the certificate status code
+     * during OpenSecureChannel.
+     *
+     * When set (typically by `installPushCertificateManagementOnServer`),
+     * this callback is invoked whenever the base certificate check
+     * returns a non-Good status. It can choose to relax certain
+     * errors (e.g. untrusted/missing-CRL) based on application
+     * policy such as the server being in NoConfiguration state.
+     */
+    public onAdjustCertificateStatus?: (
+        statusCode: StatusCode,
+        certificate: Certificate
+    ) => StatusCode | Promise<StatusCode>;
+
+    /**
+     * Implements `ServerSecureChannelParent.adjustCertificateStatus`.
+     * Delegates to the `onAdjustCertificateStatus` callback if set.
+     */
+    public adjustCertificateStatus(
+        statusCode: StatusCode,
+        certificate: Certificate
+    ): StatusCode | Promise<StatusCode> {
+        if (this.onAdjustCertificateStatus) {
+            return this.onAdjustCertificateStatus(statusCode, certificate);
+        }
+        return statusCode;
+    }
 
     /**
      * Certificate chain provider — delegates all cert/key access.

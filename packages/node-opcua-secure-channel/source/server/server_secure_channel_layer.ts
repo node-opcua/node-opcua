@@ -102,6 +102,23 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
         securityPolicy: SecurityPolicy,
         endpointUri: string | null
     ): EndpointDescription | null;
+
+    /**
+     * Optional hook to adjust the certificate status code
+     * returned by `checkCertificate()`.
+     *
+     * Called only when the base certificate check returns a
+     * non-Good status. Implementations can choose to relax
+     * certain errors based on application-level policy
+     * (e.g. accepting untrusted certs during initial provisioning).
+     *
+     * If not implemented, the original status code is returned
+     * unchanged.
+     */
+    adjustCertificateStatus?(
+        statusCode: StatusCode,
+        certificate: Certificate
+    ): StatusCode | Promise<StatusCode>;
 }
 
 export interface ServerSecureChannelLayerOptions {
@@ -398,7 +415,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         if (this.#transport) {
             this.#transport.dispose();
-            (this as any).transport = undefined;
+            (this as unknown as {transport: undefined | ServerTCP_transport}).transport = undefined;
         }
         this.channelId = 0xdeadbeef;
         this.#timeoutId = null;
@@ -648,7 +665,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     "send_response: failed to send ServiceFault, " + "aborting to prevent infinite recursion. " + "statusCode =",
                     statusCode.toString()
                 );
-                callback?.(new Error("Failed to send ServiceFault: " + statusCode.toString()));
+                callback?.(new Error(`Failed to send ServiceFault: ${statusCode.toString()}`));
                 return;
             }
             // The original response could not be chunked.
@@ -709,7 +726,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!this.certificateManager) {
             return StatusCodes.BadInternalError;
         }
-        const statusCode = await this.certificateManager.checkCertificate(certificate);
+        let statusCode = await this.certificateManager.checkCertificate(certificate);
         if (statusCode.isGood()) {
             const certInfo = exploreCertificate(certificate);
             if (!certInfo.tbsCertificate.extensions?.keyUsage?.dataEncipherment) {
@@ -718,6 +735,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (!certInfo.tbsCertificate.extensions?.keyUsage?.digitalSignature) {
                 return StatusCodes.BadCertificateUseNotAllowed;
             }
+        }
+        // Allow the parent (e.g. OPCUAServerEndPoint) to relax
+        // certain certificate errors based on application-level
+        // policy (e.g. NoConfiguration state during GDS onboarding).
+        if (statusCode.isNotGood() && this.#parent?.adjustCertificateStatus) {
+            statusCode = await this.#parent.adjustCertificateStatus(statusCode, certificate);
         }
         return statusCode;
     }
@@ -1135,7 +1158,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 );
                 derivedKeys = fallbackToken.derivedKeys;
             } else {
-                errorLog("no valid token available at all," + ` securityMode=${MessageSecurityMode[this.securityMode]}`);
+                errorLog(`no valid token available at all, securityMode=${MessageSecurityMode[this.securityMode]}`);
                 return null;
             }
         }
@@ -1214,10 +1237,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
         //    This indicates what public key was used to encrypt the MessageChunk
         //   This field shall be null if the message is not encrypted.
         const evaluateReceiverThumbprint = () => {
-            if (this.securityMode === MessageSecurityMode.None) {
-                return null;
-            }
-            const part1 = split_der(this.#clientCertificate!)[0];
+            if (this.securityMode === MessageSecurityMode.None) return null;
+            
+            // c8 ignore next: this should never happen
+            if (!this.#clientCertificate) return null;
+            
+            const part1 = split_der(this.#clientCertificate)[0];
             const receiverCertificateThumbprint = getThumbprint(part1);
             return receiverCertificateThumbprint;
         };
