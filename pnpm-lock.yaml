@@ -93,8 +93,8 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -740,8 +740,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-status-code:
         specifier: 2.168.0
         version: link:../node-opcua-status-code
@@ -844,8 +844,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-pseudo-session:
         specifier: 2.168.0
         version: link:../node-opcua-pseudo-session
@@ -1351,8 +1351,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-server:
         specifier: 2.168.0
         version: link:../node-opcua-server
@@ -2675,8 +2675,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-server-configuration:
         specifier: 2.168.0
         version: link:../node-opcua-server-configuration
@@ -2902,8 +2902,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-secure-channel:
         specifier: 2.168.0
         version: link:../node-opcua-secure-channel
@@ -3038,8 +3038,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
       node-opcua-pseudo-session:
         specifier: 2.168.0
         version: link:../node-opcua-pseudo-session
@@ -3127,8 +3127,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.12.0
-        version: 6.12.0
+        specifier: 6.12.1
+        version: 6.12.1
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4736,8 +4736,8 @@ packages:
   node-opcua-crypto@5.3.3:
     resolution: {integrity: sha512-GWIcxaYIS7gR9SsFw//352xrE5SJqd0O7o/2hcWfoYpFPeqVwdGfyM7K2Sf4axSsn/z6QwEMOkzghZgSiAeZ8g==}
 
-  node-opcua-pki@6.12.0:
-    resolution: {integrity: sha512-lb8F27IIJ7Pkl/kOMxrZCuXH5bhrtv4FJHbF6tJw6altR2LZrOuKHW2uXTHvDdFSyFWZTycHt7cb4RnJo/gz6A==}
+  node-opcua-pki@6.12.1:
+    resolution: {integrity: sha512-44f/w4mibGwTtdL6aF26vTCLNbhDFjJOQ4zT0KdMK2Vhb6NJeq2O/YTLGQf5vG68N6u0NLDD/OGdeXPhBbd51Q==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6108,7 +6108,7 @@ snapshots:
       reflect-metadata: 0.2.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.12.0:
+  node-opcua-pki@6.12.1:
     dependencies:
       '@ster5/global-mutex': 3.3.0
       byline: 5.0.0
