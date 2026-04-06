@@ -1,16 +1,24 @@
 #!/usr/bin/env tsx
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
-import path from "path";
-import chalk from "chalk";
-
-import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerOptions, WellKnownRoles } from "node-opcua";
-import { CertificateManager } from "node-opcua-pki";
-import { installPushCertificateManagement } from "node-opcua-server-configuration";
-import yargs from "yargs";
+import path from "node:path";
 import bcrypt from "bcryptjs";
-
+import chalk from "chalk";
 import envPaths from "env-paths";
+import { 
+    makeRoles, 
+    nodesets, 
+    OPCUACertificateManager, 
+    OPCUAServer, 
+    type OPCUAServerOptions, 
+    WellKnownRoles 
+} from "node-opcua";
+import { CertificateManager } from "node-opcua-pki";
+import { 
+    installPushCertificateManagement 
+} from "node-opcua-server-configuration";
+import yargs from "yargs";
+
 const config = envPaths("node-opcua-default").config;
 const pkiFolder = path.join(config, "PKI");
 
@@ -90,15 +98,17 @@ async function main() {
 
     await server.initialize();
 
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("Address space not initialized");
+    }
     // to do: expose new nodeid here
-    const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
-    ns;
+    const _ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
     await installPushCertificateManagement(addressSpace, {
         applicationGroup: server.serverCertificateManager,
         userTokenGroup: server.userCertificateManager,
-        applicationUri: server.serverInfo.applicationUri!
+        applicationUri: server.serverInfo.applicationUri
     });
 
     console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
@@ -106,11 +116,11 @@ async function main() {
     try {
         await server.start();
     } catch (err) {
-        console.log(" Server failed to start ... exiting");
+        console.log(" Server failed to start ... exiting", (err as Error).message);
         process.exit(-3);
     }
 
-    const endpointUrl = server.getEndpointUrl()!;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

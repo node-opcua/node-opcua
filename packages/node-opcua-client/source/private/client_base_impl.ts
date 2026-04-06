@@ -1481,14 +1481,35 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
                     warningLog("                 clientCertificateManager.rootDir = ", this.clientCertificateManager.rootDir);
 
-                    const f = (b: Buffer) =>
-                        `                 ${b.toString("base64").replace(/(.{80})/g, "$1\n                 ")}`;
-
                     const chain = split_der(endpoint.serverCertificate);
-                    warningLog(`                  server certificate contains ${chain.length} elements`);
+                    warningLog(`                 server certificate chain contains ${chain.length} element(s)`);
                     for (let i = 0; i < chain.length; i++) {
                         const c = chain[i];
-                        warningLog("certificate", i, `\n${f(c)}`);
+                        const thumbprint = makeSHA1Thumbprint(c).toString("hex");
+                        try {
+                            const { exploreCertificate } = require("node-opcua-crypto");
+                            const info = exploreCertificate(c);
+                            const tbs = info.tbsCertificate;
+                            const cn = tbs.subject?.commonName ?? "unknown";
+                            const issuerCN = tbs.issuer?.commonName ?? "unknown";
+                            const isCA = tbs.extensions?.basicConstraints?.cA === true;
+                            const isSelfSigned = JSON.stringify(tbs.subject) === JSON.stringify(tbs.issuer);
+                            const certType = isCA
+                                ? (isSelfSigned ? "Root CA" : "Intermediate CA")
+                                : (isSelfSigned ? "Application (self-signed)" : "Application (CA-signed)");
+                            const ski = tbs.extensions?.subjectKeyIdentifier ?? "-";
+                            const aki = tbs.extensions?.authorityKeyIdentifier?.keyIdentifier ?? "-";
+                            const notBefore = tbs.validity.notBefore.toISOString();
+                            const notAfter = tbs.validity.notAfter.toISOString();
+                            warningLog(`                 [${i + 1}/${chain.length}] "${cn}" (${certType})`);
+                            warningLog(`                   thumbprint: ${thumbprint}`);
+                            warningLog(`                   issuer:     "${issuerCN}"`);
+                            warningLog(`                   SKI:        ${ski}`);
+                            warningLog(`                   AKI:        ${aki}`);
+                            warningLog(`                   validity:   ${notBefore} → ${notAfter}`);
+                        } catch {
+                            warningLog(`                 [${i + 1}/${chain.length}] thumbprint: ${thumbprint} (details unavailable)`);
+                        }
                     }
                     if (chain.length > 1) {
                         warningLog(

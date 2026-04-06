@@ -9,9 +9,11 @@ import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-spa
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ICertificateKeyPairProvider, invalidateCachedSecrets } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { invalidateServerCertificateCache, type OPCUAServer } from "node-opcua-server";
-import type { ApplicationDescriptionOptions } from "node-opcua-types";
+import { type Certificate, split_der, exploreCertificateInfo } from "node-opcua-crypto/web";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { invalidateServerCertificateCache, type OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type ApplicationDescriptionOptions, ServerState } from "node-opcua-types";
 
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers.js";
 import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
@@ -19,6 +21,7 @@ import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certi
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
+const warningLog = make_warningLog("ServerConfiguration");
 
 /** Relative path from cert manager root to the leaf certificate PEM. */
 const CERT_PEM_RELATIVE_PATH = "own/certs/certificate.pem";
@@ -157,4 +160,123 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
             }
         });
     });
+
+    // ── Install NoConfiguration certificate relaxation ─────────
+    //
+    // When the server is in NoConfiguration state (awaiting GDS
+    // provisioning), relax certain certificate trust/CRL errors
+    // so that the GDS client can connect and provision the server.
+    //
+    // This hook is ONLY installed when push certificate management
+    // is active — bare servers are completely unaffected.
+    installCertificateRelaxationHook(server);
+}
+
+// ── Certificate relaxation for NoConfiguration state ──────────
+
+/**
+ * Status codes that can be relaxed during NoConfiguration state.
+ *
+ * These represent "trust infrastructure not yet set up" situations
+ * (missing issuers, missing CRLs) — NOT security violations
+ * (revoked, expired, invalid).
+ */
+function isRelaxableCertificateError(statusCode: StatusCode): boolean {
+    return (
+        StatusCodes.BadCertificateUntrusted.equals(statusCode) ||
+        StatusCodes.BadCertificateRevocationUnknown.equals(statusCode) ||
+        StatusCodes.BadCertificateIssuerRevocationUnknown.equals(statusCode) ||
+        StatusCodes.BadCertificateChainIncomplete.equals(statusCode)
+    );
+}
+
+/**
+ * Auto-trust the client certificate and its issuer CA certificates.
+ *
+ * Extracts the certificate chain from the DER-encoded certificate
+ * blob and trusts each certificate in the chain.
+ */
+async function autoTrustCertificateChain(
+    server: OPCUAServer,
+    certificate: Certificate
+): Promise<void> {
+    let chain: Certificate[];
+    try {
+        chain = split_der(certificate);
+    } catch (err) {
+        warningLog(
+            "[NoConfiguration] Cannot parse certificate chain for auto-trust:",
+            (err as Error).message
+        );
+        return;
+    }
+    for (const cert of chain) {
+        // Validate the DER structure before calling trustCertificate.
+        // Garbage data (e.g. zero-filled buffers) parses into tiny blobs
+        // that are not valid X.509 certificates.
+        try {
+            exploreCertificateInfo(cert);
+        } catch (err) {
+            warningLog(
+                "[NoConfiguration] Skipping invalid certificate in chain for auto-trust:",
+                (err as Error).message
+            );
+            continue;
+        }
+        try {
+            await server.serverCertificateManager.trustCertificate(cert);
+        } catch (err) {
+            // ENOENT can happen if another concurrent call already
+            // moved the cert from rejected to trusted.
+            if ((err as Error & { code?: string }).code !== "ENOENT") {
+                warningLog(
+                    "[NoConfiguration] Failed to auto-trust certificate:",
+                    (err as Error).message
+                );
+            }
+        }
+    }
+}
+
+/**
+ * Install the `onAdjustCertificateStatus` hook on every endpoint.
+ *
+ * When the server is in `ServerState.NoConfiguration`, the hook
+ * relaxes trust/CRL errors so that a GDS client with a valid
+ * full-chain certificate can connect and provision the server.
+ *
+ * The relaxed certificate (and its issuer CA) are auto-trusted
+ * so that after the server transitions to Running, the same
+ * client is accepted by normal validation.
+ */
+function installCertificateRelaxationHook(server: OPCUAServer): void {
+    const adjustCertificateStatus = async (
+        statusCode: StatusCode,
+        certificate: Certificate
+    ): Promise<StatusCode> => {
+        // Only relax in NoConfiguration state
+        if (server.engine.getServerState() !== ServerState.NoConfiguration) {
+            return statusCode;
+        }
+
+        // Only relax trust-infrastructure errors, NOT security errors
+        if (!isRelaxableCertificateError(statusCode)) {
+            return statusCode;
+        }
+
+        doDebug && warningLog(
+            `[NoConfiguration] Relaxing certificate check:`,
+            `${statusCode.toString()} → Good`,
+            "(server is awaiting GDS provisioning)"
+        );
+
+        // Auto-trust the entire certificate chain (leaf + issuer CAs)
+        await autoTrustCertificateChain(server, certificate);
+
+        return StatusCodes.Good;
+    };
+
+    for (const endpoint of server.endpoints) {
+        (endpoint as OPCUAServerEndPoint).onAdjustCertificateStatus = adjustCertificateStatus;
+    }
 }
