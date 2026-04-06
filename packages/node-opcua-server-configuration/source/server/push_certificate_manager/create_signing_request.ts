@@ -118,20 +118,30 @@ export async function executeCreateSigningRequest(
         });
     }
 
-    const options = {
-        applicationUri: serverImpl.applicationUri,
-        subject: subjectName
-    };
+    try {
+        const options = {
+            applicationUri: serverImpl.applicationUri,
+            subject: subjectName
+        };
 
-    const activeCertificateManager = serverImpl.tmpCertificateManager || certificateManager;
+        const activeCertificateManager = serverImpl.tmpCertificateManager || certificateManager;
 
-    await activeCertificateManager.initialize();
-    const csrFile = await activeCertificateManager.createCertificateRequest(options);
-    const csrPEM = await fs.promises.readFile(csrFile, "utf8");
-    const certificateSigningRequest = convertPEMtoDER(csrPEM);
+        await activeCertificateManager.initialize();
+        const csrFile = await activeCertificateManager.createCertificateRequest(options);
+        const csrPEM = await fs.promises.readFile(csrFile, "utf8");
+        const certificateSigningRequest = convertPEMtoDER(csrPEM);
 
-    return {
-        certificateSigningRequest,
-        statusCode: StatusCodes.Good
-    };
+        return {
+            certificateSigningRequest,
+            statusCode: StatusCodes.Good
+        };
+    } catch (err) {
+        errorLog(
+            "CreateSigningRequest failed during CSR generation:",
+            (err as Error).message,
+            "subject=", subjectName,
+            "applicationUri=", serverImpl.applicationUri
+        );
+        return { statusCode: StatusCodes.BadInternalError };
+    }
 }
