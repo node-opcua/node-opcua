@@ -230,7 +230,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
  */
 async function _verify_serverCertificate(certificateManager: OPCUACertificateManager, serverCertificate: Certificate) {
     const status = await certificateManager.checkCertificate(serverCertificate);
-    if (status !== StatusCodes.Good) {
+    if (!status.isGood()) {
         // c8 ignore next
         if (doDebug) {
             // do it again for debug purposes

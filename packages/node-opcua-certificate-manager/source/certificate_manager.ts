@@ -133,12 +133,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         const statusCode = StatusCodes[status];
 
         debugLog(`checkCertificate => StatusCode = ${statusCode.toString()}`);
-        if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
+        if (statusCode.equals(StatusCodes.BadCertificateUntrusted) || statusCode.equals(StatusCodes.BadCertificateRevocationUnknown)) {
             const topCertificateInChain = certificates[0];
             const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
             if (this.automaticallyAcceptUnknownCertificate) {
                 debugLog("automaticallyAcceptUnknownCertificate = true");
-                debugLog(`certificate with thumbprint ${thumbprint} is now trusted`);
+                debugLog(`certificate with thumbprint ${thumbprint} is now trusted (was: ${statusCode.toString()})`);
                 try {
                     await this.trustCertificate(topCertificateInChain);
                 } catch (err) {
