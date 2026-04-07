@@ -108,7 +108,7 @@ async function main() {
     await installPushCertificateManagement(addressSpace, {
         applicationGroup: server.serverCertificateManager,
         userTokenGroup: server.userCertificateManager,
-        applicationUri: server.serverInfo.applicationUri
+        applicationUri: server.serverInfo.applicationUri || ""
     });
 
     console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
