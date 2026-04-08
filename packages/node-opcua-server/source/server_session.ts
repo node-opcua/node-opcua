@@ -846,6 +846,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public async resendMonitoredItemInitialValues(): Promise<void> {
+        if (!this.publishEngine) return;
         for (const subscription of this.publishEngine.subscriptions) {
             await subscription.resendInitialValues();
         }
