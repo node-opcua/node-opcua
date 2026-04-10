@@ -180,6 +180,28 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
  * These represent "trust infrastructure not yet set up" situations
  * (missing issuers, missing CRLs) — NOT security violations
  * (revoked, expired, invalid).
+ *
+ * ### Why `BadCertificateUntrusted` MUST be included (SECURITY NOTE)
+ *
+ * In `NoConfiguration` the server's trust store is **empty** — no
+ * trusted certificates and no CRLs exist yet.  A GDS client that
+ * connects to provision the server will inevitably present a
+ * certificate that is "untrusted" simply because nothing is trusted
+ * yet.  Removing `BadCertificateUntrusted` from this list would make
+ * it impossible for the GDS to connect, breaking the entire push
+ * certificate management provisioning workflow (chicken-and-egg).
+ *
+ * **Security boundary:** this relaxation is ONLY active while the
+ * server state is `ServerState.NoConfiguration`.  Once the server
+ * transitions to `Running` (after successful provisioning) the
+ * relaxation hook returns the original status code unchanged and
+ * normal strict certificate validation applies.  The accepted
+ * certificate is auto-trusted (see `autoTrustCertificateChain`)
+ * so that subsequent connections succeed under normal validation.
+ *
+ * Errors that indicate an active security violation (revoked,
+ * expired, invalid signature, wrong usage) are **never** relaxed,
+ * even in `NoConfiguration`.
  */
 function isRelaxableCertificateError(statusCode: StatusCode): boolean {
     return (
