@@ -213,10 +213,18 @@ function isRelaxableCertificateError(statusCode: StatusCode): boolean {
 }
 
 /**
- * Auto-trust the client certificate and its issuer CA certificates.
+ * Auto-trust the client's leaf certificate during NoConfiguration.
  *
- * Extracts the certificate chain from the DER-encoded certificate
- * blob and trusts each certificate in the chain.
+ * Only the **leaf** (chain[0]) is placed in the trusted store —
+ * this is sufficient for the GDS client to reconnect after the
+ * server transitions to Running (the PKI verifier short-circuits
+ * to `Good` when the leaf itself is explicitly trusted).
+ *
+ * Issuer (CA) certificates from the chain are added to the
+ * **issuers/** store for chain-building purposes, but they do
+ * NOT become trust anchors.  This prevents a single provisioning
+ * connection from unintentionally granting trust to every
+ * certificate signed by the same CA.
  */
 async function autoTrustCertificateChain(
     server: OPCUAServer,
@@ -232,8 +240,12 @@ async function autoTrustCertificateChain(
         );
         return;
     }
-    for (const cert of chain) {
-        // Validate the DER structure before calling trustCertificate.
+
+    const cm = server.serverCertificateManager;
+
+    for (let i = 0; i < chain.length; i++) {
+        const cert = chain[i];
+        // Validate the DER structure before persisting.
         // Garbage data (e.g. zero-filled buffers) parses into tiny blobs
         // that are not valid X.509 certificates.
         try {
@@ -245,14 +257,29 @@ async function autoTrustCertificateChain(
             );
             continue;
         }
-        try {
-            await server.serverCertificateManager.trustCertificate(cert);
-        } catch (err) {
-            // ENOENT can happen if another concurrent call already
-            // moved the cert from rejected to trusted.
-            if ((err as Error & { code?: string }).code !== "ENOENT") {
+
+        if (i === 0) {
+            // Leaf certificate → trust explicitly
+            try {
+                await cm.trustCertificate(cert);
+            } catch (err) {
+                // ENOENT can happen if another concurrent call already
+                // moved the cert from rejected to trusted.
+                if ((err as Error & { code?: string }).code !== "ENOENT") {
+                    warningLog(
+                        "[NoConfiguration] Failed to auto-trust leaf certificate:",
+                        (err as Error).message
+                    );
+                }
+            }
+        } else {
+            // Issuer CA certificate → add to issuers/ (chain-building
+            // only, does NOT establish a trust anchor)
+            try {
+                await cm.addIssuer(cert);
+            } catch (err) {
                 warningLog(
-                    "[NoConfiguration] Failed to auto-trust certificate:",
+                    "[NoConfiguration] Failed to add issuer certificate:",
                     (err as Error).message
                 );
             }
@@ -267,9 +294,10 @@ async function autoTrustCertificateChain(
  * relaxes trust/CRL errors so that a GDS client with a valid
  * full-chain certificate can connect and provision the server.
  *
- * The relaxed certificate (and its issuer CA) are auto-trusted
- * so that after the server transitions to Running, the same
- * client is accepted by normal validation.
+ * The leaf certificate is auto-trusted so that after the server
+ * transitions to Running, the same client is accepted by normal
+ * validation.  Issuer CAs are placed in `issuers/` for chain
+ * building but do not become trust anchors.
  */
 function installCertificateRelaxationHook(server: OPCUAServer): void {
     const adjustCertificateStatus = async (
@@ -292,7 +320,7 @@ function installCertificateRelaxationHook(server: OPCUAServer): void {
             "(server is awaiting GDS provisioning)"
         );
 
-        // Auto-trust the entire certificate chain (leaf + issuer CAs)
+        // Auto-trust the leaf certificate; issuer CAs go to issuers/
         await autoTrustCertificateChain(server, certificate);
 
         return StatusCodes.Good;
