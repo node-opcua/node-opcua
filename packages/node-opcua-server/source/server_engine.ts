@@ -746,6 +746,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     public setServerState(serverState: ServerState): void {
         assert(serverState !== null && serverState !== undefined);
+        if (!this._serverStatus) {
+            return;
+        }
         const oldState = this._serverStatus.state;
         this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
             dataType: DataType.Int32,
@@ -1432,6 +1435,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     if (!serverDiagnosticsNode) {
                         return;
                     }
+
                     if (true) {
                         // set serverDiagnosticsNode enabledFlag writeable for admin user only
                         // TO DO ...
@@ -2016,8 +2020,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             /* c8 ignore next */
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                    chalk.cyan(nodeId.toString()) +
-                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
