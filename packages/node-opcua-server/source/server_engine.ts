@@ -24,7 +24,8 @@ import {
     type UAServerDiagnostics,
     type UAServerDiagnosticsSummary,
     type UAServerStatus,
-    type UAVariable
+    type UAVariable,
+    WellKnownRoles
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { assert } from "node-opcua-assert";
@@ -61,6 +62,7 @@ import {
     type BuildInfoOptions,
     type CallMethodRequest,
     type CallMethodResultOptions,
+    PermissionType,
     ProgramDiagnosticDataType,
     type ReadRequestOptions,
     ReadValueId,
@@ -1436,12 +1438,26 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         return;
                     }
 
-                    if (true) {
-                        // set serverDiagnosticsNode enabledFlag writeable for admin user only
-                        // TO DO ...
-                        serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead");
-                        serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead");
-                    }
+                    // OPC UA Part 5 §12.4: EnabledFlag should be writable
+                    // only by administrators (ConfigureAdmin / SecurityAdmin).
+                    // accessLevel declares the capability (readable + writable),
+                    // while rolePermissions restrict Write to admin roles only.
+                    serverDiagnosticsNode.enabledFlag.accessLevel =
+                        makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                    serverDiagnosticsNode.enabledFlag.userAccessLevel =
+                        makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                    serverDiagnosticsNode.enabledFlag.setRolePermissions([
+                        { roleId: WellKnownRoles.Anonymous, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.AuthenticatedUser, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.Observer, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.Operator, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.Engineer, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.Supervisor, permissions: PermissionType.Read | PermissionType.Browse },
+                        { roleId: WellKnownRoles.ConfigureAdmin,
+                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write },
+                        { roleId: WellKnownRoles.SecurityAdmin,
+                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write }
+                    ]);
 
                     // A Server may not expose the SamplingIntervalDiagnosticsArray if it does not use fixed sampling rates.
                     // because we are not using fixed sampling rate, we need to remove the optional SamplingIntervalDiagnosticsArray
