@@ -133,7 +133,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         const statusCode = StatusCodes[status];
 
         debugLog(`checkCertificate => StatusCode = ${statusCode.toString()}`);
-        if (statusCode.equals(StatusCodes.BadCertificateUntrusted) || statusCode.equals(StatusCodes.BadCertificateRevocationUnknown)) {
+        if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
             const topCertificateInChain = certificates[0];
             const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
             if (this.automaticallyAcceptUnknownCertificate) {
@@ -160,6 +160,20 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 await this.rejectCertificate(topCertificateInChain);
                 return StatusCodes.BadCertificateUntrusted;
             }
+        } else if (statusCode.equals(StatusCodes.BadCertificateRevocationUnknown)) {
+            // Revocation status unknown (missing CRL) — don't conflate
+            // with BadCertificateUntrusted. If auto-accept is enabled,
+            // trust the certificate anyway; otherwise return the accurate
+            // status code so the caller knows the CRL is missing.
+            const topCertificateInChain = certificates[0];
+            if (this.automaticallyAcceptUnknownCertificate) {
+                const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
+                debugLog("automaticallyAcceptUnknownCertificate = true (revocation unknown)");
+                debugLog(`certificate with thumbprint ${thumbprint} is now trusted despite unknown revocation status`);
+                await this.trustCertificate(topCertificateInChain);
+                return StatusCodes.Good;
+            }
+            return statusCode;
         } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
             // put all certificates of the chain in the rejected folder
             const rejectAll = async (certificates: Certificate[]) => {
