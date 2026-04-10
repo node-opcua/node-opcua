@@ -287,6 +287,22 @@ export class NamespaceImpl implements NamespacePrivate {
         return this.index === 0 ? this : this.addressSpace.getDefaultNamespace();
     }
 
+    public toJSON(): Record<string, string | number | undefined> {
+        return {
+            index: this.index,
+            namespaceUri: this.namespaceUri,
+            version: this.version
+        };
+    }
+
+    public toString(): string {
+        return `Namespace({ index: ${this.index}, namespaceUri: "${this.namespaceUri}" })`;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     public dispose(): void {
         for (const node of this.nodeIterator()) {
             (<BaseNodeImpl>node).dispose();

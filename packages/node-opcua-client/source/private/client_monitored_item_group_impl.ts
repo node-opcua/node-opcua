@@ -2,14 +2,14 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:no-empty
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { coerceTimestampsToReturn, type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MonitoringMode, type MonitoringParametersOptions } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
-import type { ReadValueIdOptions } from "node-opcua-types";
+import type { MonitoredItemModifyResult, ReadValueIdOptions } from "node-opcua-types";
 import type { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
@@ -17,8 +17,7 @@ import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import type { ClientSubscriptionImpl } from "./client_subscription_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+
 const warningLog = make_warningLog(__filename);
 
 /**
@@ -38,7 +37,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
 
     constructor(
         subscription: ClientSubscription,
-        itemsToMonitor: any[],
+        itemsToMonitor: ReadValueIdOptions[],
         monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
         monitoringMode: MonitoringMode = MonitoringMode.Reporting
@@ -47,7 +46,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         assert(Array.isArray(itemsToMonitor));
         // Try to resolve the nodeId and fail fast if we can't.
         itemsToMonitor.forEach((itemToMonitor: ReadValueIdOptions) => {
-            itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
+            itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId || NodeId.nullNodeId);
         });
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
@@ -82,8 +81,8 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
                 )
                 .join("\n") +
             "\n];\n";
-        ret += "timestampsToReturn:   " + TimestampsToReturn[this.timestampsToReturn] + "\n";
-        ret += "monitoringMode        " + MonitoringMode[this.monitoringMode];
+        ret += `timestampsToReturn:   ${TimestampsToReturn[this.timestampsToReturn]}\n`;
+        ret += `monitoringMode        ${MonitoringMode[this.monitoringMode]}`;
         return ret;
     }
 
@@ -109,13 +108,13 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     /**
 
      */
-    public async modify(parameters: MonitoringParametersOptions): Promise<StatusCode>;
-    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<StatusCode>;
-    public modify(parameters: MonitoringParametersOptions, callback: (err: Error | null, statusCode?: StatusCode) => void): void;
+    public async modify(parameters: MonitoringParametersOptions): Promise<MonitoredItemModifyResult>;
+    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<MonitoredItemModifyResult>;
+    public modify(parameters: MonitoringParametersOptions, callback: Callback<MonitoredItemModifyResult>): void;
     public modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
+        callback: Callback<MonitoredItemModifyResult>
     ): void;
     public modify(...args: any[]): any {
         if (args.length === 2) {
@@ -223,8 +222,8 @@ ClientMonitoredItemGroupImpl.prototype.modify = withCallback(ClientMonitoredItem
 
 ClientMonitoredItemGroup.create = (
     subscription: ClientSubscription,
-    itemsToMonitor: any[],
-    monitoringParameters: any,
+    itemsToMonitor: ReadValueIdOptions[],
+    monitoringParameters: MonitoringParametersOptions,
     timestampsToReturn: TimestampsToReturn
 ) => {
     const monitoredItemGroup = new ClientMonitoredItemGroupImpl(
@@ -238,7 +237,7 @@ ClientMonitoredItemGroup.create = (
         if (err) {
             return;
         }
-        monitoredItemGroup._monitor((err1?: Error) => {
+        monitoredItemGroup._monitor((_err1?: Error) => {
             /** */
         });
     });

@@ -3,8 +3,8 @@
  */
 // tslint:disable:unified-signatures
 
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
 import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
@@ -253,7 +253,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return callback();
         }
 
-        if (isFinite(this.subscriptionId)) {
+        if (Number.isFinite(this.subscriptionId)) {
             const subscriptionId = this.subscriptionId;
             this.subscriptionId = TERMINATING_SUBSCRIPTION_ID;
             this.publishEngine.unregisterSubscription(subscriptionId);
@@ -270,7 +270,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                     subscriptionIds: [subscriptionId]
                 },
                 (err: Error | null, response?: DeleteSubscriptionsResponse) => {
-                    if (response && response!.results![0] !== StatusCodes.Good) {
+                    if (response && response?.results?.[0] !== StatusCodes.Good) {
                         debugLog("warning: deleteSubscription returned ", response.results);
                     }
                     if (err) {
@@ -329,9 +329,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             requestedParameters,
             timestampsToReturn,
             monitoringMode,
-            (err1?: Error | null, monitoredItem2?: ClientMonitoredItem) => {
+            (err1?: Error | null, _monitoredItem2?: ClientMonitoredItem) => {
                 if (err1) {
-                    return done && done(err1);
+                    return done?.(err1);
                 }
                 done(err1 || null, monitoredItem);
             }
@@ -364,7 +364,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             }
             monitoredItemGroup._monitor((err1?: Error) => {
                 if (err1) {
-                    return done && done(err1);
+                    return done?.(err1);
                 }
                 done(err1!, monitoredItemGroup);
             });
@@ -383,10 +383,10 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         const session = this.session as ClientSessionImpl;
         session.deleteMonitoredItems(
             {
-                monitoredItemIds: monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId),
+                monitoredItemIds: monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId as number),
                 subscriptionId: this.subscriptionId
             },
-            (err: Error | null, response?: DeleteMonitoredItemsResponse) => {
+            (err: Error | null, _response?: DeleteMonitoredItemsResponse) => {
                 callback(err!);
             }
         );
@@ -433,19 +433,24 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         linksToRemove: ClientMonitoredItemBase[] | null,
         callback: Callback<SetTriggeringResponse>
     ): void;
-    public setTriggering(...args: any[]): any {
-        const triggeringItem = args[0] as ClientMonitoredItemBase;
-        const linksToAdd = args[1] as ClientMonitoredItemBase[] | null;
-        const linksToRemove = args[2] as ClientMonitoredItemBase[] | null;
-        const callback = args[3] as Callback<SetTriggeringResponse>;
-        assert(typeof callback === "function");
+    public setTriggering(
+        triggeringItem: ClientMonitoredItemBase,
+        linksToAdd: ClientMonitoredItemBase[] | null,
+        linksToRemove: ClientMonitoredItemBase[] | null,
+        callback?: Callback<SetTriggeringResponse>
+    ): Promise<SetTriggeringResponse> | undefined {
         const session = this.session as ClientSessionImpl;
         if (!session) {
-            return callback(new Error("no session"));
+            callback?.(new Error("no session"));
+            return;
         }
         const subscriptionId = this.subscriptionId;
 
-        const triggeringItemId = triggeringItem.monitoredItemId!;
+        const triggeringItemId = triggeringItem.monitoredItemId;
+        if (!triggeringItemId) {
+            callback?.(new Error("triggeringItem has no monitoredItemId"));
+            return;
+        }
 
         const setTriggeringRequest = new SetTriggeringRequest({
             linksToAdd: linksToAdd ? linksToAdd.map((i) => i.monitoredItemId!) : null,
@@ -457,31 +462,37 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (err) {
                 if (response) {
                     // use soft error, no exceptions
-                    return callback(null, response);
+                    callback?.(null, response);
+                    return;
                 } else {
-                    return callback(err);
+                    callback?.(err);
+                    return;
                 }
             }
             // c8 ignore next
             if (!response) {
-                return callback(new Error("Internal Error"));
+                callback?.(new Error("Internal Error"));
+                return;
             }
-            callback(null, response);
+            callback?.(null, response);
         });
+        return undefined;
     }
 
     // public subscription service
     public modify(options: ModifySubscriptionOptions, callback: Callback<ModifySubscriptionResult>): void;
     public modify(options: ModifySubscriptionOptions): Promise<ModifySubscriptionResult>;
-    public modify(...args: any[]): any {
-        const modifySubscriptionRequest = args[0] as ModifySubscriptionRequestOptions;
-        const callback = args[1] as Callback<ModifySubscriptionResult>;
+    public modify(
+        modifySubscriptionRequest: ModifySubscriptionOptions,
+        callback?: Callback<ModifySubscriptionResult>
+    ): Promise<ModifySubscriptionResult> | undefined {
         const session = this.session as ClientSessionImpl;
         if (!session) {
-            return callback(new Error("no session"));
+            callback?.(new Error("no session"));
+            return undefined;
         }
 
-        modifySubscriptionRequest.subscriptionId = this.subscriptionId;
+        //    modifySubscriptionRequest.subscriptionId = this.subscriptionId;
 
         modifySubscriptionRequest.priority =
             modifySubscriptionRequest.priority === undefined ? this.priority : modifySubscriptionRequest.priority;
@@ -504,47 +515,64 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         session.modifySubscription(modifySubscriptionRequest, (err: Error | null, response?: ModifySubscriptionResponse) => {
             if (err || !response) {
-                return callback(err);
+                callback?.(err);
+                return;
             }
             this.publishingInterval = response.revisedPublishingInterval;
             this.lifetimeCount = response.revisedLifetimeCount;
             this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
-            callback(null, response);
+            callback?.(null, response);
         });
+        return undefined;
     }
 
     public getMonitoredItems(): Promise<MonitoredItemData>;
     public getMonitoredItems(callback: Callback<MonitoredItemData>): void;
-    public getMonitoredItems(...args: any[]): any {
-        this.session.getMonitoredItems(this.subscriptionId, args[0]);
+    public getMonitoredItems(callback?: Callback<MonitoredItemData>): Promise<MonitoredItemData> | undefined {
+        this.session.getMonitoredItems(this.subscriptionId, callback as Callback<MonitoredItemData>);
+        return undefined;
+    }
+
+    public toJSON(): Record<string, string | number | boolean> {
+        return {
+            subscriptionId: this.subscriptionId.toString(),
+            publishingInterval: this.publishingInterval,
+            lifetimeCount: this.lifetimeCount,
+            maxKeepAliveCount: this.maxKeepAliveCount,
+            hasTimedOut: this.hasTimedOut
+        };
     }
 
     public toString(): string {
         let str = "";
-        str += "subscriptionId      : " + this.subscriptionId + "\n";
-        str += "publishingInterval  : " + this.publishingInterval + "\n";
-        str += "lifetimeCount       : " + this.lifetimeCount + "\n";
-        str += "maxKeepAliveCount   : " + this.maxKeepAliveCount + "\n";
-        str += "hasTimedOut         : " + this.hasTimedOut + "\n";
+        str += `subscriptionId      : ${this.subscriptionId}\n`;
+        str += `publishingInterval  : ${this.publishingInterval}\n`;
+        str += `lifetimeCount       : ${this.lifetimeCount}\n`;
+        str += `maxKeepAliveCount   : ${this.maxKeepAliveCount}\n`;
+        str += `hasTimedOut         : ${this.hasTimedOut}\n`;
 
         const timeToLive = this.lifetimeCount * this.publishingInterval;
-        str += "(maxKeepAliveCount*publishingInterval: " + this.publishingInterval * this.maxKeepAliveCount + " ms)\n";
-        str += "(maxLifetimeCount*publishingInterval: " + timeToLive + " ms)\n";
+        str += `(maxKeepAliveCount*publishingInterval: ${this.publishingInterval * this.maxKeepAliveCount} ms)\n`;
+        str += `(maxLifetimeCount*publishingInterval: ${timeToLive} ms)\n`;
 
         const lastRequestSentTime = this.publishEngine.lastRequestSentTime;
-        str += "lastRequestSentTime : " + lastRequestSentTime.toString() + "\n";
+        str += `lastRequestSentTime : ${lastRequestSentTime.toString()}\n`;
         const duration = Date.now() - lastRequestSentTime.getTime();
         const extra =
             duration - timeToLive > 0
-                ? chalk.red(" expired since " + (duration - timeToLive) / 1000 + " seconds")
-                : chalk.green(" valid for " + -(duration - timeToLive) / 1000 + " seconds");
+                ? chalk.red(` expired since ${(duration - timeToLive) / 1000} seconds`)
+                : chalk.green(` valid for ${-(duration - timeToLive) / 1000} seconds`);
 
-        str += "timeSinceLast PR    : " + duration + "ms" + extra + "\n";
-        str += "has expired         : " + (duration > timeToLive) + "\n";
+        str += `timeSinceLast PR    : ${duration}ms${extra}\n`;
+        str += `has expired         : ${duration > timeToLive}\n`;
 
-        str += "(session timeout    : " + this.session.timeout + " ms)\n";
+        str += `(session timeout    : ${this.session.timeout} ms)\n`;
 
         return str;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
     }
 
     /**
@@ -757,8 +785,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         if (s(this).$_slowNotifCount > 0 && s(this).$_slowNotifCount % 1000 !== 0) return;
                         s(this).$_slowNotifCount++;
                         warningLog(
-                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
-                                s(this).$_slowNotifCount
+                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${s(this).$_slowNotifCount
                             } times]\n         please ensure that your monitoredItem event handler is not blocking the event loop.`
                         );
                     }
@@ -805,7 +832,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup): void {
-        (monitoredItemGroup as any)._terminate_and_emit();
+        (monitoredItemGroup as ClientMonitoredItemGroupImpl)._terminate_and_emit();
         this.#monitoredItemGroups = this.#monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
     }
     /**
@@ -879,7 +906,7 @@ export function ClientMonitoredItem_create(
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
-const opts = { multiArgs: false };
+const _opts = { multiArgs: false };
 
 ClientSubscriptionImpl.prototype.setPublishingMode = withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
 ClientSubscriptionImpl.prototype.monitor = withCallback(ClientSubscriptionImpl.prototype.monitor);

@@ -30,7 +30,7 @@
         "node-opcua-status-code": "2.168.0",
         "node-opcua-utils": "2.168.0",
         "node-opcua-variant": "2.168.0",
-        "prettier": "^3.8.1",
+        "prettier": "^3.8.2",
         "typescript": "5.9.3"
     },
     "devDependencies": {

@@ -9,8 +9,7 @@ import { type Certificate, makeSHA1Thumbprint, readCertificateChainAsync, readCe
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
-import { CertificateManager } from "..";
-import { OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source";
+import { CertificateManager, OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source";
 
 
 // const _tmpFolder = os.tmpdir();
@@ -211,7 +210,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test)
         });
         describe("when issuer (CA certificate) is not trusted", () => {
             it("AQU01- should reject a certificate (signed by CA) that has never been seen before with BadCertificateUntrusted", async () => {
-                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(_certificateIssuedByCAChain[0]);
+                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(combineCertificate);
                 isTrusted.should.eql("BadCertificateUntrusted");
 
                 const statusCode = await certificateMgrWithNoIssuerCert.getTrustStatus(_certificateIssuedByCAChain[0]);

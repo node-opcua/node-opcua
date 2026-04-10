@@ -483,6 +483,18 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
     public getCertificate(): Certificate | null {
         return this.#parent ? this.#parent.getCertificate() : null;
     }
+    public toJSON(): Record<string, string | number | boolean | undefined> {
+        return {
+            securityMode: MessageSecurityMode[this.securityMode],
+            securityPolicy: this.securityPolicy.toString(),
+            securityToken: this.activeSecurityToken ? this.activeSecurityToken.toString() : "null",
+            timedOutRequestCount: this.timedOutRequestCount,
+            transportTimeout: this.transportTimeout,
+            channelId: this.channelId,
+            endpointUrl: this.endpointUrl
+        };
+    }
+
     public toString(): string {
         let str = "";
         str += `\n securityMode ............. : ${MessageSecurityMode[this.securityMode]}`;
@@ -504,6 +516,10 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         str += `\ntime drift with server      : ${durationToString(this.#_timeDrift)}`;
         str += "\n";
         return str;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
     }
 
     public isTransactionInProgress(): boolean {

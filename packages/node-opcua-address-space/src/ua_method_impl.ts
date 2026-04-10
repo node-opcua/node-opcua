@@ -1,41 +1,39 @@
 /**
  * @module node-opcua-address-space
  */
-import { callbackify } from "util";
-import chalk from "chalk";
-import { assert } from "node-opcua-assert";
 
-import { AttributeIds, QualifiedNameLike } from "node-opcua-data-model";
-import { DiagnosticInfo, NodeClass } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
-import { Argument } from "node-opcua-service-call";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions, PermissionType } from "node-opcua-types";
-import { Variant } from "node-opcua-variant";
-import { DataType, VariantLike } from "node-opcua-variant";
+import { callbackify } from "node:util";
+import chalk from "chalk";
 import {
-    MethodFunctor,
-    MethodFunctorA,
-    MethodFunctorC,
-    UAMethod,
-    UAObject,
-    CloneExtraInfo,
-    CloneFilter,
-    CloneOptions,
-    UAObjectType,
-    ISessionContext,
-    UAVariable,
+    type CloneExtraInfo,
+    type CloneFilter,
+    type CloneOptions,
     defaultCloneFilter,
-    makeDefaultCloneExtraInfo
+    type ISessionContext,
+    type MethodFunctor,
+    type MethodFunctorA,
+    type MethodFunctorC,
+    makeDefaultCloneExtraInfo,
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type UAVariable
 } from "node-opcua-address-space-base";
-import { SessionContext } from "../source/session_context";
+import { assert } from "node-opcua-assert";
+import { AttributeIds, type DiagnosticInfo, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import { Argument } from "node-opcua-service-call";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type CallMethodResultOptions, PermissionType } from "node-opcua-types";
+import { DataType, Variant, type VariantLike } from "node-opcua-variant";
+import type { SessionContext } from "../source/session_context";
+import type { AddressSpacePrivate } from "./address_space_private";
+import { BaseNodeImpl } from "./base_node_impl";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
-import { BaseNodeImpl } from "./base_node_impl";
-import { AddressSpacePrivate } from "./address_space_private";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -135,7 +133,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         if (async_func.length === 2) {
             async_func = callbackify(async_func as MethodFunctorA) as MethodFunctorC;
         }
-        assert(async_func.length === 3, " a method with callback should have 3 arguments : got " + async_func.length);
+        assert(async_func.length === 3, ` a method with callback should have 3 arguments : got ${async_func.length}`);
         this._asyncExecutionFunction = async_func;
     }
     public execute(
@@ -181,17 +179,17 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 " " +
                 this.browseName.toString() +
                 " called for a node that is not a Object/ObjectType but " +
-                NodeClass[context.object!.nodeClass]
+                NodeClass[context.object?.nodeClass as number]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
         if (!this._asyncExecutionFunction) {
-            warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " has not been bound");
+            warningLog(`Method ${this.nodeId.toString()} ${this.browseName.toString()} has not been bound`);
             return callback(null, { statusCode: StatusCodes.BadInternalError });
         }
 
         if (!this.getExecutableFlag(context)) {
-            warningLog("Method " + this.nodeId.toString() + " " + this.browseName.toString() + " is not executable");
+            warningLog(`Method ${this.nodeId.toString()} ${this.browseName.toString()} is not executable`);
             return callback(null, { statusCode: StatusCodes.BadNotExecutable });
         }
 
@@ -212,7 +210,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         // ── method call interceptors ──
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         const interceptors = addressSpace._methodCallInterceptors;
-        const self = this;
+
         const coercedInputArguments = inputArguments as Variant[];
         const callObject = object;
 
@@ -221,13 +219,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
             for (const interceptor of interceptors) {
                 let status: StatusCode;
                 try {
-                    status = await interceptor(context, callObject, self, coercedInputArguments);
+                    status = await interceptor(context, callObject, this, coercedInputArguments);
                 } catch (err) {
                     if (err instanceof Error) {
                         warningLog(chalk.red("ERR in method interceptor"), err.message);
                     }
                     const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
-                    callback!(err as Error, callMethodResponse);
+                    callback?.(err as Error, callMethodResponse);
                     return;
                 }
                 if (status !== StatusCodes.Good) {
@@ -237,14 +235,14 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                         inputArgumentResults: coercedInputArguments?.map(() => status) || [],
                         inputArgumentDiagnosticInfos
                     };
-                    return callback!(null, callMethodResult);
+                    return callback?.(null, callMethodResult);
                 }
             }
 
             // All interceptors passed — execute the method body
             try {
-                self._asyncExecutionFunction!.call(
-                    self as UAMethodImpl,
+                this._asyncExecutionFunction?.call(
+                    this as UAMethodImpl,
                     coercedInputArguments,
                     context,
                     (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
@@ -266,14 +264,14 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
                         // ── afterCall event ──
                         try {
-                            self.emit("afterCall", context, coercedInputArguments, callMethodResult);
+                            this.emit("afterCall", context, coercedInputArguments, callMethodResult);
                         } catch (afterCallErr) {
                             if (afterCallErr instanceof Error) {
                                 warningLog(chalk.red("ERR in afterCall listener"), afterCallErr.message);
                             }
                         }
 
-                        callback!(err, callMethodResult);
+                        callback?.(err, callMethodResult);
                     }
                 );
             } catch (err) {
@@ -282,7 +280,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                     warningLog(err.stack);
                 }
                 const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
-                callback!(err as Error, callMethodResponse);
+                callback?.(err as Error, callMethodResponse);
             }
         };
 
@@ -291,7 +289,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 warningLog(chalk.red("ERR in method interceptor"), err.message);
             }
             const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
-            callback!(err as Error, callMethodResponse);
+            callback?.(err as Error, callMethodResponse);
         });
     }
 
@@ -310,13 +308,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         if (!extraInfo) {
             extraInfo = makeDefaultCloneExtraInfo(this);
         }
-        const clonedMethod = _clone(
-            this,
-            UAMethodImpl,
-            options,
-            optionalFilter || defaultCloneFilter,
-            extraInfo
-        ) as UAMethodImpl;
+        const clonedMethod = _clone(this, UAMethodImpl, options, optionalFilter || defaultCloneFilter, extraInfo) as UAMethodImpl;
 
         clonedMethod._asyncExecutionFunction = this._asyncExecutionFunction;
         clonedMethod._getExecutableFlag = this._getExecutableFlag;
@@ -351,4 +343,5 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 UAMethodImpl.prototype.execute = withCallback(UAMethodImpl.prototype.execute);

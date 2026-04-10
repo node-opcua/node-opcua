@@ -207,13 +207,13 @@ export function makeRoles(roleIds: NodeIdLike[] | string | WellKnownRoles): Node
     }
     return roleIds.map((r) => resolveNodeId(r));
 }
+
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
     public object: UAObject | UAObjectType | undefined;
     public currentTime?: PreciseClock;
     public continuationPoints: Buffer[] = [];
-    public userIdentity?: string;
     public readonly session?: ISessionBase;
     public readonly server?: IServerBase;
 
@@ -252,6 +252,35 @@ export class SessionContext implements ISessionContext {
         }
     }
 
+    public toJSON(): Record<string, string | null> {
+        return {
+            userName: this.getUserName(),
+            clientApplicationUri: this.clientApplicationUri,
+            session: this.session ? this.session.getSessionId().toString() : null
+        };
+    }
+
+    public toString(): string {
+        if (this === SessionContext.defaultContext) {
+            return "SessionContext({ default })";
+        }
+        return `SessionContext({ userName: "${this.getUserName()}", session: ${this.session ? this.session.getSessionId().toString() : "none"} })`;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
+    public getUserName(): string {
+        if (!this.session) {
+            return "<unknown client user id>";
+        }
+        const userIdentityToken = this.session.userIdentityToken;
+        if (!userIdentityToken) {
+            return "<unknown client user id>";
+        }
+        return getUserName(userIdentityToken);
+    }
     /**
      * getCurrentUserRoles
      *

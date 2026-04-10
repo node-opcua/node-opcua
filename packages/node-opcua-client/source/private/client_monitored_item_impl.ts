@@ -3,7 +3,7 @@
  */
 // tslint:disable:unified-signatures
 // tslint:disable:no-empty
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";
@@ -11,7 +11,7 @@ import { coerceTimestampsToReturn, type DataValue } from "node-opcua-data-value"
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
-import { ReadValueId, type ReadValueIdOptions, type TimestampsToReturn } from "node-opcua-service-read";
+import { ReadValueId, type ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     type MonitoredItemCreateResult,
     type MonitoredItemModifyResult,
@@ -27,9 +27,9 @@ import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../c
 import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItem_create, type ClientSubscriptionImpl } from "./client_subscription_impl";
 
-const debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 
 export type PrepareForMonitoringResult =
     | { error: string }
@@ -58,13 +58,15 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public subscription: ClientSubscriptionImpl;
     public monitoringMode: MonitoringMode;
     public statusCode: StatusCode;
-    public monitoredItemId?: any;
+    public monitoredItemId?: number;
     public result?: MonitoredItemCreateResult;
     public filterResult?: ExtensionObject;
     public timestampsToReturn: TimestampsToReturn;
 
     #pendingDataValue?: DataValue[];
     #pendingEvents?: Variant[][];
+
+    #terminated?: boolean;
 
     public internalSetMonitoringMode(monitoringMode: MonitoringMode): void {
         this.monitoringMode = monitoringMode;
@@ -93,49 +95,67 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         this.timestampsToReturn = timestampsToReturn;
     }
 
+    public toJSON(): Record<string, string | number | undefined> {
+        return {
+            itemToMonitor: this.itemToMonitor.toString(),
+            monitoringParameters: this.monitoringParameters.toString(),
+            timestampsToReturn: TimestampsToReturn[this.timestampsToReturn],
+            monitoredItemId: this.monitoredItemId,
+            statusCode: this.statusCode?.toString(),
+            result: this.result?.toString()
+        };
+    }
+
     public toString(): string {
         let ret = "";
-        ret += "itemToMonitor:        " + this.itemToMonitor.toString() + "\n";
-        ret += "monitoringParameters: " + this.monitoringParameters.toString() + "\n";
-        ret += "timestampsToReturn:   " + this.timestampsToReturn.toString() + "\n";
-        ret += "itemToMonitor         " + this.itemToMonitor.nodeId + "\n";
-        ret += "statusCode            " + this.statusCode?.toString() + "\n";
-        ret += "result =" + this.result?.toString() + "\n";
+        ret += `itemToMonitor:        ${this.itemToMonitor.toString()}\n`;
+        ret += `monitoringParameters: ${this.monitoringParameters.toString()}\n`;
+        ret += `timestampsToReturn:   ${TimestampsToReturn[this.timestampsToReturn]}\n`;
+        ret += `monitoredItemId:      ${this.monitoredItemId}\n`;
+        ret += `statusCode:           ${this.statusCode?.toString()}\n`;
+        ret += `result:               ${this.result?.toString()}\n`;
         return ret;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
     }
 
     /**
      * terminate the monitored item by removing the MonitoredItem from its subscription
      */
     public async terminate(): Promise<void>;
-    public terminate(done: ErrorCallback): void;
-    public terminate(...args: any[]): any {
-        const done = args[0];
-        assert(typeof done === "function");
-
+    public terminate(callback: ErrorCallback): void;
+    public terminate(callback?: ErrorCallback): Promise<void> | undefined {
         const subscription = this.subscription as ClientSubscriptionImpl;
         subscription._delete_monitored_items([this], (err?: Error) => {
-            if (done) {
-                done(err);
+            if (callback) {
+                callback(err);
             }
         });
+        return undefined;
     }
 
-    public async modify(parameters: MonitoringParametersOptions): Promise<StatusCode>;
-    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<StatusCode>;
-    public modify(parameters: MonitoringParametersOptions, callback: (err: Error | null, statusCode?: StatusCode) => void): void;
+    public async modify(parameters: MonitoringParametersOptions): Promise<MonitoredItemModifyResult>;
+    public async modify(
+        parameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): Promise<MonitoredItemModifyResult>;
+    public modify(parameters: MonitoringParametersOptions, callback: Callback<MonitoredItemModifyResult>): void;
     public modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
+        callback: Callback<MonitoredItemModifyResult>
     ): void;
-    public modify(...args: any[]): any {
+    public modify(...args: unknown[]): undefined | Promise<MonitoredItemModifyResult> {
+        // remember we are garantied to be in a callback env here.
         if (args.length === 2) {
-            return this.modify(args[0], null, args[1]);
+            this.modify(args[0] as MonitoringParametersOptions, null, args[1] as Callback<MonitoredItemModifyResult>);
+            return undefined;
         }
         const parameters = args[0] as MonitoringParametersOptions;
         const timestampsToReturn = args[1] as TimestampsToReturn;
-        const callback = args[2];
+        const callback = args[2] as Callback<MonitoredItemModifyResult>;
         this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
         ClientMonitoredItemToolbox._toolbox_modify(
             this.subscription,
@@ -149,26 +169,25 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
                 if (!results) {
                     return callback(new Error("internal error"));
                 }
-                assert(results!.length === 1);
-                callback(null, results![0]);
+                assert(results?.length === 1);
+                callback(null, results[0]);
             }
         );
+        return undefined;
     }
 
     public async setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
     public setMonitoringMode(monitoringMode: MonitoringMode, callback: Callback<StatusCode>): void;
-    public setMonitoringMode(...args: any[]): any {
-        const monitoringMode = args[0] as MonitoringMode;
-        const callback = args[1] as Callback<StatusCode>;
-
+    public setMonitoringMode(monitoringMode: MonitoringMode, callback?: Callback<StatusCode>): undefined | Promise<StatusCode> {
         ClientMonitoredItemToolbox._toolbox_setMonitoringMode(
             this.subscription,
             [this],
             monitoringMode,
             (err?: Error | null, statusCodes?: StatusCode[]) => {
-                callback(err ? err : null, statusCodes ? statusCodes[0] : undefined);
+                callback?.(err ? err : null, statusCodes ? statusCodes[0] : undefined);
             }
         );
+        return undefined;
     }
 
     /**
@@ -260,7 +279,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             // toDO
 
             // note : the EventFilter is used when monitoring Events.
-            this.monitoringParameters.filter = this.monitoringParameters.filter! || new EventFilter({});
+            this.monitoringParameters.filter = this.monitoringParameters.filter || new EventFilter({});
 
             const filter = this.monitoringParameters.filter;
 
@@ -365,14 +384,13 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 
     public _terminate_and_emit(err?: Error): void {
-        if ((this as any)._terminated) {
+        if (this.#terminated) {
             return; // already terminated
         }
         if (err) {
             this.emit("err", err.message);
         }
-        assert(!(this as any)._terminated);
-        (this as any)._terminated = true;
+        this.#terminated = true;
         /**
          * Notify the observer that this monitored item has been terminated.
          * @event terminated
@@ -390,7 +408,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 // tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
-const opts = { multiArgs: false };
+const _opts = { multiArgs: false };
 
 ClientMonitoredItemImpl.prototype.terminate = withCallback(ClientMonitoredItemImpl.prototype.terminate);
 ClientMonitoredItemImpl.prototype.setMonitoringMode = withCallback(ClientMonitoredItemImpl.prototype.setMonitoringMode);
@@ -400,7 +418,7 @@ ClientMonitoredItem.create = (
     subscription: ClientSubscription,
     itemToMonitor: ReadValueIdOptions,
     monitoringParameters: MonitoringParametersOptions,
-    timestampsToReturn: TimestampsToReturn,
+    timestampsToReturn: TimestampsToReturn = TimestampsToReturn.Neither,
     monitoringMode: MonitoringMode = MonitoringMode.Reporting
 ): ClientMonitoredItem => {
     return ClientMonitoredItem_create(subscription, itemToMonitor, monitoringParameters, timestampsToReturn, monitoringMode);

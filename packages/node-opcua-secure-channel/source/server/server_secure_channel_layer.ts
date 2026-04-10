@@ -321,6 +321,29 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public get status() {
         return this.#status;
     }
+
+    public toJSON(): Record<string, string | number | boolean | undefined> {
+        return {
+            channelId: this.channelId,
+            securityMode: MessageSecurityMode[this.securityMode],
+            securityPolicy: this.securityPolicy.toString(),
+            timeout: this.timeout,
+            remoteAddress: this.remoteAddress,
+            remotePort: this.remotePort,
+            bytesRead: this.bytesRead,
+            bytesWritten: this.bytesWritten,
+            transactionsCount: this.transactionsCount
+        };
+    }
+
+    public toString(): string {
+        return `ServerSecureChannelLayer({ channelId: ${this.channelId}, securityMode: ${MessageSecurityMode[this.securityMode]}, securityPolicy: ${this.securityPolicy}, remoteAddress: ${this.remoteAddress}, remotePort: ${this.remotePort} })`;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     public constructor(options: ServerSecureChannelLayerOptions) {
         super();
 

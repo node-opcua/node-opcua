@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-client
  */
-import type { EventEmitter } from "events";
-import { type AttributeIds, UInt32 } from "node-opcua-basic-types";
+import type { EventEmitter } from "node:events";
+import type { AttributeIds } from "node-opcua-basic-types";
 import type { QualifiedNameLike } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import type { ExtensionObject } from "node-opcua-extension-object";
@@ -11,6 +11,7 @@ import type { NumericRange } from "node-opcua-numeric-range";
 import type { TimestampsToReturn } from "node-opcua-service-read";
 import type {
     MonitoredItemCreateResult,
+    MonitoredItemModifyResult,
     MonitoringMode,
     MonitoringParameters,
     MonitoringParametersOptions
@@ -20,14 +21,19 @@ import type { Variant } from "node-opcua-variant";
 
 import type { ClientSubscription } from "./client_subscription";
 
-// tslint:disable:unified-signatures
 export interface ClientMonitoredItemOrGroupAction {
-    modify(parameters: MonitoringParametersOptions, timestampsToReturn?: TimestampsToReturn): Promise<StatusCode>;
-    modify(parameters: MonitoringParametersOptions, callback: Callback<StatusCode>): void;
+    modify(
+        parameters: MonitoringParametersOptions,
+        timestampsToReturn?: TimestampsToReturn
+    ): Promise<MonitoredItemModifyResult>;
+    modify(
+        parameters: MonitoringParametersOptions,
+        callback: Callback<MonitoredItemModifyResult>
+    ): void;
     modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,
-        callback: Callback<StatusCode>
+        callback: Callback<MonitoredItemModifyResult>
     ): void;
 
     setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
@@ -37,7 +43,6 @@ export interface ClientMonitoredItemOrGroupAction {
     terminate(done: ErrorCallback): void;
 }
 
-// tslint:disable:unified-signatures
 export interface ClientMonitoredItemBase extends EventEmitter, ClientMonitoredItemOrGroupAction {
     on(event: "changed", eventHandler: (dataValue: DataValue) => void): this;
     on(event: "changed", eventHandler: (values: Variant[]) => void): this;
@@ -60,7 +65,7 @@ export interface ClientMonitoredItemBase {
     readonly subscription: ClientSubscription;
     readonly monitoringMode: MonitoringMode;
     readonly statusCode: StatusCode;
-    readonly monitoredItemId?: any;
+    readonly monitoredItemId?: number;
     readonly result?: MonitoredItemCreateResult;
     readonly filterResult?: ExtensionObject;
 }

@@ -466,6 +466,21 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return txt;
     }
 
+    public toJSON(): Record<string, unknown> {
+        return {
+            port: this.port,
+            host: this.host,
+            maxConnections: this.maxConnections,
+            timeout: this.timeout,
+            currentChannelCount: this.currentChannelCount,
+            endpointDescriptions: this._endpoints.map(e => e.endpointUrl)
+        };
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     public getChannels(): ServerSecureChannelLayer[] {
         return Object.values(this._channels);
     }
