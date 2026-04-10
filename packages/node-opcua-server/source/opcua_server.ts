@@ -1037,7 +1037,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     }
 
     public toString(): string {
-        return `OPCUAServer(endpoints=${this.endpoints.map(e => e.endpointUrl).join(",")})`;
+        return `OPCUAServer(endpoints=${this.endpoints.map(e => e.toString()).join(",")})`;
     }
 
     public [Symbol.for("nodejs.util.inspect.custom")](): string {
