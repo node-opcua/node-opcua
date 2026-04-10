@@ -10,7 +10,7 @@ import { assert } from "node-opcua-assert";
 import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
 import { AttributeIds } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
     CreateSubscriptionRequest,
@@ -19,7 +19,6 @@ import {
     type DeleteMonitoredItemsResponse,
     type DeleteSubscriptionsResponse,
     type EventNotificationList,
-    type ModifySubscriptionRequestOptions,
     type ModifySubscriptionResponse,
     MonitoringMode,
     type MonitoringParametersOptions,
@@ -48,6 +47,10 @@ import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import type { ClientSidePublishEngine } from "./client_publish_engine";
 import type { ClientSessionImpl } from "./client_session_impl";
+
+interface ModifySubscriptionOptionsEx extends ModifySubscriptionOptions {
+    subscriptionId?: SubscriptionId;
+}
 import { detectLongOperation } from "./performance";
 
 const debugLog = make_debugLog("CLIENT_SUBSCRIPTION");
@@ -121,7 +124,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
      */
     public get session(): ClientSessionImpl {
         assert(this.hasSession, "expecting a valid session");
-        return this.publishEngine.session! as ClientSessionImpl;
+        return this.publishEngine.session as ClientSessionImpl;
     }
     public get hasSession(): boolean {
         return !!this.publishEngine?.session;
@@ -243,14 +246,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
     }
 
-    public terminate(...args: any[]): any {
+    public terminate(): Promise<void>;
+    public terminate(callback: ErrorCallback): void;
+    public terminate(callback?: ErrorCallback): Promise<void> | void {
         debugLog("Terminating client subscription ", this.subscriptionId);
-        const callback = args[0];
-        assert(typeof callback === "function", "expecting a callback function");
 
-        if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
+        if (
+            this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
+            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
+        ) {
             // already terminated... just ignore
-            return callback();
+            callback?.();
+            return;
         }
 
         if (Number.isFinite(this.subscriptionId)) {
@@ -259,11 +266,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this.publishEngine.unregisterSubscription(subscriptionId);
 
             if (!this.hasSession) {
-                return this._terminate_step2(callback);
+                this._terminate_step2(callback as ErrorCallback);
+                return;
             }
             const session = this.session;
             if (!session) {
-                return callback(new Error("no session"));
+                return callback?.(new Error("no session"));
             }
             session.deleteSubscriptions(
                 {
@@ -281,13 +289,13 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                          */
                         this.emit("internal_error", err);
                     }
-                    this._terminate_step2(callback);
+                    this._terminate_step2(callback as ErrorCallback);
                 }
             );
         } else {
             debugLog("subscriptionId is not value ", this.subscriptionId);
             assert(this.subscriptionId === PENDING_SUBSCRIPTION_ID);
-            this._terminate_step2(callback);
+            this._terminate_step2(callback as ErrorCallback);
         }
     }
 
@@ -302,6 +310,11 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public async monitor(
         itemToMonitor: ReadValueIdOptions,
         requestedParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): Promise<ClientMonitoredItemBase>;
+    public async monitor(
+        itemToMonitor: ReadValueIdOptions,
+        requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
         monitoringMode: MonitoringMode
     ): Promise<ClientMonitoredItemBase>;
@@ -310,18 +323,26 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
         monitoringMode: MonitoringMode,
-        done: Callback<ClientMonitoredItemBase>
+        callback: Callback<ClientMonitoredItemBase>
     ): void;
-    public monitor(...args: any[]): any {
-        const itemToMonitor = args[0] as ReadValueIdOptions;
-        const requestedParameters = args[1] as MonitoringParametersOptions;
-        const timestampsToReturn = args[2] as TimestampsToReturn;
-        const monitoringMode = typeof args[3] === "function" ? MonitoringMode.Reporting : (args[3] as MonitoringMode);
-        const done = (typeof args[3] === "function" ? args[3] : args[4]) as Callback<ClientMonitoredItemBase>;
+    public monitor(
+        itemToMonitor: ReadValueIdOptions,
+        requestedParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn,
+        monitoringMode?: MonitoringMode | Callback<ClientMonitoredItemBase>,
+        callback?: Callback<ClientMonitoredItemBase>
+    ): Promise<ClientMonitoredItemBase> | undefined {
 
-        assert(typeof done === "function", "expecting a function here");
+        // When called with 3 args via the promise API, thenify
+        // injects its callback as the 4th argument (the
+        // monitoringMode slot).  Detect this and shift.
+        if (typeof monitoringMode === "function") {
+            callback = monitoringMode as Callback<ClientMonitoredItemBase>;
+            monitoringMode = MonitoringMode.Reporting;
+        }
+        monitoringMode = monitoringMode ?? MonitoringMode.Reporting;
 
-        itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId!);
+        itemToMonitor.nodeId = resolveNodeId(itemToMonitor.nodeId || NodeId.nullNodeId);
 
         const monitoredItem = ClientMonitoredItem_create(
             this,
@@ -331,11 +352,13 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             monitoringMode,
             (err1?: Error | null, _monitoredItem2?: ClientMonitoredItem) => {
                 if (err1) {
-                    return done?.(err1);
+                    callback?.(err1);
+                    return;
                 }
-                done(err1 || null, monitoredItem);
+                callback?.(null, monitoredItem);
             }
         );
+        return undefined;
     }
 
     public async monitorItems(
@@ -343,35 +366,41 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
     ): Promise<ClientMonitoredItemGroup>;
-
     public monitorItems(
         itemsToMonitor: ReadValueIdOptions[],
         requestedParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn,
-        done: Callback<ClientMonitoredItemGroup>
+        callback: Callback<ClientMonitoredItemGroup>
     ): void;
-    public monitorItems(...args: any[]): any {
-        const itemsToMonitor = args[0] as ReadValueIdOptions[];
-        const requestedParameters = args[1] as MonitoringParametersOptions;
-        const timestampsToReturn = args[2] as TimestampsToReturn;
-        const done = args[3] as Callback<ClientMonitoredItemGroup>;
+    public monitorItems(
+        itemsToMonitor: ReadValueIdOptions[],
+        requestedParameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn,
+        callback?: Callback<ClientMonitoredItemGroup>
+    ): Promise<ClientMonitoredItemGroup> | undefined {
 
         const monitoredItemGroup = new ClientMonitoredItemGroupImpl(this, itemsToMonitor, requestedParameters, timestampsToReturn);
 
         this._wait_for_subscription_to_be_ready((err?: Error) => {
             if (err) {
-                return done(err);
+                callback?.(err);
+                return;
             }
             monitoredItemGroup._monitor((err1?: Error) => {
                 if (err1) {
-                    return done?.(err1);
+                    callback?.(err1);
+                    return;
                 }
-                done(err1!, monitoredItemGroup);
+                callback?.(null, monitoredItemGroup);
             });
         });
+        return undefined;
     }
 
-    public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback): void {
+    public _delete_monitored_items(
+        monitoredItems: ClientMonitoredItemBase[],
+        callback: ErrorCallback
+    ): void {
         assert(typeof callback === "function");
         assert(Array.isArray(monitoredItems));
 
@@ -387,36 +416,40 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 subscriptionId: this.subscriptionId
             },
             (err: Error | null, _response?: DeleteMonitoredItemsResponse) => {
-                callback(err!);
+                callback(err || undefined);
             }
         );
     }
 
     public async setPublishingMode(publishingEnabled: boolean): Promise<StatusCode>;
     public setPublishingMode(publishingEnabled: boolean, callback: Callback<StatusCode>): void;
-    public setPublishingMode(...args: any[]): any {
-        const publishingEnabled = args[0] as boolean;
-        const callback = args[1] as Callback<StatusCode>;
-        assert(typeof callback === "function");
+    public setPublishingMode(
+        publishingEnabled: boolean, callback?: Callback<StatusCode>
+    ): Promise<StatusCode> | undefined {
 
         const session = this.session as ClientSessionImpl;
         if (!session) {
-            return callback(new Error("no session"));
+            callback?.(new Error("no session"));
+            return;
         }
         const subscriptionId = this.subscriptionId as SubscriptionId;
         session.setPublishingMode(publishingEnabled, subscriptionId, (err: Error | null, statusCode?: StatusCode) => {
             if (err) {
-                return callback(err);
+                callback?.(err);
+                return;
             }
             /* c8 ignore next */
             if (!statusCode) {
-                return callback(new Error("Internal Error"));
+                callback?.(new Error("Internal Error"));
+                return;
             }
             if (statusCode.isNotGood()) {
-                return callback(null, statusCode);
+                callback?.(null, statusCode);
+                return;
             }
-            callback(null, StatusCodes.Good);
+            callback?.(null, StatusCodes.Good);
         });
+        return undefined;
     }
 
     /**
@@ -453,8 +486,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         }
 
         const setTriggeringRequest = new SetTriggeringRequest({
-            linksToAdd: linksToAdd ? linksToAdd.map((i) => i.monitoredItemId!) : null,
-            linksToRemove: linksToRemove ? linksToRemove.map((i) => i.monitoredItemId!) : null,
+            linksToAdd: linksToAdd ? linksToAdd.map((i) => i.monitoredItemId || 0) : null,
+            linksToRemove: linksToRemove ? linksToRemove.map((i) => i.monitoredItemId || 0) : null,
             subscriptionId,
             triggeringItemId
         });
@@ -492,7 +525,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             return undefined;
         }
 
-        //    modifySubscriptionRequest.subscriptionId = this.subscriptionId;
+        (modifySubscriptionRequest as ModifySubscriptionOptionsEx).subscriptionId = this.subscriptionId;
 
         modifySubscriptionRequest.priority =
             modifySubscriptionRequest.priority === undefined ? this.priority : modifySubscriptionRequest.priority;
