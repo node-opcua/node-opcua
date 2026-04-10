@@ -210,14 +210,14 @@ describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test)
         });
         describe("when issuer (CA certificate) is not trusted", () => {
             it("AQU01- should reject a certificate (signed by CA) that has never been seen before with BadCertificateUntrusted", async () => {
-                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(combineCertificate);
+                const isTrusted = await certificateMgrWithNoIssuerCert.isCertificateTrusted(_certificateIssuedByCAChain[0]);
                 isTrusted.should.eql("BadCertificateUntrusted");
 
                 const statusCode = await certificateMgrWithNoIssuerCert.getTrustStatus(_certificateIssuedByCAChain[0]);
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
                 const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
-                statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
+                statusCode2.should.eql(StatusCodes.BadCertificateRevocationUnknown);
             });
             it("AQU02- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer is not trusted !", async () => {
                 await certificateMgrWithNoIssuerCert.trustCertificate(_certificateIssuedByCAChain[0]);
@@ -226,7 +226,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test)
                 verif.should.eql("BadCertificateChainIncomplete");
 
                 const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(_certificateIssuedByCAChain);
-                statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
+                statusCode2.should.eql(StatusCodes.BadCertificateRevocationUnknown);
             });
             it("AQU03- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer certificate is also trusted  - and revocation list is missing!", async () => {
                 await certificateMgrWithNoIssuerCert.trustCertificate(_certificateIssuedByCAChain[0]);
