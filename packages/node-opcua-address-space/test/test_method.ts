@@ -255,7 +255,7 @@ describe("testing Method calling", () => {
             inputArguments
         });
 
-        result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
+        should(result.statusCode).eql(StatusCodes.BadMethodInvalid);
     });
     it("should return BadMethodInvalid if methodId node does'nt exist", async () => {
         const server = rootFolder.objects.server;
@@ -269,7 +269,7 @@ describe("testing Method calling", () => {
             inputArguments
         });
 
-        result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
+        should(result.statusCode).eql(StatusCodes.BadMethodInvalid);
     });
 });
 
@@ -307,9 +307,9 @@ describe("US-030: method call interceptors and afterCall event", () => {
     it("should allow method call when no interceptors registered", async () => {
         const method = createBoundMethod();
         const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-        result.statusCode!.should.eql(StatusCodes.Good);
-        should.exist(result.outputArguments![0]);
-        result.outputArguments![0]?.value.should.eql(42);
+        should(result?.statusCode).eql(StatusCodes.Good);
+        should.exist(result?.outputArguments?.[0]);
+        should(result?.outputArguments?.[0]?.value).eql(42);
     });
 
     it("should reject method call when sync interceptor returns non-Good", async () => {
@@ -327,7 +327,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
             methodBodyCalled.should.eql(false, "method body should not be called when interceptor rejects");
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor);
@@ -350,7 +350,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode!.should.eql(StatusCodes.BadNotExecutable);
+            should(result.statusCode).eql(StatusCodes.BadNotExecutable);
             methodBodyCalled.should.eql(false, "method body should not be called when async interceptor rejects");
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor);
@@ -367,8 +367,8 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode!.should.eql(StatusCodes.Good);
-            result.outputArguments![0]!.value.should.eql(42);
+            should(result.statusCode).eql(StatusCodes.Good);
+            should(result.outputArguments?.[0]?.value).eql(42);
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor);
         }
@@ -416,7 +416,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             callOrder.should.eql(["first", "second"]);
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor1);
@@ -434,7 +434,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
         addressSpace.removeMethodCallInterceptor(interceptor);
 
         const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-        result.statusCode!.should.eql(StatusCodes.Good);
+        should(result.statusCode).eql(StatusCodes.Good);
     });
 
     it("should emit afterCall event with correct arguments", async () => {
@@ -452,10 +452,10 @@ describe("US-030: method call interceptors and afterCall event", () => {
         const _result = await method.execute(null, [{ dataType: DataType.UInt32, value: 5 }], context);
 
         afterCallFired.should.eql(true, "afterCall event should fire");
-        receivedContext!.should.eql(context);
-        receivedResult!.statusCode!.should.eql(StatusCodes.Good);
-        should.exist(receivedResult!.outputArguments![0]);
-        receivedResult!.outputArguments![0]?.value.should.eql(42);
+        should(receivedContext).eql(context);
+        should(receivedResult?.statusCode).eql(StatusCodes.Good);
+        should.exist(receivedResult?.outputArguments?.[0]);
+        should(receivedResult?.outputArguments?.[0]?.value).eql(42);
     });
 
     it("should receive correct method and object in interceptor", async () => {
@@ -482,8 +482,8 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             await method.execute(obj, [], context);
-            receivedMethod!.nodeId.should.eql(method.nodeId);
-            receivedObject!.nodeId.should.eql(obj.nodeId);
+            should(receivedMethod?.nodeId).eql(method.nodeId);
+            should(receivedObject?.nodeId).eql(obj.nodeId);
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor);
         }

@@ -185,7 +185,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         const statusCode = inner_func(eventId, comment, branch, conditionNode);
 
         // record also who did the call
-        branch.setClientUserId(context.userIdentity || "<unknown client user id>");
+        branch.setClientUserId(context.getUserName());
 
         callback(null, {
             statusCode

@@ -158,7 +158,7 @@ describe("testing ServerEngine", () => {
                 browseName: "filteredItemsFolder"
             });
 
-            function check_if_allow(n: number, context: ISessionContext) {
+            function check_if_allowed(n: number, context: ISessionContext) {
                 //xx console.log(" check_if_allow", n, context.session ? (context.session as any).testFilterArray : null)
                 const _session = context ? context.session : null;
                 if (context && _session && Object.hasOwn(_session, "testFilterArray")) {
@@ -173,20 +173,20 @@ describe("testing ServerEngine", () => {
             }
             const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder1",
-                browseFilter: check_if_allow.bind(null, 1)
+                browseFilter: check_if_allowed.bind(null, 1)
             });
             assert(newFolder1);
 
             const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder2",
 
-                browseFilter: check_if_allow.bind(null, 2)
+                browseFilter: check_if_allowed.bind(null, 2)
             });
             assert(newFolder2);
 
             const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder3",
-                browseFilter: check_if_allow.bind(null, 3)
+                browseFilter: check_if_allowed.bind(null, 3)
             });
             assert(newFolder3);
 

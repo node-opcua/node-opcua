@@ -570,12 +570,25 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         );
     }
 
+    public toJSON(): Record<string, string | number | boolean | undefined> {
+        return {
+            endpointUrl: this.endpointUrl,
+            serverUri: this.serverUri,
+            requestedSessionTimeout: this.requestedSessionTimeout,
+            status: this._internalState
+        };
+    }
+
     public toString(): string {
         let str = ClientBaseImpl.prototype.toString.call(this);
         str += `  requestedSessionTimeout....... ${this.requestedSessionTimeout}\n`;
         str += `  endpointUrl................... ${this.endpointUrl}\n`;
         str += `  serverUri..................... ${this.serverUri}\n`;
         return str;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
     }
 
     /**

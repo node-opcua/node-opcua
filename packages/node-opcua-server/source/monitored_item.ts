@@ -563,12 +563,24 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         );
     }
 
+    public toJSON(): Record<string, string | number | undefined> {
+        return {
+            nodeId: this.node?.nodeId.toString(),
+            samplingInterval: this.samplingInterval,
+            monitoredItemId: this.monitoredItemId
+        };
+    }
+
     public toString(): string {
         let str = "";
         str += `monitored item nodeId : ${this.node?.nodeId.toString()} \n`;
         str += `    sampling interval : ${this.samplingInterval} \n`;
         str += `    monitoredItemId   : ${this.monitoredItemId} \n`;
         return str;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
     }
     /**
      * @param dataValue       the whole dataValue

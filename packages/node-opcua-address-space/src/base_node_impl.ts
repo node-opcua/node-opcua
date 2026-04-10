@@ -1031,6 +1031,19 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return options.toString();
     }
 
+    public toJSON(): Record<string, string | undefined | null> {
+        return {
+            nodeId: this.nodeId.toString(),
+            nodeClass: NodeClass[this.nodeClass],
+            browseName: this.browseName.toString(),
+            displayName: this.displayName.length ? this.displayName[0].text : ""
+        };
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     /**
      * @property isFalseSubStateOf
      * @type {BaseNode|null}

@@ -4,6 +4,7 @@
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
+import type { UInt32 } from "node-opcua-basic-types";
 import type { TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
@@ -16,8 +17,7 @@ import {
     type MonitoringMode,
     type SetMonitoringModeResponse
 } from "node-opcua-service-subscription";
-import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
-
+import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import type { MonitoredItemCreateRequestOptions, MonitoringParametersOptions } from "node-opcua-types";
 import type { ClientMonitoredItemBase } from "./client_monitored_item_base";
 import type { SetMonitoringModeRequestLike } from "./client_session";
@@ -26,7 +26,7 @@ import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_im
 import type { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 
 export interface ClientMonitoredItemBaseEx extends ClientMonitoredItemBase {
     internalSetMonitoringMode(monitoringMode: MonitoringMode): void;
@@ -34,8 +34,8 @@ export interface ClientMonitoredItemBaseEx extends ClientMonitoredItemBase {
 /**
  * @internal
  */
-export class ClientMonitoredItemToolbox {
-    public static _toolbox_monitor(
+export namespace ClientMonitoredItemToolbox {
+    export function _toolbox_monitor(
         subscription: ClientSubscription,
         timestampsToReturn: TimestampsToReturn,
         monitoredItems: ClientMonitoredItemBase[],
@@ -46,18 +46,14 @@ export class ClientMonitoredItemToolbox {
         // we expect subscription to be valid and have a valid session
         if (!subscription.hasSession) {
             const err0 = new Error("Invalid subscription");
-            if (done) {
-                return done(err0);
-            }
+            done(err0);
             return;
         }
 
         // may be the subscription has been terminated or is not fully initialize, in the meantime
         if (!subscription.isActive) {
             const err1 = new Error("Subscription has been terminated or is not fully initialized");
-            if (done) {
-                return done(err1);
-            }
+            done(err1);
             return;
         }
 
@@ -66,7 +62,8 @@ export class ClientMonitoredItemToolbox {
             const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
             const itemToCreate = monitoredItemI._prepare_for_monitoring();
             if (typeof itemToCreate.error === "string") {
-                return done(new Error(itemToCreate.error));
+                done(new Error(itemToCreate.error));
+                return;
             }
             itemsToCreate.push(itemToCreate as MonitoredItemCreateRequestOptions);
         }
@@ -107,7 +104,7 @@ export class ClientMonitoredItemToolbox {
         });
     }
 
-    public static _toolbox_modify(
+    export function _toolbox_modify(
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBase[],
         parameters: MonitoringParametersOptions,
@@ -139,10 +136,12 @@ export class ClientMonitoredItemToolbox {
         session.modifyMonitoredItems(modifyMonitoredItemsRequest, (err: Error | null, response?: ModifyMonitoredItemsResponse) => {
             /* c8 ignore next */
             if (err) {
-                return callback(err);
+                callback(err);
+                return;
             }
             if (!response || !(response instanceof ModifyMonitoredItemsResponse)) {
-                return callback(new Error("internal error"));
+                callback(new Error("internal error"));
+                return;
             }
 
             response.results = response.results || [];
@@ -153,19 +152,20 @@ export class ClientMonitoredItemToolbox {
 
             /* c8 ignore next */
             if (response.results.length === 1 && res.statusCode.isNotGood()) {
-                return callback(new Error("Error" + res.statusCode.toString()));
+                callback(new Error(`Error${res.statusCode.toString()}`));
+                return;
             }
             callback(null, response.results);
         });
     }
 
-    public static _toolbox_setMonitoringMode(
+    export function _toolbox_setMonitoringMode(
         subscription: ClientSubscription,
         monitoredItems: ClientMonitoredItemBaseEx[],
         monitoringMode: MonitoringMode,
         callback: Callback<StatusCode[]>
     ): void {
-        const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId);
+        const monitoredItemIds = monitoredItems.map((monitoredItem) => monitoredItem.monitoredItemId as UInt32);
 
         const setMonitoringModeRequest: SetMonitoringModeRequestLike = {
             monitoredItemIds,
@@ -178,12 +178,16 @@ export class ClientMonitoredItemToolbox {
 
         session.setMonitoringMode(setMonitoringModeRequest, (err: Error | null, response?: SetMonitoringModeResponse) => {
             if (err) {
-                return callback(err);
+                callback(err);
+                return;
+            }
+            if (!response) {
+                callback(new Error("internal error"));
+                return;
             }
             monitoredItems.forEach((monitoredItem) => {
                 monitoredItem.internalSetMonitoringMode(monitoringMode);
             });
-            response = response!;
             response.results = response.results || [];
             callback(null, response.results);
         });

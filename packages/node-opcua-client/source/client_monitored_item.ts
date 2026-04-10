@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-client
  */
-import type { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 
 import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { ReadValueIdOptions } from "node-opcua-service-read";
-import { MonitoringMode, type MonitoringParametersOptions } from "node-opcua-types";
+import type { MonitoringParametersOptions } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
 import type { ClientSubscription } from "./client_subscription";
@@ -22,8 +22,9 @@ export interface ClientMonitoredItem extends ClientMonitoredItemBase, ClientMoni
     on(event: "err", eventHandler: (message: string) => void): this;
 }
 
-export class ClientMonitoredItem {
-    public static create(
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace ClientMonitoredItem {
+    export let create = function(
         subscription: ClientSubscription,
         itemToMonitor: ReadValueIdOptions,
         monitoringParameters: MonitoringParametersOptions,

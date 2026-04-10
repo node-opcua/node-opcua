@@ -1,14 +1,13 @@
-import { Certificate } from "node-opcua-crypto/web";
-import { DataValue } from "node-opcua-data-value";
-import { PreciseClock } from "node-opcua-date-time";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { MessageSecurityMode, PermissionType, ReferenceDescription, UserIdentityToken } from "node-opcua-types";
-import { StatusCode } from "node-opcua-status-code";
-
-import { ContinuationPoint } from "./continuation_point";
-import { BaseNode } from "./base_node";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
+import type { Certificate } from "node-opcua-crypto/web";
+import type { DataValue } from "node-opcua-data-value";
+import type { PreciseClock } from "node-opcua-date-time";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { MessageSecurityMode, PermissionType, ReferenceDescription, UserIdentityToken } from "node-opcua-types";
+import type { BaseNode } from "./base_node";
+import type { ContinuationPoint } from "./continuation_point";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
 
 export function getContextMaxMessageSize(context: ISessionContext): number {
     if (!context.session?.channel?.getTransportSettings) return 0;
@@ -67,6 +66,9 @@ export interface ISessionContext {
     /** The underlying OPC UA session, if available. */
     readonly session?: ISessionBase;
 
+    /** Returns the user name of the current user. */
+    getUserName(): string;
+
     /** Returns the NodeIds of all roles assigned to the current user. */
     getCurrentUserRoles(): NodeId[];
 
@@ -88,9 +90,6 @@ export interface ISessionContext {
     /** Server timestamp at the time the request was received. */
     currentTime?: PreciseClock;
 
-    /** Display name of the authenticated user (e.g. "anonymous"). */
-    readonly userIdentity?: string;
-
     /**
      * The client's application-instance certificate,
      * or `null` if no secure channel is available.
@@ -103,4 +102,14 @@ export interface ISessionContext {
      * unavailable.
      */
     readonly clientApplicationUri: string | null;
+
+    /**
+     * Returns a JSON representation of the context
+     */
+    toJSON(): Record<string, string | null>;
+
+    /**
+     * Returns a string representation of the context
+     */
+    toString(): string;
 }

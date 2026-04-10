@@ -664,6 +664,24 @@ export class Subscription extends EventEmitter {
         return str;
     }
 
+    public toJSON(): Record<string, string | number | boolean> {
+        return {
+            id: this.id,
+            sessionId: this.getSessionId() ? this.getSessionId().toString() : NodeId.nullNodeId.toString(),
+            publishingInterval: this.publishingInterval,
+            maxKeepAliveCount: this.maxKeepAliveCount,
+            lifeTimeCount: this.lifeTimeCount,
+            publishingEnabled: this.publishingEnabled,
+            state: this.state !== undefined ? SubscriptionState[this.state] : "unknown",
+            monitoredItemCount: this.monitoredItemCount,
+            pendingNotificationsCount: this.pendingNotificationsCount
+        };
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     /**
      * modify subscription parameters
      * @param param

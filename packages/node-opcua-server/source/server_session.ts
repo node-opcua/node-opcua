@@ -189,6 +189,25 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this._registeredNodesInv = {};
     }
 
+    public toJSON(): Record<string, string | number | Date | null | undefined> {
+        return {
+            sessionName: this.sessionName,
+            sessionId: this.nodeId.toString(),
+            status: this.__status,
+            clientConnectionTime: this.creationDate,
+            sessionTimeout: this.sessionTimeout,
+            clientDescription: this.clientDescription ? this.clientDescription.applicationName.text : ""
+        };
+    }
+
+    public toString(): string {
+        return `ServerSession(sessionName="${this.sessionName}", sessionId=${this.nodeId.toString()})`;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
+
     public getSessionId(): NodeId {
         return this.nodeId;
     }

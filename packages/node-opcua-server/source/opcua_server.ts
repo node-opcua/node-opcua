@@ -1024,6 +1024,25 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     public userCertificateManager: OPCUACertificateManager;
 
     static defaultShutdownTimeout = 100; // 250 ms
+
+    public toJSON(): Record<string, unknown> {
+        return {
+            serverInfo: this.serverInfo,
+            buildInfo: this.buildInfo,
+            state: this.engine ? this.getServerState() : "uninitialized",
+            endpoints: this.endpoints.map(e => e.toJSON()),
+            currentSessionCount: this.currentSessionCount,
+            initialized: this.initialized
+        };
+    }
+
+    public toString(): string {
+        return `OPCUAServer(endpoints=${this.endpoints.map(e => e.endpointUrl).join(",")})`;
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](): string {
+        return this.toString();
+    }
     /**
      * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
      * one of the provided endpoint.
@@ -4034,7 +4053,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData {}
+export interface RaiseEventTransitionEventData extends RaiseEventData { }
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
@@ -4064,7 +4083,7 @@ export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCe
      */
     invalidUri: PseudoVariantString;
 }
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4076,7 +4095,7 @@ export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCerti
  * There are no additional Properties defined for this EventType.
  *
  */
-export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4086,7 +4105,7 @@ export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4096,7 +4115,7 @@ export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertifi
  * If a trust chain is involved then the certificate that failed in the trust chain should be described.
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4119,7 +4138,7 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType
  */
-export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData { }
 
 const opts = { multiArgs: false };
 OPCUAServer.prototype.initialize = withCallback(OPCUAServer.prototype.initialize, opts);
