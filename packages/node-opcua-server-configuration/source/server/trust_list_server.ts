@@ -22,6 +22,11 @@ async function readAll(folder: string): Promise<Buffer[]> {
         const ext = path.extname(file);
         if (ext === ".der" || ext === ".pem") {
             const chain = await readCertificateChainAsync(file);
+            // Return the full chain as a single ByteString.
+            // When addTrustedCertificateFromChain stores a chain-on-disk
+            // (leaf + issuer CAs in a single PEM), we preserve that
+            // chain so clients reading the TrustList can use it for
+            // chain-building.
             const concatenated = Buffer.concat(chain);
             results.push(concatenated);
         } else if (ext === ".crl") {
