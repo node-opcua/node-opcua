@@ -20,7 +20,8 @@ import { CertificateManager } from "node-opcua-certificate-manager";
 import {
     type Certificate,
     combine_der,
-    makeSHA1Thumbprint
+    makeSHA1Thumbprint,
+    split_der
 } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
 import { OpenFileMode } from "node-opcua-file-transfer";
@@ -1010,8 +1011,10 @@ describe("ServerConfiguration", () => {
                 const result = await trustList.readTrustedCertificateList();
                 result.trustedCertificates?.length.should.eql(1);
 
-                // Verify the added cert is the leaf cert
-                const addedCertThumbprint = makeSHA1Thumbprint(result.trustedCertificates?.[0] ?? Buffer.alloc(0)).toString("hex");
+                // The stored ByteString is the full chain (chain-on-disk paradigm).
+                // Extract the leaf (first DER block) to compare thumbprints.
+                const storedChain = split_der(result.trustedCertificates?.[0] ?? Buffer.alloc(0));
+                const addedCertThumbprint = makeSHA1Thumbprint(storedChain[0]).toString("hex");
                 const leafThumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 addedCertThumbprint.should.eql(leafThumbprint);
 
