@@ -6,8 +6,10 @@ import type { CertificateManager, OPCUACertificateManager } from "node-opcua-cer
 import { exploreCertificate, readPrivateKey } from "node-opcua-crypto";
 import {
     certificateMatchesPrivateKey,
+    type Certificate,
     coercePEMorDerToPrivateKey,
     coercePrivateKeyPem,
+    combine_der,
     makeSHA1Thumbprint,
     type PrivateKey,
     toPem
@@ -52,18 +54,33 @@ async function preInstallIssuerCertificates(
 }
 
 // Helper: Stage main certificate to temporary files
+//
+// The PEM file contains the full chain (leaf + issuer CAs) so that
+// getCertificateChain() returns the complete chain.  This allows
+// OpenSecureChannel and CreateSession to present the full chain to
+// connecting clients, enabling them to build and verify the trust
+// path without needing all CA certificates pre-installed.
 async function preInstallCertificate(
     serverImpl: PushCertificateManagerInternalContext,
     certificateManager: CertificateManager,
-    certificate: Buffer
+    certificate: Certificate,
+    issuerCertificates?: Certificate[]
 ): Promise<void> {
     const certFolder = certificateManager.ownCertFolder;
-    const destDER = path.join(certFolder, "certificate.der");
     const destPEM = path.join(certFolder, "certificate.pem");
-    const certificatePEM = toPem(certificate, "CERTIFICATE");
 
-    await serverImpl.fileTransactionManager.stageFile(destDER, certificate);
+    // Build the full chain: leaf first, then issuer CAs
+    const certificateChain: Certificate[] = [certificate, ...(issuerCertificates ?? [])];
+    const certificatePEM = toPem(combine_der(certificateChain), "CERTIFICATE");
+
     await serverImpl.fileTransactionManager.stageFile(destPEM, certificatePEM, "utf-8");
+
+    // Clean up any leftover certificate.der from previous installations.
+    // Since DER is no longer written, a stale file would be misleading.
+    const legacyDER = path.join(certFolder, "certificate.der");
+    if (fs.existsSync(legacyDER)) {
+        serverImpl.fileTransactionManager.stageFileRemoval(legacyDER);
+    }
 }
 
 // Helper: Stage private key to temporary file
@@ -164,7 +181,7 @@ export async function executeUpdateCertificate(
             }
 
             await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
-            await preInstallCertificate(serverImpl, certificateManager, certificate);
+            await preInstallCertificate(serverImpl, certificateManager, certificate, issuerCertificates);
             serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };
         } else {
@@ -203,7 +220,7 @@ export async function executeUpdateCertificate(
 
             await preInstallPrivateKey(serverImpl, certificateManager, privateKeyFormat, tempPrivateKey);
             await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
-            await preInstallCertificate(serverImpl, certificateManager, certificate);
+            await preInstallCertificate(serverImpl, certificateManager, certificate, issuerCertificates);
 
             serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };

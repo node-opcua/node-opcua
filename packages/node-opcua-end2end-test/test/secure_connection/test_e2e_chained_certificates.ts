@@ -232,4 +232,119 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             await server.shutdown();
         }
     });
+
+    // Helper: create a server whose certificate.pem contains the full chain (leaf + CA)
+    async function setupServerWithChainedCertificate(
+        name: string,
+        rootFolder: string,
+        options: { automaticallyAcceptUnknownCertificate?: boolean } = {}
+    ) {
+        const serverCertificateManager = new OPCUACertificateManager({
+            rootFolder: rootFolder,
+            automaticallyAcceptUnknownCertificate: options.automaticallyAcceptUnknownCertificate
+        });
+        await serverCertificateManager.initialize();
+
+        await installIssuerAndCRL(serverCertificateManager);
+
+        const certificateFile = await createSignedCertInManager(serverCertificateManager, name);
+
+        // Append the CA certificate to the server's PEM to form a chain
+        const leafPem = fs.readFileSync(certificateFile, "utf8");
+        const caCertPem = fs.readFileSync(ca.caCertificate, "utf8");
+        fs.writeFileSync(certificateFile, `${leafPem}\n${caCertPem}`);
+
+        const chainCheck = readCertificateChain(certificateFile);
+        should(chainCheck.length).be.greaterThanOrEqual(2, "certificate.pem should contain at least leaf + CA");
+
+        const server = new OPCUAServer({
+            port: 0,
+            serverInfo: {
+                applicationUri: `urn:localhost:${name}`
+            },
+            serverCertificateManager,
+            securityPolicies: [SecurityPolicy.Basic256Sha256],
+            securityModes: [MessageSecurityMode.SignAndEncrypt]
+        });
+        await server.initialize();
+        return server;
+    }
+
+    it("3/ verify that a server with a chained certificate exposes the full chain in CreateSession", async () => {
+        const serverPki = path.join(tmpFolder, "server3_pki");
+        const server = await setupServerWithChainedCertificate("server3", serverPki, {
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await server.start();
+        const endpointUrl = server.getEndpointUrl();
+
+        // ---- Verify server-side: getCertificateChain() returns the full chain ----
+        const serverChain = server.getCertificateChain();
+        should(serverChain.length).be.greaterThanOrEqual(2,
+            "Server.getCertificateChain() should return at least leaf + CA");
+
+        const serverLeaf = exploreCertificate(serverChain[0]);
+        const serverCA = exploreCertificate(serverChain[1]);
+        should(serverLeaf.tbsCertificate.issuer.commonName).be.eql(
+            serverCA.tbsCertificate.subject.commonName,
+            "Leaf issuer should match CA subject"
+        );
+
+        // ---- Setup client with CA trust ----
+        const clientPki = path.join(tmpFolder, "client3_pki");
+        const clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: clientPki,
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await clientCertificateManager.initialize();
+
+        const caCertificateChain = readCertificateChain(ca.caCertificate);
+        await clientCertificateManager.addIssuer(caCertificateChain[0], false, true);
+        const certificateRevocationList = await readCertificateRevocationList(ca.revocationList);
+        await clientCertificateManager.addRevocationList(certificateRevocationList);
+
+        await createSignedCertInManager(clientCertificateManager, "client3");
+
+        const client = OPCUAClient.create({
+            applicationUri: "urn:localhost:client3",
+            clientCertificateManager,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        });
+
+        try {
+            await client.withSessionAsync(endpointUrl, async (session) => {
+                // ---- Verify client-side: CreateSession response ----
+                // session.serverCertificate is the raw DER buffer from the
+                // CreateSession response — it should contain the full chain
+                const receivedChain = split_der(session.serverCertificate);
+                should(receivedChain.length).be.greaterThanOrEqual(2,
+                    "CreateSession response should contain the full certificate chain (leaf + CA)");
+
+                const receivedLeaf = exploreCertificate(receivedChain[0]);
+                const receivedCA = exploreCertificate(receivedChain[1]);
+
+                // Verify the chain structure
+                should(receivedLeaf.tbsCertificate.subject.commonName).eql("server3",
+                    "First certificate should be the server leaf");
+                should(receivedLeaf.tbsCertificate.issuer.commonName).eql(
+                    receivedCA.tbsCertificate.subject.commonName,
+                    "Leaf issuer should match CA subject in the received chain"
+                );
+
+                // Verify it matches what the server has on disk
+                receivedChain[0].toString("hex").should.eql(
+                    serverChain[0].toString("hex"),
+                    "Received leaf should match server's leaf certificate"
+                );
+                receivedChain[1].toString("hex").should.eql(
+                    serverChain[1].toString("hex"),
+                    "Received CA should match server's CA certificate"
+                );
+            });
+        } finally {
+            await server.shutdown();
+        }
+    });
+
 });

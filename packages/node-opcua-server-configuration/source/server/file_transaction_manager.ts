@@ -93,6 +93,31 @@ export class FileTransactionManager {
         this.addFileOp(() => this.#moveFileWithBackupTracked(tempFilePath, destinationPath));
     }
 
+    /**
+     * Stages a file for deletion during the transaction.
+     *
+     * The file is backed up before removal so it can be restored
+     * if the transaction is rolled back.  If the file does not
+     * exist at apply time the operation is silently skipped.
+     *
+     * @param filePath - absolute path of the file to remove
+     */
+    public stageFileRemoval(filePath: string): void {
+        this.addFileOp(async () => {
+            if (!fs.existsSync(filePath)) {
+                return;
+            }
+            // Create a backup before deleting so rollback can restore it
+            const tmpDir = await this.getTmpDir();
+            const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}_backup.tmp`;
+            const backupPath = path.join(tmpDir, uniqueFileName);
+            this.#backupFiles.set(filePath, backupPath);
+
+            await _copyFile(filePath, backupPath);
+            await _deleteFile(filePath);
+        });
+    }
+
     public addFileOp(functor: Functor): void {
         this.#pendingFileOps.push(functor);
     }
