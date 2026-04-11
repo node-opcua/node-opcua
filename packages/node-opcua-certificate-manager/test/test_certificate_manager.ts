@@ -90,7 +90,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: Mocha.Test)
 
     before(async () => await initializeDemoCertificates());
     after(async () => {
-        /** */
+        await tmpPKI.dispose();
     });
     beforeEach(async () => {
         // create a PKI with no issuer certificate
@@ -307,9 +307,8 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
     });
 
     afterEach(async () => {
-        /* */
-        acceptingCertificateMgr.dispose();
-        rejectingCertificateMgr.dispose();
+        await acceptingCertificateMgr.dispose();
+        await rejectingCertificateMgr.dispose();
     });
 
     it("BW01- should automatically accept 'unknown' self-signed certificate if  automaticallyAcceptUnknownCertificate is true", async () => {
