@@ -951,6 +951,60 @@ describe("ServerConfiguration", () => {
                 const afterWriteTime = lastUpdateTimeNode.readValue().value.value as Date;
                 afterWriteTime.getTime().should.be.greaterThan(afterRemoveTime.getTime());
             });
+
+            it("should initialize LastUpdateTime from filesystem when files exist", async () => {
+                const trustList = await getDefaultTrustList();
+                const trustListNode = addressSpace.findNode(trustList.nodeId) as UATrustList;
+                const lastUpdateTimeNode = trustListNode.lastUpdateTime;
+                should.exist(lastUpdateTimeNode, "LastUpdateTime property should exist on TrustList");
+                if (!lastUpdateTimeNode) return;
+
+                // Add a certificate so the PKI store has files on disk
+                const certificates = [selfSignedCert];
+                await trustList.addCertificate(certificates[0], true);
+
+                // Read the timestamp after addCertificate — should be a valid date
+                const afterAddTime = lastUpdateTimeNode.readValue().value.value as Date;
+                afterAddTime.getTime().should.be.greaterThan(0, "LastUpdateTime should NOT be MinDate after addCertificate");
+
+                // Now reset LastUpdateTime to MinDate to simulate a fresh promoteTrustList
+                lastUpdateTimeNode.setValueFromSource({
+                    dataType: DataType.DateTime,
+                    value: new Date(0)
+                });
+
+                // Re-promote the trust list (simulates server restart)
+                const { promoteTrustList } = await import("../dist/server/promote_trust_list.js");
+                await promoteTrustList(trustListNode as any);
+
+                // LastUpdateTime should now reflect the filesystem mtime, not MinDate
+                const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
+                afterPromoteTime.getTime().should.be.greaterThan(0,
+                    "LastUpdateTime should be initialized from filesystem mtime, not remain MinDate");
+            });
+
+            it("should keep LastUpdateTime at MinDate when trust store is empty", async () => {
+                const trustList = await getDefaultTrustList();
+                const trustListNode = addressSpace.findNode(trustList.nodeId) as UATrustList;
+                const lastUpdateTimeNode = trustListNode.lastUpdateTime;
+                should.exist(lastUpdateTimeNode, "LastUpdateTime property should exist on TrustList");
+                if (!lastUpdateTimeNode) return;
+
+                // Reset LastUpdateTime to MinDate
+                lastUpdateTimeNode.setValueFromSource({
+                    dataType: DataType.DateTime,
+                    value: new Date(0)
+                });
+
+                // Re-promote on an empty trust store
+                const { promoteTrustList } = await import("../dist/server/promote_trust_list.js");
+                await promoteTrustList(trustListNode as any);
+
+                // LastUpdateTime should remain at epoch (no files to read mtime from)
+                const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
+                afterPromoteTime.getTime().should.eql(0,
+                    "LastUpdateTime should remain MinDate when no files exist in trust store");
+            });
         });
 
         describe("AddCertificate - Security and Validation", () => {
