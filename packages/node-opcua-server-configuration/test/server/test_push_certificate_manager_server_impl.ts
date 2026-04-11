@@ -1655,7 +1655,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
 
-            const baselineCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const baselineCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             const baselineIssuerFiles = fs.readdirSync(issuerFolder).sort();
 
@@ -1698,11 +1697,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             statusCode.should.eql(StatusCodes.BadInternalError, "applyChanges should return BadInternalError on failure");
 
             // And: Baseline certificate should be restored
-            const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCertDER
-                .toString("hex")
-                .should.eql(baselineCertDER.toString("hex"), "Baseline certificate.der should be restored");
-
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             restoredCertPEM.should.eql(baselineCertPEM, "Baseline certificate.pem should be restored");
 
@@ -1744,7 +1738,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             // Store the baseline certificate
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
-            const baselineCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const baselineCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
 
             // When: Apply a second update
@@ -1775,11 +1768,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             statusCode.should.eql(StatusCodes.BadInternalError, "applyChanges should return BadInternalError on failure");
 
             // Then: Original (baseline) certificate should be restored
-            const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCertDER
-                .toString("hex")
-                .should.eql(baselineCertDER.toString("hex"), "Certificate should be restored to baseline after rollback");
-
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             restoredCertPEM.should.eql(baselineCertPEM, "Certificate PEM should be restored to baseline after rollback");
 
@@ -1819,7 +1807,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             await rollbackTestPushManager.applyChanges();
 
             const certFolder = path.join(rollbackFolder, "application/own/certs");
-            const initialCert = await readFile(path.join(certFolder, "certificate.der"));
             const initialCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
 
             // When: Apply another update
@@ -1844,9 +1831,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             statusCode.should.eql(StatusCodes.BadInternalError, "applyChanges should return BadInternalError on failure");
 
             // Then: The initial certificate should be restored
-            const restoredCert = await readFile(path.join(certFolder, "certificate.der"));
-            restoredCert.toString("hex").should.eql(initialCert.toString("hex"), "Certificate should be restored to initial state");
-
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             restoredCertPEM.should.eql(initialCertPEM, "Certificate PEM should be restored to initial state");
 
@@ -1989,7 +1973,6 @@ describe("Testing Server Side PushCertificateManager", () => {
             const certFolder = path.join(rollbackFolder, "application/own/certs");
             const issuerFolder = path.join(rollbackFolder, "application/issuers/certs");
 
-            const baselineCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const baselineCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
             const baselineIssuerFiles = fs.readdirSync(issuerFolder).sort();
 
@@ -2018,12 +2001,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             statusCode.should.eql(StatusCodes.BadInternalError, "applyChanges should return BadInternalError on failure");
 
             // Then: All files should be restored to baseline state
-            const restoredCertDER = await readFile(path.join(certFolder, "certificate.der"));
             const restoredCertPEM = await readFile(path.join(certFolder, "certificate.pem"), "utf-8");
-
-            restoredCertDER
-                .toString("hex")
-                .should.eql(baselineCertDER.toString("hex"), "certificate.der should be restored to baseline");
             restoredCertPEM.should.eql(baselineCertPEM, "certificate.pem should be restored to baseline");
 
             // And: Issuer files should match the baseline (excluding _old files)

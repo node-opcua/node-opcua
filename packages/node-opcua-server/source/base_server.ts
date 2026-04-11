@@ -271,6 +271,56 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         debugLog("certificateFile = ", this.certificateFile);
         this._checkCertificateSanMismatch();
         await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
+        this._checkOwnCertificateChainCompleteness();
+    }
+
+    /**
+     * Check that the server's certificate PEM contains the full
+     * chain (leaf + issuer CAs).  If the certificate is CA-signed
+     * but the PEM only contains the leaf, a prominent warning is
+     * logged so the operator can detect the mismatch easily.
+     *
+     * This method intentionally does NOT attempt to auto-heal the
+     * certificate file — the provisioning layer (GDS UpdateCertificate,
+     * CLI tools, etc.) is responsible for writing the full chain.
+     * Use {@link CertificateManager.completeCertificateChain} in
+     * provisioning code to reconstruct a partial chain.
+     *
+     * @internal
+     */
+    private _checkOwnCertificateChainCompleteness(): void {
+        try {
+            const chain = this.getCertificateChain();
+            if (chain.length === 0) return;
+
+            const leafInfo = exploreCertificate(chain[0]);
+            const isSelfSigned =
+                leafInfo.tbsCertificate.extensions?.subjectKeyIdentifier ===
+                leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier;
+
+            // Self-signed certificates don't need a chain
+            if (isSelfSigned) return;
+
+            if (chain.length >= 2) {
+                // Chain already contains at least leaf + issuer — good
+                return;
+            }
+
+            // ─── Partial chain detected ────────────────────────────────
+            const cn = leafInfo.tbsCertificate.subject.commonName ?? "?";
+            const akid = leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier ?? "?";
+            warningLog(
+                `[NODE-OPCUA-W60] Server certificate "${cn}" is CA-signed ` +
+                `but certificate.pem contains only the leaf certificate. ` +
+                `Clients may reject the connection with BadCertificateChainIncomplete. ` +
+                `(authorityKeyIdentifier: ${akid}). ` +
+                `To fix this, ensure the issuer CA certificate chain is appended ` +
+                `to ${this.certificateFile}, or re-provision the certificate ` +
+                `using the GDS UpdateCertificate workflow.`
+            );
+        } catch (err) {
+            warningLog(`[NODE-OPCUA-W60] Certificate chain check failed: ${(err as Error).message}`);
+        }
     }
 
     /**
