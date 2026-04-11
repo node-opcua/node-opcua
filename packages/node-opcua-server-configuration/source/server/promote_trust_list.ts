@@ -2,6 +2,9 @@
  * @module node-opcua-server-configuration
  */
 
+import fs from "node:fs";
+import path from "node:path";
+
 import { fs as MemFs } from "memfs";
 
 import type {
@@ -94,6 +97,65 @@ function updateLastUpdateTime(trustList: UATrustList): void {
         }
     } catch (err) {
         errorLog("Error updating LastUpdateTime:", err);
+    }
+}
+
+/**
+ * Scan the PKI store folders (trusted/certs, trusted/crl, issuers/certs,
+ * issuers/crl) and return the most recent modification time across all
+ * files. Returns null if no files are found.
+ */
+function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Date | null {
+    const dirs = [cm.trustedFolder, cm.crlFolder, cm.issuersCertFolder, cm.issuersCrlFolder];
+    let newest: Date | null = null;
+    for (const dir of dirs) {
+        if (!fs.existsSync(dir)) continue;
+        let entries: string[];
+        try {
+            entries = fs.readdirSync(dir);
+        } catch {
+            continue;
+        }
+        for (const entry of entries) {
+            try {
+                const stat = fs.statSync(path.join(dir, entry));
+                if (stat.isFile() && (!newest || stat.mtime > newest)) {
+                    newest = stat.mtime;
+                }
+            } catch {
+                // skip unreadable entries
+            }
+        }
+    }
+    return newest;
+}
+
+/**
+ * Initialize the LastUpdateTime property from the PKI store's
+ * filesystem timestamps. This avoids displaying MinDate
+ * (0001-01-01T00:00:00Z) when the trust store already contains
+ * certificates or CRLs (e.g. populated by selfOnboard or addIssuer).
+ */
+function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): void {
+    const cm = trustList.$$certificateManager;
+    if (!cm) return;
+
+    const lastUpdateTimeNode = trustList.lastUpdateTime;
+    if (!lastUpdateTimeNode) return;
+
+    // Only initialize if the current value is unset (MinDate)
+    const currentValue = lastUpdateTimeNode.readValue().value.value as Date | undefined;
+    if (currentValue && currentValue.getTime() > 0) {
+        return; // Already set by a previous OPC UA method call
+    }
+
+    const newest = getNewestMtimeFromPkiStore(cm);
+    if (newest) {
+        lastUpdateTimeNode.setValueFromSource({
+            dataType: DataType.DateTime,
+            value: newest
+        });
+        doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
     }
 }
 
@@ -562,6 +624,10 @@ export async function promoteTrustList(trustList: UATrustList) {
         fileType.closeAndUpdate?.bindMethod(_closeAndUpdate);
     }
     install_method_handle_on_TrustListType(trustList.addressSpace);
+
+    // Initialize LastUpdateTime from the PKI store's filesystem timestamps
+    // so it doesn't show MinDate (0001-01-01) when files already exist.
+    _initializeLastUpdateTimeFromFilesystem(trustListEx);
 }
 
 export function installAccessRestrictionOnTrustList(trustList: UAVariable | UAObject) {
