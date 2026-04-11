@@ -344,3 +344,57 @@ describe("OPCUAServerEndPoint certificate provider", function (this: Mocha.Suite
         }).throwError(/chain must not be empty/);
     });
 });
+
+describe("OPCUABaseServer#getDiscoveryUrls", function (this: Mocha.Suite) {
+    const { OPCUABaseServer } = require("../source") as typeof import("../source");
+
+    it("should return unique URLs across all endpoint descriptions", () => {
+        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
+        // Mock endpoints with overlapping URLs
+        server.endpoints = [
+            {
+                endpointDescriptions: () => [
+                    { endpointUrl: "opc.tcp://host1:4840" },
+                    { endpointUrl: "opc.tcp://host2:4840" }
+                ]
+            },
+            {
+                endpointDescriptions: () => [
+                    { endpointUrl: "opc.tcp://host1:4840" }, // duplicate
+                    { endpointUrl: "opc.tcp://host3:4840" }
+                ]
+            }
+        ] as any;
+
+        const urls = server.getDiscoveryUrls();
+        urls.should.deepEqual([
+            "opc.tcp://host1:4840",
+            "opc.tcp://host2:4840",
+            "opc.tcp://host3:4840"
+        ]);
+    });
+
+    it("should skip empty endpoint URLs", () => {
+        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
+        server.endpoints = [
+            {
+                endpointDescriptions: () => [
+                    { endpointUrl: "opc.tcp://host1:4840" },
+                    { endpointUrl: "" },
+                    { endpointUrl: null }
+                ]
+            }
+        ] as any;
+
+        const urls = server.getDiscoveryUrls();
+        urls.should.deepEqual(["opc.tcp://host1:4840"]);
+    });
+
+    it("should return empty array when no endpoints exist", () => {
+        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
+        server.endpoints = [] as any;
+
+        const urls = server.getDiscoveryUrls();
+        urls.should.deepEqual([]);
+    });
+});
