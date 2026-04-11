@@ -135,6 +135,12 @@ function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Date | null {
  * filesystem timestamps. This avoids displaying MinDate
  * (0001-01-01T00:00:00Z) when the trust store already contains
  * certificates or CRLs (e.g. populated by selfOnboard or addIssuer).
+ *
+ * Also subscribes to the CertificateManager's filesystem watcher
+ * events (certificateAdded, certificateRemoved, certificateChange,
+ * crlAdded, crlRemoved) so that LastUpdateTime stays current even
+ * when the trust store is modified externally (e.g. manual file
+ * copy, programmatic addIssuer/trustCertificate calls).
  */
 function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): void {
     const cm = trustList.$$certificateManager;
@@ -157,6 +163,19 @@ function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): void
         });
         doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
     }
+
+    // Subscribe to CertificateManager filesystem watcher events
+    // so LastUpdateTime stays current when the store is modified
+    // outside of OPC UA methods (e.g. addIssuer, trustCertificate,
+    // or manual file operations).
+    const _updateNow = () => {
+        updateLastUpdateTime(trustList);
+    };
+    cm.on("certificateAdded", _updateNow);
+    cm.on("certificateRemoved", _updateNow);
+    cm.on("certificateChange", _updateNow);
+    cm.on("crlAdded", _updateNow);
+    cm.on("crlRemoved", _updateNow);
 }
 
 interface UAMethodEx extends UAMethod {
