@@ -651,10 +651,15 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     }
 
     public getDiscoveryUrls(): string[] {
-        const discoveryUrls = this.endpoints.map((e: OPCUAServerEndPoint) => {
-            return e.endpointDescriptions()[0].endpointUrl || "";
-        });
-        return discoveryUrls;
+        const urlSet = new Set<string>();
+        for (const ep of this.endpoints) {
+            for (const desc of ep.endpointDescriptions()) {
+                if (desc.endpointUrl) {
+                    urlSet.add(desc.endpointUrl);
+                }
+            }
+        }
+        return [...urlSet];
     }
 
     public getServers(_channel: ServerSecureChannelLayer): ApplicationDescription[] {
