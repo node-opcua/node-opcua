@@ -1,5 +1,5 @@
-const { Worker, isMainThread, parentPort, workerData } = require("worker_threads");
-const util = require("util");
+const { isMainThread, parentPort, workerData } = require("node:worker_threads");
+const util = require("node:util");
 const chalk = require("chalk");
 const Mocha = require("mocha");
 
@@ -22,7 +22,7 @@ const {
 
 const t = () => {
     const d = new Date();
-    return d.toTimeString().split(" ")[0] + ":" + d.getMilliseconds().toString().padStart(3, "0") + " ";
+    return `${d.toTimeString().split(" ")[0]}:${d.getMilliseconds().toString().padStart(3, "0")} `;
 };
 class ParallelMochaReporter {
     /**
@@ -46,7 +46,7 @@ class ParallelMochaReporter {
             .once(EVENT_RUN_BEGIN, () => {
                 // console.log("start");
             })
-            .on(EVENT_SUITE_BEGIN, (test) => {
+            .on(EVENT_SUITE_BEGIN, (_test) => {
                 // console.log("  " + this.indent() + chalk.yellow(test.title), test.fullTitle());
                 this.increaseIndent();
             })
@@ -54,7 +54,7 @@ class ParallelMochaReporter {
                 this.outputLines = [];
                 this.oldConsoleLog = console.log;
                 console.log = redirectConsoleLog;
-                console.log("  " + this.indent() + chalk.cyan(test.title), chalk.magenta(test.file));
+                console.log(`  ${this.indent()}${chalk.cyan(test.title)}`, chalk.magenta(test.file));
                 this.counter++;
             })
             .on(EVENT_SUITE_END, () => {
@@ -64,7 +64,7 @@ class ParallelMochaReporter {
                 console.log = this.oldConsoleLog;
                 this.oldConsoleLog = null;
                 /** */
-                console.log("  " + chalk.yellow(test.fullTitle()));
+                console.log(`  ${chalk.yellow(test.fullTitle())}`);
                 // console.log("  " + this.indent() + chalk.green(test.title));
                 const { duration, file, error, timedOut, state, stats, title } = test;
                 const output = this.outputLines;
@@ -76,10 +76,10 @@ class ParallelMochaReporter {
                 });
             })
             .on(EVENT_TEST_SKIPPED, (test) => {
-                console.log("  " + chalk.yellow(test.fullTitle()));
+                console.log(`  ${chalk.yellow(test.fullTitle())}`);
                 console.log = this.oldConsoleLog;
                 this.oldConsoleLog = null;
-                console.log("  " + chalk.yellow(test.fullTitle()));
+                console.log(`  ${chalk.yellow(test.fullTitle())}`);
                 /** */
                 const { duration, file, error, timedOut, state, stats, title } = test;
                 const titlePath = test.titlePath();
@@ -94,9 +94,9 @@ class ParallelMochaReporter {
             .on(EVENT_TEST_FAIL, (test, err) => {
                 console.log(err.message);
                 console.log(err.stack);
-                console.log("  " + chalk.red(test.fullTitle()));
+                console.log(`  ${chalk.red(test.fullTitle())}`);
                 console.log(test.file);
-                const { duration, file, error, timedOut, state, stats, title } = test;
+                const { duration, file, error: _error, timedOut, state, stats, title } = test;
                 const titlePath = test.titlePath();
                 const output = this.outputLines;
                 this.outputLines = [];
@@ -137,7 +137,7 @@ console.log = (...args) => {
 };
 console.warn = (...args) => {
     try {
-        const line = util.format.apply(null, ["W       ",t(), ...args]);
+        const line = util.format.apply(null, ["W       ", t(), ...args]);
         parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, line });
     } catch (err) {
         console.log(err);
@@ -145,7 +145,7 @@ console.warn = (...args) => {
 };
 
 async function workerThread() {
-    const { page, selectedTests, g } = workerData;
+    const { page: _page, selectedTests, g } = workerData;
 
     // console.log("Worker started", page, selectedTests.length);
     for (const file of selectedTests) {
@@ -153,7 +153,7 @@ async function workerThread() {
     }
     g_file = selectedTests[0];
     const reporter = ParallelMochaReporter;
-    const failures = await runtests({ reporter, dryRun: false, filterOpts: g, selectedTests });
+    const _failures = await runtests({ reporter, dryRun: false, filterOpts: g, selectedTests });
     for (const file of selectedTests) {
         parentPort.postMessage({ type: "TEST_FILE_COMPLETED", file });
     }

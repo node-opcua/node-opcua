@@ -7,6 +7,12 @@ const CPU = process.env.CPU ? parseInt(process.env.CPU, 10) : 0;
 
 const testWatchDogTimeout = process.env.PING ? parseInt(process.env.PING) : 10 * 60 * 1000;
 
+// Disable chokidar file-system watchers in CertificateManager during
+// parallel test runs. Each OPCUAServer creates 5 watchers; with N
+// worker threads that quickly exhausts the libuv thread-pool (default
+// UV_THREADPOOL_SIZE=4), starving dns.lookup and socket operations.
+process.env.OPCUA_PKI_DISABLE_FILE_WATCHERS = "true";
+
 require("should");
 
 const chalk = require("chalk");
