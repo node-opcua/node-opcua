@@ -104,21 +104,28 @@ function updateLastUpdateTime(trustList: UATrustList): void {
  * Scan the PKI store folders (trusted/certs, trusted/crl, issuers/certs,
  * issuers/crl) and return the most recent modification time across all
  * files. Returns null if no files are found.
+ *
+ * Uses async fs.promises to avoid blocking the event loop on startup
+ * when PKI directories are large or on slow filesystems.
  */
-function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Date | null {
+async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Promise<Date | null> {
     const dirs = [cm.trustedFolder, cm.crlFolder, cm.issuersCertFolder, cm.issuersCrlFolder];
     let newest: Date | null = null;
     for (const dir of dirs) {
-        if (!fs.existsSync(dir)) continue;
+        try {
+            await fs.promises.access(dir);
+        } catch {
+            continue;
+        }
         let entries: string[];
         try {
-            entries = fs.readdirSync(dir);
+            entries = await fs.promises.readdir(dir);
         } catch {
             continue;
         }
         for (const entry of entries) {
             try {
-                const stat = fs.statSync(path.join(dir, entry));
+                const stat = await fs.promises.stat(path.join(dir, entry));
                 if (stat.isFile() && (!newest || stat.mtime > newest)) {
                     newest = stat.mtime;
                 }
@@ -141,28 +148,40 @@ function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Date | null {
  * crlAdded, crlRemoved) so that LastUpdateTime stays current even
  * when the trust store is modified externally (e.g. manual file
  * copy, programmatic addIssuer/trustCertificate calls).
+ *
+ * Listeners are installed at most once per TrustList node
+ * (guarded by $$listenersInstalled) and are removed via
+ * addressSpace.registerShutdownTask to prevent leaks.
  */
-function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): void {
+async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): Promise<void> {
     const cm = trustList.$$certificateManager;
     if (!cm) return;
 
     const lastUpdateTimeNode = trustList.lastUpdateTime;
     if (!lastUpdateTimeNode) return;
 
-    // Only initialize if the current value is unset (MinDate)
+    // Seed the initial timestamp from the filesystem only when
+    // the current value is still unset (MinDate).  The event
+    // listeners below must always be installed regardless, so we
+    // must NOT return early here.
     const currentValue = lastUpdateTimeNode.readValue().value.value as Date | undefined;
-    if (currentValue && currentValue.getTime() > 0) {
-        return; // Already set by a previous OPC UA method call
+    if (!currentValue || currentValue.getTime() <= 0) {
+        const newest = await getNewestMtimeFromPkiStore(cm);
+        if (newest) {
+            lastUpdateTimeNode.setValueFromSource({
+                dataType: DataType.DateTime,
+                value: newest
+            });
+            doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
+        }
     }
 
-    const newest = getNewestMtimeFromPkiStore(cm);
-    if (newest) {
-        lastUpdateTimeNode.setValueFromSource({
-            dataType: DataType.DateTime,
-            value: newest
-        });
-        doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
+    // Guard: install listeners at most once per TrustList node
+    // to prevent duplicate handler invocation on re-promotion.
+    if (trustList.$$listenersInstalled) {
+        return;
     }
+    trustList.$$listenersInstalled = true;
 
     // Subscribe to CertificateManager filesystem watcher events
     // so LastUpdateTime stays current when the store is modified
@@ -171,11 +190,20 @@ function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx): void
     const _updateNow = () => {
         updateLastUpdateTime(trustList);
     };
-    cm.on("certificateAdded", _updateNow);
-    cm.on("certificateRemoved", _updateNow);
-    cm.on("certificateChange", _updateNow);
-    cm.on("crlAdded", _updateNow);
-    cm.on("crlRemoved", _updateNow);
+
+    const events = ["certificateAdded", "certificateRemoved", "certificateChange", "crlAdded", "crlRemoved"] as const;
+    for (const event of events) {
+        cm.on(event, _updateNow);
+    }
+
+    // Clean up listeners when the address space shuts down
+    // to avoid MaxListenersExceededWarning and memory leaks.
+    trustList.addressSpace.registerShutdownTask(() => {
+        for (const event of events) {
+            cm.removeListener(event, _updateNow);
+        }
+        trustList.$$listenersInstalled = false;
+    });
 }
 
 interface UAMethodEx extends UAMethod {
@@ -185,6 +213,7 @@ interface UATrustListEx extends UATrustList {
     $$certificateManager: OPCUACertificateManager;
     $$filename: string;
     $$openedForWrite: boolean;
+    $$listenersInstalled: boolean;
 }
 
 async function applyTrustListChanges(cm: OPCUACertificateManager, trustListData: TrustListDataType): Promise<StatusCode> {
@@ -646,7 +675,7 @@ export async function promoteTrustList(trustList: UATrustList) {
 
     // Initialize LastUpdateTime from the PKI store's filesystem timestamps
     // so it doesn't show MinDate (0001-01-01) when files already exist.
-    _initializeLastUpdateTimeFromFilesystem(trustListEx);
+    await _initializeLastUpdateTimeFromFilesystem(trustListEx);
 }
 
 export function installAccessRestrictionOnTrustList(trustList: UAVariable | UAObject) {

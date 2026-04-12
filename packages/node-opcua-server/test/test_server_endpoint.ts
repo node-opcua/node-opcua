@@ -9,7 +9,7 @@ import { invalidPrivateKey, MessageSecurityMode, SecurityPolicy } from "node-opc
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import path from "path";
 import should from "should";
-import { OPCUAServerEndPoint } from "../source";
+import { OPCUABaseServer, OPCUAServerEndPoint } from "../source";
 
 const it_with_crypto = it;
 
@@ -346,7 +346,6 @@ describe("OPCUAServerEndPoint certificate provider", function (this: Mocha.Suite
 });
 
 describe("OPCUABaseServer#getDiscoveryUrls", function (this: Mocha.Suite) {
-    const { OPCUABaseServer } = require("../source") as typeof import("../source");
 
     it("should return unique URLs across all endpoint descriptions", () => {
         const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;

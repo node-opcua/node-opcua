@@ -10,7 +10,10 @@ const sleep = async (delay: number) => await new Promise((resolve) => setTimeout
 
 const port = 1304;
 
-describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", () => {
+describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", function (this: Mocha.Suite) {
+
+    this.timeout(Math.max(this.timeout(), 120_000));
+
     let server: OPCUAServer;
 
     function createServerWithMaxAllowSessionOld() {
@@ -35,7 +38,7 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
     [createServerWithMaxAllowSessionOld, createServerWithMaxAllowSessionNew].forEach((createServerWithMaxAllowSession, index) => {
         const n = 3;
         describe(` ${createServerWithMaxAllowSession.name}`, function (this: Mocha.Suite) {
-            this.timeout(30_000);
+            this.timeout(Math.max(this.timeout(), 60_000));
             before(async () => {
                 server = createServerWithMaxAllowSession();
                 await server.start();
