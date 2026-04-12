@@ -111,6 +111,7 @@ function updateLastUpdateTime(trustList: UATrustList): void {
 async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Promise<Date | null> {
     const dirs = [cm.trustedFolder, cm.crlFolder, cm.issuersCertFolder, cm.issuersCrlFolder];
     let newest: Date | null = null;
+    
     for (const dir of dirs) {
         try {
             await fs.promises.access(dir);
@@ -123,14 +124,24 @@ async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Promise<
         } catch {
             continue;
         }
-        for (const entry of entries) {
+        
+        // Process stats in parallel arrays to avoid sequential bottleneck
+        const statPromises = entries.map(async (entry) => {
             try {
                 const stat = await fs.promises.stat(path.join(dir, entry));
-                if (stat.isFile() && (!newest || stat.mtime > newest)) {
-                    newest = stat.mtime;
+                if (stat.isFile()) {
+                    return stat.mtime;
                 }
             } catch {
                 // skip unreadable entries
+            }
+            return null;
+        });
+        
+        const mtimes = await Promise.all(statPromises);
+        for (const mtime of mtimes) {
+            if (mtime && (!newest || mtime > newest)) {
+                newest = mtime;
             }
         }
     }
