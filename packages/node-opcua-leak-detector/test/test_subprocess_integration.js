@@ -28,12 +28,19 @@ function runMocha(fixtureFiles, extraArgs = []) {
         ...files.map((f) => path.join(FIXTURES, f)),
     ];
     const cmd = `npx mocha ${args.join(" ")}`;
+    // Build a clean env so parent settings like
+    // MEM_LEAK_DETECTION_DISABLED don't leak into the fixtures
+    // (the fixtures NEED the leak detector active to produce
+    // the warnings that the assertions check for).
+    const env = { ...process.env };
+    delete env.MEM_LEAK_DETECTION_DISABLED;
     try {
         const stdout = execSync(cmd, {
             cwd: path.join(__dirname, ".."),
             timeout: 15000,
             encoding: "utf8",
             stdio: ["pipe", "pipe", "pipe"],
+            env,
         });
         return { exitCode: 0, stdout };
     } catch (err) {
