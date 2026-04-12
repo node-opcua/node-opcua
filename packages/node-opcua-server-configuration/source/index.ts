@@ -11,4 +11,5 @@ export * from "./server/promote_trust_list.js";
 export * from "./server/push_certificate_manager/subject_to_string.js";
 export * from "./server/push_certificate_manager_helpers.js";
 export * from "./server/push_certificate_manager_server_impl.js";
+export * from "./server/trust_list_server.js";
 export * from "./standard_certificate_types.js";
