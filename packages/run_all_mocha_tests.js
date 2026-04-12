@@ -129,12 +129,19 @@ const doHeapSnapshotGlobal = true;
 let heapdump = null;
 try {
     heapdump = require("heapdump");
-} catch (err) {
+} catch (_err) {
     /** */
 }
 
 function checkMemoryConsumption() {
-    forceGC();
+    _
+    // Only force a full GC when heap snapshots are requested.
+    // Forcing GC on every test (~2 calls per test) adds 70-110ms
+    // per call and degrades progressively as the heap grows,
+    // consuming 40-60% of total wall-clock time in long runs.
+    if (doHeapSnapshot) {
+        forceGC();
+    }
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     return used;
 }
@@ -181,14 +188,14 @@ class MyReporter {
             .once(EVENT_RUN_BEGIN, () => {
                 console.log("start");
 
-                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot("./" + heapsnapshot + ".start.heapsnapshot");
+                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot(`./${heapsnapshot}.start.heapsnapshot`);
             })
             .on(EVENT_SUITE_BEGIN, (test) => {
                 if (process.stdout.cursorTo && process.stdout.clearLine) {
                     process.stdout.clearLine(); // clear current text
                     process.stdout.cursorTo(0); // move cursor to beginning of line
                 }
-                console.log("                  " + this.indent() + chalk.yellow(test.title));
+                console.log(`                  ${this.indent()}${chalk.yellow(test.title)}`);
                 this.increaseIndent();
             })
             .on(EVENT_TEST_BEGIN, (test) => {
@@ -196,10 +203,10 @@ class MyReporter {
                 const mem = checkMemoryConsumption();
                 // console.log(`The script uses approximately ${Math.round(mem * 100) / 100} MB`);
                 this.memBefore = mem;
-                let memInfo = mem.toPrecision(5);
+                const memInfo = mem.toPrecision(5);
                 this.displayStatus(test, chalk.cyan(symbols.dot), chalk.grey(memInfo), "", "\r");
                 if (doHeapSnapshot && heapdump)
-                    heapdump.writeSnapshot("./" + Date.now() + ".start." + this.counter + ".heapsnapshot");
+                    heapdump.writeSnapshot(`./${Date.now()}.start.${this.counter}.heapsnapshot`);
 
                 this.old_console = console.log;
                 console.log = myConsoleLog;
@@ -210,7 +217,7 @@ class MyReporter {
             .on(EVENT_TEST_PASS, (test) => {
                 console.log = oldConsole;
 
-                const color = Mocha.reporters.Base.color;
+                const _color = Mocha.reporters.Base.color;
                 const extra = test.duration > 500 ? chalk.greenBright(` (${test.duration}ms)`) : "";
                 const mem = checkMemoryConsumption();
                 if (mem > this.maxMem) {
@@ -226,7 +233,7 @@ class MyReporter {
                 }
                 this.displayStatus(test, chalk.greenBright(symbols.ok), memInfo, extra, "\n");
                 if (doHeapSnapshot && heapdump)
-                    heapdump.writeSnapshot("./" + Date.now() + ".end." + this.counter + ".heapsnapshot");
+                    heapdump.writeSnapshot(`./${Date.now()}.end.${this.counter}.heapsnapshot`);
             })
             .on(EVENT_TEST_SKIPPED, (test) => {
                 console.log = oldConsole;
@@ -244,7 +251,7 @@ class MyReporter {
                 console.log(`end: ${stats.passes} / ${stats.passes + stats.failures} ok   (mem = ${memInfo} MB)`);
                 console.log(`total test: ${this.total}`);
                 console.log("max mem =", this.maxMem.toPrecision(5), "MB");
-                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot("./" + heapsnapshot + ".end.heapsnapshot");
+                if (doHeapSnapshotGlobal && heapdump) heapdump.writeSnapshot(`./${heapsnapshot}.end.heapsnapshot`);
             });
     }
     displayStatus(test, status, mem, extra, ending) {
@@ -255,9 +262,9 @@ class MyReporter {
                 process.stdout.clearLine(); // clear current text
                 process.stdout.cursorTo(0); // move cursor to beginning of line
             }
-            const title = this.indent() + status + " " + test.title;
-            const progress = this.counter.toString().padStart(4, " ") + "/" + this.total;
-            process.stdout.write(mem + " " + progress + " " + title + extra + ending);
+            const title = `${this.indent()}${status} ${test.title}`;
+            const progress = `${this.counter.toString().padStart(4, " ")}/${this.total}`;
+            process.stdout.write(`${mem} ${progress} ${title}${extra}${ending}`);
             return mem;
         } catch (err) {
             console.log(err);
@@ -278,7 +285,7 @@ class MyReporter {
 
 async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }) {
     // Instantiate a Mocha instance.
-    let mocha = new Mocha({
+    const mocha = new Mocha({
         bail: true,
         fullTrace: true,
         grep: filterOpts,
@@ -296,13 +303,13 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
     });
 
     const suite = mocha.suite;
-    suite.on("pre-require", (global, file, self) => {
+    suite.on("pre-require", (_global, _file, _self) => {
         //   console.log("pre-require", file);
     });
-    suite.on("require", (script, file, self) => {
+    suite.on("require", (_script, _file, _self) => {
         /* */
     });
-    suite.on("post-require", (global, file, self) => {
+    suite.on("post-require", (_global, _file, _self) => {
         //  console.log("post   -require", file);
     });
 
@@ -340,10 +347,10 @@ if (require.main === module) {
         console.log("test filter = ", filterOpts);
     }
 
-    const skipped = process.env.SKIPPED ? parseInt(process.env.SKIPPED) : 0;
-    const pageCount = parseInt(process.env.PAGECOUNT || "0") || 1;
-    const pageSize = parseInt(process.env.PAGESIZE || "0") || 1;
-    const page = process.env.TESTPAGE ? parseInt(process.env.TESTPAGE) : undefined;
+    const skipped = process.env.SKIPPED ? parseInt(process.env.SKIPPED, 10) : 0;
+    const pageCount = parseInt(process.env.PAGECOUNT || "0", 10) || 1;
+    const pageSize = parseInt(process.env.PAGESIZE || "0", 10) || 1;
+    const page = process.env.TESTPAGE ? parseInt(process.env.TESTPAGE, 10) : undefined;
 
     let reporter = process.env.REPORTER || "spec"; //"nyan", //"tap"
     if (process.env.NODEOPCUATESTREPORTER) {

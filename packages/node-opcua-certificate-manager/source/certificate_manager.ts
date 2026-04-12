@@ -59,6 +59,19 @@ export interface OPCUACertificateManagerOptions {
      *
      */
     keySize?: 2048 | 3072 | 4096;
+
+    /**
+     * When `true`, file-system watchers (chokidar) on the PKI
+     * folders are disabled.  The initial scan still populates
+     * the in-memory indexes but live change detection is off.
+     *
+     * Useful in test / CI pipelines where many servers start
+     * in parallel and the accumulated `fs.watch` handles
+     * exhaust the libuv thread-pool.
+     *
+     * @defaultValue false
+     */
+    disableFileWatchers?: boolean;
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
@@ -82,7 +95,8 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
         const _options: CertificateManagerOptions = {
             keySize: options.keySize || 2048,
-            location
+            location,
+            disableFileWatchers: options.disableFileWatchers
         };
         super(_options);
 
