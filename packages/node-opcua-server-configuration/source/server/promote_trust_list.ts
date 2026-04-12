@@ -168,53 +168,64 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
     const cm = trustList.$$certificateManager;
     if (!cm) return;
 
-    const lastUpdateTimeNode = trustList.lastUpdateTime;
-    if (!lastUpdateTimeNode) return;
+    if (trustList.$$initaliseMTimePromise) {
+        return await trustList.$$initaliseMTimePromise;
+    }
 
-    // Seed the initial timestamp from the filesystem only when
-    // the current value is still unset (MinDate).  The event
-    // listeners below must always be installed regardless, so we
-    // must NOT return early here.
-    const currentValue = lastUpdateTimeNode.readValue().value.value as Date | undefined;
-    if (!currentValue || currentValue.getTime() <= 0) {
-        const newest = await getNewestMtimeFromPkiStore(cm);
-        if (newest) {
-            lastUpdateTimeNode.setValueFromSource({
-                dataType: DataType.DateTime,
-                value: newest
+    trustList.$$initaliseMTimePromise = (async () => {
+        try {
+            const lastUpdateTimeNode = trustList.lastUpdateTime;
+            if (!lastUpdateTimeNode) return;
+
+            // Seed the initial timestamp from the filesystem only when
+            // the current value is still unset (MinDate).  The event
+            // listeners below must always be installed regardless, so we
+            // must NOT return early here.
+            const currentValue = lastUpdateTimeNode.readValue().value.value as Date | undefined;
+            if (!currentValue || currentValue.getTime() <= 0) {
+                const newest = await getNewestMtimeFromPkiStore(cm);
+                if (newest) {
+                    lastUpdateTimeNode.setValueFromSource({
+                        dataType: DataType.DateTime,
+                        value: newest
+                    });
+                    doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
+                }
+            }
+
+            // Guard: install listeners at most once per TrustList node
+            // to prevent duplicate handler invocation on re-promotion.
+            if (trustList.$$listenersInstalled) {
+                return;
+            }
+            trustList.$$listenersInstalled = true;
+
+            // Subscribe to CertificateManager filesystem watcher events
+            // so LastUpdateTime stays current when the store is modified
+            // outside of OPC UA methods (e.g. addIssuer, trustCertificate,
+            // or manual file operations).
+            const _updateNow = () => {
+                updateLastUpdateTime(trustList);
+            };
+
+            const events = ["certificateAdded", "certificateRemoved", "certificateChange", "crlAdded", "crlRemoved"] as const;
+            for (const event of events) {
+                cm.on(event, _updateNow);
+            }
+
+            // Clean up listeners when the address space shuts down
+            // to avoid MaxListenersExceededWarning and memory leaks.
+            trustList.addressSpace.registerShutdownTask(() => {
+                for (const event of events) {
+                    cm.removeListener(event, _updateNow);
+                }
+                trustList.$$listenersInstalled = false;
             });
-            doDebug && debugLog("Initialized LastUpdateTime from filesystem:", newest.toISOString());
+        } finally {
+            trustList.$$initaliseMTimePromise = undefined;
         }
-    }
-
-    // Guard: install listeners at most once per TrustList node
-    // to prevent duplicate handler invocation on re-promotion.
-    if (trustList.$$listenersInstalled) {
-        return;
-    }
-    trustList.$$listenersInstalled = true;
-
-    // Subscribe to CertificateManager filesystem watcher events
-    // so LastUpdateTime stays current when the store is modified
-    // outside of OPC UA methods (e.g. addIssuer, trustCertificate,
-    // or manual file operations).
-    const _updateNow = () => {
-        updateLastUpdateTime(trustList);
-    };
-
-    const events = ["certificateAdded", "certificateRemoved", "certificateChange", "crlAdded", "crlRemoved"] as const;
-    for (const event of events) {
-        cm.on(event, _updateNow);
-    }
-
-    // Clean up listeners when the address space shuts down
-    // to avoid MaxListenersExceededWarning and memory leaks.
-    trustList.addressSpace.registerShutdownTask(() => {
-        for (const event of events) {
-            cm.removeListener(event, _updateNow);
-        }
-        trustList.$$listenersInstalled = false;
-    });
+    })();
+    return await trustList.$$initaliseMTimePromise;
 }
 
 interface UAMethodEx extends UAMethod {
@@ -225,6 +236,7 @@ interface UATrustListEx extends UATrustList {
     $$filename: string;
     $$openedForWrite: boolean;
     $$listenersInstalled: boolean;
+    $$initaliseMTimePromise?: Promise<void>;
 }
 
 async function applyTrustListChanges(cm: OPCUACertificateManager, trustListData: TrustListDataType): Promise<StatusCode> {
