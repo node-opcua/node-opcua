@@ -566,7 +566,10 @@ let g_inDescribeWithLeakDetector = false;
 exports.describeWithLeakDetector = function(message, func) {
 
     if (memLeakDetectionDisabled) {
-        return global_describe(message, func);
+        // Skip entirely: running these tests without the
+        // detector active leaves leaked timers alive and
+        // prevents the process from exiting.
+        return global_describe.skip(message, func);
     }
 
     if (g_inDescribeWithLeakDetector) {
