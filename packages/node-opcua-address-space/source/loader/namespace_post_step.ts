@@ -29,27 +29,36 @@ function parentIsObjectOrVariableType(node: UAVariable | UAObject): boolean {
 
 export async function promoteObjectAndVariablesInNamespace(namespace: INamespace): Promise<void> {
     const namespaceP = namespace as NamespacePrivate;
-    for (const a of namespaceP.nodeIterator()) {
-        if (a.nodeClass === NodeClass.Object || a.nodeClass === NodeClass.Variable) {
-            // skip object & variable that belong to a ObjectType or VariableType
-            const aa = a as UAObject | UAVariable;
 
-            if (aa.typeDefinition) {
-                const promoter = g_promotableObject.get(aa.typeDefinition.toString());
-                if (promoter) {
-                    if (promoter.onInstanceOnly && parentIsObjectOrVariableType(aa)) {
-                        continue;
-                    }
-                    const before = a.constructor.name;
+    const promoteNode = (a: UAObject | UAVariable) => {
+        if (a.typeDefinition) {
+            const promoter = g_promotableObject.get(a.typeDefinition.toString());
+            if (promoter) {
+                if (promoter.onInstanceOnly && parentIsObjectOrVariableType(a)) {
+                    return;
+                }
+                const before = a.constructor.name;
 
-                    promoter.promoter(a as any);
-                    const after = a.constructor.name;
-                    // c8 ignore next
-                    if (doDebug) {
-                        debugLog(`promoting ${a.browseName.toString()} from ${before} to ${after}`);
-                    }
+                promoter.promoter(a as any);
+                const after = a.constructor.name;
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(`promoting ${a.browseName.toString()} from ${before} to ${after}`);
                 }
             }
+        }
+    };
+
+    // Promote variables first so that TwoStateVariables and other variable types
+    // are fully promoted before objects (like StateMachines or Alarms) that contain them.
+    for (const a of namespaceP.nodeIterator()) {
+        if (a.nodeClass === NodeClass.Variable) {
+            promoteNode(a as UAVariable);
+        }
+    }
+    for (const a of namespaceP.nodeIterator()) {
+        if (a.nodeClass === NodeClass.Object) {
+            promoteNode(a as UAObject);
         }
     }
 }
