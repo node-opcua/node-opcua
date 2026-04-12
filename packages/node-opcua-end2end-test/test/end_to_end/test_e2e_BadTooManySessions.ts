@@ -44,7 +44,7 @@ describe("testing the server ability to deny client session request (server with
 
         // given that client1 is connected, and have a session
         await client1.connect(endpointUrl);
-        await client1.createSession();
+        const session1 = await client1.createSession();
 
         //  when client2 try to create a session
         await client2.connect(endpointUrl);
@@ -53,11 +53,12 @@ describe("testing the server ability to deny client session request (server with
         }, /BadTooManySessions/);
 
         // now if client1 disconnect ...
-
+        await session1.close();
         await client1.disconnect();
 
         // it should be possible to connect client 2
-        await client2.createSession();
+        const session2 = await client2.createSession();
+        await session2.close();
         await client2.disconnect();
     });
 });
