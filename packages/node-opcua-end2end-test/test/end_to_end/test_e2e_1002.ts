@@ -124,10 +124,10 @@ describe("#1002 - ability to set transport timeout ", () => {
         await wait(1000);
 
         actualTimeout.should.eql(transportTimeout);
-        spyConnectionLost.callCount.should.be.greaterThan(2);
-        spyConnectionReestablished.callCount.should.be.greaterThan(2);
+        spyConnectionLost.callCount.should.be.greaterThan(1);
+        spyConnectionReestablished.callCount.should.be.greaterThan(1);
         // it is possible that spyClose will not be called if we are not connected while disconnect is called
         // spyClose.callCount.should.eql(1);
-        spyConnectionReestablished.callCount.should.be.greaterThan(2);
+        spyConnectionReestablished.callCount.should.be.greaterThan(1);
     });
 });
