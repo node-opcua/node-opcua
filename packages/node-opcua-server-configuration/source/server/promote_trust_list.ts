@@ -108,11 +108,16 @@ function updateLastUpdateTime(trustList: UATrustList): void {
  * Uses async fs.promises to avoid blocking the event loop on startup
  * when PKI directories are large or on slow filesystems.
  */
-async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Promise<Date | null> {
+async function getNewestMtimeFromPkiStore(
+    cm: OPCUACertificateManager,
+    isAborted?: () => boolean
+): Promise<Date | null> {
     const dirs = [cm.trustedFolder, cm.crlFolder, cm.issuersCertFolder, cm.issuersCrlFolder];
     let newest: Date | null = null;
     
     for (const dir of dirs) {
+        if (isAborted?.()) break;
+
         try {
             await fs.promises.access(dir);
         } catch {
@@ -127,6 +132,7 @@ async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager): Promise<
         
         // Process stats in parallel arrays to avoid sequential bottleneck
         const statPromises = entries.map(async (entry) => {
+            if (isAborted?.()) return null;
             try {
                 const stat = await fs.promises.stat(path.join(dir, entry));
                 if (stat.isFile()) {
@@ -173,6 +179,12 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
     }
 
     trustList.$$initaliseMTimePromise = (async () => {
+        const startTime = Date.now();
+        let isAborted = false;
+        
+        const abortHandler = () => { isAborted = true; };
+        trustList.addressSpace.registerShutdownTask(abortHandler);
+
         try {
             const lastUpdateTimeNode = trustList.lastUpdateTime;
             if (!lastUpdateTimeNode) return;
@@ -183,7 +195,11 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
             // must NOT return early here.
             const currentValue = lastUpdateTimeNode.readValue().value.value as Date | undefined;
             if (!currentValue || currentValue.getTime() <= 0) {
-                const newest = await getNewestMtimeFromPkiStore(cm);
+                const newest = await getNewestMtimeFromPkiStore(cm, () => isAborted);
+                if (isAborted) {
+                    console.log(`[node-opcua] _initializeLastUpdateTimeFromFilesystem aborted for ${trustList.browseName.toString()}`);
+                    return;
+                }
                 if (newest) {
                     lastUpdateTimeNode.setValueFromSource({
                         dataType: DataType.DateTime,
@@ -221,6 +237,8 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
                 }
                 trustList.$$listenersInstalled = false;
             });
+
+            console.log(`[node-opcua] _initializeLastUpdateTimeFromFilesystem took ${Date.now() - startTime}ms for ${trustList.browseName.toString()}`);
         } finally {
             trustList.$$initaliseMTimePromise = undefined;
         }
