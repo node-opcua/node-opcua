@@ -130,24 +130,17 @@ async function getNewestMtimeFromPkiStore(
             continue;
         }
         
-        // Process stats in parallel arrays to avoid sequential bottleneck
-        const statPromises = entries.map(async (entry) => {
+        // Process stats sequentially to avoid threadpool exhaustion
+        // and event-loop lag when directories have thousands of files.
+        for (const entry of entries) {
             if (isAborted?.()) return null;
             try {
                 const stat = await fs.promises.stat(path.join(dir, entry));
-                if (stat.isFile()) {
-                    return stat.mtime;
+                if (stat.isFile() && (!newest || stat.mtime > newest)) {
+                    newest = stat.mtime;
                 }
             } catch {
                 // skip unreadable entries
-            }
-            return null;
-        });
-        
-        const mtimes = await Promise.all(statPromises);
-        for (const mtime of mtimes) {
-            if (mtime && (!newest || mtime > newest)) {
-                newest = mtime;
             }
         }
     }
@@ -182,8 +175,10 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
         const startTime = Date.now();
         let isAborted = false;
         
-        const abortHandler = () => { isAborted = true; };
-        trustList.addressSpace.registerShutdownTask(abortHandler);
+        // Note: Removed abortHandler from registerShutdownTask because AddressSpace 
+        // does not have an unregister mechanism, which causes `_shutdownTasks` to leak 
+        // continuously if promoteTrustList is called multiple times.
+        // Sequential scanning is fast enough that it won't block shutdown significantly.
 
         try {
             const lastUpdateTimeNode = trustList.lastUpdateTime;
