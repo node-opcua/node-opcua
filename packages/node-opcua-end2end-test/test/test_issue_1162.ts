@@ -15,7 +15,7 @@ import { wait, waitUntilCondition } from "../test_helpers/utils";
 
 const port = 2511;
 
-describe("Testing automatic reconnection to a server when credential have changed and client is not aware #1662", function (this: any) {
+describe("Testing automatic reconnection to a server when credential have changed and client is not aware #1662", function (this: Mocha.Suite) {
     this.timeout(5 * 60 * 1000);
     let server: OPCUAServer;
     const users = [
@@ -83,7 +83,11 @@ describe("Testing automatic reconnection to a server when credential have change
     });
 
     afterEach(async () => {
-        await server.shutdown();
+        try {
+            await server.shutdown();
+        } catch (_e) {
+            // ignore already stopped
+        }
         await wait(2000);
     });
 
@@ -215,7 +219,11 @@ describe("Testing automatic reconnection to a server when credential have change
         };
         const err = await client.withSessionAsync(connectionInfo, async (session) => {
             const timerId = setInterval(async () => {
-                await session.read({ nodeId: "ns=1;s=Temperature" });
+                try {
+                    await session.read({ nodeId: "ns=1;s=Temperature" });
+                } catch (_err) {
+                    // Ignore disconnected errors during test
+                }
             }, 1000);
 
             await shutDownServerChangePasswordAndRestart(1, "password1-New");
@@ -251,7 +259,7 @@ describe("Testing automatic reconnection to a server when credential have change
         const { client, session } = await createAndConnectClient();
 
         await shutDownServerChangePasswordAndRestart(10 * 1000, "password1-New");
-        wait(20 * 1000);
+        await wait(20 * 1000);
 
         await session.close();
         await client.disconnect();

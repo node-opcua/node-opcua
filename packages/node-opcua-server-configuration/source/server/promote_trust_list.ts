@@ -226,12 +226,16 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
 
             // Clean up listeners when the address space shuts down
             // to avoid MaxListenersExceededWarning and memory leaks.
-            trustList.addressSpace.registerShutdownTask(() => {
-                for (const event of events) {
-                    cm.removeListener(event, _updateNow);
-                }
-                trustList.$$listenersInstalled = false;
-            });
+            // Guard: addressSpace may be null if dispose() was called
+            // concurrently (e.g. fast test teardown).
+            if (trustList.addressSpace) {
+                trustList.addressSpace.registerShutdownTask(() => {
+                    for (const event of events) {
+                        cm.removeListener(event, _updateNow);
+                    }
+                    trustList.$$listenersInstalled = false;
+                });
+            }
 
             console.log(`[node-opcua] _initializeLastUpdateTimeFromFilesystem took ${Date.now() - startTime}ms for ${trustList.browseName.toString()}`);
         } finally {
