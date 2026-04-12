@@ -555,10 +555,18 @@ async function _removeCertificate(
 let counter = 0;
 
 export async function promoteTrustList(trustList: UATrustList) {
+    const trustListEx = trustList as UATrustListEx & { $$promoted?: boolean };
+    
+    // Prevent double-binding if called multiple times testing
+    if (trustListEx.$$promoted) {
+        await _initializeLastUpdateTimeFromFilesystem(trustListEx);
+        return;
+    }
+    trustListEx.$$promoted = true;
+
     const filename = `/tmpFile${counter}`;
     counter += 1;
 
-    const trustListEx = trustList as UATrustListEx;
     // Store filename for use in _closeAndUpdate
     trustListEx.$$filename = filename;
     // Initialize write lock flag
@@ -651,6 +659,17 @@ export async function promoteTrustList(trustList: UATrustList) {
     addCertificate.bindMethod(_addCertificate);
     removeCertificate.bindMethod(_removeCertificate);
 
+    function _closeCallback(
+        this: UAMethod,
+        inputArgs: Variant[],
+        context: ISessionContext,
+        callback: CallbackT<CallMethodResultOptions>
+    ) {
+        trustListEx.$$openedForWrite = false;
+        _close_asyncExecutionFunction.call(this, inputArgs, context, callback);
+    }
+    close.bindMethod(_closeCallback);
+
     // Wrapper to pass the underlying close method to _closeAndUpdate
     closeAndUpdate?.bindMethod(async function (
         this: UAMethod,
@@ -666,6 +685,7 @@ export async function promoteTrustList(trustList: UATrustList) {
             return;
         }
         fileType.open?.bindMethod(_openCallback);
+        fileType.close?.bindMethod(_closeCallback);
         fileType.addCertificate.bindMethod(_addCertificate);
         fileType.removeCertificate.bindMethod(_removeCertificate);
         fileType.openWithMasks?.bindMethod(_openWithMaskCallback);
