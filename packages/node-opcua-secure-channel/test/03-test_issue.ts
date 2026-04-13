@@ -1,11 +1,11 @@
 import "should";
-import { CloseSecureChannelRequest, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { hexDump } from "node-opcua-debug";
-import { MessageBuilder, IDerivedKeyProvider, SecurityPolicy } from "../dist/source";
+import { CloseSecureChannelRequest, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { type IDerivedKeyProvider, MessageBuilder, SecurityPolicy } from "../dist/source";
 
 describe("test issue with final CLO message", () => {
     const derivedKeyProvider: IDerivedKeyProvider = {
-        getDerivedKey(tokenId: 0) {
+        getDerivedKey(_tokenId: 0) {
             return null;
         }
     };
@@ -17,7 +17,7 @@ describe("test issue with final CLO message", () => {
         // we will receive this
         //     C L O F
         //     434c4f46180000000c000000010000000f0000000f000000
-        const messageBuilder = new MessageBuilder(derivedKeyProvider, {name: "MessageBuilder"});
+        const messageBuilder = new MessageBuilder(derivedKeyProvider, { name: "MessageBuilder" });
         messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
         messageBuilder.on("message", (message) => {

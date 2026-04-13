@@ -1,26 +1,37 @@
-import should from "should";
-
+import fs from "node:fs";
 import chalk from "chalk";
-import fs from "fs";
 import { assert } from "node-opcua-assert";
-import { make_debugLog } from "node-opcua-debug";
-import { hexDump } from "node-opcua-debug";
-import { MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { readPrivateRsaKey } from "node-opcua-crypto";
-import { DerivedKeys, PaddingAlgorithm, RSA_PKCS1_OAEP_PADDING, computeDerivedKeys, encryptBufferWithDerivedKeys, makeMessageChunkSignature, makeMessageChunkSignatureWithDerivedKeys, makeSHA1Thumbprint, publicEncrypt_long, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
-import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { make_lorem_ipsum_buffer } from "node-opcua-test-helpers";
-import { getFixture } from "node-opcua-test-fixtures";
 import { Mode } from "node-opcua-chunkmanager";
+import {
+    computeDerivedKeys,
+    type DerivedKeys,
+    encryptBufferWithDerivedKeys,
+    makeMessageChunkSignature,
+    makeMessageChunkSignatureWithDerivedKeys,
+    makeSHA1Thumbprint,
+    PaddingAlgorithm,
+    publicEncrypt_long,
+    readCertificateChain,
+    readPrivateKey,
+    readPrivateRsaKey
+} from "node-opcua-crypto";
+import { hexDump, make_debugLog } from "node-opcua-debug";
+import {
+    AsymmetricAlgorithmSecurityHeader,
+    MessageSecurityMode,
+    SymmetricAlgorithmSecurityHeader
+} from "node-opcua-service-secure-channel";
+import { getFixture } from "node-opcua-test-fixtures";
+import { make_lorem_ipsum_buffer } from "node-opcua-test-helpers";
 
 import {
-    SecureMessageChunkManager,
-    SecureMessageChunkManagerOptions,
-    SequenceNumberGenerator,
+    type IDerivedKeyProvider,
     MessageBuilder,
+    SecureMessageChunkManager,
+    type SecureMessageChunkManagerOptions,
     SecurityPolicy,
-    TokenStack,
-    IDerivedKeyProvider
+    SequenceNumberGenerator,
+    TokenStack
 } from "..";
 
 const debugLog = make_debugLog("TEST");
@@ -149,18 +160,17 @@ export function iterateOnSymmetricEncryptedChunk(buffer: Buffer, onChunkFunc: Ch
 }
 
 const derivedKeyProvider: IDerivedKeyProvider = {
-    getDerivedKey(tokenId: number) {
+    getDerivedKey(_tokenId: number) {
         return null;
     }
 };
 
-describe("MessageBuilder with SIGN support", function () {
+describe("MessageBuilder with SIGN support", () => {
     const data = make_lorem_ipsum_buffer();
     const someBuffer = Buffer.from(data.toString(), "ascii");
     // const someBuffer = Buffer.from(data as any, data.length);
 
     it.skip("MS-1 should not emit an error event if chunks have valid signature", (done) => {
-
         const messageBuilder = new MessageBuilder(derivedKeyProvider, {
             name: "MessageBuilder",
             maxChunkCount: 10,
@@ -178,7 +188,7 @@ describe("MessageBuilder with SIGN support", function () {
                 debugLog(hexDump(message));
                 done();
             })
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 /** */
             })
             .on("error", (error) => {
@@ -186,15 +196,15 @@ describe("MessageBuilder with SIGN support", function () {
                 done(error);
             });
 
-        iterateOnSignedMessageChunks(someBuffer, (chunk, isFinal) => {
-            messageBuilder.feed(chunk!.subarray(0, 20));
-            messageBuilder.feed(chunk!.subarray(20));
+        iterateOnSignedMessageChunks(someBuffer, (chunk, _isFinal) => {
+            messageBuilder.feed(chunk?.subarray(0, 20));
+            messageBuilder.feed(chunk?.subarray(20));
         });
     });
 
     it.skip("MS-2 should reconstruct a full message made of many signed chunks", (done) => {
         const options = {
-            name: "MessageBuilder",
+            name: "MessageBuilder"
         };
 
         const messageBuilder = new MessageBuilder(derivedKeyProvider, options);
@@ -215,17 +225,17 @@ describe("MessageBuilder with SIGN support", function () {
                 done();
             })
             .on("error", (err) => {
-                done(new Error(" we are not expecting a error event in this case" + err));
+                done(new Error(` we are not expecting a error event in this case${err}`));
             });
 
-        iterateOnSignedMessageChunks(someBuffer, (chunk, isFinal) => {
-            messageBuilder.feed(chunk!.subarray(0, 20));
-            messageBuilder.feed(chunk!.subarray(20));
+        iterateOnSignedMessageChunks(someBuffer, (chunk, _isFinal) => {
+            messageBuilder.feed(chunk?.subarray(0, 20));
+            messageBuilder.feed(chunk?.subarray(20));
         });
     });
     it("MS-3 should emit an bad_signature event if chunk has been tempered", (done) => {
         const options = {
-            name: "MessageBuilder",
+            name: "MessageBuilder"
         };
 
         const messageBuilder = new MessageBuilder(derivedKeyProvider, options);
@@ -234,10 +244,10 @@ describe("MessageBuilder with SIGN support", function () {
         installFakeDecodeMessageBody(messageBuilder);
 
         messageBuilder
-            .on("full_message_body", (message) => {
+            .on("full_message_body", (_message) => {
                 done(new Error("it should not emit a message event if a signature is invalid or missing"));
             })
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 done(new Error("it should not emit a message event if a signature is invalid or missing"));
             })
             .on("error", (err) => {
@@ -247,18 +257,18 @@ describe("MessageBuilder with SIGN support", function () {
                 done();
             });
 
-        iterateOnSignedMessageChunks(someBuffer, (chunk, isFinal) => {
+        iterateOnSignedMessageChunks(someBuffer, (chunk, _isFinal) => {
             // alter artificially the chunk
             // this will damage the chunk signature
-            chunk!.write("####*** TEMPERED ***#####", 0x3a0);
+            chunk?.write("####*** TEMPERED ***#####", 0x3a0);
             console.log(hexDump(chunk));
-            messageBuilder.feed(chunk!.subarray(0, 20));
-            messageBuilder.feed(chunk!.subarray(20));
+            messageBuilder.feed(chunk?.subarray(0, 20));
+            messageBuilder.feed(chunk?.subarray(20));
         });
     });
 });
 
-describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
+describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", () => {
     const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
     const tokenStack = new TokenStack(1);
 
@@ -277,27 +287,27 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 /** */
             })
             .on("error", (error) => {
                 done(error);
             });
 
-        iterateOnSignedAndEncryptedMessageChunks(lorem_ipsum_buffer, (chunk, isFinal) => {
+        iterateOnSignedAndEncryptedMessageChunks(lorem_ipsum_buffer, (chunk, _isFinal) => {
             //xx console.log(hexDump(chunk));
-            messageBuilder.feed(chunk!.subarray(0, 20));
-            messageBuilder.feed(chunk!.subarray(20));
+            messageBuilder.feed(chunk?.subarray(0, 20));
+            messageBuilder.feed(chunk?.subarray(20));
         });
     });
 });
 
-describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
+describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", () => {
     const lorem_ipsum_buffer = make_lorem_ipsum_buffer();
 
     it("MSE-2 should process a signed and encrypted message", (done) => {
         const myDerivedKeyProvider: IDerivedKeyProvider = {
-            getDerivedKey(tokenId: number) {
+            getDerivedKey(_tokenId: number) {
                 return derivedKeys;
             }
         };
@@ -322,7 +332,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 /** */
             })
             .on("error", (error) => {
@@ -330,7 +340,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
                 done(error);
             });
 
-        iterateOnSymmetricEncryptedChunk(lorem_ipsum_buffer, (chunk, isFinal) => {
+        iterateOnSymmetricEncryptedChunk(lorem_ipsum_buffer, (chunk, _isFinal) => {
             // chunk contains the encrypted chunk !
             messageBuilder.feed(chunk!);
         });

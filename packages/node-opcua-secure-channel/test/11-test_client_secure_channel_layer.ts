@@ -4,13 +4,12 @@ import { GetEndpointsRequest } from "node-opcua-service-endpoints";
 import { packTcpMessage } from "node-opcua-transport";
 import * as fixture from "node-opcua-transport/dist/test-fixtures";
 import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
-import should from "should";
 import sinon from "sinon";
 
 import { ClientSecureChannelLayer } from "../dist/source";
 import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helpers";
 
-const debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog(__filename);
 
 describe("testing ClientSecureChannelLayer ", function (this: any) {
     this.timeout(Math.max(120 * 1000, this.timeout()));

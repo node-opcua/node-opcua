@@ -61,7 +61,7 @@ describe("Security Policy computeSignature, verifySignature", () => {
     it("should not verify a signature that has been tampered", () => {
         const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
 
-        signatureData!.signature.writeUInt8((signatureData!.signature.readUInt8(10) + 10) % 256, 10);
+        signatureData?.signature.writeUInt8((signatureData?.signature.readUInt8(10) + 10) % 256, 10);
 
         const bIsOk = verifySignature(senderCertificate, senderNonce, signatureData!, receiverCertificate, securityPolicy);
 

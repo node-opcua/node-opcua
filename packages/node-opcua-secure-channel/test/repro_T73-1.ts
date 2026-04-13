@@ -1,24 +1,13 @@
-
 import "should";
-import {
-    ServerSecureChannelLayer,
-    MessageSecurityMode,
-    SecurityPolicy,
-    MessageChunker
-} from "../dist/source";
-import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
-import {
-    OpenSecureChannelRequest,
-    SecurityTokenRequestType
-} from "node-opcua-types";
 import { helloMessage1 } from "node-opcua-transport/dist/test-fixtures";
+import { OpenSecureChannelRequest, SecurityTokenRequestType } from "node-opcua-types";
+import { MessageChunker, MessageSecurityMode, SecurityPolicy, ServerSecureChannelLayer } from "../dist/source";
 
-describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
-
+describe("T73-1 Reproduction: Sequence Number Reset on Renewal", () => {
     it("should strictly increase sequence numbers across secure channel renewal", async () => {
-     
         const transportPair = new TransportPairDirect();
         const serverSecureChannel = new ServerSecureChannelLayer({
             parent: {
@@ -36,7 +25,7 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
 
         // Initialize channel
         const initPromise = new Promise<void>((resolve, reject) => {
-            serverSecureChannel.init(transportPair.server, (err) => err ? reject(err) : resolve());
+            serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
         });
 
         transportPair.client.write(helloMessage1);
@@ -62,7 +51,6 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
                 // ReceiverCertificateThumbprint (ByteString)
                 const thumbprintLen = stream.readUInt32();
                 if (thumbprintLen > 0 && thumbprintLen < 1000) stream.length += thumbprintLen;
-
             } catch (err) {
                 console.log("Error parsing headers:", err);
                 return;
@@ -79,19 +67,20 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
         });
 
         const clientMessageChunker = new MessageChunker({
-            securityMode: MessageSecurityMode.None,
+            securityMode: MessageSecurityMode.None
         });
 
         async function sendChunk(msg: "OPN" | "MSG", request: any) {
-            const securityHeader = msg === "OPN"
-                ? new AsymmetricAlgorithmSecurityHeader({
-                    securityPolicyUri: SecurityPolicy.None,
-                    receiverCertificateThumbprint: null,
-                    senderCertificate: null
-                })
-                : new SymmetricAlgorithmSecurityHeader({ tokenId: 1 }); // Assuming tokenId 1 for now
+            const securityHeader =
+                msg === "OPN"
+                    ? new AsymmetricAlgorithmSecurityHeader({
+                          securityPolicyUri: SecurityPolicy.None,
+                          receiverCertificateThumbprint: null,
+                          senderCertificate: null
+                      })
+                    : new SymmetricAlgorithmSecurityHeader({ tokenId: 1 }); // Assuming tokenId 1 for now
 
-            return new Promise<void>((resolve, reject) => {
+            return new Promise<void>((resolve, _reject) => {
                 clientMessageChunker.chunkSecureMessage(
                     msg,
                     {
@@ -130,7 +119,7 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
         await sendChunk("OPN", issueRequest);
 
         // Wait for response to Issue
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise((r) => setTimeout(r, 200));
 
         // 2. Send OPN (Renew)
         const renewRequest = new OpenSecureChannelRequest({
@@ -144,7 +133,7 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", function () {
         await sendChunk("OPN", renewRequest);
 
         // Wait for response to Renew
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise((r) => setTimeout(r, 200));
 
         // Verify sequence numbers
         // console.log("Recorded sequence numbers:", sequenceNumbers);

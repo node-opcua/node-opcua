@@ -1,14 +1,13 @@
 import "should";
-import { Mode } from "node-opcua-chunkmanager";
-
-import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../dist/test_helpers";
+import type { Mode } from "node-opcua-chunkmanager";
 import {
     MessageSecurityMode,
     SecureMessageChunkManager,
-    SecureMessageChunkManagerOptions,
+    type SecureMessageChunkManagerOptions,
     SequenceNumberGenerator,
     SymmetricAlgorithmSecurityHeader
 } from "../dist/source";
+import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../dist/test_helpers";
 
 function performMessageChunkManagerTest(securityMode: MessageSecurityMode, options: Partial<SecureMessageChunkManagerOptions>) {
     const securityHeader = new SymmetricAlgorithmSecurityHeader();
@@ -101,14 +100,13 @@ function performMessageChunkManagerTest(securityMode: MessageSecurityMode, optio
     }
 }
 
-describe("SecureMessageChunkManager", function () {
-    it("should split a message in chunk and produce a header ( NO SIGN & NO ENCRYPT).", function () {
+describe("SecureMessageChunkManager", () => {
+    it("should split a message in chunk and produce a header ( NO SIGN & NO ENCRYPT).", () => {
         performMessageChunkManagerTest(MessageSecurityMode.None, { signatureLength: 0 });
     });
 
-    it("should split a message in chunk and produce a header (  SIGN & NO ENCRYPT).", function () {
-        performMessageChunkManagerTest(
-            MessageSecurityMode.Sign, {
+    it("should split a message in chunk and produce a header (  SIGN & NO ENCRYPT).", () => {
+        performMessageChunkManagerTest(MessageSecurityMode.Sign, {
             signatureLength: 128,
             signBufferFunc: makeMessageChunkSignatureForTest,
             verifyBufferFunc: verifyMessageChunkSignatureForTest

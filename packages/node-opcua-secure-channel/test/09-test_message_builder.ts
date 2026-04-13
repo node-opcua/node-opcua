@@ -1,22 +1,22 @@
 import "should";
-import * as packets from "node-opcua-transport/dist/test-fixtures";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { make_debugLog } from "node-opcua-debug";
-import { MessageBuilder, SecurityPolicy, MessageSecurityMode } from "../dist/source";
-import { IDerivedKeyProvider } from "../dist/source/token_stack";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
+import * as packets from "node-opcua-transport/dist/test-fixtures";
 import sinon from "sinon";
+import { MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source";
+import type { IDerivedKeyProvider } from "../dist/source/token_stack";
+import should from "should";
 
-const debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog(__filename);
 
-describe("MessageBuilder", function () {
-
+describe("MessageBuilder", () => {
     const derivedKeyProvider: IDerivedKeyProvider = {
-        getDerivedKey(tokenId: number) {
+        getDerivedKey(_tokenId: number) {
             return null;
         }
     };
 
-    it("should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ", function (done) {
+    it("should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ", (done) => {
         const messageBuilder = new MessageBuilder(derivedKeyProvider, {
             name: "MessageBuilder"
         });
@@ -25,10 +25,10 @@ describe("MessageBuilder", function () {
         let on_message__received = false;
 
         messageBuilder
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 on_message__received = true;
             })
-            .on("full_message_body", (full_message_body) => {
+            .on("full_message_body", (_full_message_body) => {
                 full_message_body_event_received = true;
             })
             .on("error", (err) => {
@@ -48,9 +48,9 @@ describe("MessageBuilder", function () {
      * @param bad_packet
      * @param done
      */
-    function test_behavior_with_bad_packet(test_case_name: string, bad_packet: Buffer, expectError: boolean, done: ()=>void) {
+    function test_behavior_with_bad_packet(test_case_name: string, bad_packet: Buffer, expectError: boolean, done: () => void) {
         redirectToFile(
-            "MessageBuilder_" + test_case_name + ".log",
+            `MessageBuilder_${test_case_name}.log`,
             () => {
                 const messageBuilder = new MessageBuilder(derivedKeyProvider, {
                     name: "MessageBuilder"
@@ -60,13 +60,13 @@ describe("MessageBuilder", function () {
                 let on_message__received = false;
 
                 messageBuilder
-                    .on("message", (message) => {
+                    .on("message", (_message) => {
                         on_message__received = true;
                     })
-                    .on("full_message_body", (full_message_body) => {
+                    .on("full_message_body", (_full_message_body) => {
                         full_message_body_event_received = true;
                     })
-                    .on("invalid_message", (err) => {
+                    .on("invalid_message", (_err) => {
                         expectError.should.eql(false);
                         on_message__received.should.equal(false);
                         full_message_body_event_received.should.equal(true);
@@ -80,13 +80,13 @@ describe("MessageBuilder", function () {
 
                 messageBuilder.feed(bad_packet); // OpenSecureChannel message
             },
-            function () {
+            () => {
                 /** */
             }
         );
     }
 
-    it("should raise an error if the embedded object id is not known", function (done) {
+    it("should raise an error if the embedded object id is not known", (done) => {
         const bad_packet = Buffer.from(packets.openChannelRequest1);
 
         // alter the packet id to scrap the message ID
@@ -98,7 +98,7 @@ describe("MessageBuilder", function () {
         test_behavior_with_bad_packet("bad_object_id_error", bad_packet, true, done);
     });
 
-    it("should raise an invalid_message if the embedded object failed to be decoded", function (done) {
+    it("should raise an invalid_message if the embedded object failed to be decoded", (done) => {
         const bad_packet = Buffer.from(packets.openChannelRequest1);
 
         // alter the packet id  to scrap the inner data
@@ -110,8 +110,7 @@ describe("MessageBuilder", function () {
         test_behavior_with_bad_packet("corrupted_message_error", bad_packet, false, done);
     });
 
-    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", async  () => {
-
+    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", async () => {
         const messageBuilder = new MessageBuilder(derivedKeyProvider, {
             name: "MessageBuilder"
         });
@@ -122,7 +121,7 @@ describe("MessageBuilder", function () {
         messageBuilder.on("message", spyMessage);
         messageBuilder.on("error", spyError);
         messageBuilder.on("invalid_sequence_number", spyInvalidSequenceNumber);
-    
+
         // send first messages with sequence number 1
         messageBuilder.feed(packets.openChannelRequest1);
 
@@ -135,8 +134,8 @@ describe("MessageBuilder", function () {
         spyMessage.callCount.should.eql(1); // only first message is accepted, as sequence number is 1
         spyError.callCount.should.eql(1);
         spyInvalidSequenceNumber.callCount.should.eql(1);
-        spyInvalidSequenceNumber.getCall(0).args[0].should.eql(2,"expected sequence number");
-        spyInvalidSequenceNumber.getCall(0).args[1].should.eql(1,"found sequence number");
+        spyInvalidSequenceNumber.getCall(0).args[0].should.eql(2, "expected sequence number");
+        spyInvalidSequenceNumber.getCall(0).args[1].should.eql(1, "found sequence number");
     });
 
     it("some random packet - encrypted ", (done) => {
@@ -145,9 +144,9 @@ describe("MessageBuilder", function () {
         });
         messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
 
-        let _err: Error;
+        let _err: Error | undefined;
         messageBuilder
-            .on("message", (message) => {
+            .on("message", (_message) => {
                 /** */
             })
             .on("error", (err: Error) => {
@@ -155,11 +154,12 @@ describe("MessageBuilder", function () {
                 done();
             })
             .on("invalid_sequence_number", (expected, found) => {
-                done(new Error("should not get there" + JSON.stringify({ expected, found })));
+                done(new Error(`should not get there${JSON.stringify({ expected, found })}`));
             });
 
         messageBuilder.feed(packets.random_packet);
-        
-        _err!.message.should.match(/Invalid message header detected/);
+
+        should.exists(_err);
+        should(_err?.message).match(/Invalid message header detected/);
     });
 });
