@@ -1,5 +1,5 @@
-import net from "net";
-import os from "os";
+import net from "node:net";
+import os from "node:os";
 import should from "should";
 import { OPCUAServer } from "../source";
 

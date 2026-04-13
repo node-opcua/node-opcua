@@ -52,26 +52,26 @@ describe("filterDiagnosticInfo", () => {
             DiagnosticInfo_OperationLevelMask.InnerDiagnostics;
         filterDiagnosticInfo(levelMask, response);
 
-        response.responseHeader.serviceDiagnostics!.localizedText.should.equal(2345);
-        response.responseHeader.serviceDiagnostics!.symbolicId.should.equal(3456);
-        should(response.responseHeader.serviceDiagnostics!.additionalInfo).equal(null);
-        response.responseHeader.serviceDiagnostics!.innerStatusCode.should.equal(StatusCodes.Bad);
+        response.responseHeader.serviceDiagnostics?.localizedText.should.equal(2345);
+        response.responseHeader.serviceDiagnostics?.symbolicId.should.equal(3456);
+        should(response.responseHeader.serviceDiagnostics?.additionalInfo).equal(null);
+        response.responseHeader.serviceDiagnostics?.innerStatusCode.should.equal(StatusCodes.Bad);
 
-        should(response.responseHeader.serviceDiagnostics!.innerDiagnosticInfo).not.equal(null);
-        response.responseHeader.serviceDiagnostics!.innerDiagnosticInfo!.additionalInfo!.should.equal("test 2");
+        should(response.responseHeader.serviceDiagnostics?.innerDiagnosticInfo).not.equal(null);
+        response.responseHeader.serviceDiagnostics?.innerDiagnosticInfo?.additionalInfo?.should.equal("test 2");
 
         for (const entry of response.results || []) {
             for (const diag of entry.inputArgumentDiagnosticInfos! || []) {
-                diag!.additionalInfo!.should.equal("input argument");
-                diag!.symbolicId.should.equal(34567);
-                diag!.innerStatusCode.should.equal(StatusCodes.Bad);
+                diag?.additionalInfo?.should.equal("input argument");
+                diag?.symbolicId.should.equal(34567);
+                diag?.innerStatusCode.should.equal(StatusCodes.Bad);
             }
         }
 
         for (const diag of response.diagnosticInfos || []) {
-            diag!.additionalInfo!.should.equal("diagnostic infos");
-            diag!.symbolicId.should.equal(34567);
-            diag!.innerStatusCode.should.equal(StatusCodes.Bad);
+            diag?.additionalInfo?.should.equal("diagnostic infos");
+            diag?.symbolicId.should.equal(34567);
+            diag?.innerStatusCode.should.equal(StatusCodes.Bad);
         }
     });
 });

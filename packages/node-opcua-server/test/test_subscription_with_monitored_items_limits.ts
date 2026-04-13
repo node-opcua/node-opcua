@@ -34,7 +34,10 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
         });
 
         engine.initialize({ nodeset_filename: nodesets.standard }, () => {
-            addressSpace = engine.addressSpace!;
+            if (!engine.addressSpace) {
+                throw new Error("addressSpace is null");
+            }
+            addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
             function addVar(typeName: string, value: any) {
@@ -42,8 +45,8 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
 
                 namespace.addVariable({
                     organizedBy: "RootFolder",
-                    nodeId: "s=Static_" + typeName,
-                    browseName: "Static_" + typeName,
+                    nodeId: `s=Static_${typeName}`,
+                    browseName: `Static_${typeName}`,
                     dataType: typeName,
                     value: { dataType: DataType[typeName as any], value: value }
                 });
@@ -75,7 +78,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
 
     let dataSourceFrozen = false;
 
-    function freeze_data_source() {
+    function _freeze_data_source() {
         dataSourceFrozen = true;
     }
 
@@ -86,7 +89,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
     function install_spying_samplingFunc() {
         unfreeze_data_source();
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
             if (!dataSourceFrozen) {
                 sample_value++;
             }
@@ -109,7 +112,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             serverCapabilities: engine.serverCapabilities
         });
 
-        (subscription as any).$session = {
+        (subscription as unknown as { $session: { nodeId: NodeId, sessionContext: SessionContext } }).$session = {
             nodeId: coerceNodeId("i=5;s=tmp"),
             sessionContext: SessionContext.defaultContext
         };

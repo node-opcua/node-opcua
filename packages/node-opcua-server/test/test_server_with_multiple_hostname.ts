@@ -36,10 +36,10 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
 
         for (const e of server.endpoints) {
             for (const ed of e.endpointDescriptions()) {
-                if (ed.endpointUrl!.match(/1\.2\.3\.4/)) {
+                if (ed.endpointUrl?.match(/1\.2\.3\.4/)) {
                     matching1234Count++;
                 }
-                if (ed.endpointUrl!.match(/MyName/)) {
+                if (ed.endpointUrl?.match(/MyName/)) {
                     matchingMyName++;
                 }
             }
@@ -82,7 +82,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
 
         for (const e of server.endpoints) {
             for (const ed of e.endpointDescriptions()) {
-                if (ed.endpointUrl!.match(defaultHostnameRegex)) {
+                if (ed.endpointUrl?.match(defaultHostnameRegex)) {
                     matchingDefault++;
                 }
             }
@@ -118,7 +118,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription custom hostname", () => {
 
         for (const e of server.endpoints) {
             for (const ed of e.endpointDescriptions()) {
-                if (ed.endpointUrl!.match(/my.test.website/)) {
+                if (ed.endpointUrl?.match(/my.test.website/)) {
                     matchingHostname++;
                 }
             }

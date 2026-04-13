@@ -1,10 +1,10 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import should from "should";
 import { OPCUAServer } from "../source";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
-fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
+fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 const port = 3021;
 describe("preventing server to start with invalid certificates/private key combination", () => {

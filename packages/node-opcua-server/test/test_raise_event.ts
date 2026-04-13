@@ -1,9 +1,14 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
+/* jslint */
+/*global require,describe, it, before, after */
+// tslint:disable: only-arrow-functions
+// tslint:disable: no-console
+// tslint:disable: ordered-imports
+import util from "node:util";
 import {
     type AddressSpace,
     type BaseNode,
     EventData,
-    IEventData,
     type Namespace,
     SessionContext,
     type UAEventType,
@@ -18,15 +23,9 @@ import { checkSelectClauses, EventFilter, extractEventFields, SimpleAttributeOpe
 import { EventFieldList } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-/* jslint */
-/*global require,describe, it, before, after */
-// tslint:disable: only-arrow-functions
-// tslint:disable: no-console
-// tslint:disable: ordered-imports
-import util from "util";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 describe("testing Events  ", () => {
     let addressSpace: AddressSpace;
@@ -80,7 +79,7 @@ describe("testing Events  ", () => {
     it("should extract EventData from an select clause", () => {
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
 
-        const a = new EventFilter({
+        const _a = new EventFilter({
             selectClauses: [
                 {
                     browsePath: [coerceQualifiedName("")],
@@ -109,14 +108,14 @@ describe("testing Events  ", () => {
             whereClause: { elements: [] }
         });
 
-        eventFilter.selectClauses![0].should.be.instanceof(SimpleAttributeOperand);
+        eventFilter.selectClauses?.[0].should.be.instanceof(SimpleAttributeOperand);
 
         const auditEventType = addressSpace.findEventType("AuditEventType")!;
         // xx var auditEventInstance =  auditEventType.instantiate({browseName: "Instantiation"});
         // if (eventFilter.selectClauses.length===0) {return 0;}
         const selectClauseResults = checkSelectClauses(auditEventType, eventFilter.selectClauses!);
 
-        selectClauseResults.length.should.eql(eventFilter.selectClauses!.length);
+        selectClauseResults.length.should.eql(eventFilter.selectClauses?.length);
 
         // xx debugLog(selectClauseResults);
 
@@ -124,9 +123,9 @@ describe("testing Events  ", () => {
 
         const eventFields = extractEventFields(SessionContext.defaultContext, eventFilter.selectClauses!, eventData);
 
-        eventFields.length.should.eql(eventFilter.selectClauses!.length);
+        eventFields.length.should.eql(eventFilter.selectClauses?.length);
 
-        const eventFieldList = new EventFieldList({
+        const _eventFieldList = new EventFieldList({
             clientHandle: 1,
             eventFields
         });
@@ -202,7 +201,7 @@ describe("testing Events  ", () => {
             browseName: "Area1",
             organizedBy: addressSpace.rootFolder.objects
         });
-        area1.browseName.name!.should.eql("Area1");
+        area1.browseName.name?.should.eql("Area1");
 
         const tank1 = namespace.createNode({
             browseName: "Tank1",
@@ -211,7 +210,7 @@ describe("testing Events  ", () => {
             nodeClass: NodeClass.Object,
             notifierOf: area1
         });
-        tank1.browseName.name!.should.eql("Tank1");
+        tank1.browseName.name?.should.eql("Tank1");
 
         const pump = namespace.createNode({
             browseName: "Pump",
@@ -223,13 +222,13 @@ describe("testing Events  ", () => {
 
         const pumpStartEventType = namespace.addEventType({ browseName: "PumpStartEventType" });
         pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
-        pumpStartEventType.subtypeOfObj!.browseName.toString().should.eql("BaseEventType");
+        pumpStartEventType.subtypeOfObj?.browseName.toString().should.eql("BaseEventType");
 
         const receivers: any[] = [];
 
-        function spyFunc(this: BaseNode, object: any, data: any): void {
+        function spyFunc(this: BaseNode, _object: any, _data: any): void {
             debugLog("object ", this.browseName.toString(), " received Event");
-            receivers.push(this.browseName.name!.toString());
+            receivers.push(this.browseName.name?.toString());
         }
         const server = addressSpace.findNode("Server")!;
 

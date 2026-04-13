@@ -33,15 +33,15 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = false;
 
-const fake_publish_engine = getFakePublishEngine();
-let dataSourceFrozen = false;
+const _fake_publish_engine = getFakePublishEngine();
+let _dataSourceFrozen = false;
 
-function freeze_data_source() {
-    dataSourceFrozen = true;
+function _freeze_data_source() {
+    _dataSourceFrozen = true;
 }
 
-function unfreeze_data_source() {
-    dataSourceFrozen = false;
+function _unfreeze_data_source() {
+    _dataSourceFrozen = false;
 }
 describe("Subscriptions and MonitoredItems and triggering", function (this: any) {
     /***
@@ -102,9 +102,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             namespace.addVariable({
                 organizedBy: "RootFolder",
 
-                nodeId: "s=Static_" + varName,
+                nodeId: `s=Static_${varName}`,
 
-                browseName: "Static_" + varName,
+                browseName: `Static_${varName}`,
                 dataType: "UInt32",
                 value: { dataType: DataType.UInt32, value }
             });
@@ -120,7 +120,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     const nodeIdV2 = coerceNodeId("s=Static_V2", namespaceSimulationIndex);
     const nodeIdV3 = coerceNodeId("s=Static_V3", namespaceSimulationIndex);
     const nodeIdV4 = coerceNodeId("s=Static_V4", namespaceSimulationIndex);
-    const nodeIdV5 = coerceNodeId("s=Static_V5", namespaceSimulationIndex);
+    const _nodeIdV5 = coerceNodeId("s=Static_V5", namespaceSimulationIndex);
     after(async () => {
         if (engine) {
             await engine.shutdown();
@@ -129,7 +129,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     });
 
     beforeEach(() => {
-        const now = new Date().getTime();
+        const now = Date.now();
         test.clock = sinon.useFakeTimers(now);
     });
 
@@ -141,7 +141,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         });
     }
     function install_spying_samplingFunc(nodeId: NodeId) {
-        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
             const variable = addressSpace.findNode(nodeId) as UAVariable;
             const dataValue = variable.readValue();
             callback(null, dataValue);
@@ -266,7 +266,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
     it("STG-2 should return BadMonitoredItemIdInvalid if triggeringItem is not found", async () => {
         const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const _createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
 
         const result = subscription.setTriggering(invalidMonitoredItemId, [createResult1.monitoredItemId], []);
         result.statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
@@ -292,7 +292,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
         const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
-        const result0 = subscription.setTriggering(
+        const _result0 = subscription.setTriggering(
             createResult1.monitoredItemId,
             [createResult2.monitoredItemId, createResult3.monitoredItemId],
             []
@@ -332,8 +332,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         // wait initial notification on itm 1
         const publishedResponse0 = waitInitialNotification();
         {
-            publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
-            const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+            publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+            const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
+                .monitoredItems!;
             notifs0.length.should.eql(1);
         }
 
@@ -351,8 +352,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
         const publishResponse = waitNextNotification();
 
-        publishResponse.notificationMessage.notificationData!.length.should.eql(1);
-        const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+        publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+        const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
 
         // console.log(publishResponse.notificationMessage.toString());
 
@@ -372,8 +373,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
         const publishResponse1 = waitNextNotification();
 
-        publishResponse1.notificationMessage.notificationData!.length.should.eql(1);
-        const notifs1 = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+        publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+        const notifs1 = (publishResponse1.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
         notifs1.length.should.eql(2);
         notifs1[0].clientHandle.should.eql(1);
         notifs1[1].clientHandle.should.eql(3);
@@ -384,7 +385,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
         const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
         const publishedResponse0 = waitInitialNotification();
-        publishedResponse0.notificationMessage.notificationData!.length.should.eql(0);
+        publishedResponse0.notificationMessage.notificationData?.length.should.eql(0);
 
         const result = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -398,7 +399,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
         test.clock.tick(100);
         const publishResponse = waitNextNotification();
-        publishResponse.notificationMessage.notificationData!.length.should.eql(0);
+        publishResponse.notificationMessage.notificationData?.length.should.eql(0);
     });
 
     it("STG-8 If the monitoring mode of the item to report is SAMPLING, then it is reported when the triggering item triggers the items to report.", async () => {
@@ -409,8 +410,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const publishedResponse0 = waitInitialNotification();
         {
             // console.log(publishedResponse0.toString());
-            publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
-            const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+            publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+            const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
+                .monitoredItems!;
             notifs0.length.should.eql(1);
         }
 
@@ -427,8 +429,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         test.clock.tick(100);
         const publishResponse = waitNextNotification();
 
-        publishResponse.notificationMessage.notificationData!.length.should.eql(1);
-        const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+        publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+        const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
         notifs.length.should.eql(3);
         notifs[0].clientHandle.should.eql(1);
         notifs[1].clientHandle.should.eql(2);
@@ -447,8 +449,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             test.clock.tick(100);
             const publishedResponse0 = waitInitialNotification();
             {
-                publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
-                const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
+                publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+                const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(2);
                 notifs0[0].clientHandle.should.eql(2);
@@ -468,8 +470,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
-            publishResponse.notificationMessage.notificationData!.length.should.eql(1);
-            const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+            publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+            const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(2);
             notifs[0].clientHandle.should.eql(2);
             notifs[1].clientHandle.should.eql(3);
@@ -485,8 +487,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Disabled);
             const publishedResponse0 = waitInitialNotification();
             {
-                publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
-                const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
+                publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+                const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(1);
             }
@@ -504,8 +506,8 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
-            publishResponse.notificationMessage.notificationData!.length.should.eql(1);
-            const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
+            publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+            const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(1);
             notifs[0].clientHandle.should.eql(1);
         }
@@ -516,7 +518,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
         const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
-        const result0 = subscription.setTriggering(
+        const _result0 = subscription.setTriggering(
             createResult1.monitoredItemId,
             [createResult2.monitoredItemId, createResult3.monitoredItemId],
             []
