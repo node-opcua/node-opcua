@@ -39,7 +39,7 @@
         "node-opcua-nodesets": "2.163.1",
         "node-opcua-numeric-range": "2.168.0",
         "node-opcua-object-registry": "2.168.0",
-        "node-opcua-pki": "6.12.2",
+        "node-opcua-pki": "6.13.0",
         "node-opcua-secure-channel": "2.168.0",
         "node-opcua-service-browse": "2.168.0",
         "node-opcua-service-call": "2.168.0",

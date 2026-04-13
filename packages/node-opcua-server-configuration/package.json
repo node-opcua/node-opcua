@@ -29,7 +29,7 @@
         "node-opcua-file-transfer": "2.168.0",
         "node-opcua-hostname": "2.167.0",
         "node-opcua-nodeid": "2.168.0",
-        "node-opcua-pki": "6.12.2",
+        "node-opcua-pki": "6.13.0",
         "node-opcua-pseudo-session": "2.168.0",
         "node-opcua-secure-channel": "2.168.0",
         "node-opcua-server": "2.168.0",

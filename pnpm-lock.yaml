@@ -93,8 +93,8 @@ importers:
         specifier: 5.3.5
         version: 5.3.5
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -102,8 +102,8 @@ importers:
         specifier: ^7.7.4
         version: 7.7.4
       sinon:
-        specifier: ^21.1.0
-        version: 21.1.0
+        specifier: ^21.1.2
+        version: 21.1.2
       sprintf-js:
         specifier: ^1.1.3
         version: 1.1.3
@@ -740,8 +740,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-status-code:
         specifier: 2.168.0
         version: link:../node-opcua-status-code
@@ -844,8 +844,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-pseudo-session:
         specifier: 2.168.0
         version: link:../node-opcua-pseudo-session
@@ -1136,8 +1136,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-variant
       ts-morph:
-        specifier: 27.0.2
-        version: 27.0.2
+        specifier: 28.0.0
+        version: 28.0.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -1351,8 +1351,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-server:
         specifier: 2.168.0
         version: link:../node-opcua-server
@@ -2532,9 +2532,6 @@ importers:
 
   packages/node-opcua-object-registry:
     dependencies:
-      node-opcua-assert:
-        specifier: 2.164.0
-        version: link:../node-opcua-assert
       node-opcua-debug:
         specifier: 2.168.0
         version: link:../node-opcua-debug
@@ -2675,8 +2672,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-server-configuration:
         specifier: 2.168.0
         version: link:../node-opcua-server-configuration
@@ -2902,8 +2899,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-secure-channel:
         specifier: 2.168.0
         version: link:../node-opcua-secure-channel
@@ -3038,8 +3035,8 @@ importers:
         specifier: 2.168.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
       node-opcua-pseudo-session:
         specifier: 2.168.0
         version: link:../node-opcua-pseudo-session
@@ -3127,8 +3124,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.12.2
-        version: 6.12.2
+        specifier: 6.13.0
+        version: 6.13.0
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4005,14 +4002,6 @@ packages:
       '@types/node':
         optional: true
 
-  '@isaacs/balanced-match@4.0.1':
-    resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
-    engines: {node: 20 || >=22}
-
-  '@isaacs/brace-expansion@5.0.0':
-    resolution: {integrity: sha512-ZT55BDLV0yv0RBm2czMiZ+SqCGO7AvmOM3G/w2xhVPH+te0aKgFjmBvGlL1dH+ql2tgGO3MVrbb3jCKyvpgnxA==}
-    engines: {node: 20 || >=22}
-
   '@jsonjoy.com/base64@1.1.2':
     resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
     engines: {node: '>=10.0'}
@@ -4181,11 +4170,11 @@ packages:
   '@sinonjs/commons@3.0.1':
     resolution: {integrity: sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==}
 
-  '@sinonjs/fake-timers@15.3.0':
-    resolution: {integrity: sha512-m2xozxSfCIxjDdvbhIWazlP2i2aha/iUmbl94alpsIbd3iLTfeXgfBVbwyWogB6l++istyGZqamgA/EcqYf+Bg==}
+  '@sinonjs/fake-timers@15.3.2':
+    resolution: {integrity: sha512-mrn35Jl2pCpns+mE3HaZa1yPN5EYCRgiMI+135COjr2hr8Cls9DXqIZ57vZe2cz7y2XVSq92tcs6kGQcT1J8Rw==}
 
-  '@sinonjs/samsam@10.0.1':
-    resolution: {integrity: sha512-q2mHXfkviqX+roGbzFJF6r5GR4TJDGngJuPrtj0IZRZZGnFlYTjdeoiZ6vCISmOjTLsZm0+CqHPupXR/BRVZjA==}
+  '@sinonjs/samsam@10.0.2':
+    resolution: {integrity: sha512-8lVwD1Df1BmzoaOLhMcGGcz/Jyr5QY2KSB75/YK1QgKzoabTeLdIVyhXNZK9ojfSKSdirbXqdbsXXqP9/Ve8+A==}
 
   '@ster5/global-mutex@3.3.0':
     resolution: {integrity: sha512-uiGJTiE0ZiQ6z9VMOHVT3RNrErCi3pZh1bGbfb27GAXCAsvCyLz61pLfBYq8uzsf6Y2qdybhoTwHy7UGtK6MYw==}
@@ -4196,8 +4185,8 @@ packages:
       proper-lockfile:
         optional: true
 
-  '@ts-morph/common@0.28.1':
-    resolution: {integrity: sha512-W74iWf7ILp1ZKNYXY5qbddNaml7e9Sedv5lvU1V8lftlitkc9Pq1A+jlH23ltDgWYeZFFEqGCD1Ies9hqu3O+g==}
+  '@ts-morph/common@0.29.0':
+    resolution: {integrity: sha512-35oUmphHbJvQ/+UTwFNme/t2p3FoKiGJ5auTjjpNTop2dyREspirjMy82PLSC1pnDJ8ah1GU98hwpVt64YXQsg==}
 
   '@types/async@3.2.25':
     resolution: {integrity: sha512-O6Th/DI18XjrL9TX8LO9F/g26qAz5vynmQqlXt/qLGrskvzCKXKc5/tATz3G2N6lM8eOf3M8/StB14FncAmocg==}
@@ -4696,10 +4685,6 @@ packages:
     peerDependencies:
       tslib: '2'
 
-  minimatch@10.0.3:
-    resolution: {integrity: sha512-IPZ167aShDZZUMdRk66cyQAW3qr0WzbHkPdMYa8bzZhlHhO3jALbKdxcaak7W9FfT2rZNpQuUu4Od7ILEpXSaw==}
-    engines: {node: 20 || >=22}
-
   minimatch@10.2.4:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
@@ -4740,8 +4725,8 @@ packages:
   node-opcua-crypto@5.3.5:
     resolution: {integrity: sha512-iEdrU+dw7aqCqGDS1bxBXkp5yXDuD1lhOUtHhpwX40LmB4QMZgQATlK0m+Md/0+wt8z+efCJE5Z38zzgE9DsYg==}
 
-  node-opcua-pki@6.12.2:
-    resolution: {integrity: sha512-OkBDHoflCL4n3HWuq9YBrr9XMk8Gp3EAApRhIzvbwoJ5C9eaT+M7y/AG+d6TVtjZeeOPS3gVojzdn0cuoeF+/g==}
+  node-opcua-pki@6.13.0:
+    resolution: {integrity: sha512-XipvhBPXFCtRiJgKEcjzozfynZlc/3Q2gWkuhNUdkQ9omML+7Bs6Sjnb0BMNhwQDxFNoeunGn1Y263VemthWBw==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -4898,8 +4883,8 @@ packages:
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
-  sinon@21.1.0:
-    resolution: {integrity: sha512-eyGgN8TGu8LZ3cNFatmeK+kM3T3ZjxZ+742ua4wMcm1yK6AQoQVibm2HnM+b1DT/a5ErAtmYL0R0c4ooDEcqNQ==}
+  sinon@21.1.2:
+    resolution: {integrity: sha512-FS6mN+/bx7e2ajpXkEmOcWB6xBzWiuNoAQT18/+a20SS4U7FSYl8Ms7N6VTUxN/1JAjkx7aXp+THMC8xdpp0gA==}
 
   slice-ansi@3.0.0:
     resolution: {integrity: sha512-pSyv7bSTC7ig9Dcgbw9AuRNUb5k5V6oDudjZoMBSr13qpLBG7tB+zgCkARjq7xIUgdz5P1Qe8u+rSGdouOOIyQ==}
@@ -4948,10 +4933,6 @@ packages:
     resolution: {integrity: sha512-1tB5mhVo7U+ETBKNf92xT4hrQa3pm0MZ0PQvuDnWgAAGHDsfp4lPSpiS6psrSiet87wyGPh9ft6wmhOMQ0hDiw==}
     engines: {node: '>=14.16'}
 
-  supports-color@10.2.2:
-    resolution: {integrity: sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g==}
-    engines: {node: '>=18'}
-
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
@@ -4997,8 +4978,8 @@ packages:
     resolution: {integrity: sha512-aZbgViZrg1QNcG+LULa7nhZpJTZSLm/mXnHXnbAbjmN5aSa0y7V+wvv6+4WaBtpISJzThKy+PIPxc1Nq1EJ9mg==}
     engines: {node: '>= 14.0.0'}
 
-  ts-morph@27.0.2:
-    resolution: {integrity: sha512-fhUhgeljcrdZ+9DZND1De1029PrE+cMkIP7ooqkLRTrRLTqcki2AstsyJm0vRNbTbVCNJ0idGlbBrfqc7/nA8w==}
+  ts-morph@28.0.0:
+    resolution: {integrity: sha512-Wp3tnZ2bzwxyTZMtgWVzXDfm7lB1Drz+y9DmmYH/L702PQhPyVrp3pkou3yIz4qjS14GY9kcpmLiOOMvl8oG1g==}
 
   tsconfig-paths@4.2.0:
     resolution: {integrity: sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==}
@@ -5343,12 +5324,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 25.0.2
 
-  '@isaacs/balanced-match@4.0.1': {}
-
-  '@isaacs/brace-expansion@5.0.0':
-    dependencies:
-      '@isaacs/balanced-match': 4.0.1
-
   '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
       tslib: 2.8.1
@@ -5582,20 +5557,20 @@ snapshots:
     dependencies:
       type-detect: 4.0.8
 
-  '@sinonjs/fake-timers@15.3.0':
+  '@sinonjs/fake-timers@15.3.2':
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@sinonjs/samsam@10.0.1':
+  '@sinonjs/samsam@10.0.2':
     dependencies:
       '@sinonjs/commons': 3.0.1
       type-detect: 4.1.0
 
   '@ster5/global-mutex@3.3.0': {}
 
-  '@ts-morph/common@0.28.1':
+  '@ts-morph/common@0.29.0':
     dependencies:
-      minimatch: 10.0.3
+      minimatch: 10.2.4
       path-browserify: 1.0.1
       tinyglobby: 0.2.15
 
@@ -6060,10 +6035,6 @@ snapshots:
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
 
-  minimatch@10.0.3:
-    dependencies:
-      '@isaacs/brace-expansion': 5.0.0
-
   minimatch@10.2.4:
     dependencies:
       brace-expansion: 5.0.4
@@ -6118,7 +6089,7 @@ snapshots:
       reflect-metadata: 0.2.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.12.2:
+  node-opcua-pki@6.13.0:
     dependencies:
       '@ster5/global-mutex': 3.3.0
       byline: 5.0.0
@@ -6258,13 +6229,12 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.2
 
-  sinon@21.1.0:
+  sinon@21.1.2:
     dependencies:
       '@sinonjs/commons': 3.0.1
-      '@sinonjs/fake-timers': 15.3.0
-      '@sinonjs/samsam': 10.0.1
+      '@sinonjs/fake-timers': 15.3.2
+      '@sinonjs/samsam': 10.0.2
       diff: 8.0.4
-      supports-color: 10.2.2
 
   slice-ansi@3.0.0:
     dependencies:
@@ -6323,8 +6293,6 @@ snapshots:
 
   strip-json-comments@5.0.3: {}
 
-  supports-color@10.2.2: {}
-
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
@@ -6361,9 +6329,9 @@ snapshots:
 
   triple-beam@1.4.1: {}
 
-  ts-morph@27.0.2:
+  ts-morph@28.0.0:
     dependencies:
-      '@ts-morph/common': 0.28.1
+      '@ts-morph/common': 0.29.0
       code-block-writer: 13.0.3
 
   tsconfig-paths@4.2.0:
