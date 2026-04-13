@@ -5,27 +5,30 @@ import path from "node:path";
 import chalk from "chalk";
 
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { readCertificateChain, readCertificateRevocationList, readPrivateKey, split_der, type Certificate, type PrivateKey } from "node-opcua-crypto";
+import {
+    type Certificate,
+    type PrivateKey,
+    readCertificateChain,
+    readCertificateRevocationList,
+    readPrivateKey,
+    split_der
+} from "node-opcua-crypto";
 import { hexDump } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { EndpointDescription } from "node-opcua-service-endpoints";
-import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import type { ErrorCallback } from "node-opcua-status-code";
+import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
+import { type Message, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source";
 import {
-    getThumbprint,
-    invalidPrivateKey,
     ClientSecureChannelLayer,
     type ClientSecureChannelParent,
+    getThumbprint,
+    invalidPrivateKey,
     MessageSecurityMode,
     SecurityPolicy
 } from "../source";
-import {
-    type Message,
-    ServerSecureChannelLayer,
-    type ServerSecureChannelParent
-} from "../dist/source";
 
 const doDebug = false;
 
@@ -42,9 +45,9 @@ interface TestParam {
 }
 
 const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-samples/certificates");
-fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
+fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
-const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt((process.version.match(/^v([0-9]+)/)![1]) || "0", 10) >= 21;
+const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt(process.version.match(/^v([0-9]+)/)?.[1] || "0", 10) >= 21;
 console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURITY_BASIC128RSA15);
 
 describe("Testing secure client and server connection", function (this: any) {
@@ -86,13 +89,14 @@ describe("Testing secure client and server connection", function (this: any) {
     });
 
     async function performTest(param: TestParam) {
-        doDebug && console.log("performTest ", {
-            shouldFailAtClientConnection: param.shouldFailAtClientConnection,
-            clientCertificate: getThumbprint(param.clientCertificate!)?.toString("hex"),
-            securityMode: MessageSecurityMode[param.securityMode],
-            SecurityPolicy: param.securityPolicy,
-            serverCertificate: getThumbprint(param.serverCertificate!)?.toString("hex")
-        });
+        doDebug &&
+            console.log("performTest ", {
+                shouldFailAtClientConnection: param.shouldFailAtClientConnection,
+                clientCertificate: getThumbprint(param.clientCertificate!)?.toString("hex"),
+                securityMode: MessageSecurityMode[param.securityMode],
+                SecurityPolicy: param.securityPolicy,
+                serverCertificate: getThumbprint(param.serverCertificate!)?.toString("hex")
+            });
 
         const parentS: ServerSecureChannelParent = {
             certificateManager,
@@ -225,13 +229,13 @@ describe("Testing secure client and server connection", function (this: any) {
             // await certMan.trustCertificate(param.serverCertificate);
         }
 
-
         if (param.clientCertificate) {
             await serverSChannel.certificateManager.trustCertificate(param.clientCertificate);
 
             const statusCode = await serverSChannel.certificateManager.checkCertificate(param.clientCertificate);
             const chain = split_der(param.clientCertificate!);
-            doDebug && console.log("certificate thumbprint ", chain.length, getThumbprint(param.clientCertificate!)?.toString("hex"));
+            doDebug &&
+                console.log("certificate thumbprint ", chain.length, getThumbprint(param.clientCertificate!)?.toString("hex"));
             doDebug && console.log("statusCode = ", statusCode.toString());
 
             const statusCode2 = await serverSChannel.certificateManager.checkCertificate(chain[0]);
@@ -254,12 +258,10 @@ describe("Testing secure client and server connection", function (this: any) {
         });
         doDebug && console.log("server secure channel initialized");
 
-
         doDebug && console.log("simulateOpenSecureChannel");
 
         await simulateOpenSecureChannel();
         doDebug && console.log("simulateOpenSecureChannel: done ");
-
 
         let errorCounter = 0;
         if (!param.shouldFailAtClientConnection) {
@@ -277,14 +279,13 @@ describe("Testing secure client and server connection", function (this: any) {
 
         if (param.securityMode !== MessageSecurityMode.None) {
             doDebug && console.log("Wait for token renewal");
-            await new Promise<void>((resolve, reject) => {
+            await new Promise<void>((resolve, _reject) => {
                 clientChannel.once("security_token_renewed", () => {
                     doDebug && console.log("security_token_renewed");
                     resolve();
                 });
             });
         }
-
 
         if (!param.shouldFailAtClientConnection) {
             doDebug && console.log("sending a request");
@@ -318,7 +319,7 @@ describe("Testing secure client and server connection", function (this: any) {
         function m(file: string): string {
             const fullPathname = path.join(certificateFolder, file);
             if (!fs.existsSync(fullPathname)) {
-                throw new Error("file must exist: " + fullPathname);
+                throw new Error(`file must exist: ${fullPathname}`);
             }
             return fullPathname;
         }
@@ -377,12 +378,12 @@ describe("Testing secure client and server connection", function (this: any) {
                 ]) {
                     it(
                         `RR-${(index++).toString().padStart(3, "0")}` +
-                        " client & server channel  - " +
-                        sizeC +
-                        " " +
-                        sizeS +
-                        " " +
-                        policy,
+                            " client & server channel  - " +
+                            sizeC +
+                            " " +
+                            sizeS +
+                            " " +
+                            policy,
                         async () => {
                             await performTest1(sizeC, sizeS, mode, policy);
                         }

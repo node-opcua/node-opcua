@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
-import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPolicy } from "../source/index";
+import { MessageBuilder, MessageSecurityMode, messageHeaderToString, SecurityPolicy } from "../source/index";
 import { TokenStack } from "../source/token_stack";
 
 /**
@@ -8,15 +8,14 @@ import { TokenStack } from "../source/token_stack";
  * @param packets
  */
 export function verify_multi_chunk_message(packets: any[]) {
-
     const maxChunkSize = packets.map((p) => p.length).reduce((a, b) => Math.max(a, b), 0);
 
     const tokenStack = new TokenStack(1);
-    const messageBuilder = new MessageBuilder(tokenStack.clientKeyProvider(),{
+    const messageBuilder = new MessageBuilder(tokenStack.clientKeyProvider(), {
         maxChunkCount: packets.length + 1,
         maxMessageSize: 1000000,
         maxChunkSize,
-        name: "Verification",
+        name: "Verification"
     });
     messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
@@ -36,12 +35,12 @@ export function verify_multi_chunk_message(packets: any[]) {
         console.log("verify_multi_chunk_message : err", err.message);
     });
 
-    let totalLength = 0;
+    let _totalLength = 0;
     packets.forEach((packet) => {
-        if (packet instanceof Array) {
+        if (Array.isArray(packet)) {
             packet = Buffer.from(packet);
         }
-        totalLength += packet.length;
+        _totalLength += packet.length;
         // console.log(sprintf(" adding packet size : %5d l=%d", packet.length, totalLength));
         messageBuilder.feed(packet);
     });

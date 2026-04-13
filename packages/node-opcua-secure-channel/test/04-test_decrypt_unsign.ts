@@ -1,5 +1,5 @@
-import { makeBufferFromTrace, inlineText } from "node-opcua-debug";
-import { toPem, privateDecrypt_long, verifyChunkSignature, PaddingAlgorithm } from "node-opcua-crypto";
+import { PaddingAlgorithm, privateDecrypt_long, toPem, verifyChunkSignature } from "node-opcua-crypto";
+import { inlineText, makeBufferFromTrace } from "node-opcua-debug";
 
 let buffer = makeBufferFromTrace(
     `00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
@@ -58,7 +58,7 @@ let buffer = makeBufferFromTrace(
 //console.log(hexDump(buffer, 32 , 10000));
 
 const privateKey = inlineText(
-        `-----BEGIN RSA PRIVATE KEY-----
+    `-----BEGIN RSA PRIVATE KEY-----
          MIICXQIBAAKBgQDVTV+bramiaPZc24RhmoFdL3ztiXS7QEoW3qvCfDqx4tAJKSZW
          trLfWnl92RhUUFXBhNhSuTccMzioWew+8lsQAL3lOUACMRvlxbRefH1PWcx6wi95
          sFLe74PLgIcI5h9/a5Rj8N6bnAcj/8GpsMW2Vwna4lN8xkEgDK3GWW5tcQIDAQAB
@@ -75,8 +75,8 @@ const privateKey = inlineText(
 -----END RSA PRIVATE KEY-----`
 );
 
-describe("testing message decryption", function () {
-    xit("should decrypt an OPN packet and verify that the signature is correct", function () {
+describe("testing message decryption", () => {
+    xit("should decrypt an OPN packet and verify that the signature is correct", () => {
         // extract the client certificate from the unencrypted part
         const senderCertificate = buffer.subarray(0x4c, 0x475 + 0x4c);
 
@@ -84,7 +84,6 @@ describe("testing message decryption", function () {
         const start = buffer.length - 128 * 3;
         const encrypted_part = buffer.subarray(start);
 
-       
         // decrypt the encrypted part
         const decrypted_part = privateDecrypt_long(encrypted_part, privateKey as any, 128, PaddingAlgorithm.RSA_PKCS1_PADDING);
 

@@ -1,14 +1,7 @@
-import crypto from "crypto";
-import should from "should";
-import {
-    isEmptyNonce,
-    nonceAlreadyBeenUsed,
-    _getNonceStore,
-    _setNonceCacheParameters
-} from "../source/server/nonce_cache";
+import crypto from "node:crypto";
+import { _getNonceStore, _setNonceCacheParameters, isEmptyNonce, nonceAlreadyBeenUsed } from "../source/server/nonce_cache";
 
-describe("NonceCache – replay detection with TTL eviction", function () {
-
+describe("NonceCache – replay detection with TTL eviction", () => {
     beforeEach(() => {
         const store = _getNonceStore();
         store.clear();
@@ -56,8 +49,7 @@ describe("NonceCache – replay detection with TTL eviction", function () {
             nonceAlreadyBeenUsed(crypto.randomBytes(32));
         }
 
-        store.size.should.equal(N,
-            `after ${N} unique nonces the store should contain exactly ${N} entries`);
+        store.size.should.equal(N, `after ${N} unique nonces the store should contain exactly ${N} entries`);
 
         // Simulate time passing by mutating timestamps to 5 hours ago
         const fiveHoursAgo = Date.now() - 5 * 3_600_000;
@@ -69,8 +61,7 @@ describe("NonceCache – replay detection with TTL eviction", function () {
         nonceAlreadyBeenUsed(crypto.randomBytes(32));
 
         // Old entries should have been evicted, only the fresh one remains
-        store.size.should.equal(1,
-            "expired nonce entries should be evicted");
+        store.size.should.equal(1, "expired nonce entries should be evicted");
     });
 
     it("nonce can be reused after TTL expiry (accepted trade-off)", () => {
@@ -86,8 +77,7 @@ describe("NonceCache – replay detection with TTL eviction", function () {
         store.set(hash, Date.now() - 2000); // 2 seconds ago, past the 1s TTL
 
         // After expiry, the nonce is no longer in the cache
-        nonceAlreadyBeenUsed(nonce).should.equal(false,
-            "nonce should be accepted again after TTL expiry");
+        nonceAlreadyBeenUsed(nonce).should.equal(false, "nonce should be accepted again after TTL expiry");
     });
 
     // -- maxSize cap ---------------------------------------------------------
@@ -102,8 +92,7 @@ describe("NonceCache – replay detection with TTL eviction", function () {
             nonceAlreadyBeenUsed(crypto.randomBytes(32));
         }
 
-        store.size.should.be.belowOrEqual(maxSize,
-            `store size should never exceed maxSize (${maxSize})`);
+        store.size.should.be.belowOrEqual(maxSize, `store size should never exceed maxSize (${maxSize})`);
     });
 
     it("maxSize eviction should remove oldest entries first", () => {
@@ -160,13 +149,11 @@ describe("NonceCache – replay detection with TTL eviction", function () {
             nonceAlreadyBeenUsed(crypto.randomBytes(32));
         }
 
-        store.size.should.be.belowOrEqual(maxSize,
-            "cache must remain bounded");
+        store.size.should.be.belowOrEqual(maxSize, "cache must remain bounded");
 
         // The first nonce has been evicted
         const hash = firstNonce.toString("base64");
-        store.has(hash).should.equal(false,
-            "first nonce should be evicted when maxSize is reached");
+        store.has(hash).should.equal(false, "first nonce should be evicted when maxSize is reached");
     });
 
     // -- clear ---------------------------------------------------------------

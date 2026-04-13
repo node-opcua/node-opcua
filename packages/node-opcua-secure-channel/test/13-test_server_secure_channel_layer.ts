@@ -1,43 +1,38 @@
-import os from "os";
-import should from "should";
-import { EventEmitter  } from "events";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { OpenSecureChannelRequest, SecurityTokenRequestType, ReadRequest } from "node-opcua-types";
+import type { EventEmitter } from "node:events";
+import os from "node:os";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-crypto";
 import { make_debugLog } from "node-opcua-debug";
+import type { BaseUAObject } from "node-opcua-factory";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { GetEndpointsResponse } from "node-opcua-service-endpoints";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { BaseUAObject } from "node-opcua-factory";
 import { HelloMessage } from "node-opcua-transport";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import * as fixtures from "node-opcua-transport/dist/test-fixtures";
-
 import { helloMessage1 } from "node-opcua-transport/dist/test-fixtures"; // HEL
-
+import { OpenSecureChannelRequest, ReadRequest, SecurityTokenRequestType } from "node-opcua-types";
+import should from "should";
+import sinon from "sinon";
 import {
-    ServerSecureChannelLayer,
+    AsymmetricAlgorithmSecurityHeader,
+    MessageChunker,
     MessageSecurityMode,
     SecurityPolicy,
-    MessageChunker,
-    AsymmetricAlgorithmSecurityHeader,
-    SymmetricAlgorithmSecurityHeader,
-    ServerSecureChannelParent
+    ServerSecureChannelLayer,
+    type ServerSecureChannelParent,
+    SymmetricAlgorithmSecurityHeader
 } from "../dist/source";
-import sinon from "sinon";
-
 
 const assertThrow = async (func: () => Promise<void>, errRegEx: RegExp) => {
     let hasThrown = false;
     try {
         await func();
-    }
-    catch (err) {
+    } catch (err) {
         hasThrown = true;
         (err as Error).message.should.match(errRegEx);
     }
     hasThrown.should.equal(true, "Function should have thrown an exception");
-}
-
+};
 
 const waitUntilCondition = (predicate: () => boolean, timeout: number, message: string): Promise<void> => {
     const start = Date.now();
@@ -48,7 +43,7 @@ const waitUntilCondition = (predicate: () => boolean, timeout: number, message: 
                 resolve();
             } else if (Date.now() - start > timeout) {
                 clearInterval(interval);
-                reject(new Error("Timeout waiting for condition : " + message));
+                reject(new Error(`Timeout waiting for condition : ${message}`));
             }
         }, 100);
     });
@@ -56,14 +51,14 @@ const waitUntilCondition = (predicate: () => boolean, timeout: number, message: 
 function waitForEvent<T>(emitter: EventEmitter, eventName: string, timeout: number): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {
-            reject(new Error("Timeout waiting for event " + eventName));
+            reject(new Error(`Timeout waiting for event ${eventName}`));
         }, timeout);
         emitter.once(eventName, (...args: any[]) => {
             clearTimeout(timer);
             resolve(args[0]);
         });
     });
-};
+}
 async function terminiateSecureChannelLayer(serverSecureChannel: ServerSecureChannelLayer): Promise<void> {
     return new Promise((resolve) => {
         serverSecureChannel.close(() => {
@@ -75,14 +70,13 @@ async function terminiateSecureChannelLayer(serverSecureChannel: ServerSecureCha
 
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-
-const debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog(__filename);
 
 describe("testing ServerSecureChannelLayer ", function (this: any) {
     this.timeout(Math.max(10000, this.timeout()));
 
     it("KK1 should create a ServerSecureChannelLayer", () => {
-        let serverSecureChannel = new ServerSecureChannelLayer({ parent: null as any });
+        const serverSecureChannel = new ServerSecureChannelLayer({ parent: null as any });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout.should.be.greaterThan(100);
 
@@ -90,12 +84,11 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
     });
 
     it("KK2 should end with a timeout if no message is received from client", async () => {
-
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
             parent: null as any,
-            timeout: 50, // very short timeout
+            timeout: 50 // very short timeout
         });
 
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
@@ -104,12 +97,12 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const spyAbort = sinon.spy();
         serverSecureChannel.on("abort", spyAbort);
 
-        // the socket is opened but an Hello Message will never be sent 
+        // the socket is opened but an Hello Message will never be sent
         // causeing the serverSecureChannel to timeout
 
         await assertThrow(async () => {
             await new Promise<void>((resolve, reject) => {
-                serverSecureChannel.init(transportPair.server, (err) => err ? reject(err) : resolve());
+                serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
             });
         }, /timeout/);
 
@@ -117,7 +110,6 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         // note: if init fails, we may not call serverSecureChannel.close() !
     });
-
 
     it("KK3 should end with a timeout if HEL/ACK is OK but no further message is received from client", async () => {
         const transportPair = new TransportPairDirect();
@@ -137,14 +129,12 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
             // #region  set up secure channel until HEL/ACK
             const initPromise = new Promise<void>((resolve, reject) => {
-                serverSecureChannel.init(transportPair.server, (err) =>
-                    err ? reject(err) : resolve());
+                serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
             });
             await pause(10);
             transportPair.client.write(helloMessage1);
             await initPromise;
             // #endregion
-
 
             // now the server has received a valid HELLO request and has sent back an ACKNOWLEDGE
             // but the client does not send the expected OpenSecureChannelRequest
@@ -159,35 +149,28 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         }
     });
 
-
-
     it("KK4 should return an error and shutdown if first message is not OpenSecureChannelRequest ", async () => {
         const transportPair = new TransportPairDirect();
 
-
-        let serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as unknown as ServerSecureChannelParent,
+        const serverSecureChannel = new ServerSecureChannelLayer({
+            parent: null as unknown as ServerSecureChannelParent
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
         serverSecureChannel.timeout = 1000;
 
         try {
-
             // #region  set up secure channel until HEL/ACK
             const initPromise = new Promise<void>((resolve, reject) => {
-                serverSecureChannel.init(transportPair.server, (err) =>
-                    err ? reject(err) : resolve());
+                serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
             });
             await pause(10);
             transportPair.client.write(helloMessage1);
             await initPromise;
             // #endregion
 
-
             console.log("!!! WRITING INVALID MESSAGE !!!");
-            const abortPromise = waitForEvent<Error>(
-                serverSecureChannel, "abort", 20 * serverSecureChannel.timeout);
+            const abortPromise = waitForEvent<Error>(serverSecureChannel, "abort", 20 * serverSecureChannel.timeout);
 
             // send a a second message which is not an OpenSecureChannelRequest
             const { getEndpointsRequest1 } = fixtures; // GetEndpointsRequest
@@ -198,8 +181,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
             should.exist(err, "expecting an error here");
             should.exist((err as Error).message);
             (err as Error).message.should.match(/Expecting OpenSecureChannelRequest/);
-        }
-        finally {
+        } finally {
             await terminiateSecureChannelLayer(serverSecureChannel);
         }
 
@@ -207,21 +189,18 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
     });
 
     it("KK5 should handle a OpenSecureChannelRequest and pass no err in the init callback ", async () => {
-
         const transportPair = new TransportPairDirect();
 
         // Given a ServerSecureChannelLayer
-        let serverSecureChannel = new ServerSecureChannelLayer({
+        const serverSecureChannel = new ServerSecureChannelLayer({
             parent: null as any,
             timeout: 1000
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
-
         // #region  set up secure channel until HEL/ACK
         const initPromise = new Promise<void>((resolve, reject) => {
-            serverSecureChannel.init(transportPair.server, (err) =>
-                err ? reject(err) : resolve());
+            serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
         });
         await pause(10);
         const { helloMessage1 } = fixtures; // HEL
@@ -250,7 +229,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+            parent: null as any
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
@@ -258,8 +237,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         // #region  set up secure channel until HEL/ACK
         const initPromise = new Promise<void>((resolve, reject) => {
-            serverSecureChannel.init(transportPair.server, (err) =>
-                err ? reject(err) : resolve());
+            serverSecureChannel.init(transportPair.server, (err) => (err ? reject(err) : resolve()));
         });
         await pause(10);
         const { helloMessage1 } = fixtures; // HEL
@@ -273,7 +251,9 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         await waitUntilCondition(
             () => serverSecureChannel.isOpened,
-            1000, "expecting ServerSecureChannel to enter the IsOpened state");
+            1000,
+            "expecting ServerSecureChannel to enter the IsOpened state"
+        );
 
         const onMessageSpy = sinon.spy();
         serverSecureChannel.on("message", onMessageSpy);
@@ -282,9 +262,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         getEndpointsRequest1.writeInt16LE(serverSecureChannel.channelId, 8);
         transportPair.client.write(getEndpointsRequest1);
 
-        await waitUntilCondition(
-            () => onMessageSpy.callCount >= 1,
-            1000, "expecting to receive a 'message' event");
+        await waitUntilCondition(() => onMessageSpy.callCount >= 1, 1000, "expecting to receive a 'message' event");
 
         const message = onMessageSpy.getCall(0).args[0];
         message.request.schema.name.should.equal("GetEndpointsRequest");
@@ -295,8 +273,8 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
     it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", async () => {
         const transportPair = new TransportPairDirect();
 
-        let serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+        const serverSecureChannel = new ServerSecureChannelLayer({
+            parent: null as any
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
@@ -363,8 +341,8 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         let server_has_emitted_the_abort_message = false;
-        let serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+        const serverSecureChannel = new ServerSecureChannelLayer({
+            parent: null as any
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
@@ -413,8 +391,8 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
             let server_has_emitted_the_message_event = false;
             let err: any;
 
-            let serverSecureChannel = new ServerSecureChannelLayer({
-                parent: null as any,
+            const serverSecureChannel = new ServerSecureChannelLayer({
+                parent: null as any
             });
 
             serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
@@ -457,15 +435,15 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
     it("KK8 should not accept message with too large chunk", async () => {
         const transportPair = new TransportPairDirect();
 
-        let serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+        const serverSecureChannel = new ServerSecureChannelLayer({
+            parent: null as any
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 100000;
 
-        let initialized = false;
+        let _initialized = false;
         serverSecureChannel.init(transportPair.server, (err) => {
-            initialized = true;
+            _initialized = true;
             should.not.exist(err);
         });
 
@@ -510,24 +488,23 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
             await send1("HEL", helloMessage);
         }
 
-        let requestId = 1;
+        let _requestId = 1;
 
         async function send2(msg: "OPN" | "MSG", request: any, tweakingFunc?: (chunk: Buffer) => Buffer) {
-
-
-            const securityHeader = msg === "OPN"
-                ? new AsymmetricAlgorithmSecurityHeader({
-                    securityPolicyUri: SecurityPolicy.None
-                })
-                : new SymmetricAlgorithmSecurityHeader({});
+            const securityHeader =
+                msg === "OPN"
+                    ? new AsymmetricAlgorithmSecurityHeader({
+                          securityPolicyUri: SecurityPolicy.None
+                      })
+                    : new SymmetricAlgorithmSecurityHeader({});
 
             const messageChunker = new MessageChunker({
-                securityMode: MessageSecurityMode.None,
+                securityMode: MessageSecurityMode.None
             });
 
             return await new Promise((resolve, reject) => {
                 transportPair.client.once("data", (chunk) => {
-                    requestId += 1;
+                    _requestId += 1;
                     console.log(`receiving\n${hexDump(chunk)}`);
                     resolve(chunk);
                 });

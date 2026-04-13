@@ -1,5 +1,6 @@
 // tslint:disable:no-console
-import { EventEmitter } from "events";
+
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { displayTraceFromThisProjectOnly, hexDump, make_debugLog } from "node-opcua-debug";
@@ -82,7 +83,7 @@ export class MockServerTransport extends EventEmitter {
                 } else {
                     replies = reply;
                 }
-                assert(replies.length >= 1, " expecting at least one reply " + JSON.stringify(reply));
+                assert(replies.length >= 1, ` expecting at least one reply ${JSON.stringify(reply)}`);
                 replies.forEach((reply1: any) => {
                     debugLog("\nFAKE SERVER SEND");
                     debugLog(chalk.red(hexDump(reply1)));

@@ -1,24 +1,26 @@
 import "should";
 
-import { CloseSecureChannelResponse, MessageSecurityMode, ServiceFault, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-
 import { clone_buffer } from "node-opcua-buffer-utils";
-import { hexDump, makeBufferFromTrace } from "node-opcua-debug";
+import { hexDump, make_debugLog, makeBufferFromTrace } from "node-opcua-debug";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import {
+    CloseSecureChannelResponse,
+    MessageSecurityMode,
+    type ServiceFault,
+    SymmetricAlgorithmSecurityHeader
+} from "node-opcua-service-secure-channel";
 
-import { make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 
-import { IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source";
-import * as fixture from "../dist/test_fixtures/fixture_GetEndPointResponse";
-
+import { type IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source";
+import * as fixture from "../test_fixtures/fixture_GetEndPointResponse";
 
 const derivedKeyProvider: IDerivedKeyProvider = {
-    getDerivedKey(tokenId: number) {
+    getDerivedKey(_tokenId: number) {
         return null;
     }
 };
-describe("SecureMessageChunkManager", function () {
+describe("SecureMessageChunkManager", () => {
     it("should reconstruct a valid message when message is received in multiple chunks", async () => {
         // a very large endPointResponse spanning on multiple chunks ...
         const endPointResponse = fixture.fixture2;
@@ -26,7 +28,6 @@ describe("SecureMessageChunkManager", function () {
         const requestId = 0x1000;
 
         const chunk_stack: Buffer[] = [];
-
 
         const options = {
             channelId: 1,
@@ -39,29 +40,23 @@ describe("SecureMessageChunkManager", function () {
                 sequenceHeaderSize: 0,
                 signatureLength: 0,
                 channelId: 1,
-                chunkSize: 0,
+                chunkSize: 0
             }
-
         };
         endPointResponse.responseHeader.requestHandle = requestId;
 
         const chunker = new MessageChunker({
-            securityMode: MessageSecurityMode.None,
+            securityMode: MessageSecurityMode.None
         });
 
-        await new Promise<void>((resolve, reject) => {
-            chunker.chunkSecureMessage(
-                "MSG",
-                options,
-                endPointResponse,
-                (messageChunk?: Buffer | null) => {
-                    if (messageChunk) {
-                        chunk_stack.push(clone_buffer(messageChunk));
-                    } else {
-                        resolve();
-                    }
+        await new Promise<void>((resolve, _reject) => {
+            chunker.chunkSecureMessage("MSG", options, endPointResponse, (messageChunk?: Buffer | null) => {
+                if (messageChunk) {
+                    chunk_stack.push(clone_buffer(messageChunk));
+                } else {
+                    resolve();
                 }
-            );
+            });
         });
 
         chunk_stack.length.should.be.greaterThan(0);
@@ -71,8 +66,6 @@ describe("SecureMessageChunkManager", function () {
             String.fromCharCode(chunk_stack[i].readUInt8(3)).should.equal("C");
         }
         String.fromCharCode(chunk_stack[chunk_stack.length - 1].readUInt8(3)).should.equal("F");
-
-
 
         chunk_stack.length.should.be.greaterThan(0);
 
@@ -87,7 +80,7 @@ describe("SecureMessageChunkManager", function () {
 
         new Promise<void>((resolve, reject) => {
             messageBuilder
-                .on("full_message_body", function (full_message_body) {
+                .on("full_message_body", (_full_message_body) => {
                     /** */
                 })
                 .on("message", (reconstructed_message) => {
@@ -102,8 +95,8 @@ describe("SecureMessageChunkManager", function () {
 
                     resolve();
                 })
-                .on("error", function (errCode) {
-                    reject(new Error("Error : code 0x" + errCode.toString()));
+                .on("error", (errCode) => {
+                    reject(new Error(`Error : code 0x${errCode.toString()}`));
                 });
 
             // feed messageBuilder with
@@ -121,16 +114,15 @@ describe("SecureMessageChunkManager", function () {
                 messageBuilder.feed(data2);
             });
         });
-
     });
 
-    it("should receive and handle an ERR message", function (done) {
+    it("should receive and handle an ERR message", (done) => {
         const messageBuilder = new MessageBuilder(derivedKeyProvider, {
             name: "MessageBuilder"
         });
         messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         messageBuilder
-            .on("full_message_body", function (full_message_body) {
+            .on("full_message_body", (full_message_body) => {
                 debugLog(" On raw Buffer \n");
                 debugLog(hexDump(full_message_body));
             })
@@ -141,7 +133,7 @@ describe("SecureMessageChunkManager", function () {
 
                 done();
             })
-            .on("error", function (errCode) {
+            .on("error", (errCode) => {
                 debugLog(" errCode ", errCode);
                 done(new Error("Unexpected error event received"));
             });
@@ -155,7 +147,7 @@ describe("SecureMessageChunkManager", function () {
         );
         messageBuilder.feed(packet);
     });
-    it("should test CloseSecureChannelResponse", function () {
+    it("should test CloseSecureChannelResponse", () => {
         // note: CloseSecureChannelResponse is a special case because it is never send by the server
         const response = new CloseSecureChannelResponse({});
         encode_decode_round_trip_test(response);
