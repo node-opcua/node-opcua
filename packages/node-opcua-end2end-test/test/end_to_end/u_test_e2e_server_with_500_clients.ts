@@ -9,7 +9,7 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 
-const doDebug = true;
+const doDebug = false;
 
 interface TestHarness {
     endpointUrl: string;

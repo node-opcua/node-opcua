@@ -16,7 +16,7 @@ import { createDynamicObjectConstructor } from "./dynamic_extension_object";
 import { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider } from "./parse_binary_xsd";
 
 const errorLog = make_errorLog(__filename);
-const doDebug = true; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
+const _doDebug = false; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
 
 function _removeNamespacePart(str?: string): string {
     if (!str) {
@@ -110,7 +110,7 @@ export function getOrCreateStructuredTypeSchema(
             // this extension object is from namespace 0  may exist already in the dataTypeFactory
             const existing = dataTypeFactory.hasStructureByTypeName(schema.name);
             if (existing) {
-                 return schema;
+                return schema;
             }
         }
         schema.encodingDefaultXml = ExpandedNodeId.fromNodeId(ids.xmlEncodingNodeId);
