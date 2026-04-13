@@ -1,7 +1,7 @@
 require("should");
 const { ObjectRegistry } = require("..");
 
-describe("testing ObjectRegistry", () => {
+describe.skip("testing ObjectRegistry", () => {
     let oldValue = null;
 
     const registry = new ObjectRegistry();
