@@ -174,20 +174,19 @@ describe("testing ServerEngine", () => {
             const newFolder1 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder1",
                 browseFilter: check_if_allowed.bind(null, 1)
-            });
+            } as Parameters<typeof namespace.addFolder>[1] & { browseFilter: (ctx: ISessionContext) => boolean });
             assert(newFolder1);
 
             const newFolder2 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder2",
-
                 browseFilter: check_if_allowed.bind(null, 2)
-            });
+            } as Parameters<typeof namespace.addFolder>[1] & { browseFilter: (ctx: ISessionContext) => boolean });
             assert(newFolder2);
 
             const newFolder3 = namespace.addFolder(newFolderWithFilteredItems, {
                 browseName: "filteredFolder3",
                 browseFilter: check_if_allowed.bind(null, 3)
-            });
+            } as Parameters<typeof namespace.addFolder>[1] & { browseFilter: (ctx: ISessionContext) => boolean });
             assert(newFolder3);
 
             done();

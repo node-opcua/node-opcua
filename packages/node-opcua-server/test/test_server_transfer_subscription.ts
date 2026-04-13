@@ -34,15 +34,15 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
     /**
      *  @type {NodeId}
      */
-    let FolderTypeId, BaseDataVariableTypeId;
+    let _FolderTypeId, _BaseDataVariableTypeId;
     beforeEach((done) => {
         engine = new ServerEngine({
             applicationUri: "application:uri"
         });
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             if (!engine) return;
-            FolderTypeId = engine.addressSpace!.findNode("FolderType")!.nodeId;
-            BaseDataVariableTypeId = engine.addressSpace!.findNode("BaseDataVariableType")!.nodeId;
+            _FolderTypeId = engine.addressSpace?.findNode("FolderType")?.nodeId;
+            _BaseDataVariableTypeId = engine.addressSpace?.findNode("BaseDataVariableType")?.nodeId;
             installSessionLoggingOnEngine(engine);
             done();
         });
@@ -58,10 +58,10 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
         engine = undefined;
     });
 
-    let requestHandle = 1;
+    let _requestHandle = 1;
     function sendPublishRequest(session: ServerSession, publishHandler: () => void) {
         session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
-        requestHandle++;
+        _requestHandle++;
         test.clock.tick(0);
     }
 
@@ -145,7 +145,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             });
 
             // ===> some data arrive ( initial value  )!!!
-            const monitoredItem1 = add_mock_monitored_item(subscription);
+            const _monitoredItem1 = add_mock_monitored_item(subscription);
 
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
@@ -210,7 +210,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             session2 = engine.createSession({ sessionTimeout: 10000, server });
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers!.should.eql([]);
+            transferResult.availableSequenceNumbers?.should.eql([]);
 
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
             sendPublishRequest(session1, publishSpy);
@@ -270,7 +270,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
 
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers!.length.should.eql(0);
+            transferResult.availableSequenceNumbers?.length.should.eql(0);
 
             // xx  console.log(transferResult.toString());
 
@@ -305,7 +305,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
         session2 = engine.createSession({ sessionTimeout: 10000, server });
 
         await with_fake_timer.call(test, async () => {
-            if (!session1) throw new Error("internal error");
+            if (!session1 || !engine) throw new Error("internal error");
 
             // A/ Create a subscription
             const subscription = session1.createSubscription({
@@ -342,8 +342,9 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             publishSpy1.callCount.should.eql(1);
             publishSpy1.resetHistory();
 
+            if (!session2) throw new Error("internal error");
             // -------------------------------------------------------------
-            const transferResult = await engine!.transferSubscription(session2!, subscription.id, /* sendInitialValue =*/ true);
+            const transferResult = await engine.transferSubscription(session2, subscription.id, /* sendInitialValue =*/ true);
 
             if (doDebug) {
                 console.log("transferResult", transferResult.toString());
@@ -352,8 +353,9 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             // the transferResult.availableSequenceNumber shall be One at this point because
             // there was an un-acknowledged sequence in session1 that can be republished in the context of session2
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers!.length.should.eql(1);
-            transferResult.availableSequenceNumbers!.should.eql([1]);
+            if (!transferResult.availableSequenceNumbers) throw new Error("availableSequenceNumbers is null");
+            transferResult.availableSequenceNumbers.length.should.eql(1);
+            transferResult.availableSequenceNumbers.should.eql([1]);
 
             sendPublishRequest(session1, publishSpy1);
             sendPublishRequest(session1, publishSpy1);
@@ -384,8 +386,8 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
 
             // --------------------------------------------
             const publishSpy2 = sinon.spy();
-            session2!.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 200 } }), publishSpy2);
-            session2!.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 201 } }), publishSpy2);
+            session2?.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 200 } }), publishSpy2);
+            session2?.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 201 } }), publishSpy2);
             test.clock.tick(subscription.publishingInterval);
             publishSpy2.callCount.should.eql(1);
 
@@ -427,7 +429,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             const publishSpy1 = sinon.spy();
 
             // create monitored item
-            const monitoredItem1 = add_mock_monitored_item(subscription);
+            const _monitoredItem1 = add_mock_monitored_item(subscription);
 
             //make sure we receive initial  data
             session1.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 100 } }), publishSpy1);
@@ -586,7 +588,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             // the transfer result.available sequence number shall be ZERO at this point because
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers!.length.should.eql(4);
+            transferResult.availableSequenceNumbers?.length.should.eql(4);
 
             const publishSpy2 = sinon.spy();
 
@@ -662,9 +664,9 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
             subscriptions.push(createSubscription());
             subscriptions.push(createSubscription());
 
-            const transferResult1 = await engine.transferSubscription(session2, subscriptions[0].id, true);
-            const transferResult2 = await engine.transferSubscription(session2, subscriptions[2].id, true);
-            const transferResult3 = await engine.transferSubscription(session2, subscriptions[4].id, true);
+            const _transferResult1 = await engine.transferSubscription(session2, subscriptions[0].id, true);
+            const _transferResult2 = await engine.transferSubscription(session2, subscriptions[2].id, true);
+            const _transferResult3 = await engine.transferSubscription(session2, subscriptions[4].id, true);
 
             // we don't care about dataChanges, we just need to make sure a StatusChange was received.
             const publishSpy1 = sinon.spy();
@@ -741,7 +743,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
                 publishingEnabled: true, // Boolean
                 priority: 14 // Byte
             });
-            const monitoredItem1 = add_mock_monitored_item(subscription);
+            const _monitoredItem1 = add_mock_monitored_item(subscription);
 
             // Call Publish()(#1) on session #1.
             const publishSpy1 = sinon.spy();
@@ -815,9 +817,9 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
                     priority: 14 // Byte
                 });
 
-                const monitoredItem1 = add_mock_monitored_item(subscription);
+                const _monitoredItem1 = add_mock_monitored_item(subscription);
 
-                const lifeTimeInHours = 1;
+                const _lifeTimeInHours = 1;
                 // Set Subscription durable 1 hours
                 // subscription1.SetDurable(lifeTimeInHours);
 

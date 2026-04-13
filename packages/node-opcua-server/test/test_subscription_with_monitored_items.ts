@@ -66,7 +66,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
+    const spy_samplingEventCall = sinon.spy((_sessionContext, _oldValue, callback) => {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -129,8 +129,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
                 namespace.addVariable({
                     organizedBy: "RootFolder",
-                    nodeId: "s=Static_" + typeName,
-                    browseName: "Static_" + typeName,
+                    nodeId: `s=Static_${typeName}`,
+                    browseName: `Static_${typeName}`,
                     dataType: typeName,
                     value: { dataType: DataType[typeName], value: value }
                 });
@@ -156,7 +156,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
                 organizedBy: "RootFolder",
                 browseName: name,
                 description: { locale: "en", text: name },
-                nodeId: "s=" + name,
+                nodeId: `s=${name}`,
                 dataType: "Int32",
                 valueRank: -1,
 
@@ -172,11 +172,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             });
 
             function addAnalogItem(dataType: DataType | keyof typeof DataType): NodeId {
-                const name = "AnalogItem" + dataType;
+                const name = `AnalogItem${dataType}`;
 
                 const node = (namespace as unknown as INamespaceDataAccess).addAnalogDataItem({
                     organizedBy: "RootFolder",
-                    nodeId: "s=" + name,
+                    nodeId: `s=${name}`,
                     browseName: name,
                     definition: "(tempA -25) + tempB",
                     valuePrecision: 0.5,
@@ -208,7 +208,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         if (test.clock) {
             throw new Error("Invalid sta");
         }
-        const now = new Date().getTime();
+        const now = Date.now();
         test.clock = sinon.useFakeTimers(now);
     });
     afterEach(() => {
@@ -287,7 +287,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             }
         });
 
-        const createResult = await subscription.createMonitoredItem(
+        const _createResult = await subscription.createMonitoredItem(
             addressSpace,
             TimestampsToReturn.Both,
             monitoredItemCreateRequest
@@ -359,7 +359,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
         const notifications = [...subscription._pending_notifications.values()];
 
-        notifications[0].monitoredItemId!.should.eql(monitoredItem.monitoredItemId);
+        notifications[0].monitoredItemId?.should.eql(monitoredItem.monitoredItemId);
 
         subscription.on("terminated", () => {
             /** */
@@ -660,12 +660,12 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
         function my_samplingFunc(
             this: any,
-            sessionContext: ISessionContext | null,
-            oldData: DataValue,
+            _sessionContext: ISessionContext | null,
+            _oldData: DataValue,
             callback: ResponseCallback<DataValue>
         ) {
             //xx console.log(self.toString());
-            const dataValue = addressSpace.findNode(this.node.nodeId)!.readAttribute(null, 13);
+            const dataValue = addressSpace.findNode(this.node.nodeId)?.readAttribute(null, 13);
             callback(null, dataValue);
         }
 
@@ -684,10 +684,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
                 }
             });
 
-            const n = addressSpace.findNode("ns=100;s=Static_Float");
+            const _n = addressSpace.findNode("ns=100;s=Static_Float");
             //xx console.log(n.toString());
 
-            const createResult = await subscription.createMonitoredItem(
+            const _createResult = await subscription.createMonitoredItem(
                 addressSpace,
                 TimestampsToReturn.Both,
                 monitoredItemCreateRequest
@@ -879,7 +879,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             }
         });
 
-        const createResult = await subscription.createMonitoredItem(
+        const _createResult = await subscription.createMonitoredItem(
             addressSpace,
             TimestampsToReturn.Both,
             monitoredItemCreateRequest
@@ -916,7 +916,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             subscription.on("notification", spy_notification_event);
 
             subscription.on("monitoredItem", (monitoredItem) => {
-                monitoredItem.samplingFunc = sinon.spy((sessionContext, oldValue, callback) => {
+                monitoredItem.samplingFunc = sinon.spy((_sessionContext, _oldValue, callback) => {
                     const dataValue = monitoredItem.node.readAttribute(null, monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
                     callback(null, dataValue);
@@ -1157,8 +1157,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         ) {
             if (!subscription) throw new Error("internal error");
 
-            const nodeId = "ns=1;s=Static_" + dataType;
-            const node = engine.addressSpace!.findNode(nodeId)! as UAVariable;
+            const nodeId = `ns=1;s=Static_${dataType}`;
+            const node = engine.addressSpace?.findNode(nodeId)! as UAVariable;
             should.exists(node);
 
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
@@ -1227,7 +1227,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
                 } else {
                     notifs.length.should.eql(1, " should have one pending notification");
 
-                    expectedValue = (encode_decode as any)["coerce" + dataType](expectedValue);
+                    expectedValue = (encode_decode as any)[`coerce${dataType}`](expectedValue);
 
                     // verify that value matches expected value
                     (notifs[0] as any).value.value.value.should.eql(expectedValue);
@@ -1261,18 +1261,18 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         }
 
         ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach((dataType) => {
-            it("testing with " + dataType, async () => {
+            it(`testing with ${dataType}`, async () => {
                 await test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
             });
         });
         ["Float", "Double"].forEach((dataType) => {
-            it("testing with " + dataType, async () => {
+            it(`testing with ${dataType}`, async () => {
                 await test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
             });
         });
 
         ["Int64", "UInt64"].forEach((dataType) => {
-            it("testing with " + dataType, async () => {
+            it(`testing with ${dataType}`, async () => {
                 await test_deadband(dataType, integer64Deadband, integer64WritesPass, integer64WritesFail);
             });
         });
@@ -1330,7 +1330,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     });
 
     describe("SM1-C MonitoredItem should set SemanticChanged bit on statusCode when appropriate", () => {
-        function changeEURange(analogItem: any, done: () => void) {
+        function _changeEURange(analogItem: any, done: () => void) {
             const dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
 
             const dataValue = {
@@ -1528,9 +1528,9 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
 
             add_eventGeneratorObject(namespace, "ObjectsFolder");
 
-            const browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
+            const _browsePath = makeBrowsePath("RootFolder", "/Objects/EventGeneratorObject");
 
-            const opts = { addressSpace: engine.addressSpace };
+            const _opts = { addressSpace: engine.addressSpace };
 
             // console.log("eventGeneratingObject",browsePath.toString(opts));
 
@@ -1548,7 +1548,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         if (test.clock) {
             throw new Error("Internal Error");
         }
-        const now = new Date().getTime();
+        const now = Date.now();
         test.clock = sinon.useFakeTimers(now);
 
         publishEngine = new ServerSidePublishEngine();
@@ -1827,7 +1827,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
 
             const m1 = await add_monitored_item();
             const m2 = await add_monitored_item();
-            const m3 = await add_monitored_item();
+            const _m3 = await add_monitored_item();
 
             subscription.subscriptionDiagnostics.monitoredItemCount.should.eql(3);
             subscription.subscriptionDiagnostics.disabledMonitoredItemCount.should.eql(0);

@@ -42,7 +42,10 @@ import should from "should";
 import sinon from "sinon";
 import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
 
-const property = <K extends string>(key: K) => <T extends { [P in K]: unknown }>(obj: T): T[K] => obj[key];
+const property =
+    <K extends string>(key: K) =>
+    <T extends { [P in K]: unknown }>(obj: T): T[K] =>
+        obj[key];
 
 // tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");

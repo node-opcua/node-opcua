@@ -1,4 +1,3 @@
-import should from "should";
 import { Queue } from "../source/queue";
 
 const doDebug = false;

@@ -20,7 +20,6 @@ import should from "should";
 import sinon from "sinon";
 
 import {
-    ISubscription,
     installSubscriptionMonitoring,
     MonitoredItem,
     ServerEngine,
@@ -39,7 +38,7 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 let fake_publish_engine = {} as ReturnType<typeof getFakePublishEngine>;
 
-const fakeNotificationData = [new DataChangeNotification()];
+const _fakeNotificationData = [new DataChangeNotification()];
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();
@@ -924,10 +923,10 @@ describe("Subscriptions", function (this: any) {
             subscription.sentNotificationMessageCount.should.equal(2);
 
             const notification1 = _send_response_spy.getCall(0).args[1].notificationMessage!;
-            notification1.sequenceNumber!.should.eql(1);
+            notification1.sequenceNumber?.should.eql(1);
 
             const notification2 = _send_response_spy.getCall(1).args[1].notificationMessage!;
-            notification2.sequenceNumber!.should.eql(2);
+            notification2.sequenceNumber?.should.eql(2);
 
             subscription.acknowledgeNotification(notification2.sequenceNumber!);
             subscription.sentNotificationMessageCount.should.equal(1);
@@ -969,7 +968,7 @@ describe("Subscriptions", function (this: any) {
             subscription.sentNotificationMessageCount.should.equal(1);
 
             const notification1 = send_response_spy.getCall(0).args[1].notificationMessage!;
-            notification1.sequenceNumber!.should.eql(1);
+            notification1.sequenceNumber?.should.eql(1);
             const seqNum = notification1.sequenceNumber!;
 
             //
@@ -1490,7 +1489,7 @@ describe("Subscription#adjustSamplingInterval", () => {
 
     const fake_node = {
         readAttribute: (context: ISessionContext | null, attributeId: AttributeIds) => {
-            context && context.should.be.instanceOf(SessionContext);
+            context?.should.be.instanceOf(SessionContext);
             attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
             return new DataValue({ value: { dataType: DataType.Double, value: 0.0 } });
         }

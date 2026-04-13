@@ -7,8 +7,8 @@ import { OPCUAServer } from "../source";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 const port = 12345;
 
@@ -35,6 +35,6 @@ describe("testing 2 servers on same port ", () => {
         // note : on WSL (windows subsystem for Linux), it seems possible that
         //        two servers could listen to the same port
         should.exist(_err, "trying to start a second server on a port that is already in used shall produce an error");
-        _err!.should.be.instanceOf(Error);
+        _err?.should.be.instanceOf(Error);
     });
 });

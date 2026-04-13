@@ -9,20 +9,20 @@ const doDebug = false;
 function getFakePublishEngine() {
     return {
         pendingPublishRequestCount: 0,
-        _send_response(subscription: any, response?: any) {
+        _send_response(_subscription: any, _response?: any) {
             if (this.pendingPublishRequestCount <= 0) {
                 throw new Error("Invalid send");
             }
             this.pendingPublishRequestCount--;
         },
-        send_keep_alive_response(subscriptionId: any, _get_future_sequence_number: any) {
+        send_keep_alive_response(_subscriptionId: any, _get_future_sequence_number: any) {
             if (this.pendingPublishRequestCount <= 0) {
                 return false;
             }
             this._send_response(null);
             return true;
         },
-        on_close_subscription(subscription: any) {
+        on_close_subscription(_subscription: any) {
             /**  empty */
         },
         _on_tick() {
@@ -89,10 +89,10 @@ describe("Subscription keepAlive behavior", function (this: any) {
 
         let firstPublishResponse = getMinOPCUADate();
         let secondPublishResponse = getMinOPCUADate();
-        subscription.once("keepalive", (d) => {
+        subscription.once("keepalive", (_d) => {
             firstPublishResponse = new Date();
             doDebug && console.log("keepalive received", firstPublishResponse);
-            subscription.once("keepalive", (d) => {
+            subscription.once("keepalive", (_d) => {
                 secondPublishResponse = new Date();
                 doDebug && console.log("keepalive received", secondPublishResponse);
             });

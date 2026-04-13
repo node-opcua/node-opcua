@@ -1,4 +1,5 @@
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { StaticCertificateChainProvider } from "node-opcua-common";
 import { combine_der, readCertificateChain } from "node-opcua-crypto";
@@ -7,9 +8,8 @@ import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "no
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { invalidPrivateKey, MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
-import path from "path";
 import should from "should";
-import { OPCUABaseServer, OPCUAServerEndPoint } from "../source";
+import { OPCUABaseServer, OPCUAServerEndPoint } from "..";
 
 const it_with_crypto = it;
 
@@ -345,53 +345,41 @@ describe("OPCUAServerEndPoint certificate provider", function (this: Mocha.Suite
     });
 });
 
+type MockServerEndPoint = Pick<OPCUAServerEndPoint, "endpointDescriptions">;
+
+function mockServerEndpoint(...urls: string[]): MockServerEndPoint {
+    return {
+        endpointDescriptions: (): EndpointDescription[] =>
+            urls.map((u) => ({ endpointUrl: u }) as unknown as EndpointDescription)
+    };
+}
+
 describe("OPCUABaseServer#getDiscoveryUrls", function (this: Mocha.Suite) {
+    function makeServer(...eps: MockServerEndPoint[]): OPCUABaseServer {
+        const server = Object.create(OPCUABaseServer.prototype) as OPCUABaseServer;
+        server.endpoints = eps as OPCUAServerEndPoint[];
+        return server;
+    }
 
     it("should return unique URLs across all endpoint descriptions", () => {
-        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
-        // Mock endpoints with overlapping URLs
-        server.endpoints = [
-            {
-                endpointDescriptions: () => [
-                    { endpointUrl: "opc.tcp://host1:4840" },
-                    { endpointUrl: "opc.tcp://host2:4840" }
-                ]
-            },
-            {
-                endpointDescriptions: () => [
-                    { endpointUrl: "opc.tcp://host1:4840" }, // duplicate
-                    { endpointUrl: "opc.tcp://host3:4840" }
-                ]
-            }
-        ] as any;
+        const server = makeServer(
+            mockServerEndpoint("opc.tcp://host1:4840", "opc.tcp://host2:4840"),
+            mockServerEndpoint("opc.tcp://host1:4840", "opc.tcp://host3:4840") // host1 is a duplicate
+        );
 
         const urls = server.getDiscoveryUrls();
-        urls.should.deepEqual([
-            "opc.tcp://host1:4840",
-            "opc.tcp://host2:4840",
-            "opc.tcp://host3:4840"
-        ]);
+        urls.should.deepEqual(["opc.tcp://host1:4840", "opc.tcp://host2:4840", "opc.tcp://host3:4840"]);
     });
 
     it("should skip empty endpoint URLs", () => {
-        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
-        server.endpoints = [
-            {
-                endpointDescriptions: () => [
-                    { endpointUrl: "opc.tcp://host1:4840" },
-                    { endpointUrl: "" },
-                    { endpointUrl: null }
-                ]
-            }
-        ] as any;
+        const server = makeServer(mockServerEndpoint("opc.tcp://host1:4840", "", null as unknown as string));
 
         const urls = server.getDiscoveryUrls();
         urls.should.deepEqual(["opc.tcp://host1:4840"]);
     });
 
     it("should return empty array when no endpoints exist", () => {
-        const server = Object.create(OPCUABaseServer.prototype) as InstanceType<typeof OPCUABaseServer>;
-        server.endpoints = [] as any;
+        const server = makeServer();
 
         const urls = server.getDiscoveryUrls();
         urls.should.deepEqual([]);

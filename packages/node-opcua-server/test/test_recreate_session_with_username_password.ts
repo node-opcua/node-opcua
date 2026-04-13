@@ -20,7 +20,7 @@ async function startClient() {
         requestedSessionTimeout: 3 * seconds,
         transportTimeout: 2 * seconds
     });
-    client.on("backoff", (retry, delay) => {
+    client.on("backoff", (_retry, delay) => {
         console.log("Retrying in ", delay / 1000.0, " seconds");
     });
 

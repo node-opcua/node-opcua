@@ -26,14 +26,18 @@ describe("ServerEngine Subscriptions service", function (this: any) {
     /**
      * @type {NodeId}
      */
-    let FolderTypeId: NodeId;
-    let BaseDataVariableTypeId: NodeId;
+    let _FolderTypeId: NodeId;
+    let _BaseDataVariableTypeId: NodeId;
 
     beforeEach((done) => {
         engine = new ServerEngine();
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
-            FolderTypeId = engine.addressSpace!.findNode("FolderType")!.nodeId;
-            BaseDataVariableTypeId = engine.addressSpace!.findNode("BaseDataVariableType")!.nodeId;
+            if (!engine.addressSpace) throw new Error("addressSpace is null");
+            const folderType = engine.addressSpace.findNode("FolderType");
+            const baseDataVariableType = engine.addressSpace.findNode("BaseDataVariableType");
+            if (!folderType || !baseDataVariableType) throw new Error("required types not found");
+            _FolderTypeId = folderType.nodeId;
+            _BaseDataVariableTypeId = baseDataVariableType.nodeId;
             done();
         });
     });
@@ -67,7 +71,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
         session.currentSubscriptionCount.should.equal(1);
         session.cumulatedSubscriptionCount.should.equal(1);
 
-        session.getSubscription(subscription.id)!.should.equal(subscription);
+        session.getSubscription(subscription.id)?.should.equal(subscription);
 
         const statusCode = await session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
@@ -158,9 +162,9 @@ describe("ServerEngine Subscriptions service", function (this: any) {
         engine.cumulatedSessionCount.should.equal(2);
         engine.currentSubscriptionCount.should.equal(1);
 
-        const subscription1_2 = session2.createSubscription(subscription_parameters);
-        const subscription2_2 = session2.createSubscription(subscription_parameters);
-        const subscription3_2 = session2.createSubscription(subscription_parameters);
+        const _subscription1_2 = session2.createSubscription(subscription_parameters);
+        const _subscription2_2 = session2.createSubscription(subscription_parameters);
+        const _subscription3_2 = session2.createSubscription(subscription_parameters);
 
         engine.currentSubscriptionCount.should.equal(4);
         engine.cumulatedSubscriptionCount.should.equal(5);
@@ -572,7 +576,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             publishResponse1.subscriptionId.should.eql(subscription1.subscriptionId);
             publishResponse1.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishResponse1.notificationMessage.sequenceNumber.should.eql(1);
-            publishResponse1.notificationMessage.notificationData!.length.should.eql(0);
+            publishResponse1.notificationMessage.notificationData?.length.should.eql(0);
             publishResponse1.responseHeader.requestHandle.should.eql(100);
 
             // -------------------------- Second PublishResponse -- should be a keep alive
@@ -581,7 +585,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
             publishResponse2.subscriptionId.should.eql(subscription1.subscriptionId);
             publishResponse2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishResponse2.notificationMessage.sequenceNumber.should.eql(1);
-            publishResponse2.notificationMessage.notificationData!.length.should.eql(0);
+            publishResponse2.notificationMessage.notificationData?.length.should.eql(0);
             publishResponse2.responseHeader.requestHandle.should.eql(101);
 
             // verify that the first keep alive message was sent after  1 time publishing interval milliseconds
@@ -624,7 +628,7 @@ describe("ServerEngine Subscriptions service", function (this: any) {
 
             subscription1.state.should.eql(SubscriptionState.CREATING);
 
-            subscription1.on("keepalive", (count) => {
+            subscription1.on("keepalive", (_count) => {
                 dateKeepAlive.push(new Date());
             });
 
