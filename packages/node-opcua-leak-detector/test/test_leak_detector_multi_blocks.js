@@ -22,6 +22,14 @@
  */
 
 const assert = require("node:assert");
+
+// These tests intentionally leak timers that only the detector
+// cleans up. Without it the process hangs — skip entirely.
+if (process.env.MEM_LEAK_DETECTION_DISABLED === "true") {
+    describe("T11 - Multi-block tests (skipped — leak detection disabled)", () => {});
+    return;
+}
+
 const { describeWithLeakDetector } = require("../src/resource_leak_detector");
 
 // ─────────────────────────────────────────────────────────

@@ -15,7 +15,14 @@
 
 import assert from "node:assert";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+const { describeWithLeakDetector: _describeWithLeakDetector } = require("../src/resource_leak_detector");
+
+// These tests intentionally leak timers that only the detector
+// cleans up. Without it the process hangs — skip entirely.
+const memLeakDisabled = process.env.MEM_LEAK_DETECTION_DISABLED === "true";
+const describeWithLeakDetector = memLeakDisabled
+    ? (msg: string, fn: () => void) => describe.skip(msg, fn)
+    : _describeWithLeakDetector;
 
 // ─────────────────────────────────────────────────────────
 // TS1. Basic TypeScript test — proves tsx is loaded

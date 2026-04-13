@@ -6,6 +6,13 @@
  *   - Without the fix, Proof-3 would hang indefinitely
  */
 
+// These tests intentionally leak timers that only the detector
+// cleans up. Without it the process hangs — skip entirely.
+if (process.env.MEM_LEAK_DETECTION_DISABLED === "true") {
+    describe("Proof tests (skipped — leak detection disabled)", () => {});
+    return;
+}
+
 const assert = require("node:assert");
 const { describeWithLeakDetector } = require("../src/resource_leak_detector");
 

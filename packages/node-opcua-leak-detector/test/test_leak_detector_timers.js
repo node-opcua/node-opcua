@@ -22,7 +22,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
         let timer;
 
         before(() => {
-            timer = setTimeout(() => {}, 30 * 60 * 1000);
+            timer = setTimeout(() => { }, 30 * 60 * 1000);
         });
 
         after(() => {
@@ -38,7 +38,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
         before(() => {
             // This timer is NEVER cleared — simulates a leaked timer.
             // The leak detector will catch it in stop() and clear it.
-            setTimeout(() => {}, 30 * 60 * 1000);
+            setTimeout(() => { }, 30 * 60 * 1000);
         });
 
         it("should pass and leak detector cleans the timer", () => {
@@ -48,7 +48,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
 
     describe("T1.4 - Unref'd timer", () => {
         before(() => {
-            const t = setTimeout(() => {}, 30 * 60 * 1000);
+            const t = setTimeout(() => { }, 30 * 60 * 1000);
             t.unref();
         });
 
@@ -70,7 +70,7 @@ describeWithLeakDetector("T2 - Test style variations", () => {
         });
 
         it("sync with timer started and cleared", () => {
-            const t = setTimeout(() => {}, 100);
+            const t = setTimeout(() => { }, 100);
             clearTimeout(t);
         });
     });
