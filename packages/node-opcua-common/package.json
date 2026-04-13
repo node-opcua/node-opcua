@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-common",
-    "version": "2.168.0",
+    "version": "2.169.0",
     "description": "pure nodejs OPCUA SDK - module common",
     "scripts": {
         "test": "mocha",
@@ -14,7 +14,7 @@
     "dependencies": {
         "node-opcua-assert": "2.164.0",
         "node-opcua-crypto": "5.3.5",
-        "node-opcua-types": "2.168.0"
+        "node-opcua-types": "2.169.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

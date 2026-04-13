@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-utils",
-    "version": "2.168.0",
+    "version": "2.169.0",
     "description": "pure nodejs OPCUA SDK - module utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -36,6 +36,6 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-leak-detector": "2.168.0"
+        "node-opcua-leak-detector": "2.169.0"
     }
 }
