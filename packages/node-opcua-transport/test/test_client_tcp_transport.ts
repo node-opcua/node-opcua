@@ -425,8 +425,14 @@ describe("testing ClientTCP_transport", function (this: any) {
                 if (sock) {
                     const origEnd = sock.end.bind(sock);
                     const origDestroy = sock.destroy.bind(sock);
-                    (sock as any).end = (...args: any[]) => { endCalled = true; return origEnd(...args); };
-                    (sock as any).destroy = (...args: any[]) => { destroyCalled = true; return origDestroy(...args); };
+                    (sock as any).end = (...args: any[]) => {
+                        endCalled = true;
+                        return origEnd(...args);
+                    };
+                    (sock as any).destroy = (...args: any[]) => {
+                        destroyCalled = true;
+                        return origDestroy(...args);
+                    };
                 }
             }
             return origOnAckResponse.call(this, externalCallback, err, data);
@@ -445,7 +451,6 @@ describe("testing ClientTCP_transport", function (this: any) {
     });
 
     it("TCS-9 should returns an error if url has invalid port", (done) => {
-
         clientTransport.connect("opc.tcp://localhost:XXXXX/SomeAddress", (err) => {
             if (err) {
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10

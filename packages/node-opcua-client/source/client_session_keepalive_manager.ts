@@ -37,12 +37,15 @@ export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive_failure", eventHandler: () => void): this;
 }
 
+const maxBackoffInterval = 60_000;
+
 export class ClientSessionKeepAliveManager extends EventEmitter implements ClientSessionKeepAliveManagerEvents {
     private readonly session: ClientSessionImpl;
     private timerId?: NodeJS.Timeout;
     private pingTimeout: number;
     private lastKnownState?: ServerState;
     private transactionInProgress = false;
+    private consecutiveFailures = 0;
     public count = 0;
     public checkInterval: number;
 
@@ -97,7 +100,9 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                 return; // stop here
             }
             if (this.timerId) {
-                const timeout = Math.max(1, this.checkInterval - delta);
+                // When delta exceeds checkInterval it is an explicit backoff requested by _ping_server;
+                // otherwise delta is the time already consumed this cycle.
+                const timeout = delta > this.checkInterval ? delta : Math.max(1, this.checkInterval - delta);
                 this.timerId = setTimeout(() => this.ping_server(), timeout);
             }
         });
@@ -165,22 +170,22 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                     this.transactionInProgress = false;
 
                     if (err) {
-                        warningLog(
-                            chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
-                            chalk.yellow(err.message)
-                        );
+                        warningLog(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "), chalk.yellow(err.message));
                         const serviceFaultResponse = (err as ServiceFaultAnnotatedError).response;
                         if (serviceFaultResponse) {
                             const sc = serviceFaultResponse.responseHeader?.serviceResult;
                             if (sc === StatusCodes.BadSessionIdInvalid || sc === StatusCodes.BadSessionClosed) {
                                 this.emit("failure");
-                                warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
+                                warningLog(
+                                    "Keep alive has failed, considering a network outage is in place, forcing a reconnection"
+                                );
                                 terminateConnection(session._client);
                                 resolve(0);
                             } else {
+                                this.consecutiveFailures++;
                                 warningLog("Keep alive received ServiceFault from server (session intact):", sc?.toString());
                                 this.emit("keepalive_failure");
-                                resolve(this.checkInterval * 2);
+                                resolve(Math.min(this.checkInterval * 2 ** this.consecutiveFailures, maxBackoffInterval));
                             }
                         } else {
                             this.emit("failure");
@@ -217,6 +222,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                         this.lastKnownState = newState;
                         this.count++; // increase successful counter
                     }
+                    this.consecutiveFailures = 0;
                     debugLog("emit keepalive");
                     this.emit("keepalive", this.lastKnownState, this.count);
                     resolve(0);

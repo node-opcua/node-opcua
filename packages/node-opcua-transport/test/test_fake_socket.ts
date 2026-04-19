@@ -7,7 +7,7 @@ import type { ITransportPair } from "../test_helpers/ITransportPair";
 
 const doDebug = false;
 
-const port = 5879;
+const port = 5893;
 
 let counter = 0;
 function installTestFor(Transport: new (options: { port: number }) => ITransportPair) {
