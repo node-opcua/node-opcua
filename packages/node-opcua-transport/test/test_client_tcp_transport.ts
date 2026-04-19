@@ -1,3 +1,4 @@
+import net from "node:net";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -402,7 +403,49 @@ describe("testing ClientTCP_transport", function (this: any) {
         }, clientTransport.timeout + 10000);
     });
 
+    it("TCS-10 should release socket immediately when HEL/ACK fails", (done) => {
+        const spyOnServerWrite = sinon.spy((_socket: net.Socket, _data: Buffer) => {
+            // server accepts TCP connection but sends no HEL response
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 500;
+
+        let destroyCalled = false;
+        let endCalled = false;
+
+        const origOnAckResponse = (ClientTCP_transport.prototype as any)._on_ACK_response;
+        (ClientTCP_transport.prototype as any)._on_ACK_response = function patchedOnAck(
+            externalCallback: any,
+            err: Error | null,
+            data?: Buffer
+        ) {
+            if (err || !data) {
+                const sock: net.Socket | null = this._socket;
+                if (sock) {
+                    const origEnd = sock.end.bind(sock);
+                    const origDestroy = sock.destroy.bind(sock);
+                    (sock as any).end = (...args: any[]) => { endCalled = true; return origEnd(...args); };
+                    (sock as any).destroy = (...args: any[]) => { destroyCalled = true; return origDestroy(...args); };
+                }
+            }
+            return origOnAckResponse.call(this, externalCallback, err, data);
+        };
+
+        clientTransport.connect(endpointUrl, (err) => {
+            (ClientTCP_transport.prototype as any)._on_ACK_response = origOnAckResponse;
+            should.exist(err);
+            err!.message.should.containEql("Timeout");
+            should.not.exist((clientTransport as any)._socket, "_socket reference must be cleared after failure");
+            endCalled.should.eql(false, "socket.end() must not be called");
+            destroyCalled.should.eql(true, "socket.destroy() must be called");
+            spyOnConnect.callCount.should.eql(0);
+            done();
+        });
+    });
+
     it("TCS-9 should returns an error if url has invalid port", (done) => {
+
         clientTransport.connect("opc.tcp://localhost:XXXXX/SomeAddress", (err) => {
             if (err) {
                 const regexp_1 = /EADDRNOTAVAIL|ECONNREFUSED/; // node v0.10
