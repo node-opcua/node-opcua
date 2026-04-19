@@ -42,8 +42,12 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
         let keepaliveFailureFired = false;
-        mgr.on("failure", () => { failureFired = true; });
-        mgr.on("keepalive_failure", () => { keepaliveFailureFired = true; });
+        mgr.on("failure", () => {
+            failureFired = true;
+        });
+        mgr.on("keepalive_failure", () => {
+            keepaliveFailureFired = true;
+        });
 
         mgr.start(1000);
         clock.tick(600); // fires the initial ping; read callback is synchronous
@@ -62,8 +66,12 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
         let keepaliveFailureFired = false;
-        mgr.on("failure", () => { failureFired = true; });
-        mgr.on("keepalive_failure", () => { keepaliveFailureFired = true; });
+        mgr.on("failure", () => {
+            failureFired = true;
+        });
+        mgr.on("keepalive_failure", () => {
+            keepaliveFailureFired = true;
+        });
 
         mgr.start(1000);
         clock.tick(600);
@@ -82,8 +90,12 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
         let keepaliveFailureFired = false;
-        mgr.on("failure", () => { failureFired = true; });
-        mgr.on("keepalive_failure", () => { keepaliveFailureFired = true; });
+        mgr.on("failure", () => {
+            failureFired = true;
+        });
+        mgr.on("keepalive_failure", () => {
+            keepaliveFailureFired = true;
+        });
 
         mgr.start(1000);
         clock.tick(600);
@@ -91,6 +103,35 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         failureFired.should.eql(true, "failure must fire when session is gone");
         keepaliveFailureFired.should.eql(false, "keepalive_failure must NOT fire when session is gone");
         terminateSpy.callCount.should.be.greaterThan(0, "forceConnectionBreak must be called when session is gone");
+        mgr.stop();
+    });
+
+    it("KAL-4 should apply exponential backoff after consecutive ServiceFaults", async () => {
+        const serviceFaultErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
+        const session = makeSession((_n, cb) => cb(serviceFaultErr, undefined));
+
+        const mgr = new ClientSessionKeepAliveManager(session);
+        const failureTimes: number[] = [];
+        mgr.on("keepalive_failure", () => {
+            failureTimes.push(clock.Date.now());
+        });
+
+        // checkInterval = 1000ms, pingTimeout = 500ms → first ping at t=500
+        mgr.start(1000);
+
+        // t=500: first ping, backoff = 1000 * 2^1 = 2000ms → next at t=2500
+        await clock.tickAsync(500);
+        failureTimes.length.should.eql(1, "first failure at t=500");
+
+        // t=2500: second ping, backoff = 1000 * 2^2 = 4000ms → next at t=6500
+        await clock.tickAsync(2000);
+        failureTimes.length.should.eql(2, "second failure at t=2500");
+
+        // t=6500: third ping fires
+        await clock.tickAsync(4000);
+        failureTimes.length.should.eql(3, "third failure at t=6500");
+
+        // only 3 failures in ~6.5s — without backoff at checkInterval=1000ms there would be ~6
         mgr.stop();
     });
 });
