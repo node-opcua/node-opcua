@@ -12,8 +12,18 @@ import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
+import type { StatusCode } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import type { ClientSessionImpl } from "./private/client_session_impl";
 import type { IClientBase } from "./private/i_private_client";
+
+interface ServiceFaultAnnotatedError extends Error {
+    response?: {
+        responseHeader?: {
+            serviceResult?: StatusCode;
+        };
+    };
+}
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
@@ -24,6 +34,7 @@ const warningLog = make_warningLog(__filename);
 export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState, count: number) => void): this;
     on(event: "failure", eventHandler: () => void): this;
+    on(event: "keepalive_failure", eventHandler: () => void): this;
 }
 
 export class ClientSessionKeepAliveManager extends EventEmitter implements ClientSessionKeepAliveManagerEvents {
@@ -153,25 +164,41 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                 (err: Error | null, dataValue?: DataValue) => {
                     this.transactionInProgress = false;
 
-                    if (err || !dataValue || !dataValue.value) {
-                        if (err) {
-                            warningLog(
-                                chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
-                                chalk.yellow(err.message)
-                            );
+                    if (err) {
+                        warningLog(
+                            chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
+                            chalk.yellow(err.message)
+                        );
+                        const serviceFaultResponse = (err as ServiceFaultAnnotatedError).response;
+                        if (serviceFaultResponse) {
+                            const sc = serviceFaultResponse.responseHeader?.serviceResult;
+                            if (sc === StatusCodes.BadSessionIdInvalid || sc === StatusCodes.BadSessionClosed) {
+                                this.emit("failure");
+                                warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
+                                terminateConnection(session._client);
+                                resolve(0);
+                            } else {
+                                warningLog("Keep alive received ServiceFault from server (session intact):", sc?.toString());
+                                this.emit("keepalive_failure");
+                                resolve(this.checkInterval * 2);
+                            }
+                        } else {
+                            this.emit("failure");
+                            warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
+                            terminateConnection(session._client);
+                            resolve(0);
                         }
+                        return;
+                    }
+                    if (!dataValue || !dataValue.value) {
                         /**
                          * @event failure
                          * raised when the server is not responding or is responding with en error to
                          * the keep alive read Variable value transaction
                          */
                         this.emit("failure");
-
-                        // also simulate a connection by closing the channel abruptly from our end ...
                         warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
-
                         terminateConnection(session._client);
-
                         resolve(0);
                         return;
                     }
