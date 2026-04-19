@@ -345,10 +345,12 @@ export class ClientTCP_transport extends TCP_transport {
         this._counter += 1;
 
         if (err || !data) {
-            externalCallback(err || new Error("no data"));
             if (this._socket) {
-                this._socket.end();
+                const s = this._socket;
+                this._socket = null;
+                s.destroy();
             }
+            externalCallback(err || new Error("no data"));
         } else {
             this._handle_ACK_response(data, externalCallback);
         }
