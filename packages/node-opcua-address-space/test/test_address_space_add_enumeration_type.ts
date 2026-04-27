@@ -1,4 +1,4 @@
-import { BrowseDirection } from "node-opcua-data-model";
+import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -22,26 +22,31 @@ describe("AddressSpace : testing add enumeration type", () => {
     });
 
     it("should add a new Enumeration type into an address space - Form 1", () => {
+
+
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType2",
             enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
+        namespace.index.should.eql(1);  
+
         myEnumType.browseName.toString().should.eql("1:MyEnumType2");
 
-        const enumerationType = addressSpace.findDataType("Enumeration")!;
+        const enumerationType = addressSpace.findDataType("Enumeration");
 
         // verify that myEnumType can be found in the HasSubtype references enumeration Type
 
         const browseDescription = new BrowseDescription({
             browseDirection: BrowseDirection.Forward,
             referenceTypeId: null,
+            nodeClassMask: NodeClassMask.DataType,
             resultMask: 0x3f
         });
-        const r = enumerationType.browseNode(browseDescription);
-        const names = r.map((x: any) => x.browseName.toString());
-
-        names.filter((x: string) => x === "1:MyEnumType2").length.should.eql(1, "MyEnumType2 should be find in enum");
+        const r = enumerationType?.browseNode(browseDescription) || [];
+        const names = r.map((x) => x.browseName.toString());
+       
+        names.filter((x: string) => x === "1:MyEnumType2").length.should.eql(1, "MyEnumType2 should be found in enum");
 
         // now instantiate a variable that have this type.
         const e = namespace.addVariable({

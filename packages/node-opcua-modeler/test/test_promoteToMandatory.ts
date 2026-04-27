@@ -1,25 +1,25 @@
-import should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { exploreNode } from "node-opcua-address-space-base";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import {
     AddressSpace,
-    assert,
     DataType,
     displayNodeElement,
-    Namespace,
+    type Namespace,
     NodeClass,
     nodesets,
     promoteChild,
     promoteToMandatory,
-    UAObject
+    type UAObject
 } from "..";
+import "mocha";
 
 import { removeDecoration } from "./test_helpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const namespaceUri = "urn:some";
 
-function createModel(addressSpace: AddressSpace) {
+function createModel(_addressSpace: AddressSpace) {
     /* empty */
 }
 
@@ -104,20 +104,20 @@ describe("promoteToMandatory", () => {
             });
             const parameterSet2 = promoteChild(specialBoilerType, "ParameterSet", nsDI);
 
-            const param2 = parameterSet2.getChildByName("Parameter1", ns.index)!;
+            const param2 = parameterSet2.getChildByName("Parameter1", ns.index);
             should.exist(param2);
-            param2.modellingRule!.should.eql("Mandatory");
+            should(param2?.modellingRule).eql("Mandatory");
 
             const specialBoiler = specialBoilerType.instantiate({
                 browseName: "SpecialBoiler",
                 organizedBy: addressSpace.rootFolder.objects
             });
-            const parameterSet3 = specialBoiler.getChildByName("ParameterSet", nsDI)!;
+            const parameterSet3 = specialBoiler.getChildByName("ParameterSet", nsDI);
             should.exist(parameterSet3);
 
-            const param3 = parameterSet3.getChildByName("Parameter1", ns.index)!;
+            const param3 = parameterSet3?.getChildByName("Parameter1", ns.index);
             should.exist(param3);
-            should.not.exist(param3.modellingRule, " instance property should not have a modelling rule");
+            should.not.exist(param3?.modellingRule, " instance property should not have a modelling rule");
         }
     });
 
@@ -131,7 +131,8 @@ describe("promoteToMandatory", () => {
         //   Folder2
         //      Variable1
 
-        const functionalGroupType = addressSpace.findObjectType("FunctionalGroupType", 2)!;
+        const functionalGroupType = addressSpace.findObjectType("FunctionalGroupType", 2);
+        if (!functionalGroupType) throw new Error("cannot find FunctionalGroupType");
 
         const namespace = addressSpace.getOwnNamespace();
         const objectType = namespace.addObjectType({
@@ -176,14 +177,14 @@ describe("promoteToMandatory", () => {
             exploreNode(objInstance);
 
 
-            objInstance.typeDefinitionObj.browseName.name!.should.eql("MyObjectType");
-            const folder1InInstance = objInstance.getComponentByName("Folder1")! as UAObject;
-            const folder2InInstance = objInstance.getComponentByName("Folder2")! as UAObject;
+            should(objInstance.typeDefinitionObj.browseName.name).eql("MyObjectType");
+            const folder1InInstance = objInstance.getComponentByName("Folder1") as UAObject;
+            const folder2InInstance = objInstance.getComponentByName("Folder2") as UAObject;
 
-            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1")!;
-            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1")!;
+            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1");
+            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1");
 
-            variable1_in_Folder1.nodeId.toString().should.eql(variable1_in_Folder2.nodeId.toString());
+            should(variable1_in_Folder1?.nodeId.toString()).eql(variable1_in_Folder2?.nodeId.toString());
         }
 
         // now create a derived type
@@ -213,8 +214,10 @@ describe("promoteToMandatory", () => {
 
 
         console.log("A2-!!!!!!!!!!!!!!!!");
-        const variable1_bis = folder1_bis.getComponentByName("Variable1")!;
-        const euRange = namespace.addVariable({
+        const variable1_bis = folder1_bis.getComponentByName("Variable1");
+        if (!variable1_bis) throw new Error("cannot find Variable1 in Folder1");
+
+        const _euRange = namespace.addVariable({
             browseName: "EURange",
             componentOf: variable1_bis,
             dataType: "Double",
@@ -229,15 +232,15 @@ describe("promoteToMandatory", () => {
                 browseName: "MyInstance2",
                 organizedBy: addressSpace.rootFolder.objects
             });
-            objInstance.typeDefinitionObj.browseName.name!.should.eql("DerivedObjectType");
-            objInstance.typeDefinitionObj.subtypeOfObj!.browseName.name!.should.eql("MyObjectType");
-            const folder1InInstance = objInstance.getComponentByName("Folder1")! as UAObject;
-            const folder2InInstance = objInstance.getComponentByName("Folder2")! as UAObject;
+            should(objInstance.typeDefinitionObj.browseName.name).eql("DerivedObjectType");
+            should(objInstance.typeDefinitionObj.subtypeOfObj?.browseName.name).eql("MyObjectType");
+            const folder1InInstance = objInstance.getComponentByName("Folder1") as UAObject;
+            const folder2InInstance = objInstance.getComponentByName("Folder2") as UAObject;
 
-            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1")!;
-            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1")!;
+            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1");
+            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1");
 
-            variable1_in_Folder1.nodeId.toString().should.eql(variable1_in_Folder2.nodeId.toString());
+            should(variable1_in_Folder1?.nodeId.toString()).eql(variable1_in_Folder2?.nodeId.toString());
         }
     });
 });
