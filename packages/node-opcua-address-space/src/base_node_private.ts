@@ -1196,16 +1196,12 @@ function _makeReferenceDescription(addressSpace: IAddressSpace, reference: UARef
             referenceTypeId: resultMask & ResultMask.ReferenceType ? referenceTypeId : null,
             typeDefinition: undefined
         };
-    } else if (obj.nodeClass !== NodeClass.Object && obj.nodeClass !== NodeClass.Variable && obj.nodeClass !== NodeClass.Method) {
-        // reference node is not an object, variable or method
-        data = {
-            isForward,
-            nodeId: reference.nodeId as ExpandedNodeId,
-            referenceTypeId: resultMask & ResultMask.ReferenceType ? referenceTypeId : null,
-            typeDefinition: undefined
-        };
     } else {
-        const obj2 = obj as UAObject | UAVariable | UAMethod;
+        const obj2 = obj;
+
+        const objOrVar = (obj2.nodeClass === NodeClass.Object || obj2.nodeClass === NodeClass.Variable ) 
+        ? (obj2 as UAVariable | UAObject) : null;
+
         assert(reference.nodeId, " obj.nodeId");
         data = {
             browseName: resultMask & ResultMask.BrowseName ? coerceQualifiedName(obj.browseName) : null,
@@ -1214,7 +1210,7 @@ function _makeReferenceDescription(addressSpace: IAddressSpace, reference: UARef
             nodeClass: resultMask & ResultMask.NodeClass ? obj.nodeClass : NodeClass.Unspecified,
             nodeId: obj.nodeId as ExpandedNodeId,
             referenceTypeId: resultMask & ResultMask.ReferenceType ? referenceTypeId : null,
-            typeDefinition: resultMask & ResultMask.TypeDefinition ? (obj2.typeDefinition as ExpandedNodeId) : undefined
+            typeDefinition: resultMask & ResultMask.TypeDefinition ? (objOrVar?.typeDefinition as ExpandedNodeId) : undefined
         };
     }
     if (data.typeDefinition === null) {

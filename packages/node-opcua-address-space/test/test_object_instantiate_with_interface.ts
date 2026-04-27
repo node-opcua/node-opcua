@@ -25,7 +25,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
     });
 
 
-    it("should create a type implements an interface", async () => {
+    it("INT-01 should create a type implements an interface", async () => {
 
         const namespace1 = addressSpace.registerNamespace("Model");
 
@@ -35,21 +35,21 @@ describe("testing object instantiation with Interfaces - case 1", () => {
             subtypeOf: "BaseInterfaceType",
             description: "IVendorPlateType description",
         });
-        const productName = namespace1.addVariable({
+        const _productName = namespace1.addVariable({
             propertyOf: iVendorPlateType,
             browseName: "ProductName",
             dataType: "String",
             description: "ProductName description",
             modellingRule: "Mandatory"
         });
-        const serialNumber = namespace1.addVariable({
+        const _serialNumber = namespace1.addVariable({
             propertyOf: iVendorPlateType,
             browseName: "SerialNumber",
             dataType: "String",
             description: "SerialNumber description",
             modellingRule: "Mandatory"
         });
-        const softwareRevision = namespace1.addVariable({
+        const _softwareRevision = namespace1.addVariable({
             propertyOf: iVendorPlateType,
             browseName: "SoftwareRevision",
             dataType: "String",
@@ -64,7 +64,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
             subtypeOf: iVendorPlateType,
             description: "IVendorPlateTypeExtended description",
         });
-        const Manufacturer = namespace1.addVariable({
+        const _Manufacturer = namespace1.addVariable({
             propertyOf: iVendorPlateTypeExtended,
             browseName: "Manufacturer",
             dataType: "String",
@@ -104,4 +104,50 @@ describe("testing object instantiation with Interfaces - case 1", () => {
 
     });
 
+    it("INT-02 should expose optional interface members that are in the optionals property", async () => {
+
+
+        const uaInterface1 = addressSpace.getOwnNamespace().addObjectType({
+            browseName: "UAInterface1",
+            subtypeOf: "BaseInterfaceType",
+        });
+        const _optionalVariable1 = addressSpace.getOwnNamespace().addVariable({
+            propertyOf: uaInterface1,
+            browseName: "OptionalVariable1",
+            dataType: "String",
+            modellingRule: "Optional"
+        });
+        const _optionalVariable2 = addressSpace.getOwnNamespace().addVariable({
+            propertyOf: uaInterface1,
+            browseName: "OptionalVariable2",
+            dataType: "String",
+            modellingRule: "Optional"
+        });
+
+        const uaObjectType1 = addressSpace.getOwnNamespace().addObjectType({
+            browseName: "UAObjectType1",
+            subtypeOf: "BaseObjectType",
+        });
+        implementInterface(uaObjectType1, uaInterface1);
+
+        // 
+        const uaObject1 = uaObjectType1.instantiate({
+            browseName: "UAObject1",
+            organizedBy: addressSpace.rootFolder.objects,
+            optionals: ["OptionalVariable1"]
+        });
+
+        should.exist(uaObject1.getChildByName("OptionalVariable1", 1), "OptionalVariable1 should be exposed");
+        should.not.exist(uaObject1.getChildByName("OptionalVariable2", 1), "OptionalVariable2 should not be exposed");
+       
+        const uaObject2 = uaObjectType1.instantiate({   
+            browseName: "UAObject2",
+            organizedBy: addressSpace.rootFolder.objects,
+            optionals: ["OptionalVariable2"]
+        });
+
+        should.not.exist(uaObject2.getChildByName("OptionalVariable1", 1), "OptionalVariable1 should not be exposed");
+        should.exist(uaObject2.getChildByName("OptionalVariable2", 1), "OptionalVariable2 should be exposed");
+    });
 });
+

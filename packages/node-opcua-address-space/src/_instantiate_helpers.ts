@@ -15,10 +15,11 @@ import {
     type UAVariableType,
 } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_errorLog, make_warningLog} from "node-opcua-debug";
-import { sameNodeId } from "node-opcua-nodeid";
+import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { makeOptionalsMap, type OptionalMap } from "../source/helpers/make_optionals_map";
 import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter";
 import { _clone_hierarchical_references } from "./base_node_private";
+import { BrowseDirection } from "node-opcua-data-model";
 
 // const debugLog = make_debugLog("INSTANTIATE");
 // const doDebug = checkDebugFlag("INSTANTIATE");
@@ -137,7 +138,52 @@ export function initialize_properties_and_components<
         browseNameMap
     );
 
+    // instantiate optionals from interfaces
+    instantiate_interface_children<B>(nodeType, extraInfo, instance, copyAlsoModellingRules, copyAlsoAllOptionals, optionalsMap, browseNameMap);
+
     reconstructFunctionalGroupType(extraInfo);
 
     reconstructNonHierarchicalReferences(extraInfo);
 }
+
+function instantiate_interface_children<B extends UAObject | UAVariable | UAMethod>(
+    nodeType: UAObjectType | UAVariableType, 
+    extraInfo: CloneHelper, 
+    instance: B, 
+    copyAlsoModellingRules: boolean, 
+    copyAlsoAllOptionals: boolean, 
+    optionalsMap: OptionalMap, 
+    browseNameMap: Set<string>
+) {
+    const interfaces = nodeType.findReferencesEx(resolveNodeId("HasInterface"), BrowseDirection.Forward);
+    if (interfaces.length === 0) {
+        return;
+    }
+    for (const reference of interfaces) {
+        const interfaceType = reference.node as UAObjectType;
+        if (!interfaceType) {
+            warningLog(" cannot find node ", reference.nodeId.toString());
+            continue;
+        }
+        const topMostTypeBaseInterface = nodeType.addressSpace.findObjectType("BaseInterfaceType");
+        if (!topMostTypeBaseInterface) {
+            throw new Error("cannot find BaseInterfaceType");
+        }
+        doTrace &&
+            traceLog(
+                chalk.cyan(extraInfo.pad(), "instantiating optionals from interface"),
+                `${interfaceType.browseName.toString()}`
+            );
+        _initialize_properties_and_components(
+            instance,
+            topMostTypeBaseInterface,
+            interfaceType,
+            copyAlsoModellingRules,
+            copyAlsoAllOptionals,
+            optionalsMap,
+            extraInfo,
+            browseNameMap
+        );
+    }
+}
+
