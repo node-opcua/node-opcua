@@ -415,39 +415,59 @@ describe("testing ClientTCP_transport", function (this: any) {
         let endCalled = false;
 
         const origOnAckResponse = (ClientTCP_transport.prototype as any)._on_ACK_response;
-        (ClientTCP_transport.prototype as any)._on_ACK_response = function patchedOnAck(
-            externalCallback: any,
-            err: Error | null,
-            data?: Buffer
-        ) {
-            if (err || !data) {
-                const sock: net.Socket | null = this._socket;
-                if (sock) {
-                    const origEnd = sock.end.bind(sock);
-                    const origDestroy = sock.destroy.bind(sock);
-                    (sock as any).end = (...args: any[]) => {
-                        endCalled = true;
-                        return origEnd(...args);
-                    };
-                    (sock as any).destroy = (...args: any[]) => {
-                        destroyCalled = true;
-                        return origDestroy(...args);
-                    };
+        const stub = sinon
+            .stub(ClientTCP_transport.prototype as any, "_on_ACK_response")
+            .callsFake(function patchedOnAck(this: any, externalCallback: any, err: Error | null, data?: Buffer) {
+                if (err || !data) {
+                    const sock: net.Socket | null = this._socket;
+                    if (sock) {
+                        const origEnd = sock.end.bind(sock);
+                        const origDestroy = sock.destroy.bind(sock);
+                        (sock as any).end = (...args: any[]) => {
+                            endCalled = true;
+                            return origEnd(...args);
+                        };
+                        (sock as any).destroy = (...args: any[]) => {
+                            destroyCalled = true;
+                            return origDestroy(...args);
+                        };
+                    }
                 }
-            }
-            return origOnAckResponse.call(this, externalCallback, err, data);
-        };
+                return origOnAckResponse.call(this, externalCallback, err, data);
+            });
 
-        clientTransport.connect(endpointUrl, (err) => {
-            (ClientTCP_transport.prototype as any)._on_ACK_response = origOnAckResponse;
-            should.exist(err);
-            err!.message.should.containEql("Timeout");
-            should.not.exist((clientTransport as any)._socket, "_socket reference must be cleared after failure");
-            endCalled.should.eql(false, "socket.end() must not be called");
-            destroyCalled.should.eql(true, "socket.destroy() must be called");
-            spyOnConnect.callCount.should.eql(0);
-            done();
-        });
+        let restored = false;
+        const restoreStub = () => {
+            if (restored) return;
+            restored = true;
+            stub.restore();
+        };
+        // safety net: ensure the stub is restored even if the connect callback never fires
+        const safetyTimer = setTimeout(restoreStub, clientTransport.timeout + 5000);
+        safetyTimer.unref?.();
+
+        try {
+            clientTransport.connect(endpointUrl, (err) => {
+                clearTimeout(safetyTimer);
+                try {
+                    should.exist(err);
+                    err!.message.should.containEql("Timeout");
+                    should.not.exist((clientTransport as any)._socket, "_socket reference must be cleared after failure");
+                    endCalled.should.eql(false, "socket.end() must not be called");
+                    destroyCalled.should.eql(true, "socket.destroy() must be called");
+                    spyOnConnect.callCount.should.eql(0);
+                    done();
+                } catch (e) {
+                    done(e as Error);
+                } finally {
+                    restoreStub();
+                }
+            });
+        } catch (e) {
+            clearTimeout(safetyTimer);
+            restoreStub();
+            throw e;
+        }
     });
 
     it("TCS-9 should returns an error if url has invalid port", (done) => {

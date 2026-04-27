@@ -174,7 +174,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                         const serviceFaultResponse = (err as ServiceFaultAnnotatedError).response;
                         if (serviceFaultResponse) {
                             const sc = serviceFaultResponse.responseHeader?.serviceResult;
-                            if (sc === StatusCodes.BadSessionIdInvalid || sc === StatusCodes.BadSessionClosed) {
+                            if (sc?.equals(StatusCodes.BadSessionIdInvalid) || sc?.equals(StatusCodes.BadSessionClosed)) {
                                 this.emit("failure");
                                 warningLog(
                                     "Keep alive has failed, considering a network outage is in place, forcing a reconnection"
