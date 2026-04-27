@@ -112,12 +112,12 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
             "expecting a browse name"
         );
 
-        assert(!Object.prototype.hasOwnProperty.call(options, "propertyOf"), "an Object shall not be a PropertyOf an other object");
-        assert(!Object.prototype.hasOwnProperty.call(options, "optional"), "do you mean optionals ?");
+        assert(!Object.hasOwn(options, "propertyOf"), "an Object shall not be a PropertyOf an other object");
+        assert(!Object.hasOwn(options, "optional"), "do you mean optionals ?");
 
         assertUnusedChildBrowseName(addressSpace, options);
 
-        const baseObjectType = addressSpace.findObjectType("BaseObjectType")!;
+        const baseObjectType = addressSpace.findObjectType("BaseObjectType") as UAObjectType;
         assert(baseObjectType, "BaseObjectType must be defined in the address space");
 
         const references: UAReference[] = [];

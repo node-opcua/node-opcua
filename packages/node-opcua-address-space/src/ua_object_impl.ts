@@ -172,12 +172,12 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         let eventTypeNode: UAEventType = eventType as UAEventType;
         // c8 ignore next
         if (!eventTypeNode) {
-            throw new Error("UAObject#raiseEventType : Cannot find event type :" + eventType.toString());
+            throw new Error(`UAObject#raiseEventType : Cannot find event type :${eventType.toString()}`);
         }
 
         // coerce EventType
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
-        const baseEventType = addressSpace.findEventType("BaseEventType")!;
+        const _baseEventType = addressSpace.findEventType("BaseEventType");
 
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };

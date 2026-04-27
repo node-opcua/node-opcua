@@ -32,13 +32,13 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         const addressSpace = node.addressSpace;
 
         const alreadyIn = this.references.filter((r: UAReference) => {
-            const n = addressSpace.findNode(r.nodeId)!;
+            const n = addressSpace.findNode(r.nodeId);
             // c8 ignore next
             if (!n) {
                 warningLog(" cannot find node ", r.nodeId.toString());
                 return false;
             }
-            return n.browseName!.name!.toString() === node.browseName!.name!.toString();
+            return n.browseName?.name?.toString() === node.browseName?.name?.toString();
         });
 
         if (alreadyIn.length > 0) {
@@ -76,7 +76,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 return true; // keep;
             case "Optional":
                 // only if in requested optionals
-                return this.copyAlsoAllOptionals || (node.browseName!.name! in this.optionalsMap);
+                return this.copyAlsoAllOptionals || ((node.browseName?.name || "") in this.optionalsMap);
             case "OptionalPlaceholder":
                 return false; // ignored
             default:
@@ -85,12 +85,12 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     }
 
     public filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter {
-        const browseName: string = childInstance.browseName.name!;
+        const browseName: string = childInstance.browseName.name || "";
 
         let map: OptionalMap = Object.create(null);
 
         if (browseName in this.optionalsMap) {
-            map = this.optionalsMap[browseName] as any;
+            map = this.optionalsMap[browseName] as OptionalMap;
         }
         // c8 ignore next
         doTrace && traceLog("filterFor ", browseName, map);
