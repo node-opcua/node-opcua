@@ -176,16 +176,13 @@ export interface IAddressSpace {
     /***
      * construct a simple javascript object with all the default properties of the event
      *
-     * @return result.$eventDataSource  the event type node
-     * @return result.eventId the
-     * ...
      *
      *
      * eventTypeId can be a UAObjectType deriving from EventType
      * or an instance of a ConditionType
      *
      */
-    constructEventData(eventTypeId: UAEventType, data: any): IEventData;
+    constructEventData(eventTypeId: UAEventType, data: Record<string, unknown>): IEventData;
 
     /**
      * walk up the hierarchy of objects until a view is found

@@ -26,7 +26,7 @@ export class FilterContextOnAddressSpace implements FilterContext {
     public eventSource: NodeId;
 
     constructor(private sessionContext: ISessionContext, private eventData: IEventData) {
-        this.eventSource = this.eventData.$eventDataSource?.nodeId || NodeId.nullNodeId;
+        this.eventSource = this.eventData.getEventDataSource()?.nodeId || NodeId.nullNodeId;
     }
 
     getNodeClass(nodeId: NodeId): NodeClass {
@@ -94,7 +94,7 @@ export class FilterContextOnAddressSpace implements FilterContext {
     }
 
     private getAddressSpace(): IAddressSpace {
-        return this.eventData.$eventDataSource!.addressSpace;
+        return this.eventData.getEventDataSource().addressSpace;
     }
 
     public browsePath(browsePath: BrowsePath): NodeId | null {

@@ -693,10 +693,6 @@ export class AddressSpace implements AddressSpacePrivate {
     /*=
      * construct a simple javascript object with all the default properties of the event
      *
-     * @return result.$eventDataSource {BaseNode} the event type node
-     * @return result.eventId {NodeId} the
-     * ...
-     *
      *
      * eventTypeId can be a UAEventType
      *
@@ -706,17 +702,16 @@ export class AddressSpace implements AddressSpacePrivate {
         data = data || {};
 
         // construct the reference dataStructure to store event Data
-        let eventTypeNode = eventTypeId;
+        let eventTypeNode: UAEventType | null = eventTypeId;
 
         // make sure that eventType is really a object that derived from EventType
         if (eventTypeId instanceof UAObjectTypeImpl) {
-            eventTypeNode = this.findEventType(eventTypeId)!;
+            eventTypeNode = this.findEventType(eventTypeId) as UAEventType | null;
         }
-
         /* c8 ignore next */
-        if (!eventTypeNode) {
-            throw new Error(` cannot find EvenType for ${eventTypeId}`);
-        }
+        if (!eventTypeNode) throw new Error(` cannot find EvenType for ${eventTypeId}`);
+
+
         assert(eventTypeNode instanceof UAObjectTypeImpl, "eventTypeId must represent a UAObjectType");
 
         // eventId
@@ -732,11 +727,11 @@ export class AddressSpace implements AddressSpacePrivate {
         assert(data.sourceNode.dataType === DataType.NodeId);
 
         // sourceName
-        const sourceNode = this.findNode(data.sourceNode.value)!;
+        const sourceNode = this.findNode(data.sourceNode.value);
 
         data.sourceName = data.sourceName || {
             dataType: DataType.String,
-            value: sourceNode.getDisplayName("en")
+            value: sourceNode?.getDisplayName("en") || ""
         };
 
         const nowUTC = new Date();
@@ -826,7 +821,7 @@ export class AddressSpace implements AddressSpacePrivate {
                         "' in [ " +
                         Object.keys(visitedProperties).join(", ") +
                         "] when filling " +
-                        eventTypeNode.browseName.toString()
+                        eventTypeNode?.browseName.toString()
                     );
                 }
             });
