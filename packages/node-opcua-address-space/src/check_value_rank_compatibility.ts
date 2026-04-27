@@ -30,7 +30,7 @@ export function checkValueRankCompatibility(actualValueRank: number, baseTypeVal
         if (valueRank < 0) {
             return `InvalidValueRank(${valueRank})`;
         }
-        return "" + valueRank;
+        return `${valueRank}`;
     }
     if (actualValueRank < 0) {
         if (actualValueRank !== Scalar && actualValueRank !== AnyDimension && actualValueRank !== ScalarOrOneDimension) {

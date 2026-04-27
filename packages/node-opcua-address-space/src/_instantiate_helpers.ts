@@ -4,33 +4,29 @@
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-console
 import chalk from "chalk";
-
 import {
-    UAMethod,
-    UAObject,
-    UAObjectType,
-    UAVariable,
-    UAVariableType,
+    CloneHelper,
     reconstructFunctionalGroupType,
     reconstructNonHierarchicalReferences,
-    CloneHelper
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type UAVariable,
+    type UAVariableType,
 } from "node-opcua-address-space-base";
-
-import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_errorLog, make_warningLog} from "node-opcua-debug";
 import { sameNodeId } from "node-opcua-nodeid";
-
-import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_map";
-
-import { _clone_hierarchical_references } from "./base_node_private";
+import { makeOptionalsMap, type OptionalMap } from "../source/helpers/make_optionals_map";
 import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter";
+import { _clone_hierarchical_references } from "./base_node_private";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+// const debugLog = make_debugLog("INSTANTIATE");
+// const doDebug = checkDebugFlag("INSTANTIATE");
+const warningLog = make_warningLog("INSTANTIATE");
+const errorLog = make_errorLog("INSTANTIATE");
 
 // eslint-disable-next-line prefer-const
-let doTrace = checkDebugFlag("INSTANTIATE");
+const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
 // install properties and components on a instantiated Object
@@ -58,7 +54,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         warningLog("optionalsMap        =", Object.keys(optionalsMap).join(" "));
 
         const c = typeDefinitionNode.findReferencesEx("Aggregates");
-        warningLog("typeDefinition aggregates      =", c.map((x) => x.node!.browseName.toString()).join(" "));
+        warningLog("typeDefinition aggregates      =", c.map((x) => x.node?.browseName.toString()).join(" "));
     }
     optionalsMap = optionalsMap || {};
 
@@ -71,7 +67,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     doTrace &&
         traceLog(
             chalk.cyan(extraInfo.pad(), "cloning relevant member of typeDefinition class"),
-            typeDefinitionNode.browseName.toString()+ "\n optionals" + (JSON.stringify(optionalsMap))
+            `${typeDefinitionNode.browseName.toString()}\n optionals${JSON.stringify(optionalsMap)}`
         );
 
     _clone_hierarchical_references(typeDefinitionNode, instance, copyAlsoModellingRules, filter, extraInfo, browseNameMap);
@@ -79,7 +75,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     // now apply recursion on baseTypeDefinition  to get properties and components from base class
 
     const baseTypeDefinitionNodeId = typeDefinitionNode.subtypeOf;
-    const baseTypeDefinition = typeDefinitionNode.subtypeOfObj!;
+    const baseTypeDefinition = typeDefinitionNode.subtypeOfObj;
 
     doTrace &&
         traceLog(
@@ -87,9 +83,9 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
                 extraInfo.pad(),
                 "now apply recursion on baseTypeDefinition  to get properties and components from base class"
             ),
-            baseTypeDefinition.browseName.toString()
+            baseTypeDefinition ? baseTypeDefinition.browseName.toString() : "undefined"
         );
-
+ 
     // c8 ignore next
     if (!baseTypeDefinition) {
         throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeDefinitionNodeId);
