@@ -557,9 +557,6 @@ export function utest_condition(test: any): void {
                 const eventData2 = addressSpace.constructEventData(myCustomConditionType, data);
 
                 function f(a: string): boolean {
-                    if (a === "$eventDataSource") {
-                        return false;
-                    }
                     if (a === "__nodes") {
                         return false;
                     }

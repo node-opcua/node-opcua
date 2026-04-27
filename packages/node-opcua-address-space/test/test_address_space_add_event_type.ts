@@ -4,7 +4,7 @@ import { Benchmarker } from "node-opcua-benchmarker";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { constructEventFilter, checkSelectClause } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-import { AddressSpace, Namespace } from "..";
+import type { AddressSpace, Namespace, UAEventType } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
@@ -15,7 +15,7 @@ describe("AddressSpace : add event type ", () => {
         addressSpace = await getMiniAddressSpace();
         namespace = addressSpace.getOwnNamespace();
 
-        const eventType = namespace.addEventType({
+        const _eventType = namespace.addEventType({
             browseName: "MyCustomEvent",
             // isAbstract:false,
             subtypeOf: "BaseEventType" // should be implicit
@@ -42,20 +42,24 @@ describe("AddressSpace : add event type ", () => {
     });
 
     it("BaseEventType should be abstract ", () => {
-        const baseEventType = addressSpace.findEventType("BaseEventType")!;
+        const baseEventType = addressSpace.findEventType("BaseEventType");
+        if (!baseEventType) throw new Error("cannot find BaseEventType");
         baseEventType.nodeId.toString().should.eql("ns=0;i=2041");
         baseEventType.isAbstract.should.eql(true);
     });
 
     it("should find AuditEventType", () => {
-        const auditEventType = addressSpace.findEventType("AuditEventType")!;
+        const auditEventType = addressSpace.findEventType("AuditEventType");
+        if (!auditEventType) throw new Error("cannot find AuditEventType");
         auditEventType.nodeId.toString().should.eql("ns=0;i=2052");
         auditEventType.isAbstract.should.eql(true);
     });
 
     it("should verify that AuditEventType is a superType of BaseEventType", () => {
-        const baseEventType = addressSpace.findObjectType("BaseEventType")!;
-        const auditEventType = addressSpace.findObjectType("AuditEventType")!;
+        const baseEventType = addressSpace.findObjectType("BaseEventType");
+        if (!baseEventType) throw new Error("cannot find BaseEventType");
+        const auditEventType = addressSpace.findObjectType("AuditEventType");
+        if (!auditEventType) throw new Error("cannot find AuditEventType");
         auditEventType.isSubtypeOf(baseEventType).should.eql(true);
         baseEventType.isSubtypeOf(auditEventType).should.eql(false);
     });
@@ -71,27 +75,29 @@ describe("AddressSpace : add event type ", () => {
 
         const privateNamespace = addressSpace.getOwnNamespace();
 
-        const reloaded = addressSpace.findEventType("__EventTypeForTest1", privateNamespace.index)!;
+        const reloaded = addressSpace.findEventType("__EventTypeForTest1", privateNamespace.index);
 
         should(reloaded).not.eql(null, "cannot findEventType " + "__EventTypeForTest1");
-        reloaded.nodeId.should.eql(eventType.nodeId);
+        should(reloaded?.nodeId).eql(eventType.nodeId);
     });
 
     it("should retrieve EventType in several ways", () => {
         const namespaceIndex = addressSpace.getOwnNamespace().index;
         namespaceIndex.should.eql(1);
 
-        const eventType1 = addressSpace.findEventType("MyCustomEvent", namespaceIndex)!;
-        const eventType2 = addressSpace.getOwnNamespace().findObjectType("MyCustomEvent")!;
-        const eventType3 = addressSpace.findEventType("1:MyCustomEvent")!;
+        const eventType1 = addressSpace.findEventType("MyCustomEvent", namespaceIndex);
 
-        eventType1.should.eql(eventType2);
-        eventType1.should.eql(eventType3);
+        const eventType2 = addressSpace.getOwnNamespace().findObjectType("MyCustomEvent");
+        const eventType3 = addressSpace.findEventType("1:MyCustomEvent");
+
+        should(eventType1).eql(eventType2);
+        should(eventType1).eql(eventType3);
     });
 
     it("added EventType should be abstract by default", () => {
         const namespaceIndex = addressSpace.getOwnNamespace().index;
-        const eventType = addressSpace.findEventType("MyCustomEvent", namespaceIndex)!;
+        const eventType = addressSpace.findEventType("MyCustomEvent", namespaceIndex);
+        if (!eventType) throw new Error("cannot find MyCustomEvent");
         eventType.isAbstract.should.eql(true);
 
         eventType.browseName.toString().should.eql("1:MyCustomEvent");
@@ -108,40 +114,44 @@ describe("AddressSpace : add event type ", () => {
 
     it("should select node in a EventType using a SelectClause on BaseEventType", () => {
         // browseNodeByTargetName
-        const baseEventType = addressSpace.findEventType("BaseEventType")!;
+        const baseEventType = addressSpace.findEventType("BaseEventType");
+        if (!baseEventType) throw new Error("cannot find BaseEventType");
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(3, "expecting 3 select clauses");
+        if (!eventFilter.selectClauses) { throw new Error("expecting selectClauses to be defined"); }
+        should(eventFilter.selectClauses?.length).eql(3, "expecting 3 select clauses");
 
-        let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![0]);
+        let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![1]);
+        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[1]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![2]);
+        statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[2]);
         statusCode.should.eql(StatusCodes.Good);
     });
 
     
     it("should select node in a EventType using a SelectClause  n AuditEventType", () => {
         // browseNodeByTargetName
-        const auditEventType = addressSpace.findEventType("AuditEventType")!;
+        const auditEventType = addressSpace.findEventType("AuditEventType");
+        if (!auditEventType) throw new Error("cannot find AuditEventType");
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(3, "expecting 3 select clauses");
+        if (!eventFilter.selectClauses) { throw new Error("expecting selectClauses to be defined"); }
+        should(eventFilter.selectClauses?.length).eql(3, "expecting 3 select clauses");
 
-        let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses![0]);
+        let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[0]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses![1]);
+        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[1]);
         statusCode.should.eql(StatusCodes.Good);
 
-        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses![2]);
+        statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[2]);
         statusCode.should.eql(StatusCodes.Good);
     });
 
-    it("should instantiate a condition efficiently ( more than 1000 per second on a decent computer)", function (this: any, done: any) {
+    it("should instantiate a condition efficiently ( more than 1000 per second on a decent computer)", async () => {
         const bench = new Benchmarker();
 
         const eventType = namespace.addEventType({
@@ -151,37 +161,31 @@ describe("AddressSpace : add event type ", () => {
         });
 
         let counter = 0;
-        bench
+        await bench
             .add("test", () => {
                 try {
                     const condition = namespace.instantiateCondition(eventType, {
-                        browseName: "MyCondition" + counter,
+                        browseName: `MyCondition${counter}`,
                         conditionSource: undefined,
                         receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14) },
                         sourceName: { dataType: "String", value: "HelloWorld" }
                     });
-                    condition.browseName.toString().should.eql("1:MyCondition" + counter);
+                    condition.browseName.toString().should.eql(`1:MyCondition${counter}`);
                 } catch (err) {
                     console.log((err as Error).message);
                 } finally {
                     counter += 1;
                 }
             })
-
-            .on("cycle", (message: string) => {
-                // xx console.log(message);
-            })
-            .on("complete", function (this: any) {
-                console.log("    Fastest is ", this.fastest.name);
-                console.log(" count    :  ", this.fastest.count);
-                done();
-            })
             .run({ max_time: 0.1 });
+
+        console.log("    Fastest is :  ", bench.fastest?.name);
+        console.log("      count    :  ", bench.fastest?.result?.count);
     });
 
     it("#constructEventData ", () => {
-        const auditEventType = addressSpace.findObjectType("AuditEventType")!;
-
+        const auditEventType = addressSpace.findObjectType("AuditEventType") 
+        if (!auditEventType) throw new Error("cannot find AuditEventType");
         const data = {
             actionTimeStamp: { dataType: "Null" },
             clientAuditEntryId: { dataType: "Null" },
@@ -194,8 +198,6 @@ describe("AddressSpace : add event type ", () => {
         const data1 = addressSpace.constructEventData(auditEventType, data);
 
         const expected_fields = [
-            "$cache",
-            "$eventDataSource",
             "actionTimeStamp",
             "clientAuditEntryId",
             "clientUserId",

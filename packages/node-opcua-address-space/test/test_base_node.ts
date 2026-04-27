@@ -3,35 +3,33 @@ import should from "should";
 import sinon from "sinon";
 
 import { BrowseDirection } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import { AddressSpace, Namespace, UARootFolder, UAObjectType, UAReferenceType } from "..";
+import type { AddressSpace, Namespace, UARootFolder, UAObjectType, UAReferenceType } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Testing UAObject", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: UARootFolder;
-    let organizesReferenceType: UAReferenceType;
-    let hasTypeDefinitionReferenceType: UAReferenceType;
+    let _rootFolder: UARootFolder;
+    let _organizesReferenceType: UAReferenceType;
+    let _hasTypeDefinitionReferenceType: UAReferenceType;
     let baseObjectType: UAObjectType;
 
     before(async () => {
         addressSpace = await getMiniAddressSpace();
         namespace = addressSpace.getOwnNamespace();
-        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
-        organizesReferenceType = addressSpace.findReferenceType("Organizes")!;
-        hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition")!;
-        baseObjectType = addressSpace.findObjectType("BaseObjectType")!;
+        _rootFolder = addressSpace.findNode("RootFolder") as UARootFolder;
+        _organizesReferenceType = addressSpace.findReferenceType("Organizes") as UAReferenceType;
+        _hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition") as UAReferenceType;
+        baseObjectType = addressSpace.findObjectType("BaseObjectType") as UAObjectType;
     });
     after(async () => {
         addressSpace.dispose();
     });
 
-    function dump(e: any) {
-        console.log(e.toString({ addressSpace }));
-    }
+
 
     it("AddressSpace#addObject should create a 'hasTypeDefinition' reference on node", () => {
         const nbReferencesBefore = baseObjectType.findReferencesEx("HasTypeDefinition", BrowseDirection.Inverse).length;
