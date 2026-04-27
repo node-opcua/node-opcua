@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-variant",
-    "version": "2.169.0",
+    "version": "2.170.0",
     "description": "pure nodejs OPCUA SDK - module variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,7 +16,7 @@
         "node-opcua-assert": "2.164.0",
         "node-opcua-basic-types": "2.169.0",
         "node-opcua-binary-stream": "2.169.0",
-        "node-opcua-data-model": "2.169.0",
+        "node-opcua-data-model": "2.170.0",
         "node-opcua-debug": "2.168.0",
         "node-opcua-enum": "2.169.0",
         "node-opcua-factory": "2.169.0",
