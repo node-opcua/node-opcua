@@ -144,6 +144,7 @@ export type PseudoVariant =
     | PseudoVariantExtensionObjectArray
     | PseudoVariantVariant
     | PseudoVariantVariantArray;
+    
 export interface RaiseEventData {
     $eventDataSource?: UAEventType;
 

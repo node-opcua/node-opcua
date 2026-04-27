@@ -2,21 +2,26 @@
  * @module node-opcua-data-model
  */
 import { assert } from "node-opcua-assert";
+import { 
+    decodeUAString,
+    decodeUInt16, 
+    encodeUAString, 
+    encodeUInt16,
+    type UAString,
+    type UInt16, 
+}  from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
-    initialize_field,
+    FieldCategory,
+    type IStructuredTypeSchema,
     parameters,
     registerSpecialVariantEncoder,
-    IStructuredTypeSchema,
-    FieldCategory
 } from "node-opcua-factory";
+import { type ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
 
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
-
-import { decodeUAString, decodeUInt16, encodeUAString, encodeUInt16, Int32, UAString, UInt16 } from "node-opcua-basic-types";
 
 export const schemaQualifiedName = buildStructuredType({
     baseType: "BaseUAObject",
@@ -91,7 +96,7 @@ export class QualifiedName extends BaseUAObject {
 
     public toString(): string {
         if (this.namespaceIndex) {
-            return this.namespaceIndex + ":" + this.name;
+            return `${this.namespaceIndex}:${this.name}`;
         }
         return this.name || "<null>";
     }
@@ -114,8 +119,8 @@ export type QualifiedNameLike = QualifiedNameOptions | string;
 // xx    return !this.name || this.name.length === 0;
 // xx}
 
-function isInteger(value: any): boolean {
-    return typeof value === "number" && isFinite(value) && Math.floor(value) === value;
+function isInteger(value: unknown): boolean {
+    return typeof value === "number" && Number.isFinite(value) && Math.floor(value) === value;
 }
 
 /**
@@ -133,8 +138,8 @@ export function stringToQualifiedName(value: string): QualifiedName {
     let namespaceIndex = 0;
 
     if (
-        !isNaN(parseFloat(splitArray[0])) &&
-        isFinite(parseInt(splitArray[0], 10)) &&
+        !Number.isNaN(parseFloat(splitArray[0])) &&
+        Number.isFinite(parseInt(splitArray[0], 10)) &&
         isInteger(parseFloat(splitArray[0])) &&
         splitArray.length > 1
     ) {
@@ -156,8 +161,8 @@ export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedN
     } else if (typeof value === "string") {
         return stringToQualifiedName(value);
     } else {
-        assert(Object.prototype.hasOwnProperty.call(value, "namespaceIndex"));
-        assert(Object.prototype.hasOwnProperty.call(value, "name"));
+        assert(Object.hasOwn(value, "namespaceIndex"));
+        assert(Object.hasOwn(value, "name"));
         return new QualifiedName(value);
     }
 }

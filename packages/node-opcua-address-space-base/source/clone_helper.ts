@@ -1,20 +1,19 @@
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceTypeIds } from "node-opcua-constants";
-import { UAObject } from "./ua_object";
-import { UAVariable } from "./ua_variable";
-import { UAMethod } from "./ua_method";
-import { UAObjectType } from "./ua_object_type";
-import { UAVariableType } from "./ua_variable_type";
-import { BaseNode } from "./base_node";
-import { UAReference } from "./ua_reference";
-import { IAddressSpace } from "./address_space";
+import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { makeNodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import type { IAddressSpace } from "./address_space";
+import type { BaseNode } from "./base_node";
+import type { UAMethod } from "./ua_method";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAReference } from "./ua_reference";
+import type { UAVariable } from "./ua_variable";
+import type { UAVariableType } from "./ua_variable_type";
 
-const warningLog = make_warningLog("CLONE");
-
-const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog("INSTANTIATE");
+const errorLog = make_errorLog("INSTANTIATE");
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
@@ -29,27 +28,28 @@ export function fullPath(node: BaseNode): string {
 
     const parent = node.findReferencesExAsObject("Aggregates", BrowseDirection.Inverse)[0];
     if (parent) {
-        return fullPath(parent) + "/" + browseName;
+        return `${fullPath(parent)}/${browseName}`;
     }
     const containingFolder = node.findReferencesExAsObject("Organizes", BrowseDirection.Inverse)[0];
     if (containingFolder) {
-        return fullPath(containingFolder) + "@" + browseName;
+        return `${fullPath(containingFolder)}@${browseName}`;
     }
     return browseName;
 }
 /** @private */
-export function fullPath2(node: BaseNode): string {
-    return fullPath(node) + " (" + node.nodeId.toString() + ")";
+export function fullPath2(node: BaseNode | null | undefined): string {
+    if (!node) return "(unknown)";
+    return `${fullPath(node)} (${node.nodeId.toString()})`;
 }
 /** @private */
 export function exploreNode(node: BaseNode) {
     const f = (n: BaseNode) => {
-        return `${n.browseName.toString()} (${n.nodeId.toString()})${n.modellingRule ? " - " + n.modellingRule : ""}`;
+        return `${n.browseName.toString()} (${n.nodeId.toString()})${n.modellingRule ? ` - ${n.modellingRule}` : ""}`;
     };
-    const r = (r: any) => {
+    const r = (r: NodeIdLike) => {
         const ref = node.addressSpace.findNode(r);
-        if (!ref) return `${r.nodeId.toString()} (unknown)`;
-        return ref?.browseName.toString() + " " + ref!.nodeId.toString();
+        if (!ref) return `(unknown)`;
+        return `${ref?.browseName.toString()} ${ref?.nodeId.toString()}`;
     };
     const map = new Set();
     const _explore = (node: BaseNode, pad: string) => {
@@ -57,20 +57,21 @@ export function exploreNode(node: BaseNode) {
         const b = node.findReferencesEx("Organizes", BrowseDirection.Forward);
 
         for (const ref of [...a, ...b]) {
+            if (!ref.node) continue;
             const alreadyVisited = map.has(ref.nodeId.toString());
             traceLog(
                 pad,
                 "  +-- ",
                 r(ref.referenceType).padEnd(20),
                 "-->",
-                f(ref.node!).padEnd(10),
+                f(ref.node).padEnd(10),
                 alreadyVisited ? " (already visited)" : ""
             );
             if (alreadyVisited) {
                 continue;
             }
             map.add(ref.nodeId.toString());
-            _explore(ref.node!, pad + "   ");
+            _explore(ref.node, `${pad}   `);
         }
     };
     traceLog("exploring ", f(node));
@@ -134,7 +135,7 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
         warningLog(originalObject.toString());
         warningLog(" parents : ");
         for (const parent of parents) {
-            warningLog("     ", parent.toString(), addressSpace.findNode(parent.nodeId)!.browseName.toString());
+            warningLog("     ", parent.toString(), addressSpace.findNode(parent.nodeId)?.browseName.toString());
         }
         return { parentType: null, path: [] };
     }
@@ -143,12 +144,12 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
     if (parents.length === 0) {
         return { parentType: null, path: [] };
     }
-    const theParent = addressSpace.findNode(parents[0]!.nodeId)!;
+    const theParent = addressSpace.findNode(parents[0]?.nodeId) as BaseNode;
     if (theParent && (theParent.nodeClass === NodeClass.VariableType || theParent.nodeClass === NodeClass.ObjectType)) {
         return { parentType: theParent as UAVariableType | UAObjectType, path: [originalObject.browseName] };
     }
     // walk up
-    const { parentType, path } = _get_parent_type_and_path(theParent!);
+    const { parentType, path } = _get_parent_type_and_path(theParent);
     return { parentType, path: [...path, originalObject.browseName] };
 }
 /* c8 ignore stop */
@@ -220,7 +221,7 @@ export class CloneHelper {
     }
     public popContext() {
         assert(this._contextStack.length > 0);
-        this._context = this._contextStack.pop()!;
+        this._context = this._contextStack.pop() || null;
     }
     public registerClonedObject<
         TO extends UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
@@ -294,7 +295,7 @@ export class CloneHelper {
                 fullPath2(clonedParent)
             );
 
-        const info = this._context!.get(originalNode.nodeId.toString());
+        const info = this._context?.get(originalNode.nodeId.toString());
         if (info) {
             return info.cloned;
         }
@@ -324,7 +325,7 @@ function _remove_unwanted_ref(references: UAReference[]): UAReference[] {
  */
 function findNonHierarchicalReferences(originalObject: BaseNode): UAReference[] {
     // todo: MEMOIZE this method
-    const addressSpace: IAddressSpace = originalObject.addressSpace;
+    const _addressSpace: IAddressSpace = originalObject.addressSpace;
 
     // we need to explore the non hierarchical references backwards
     let references = originalObject.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Inverse);
@@ -336,7 +337,7 @@ function findNonHierarchicalReferences(originalObject: BaseNode): UAReference[] 
 
     const { parentType, path } = _get_parent_type_and_path(originalObject);
 
-    if (parentType && parentType.subtypeOfObj) {
+    if (parentType?.subtypeOfObj) {
         // parent is a ObjectType or VariableType and is not a root type
         assert(parentType.nodeClass === NodeClass.VariableType || parentType.nodeClass === NodeClass.ObjectType);
 
@@ -392,14 +393,14 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
 
             // if the object pointed by this reference is also cloned ...
 
-            const originalDest = info.original;
+            const _originalDest = info.original;
             const cloneDest = info.cloned;
 
             // c8 ignore next
             doTrace &&
                 traceLog(
                     "   adding reference ",
-                    fullPath2(addressSpace.findNode(ref.referenceType)!),
+                    fullPath2(addressSpace.findNode(ref.referenceType)),
                     " from cloned ",
                     fullPath2(cloned),
                     " to cloned ",
@@ -450,7 +451,7 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
 
             if (!folder.typeDefinitionObj) continue;
 
-            if (folder.typeDefinitionObj.browseName.name!.toString() !== "FunctionalGroupType") {
+            if (folder.typeDefinitionObj.browseName.name?.toString() !== "FunctionalGroupType") {
                 continue;
             }
 
