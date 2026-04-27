@@ -613,7 +613,7 @@ const _Aes256_Sha256_RsaPss: CryptoFactory = {
 
     asymmetricVerify: RSA_PSS_SHA2_256_Verify,
 
-    asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-pss-sha256",
+    asymmetricSignatureAlgorithm: "http://opcfoundation.org/UA/security/rsa-pss-sha2-256",
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSA_OAEP_SHA2_256_Encrypt,
