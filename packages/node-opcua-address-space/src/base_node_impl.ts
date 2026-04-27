@@ -1031,7 +1031,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return options.toString();
     }
 
-    public toJSON(): Record<string, string | undefined | null> {
+    public toJSON(): Record<string, unknown> {
         return {
             nodeId: this.nodeId.toString(),
             nodeClass: NodeClass[this.nodeClass],

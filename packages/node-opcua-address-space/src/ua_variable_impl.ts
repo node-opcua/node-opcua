@@ -76,7 +76,7 @@ import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 import { SessionContext } from "../source/session_context";
 import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone, ToStringBuilder, UAVariable_toString } from "./base_node_private";
+import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
 import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 import {
@@ -100,6 +100,8 @@ const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
+
+const plainChalk = new Proxy(chalk, { get: () => (s: string) => s }) as typeof chalk;
 
 export function adjust_accessLevel(accessLevel: string | number | null): AccessLevelFlag {
     accessLevel = isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
@@ -239,7 +241,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // this could happen in faulty external nodeset and has been seen once
             // in an nano server
             warningLog(super.typeDefinitionObj.toString());
-            return this.addressSpace.findVariableType("BaseVariableType")!;
+            const baseVariableType= this.addressSpace.findVariableType("BaseVariableType");
+            if (!baseVariableType) throw new Error("Cannot find BaseVariableType in address space");
+            return baseVariableType;
         }
         return super.typeDefinitionObj as UAVariableType;
     }
@@ -1521,6 +1525,79 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         UAVariable_toString.call(this, options);
         return options.toString();
     }
+
+    public toJSON(): Record<string, unknown> {
+        let value: unknown;
+        let statusCode: string | undefined;
+        try {
+            const dv = this.$dataValue;
+            if (dv) {
+                statusCode = dv.statusCode?.toString();
+                if (dv.value && !(dv.value.value instanceof OpaqueStructure)) {
+                    value = dv.value.value;
+                }
+            }
+        } catch {
+            // ignore — value access may fail for bound variables
+        }
+        return {
+            ...super.toJSON(),
+            typeDefinition: this.typeDefinitionObj?.browseName.toString(),
+            dataType: this.dataType?.toString(),
+            valueRank: this.valueRank,
+            arrayDimensions: this.arrayDimensions,
+            accessLevel: AccessLevelFlag[this.accessLevel],
+            statusCode,
+            value
+        };
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](depth: number | null, inspectOptions: { colors?: boolean }): string {
+        const c = inspectOptions?.colors === false ? plainChalk : chalk;
+        const typeName = this.typeDefinitionObj?.browseName.toString() ?? "?";
+        const displayName = this.displayName.length ? this.displayName.map((d) => d.text).join(" | ") : "";
+        if (depth !== null && depth <= 0) {
+            return `${c.cyan("UAVariable<")}${c.green(this.browseName.toString())}${c.grey(` ${this.nodeId.toString()}`)}${c.cyan(">")}`;
+        }
+        const dt = this.dataType?.toString() ?? "?";
+        let valueStr = "";
+        let statusStr = "";
+        try {
+            const dv = this.$dataValue;
+            if (dv) {
+                if (dv.statusCode) statusStr = dv.statusCode.toString();
+                if (dv.value && dv.value.value !== undefined && dv.value.value !== null && !(dv.value.value instanceof OpaqueStructure)) {
+                    const v = dv.value.value;
+                    valueStr = typeof v === "object" ? Object.prototype.toString.call(v) : String(v);
+                    if (valueStr.length > 80) valueStr = `${valueStr.slice(0, 77)}...`;
+                }
+            }
+        } catch {
+            // ignore
+        }
+        const lines = [
+            `${c.cyan("UAVariable ")}${c.green(this.browseName.toString())}${c.grey(` ${this.nodeId.toString()}`)}`,
+            c.yellow("  typeDefinition : ") + typeName,
+            c.yellow("  displayName    : ") + displayName,
+            c.yellow("  dataType       : ") + dt,
+            c.yellow("  valueRank      : ") + valueRankToString(this.valueRank),
+            c.yellow("  accessLevel    : ") + AccessLevelFlag[this.accessLevel]
+        ];
+        if (this.arrayDimensions?.length) {
+            lines.push(c.yellow("  arrayDimensions: ") + JSON.stringify(this.arrayDimensions));
+        }
+        if (valueStr) {
+            lines.push(c.yellow("  value          : ") + valueStr);
+        }
+        if (statusStr && statusStr !== "Good (0x00000000)") {
+            lines.push(c.yellow("  statusCode     : ") + statusStr);
+        }
+        if (this.description?.text) {
+            lines.push(c.yellow("  description    : ") + this.description.text);
+        }
+        return lines.join("\n");
+    }
+
 
     // ---------------------------------------------------------------------------------------------------
     // History

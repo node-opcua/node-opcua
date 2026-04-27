@@ -5,36 +5,36 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { isValidByte } from "node-opcua-basic-types";
-import { NodeClass, QualifiedNameLike, QualifiedNameOptions } from "node-opcua-data-model";
+import { NodeClass, type QualifiedNameLike, type QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
+import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import {
-    EventTypeLike,
-    RaiseEventData,
-    ISessionContext,
-    UAMethod,
-    UAObject,
-    UAObjectType,
-    CloneOptions,
-    CloneFilter,
-    CloneExtraInfo,
-    BaseNode,
-    UAEventType,
-    IEventData,
+    type EventTypeLike,
+    type RaiseEventData,
+    type ISessionContext,
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type CloneOptions,
+    type CloneFilter,
+    type CloneExtraInfo,
+    type BaseNode,
+    type UAEventType,
+    type IEventData,
     defaultCloneFilter,
     makeDefaultCloneExtraInfo,
     EventNotifierFlags
 } from "node-opcua-address-space-base";
 import { make_errorLog } from "node-opcua-debug";
 
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
-import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
+import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
 
 const errorLog = make_errorLog(__filename);
 
@@ -159,11 +159,11 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         } else if (eventType instanceof NodeId) {
             const eventTypeFound = addressSpace.findNode(eventType) as BaseNode;
             if (!eventTypeFound) {
-                throw new Error("raiseEvent: eventType cannot find event Type " + eventType.toString());
+                throw new Error(`raiseEvent: eventType cannot find event Type ${eventType.toString()}`);
             }
             eventType = eventTypeFound!;
             if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
-                throw new Error("eventType must exist and be an UAObjectType" + eventType.toString());
+                throw new Error(`eventType must exist and be an UAObjectType${eventType.toString()}`);
             }
         }
 
@@ -179,7 +179,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
         const _baseEventType = addressSpace.findEventType("BaseEventType");
 
-        data.$eventDataSource = eventTypeNode;
+        data.$eventDataSource =eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };
 
         const eventData1 = addressSpace.constructEventData(eventTypeNode, data);
@@ -241,4 +241,33 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         UAObject_toString.call(this, options);
         return options.toString();
     }
+
+    public toJSON(): Record<string, unknown> {
+        return {
+            ...super.toJSON(),
+            typeDefinition: this.typeDefinitionObj ? this.typeDefinitionObj.browseName.toString() : undefined,
+            eventNotifier: this._eventNotifier
+        };
+    }
+
+    public [Symbol.for("nodejs.util.inspect.custom")](depth: number | null, inspectOptions: { colors?: boolean }): string {
+        const c = inspectOptions?.colors === false ? plainChalk : chalk;
+        const typeName = this.typeDefinitionObj?.browseName.toString() ?? "?";
+        const displayName = this.displayName.length ? this.displayName.map((d) => d.text).join(" | ") : "";
+        if (depth !== null && depth <= 0) {
+            return `${c.cyan("UAObject<")}${c.green(this.browseName.toString())}${c.grey(` ${this.nodeId.toString()}`)}${c.cyan(">")}`;
+        }
+        const lines = [
+            `${c.cyan("UAObject ")}${c.green(this.browseName.toString())}${c.grey(` ${this.nodeId.toString()}`)}`,
+            c.yellow("  typeDefinition : ") + typeName,
+            c.yellow("  displayName    : ") + displayName,
+            c.yellow("  eventNotifier  : ") + this._eventNotifier
+        ];
+        if (this.description?.text) {
+            lines.push(c.yellow("  description    : ") + this.description.text);
+        }
+        return lines.join("\n");
+    }
 }
+
+const plainChalk = new Proxy(chalk, { get: () => (s: string) => s }) as typeof chalk;
