@@ -698,8 +698,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      * @private
      */
-    public constructEventData(eventTypeId: UAEventType, data: RaiseEventData): IEventData {
-        data = data || {};
+    public constructEventData(eventTypeId: UAEventType, dataInput: Record<string, unknown>): IEventData {
+        const data: RaiseEventData = (dataInput || {}) as RaiseEventData;
 
         // construct the reference dataStructure to store event Data
         let eventTypeNode: UAEventType | null = eventTypeId;
@@ -709,7 +709,7 @@ export class AddressSpace implements AddressSpacePrivate {
             eventTypeNode = this.findEventType(eventTypeId) as UAEventType | null;
         }
         /* c8 ignore next */
-        if (!eventTypeNode) throw new Error(` cannot find EvenType for ${eventTypeId}`);
+        if (!eventTypeNode) throw new Error(` cannot find EventType for ${eventTypeId}`);
 
 
         assert(eventTypeNode instanceof UAObjectTypeImpl, "eventTypeId must represent a UAObjectType");
@@ -728,7 +728,11 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // sourceName
         const sourceNode = this.findNode(data.sourceNode.value);
-
+        if (!sourceNode) {
+            warningLog(
+                `constructEventData: cannot find sourceNode ${data.sourceNode.value?.toString()} for event ${eventTypeNode.browseName.toString()}`
+            );
+        }
         data.sourceName = data.sourceName || {
             dataType: DataType.String,
             value: sourceNode?.getDisplayName("en") || ""

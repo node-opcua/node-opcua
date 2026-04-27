@@ -160,7 +160,8 @@ function instantiate_interface_children<B extends UAObject | UAVariable | UAMeth
         return;
     }
     for (const reference of interfaces) {
-        const interfaceType = reference.node as UAObjectType;
+        const interfaceType =
+            (reference.node as UAObjectType) || nodeType.addressSpace.findObjectType(reference.nodeId);
         if (!interfaceType) {
             warningLog(" cannot find node ", reference.nodeId.toString());
             continue;

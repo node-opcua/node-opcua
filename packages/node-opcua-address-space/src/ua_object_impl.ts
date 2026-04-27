@@ -163,7 +163,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             }
             eventType = eventTypeFound!;
             if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
-                throw new Error(`eventType must exist and be an UAObjectType${eventType.toString()}`);
+                throw new Error(`eventType must exist and be an UAObjectType: ${eventType.toString()}`);
             }
         }
 
@@ -172,7 +172,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         let eventTypeNode: UAEventType = eventType as UAEventType;
         // c8 ignore next
         if (!eventTypeNode) {
-            throw new Error(`UAObject#raiseEventType : Cannot find event type :${eventType.toString()}`);
+            throw new Error(`UAObject#raiseEventType : Cannot find event type : ${eventType.toString()}`);
         }
 
         // coerce EventType

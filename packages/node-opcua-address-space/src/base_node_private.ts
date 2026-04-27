@@ -1125,7 +1125,14 @@ function _remove(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWi
     const hash = target.browseName.name || "";
     const existing = _childByNameMap.get(hash);
     if (Array.isArray(existing)) {
-        existing.filter((r) => !sameRef(r, reference));
+        const remaining = existing.filter((r) => !sameRef(r, reference));
+        if (remaining.length === 0) {
+            _childByNameMap.delete(hash);
+        } else if (remaining.length === 1) {
+            _childByNameMap.set(hash, remaining[0]);
+        } else {
+            _childByNameMap.set(hash, remaining);
+        }
     } else {
         _childByNameMap.delete(hash);
     }
