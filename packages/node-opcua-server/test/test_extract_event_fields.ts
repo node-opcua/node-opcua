@@ -29,6 +29,7 @@ import {
 } from "node-opcua-types";
 import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 import should from "should";
+import "mocha";
 
 import { checkWhereClauseOnAdressSpace } from "../source/filter/check_where_clause_on_address_space";
 
@@ -100,6 +101,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             lowLowLimit: -10.0
         });
     });
+
     after(() => {
         addressSpace.dispose();
     });
@@ -111,7 +113,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const message = options?.message;
         const localTime = options?.localTime;
 
-        const eventTypeNode = addressSpace.findNode(eventTypeName)! as UAEventType;
+        const eventTypeNode = addressSpace.findNode(eventTypeName) as UAEventType;
 
         should.exist(eventTypeNode);
         eventTypeNode.nodeClass.should.eql(NodeClass.ObjectType);
@@ -426,7 +428,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         { op: FilterOperator.GreaterThan, result: [false, false, true] },
         { op: FilterOperator.GreaterThanOrEqual, result: [false, true, true] },
         { op: FilterOperator.Equals, result: [false, true, false] }
-    ].forEach(({ op, result }) =>
+    ].forEach(({ op, result }) => {
         it(`EV08-${FilterOperator[op]} - check checkFilter with ${FilterOperator[op]} operand`, () => {
             const contentFilter = new ContentFilter({
                 elements: [
@@ -456,8 +458,8 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             checkFilter(filterContext, contentFilter).should.eql(result[1]);
             severityNode.setValueFromSource({ dataType: DataType.UInt16, value: 100.0 });
             checkFilter(filterContext, contentFilter).should.eql(result[2]);
-        })
-    );
+        });
+    });
 
     it("EV09 - checkFilter with Or operand", () => {
         const contentFilter = new ContentFilter({

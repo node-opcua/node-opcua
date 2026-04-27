@@ -11,7 +11,7 @@ export function checkWhereClauseOnAdressSpace(
     // const filterContext: FilterContext = {
     //     addressSpace,
     //     sessionContext,
-    //     rootNode: eventData.$eventDataSource!,
+    //     rootNode: eventData.getEventDataSource(),
     //     extractValue(operand: FilterOperand) {
     //         if (operand instanceof SimpleAttributeOperand) {
     //             return extractEventFields(filterContext.sessionContext, [operand], eventData)[0];

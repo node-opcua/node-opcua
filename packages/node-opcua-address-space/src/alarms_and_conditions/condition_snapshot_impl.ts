@@ -90,7 +90,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         }
         const c = this.condition as UAConditionImpl;
         const isDisabled = !c.getEnabledState();
-        const eventData = new EventData(this.condition!);
+        const eventData = new EventData(this.condition);
 
         for (const fullBrowsePath of this._map.keys()) {
             const node = this._node_index.get(fullBrowsePath);
@@ -98,10 +98,10 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
                 debugLog("cannot node for find key", fullBrowsePath);
                 continue;
             }
-            if (isDisabled && !Object.prototype.hasOwnProperty.call(_varTable, fullBrowsePath)) {
+            if (isDisabled && !Object.hasOwn(_varTable, fullBrowsePath)) {
                 eventData._createValue(fullBrowsePath, node, disabledVar);
             } else {
-                eventData._createValue(fullBrowsePath, node, this._map.get(fullBrowsePath)!);
+                eventData._createValue(fullBrowsePath, node, this._map.get(fullBrowsePath) as Variant);
             }
         }
         return eventData;

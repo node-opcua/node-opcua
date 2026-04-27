@@ -1034,7 +1034,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             throw new Error("Internal Error : a EventFilter is requested");
         }
 
-        const addressSpace: AddressSpace = eventData.$eventDataSource?.addressSpace as AddressSpace;
+        const addressSpace: AddressSpace = eventData.getEventDataSource().addressSpace as AddressSpace;
 
         if (!checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
             return;
