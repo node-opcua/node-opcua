@@ -182,6 +182,33 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                                 terminateConnection(session._client);
                                 resolve(0);
                             } else {
+                                if (sc?.equals(StatusCodes.BadInvalidTimestamp)) {
+                                    // BadInvalidTimestamp (OPC UA Part 4 7.38.2, Table 178:
+                                    // "The timestamp is outside the range allowed by the Server")
+                                    // refers to the timestamp field of the RequestHeader
+                                    // (OPC UA Part 4 7.32), which the spec states is used
+                                    // "only for diagnostic and logging purposes in the Server".
+                                    //
+                                    // The server responded at the OPC UA application layer:
+                                    // the SecureChannel and Session are intact. The cause is
+                                    // clock skew between client and server; this is an
+                                    // infrastructure concern outside the scope of the keepalive
+                                    // manager.
+                                    //
+                                    // Treating this as a keepalive failure is semantically
+                                    // incorrect: the round-trip succeeded. Incrementing
+                                    // consecutiveFailures leads to unbounded exponential backoff
+                                    // and eventual session expiry server-side, triggering an
+                                    // unnecessary reconnect loop.
+                                    //
+                                    // See: https://reference.opcfoundation.org/Core/Part4/v105/docs/7.38.2
+                                    //      https://reference.opcfoundation.org/Core/Part4/v105/docs/7.32
+                                    this.consecutiveFailures = 0;
+                                    debugLog("emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)");
+                                    this.emit("keepalive", this.lastKnownState ?? ServerState.Unknown, this.count);
+                                    resolve(0);
+                                    return;
+                                }
                                 this.consecutiveFailures++;
                                 warningLog("Keep alive received ServiceFault from server (session intact):", sc?.toString());
                                 this.emit("keepalive_failure");

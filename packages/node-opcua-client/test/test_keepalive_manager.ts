@@ -58,16 +58,23 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         mgr.stop();
     });
 
-    it("KAL-2 should emit keepalive_failure (not failure) when session.read returns a generic ServiceFault", () => {
+    it("KAL-2 should emit keepalive (not keepalive_failure) when session.read returns BadInvalidTimestamp due to clock skew", () => {
+        // BadInvalidTimestamp means the server responded at the OPC UA application layer:
+        // the session is alive, only the request timestamp was outside the server tolerance.
+        // The keepalive round-trip succeeded — treat it as a successful keepalive.
         const serviceFaultErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
         const session = makeSession((_n, cb) => cb(serviceFaultErr, undefined));
         const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
 
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
+        let keepaliveFired = false;
         let keepaliveFailureFired = false;
         mgr.on("failure", () => {
             failureFired = true;
+        });
+        mgr.on("keepalive", () => {
+            keepaliveFired = true;
         });
         mgr.on("keepalive_failure", () => {
             keepaliveFailureFired = true;
@@ -76,9 +83,10 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         mgr.start(1000);
         clock.tick(600);
 
-        keepaliveFailureFired.should.eql(true, "keepalive_failure event must fire for ServiceFault");
-        failureFired.should.eql(false, "failure must NOT fire for a recoverable ServiceFault");
-        terminateSpy.callCount.should.eql(0, "forceConnectionBreak must NOT be called for a recoverable ServiceFault");
+        keepaliveFired.should.eql(true, "keepalive must fire: BadInvalidTimestamp means session is alive (clock skew)");
+        keepaliveFailureFired.should.eql(false, "keepalive_failure must NOT fire: clock skew is not a session failure");
+        failureFired.should.eql(false, "failure must NOT fire");
+        terminateSpy.callCount.should.eql(0, "forceConnectionBreak must NOT be called for clock skew");
         mgr.stop();
     });
 
@@ -107,7 +115,9 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
     });
 
     it("KAL-4 should apply exponential backoff after consecutive ServiceFaults", async () => {
-        const serviceFaultErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
+        // Use BadInternalError as a generic ServiceFault that goes through the backoff path.
+        // BadInvalidTimestamp has dedicated handling (treated as session-alive, no backoff).
+        const serviceFaultErr = makeServiceFaultError(StatusCodes.BadInternalError);
         const session = makeSession((_n, cb) => cb(serviceFaultErr, undefined));
 
         const mgr = new ClientSessionKeepAliveManager(session);
@@ -132,6 +142,38 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         failureTimes.length.should.eql(3, "third failure at t=6500");
 
         // only 3 failures in ~6.5s — without backoff at checkInterval=1000ms there would be ~6
+        mgr.stop();
+    });
+
+    it("KAL-5 should treat BadInvalidTimestamp as a successful keepalive (clock skew must not trigger reconnect)", async () => {
+        // Simulate a server with persistent clock skew: every keepalive returns BadInvalidTimestamp.
+        // The session is alive — the server responded at the OPC UA application layer.
+        // Expected: "keepalive" is emitted, no backoff accumulates, no reconnect ever fires.
+        const clockSkewErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
+        const session = makeSession((_n, cb) => cb(clockSkewErr, undefined));
+        const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
+
+        const mgr = new ClientSessionKeepAliveManager(session);
+        let keepaliveCount = 0;
+        let keepaliveFailureCount = 0;
+        let failureCount = 0;
+
+        mgr.on("keepalive", () => { keepaliveCount++; });
+        mgr.on("keepalive_failure", () => { keepaliveFailureCount++; });
+        mgr.on("failure", () => { failureCount++; });
+
+        // checkInterval=1000ms, pingTimeout=500ms → pings at t=500, 1500, 2500, 3500, 4500
+        mgr.start(1000);
+        await clock.tickAsync(5000);
+
+        keepaliveCount.should.be.greaterThan(0, "keepalive must fire: BadInvalidTimestamp means session is alive");
+        keepaliveFailureCount.should.eql(0, "keepalive_failure must NOT fire: clock skew is not a session failure");
+        failureCount.should.eql(0, "failure must NOT fire");
+        terminateSpy.callCount.should.eql(0, "forceConnectionBreak must never be called for clock skew");
+        // Without the fix, backoff would reach 60s cap after a few cycles and only 1 ping
+        // would fire in 5000ms. With the fix, pings continue at normal checkInterval rate.
+        keepaliveCount.should.be.greaterThanOrEqual(4, "pings must continue at normal rate with no backoff");
+
         mgr.stop();
     });
 });
