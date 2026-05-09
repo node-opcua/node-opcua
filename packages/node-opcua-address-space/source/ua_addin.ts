@@ -1,7 +1,7 @@
-import { INamespace, ModellingRuleType, UAObject, UAObjectType, UAVariableT } from "node-opcua-address-space-base";
+import type { INamespace, ModellingRuleType, UAObject, UAObjectType, UAVariableT } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-basic-types";
-import { coerceQualifiedName, QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
-import { NodeIdLike } from "node-opcua-nodeid";
+import { coerceQualifiedName, type QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
+import type { NodeIdLike } from "node-opcua-nodeid";
 
 export interface InstantiateAddInOptions {
     defaultName?: QualifiedNameLike;
@@ -14,15 +14,14 @@ export interface InstantiateAddInOptions {
 }
 
 export function instantiateAddIn(objectType: UAObjectType, options: InstantiateAddInOptions): UAObject {
-
-    let defaultName = options.defaultName;
+    const defaultName = options.defaultName;
     // check that objectType has he shape of an addInd
     const defaultInstanceBrowseName = objectType.getPropertyByName("DefaultInstanceBrowseName");
     if (!defaultInstanceBrowseName) {
         throw new Error("objectType must have a DefaultInstanceBrowseName property");
     }
 
-    const browseName = coerceQualifiedName(defaultName || defaultInstanceBrowseName.readValue().value.value as QualifiedName);
+    const browseName = coerceQualifiedName(defaultName || (defaultInstanceBrowseName.readValue().value.value as QualifiedName));
     const addIn = objectType.instantiate({
         namespace: options.namespace || objectType.namespace,
         browseName: browseName,
@@ -34,9 +33,10 @@ export function instantiateAddIn(objectType: UAObjectType, options: InstantiateA
     return addIn;
 }
 
-export function addDefaultInstanceBrowseName(objectType: UAObjectType, defaultBrowseName: QualifiedName | string)
-    : UAVariableT<QualifiedName, DataType.QualifiedName> {
-
+export function addDefaultInstanceBrowseName(
+    objectType: UAObjectType,
+    defaultBrowseName: QualifiedName | string
+): UAVariableT<QualifiedName, DataType.QualifiedName> {
     const namespace1 = objectType.namespace;
     if (typeof defaultBrowseName === "string") {
         defaultBrowseName = coerceQualifiedName({ name: defaultBrowseName, namespaceIndex: namespace1.index });
@@ -54,5 +54,4 @@ export function addDefaultInstanceBrowseName(objectType: UAObjectType, defaultBr
         modellingRule: null // DefaultInstanceBrowseName must have no ModellingRule
     });
     return uaVaraible as UAVariableT<QualifiedName, DataType.QualifiedName>;
-
 }

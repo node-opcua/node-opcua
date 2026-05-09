@@ -9,9 +9,9 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { resolveNodeId } from "node-opcua-nodeid";
 
-import { AddReferenceOpts, AddressSpace, UAFolder, UAObject, UAReferenceType, UAVariableType } from "..";
+import type { AddReferenceOpts, AddressSpace, UAObject, UAReferenceType, UAVariableType } from "..";
 
 const doDebug = false;
 
@@ -34,7 +34,7 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
 
         const subTypes = referenceType.findReferencesExAsObject("HasSubtype");
         for (const subType of subTypes) {
-            _dump(subType as UAReferenceType, "     " + level);
+            _dump(subType as UAReferenceType, `     ${level}`);
         }
     }
 
@@ -90,9 +90,9 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         {
             const nonHierarchicalReferences = addReferenceType("NonHierarchicalReferences", true, references);
             {
-                const hasTypeDefinition = addReferenceType("HasTypeDefinition/TypeDefinitionOf", false, nonHierarchicalReferences);
-                const hasModellingRule = addReferenceType("HasModellingRule/ModellingRuleOf", false, nonHierarchicalReferences);
-                const hasEncoding = addReferenceType("HasEncoding/EncodingOf", false, nonHierarchicalReferences);
+                const _hasTypeDefinition = addReferenceType("HasTypeDefinition/TypeDefinitionOf", false, nonHierarchicalReferences);
+                const _hasModellingRule = addReferenceType("HasModellingRule/ModellingRuleOf", false, nonHierarchicalReferences);
+                const _hasEncoding = addReferenceType("HasEncoding/EncodingOf", false, nonHierarchicalReferences);
             }
         }
         {
@@ -102,29 +102,27 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
                 {
                     const aggregates = addReferenceType("Aggregates/AggregatedBy", true, hasChild);
                     {
-                        const hasComponent = addReferenceType("HasComponent/ComponentOf", false, aggregates);
-                        const hasProperty = addReferenceType("HasProperty/PropertyOf", false, aggregates);
-                        const hasHistoricalConfiguration = addReferenceType(
+                        const _hasComponent = addReferenceType("HasComponent/ComponentOf", false, aggregates);
+                        const _hasProperty = addReferenceType("HasProperty/PropertyOf", false, aggregates);
+                        const _hasHistoricalConfiguration = addReferenceType(
                             "HasHistoricalConfiguration/HistoricalConfigurationOf",
                             false,
                             aggregates
                         );
                     }
                 }
-                {
-                    // add a link to hasSubType
-                    hasSubtype.addReference({
-                        isForward: false,
-                        nodeId: hasChild,
-                        referenceType: hasSubtype
-                    });
-                }
+                // add a link to hasSubType
+                hasSubtype.addReference({
+                    isForward: false,
+                    nodeId: hasChild,
+                    referenceType: hasSubtype
+                });
             }
             {
-                const organizes = addReferenceType("Organizes/OrganizedBy", false, hierarchicalReferences);
+                const _organizes = addReferenceType("Organizes/OrganizedBy", false, hierarchicalReferences);
             }
             {
-                const hasEventSource = addReferenceType("HasEventSource/EventSourceOf", false, hierarchicalReferences);
+                const _hasEventSource = addReferenceType("HasEventSource/EventSourceOf", false, hierarchicalReferences);
             }
         }
     }
@@ -133,7 +131,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         dumpReferencesHierarchy(addressSpace);
     }
 
-    const baseObjectType = namespace0.internalCreateNode({
+    const _baseObjectType = namespace0.internalCreateNode({
         browseName: "BaseObjectType",
         isAbstract: true,
         nodeClass: NodeClass.ObjectType,
@@ -147,12 +145,12 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         nodeId: resolveNodeId(VariableTypeIds.BaseVariableType)
     }) as any as UAVariableType;
 
-    const propertyType = namespace0.addVariableType({
+    const _propertyType = namespace0.addVariableType({
         browseName: "PropertyType",
         subtypeOf: baseVariableType
     });
 
-    const baseDataVariableType = namespace0.internalCreateNode({
+    const _baseDataVariableType = namespace0.internalCreateNode({
         browseName: "BaseDataVariableType",
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
@@ -160,13 +158,13 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         subtypeOf: baseVariableType.nodeId
     }) as any as UAVariableType;
 
-    const modellingRule_Optional = namespace0.internalCreateNode({
+    const _modellingRule_Optional = namespace0.internalCreateNode({
         browseName: "Optional",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional)
     }) as any as UAObject;
 
-    const modellingRule_Mandatory = namespace0.internalCreateNode({
+    const _modellingRule_Mandatory = namespace0.internalCreateNode({
         browseName: "Mandatory",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory)
@@ -181,14 +179,14 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         }) as any as UAObject;
 
         {
-            const objectsFolder = namespace0.addObject({
+            const _objectsFolder = namespace0.addObject({
                 browseName: "Objects",
                 nodeId: resolveNodeId(ObjectIds.ObjectsFolder),
                 organizedBy: rootFolder
             });
-            objectsFolder;
+            _objectsFolder;
 
-            assert(rootFolder.getFolderElementByName("Objects")!.browseName.toString() === "Objects");
+            assert(rootFolder.getFolderElementByName("Objects")?.browseName.toString() === "Objects");
         }
         {
             const dataTypeFolder = namespace0.addObject({
@@ -197,13 +195,13 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
                 organizedBy: rootFolder
             });
             {
-                const doubleDataType = namespace0.internalCreateNode({
+                const _doubleDataType = namespace0.internalCreateNode({
                     browseName: "Double",
                     nodeClass: NodeClass.DataType,
                     nodeId: resolveNodeId(DataTypeIds.Double),
                     organizedBy: dataTypeFolder
                 });
-                doubleDataType;
+                _doubleDataType;
             }
         }
     }

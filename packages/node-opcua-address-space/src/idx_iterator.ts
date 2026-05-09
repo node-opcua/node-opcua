@@ -1,9 +1,4 @@
-
-
-
-
 export class IndexIterator {
-
     public current: number[] | null = null;
     constructor(private limits: number[]) {
         this.reset();
@@ -17,14 +12,13 @@ export class IndexIterator {
     public increment() {
         if (!this.current) return;
 
-
         const increase = (n: number): boolean => {
             if (n < 0) {
                 return false;
             }
             if (!this.current) return false;
             if (this.current[n] + 1 >= this.limits[n]) {
-                if (n==0) {
+                if (n === 0) {
                     this.current = null;
                     return false;
                 }
@@ -33,7 +27,7 @@ export class IndexIterator {
             }
             this.current[n] = this.current[n] + 1;
             return true;
-        }
+        };
         const n = this.limits.length - 1;
         if (!increase(n)) {
             this.current = null;
@@ -43,10 +37,8 @@ export class IndexIterator {
         if (!this.current) {
             throw new Error("Outof bond");
         }
-        const r = [... this.current];
+        const r = [...this.current];
         this.increment();
         return r;
     }
-
-
 }

@@ -1,12 +1,10 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { assert } from "node-opcua-assert";
-import { UInt16 } from "node-opcua-basic-types";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { StatusCode } from "node-opcua-status-code";
-import { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
-
+import type { UInt16 } from "node-opcua-basic-types";
+import { LocalizedText } from "node-opcua-data-model";
+import type { StatusCode } from "node-opcua-status-code";
+import type { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
 
 /**
  * @private
@@ -23,25 +21,19 @@ export class ConditionInfoImpl implements ConditionInfo {
         this.message = null;
         this.retain = null;
 
-        if (Object.prototype.hasOwnProperty.call(options, "message") && options.message) {
+        if (Object.hasOwn(options, "message") && options.message) {
             this.message = LocalizedText.coerce(options.message);
         }
-        if (Object.prototype.hasOwnProperty.call(options, "quality") && options.quality !== null) {
-            this.quality = options.quality!;
+        if (Object.hasOwn(options, "quality") && options.quality) {
+            this.quality = options.quality;
         }
-        if (Object.prototype.hasOwnProperty.call(options, "severity") && options.severity !== null) {
-            assert(typeof options.severity === "number");
-            this.severity = options.severity!;
+        if (Object.hasOwn(options, "severity") && options.severity !== null) {
+            this.severity = options.severity || 0;
         }
-        if (Object.prototype.hasOwnProperty.call(options, "retain") && options.retain !== null) {
-            assert(typeof options.retain === "boolean");
-            this.retain = options.retain!;
+        if (Object.hasOwn(options, "retain") && options.retain !== null) {
+            this.retain = options.retain || false;
         }
     }
-
-    /**
-     * 
-     */
     public isDifferentFrom(otherConditionInfo: ConditionInfo): boolean {
         return (
             this.severity !== otherConditionInfo.severity ||

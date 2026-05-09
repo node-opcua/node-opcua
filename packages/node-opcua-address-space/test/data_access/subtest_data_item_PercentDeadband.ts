@@ -1,13 +1,10 @@
-"use strict";
-import should from "should";
-
 import { standardUnits } from "node-opcua-data-access";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 
-import { AddressSpace, Namespace, SessionContext } from "../..";
+import { AddressSpace, type Namespace, SessionContext } from "../..";
 
 export function subtest_data_item_PercentDeadband(maintest: any): void {
     describe("PercentDeadband", () => {

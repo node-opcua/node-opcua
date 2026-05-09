@@ -1,8 +1,5 @@
-
-
-import { Namespace } from "../source/namespace";
-import { NamespacePrivate } from "./namespace_private";
-import { NodeEntry1, NodeIdManager } from "./nodeid_manager";
+import type { Namespace } from "../source/namespace";
+import type { NodeEntry1, NodeIdManager } from "./nodeid_manager";
 
 export function getNodeIdManager(ns: Namespace): NodeIdManager {
     const nodeIdManager = (ns as any)._nodeIdManager as NodeIdManager;

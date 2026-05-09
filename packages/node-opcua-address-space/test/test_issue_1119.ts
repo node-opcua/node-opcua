@@ -1,16 +1,13 @@
 import "should";
-import { nodesets } from "node-opcua-nodesets";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-basic-types";
-import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-types";
 import { DataValue } from "node-opcua-data-value";
-
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import { AddressSpace, type ISessionBase, PseudoSession, SessionContext, type UAVariable } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { ISessionBase, PseudoSession, SessionContext, UAVariable } from "..";
-import { AddressSpace } from "..";
 
 describe("historization and status code Bad #1119", function () {
     this.timeout(Math.max(300000, this.timeout()));
@@ -28,7 +25,7 @@ describe("historization and status code Bad #1119", function () {
     let counter = 0;
 
     const adapt = (historyReadResult: HistoryReadResult) => {
-        return (historyReadResult.historyData as HistoryData).dataValues!.map((dataValue) => ({
+        return (historyReadResult.historyData as HistoryData).dataValues?.map((dataValue) => ({
             value: dataValue.value.value,
             statusCode: dataValue.statusCode,
             toString() {
@@ -41,7 +38,7 @@ describe("historization and status code Bad #1119", function () {
 
         const myHistoricalSetPointVar = instrumentRange
             ? namespace.addAnalogDataItem({
-                  browseName: "MyHistoricalSetPintVar" + counter++,
+                  browseName: `MyHistoricalSetPintVar${counter++}`,
                   organizedBy: resolveNodeId("ObjectsFolder"),
                   dataType: DataType.Double,
                   userAccessLevel: "CurrentRead | CurrentWrite",
@@ -52,14 +49,13 @@ describe("historization and status code Bad #1119", function () {
                   acceptValueOutOfRange: true
               })
             : namespace.addVariable({
-                  browseName: "MyHistoricalSetPintVar" + counter++,
+                  browseName: `MyHistoricalSetPintVar${counter++}`,
                   organizedBy: resolveNodeId("ObjectsFolder"),
                   dataType: DataType.Double,
                   userAccessLevel: "CurrentRead | CurrentWrite",
                   minimumSamplingInterval: 100,
-                  value: valueBinding,
+                  value: valueBinding
               });
-
 
         addressSpace?.installHistoricalDataNode(myHistoricalSetPointVar, {
             maxOnlineValues: 500
@@ -93,11 +89,11 @@ describe("historization and status code Bad #1119", function () {
         await write(100, StatusCodes.Good);
         await write(1000, StatusCodes.Good);
         await write(10, StatusCodes.GoodClamped);
-        
+
         // ensure all async actions are completed
         // is server side
         await pause(1000);
-          
+
         const defaultContext = new SessionContext({
             session: session as unknown as ISessionBase
         });
@@ -121,12 +117,11 @@ describe("historization and status code Bad #1119", function () {
     it("should create a historical node with a status code  - form 1", async () => {
         let setPoint = 50;
         const result = await test({
-            get: function (): Variant {
-                return new Variant({
+            get: (): Variant =>
+                new Variant({
                     value: setPoint,
                     dataType: DataType.Double
-                });
-            },
+                }),
             set: function (this: UAVariable, value: Variant) {
                 // Check in the backend, if value is in range
                 if (value.value <= 100 && value.value > 0) {
@@ -144,12 +139,11 @@ describe("historization and status code Bad #1119", function () {
     it("should create a historical node with a status code - form 2", async () => {
         let setPoint = 50;
         const result = await test({
-            get: function (): Variant {
-                return new Variant({
+            get: (): Variant =>
+                new Variant({
                     value: setPoint,
                     dataType: DataType.Double
-                });
-            },
+                }),
             set: function (this: UAVariable, value: Variant) {
                 // Check in the backend, if value is in range
                 if (value.value <= 100 && value.value > 0) {
@@ -173,9 +167,7 @@ describe("historization and status code Bad #1119", function () {
     it("should create a historical node with a status code - form 3", async () => {
         let _value: DataValue = new DataValue({ value: { dataType: DataType.Double, value: 50 } });
         const result = await test({
-            timestamped_get: function (): DataValue {
-                return _value;
-            },
+            timestamped_get: (): DataValue => _value,
             timestamped_set: async function (this: UAVariable, value: DataValue) {
                 // Check in the backend, if value is in range
                 if (value.value.value > 100 || value.value.value <= 0) {

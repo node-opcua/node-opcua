@@ -1,15 +1,14 @@
-import should from "should";
-
 import { BinaryStream } from "node-opcua-binary-stream";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import should from "should";
 
 import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 describe("Testing PackML custom types", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -17,7 +16,7 @@ describe("Testing PackML custom types", async function (this: any) {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace();
+        const _namespace0 = addressSpace.getDefaultNamespace();
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.packML]);
         await ensureDatatypeExtracted(addressSpace);

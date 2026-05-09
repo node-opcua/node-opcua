@@ -1,38 +1,24 @@
-import { BaseNode, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
-import { LocalizedText } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { UACondition_Base } from "node-opcua-nodeset-ua";
-import { StatusCode } from "node-opcua-status-code";
-import { TimeZoneDataType } from "node-opcua-types";
-import { DataType } from "node-opcua-basic-types";
-import { ISetStateOptions } from "../i_set_state_options";
-import { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import { ConditionInfoOptions } from "./condition_info_i";
-import { ConditionSnapshot } from "./condition_snapshot";
+import type { ITypedEventEmitter, ListenerSignature, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UACondition_Base } from "node-opcua-nodeset-ua";
+import type { StatusCode } from "node-opcua-status-code";
+import type { TimeZoneDataType } from "node-opcua-types";
+import type { DataType } from "node-opcua-variant";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
+import type { ISetStateOptions } from "../i_set_state_options";
+import type { ConditionInfoOptions } from "./condition_info_i";
+import type { ConditionSnapshot } from "./condition_snapshot";
+import type { UABaseEventEvents, UABaseEventEx, UABaseEventHelper } from "./ua_base_event_ex";
 
-
-
-export interface UABaseEventHelper {
-    setSourceName(name: string): void;
-    setSourceNode(node: NodeId | BaseNode): void;
-}
-
+export type { UABaseEventHelper } from "./ua_base_event_ex";
 
 export type AddCommentEventHandler = (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
 
-export interface UAConditionHelper {
-    on(eventName: string, eventHandler: (...args: any[]) => void): this;
-    // -- Events
-    on(eventName: "addComment", eventHandler: AddCommentEventHandler): this;
-    on(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
-
-
-    once(eventName: string, eventHandler: (...args: any[]) => void): this;
-    // -- Events
-    once(eventName: "addComment", eventHandler: AddCommentEventHandler): this;
-    once(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
+export interface UAConditionEvents extends UABaseEventEvents {
+    addComment: AddCommentEventHandler;
+    branch_deleted: (branchId: string) => void;
 }
-
 
 export interface UAConditionHelper extends UABaseEventHelper {
     getBranchCount(): number;
@@ -51,30 +37,20 @@ export interface UAConditionHelper extends UABaseEventHelper {
     raiseNewCondition(conditionInfo: ConditionInfoOptions): void;
     raiseNewBranchState(branch: ConditionSnapshot): void;
     currentBranch(): ConditionSnapshot;
-    findBranchForEventId(eventId: Buffer| null): ConditionSnapshot | null;
-
+    findBranchForEventId(eventId: Buffer | null): ConditionSnapshot | null;
 }
 
-export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHelper {
+export interface UAConditionEx<T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents> extends 
+UABaseEventEx,
+ UACondition_Base, 
+ UAObject<T>, 
+ UAConditionHelper 
+ {
     enabledState: UATwoStateVariableEx;
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
-
-    //
-    conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
-    conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
-    conditionSubClassId?: UAProperty<NodeId[], /*c*/ DataType.NodeId>;
-    conditionSubClassName?: UAProperty<LocalizedText[], /*c*/ DataType.LocalizedText>;
-    // conditionName: UAProperty<UAString, /*c*/DataType.String>;
-    // branchId: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    // retain: UAProperty<boolean, /*c*/DataType.Boolean>;
-    // quality: UAConditionVariable<StatusCode, /*c*/DataType.StatusCode>;
-    // lastSeverity: UAConditionVariable<UInt16, /*c*/DataType.UInt16>;
-    // comment: UAConditionVariable<LocalizedText, /*c*/DataType.LocalizedText>;
-    // clientUserId: UAProperty<UAString, /*c*/DataType.String>;
-    // disable: UAMethod;
-    // enable: UAMethod;
-    // addComment: UAMethod;
-    // conditionRefresh: UAMethod;
-    // conditionRefresh2: UAMethod;
+    // these are declared as optional in UABaseEvent_Base but required in UACondition_Base;
+    // re-state them here to disambiguate the two parent interfaces.
+    conditionClassId: UAProperty<NodeId, DataType.NodeId>;
+    conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
+    conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }

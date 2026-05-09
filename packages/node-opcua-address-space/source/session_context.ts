@@ -315,7 +315,7 @@ export class SessionContext implements ISessionContext {
         if (username === "anonymous") {
             return anonymous;
         }
-        if (!this.server || !this.server.userManager) {
+        if (!this.server?.userManager) {
             return anonymous;
         }
 

@@ -1,18 +1,18 @@
-import { IAddressSpace, INamespace, UADataType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
-import { NodeClass } from "node-opcua-data-model";
-import { StructureField } from "node-opcua-types";
-import { DataType } from "node-opcua-basic-types";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { Variant } from "node-opcua-variant";
+import type { IAddressSpace, INamespace, UADataType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
+import { DataType } from "node-opcua-basic-types";
+import { NodeClass } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NamespacePrivate } from "../namespace_private";
-import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
-import { UAVariableImpl } from "../ua_variable_impl";
-import { TranslationTable } from "../../source/xml_writer";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { StructureField } from "node-opcua-types";
+import { Variant } from "node-opcua-variant";
+import type { TranslationTable } from "../../source/xml_writer";
+import { type BaseNodeImpl, getReferenceType } from "../base_node_impl";
+import type { NamespacePrivate } from "../namespace_private";
+import type { UAVariableImpl } from "../ua_variable_impl";
 
 const warningLog = make_warningLog(__filename);
-const debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog(__filename);
 
 // eslint-disable-next-line max-statements, complexity
 export function _recomputeRequiredModelsFromTypes(
@@ -134,7 +134,7 @@ export function _recomputeRequiredModelsFromTypes(
                     consider(dataTypeNode.nodeId.namespace);
                 } else {
                     // c8 ignore next
-                    if (dataTypeNodeId.value != 0) {
+                    if (dataTypeNodeId.value !== 0) {
                         warningLog("Warning: Cannot find dataType", dataTypeNodeId.toString());
                     }
                 }
@@ -195,7 +195,6 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
     priorityList: number[],
     cache?: Map<number, { requiredNamespaceIndexes: number[]; nbTypes: number }>
 ): number[] {
-
     const namespace_ = namespace as NamespacePrivate;
 
     const thisPriority = priorityList[namespace.index];
@@ -208,7 +207,7 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
             requiredModelsSet.add(requiredModel);
             requiredNamespaceIndexes.push(requiredModel);
         }
-    }
+    };
 
     //const maxIndex = Math.max(...requiredNamespaceIndexes);
     for (const node of namespace_.nodeIterator()) {
@@ -217,7 +216,7 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
             // if (reference.isForward) continue;
             // only look at backward reference
             // check referenceId
-            const namespaceIndexOfReferenceType = getReferenceType(reference)!.nodeId.namespace;
+            const namespaceIndexOfReferenceType = getReferenceType(reference)?.nodeId.namespace;
             if (namespaceIndexOfReferenceType !== 0 && namespaceIndexOfReferenceType !== namespace.index) {
                 const refPriority = priorityList[namespaceIndexOfReferenceType];
                 if (refPriority <= thisPriority) {
@@ -312,7 +311,7 @@ export function constructNamespacePriorityTable(addressSpace: IAddressSpace): { 
     return { loadingOrder, priorityTable };
 }
 
-const doDebug = false;
+const _doDebug = false;
 export function constructNamespaceDependency(namespace: INamespace, priorityTable?: number[]): INamespace[] {
     const addressSpace = namespace.addressSpace;
     priorityTable = priorityTable || constructNamespacePriorityTable(addressSpace).priorityTable;

@@ -229,7 +229,7 @@ export interface VariableStuff {
     dataValue?: DataValueOptions;
 }
 
-export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff { }
+export interface AddVariableOptionsWithoutValue extends AddBaseNodeOptions, VariableStuff {}
 export interface AddVariableOptions extends AddVariableOptionsWithoutValue {
     // default value is "BaseVariableType";
     typeDefinition?: string | NodeId | UAVariableType;

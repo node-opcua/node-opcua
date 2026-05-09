@@ -1,29 +1,26 @@
 /* eslint-disable max-statements */
 // tslint:disable:no-console
-import path from "path";
+import path from "node:path";
 import "should";
-import { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import { LocalizedText, type QualifiedName } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
-
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { nodesets } from "node-opcua-nodesets";
-import { NodeId } from "node-opcua-nodeid";
-import sinon from "sinon";
 import should from "should";
-
+import sinon from "sinon";
 import {
     AddressSpace,
     promoteToStateMachine,
-    UAStateMachineEx,
-    UAObject,
-    UAStateMachineType,
-    UAFiniteStateMachineType,
-    UAFiniteStateMachine,
-    UAVariable
+    type UAFiniteStateMachineType,
+    type UAObject,
+    type UAStateMachineEx,
+    type UAStateMachineType,
+    type UAVariable
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -51,11 +48,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
     it("a finite state machine should have expected mandatory and optional fields", async () => {
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as UAStateMachineType;
 
-        stateMachineType.currentState.modellingRule!.should.eql("Mandatory");
-        stateMachineType.currentState.id.modellingRule!.should.eql("Mandatory");
+        stateMachineType.currentState.modellingRule?.should.eql("Mandatory");
+        stateMachineType.currentState.id.modellingRule?.should.eql("Mandatory");
 
-        stateMachineType.lastTransition!.modellingRule!.should.eql("Optional");
-        stateMachineType.lastTransition!.id!.modellingRule!.should.eql("Mandatory");
+        stateMachineType.lastTransition?.modellingRule?.should.eql("Optional");
+        stateMachineType.lastTransition?.id?.modellingRule?.should.eql("Mandatory");
 
         stateMachineType.currentState.dataTypeObj.browseName.toString().should.eql("LocalizedText");
 
@@ -63,7 +60,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         stateMachineType.currentState.id.dataType.isEmpty().should.eql(true);
         stateMachineType.isAbstract.should.eql(false);
         stateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("StateVariableType");
-        stateMachineType.lastTransition!.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
+        stateMachineType.lastTransition?.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
     });
 
     it("should instantiate a finite state machine", async () => {
@@ -71,12 +68,12 @@ describe("FSM1 - Finite State Machine - general tests", () => {
 
         const stateMachine = stateMachineType.instantiate({ browseName: "MyStateMachine" });
 
-        stateMachine.getComponentByName("CurrentState")!.browseName.toString().should.eql("CurrentState");
+        stateMachine.getComponentByName("CurrentState")?.browseName.toString().should.eql("CurrentState");
 
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
         stateMachine.currentState.id.browseName.toString().should.eql("Id");
 
-        Object.prototype.hasOwnProperty.call(stateMachine, "lastTransition").should.eql(false);
+        Object.hasOwn(stateMachine, "lastTransition").should.eql(false);
     });
 
     it("should instantiate a finite state machine with lastTransition", async () => {
@@ -87,11 +84,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
             optionals: ["LastTransition"]
         });
 
-        stateMachine.getComponentByName("CurrentState")!.browseName.toString().should.eql("CurrentState");
+        stateMachine.getComponentByName("CurrentState")?.browseName.toString().should.eql("CurrentState");
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
 
-        stateMachine.getComponentByName("LastTransition")!.browseName.toString().should.eql("LastTransition");
-        stateMachine.lastTransition!.browseName.toString().should.eql("LastTransition");
+        stateMachine.getComponentByName("LastTransition")?.browseName.toString().should.eql("LastTransition");
+        stateMachine.lastTransition?.browseName.toString().should.eql("LastTransition");
     });
 
     it("should bind a finite state machine state variable", async () => {
@@ -121,11 +118,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
     it("should explore FiniteStateMachineType", async () => {
         const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType")! as UAFiniteStateMachineType;
 
-        finiteStateMachineType.currentState.modellingRule!.should.eql("Mandatory");
-        finiteStateMachineType.currentState.id.modellingRule!.should.eql("Mandatory");
+        finiteStateMachineType.currentState.modellingRule?.should.eql("Mandatory");
+        finiteStateMachineType.currentState.id.modellingRule?.should.eql("Mandatory");
 
-        finiteStateMachineType.lastTransition!.modellingRule!.should.eql("Optional");
-        finiteStateMachineType.lastTransition!.id!.modellingRule!.should.eql("Mandatory");
+        finiteStateMachineType.lastTransition?.modellingRule?.should.eql("Optional");
+        finiteStateMachineType.lastTransition?.id?.modellingRule?.should.eql("Mandatory");
 
         finiteStateMachineType.isAbstract.should.eql(false);
 
@@ -153,7 +150,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         // get the states
         const a = myStateMachine.getStates().map((e: any) => {
             const stateNumber = e.stateNumber.readValue().value.value;
-            return e.browseName.toString() + (stateNumber !== null ? " ( " + stateNumber + " )" : "");
+            return e.browseName.toString() + (stateNumber !== null ? ` ( ${stateNumber} )` : "");
         });
 
         if (doDebug) {
@@ -163,7 +160,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         // get the transitions
         const t = myStateMachine.getTransitions().map((e) => {
             const transitionNumber = e.transitionNumber.readValue().value.value;
-            return e.browseName.toString() + (transitionNumber !== null ? " ( " + transitionNumber + " )" : "");
+            return e.browseName.toString() + (transitionNumber !== null ? ` ( ${transitionNumber} )` : "");
         });
         if (doDebug) {
             debugLog("transitions : ", t.join(" "));
@@ -282,8 +279,8 @@ describe("FSM2 - Finite State Machine with Multiple transition from one state to
     function captureConsoleLog() {
         /* */
         // tslint:disable-next-line: only-arrow-functions
-        console.log = function (...args: [any, ...any[]]) {
-            const str = args.map((a) => "" + a).join(" ");
+        console.log = (...args: [any, ...any[]]) => {
+            const str = args.map((a) => `${a}`).join(" ");
             if (str.substring(0, 3) !== "XXX") {
                 _output.push(str);
             }
@@ -322,9 +319,9 @@ describe("FSM2 - Finite State Machine with Multiple transition from one state to
         const visionSystemType = addressSpace.findObjectType("VisionSystemType", nsVision);
 
         const deviceSet = addressSpace.rootFolder.objects.getFolderElementByName("DeviceSet", nsDI);
-        if (!deviceSet) throw new Error("Cannot find device set in namespace  " + nsDI);
+        if (!deviceSet) throw new Error(`Cannot find device set in namespace  ${nsDI}`);
 
-        visionSystem = visionSystemType!.instantiate({
+        visionSystem = visionSystemType?.instantiate({
             browseName: "VisionSystem1",
             organizedBy: deviceSet // addressSpace.rootFolder.objects,
         }) as UAVisionSystem;
@@ -379,13 +376,13 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
         } as any);
     });
     afterEach(() => {
-        clock!.restore();
+        clock?.restore();
         clock = undefined;
     });
     function advanceClockOneHour() {
         const OneHour = 1000 * 60 * 60;
         const now = new Date(Date.now() + OneHour);
-        clock!.setSystemTime(now);
+        clock?.setSystemTime(now);
         return now;
     }
 
@@ -409,11 +406,11 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
         addressSpace.dispose();
     });
 
-    describe("FSM3-A Test FiniteStateMachine from companion specification", function () {
+    describe("FSM3-A Test FiniteStateMachine from companion specification", () => {
         let stateMachine: UAStateMachineEx;
 
         before(async () => {
-            const namespace = addressSpace.getOwnNamespace();
+            const _namespace = addressSpace.getOwnNamespace();
 
             const nsMachinery = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/");
             const machineItemStateStateMachineType = addressSpace.findObjectType(
@@ -494,7 +491,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
             {
                 stateMachine.currentState
                     .readValue()
-                    .value.value.text!.should.eql("NotAvailable", "the state should be NotAvailable without namespace decoration");
+                    .value.value.text?.should.eql("NotAvailable", "the state should be NotAvailable without namespace decoration");
 
                 const state = stateMachine.getStateByName("NotAvailable")!;
 
@@ -516,13 +513,13 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 {
                     const value = effectiveDisplayName.readValue().value;
                     value.dataType.should.eql(DataType.LocalizedText);
-                    (value.value as LocalizedText).text!.should.eql("NotAvailable");
+                    (value.value as LocalizedText).text?.should.eql("NotAvailable");
                 }
             }
 
             stateMachine.setState("Executing");
             {
-                stateMachine.currentState.readValue().value.value.text!.should.eql("Executing");
+                stateMachine.currentState.readValue().value.value.text?.should.eql("Executing");
                 const state = stateMachine.getStateByName("Executing")!;
 
                 {
@@ -543,7 +540,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 {
                     const value = effectiveDisplayName.readValue().value;
                     value.dataType.should.eql(DataType.LocalizedText);
-                    (value.value as LocalizedText).text!.should.eql("Executing");
+                    (value.value as LocalizedText).text?.should.eql("Executing");
                 }
             }
 
@@ -582,8 +579,8 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 const value = uaName.readValue().value;
                 value.dataType.should.eql(DataType.QualifiedName);
                 const value2 = value.value as QualifiedName;
-                value2.name!.should.eql("FromNotAvailableToExecuting");
-                value2.namespaceIndex!.should.eql(2);
+                value2.name?.should.eql("FromNotAvailableToExecuting");
+                value2.namespaceIndex?.should.eql(2);
             }
             const uaId = uaLastTransition.getPropertyByName("Id")! as UAVariable;
             should.exist(uaId);
@@ -600,7 +597,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
         });
     });
 
-    describe("FSM3-B Test MachineState with SubMachine state", function () {
+    describe("FSM3-B Test MachineState with SubMachine state", () => {
         // MachineOperationModeStateMachineType
         let stateMachine: UAStateMachineEx;
 
@@ -661,7 +658,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
             const lastTransition = stateMachine.getComponentByName("LastTransition");
             should.exist(lastTransition);
 
-            const lastTransitionEffectiveTransitionTime = lastTransition!.getPropertyByName(
+            const lastTransitionEffectiveTransitionTime = lastTransition?.getPropertyByName(
                 "EffectiveTransitionTime"
             )! as UAVariable;
             should.exist(lastTransitionEffectiveTransitionTime);

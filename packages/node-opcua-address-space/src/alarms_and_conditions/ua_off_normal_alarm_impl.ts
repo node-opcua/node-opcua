@@ -1,20 +1,20 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { INamespace, UAVariable, UAVariableT } from "node-opcua-address-space-base";
+import type { INamespace, UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { DataValue } from "node-opcua-data-value";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { DataValue } from "node-opcua-data-value";
+import { NodeId, type NodeIdLike } from "node-opcua-nodeid";
 
-import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
+import type { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
 import { isNullOrUndefined } from "node-opcua-utils";
-import { DataType, VariantOptions } from "node-opcua-variant";
-import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
-import { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
-import { AddressSpacePrivate } from "../address_space_private";
-import { UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
+import { DataType, type VariantOptions } from "node-opcua-variant";
+import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
+import type { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
+import type { AddressSpacePrivate } from "../address_space_private";
+import { UADiscreteAlarmImplBase } from "./ua_discrete_alarm_impl";
 
-function isEqual(value1: any, value2: any) {
+function isEqual(value1: unknown, value2: unknown): boolean {
     return value1 === value2;
 }
 
@@ -39,22 +39,20 @@ export declare interface UAOffNormalAlarmEx
     setNormalStateValue(value: NodeIdLike): void;
 }
 
-export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
-}
+
+const $ = (instance: UAOffNormalAlarmImplBase): UAOffNormalAlarmEx => instance as unknown as UAOffNormalAlarmEx;
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a
  * discrete Condition that is considered to be not normal.
  * This sub type is usually used to indicate that a discrete value is in an Alarm state, it is active as
  * long as a non-normal value is present.
  */
-export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNormalAlarmEx {
+export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
     /**
      * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.
      *
      */
-    public static instantiate<T, DT extends DataType>(
+    public static instantiate<_T, _DT extends DataType>(
         namespace: INamespace,
         limitAlarmTypeId: string | NodeId,
         options: InstantiateOffNormalAlarmOptions,
@@ -68,12 +66,12 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
             throw new Error("cannot find offNormalAlarmType");
         }
 
-        assert(Object.prototype.hasOwnProperty.call(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
-        assert(Object.prototype.hasOwnProperty.call(options, "normalState"), "must provide a normalState Node"); // must provide a inputNode
+        assert(Object.hasOwn(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
+        assert(Object.hasOwn(options, "normalState"), "must provide a normalState Node"); // must provide a inputNode
         options.optionals = options.optionals || [];
 
-        assert(Object.prototype.hasOwnProperty.call(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
-        const alarmNode = UADiscreteAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarmImpl;
+        assert(Object.hasOwn(options, "inputNode"), "must provide inputNode"); // must provide a inputNode
+        const alarmNode = UADiscreteAlarmImplBase.instantiate(namespace, limitAlarmTypeId, options, data) as UAOffNormalAlarmImpl;
         Object.setPrototypeOf(alarmNode, UAOffNormalAlarmImpl.prototype);
 
         /**
@@ -107,7 +105,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
             const normalState = addressSpace._coerceNode(options.normalState) as UAVariable | null;
             const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
             alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
-            alarmNode.normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
+            alarmNode.normalState.on("value_changed", (_newDataValue, _indexRange) => {
                 // The node that contains the normalState value has changed.
                 //   we must remove the listener on current normalState and replace
                 //   normalState with the new one and set listener again
@@ -137,8 +135,11 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     // Property the Alarm is Active. If this Variable is not in the AddressSpace, a Null NodeId shall
     // be provided.
 
+    private get $4(): UAOffNormalAlarmEx {
+        return this as unknown as UAOffNormalAlarmEx;
+    }
     public getNormalStateNode(): UAVariableT<NodeId, DataType.NodeId> | null {
-        const nodeId = this.normalState.readValue().value.value;
+        const nodeId = this.$4.normalState.readValue().value.value;
         const node = this.addressSpace.findNode(nodeId) as UAVariableT<NodeId, DataType.NodeId>;
         if (!node) {
             return null;
@@ -158,13 +159,13 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
 
     /**
      */
-    public setNormalStateValue(value: NodeIdLike): void {
-        const normalStateNode = this.getNormalStateNode();
+    public setNormalStateValue(_value: NodeIdLike): void {
+        const _normalStateNode = this.getNormalStateNode();
         throw new Error("Not Implemented yet");
     }
 
     public updateAlarmState(isActive: boolean, message: string) {
-        if (isActive === this.activeState.getValue()) {
+        if (isActive === $(this).activeState.getValue()) {
             // no change => ignore !
             return;
         }
@@ -176,9 +177,9 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         }
     }
 
-    private _mayBe_updateAlarmState(normalStateValue?: any, inputValue?: any): void {
+    _mayBe_updateAlarmState(normalStateValue?: NodeId | null, inputValue?: unknown): void {
         if (isNullOrUndefined(normalStateValue) || isNullOrUndefined(inputValue)) {
-            this.activeState.setValue(false);
+            $(this).activeState.setValue(false);
             return;
         }
         const isActive = !isEqual(normalStateValue, inputValue);
@@ -213,3 +214,6 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
         this._mayBe_updateAlarmState(normalStateValue, inputValue);
     }
 }
+
+export type UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase & UAOffNormalAlarmEx;
+export const UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase as unknown as new () => UAOffNormalAlarmImpl;

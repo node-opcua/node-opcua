@@ -1,16 +1,12 @@
-import fs from "fs";
-import should from "should";
-
-import { nodesets } from "node-opcua-nodesets";
-import { HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
+import fs from "node:fs";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
-
-import { AddressSpace, ContinuationPoint, ContinuationPointManager, SessionContext } from "../..";
+import { nodesets } from "node-opcua-nodesets";
+import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
+import { StatusCodes } from "node-opcua-status-code";
+import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
 
 describe("Testing Historical Data Node", () => {
     const context = new SessionContext({
@@ -23,7 +19,7 @@ describe("Testing Historical Data Node", () => {
     before(async () => {
         addressSpace = AddressSpace.create();
         const xml_files = [nodesets.standard];
-        fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
+        fs.existsSync(xml_files[0]).should.be.eql(true, `file ${xml_files[0]} must exist`);
         const namespace = addressSpace.registerNamespace("MyPrivateNamespace");
         namespace.namespaceUri.should.eql("MyPrivateNamespace");
         await generateAddressSpace(addressSpace, xml_files);
@@ -77,7 +73,7 @@ describe("Testing Historical Data Node", () => {
 
         const dataValues1 = (historyReadResult1.historyData as HistoryData).dataValues!;
         dataValues1.length.should.eql(1);
-        dataValues1[0].sourceTimestamp!.should.eql(date_add(today, { seconds: 0 }));
+        dataValues1[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
 
         node.setValueFromSource(
             {
@@ -95,8 +91,8 @@ describe("Testing Historical Data Node", () => {
 
         const dataValues2 = (historyReadResult2.historyData as HistoryData).dataValues!;
         dataValues2.length.should.eql(2);
-        dataValues2[0].sourceTimestamp!.should.eql(date_add(today, { seconds: 0 }));
-        dataValues2[1].sourceTimestamp!.should.eql(date_add(today, { seconds: 1 }));
+        dataValues2[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
+        dataValues2[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 }));
 
         node.setValueFromSource(
             {
@@ -114,9 +110,9 @@ describe("Testing Historical Data Node", () => {
 
         const dataValues3 = (historyReadResult3.historyData as HistoryData).dataValues!;
         dataValues3.length.should.eql(3);
-        dataValues3[0].sourceTimestamp!.should.eql(date_add(today, { seconds: 0 }));
-        dataValues3[1].sourceTimestamp!.should.eql(date_add(today, { seconds: 1 }));
-        dataValues3[2].sourceTimestamp!.should.eql(date_add(today, { seconds: 2 }));
+        dataValues3[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
+        dataValues3[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 }));
+        dataValues3[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 }));
 
         // the queue is full, the next insertion will cause the queue to be trimmed
 
@@ -136,9 +132,9 @@ describe("Testing Historical Data Node", () => {
 
         const dataValues4 = (historyReadResult4.historyData as HistoryData).dataValues!;
         dataValues4.length.should.eql(3);
-        dataValues4[0].sourceTimestamp!.should.eql(date_add(today, { seconds: 1 }));
-        dataValues4[1].sourceTimestamp!.should.eql(date_add(today, { seconds: 2 }));
-        dataValues4[2].sourceTimestamp!.should.eql(date_add(today, { seconds: 3 }));
+        dataValues4[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 }));
+        dataValues4[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 }));
+        dataValues4[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 }));
 
         // the queue is (still)  full, the next insertion will cause the queue to be trimmed, again
 
@@ -158,8 +154,8 @@ describe("Testing Historical Data Node", () => {
 
         const dataValues5 = (historyReadResult5.historyData as HistoryData).dataValues!;
         dataValues5.length.should.eql(3);
-        dataValues5[0].sourceTimestamp!.should.eql(date_add(today, { seconds: 2 }));
-        dataValues5[1].sourceTimestamp!.should.eql(date_add(today, { seconds: 3 }));
-        dataValues5[2].sourceTimestamp!.should.eql(date_add(today, { seconds: 4 }));
+        dataValues5[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 }));
+        dataValues5[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 }));
+        dataValues5[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 }));
     });
 });

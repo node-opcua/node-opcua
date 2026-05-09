@@ -1,29 +1,26 @@
 import "should";
-import { AttributeIds, BrowseDirection, makeNodeClassMask } from "node-opcua-data-model";
-import { NodeClass } from "node-opcua-data-model";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
-import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription, BrowseDescription } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { ReferenceTypeIds } from "node-opcua-constants";
+import { AttributeIds, BrowseDirection, makeNodeClassMask, NodeClass } from "node-opcua-data-model";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import { BrowseDescription, type ReferenceDescription } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
 
 import {
-    AddressSpace,
+    type AddressSpace,
     adjustBrowseDirection,
-    BaseNode,
+    type BaseNode,
     dumpReferenceDescriptions,
-    UARootFolder,
     SessionContext,
-    UAReference,
-    UAReferenceType
+    type UAReferenceType,
+    type UARootFolder
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
-
 
 describe("testing ReferenceType", () => {
     let addressSpace: AddressSpace;
@@ -104,7 +101,7 @@ describe("testing ReferenceType", () => {
         references.length.should.be.greaterThan(2);
 
         const browseNames = references.map((ref) => {
-            return addressSpace.findNode(ref.nodeId)!.browseName.toString();
+            return addressSpace.findNode(ref.nodeId)?.browseName.toString();
         });
         const expectedBrowseNames = ["FolderType", "Objects", "Types", "Views"];
         browseNames.sort().should.eql(expectedBrowseNames.sort());
@@ -134,7 +131,7 @@ describe("testing ReferenceType", () => {
         });
         references.length.should.be.greaterThan(2);
 
-        const browseNames = references.map((ref) => addressSpace.findNode(ref.nodeId)!.browseName.toString());
+        const browseNames = references.map((ref) => addressSpace.findNode(ref.nodeId)?.browseName.toString());
         const expectedBrowseNames = ["Objects", "Types", "Views"];
         // _.intersection(names, expectedNames).length.should.eql(expectedNames.length);
         browseNames.sort().should.eql(expectedBrowseNames.sort());
@@ -201,7 +198,7 @@ describe("testing ReferenceType", () => {
         serverStatus.browseName.toString().should.equal("ServerStatus");
         serverStatus.nodeId.toString().should.equal("ns=0;i=2256");
 
-        serverStatus.parent!.nodeId.should.equal(server.nodeId);
+        serverStatus.parent?.nodeId.should.equal(server.nodeId);
     });
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", (done: any) => {
@@ -216,7 +213,7 @@ describe("testing ReferenceType", () => {
         });
 
         const browseNames = references.map((r: ReferenceDescription) => {
-            return r.browseName!.name;
+            return r.browseName?.name;
         });
         // console.log("             browseNames :  " + browseNames.join(" , "));
 
@@ -334,7 +331,7 @@ describe("testing ReferenceType", () => {
 
         s.should.eql(
             "HierarchicalReferences HasChild Aggregates HasProperty HasComponent " +
-            "HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier"
+                "HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier"
         );
 
         const aggregates = addressSpace.findReferenceType("Aggregates")!;
@@ -395,18 +392,18 @@ describe("testing ReferenceType", () => {
         // xx console.log("referenceTypes",referenceTypes.map(function(e){return e.browseName;}));
         bench
             .add("findReferencesEx slow", () => {
-                const a1 = findReferencesEx_deprecated.call(server, "HasChild", BrowseDirection.Forward);
-                const a2 = findReferencesEx_deprecated.call(server, "HasChild", BrowseDirection.Inverse);
+                const _a1 = findReferencesEx_deprecated.call(server, "HasChild", BrowseDirection.Forward);
+                const _a2 = findReferencesEx_deprecated.call(server, "HasChild", BrowseDirection.Inverse);
             })
             .add("findReferencesEx fast", () => {
-                const a1 = server.findReferencesEx("HasChild", BrowseDirection.Forward);
-                const a2 = server.findReferencesEx("HasChild", BrowseDirection.Inverse);
+                const _a1 = server.findReferencesEx("HasChild", BrowseDirection.Forward);
+                const _a2 = server.findReferencesEx("HasChild", BrowseDirection.Inverse);
             })
             .on("cycle", (message: string) => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
                 this.fastest.name.should.eql("findReferencesEx fast");
                 // xx this.speedUp.should.be.greaterThan(5); // at least 5 time faster
@@ -488,7 +485,7 @@ describe(" improving performance of isSubtypeOf", () => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
                 this.fastest.name.should.eql("isSubtypeOf fast");
 

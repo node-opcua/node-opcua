@@ -1,14 +1,14 @@
 /**
  * @module node-opcua-address-space.DataAccess
  */
-import { StatusCodes } from "node-opcua-status-code";
-import { StatusCode } from "node-opcua-status-code";
-import { Range } from "node-opcua-types";
-import { UAVariable } from "node-opcua-address-space-base";
+
+import type { UAVariable } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { Variant } from "node-opcua-variant";
-import { UAVariableImpl } from "../ua_variable_impl";
+import type { DataValue } from "node-opcua-data-value";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { Range } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
+import type { UAVariableImpl } from "../ua_variable_impl";
 
 function validate_value_range(range: Range, variant: Variant) {
     if (variant.value < range.low || variant.value > range.high) {

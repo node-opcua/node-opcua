@@ -1,6 +1,6 @@
-import { NodeId } from "node-opcua-nodeid";
-import { IAddressSpace } from "./address_space";
-import { BaseNode } from "./base_node";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IAddressSpace } from "./address_space";
+import type { BaseNode } from "./base_node";
 
 export interface UAReference {
     readonly nodeId: NodeId;

@@ -916,7 +916,15 @@ function __clone_interfaces_related_references(
         if (!typeDefinitionNode) {
             continue;
         }
-        if (doTrace) traceLog(extraInfo?.pad(), chalk.blueBright(newParent.browseName.toString(), "-----> Exploring interface ", typeDefinitionNode.browseName.toString()));
+        if (doTrace)
+            traceLog(
+                extraInfo?.pad(),
+                chalk.blueBright(
+                    newParent.browseName.toString(),
+                    "-----> Exploring interface ",
+                    typeDefinitionNode.browseName.toString()
+                )
+            );
         while (typeDefinitionNode) {
             // c8 ignore next
             doTrace &&
@@ -946,7 +954,7 @@ export function _clone_hierarchical_references(
 ) {
     __clone_children_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
     __clone_organizes_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
- //   __clone_interfaces_related_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    //   __clone_interfaces_related_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 export function _clone_non_hierarchical_references(
     nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
@@ -1206,8 +1214,8 @@ function _makeReferenceDescription(addressSpace: IAddressSpace, reference: UARef
     } else {
         const obj2 = obj;
 
-        const objOrVar = (obj2.nodeClass === NodeClass.Object || obj2.nodeClass === NodeClass.Variable ) 
-        ? (obj2 as UAVariable | UAObject) : null;
+        const objOrVar =
+            obj2.nodeClass === NodeClass.Object || obj2.nodeClass === NodeClass.Variable ? (obj2 as UAVariable | UAObject) : null;
 
         assert(reference.nodeId, " obj.nodeId");
         data = {

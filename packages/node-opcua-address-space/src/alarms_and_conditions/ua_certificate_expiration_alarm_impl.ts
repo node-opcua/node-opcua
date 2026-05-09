@@ -29,7 +29,7 @@ export function instantiateCertificateExpirationAlarm(
     alarmType: "CertificateExpirationAlarmType",
     options: InstantiateOffNormalAlarmOptions
 ): UACertificateExpirationAlarmEx {
-    return UACertificateExpirationAlarmImpl.instantiate(namespace, alarmType, options);
+    return UACertificateExpirationAlarmImplBase.instantiate(namespace, alarmType, options);
 }
 
 // This Simple DataType is a Double that defines an interval of time in milliseconds (fractions can be used to define sub-millisecond values).
@@ -42,7 +42,7 @@ export const TwoWeeksDuration = OneDayDuration * 2 * 7;
  * Certificate is within the ExpirationLimit
  * of expiration. This alarm automatically returns to normal when the certificate is updated.
  */
-class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implements UACertificateExpirationAlarmEx {
+class UACertificateExpirationAlarmImplBase extends UASystemOffNormalAlarmImpl {
     declare expirationDate: UAProperty<Date, DataType.DateTime>;
     declare expirationLimit: UAProperty<number, DataType.Double> | undefined;
     declare certificateType: UAProperty<NodeId, DataType.NodeId>;
@@ -238,3 +238,7 @@ export function promoteToCertificateExpirationAlarm(node: UAObject): UACertifica
     return _node;
 }
 registerNodePromoter(ObjectTypeIds.CertificateExpirationAlarmType, promoteToCertificateExpirationAlarm, true);
+
+export type UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase & UACertificateExpirationAlarmEx;
+export const UACertificateExpirationAlarmImpl: new () => UACertificateExpirationAlarmImpl =
+    UACertificateExpirationAlarmImplBase as any;

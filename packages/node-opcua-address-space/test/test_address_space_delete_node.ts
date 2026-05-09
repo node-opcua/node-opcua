@@ -1,10 +1,9 @@
+import { EventNotifierFlags } from "node-opcua-address-space-base";
+import { nodesets } from "node-opcua-nodesets";
+import { DataType } from "node-opcua-variant";
 import should from "should";
 
-import { DataType } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
-import { EventNotifierFlags } from "node-opcua-address-space-base";
-
-import { AddressSpace, Namespace, UAObject, UAObjectType, UADiscreteAlarm, ensureDatatypeExtracted } from "..";
+import { AddressSpace, ensureDatatypeExtracted, type Namespace, type UADiscreteAlarm, type UAObject, type UAObjectType } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -107,8 +106,8 @@ describe("AddressSpace#delete", () => {
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")!.should.eql(childNode);
-        parentNode.childNode!.should.eql(childNode);
+        parentNode.getChildByName("ChildNode")?.should.eql(childNode);
+        parentNode.childNode?.should.eql(childNode);
 
         addressSpace.deleteNode(childNode);
 
@@ -122,30 +121,29 @@ describe("AddressSpace#delete", () => {
             organizedBy: addressSpace.rootFolder.objects
         }) as UAObject & { childNode?: UAObject };
 
-        let childNode = namespace.addObject({
+        const childNode = namespace.addObject({
             browseName: "ChildNode",
             componentOf: parentNode
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")!.should.eql(childNode);
-        parentNode.childNode!.should.eql(childNode);
+        parentNode.getChildByName("ChildNode")?.should.eql(childNode);
+        parentNode.childNode?.should.eql(childNode);
 
         addressSpace.deleteNode(childNode);
 
         parentNode.getComponents().length.should.eql(0);
         should.not.exist(parentNode.getChildByName("ChildNode"));
-         should.not.exist(parentNode.childNode);
+        should.not.exist(parentNode.childNode);
 
-        let childNodeAgain =    namespace.addObject({
+        const childNodeAgain = namespace.addObject({
             browseName: "ChildNode",
             componentOf: parentNode
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")!.should.eql(childNodeAgain);
-        parentNode.childNode!.should.eql(childNodeAgain);
-
+        parentNode.getChildByName("ChildNode")?.should.eql(childNodeAgain);
+        parentNode.childNode?.should.eql(childNodeAgain);
     });
 });
 
@@ -166,7 +164,7 @@ describe("AddressSpace#deleteNode-b", () => {
         (alarmType as any).isAbstract = false;
 
         if (alarmType.isAbstract) {
-            throw new Error("Alarm Type cannot be abstract " + alarmType.browseName.toString());
+            throw new Error(`Alarm Type cannot be abstract ${alarmType.browseName.toString()}`);
         }
         deviceNode.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
 
@@ -205,12 +203,12 @@ describe("AddressSpace#deleteNode-b", () => {
             nodeId,
             organizedBy: addressSpace.rootFolder.objects
         });
-        const deviceHealth = namespace.addVariable({
+        const _deviceHealth = namespace.addVariable({
             browseName: "DeviceHealth",
             componentOf: deviceNode,
             dataType: "Int32"
         });
-        const deviceHealthAlarms = namespace.addObject({
+        const _deviceHealthAlarms = namespace.addObject({
             browseName: "DeviceHealthAlarms",
             componentOf: deviceNode
         });
@@ -221,7 +219,7 @@ describe("AddressSpace#deleteNode-b", () => {
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace();
+        const _namespace0 = addressSpace.getDefaultNamespace();
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);

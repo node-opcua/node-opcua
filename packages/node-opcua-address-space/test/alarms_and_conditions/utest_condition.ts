@@ -1,19 +1,15 @@
-// tslint:disable:max-line-length
-import should from "should";
-
-import sinon from "sinon";
-
+import { coerceLocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-
-import { coerceLocalizedText } from "node-opcua-data-model";
-import { AddressSpace, SessionContext, UAConditionEx, UAEventType, UAObject } from "../..";
+import { type CallMethodResultOptions, NodeClass } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import sinon from "sinon";
+import { type AddressSpace, SessionContext, type UACondition_Base, type UAConditionEx, type UAEventType, type UAObject } from "../..";
 import { mockSession } from "../../testHelpers";
+import { MochaSuiteEx } from "./test_alarms_and_conditions";
 
-export function utest_condition(test: any): void {
+export function utest_condition(test: MochaSuiteEx): void {
     describe("AddressSpace : Conditions 2", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
@@ -23,11 +19,14 @@ export function utest_condition(test: any): void {
         });
 
         it("should fail to instantiate a ConditionType (because it's abstract)", () => {
-            const conditionType = addressSpace.findEventType("ConditionType")!;
+            const conditionType = addressSpace.findEventType("ConditionType");
+            if (!conditionType) {
+                throw new Error("Cannot find ConditionType");
+            }
             conditionType.isAbstract.should.eql(true);
 
             should(function attempt_to_instantiate_an_AbstractConditionType() {
-                const instance = conditionType.instantiate({
+                const _instance = conditionType.instantiate({
                     browseName: "ConditionType",
                     componentOf: source
                 });
@@ -39,7 +38,7 @@ export function utest_condition(test: any): void {
             before(() => {
                 const namespace = addressSpace.getOwnNamespace();
 
-                const conditionType = addressSpace.findEventType("ConditionType")!;
+                const conditionType = addressSpace.findEventType("ConditionType");
                 if (!conditionType) {
                     throw new Error("Cannot find ConditionType");
                 }
@@ -63,6 +62,9 @@ export function utest_condition(test: any): void {
                 // xx                should.not.exist(condition.enabledState.effectiveTransitionTime);
             });
 
+            interface II  {
+evaluateConditionsAfterEnabled?: ()=>void;
+            }
             it(
                 "should be possible to enable and disable a condition using the enable & disable methods" +
                     " ( as a client would do)",
@@ -76,7 +78,7 @@ export function utest_condition(test: any): void {
                             conditionOf: addressSpace.rootFolder.objects.server
                         });
 
-                        (condition as any).evaluateConditionsAfterEnabled = () => {
+                        (condition as II).evaluateConditionsAfterEnabled = () => {
                             /* empty */
                         };
 
@@ -90,24 +92,24 @@ export function utest_condition(test: any): void {
 
                         condition.setEnabledState(false).should.eql(StatusCodes.Good);
                         condition.enabledState.id.readValue().value.value.should.eql(false);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Disabled");
 
                         condition.getEnabledState().should.eql(false);
 
                         condition.setEnabledState(true).should.eql(StatusCodes.Good);
                         condition.getEnabledState().should.eql(true);
                         condition.enabledState.id.readValue().value.value.should.eql(true);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Enabled");
 
                         condition.setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
                         condition.enabledState.id.readValue().value.value.should.eql(true);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Enabled");
 
                         condition.setEnabledState(false).should.eql(StatusCodes.Good);
                         condition.setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
                         condition.enabledState.id.readValue().value.value.should.eql(false);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Disabled");
                         condition.getEnabledState().should.eql(false);
 
                         //  calling disable when enable state is false should return BadConditionAlreadyDisabled
@@ -116,26 +118,26 @@ export function utest_condition(test: any): void {
 
                         const callMethodResult1 = await condition.disable.execute(null, [], context);
 
-                        callMethodResult1.statusCode!.should.eql(StatusCodes.BadConditionAlreadyDisabled);
+                        callMethodResult1.statusCode?.should.eql(StatusCodes.BadConditionAlreadyDisabled);
 
                         condition.enabledState.id.readValue().value.value.should.eql(false);
                         condition.getEnabledState().should.eql(false);
 
-                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Disabled");
 
                         // calling enable when enable state is false should return Good
 
                         const callMethodResult2 = await condition.enable.execute(null, [], context);
-                        callMethodResult2.statusCode!.should.eql(StatusCodes.Good);
+                        callMethodResult2.statusCode?.should.eql(StatusCodes.Good);
                         condition.enabledState.id.readValue().value.value.should.eql(true);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Enabled");
 
                         //  calling enable when enable state is already true should return BadConditionAlreadyEnabled
                         const callMethodResult3 = await condition.enable.execute(null, [], context);
 
-                        callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
+                        callMethodResult3.statusCode?.should.eql(StatusCodes.BadConditionAlreadyEnabled);
                         condition.enabledState.id.readValue().value.value.should.eql(true);
-                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.enabledState.readValue().value.value.text?.should.eql("Enabled");
                     } catch (err) {
                         console.log(err);
                         throw err;
@@ -162,9 +164,9 @@ export function utest_condition(test: any): void {
                     currentBranch.isCurrentBranch().should.eql(true);
 
                     currentBranch.setComment("MyComment");
-                    currentBranch.getComment().text!.should.eql("MyComment");
+                    currentBranch.getComment().text?.should.eql("MyComment");
 
-                    condition.comment.readValue().value.value.text!.should.eql("MyComment");
+                    condition.comment.readValue().value.value.text?.should.eql("MyComment");
                 });
 
                 it("writing to a new created branch variable should  NOT affect the underlying variable", () => {
@@ -175,16 +177,16 @@ export function utest_condition(test: any): void {
                     newBranch.isCurrentBranch().should.eql(false);
 
                     newBranch.setComment("MyComment222");
-                    newBranch.getComment().text!.should.eql("MyComment222");
+                    newBranch.getComment().text?.should.eql("MyComment222");
 
-                    currentBranch.getComment().text!.should.not.eql("MyComment222");
-                    condition.comment.readValue().value.value.text!.should.not.eql("MyComment222");
+                    currentBranch.getComment().text?.should.not.eql("MyComment222");
+                    condition.comment.readValue().value.value.text?.should.not.eql("MyComment222");
 
                     // on the other hand, modify current branch shall not affect  newBranch
                     currentBranch.setComment("MyComment111");
-                    currentBranch.getComment().text!.should.eql("MyComment111");
+                    currentBranch.getComment().text?.should.eql("MyComment111");
 
-                    newBranch.getComment().text!.should.eql("MyComment222");
+                    newBranch.getComment().text?.should.eql("MyComment222");
                 });
             });
 
@@ -240,7 +242,7 @@ export function utest_condition(test: any): void {
                     organizedBy: addressSpace.rootFolder.objects
                 });
 
-                (condition as any).evaluateConditionsAfterEnabled = () => {
+                (condition as II).evaluateConditionsAfterEnabled = () => {
                     /* empty */
                 };
 
@@ -266,7 +268,7 @@ export function utest_condition(test: any): void {
                 condition.retain.readValue().value.value.should.eql(true);
 
                 condition.enabledState.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                condition.enabledState.readValue().value.value.text?.should.eql("Enabled");
 
                 //  When the Condition instance enters the Disabled state, ...
                 let statusCode = condition.setEnabledState(false);
@@ -283,36 +285,36 @@ export function utest_condition(test: any): void {
                 condition.retain.readValue().value.value.should.eql(false);
                 // lets verify
                 condition.enabledState.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                condition.enabledState.readValue().value.value.text?.should.eql("Disabled");
 
                 // An event should have been raised to specify that the condition has entered a Disabled State
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal Disabled State");
 
                 // console.log( spyOnEvent.getCalls()[1].args[0]);
 
-                spyOnEvent.getCalls()[1].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
+                spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
                 spyOnEvent
                     .getCalls()[1]
-                    .args[0]["message"].toString()
+                    .args[0].message.toString()
                     .should.eql("Variant(Scalar<StatusCode>, value: BadConditionDisabled (0x80990000))");
 
                 // In a disabled state those value must be provided
                 // EventId, EventType, Source Node, Source Name, Time, and EnabledState.
-                spyOnEvent.getCalls()[1].args[0]["enabledState"].value.text.should.eql("Disabled");
+                spyOnEvent.getCalls()[1].args[0].enabledState.value.text.should.eql("Disabled");
                 spyOnEvent.getCalls()[1].args[0]["enabledState.id"].value.should.eql(false);
                 spyOnEvent.getCalls()[1].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Disabled");
                 spyOnEvent.getCalls()[1].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
 
-                spyOnEvent.getCalls()[1].args[0]["eventId"].value.should.be.instanceof(Buffer);
-                spyOnEvent.getCalls()[1].args[0]["sourceNode"].value.should.be.instanceof(NodeId);
-                spyOnEvent.getCalls()[1].args[0]["sourceName"].value.should.eql("1:Motor.RPM");
-                spyOnEvent.getCalls()[1].args[0]["time"].value.should.be.instanceof(Date);
+                spyOnEvent.getCalls()[1].args[0].eventId.value.should.be.instanceof(Buffer);
+                spyOnEvent.getCalls()[1].args[0].sourceNode.value.should.be.instanceof(NodeId);
+                spyOnEvent.getCalls()[1].args[0].sourceName.value.should.eql("1:Motor.RPM");
+                spyOnEvent.getCalls()[1].args[0].time.value.should.be.instanceof(Date);
 
                 // any other shall return an BadConditionDisabled status Code
-                spyOnEvent.getCalls()[1].args[0]["retain"].value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0]["quality"].value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0]["message"].value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0]["comment"].value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0].retain.value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0].quality.value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0].message.value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0].comment.value.should.eql(StatusCodes.BadConditionDisabled);
 
                 // when the condition enter an enable state agin
                 statusCode = condition.setEnabledState(true);
@@ -324,19 +326,19 @@ export function utest_condition(test: any): void {
 
                 // Note : the specs are not clear about whether an specific event for enable state is required ....
                 spyOnEvent.callCount.should.eql(3, "an event should have been raised to signal Enabled State");
-                spyOnEvent.getCalls()[2].args[0]["enabledState"].value.text.should.eql("Enabled");
+                spyOnEvent.getCalls()[2].args[0].enabledState.value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.id"].value.should.eql(true);
                 spyOnEvent.getCalls()[2].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
 
-                spyOnEvent.getCalls()[2].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
+                spyOnEvent.getCalls()[2].args[0].branchId.value.should.eql(NodeId.nullNodeId);
 
-                spyOnEvent.getCalls()[2].args[0]["retain"].toString().should.eql("Variant(Scalar<Boolean>, value: true)");
-                spyOnEvent.getCalls()[2].args[0]["quality"].value.should.eql(StatusCodes.Good);
-                spyOnEvent.getCalls()[2].args[0]["message"].value.text.should.eql("Hello Message");
-                spyOnEvent.getCalls()[2].args[0]["comment"].value.text.should.eql("");
+                spyOnEvent.getCalls()[2].args[0].retain.toString().should.eql("Variant(Scalar<Boolean>, value: true)");
+                spyOnEvent.getCalls()[2].args[0].quality.value.should.eql(StatusCodes.Good);
+                spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Hello Message");
+                spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("");
 
-                condition.removeListener("on", spyOnEvent);
+                condition.removeListener("event", spyOnEvent);
             });
 
             it("should be possible to activate the EnabledState.TransitionTime optional property", async () => {
@@ -380,9 +382,7 @@ export function utest_condition(test: any): void {
                     browseName: "MyCustomCondition3",
                     conditionSource: null,
                     optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
-                    organizedBy: addressSpace.rootFolder.objects,
-                    
-                    
+                    organizedBy: addressSpace.rootFolder.objects
                 });
 
                 should.exist(
@@ -397,7 +397,7 @@ export function utest_condition(test: any): void {
                 // any SubStateMachines in account. As an example, the EffectiveDisplayName of the
                 // EnabledState could contain “Active/HighHigh” to specify that the Condition is active and has
                 // exceeded the HighHigh limit.
-                const v = condition.enabledState.effectiveDisplayName!.readValue();
+                const _v = condition.enabledState.effectiveDisplayName?.readValue();
                 // xx v.value.value.should.eql("Enabled");
             });
 
@@ -426,12 +426,12 @@ export function utest_condition(test: any): void {
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
-                condition.currentBranch().getComment().text!.should.eql("Some message");
+                condition.currentBranch().getComment().text?.should.eql("Some message");
             });
 
             it("should be possible to set the comment of a condition using the addComment method of the conditionType", async () => {
@@ -457,18 +457,21 @@ export function utest_condition(test: any): void {
                     new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") })
                 ];
 
-                const conditionType = addressSpace.findObjectType("ConditionType")! as unknown as UAConditionEx;
+                const conditionType = addressSpace.findObjectType("ConditionType") as unknown as UACondition_Base;
+                if (!conditionType) {
+                    throw new Error("Cannot find ConditionType");
+                }
 
                 conditionType.addComment.execute(
                     condition,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
-                condition.currentBranch().getComment().text!.should.eql("Some message");
+                condition.currentBranch().getComment().text?.should.eql("Some message");
             });
 
             it("should install the conditionSource in SourceNode and SourceName", () => {
@@ -482,7 +485,7 @@ export function utest_condition(test: any): void {
                 });
                 condition.sourceNode.readValue().value.value.toString().should.eql(source.nodeId.toString());
                 condition.sourceName.dataType.toString().should.eql("ns=0;i=12"); // string
-                condition.sourceName.readValue().value.value!.should.eql(source.browseName.toString());
+                condition.sourceName.readValue().value.value?.should.eql(source.browseName.toString());
             });
 
             it("initial value of lastSeverity should be zero", () => {
@@ -603,16 +606,16 @@ export function utest_condition(test: any): void {
                 // Xx console.log(" EVENT ID :",       evtData.eventId.readValue().value.toString("hex"));
 
                 should.exist(evtData.eventId.value, "Event must have a unique eventId");
-                evtData["severity"].value.should.eql(1235); // ,"the severity should match expecting severity");
-                evtData["quality"].value.should.eql(StatusCodes.Good);
+                evtData.severity.value.should.eql(1235); // ,"the severity should match expecting severity");
+                evtData.quality.value.should.eql(StatusCodes.Good);
 
                 // the sourceName of the event should match the ConditionSourceNode
 
                 // xx todo evtData.getSourceName().text.should.eql(source.browseName.toString());
 
-                evtData["eventType"].value.should.eql(myCustomConditionType.nodeId);
-                evtData["message"].value.text.should.eql("Hello Message");
-                evtData["sourceNode"].value.should.eql(source.nodeId);
+                evtData.eventType.value.should.eql(myCustomConditionType.nodeId);
+                evtData.message.value.text.should.eql("Hello Message");
+                evtData.sourceNode.value.should.eql(source.nodeId);
 
                 // raise an other event
                 condition.raiseNewCondition({
@@ -627,9 +630,9 @@ export function utest_condition(test: any): void {
                 // xx console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
                 // xx console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData1["eventId"].value).not.eql(evtData["eventId"].value, "EventId must be different from previous one");
-                evtData1["severity"].value.should.eql(1000, "the severity should match expecting severity");
-                evtData1["quality"].value.should.eql(StatusCodes.Bad);
+                should(evtData1.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
+                evtData1.severity.value.should.eql(1000, "the severity should match expecting severity");
+                evtData1.quality.value.should.eql(StatusCodes.Bad);
                 // raise with only severity
                 condition.raiseNewCondition({
                     severity: 1001
@@ -639,9 +642,9 @@ export function utest_condition(test: any): void {
                 // xx console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
                 // xx console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData2["eventId"].value).not.eql(evtData["eventId"].value, "EventId must be different from previous one");
-                evtData2["severity"].value.should.eql(1001, "the severity should match expecting severity");
-                evtData2["quality"].value.should.eql(StatusCodes.Bad);
+                should(evtData2.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
+                evtData2.severity.value.should.eql(1001, "the severity should match expecting severity");
+                evtData2.quality.value.should.eql(StatusCodes.Bad);
             });
 
             it("should be possible to pass time and receiveTime to raiseNewCondition", () => {
@@ -654,7 +657,7 @@ export function utest_condition(test: any): void {
                     organizedBy: addressSpace.rootFolder.objects
                 });
 
-                (condition as any).evaluateConditionsAfterEnabled = () => {
+                (condition as II).evaluateConditionsAfterEnabled = () => {
                     /* empty */
                 };
 
@@ -686,7 +689,7 @@ export function utest_condition(test: any): void {
                 // sourceTime should be set to time as per specification
                 condition.time
                     .readValue()
-                    .sourceTimestamp!.should.eql(
+                    .sourceTimestamp?.should.eql(
                         condition.time.readValue().value.value,
                         "sourceTime should be set to time as per specification"
                     );
@@ -696,7 +699,7 @@ export function utest_condition(test: any): void {
 
                 condition.receiveTime
                     .readValue()
-                    .sourceTimestamp!.should.eql(
+                    .sourceTimestamp?.should.eql(
                         condition.receiveTime.readValue().value.value,
                         "receiveTime.sourceTimestamp and  should be set to receiveTime as per specification"
                     );
@@ -707,8 +710,8 @@ export function utest_condition(test: any): void {
                 // xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.value);
                 // xx console.log(" EVENT ID :", evtData.eventId.readValue().value.value.toString("hex"));
 
-                evtData["receiveTime"].value.should.eql(receiveTime, "the receiveTime should have been transmitted");
-                evtData["time"].value.should.eql(time, "");
+                evtData.receiveTime.value.should.eql(receiveTime, "the receiveTime should have been transmitted");
+                evtData.time.value.should.eql(time, "");
             });
             it("EFTT01 - should be possible to overwrite the effectiveTransitionTime of the EnabledState", () => {
                 const namespace = addressSpace.getOwnNamespace();
@@ -719,7 +722,7 @@ export function utest_condition(test: any): void {
                     organizedBy: addressSpace.rootFolder.objects,
                     optionals: ["EnabledState.EffectiveTransitionTime"]
                 });
-                (condition as any).evaluateConditionsAfterEnabled = () => {
+                (condition as II).evaluateConditionsAfterEnabled = () => {
                     /* empty */
                 };
 
@@ -734,23 +737,23 @@ export function utest_condition(test: any): void {
                 const statusCode1 = condition.setEnabledState(true, { effectiveTransitionTime: christmas68 });
                 statusCode1.should.eql(StatusCodes.Good);
 
-                condition.enabledState.effectiveTransitionTime!.readValue().value.value.should.eql(christmas68);
+                condition.enabledState.effectiveTransitionTime?.readValue().value.value.should.eql(christmas68);
                 spyOnEvent.callCount.should.eql(1, "an event should have been raised to signal new Condition State");
 
                 const evtData = spyOnEvent.getCall(0).args[0];
                 // console.log(evtData);
-                evtData["enabledState"].value.text.should.eql("Enabled");
+                evtData.enabledState.value.text.should.eql("Enabled");
                 evtData["enabledState.id"].value.should.eql(true);
                 evtData["enabledState.effectiveTransitionTime"].value.should.eql(christmas68);
 
                 const statusCode2 = condition.setEnabledState(false, { effectiveTransitionTime: newYear69 });
                 statusCode2.should.eql(StatusCodes.Good);
-                condition.enabledState.effectiveTransitionTime!.readValue().value.value.should.eql(newYear69);
+                condition.enabledState.effectiveTransitionTime?.readValue().value.value.should.eql(newYear69);
 
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal new Condition State");
                 const evtData1 = spyOnEvent.getCall(1).args[0];
                 // console.log(evtData1);
-                evtData1["enabledState"].value.text.should.eql("Disabled");
+                evtData1.enabledState.value.text.should.eql("Disabled");
                 evtData1["enabledState.id"].value.should.eql(false);
                 evtData1["enabledState.effectiveTransitionTime"].value.should.eql(newYear69);
             });
@@ -763,7 +766,7 @@ export function utest_condition(test: any): void {
                     organizedBy: addressSpace.rootFolder.objects,
                     optionals: ["EnabledState.EffectiveTransitionTime"]
                 });
-                (condition as any).evaluateConditionsAfterEnabled = () => {
+                (condition as II).evaluateConditionsAfterEnabled = () => {
                     /* empty */
                 };
 
@@ -785,9 +788,8 @@ export function utest_condition(test: any): void {
 
                 condition.severity.readValue().value.value.should.eql(100);
                 condition.severity.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.severity.readValue().sourceTimestamp!.should.eql(christmas68);
+                condition.severity.readValue().sourceTimestamp?.should.eql(christmas68);
                 condition.lastSeverity.readValue().value.value.should.eql(0);
-
 
                 condition.raiseNewCondition({
                     severity: 200,
@@ -796,14 +798,13 @@ export function utest_condition(test: any): void {
                 });
                 condition.severity.readValue().value.value.should.eql(200);
                 condition.severity.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.severity.readValue().sourceTimestamp!.should.eql(newYear69);
+                condition.severity.readValue().sourceTimestamp?.should.eql(newYear69);
                 //
                 condition.lastSeverity.readValue().value.value.should.eql(100);
                 condition.lastSeverity.readValue().statusCode.should.eql(StatusCodes.Good);
-                condition.lastSeverity.readValue().sourceTimestamp!.should.eql(christmas68);
+                condition.lastSeverity.readValue().sourceTimestamp?.should.eql(christmas68);
                 condition.lastSeverity.sourceTimestamp.readValue().value.value.should.eql(christmas68);
-                condition.lastSeverity.sourceTimestamp.readValue().sourceTimestamp!.should.eql(christmas68);
-                
+                condition.lastSeverity.sourceTimestamp.readValue().sourceTimestamp?.should.eql(christmas68);
             });
 
             describe("Condition Branches", () => {
@@ -860,21 +861,23 @@ export function utest_condition(test: any): void {
                     const subscriptionIdVar = new Variant({ dataType: DataType.UInt32, value: 2 });
 
                     conditionType
-                        .getMethodByName("ConditionRefresh")!
-                        .execute(
+                        .getMethodByName("ConditionRefresh")
+                        ?.execute(
                             condition,
                             [subscriptionIdVar],
                             context,
-                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                            (_err: Error | null, _callMethodResult?: CallMethodResultOptions) => {
                                 //
                                 // During the process we should receive 3 events
                                 //
                                 //
                                 // spy_on_event.callCount.should.eql(4," expecting 3 events");
                                 for (let i = 0; i < spy_on_event.callCount; i++) {
-                                    const t = spy_on_event.getCall(i).args[0]["eventType"].toString();
+                                    const _t = spy_on_event.getCall(i).args[0].eventType.toString();
                                     //    console.log(" i=",i,t)
                                 }
+
+                                should(spy_on_event.callCount > 0).be.true(" expecting eventType in event data");
 
                                 // RefreshStartEventType (i=2787)
                                 spy_on_event.getCall(0).thisValue.nodeClass.should.eql(NodeClass.Object);
@@ -883,14 +886,14 @@ export function utest_condition(test: any): void {
                                 spy_on_event.getCall(0).args.length.should.eql(1);
                                 spy_on_event
                                     .getCall(0)
-                                    .args[0]["eventType"].toString()
+                                    .args[0].eventType.toString()
                                     .should.eql("Variant(Scalar<NodeId>, value: RefreshStartEventType (ns=0;i=2787))");
 
                                 // xx console.log("spy_on_event.getCall(0).args[0]=",spy_on_event.getCall(1).args[0]);
                                 spy_on_event.getCall(1).thisValue.browseName.toString().should.eql("Server");
                                 spy_on_event
                                     .getCall(1)
-                                    .args[0]["eventType"].value.toString()
+                                    .args[0].eventType.value.toString()
                                     .should.eql(myCustomConditionType.nodeId.toString());
 
                                 const last = spy_on_event.callCount - 1;
@@ -898,7 +901,7 @@ export function utest_condition(test: any): void {
                                 spy_on_event.getCall(last).thisValue.browseName.toString().should.eql("Server");
                                 spy_on_event
                                     .getCall(last)
-                                    .args[0]["eventType"].toString()
+                                    .args[0].eventType.toString()
                                     .should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
                             }
                         );

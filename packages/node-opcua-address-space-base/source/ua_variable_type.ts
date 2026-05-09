@@ -1,17 +1,16 @@
-import { NodeClass } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { UInt32 } from "node-opcua-basic-types";
-import { DataType } from "node-opcua-variant";
-import { ExtensionObject } from "node-opcua-extension-object";
-
-import { BaseNode } from "./base_node";
-import { InstantiateOptions } from "./instantiate_options";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAVariable, VariableAttributes } from "./ua_variable";
-import { UAVariableT } from "./ua_variable_t";
-import { BindVariableOptions } from "./bind_variable";
-import { UAMethod } from "./ua_method";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { NodeClass } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+import type { BaseNode } from "./base_node";
+import type { BindVariableOptions } from "./bind_variable";
+import type { InstantiateOptions } from "./instantiate_options";
+import type { UAMethod } from "./ua_method";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAVariable, VariableAttributes } from "./ua_variable";
+import type { UAVariableT } from "./ua_variable_t";
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
     arrayDimensions?: number[] | null;
@@ -37,26 +36,26 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
      */
     valueRank?: number;
 }
-export declare class UAVariableType extends BaseNode implements VariableAttributes {
-    public readonly nodeClass: NodeClass.VariableType;
-    public readonly subtypeOfObj: UAVariableType | null;
-    public readonly subtypeOf: NodeId | null;
+export interface UAVariableType extends BaseNode, VariableAttributes {
+    readonly nodeClass: NodeClass.VariableType;
+    readonly subtypeOfObj: UAVariableType | null;
+    readonly subtypeOf: NodeId | null;
 
-    public dataType: NodeId;
-    public valueRank: number;
-    public minimumSamplingInterval: number;
-    public arrayDimensions: UInt32[] | null;
-    public historizing: boolean;
+    dataType: NodeId;
+    valueRank: number;
+    minimumSamplingInterval: number;
+    arrayDimensions: UInt32[] | null;
+    historizing: boolean;
 
-    public isAbstract: boolean;
+    isAbstract: boolean;
 
-    public isSubtypeOf(type: UAVariableType | NodeIdLike): boolean;
+    isSubtypeOf(type: UAVariableType | NodeIdLike): boolean;
 
     /** @deprecated - use isSubtypeOf instead */
-    public isSupertypeOf(type: UAVariableType | NodeIdLike): boolean;
+    isSupertypeOf(type: UAVariableType | NodeIdLike): boolean;
 
-    public instantiate(options: InstantiateVariableOptions): UAVariable;
-    public getBasicDataType(): DataType;
+    instantiate(options: InstantiateVariableOptions): UAVariable;
+    getBasicDataType(): DataType;
 }
 
 export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType {

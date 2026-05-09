@@ -1,10 +1,10 @@
-import path from "path";
+import path from "node:path";
 import "should";
 
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, UAVariable } from "..";
-import { generateAddressSpace} from "../nodeJS"
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { AddressSpace, type UAVariable } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("Loading custom ExtensionObject from nodeset.xml", () => {
     it("should load a custom ExtensionObject", async () => {

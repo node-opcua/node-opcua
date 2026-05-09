@@ -27,10 +27,9 @@
 //     a  Client  may encounter cases where the value read back from a  Server  differs from the value that it
 //     wrote to the Server. This   difference shall be no more than the difference suggested by this  Property
 
+import type { ModellingRuleType, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { DataType, Variant } from "node-opcua-variant";
-
-import { UAVariable, ModellingRuleType } from "node-opcua-address-space-base";
 
 const definition_Description =
     "Definition  is a vendor - specific," + " human readable string that specifies how the value of this  DataItem  is calculated.";
@@ -45,7 +44,7 @@ export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_s
     const addressSpace = variable.addressSpace;
     const namespace = addressSpace.getNamespace(variable.nodeId.namespace);
 
-    if (Object.prototype.hasOwnProperty.call(options, "definition") && options.definition !== undefined) {
+    if (Object.hasOwn(options, "definition") && options.definition !== undefined) {
         namespace.addVariable({
             browseName: { name: "Definition", namespaceIndex: 0 },
             dataType: "String",
@@ -58,7 +57,7 @@ export function add_dataItem_stuff(variable: UAVariable, options: add_dataItem_s
         });
     }
 
-    if (Object.prototype.hasOwnProperty.call(options, "valuePrecision") && options.valuePrecision !== undefined) {
+    if (Object.hasOwn(options, "valuePrecision") && options.valuePrecision !== undefined) {
         assert(typeof options.valuePrecision === "number");
 
         namespace.addVariable({

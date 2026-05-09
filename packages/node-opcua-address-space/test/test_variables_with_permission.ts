@@ -1,22 +1,22 @@
 import "should";
 
-import {
-    accessLevelFlagToString,
-    AttributeIds,
-    makeAccessLevelFlag,
-    makePermissionFlag,
-    AccessLevelFlag,
-    makeAccessRestrictionsFlag,
-    PermissionFlag,
-    allPermissions,
-    AccessRestrictionsFlag,
-    BrowseDirection
-} from "node-opcua-data-model";
 import { ObjectIds } from "node-opcua-constants";
-import { StatusCodes } from "node-opcua-status-code";
+import {
+    AccessLevelFlag,
+    AccessRestrictionsFlag,
+    AttributeIds,
+    accessLevelFlagToString,
+    allPermissions,
+    BrowseDirection,
+    makeAccessLevelFlag,
+    makeAccessRestrictionsFlag,
+    makePermissionFlag,
+    PermissionFlag
+} from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { StatusCodes } from "node-opcua-status-code";
 import {
     AnonymousIdentityToken,
     MessageSecurityMode,
@@ -24,12 +24,20 @@ import {
     RolePermissionType,
     UserNameIdentityToken
 } from "node-opcua-types";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { UAObject, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable, AddressSpace } from "..";
+import { DataType } from "node-opcua-variant";
+import {
+    AddressSpace,
+    makeRoles,
+    type Namespace,
+    PseudoSession,
+    SessionContext,
+    setNamespaceMetaData,
+    type UAObject,
+    type UAVariable,
+    WellKnownRoles
+} from "..";
 import { generateAddressSpace } from "../distNodeJS";
 import { getMiniAddressSpace, MockContinuationPointManager, mockSession } from "../testHelpers";
-import { WellKnownRoles, makeRoles } from "..";
 
 describe("AddressSpace : Variable.setPermissions", () => {
     let addressSpace: AddressSpace;
@@ -50,13 +58,13 @@ describe("AddressSpace : Variable.setPermissions", () => {
             dataType: "Double"
         });
     });
-    
+
     after(() => {
         addressSpace.dispose();
     });
 
     it("should adjust userAccessLevel based on session Context permission", () => {
-        variable.userAccessLevel!.should.eql(0x3f);
+        variable.userAccessLevel?.should.eql(0x3f);
         accessLevelFlagToString(variable.userAccessLevel!).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
         );
@@ -306,9 +314,9 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
 
         uaVariable.nodeId.namespace.should.eql(namespace.index);
 
-        const adiNamespace = addressSpace.rootFolder.objects.server
-            .getComponentByName("Namespaces", 0)!
-            .getChildByName(nodesets.adi);
+        const _adiNamespace = addressSpace.rootFolder.objects.server
+            .getComponentByName("Namespaces", 0)
+            ?.getChildByName(nodesets.adi);
 
         restrictedVariableSign = namespace.addVariable({
             accessLevel: makeAccessLevelFlag(

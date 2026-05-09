@@ -1,24 +1,16 @@
-import should from "should";
-
 import { BinaryStream } from "node-opcua-binary-stream";
-import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { nodesets } from "node-opcua-nodesets";
-import { DataType, Variant } from "node-opcua-variant";
-import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
-import { AttributeIds } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResult, DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 import { getExtraDataTypeManager, promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
-
+import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { checkDebugFlag, hexDump, make_debugLog } from "node-opcua-debug";
+import { type ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { resolveNodeId } from "node-opcua-nodeid";
-import {
-    AddressSpace,
-    ensureDatatypeExtracted,
-    PseudoSession,
-    resolveOpaqueOnAddressSpace,
-    UAVariable
-} from "..";
+import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+import { CallMethodResult, type DataTypeDefinition, StructureDefinition } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
@@ -30,7 +22,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace();
+        const _namespace0 = addressSpace.getDefaultNamespace();
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
@@ -58,7 +50,7 @@ describe("Testing AutoID custom types", async function (this: any) {
         const scanSettingsDataTypeNode = addressSpace.findDataType("ScanSettings", nsAutoId)!;
         should.exist(scanSettingsDataTypeNode);
 
-        const settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {}) as ScanSettings;
+        const _settings = addressSpace.constructExtensionObject(scanSettingsDataTypeNode, {}) as ScanSettings;
     });
 
     function encode_decode(obj: Variant): Variant {
@@ -139,7 +131,7 @@ describe("Testing AutoID custom types", async function (this: any) {
             sighting: [{}, {}]
         });
 
-        const scanResultNode = namespace.addVariable({
+        const _scanResultNode = namespace.addVariable({
             browseName: "ScanResult",
             dataType: rfidScanResultDataTypeNode,
             value: { dataType: DataType.ExtensionObject, value: scanResult }
@@ -155,7 +147,7 @@ describe("Testing AutoID custom types", async function (this: any) {
             throw new Error("cannot find RfidScanResult");
         }
 
-        const namespace = addressSpace.getOwnNamespace();
+        const _namespace = addressSpace.getOwnNamespace();
 
         const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
             // ScanResult
@@ -223,7 +215,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields!.length.should.eql(4);
+            structureDefinition.fields?.length.should.eql(4);
         }
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
 
@@ -235,7 +227,7 @@ describe("Testing AutoID custom types", async function (this: any) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields!.length.should.eql(5);
+            structureDefinition.fields?.length.should.eql(5);
         }
     });
     it("GHU-2 - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
@@ -262,21 +254,21 @@ describe("Testing AutoID custom types", async function (this: any) {
         const reload_v2 = encode_decode(v);
         reload_v2.value.should.be.instanceOf(CallMethodResult);
         const callbackResult2 = reload_v2.value as CallMethodResult;
-        callbackResult2.outputArguments!.length.should.eql(1);
-        callbackResult2.outputArguments![0].dataType.should.eql(DataType.ExtensionObject);
-        callbackResult2.outputArguments![0].value.length.should.eql(2);
-        callbackResult2.outputArguments![0].value[0].should.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments![0].value[1].should.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments?.length.should.eql(1);
+        callbackResult2.outputArguments?.[0].dataType.should.eql(DataType.ExtensionObject);
+        callbackResult2.outputArguments?.[0].value.length.should.eql(2);
+        callbackResult2.outputArguments?.[0].value[0].should.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments?.[0].value[1].should.be.instanceOf(OpaqueStructure);
 
         const session = new PseudoSession(addressSpace);
-        const extraDataTypeManager = await getExtraDataTypeManager(session);
+        const _extraDataTypeManager = await getExtraDataTypeManager(session);
         await promoteOpaqueStructure(
             session,
-            callbackResult2.outputArguments!.map((a) => ({ value: a }))
+            callbackResult2.outputArguments?.map((a) => ({ value: a }))
         );
 
-        callbackResult2.outputArguments![0].value[0].should.not.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments![0].value[1].should.not.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments?.[0].value[0].should.not.be.instanceOf(OpaqueStructure);
+        callbackResult2.outputArguments?.[0].value[1].should.not.be.instanceOf(OpaqueStructure);
 
         debugLog(reload_v2.toString());
     });
@@ -314,7 +306,7 @@ function addRfidScanResultVariable(addressSpace: AddressSpace) {
         throw new Error("Sorry! I cannot find the RfidScanResult dataType in the AutoId namespace");
     }
     // xx console.log(rfidScanResultDataTypeNode.toString());
-    const scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId)!;
+    const _scanResultDataTypeNode = addressSpace.findDataType("ScanResult", nsAutoId)!;
 
     // xx console.log(scanResultDataTypeNode.toString());
 
@@ -336,7 +328,7 @@ function addRfidScanResultVariable(addressSpace: AddressSpace) {
             }
         ]
     });
-    const scanResultNode = namespace.addVariable({
+    const _scanResultNode = namespace.addVariable({
         nodeId: "s=ScanResult",
         browseName: "ScanResult",
         dataType: rfidScanResultDataTypeNode,
@@ -350,7 +342,7 @@ describe("resolving Opaque Structure", function () {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.registerNamespace("MyNamespace");
+        const _namespace0 = addressSpace.registerNamespace("MyNamespace");
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.adi, nodesets.autoId]);
         await ensureDatatypeExtracted(addressSpace);
 
@@ -389,8 +381,8 @@ describe("resolving Opaque Structure", function () {
         // console.log(dataValue.value.toString());
         const def = dataValue.value.value as StructureDefinition;
         def.fields?.length.should.eql(5);
-        def.fields![4].name!.should.eql("Sighting");
-        def.fields![4].valueRank.should.eql(1);
+        def.fields?.[4].name?.should.eql("Sighting");
+        def.fields?.[4].valueRank.should.eql(1);
     });
 
     it("GHV-3 should decode this opaque structure", async () => {

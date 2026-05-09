@@ -1,42 +1,46 @@
-import should from "should";
 import {
-    AccessLevelExFlag,
     AccessLevelFlag,
     AccessRestrictionsFlag,
     AttributeIds,
     makeAccessLevelFlag,
     makePermissionFlag
 } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { CallMethodResultOptions, PermissionType, ReadRawModifiedDetails, RolePermissionTypeOptions } from "node-opcua-types";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import {
-    AddressSpace,
-    UAObject,
-    Namespace,
-    SessionContext,
-    WellKnownRoles,
+    type CallMethodResultOptions,
+    PermissionType,
+    ReadRawModifiedDetails,
+    type RolePermissionTypeOptions
+} from "node-opcua-types";
+import { DataType, type Variant } from "node-opcua-variant";
+import should from "should";
+import {
+    type AddressSpace,
+    type ContinuationPoint,
+    ContinuationPointManager,
+    type ISessionContext,
     makeRoles,
+    type Namespace,
+    SessionContext,
     setNamespaceMetaData,
-    UAMethod,
-    ISessionContext,
-    ContinuationPoint,
-    ContinuationPointManager
+    type UAMethod,
+    type UAObject,
+    WellKnownRoles
 } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
-const keep_should = should;
+const _keep_should = should;
 
 import { date_add, getMiniAddressSpace } from "../testHelpers";
 
 describe("Variable#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
+    let _namespace: Namespace;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
-        namespace = addressSpace.getOwnNamespace();
+        _namespace = addressSpace.getOwnNamespace();
     });
     after(() => {
         addressSpace.dispose();
@@ -118,19 +122,19 @@ describe("Variable#setPermissions & checkPermission", () => {
 
 async function defaultMethod(
     this: UAMethod,
-    inputArguments: Variant[],
-    context: ISessionContext
+    _inputArguments: Variant[],
+    _context: ISessionContext
 ): Promise<CallMethodResultOptions> {
     /** empty */
     return { statusCode: StatusCodes.Good };
 }
 describe("Method#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
+    let _namespace: Namespace;
     let someObject: UAObject;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
-        namespace = addressSpace.getOwnNamespace();
+        _namespace = addressSpace.getOwnNamespace();
         someObject = addressSpace.getOwnNamespace().addObject({
             browseName: "SomeName",
             nodeId: "i=13"
@@ -198,7 +202,7 @@ describe("Method#setPermissions & checkPermission", () => {
         context.checkPermission(someMethod3, PermissionType.Call).should.eql(false);
     });
     it("checkPermission-m3 UserExecutable flag should be false if user has no Call permission #1197", () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext();
 
         const someMethod = addressSpace.getOwnNamespace().addMethod(someObject, {
@@ -219,7 +223,7 @@ describe("Method#setPermissions & checkPermission", () => {
     });
 
     it("checkPermission-WriteHistorizing", async () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext();
 
         const uaVariable = addressSpace.getOwnNamespace().addVariable({
@@ -227,8 +231,10 @@ describe("Method#setPermissions & checkPermission", () => {
             dataType: "Double",
             historizing: true
         });
-        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ReadHistory | PermissionType.WriteHistorizing }]);
-        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+        uaVariable.setRolePermissions([
+            { roleId: WellKnownRoles.Engineer, permissions: PermissionType.ReadHistory | PermissionType.WriteHistorizing }
+        ]);
+        const _haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"
         });
@@ -251,7 +257,7 @@ describe("Method#setPermissions & checkPermission", () => {
     });
 
     it("checkPermission-ReadHistory", async () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext({
             session: {
                 getSessionId() {
@@ -271,7 +277,7 @@ describe("Method#setPermissions & checkPermission", () => {
             maxOnlineValues: 3 // Only very few values !!!!
         });
         uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ReadHistory }]);
-        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+        const _haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"
         });
@@ -314,7 +320,7 @@ describe("Method#setPermissions & checkPermission", () => {
     });
 
     it("checkPermission-InsertHistory", async () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext();
 
         const uaVariable = addressSpace.getOwnNamespace().addVariable({
@@ -324,7 +330,7 @@ describe("Method#setPermissions & checkPermission", () => {
             accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
         });
         uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.InsertHistory }]);
-        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+        const _haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"
         });
@@ -341,7 +347,7 @@ describe("Method#setPermissions & checkPermission", () => {
     });
 
     it("checkPermission-ModifyHistory", async () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext();
 
         const uaVariable = addressSpace.getOwnNamespace().addVariable({
@@ -351,7 +357,7 @@ describe("Method#setPermissions & checkPermission", () => {
             accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
         });
         uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ModifyHistory }]);
-        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+        const _haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"
         });
@@ -369,7 +375,7 @@ describe("Method#setPermissions & checkPermission", () => {
         (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
     });
     it("checkPermission-DeleteHistory", async () => {
-        const namespace1 = addressSpace.getOwnNamespace();
+        const _namespace1 = addressSpace.getOwnNamespace();
         const context = new SessionContext();
 
         const uaVariable = addressSpace.getOwnNamespace().addVariable({
@@ -379,7 +385,7 @@ describe("Method#setPermissions & checkPermission", () => {
             accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
         });
         uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.DeleteHistory }]);
-        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+        const _haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"
         });
@@ -431,7 +437,7 @@ describe("Namespace Permission", () => {
         someObject.nodeId.namespace.should.eql(namespace1.index);
 
         should(someObject.getRolePermissions(false)).eql(null);
-        should(someObject.getRolePermissions(true)!.map(({ roleId, permissions }) => ({ roleId: roleId.value, permissions }))).eql(
+        should(someObject.getRolePermissions(true)?.map(({ roleId, permissions }) => ({ roleId: roleId.value, permissions }))).eql(
             rolePermissions
         );
 

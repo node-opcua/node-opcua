@@ -2,54 +2,51 @@
  * @module node-opcua-server-discovery
  */
 
-import os from "os";
-import path from "path";
-import { URL } from "url";
-import { callbackify } from "util";
 
+import { EventEmitter } from "node:events";
+import os from "node:os";
+import path from "node:path";
+import { URL } from "node:url";
 import chalk from "chalk";
 import envPaths from "env-paths";
-
 import { assert } from "node-opcua-assert";
-import { UAString } from "node-opcua-basic-types";
+import type { UAString } from "node-opcua-basic-types";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { makeApplicationUrn } from "node-opcua-common";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
-    Message,
-    MessageSecurityMode,
-    Response,
-    SecurityPolicy,
-    ServerSecureChannelLayer,
+    type Message,
+    type MessageSecurityMode,
+    type Response,
+    type SecurityPolicy,
+    type ServerSecureChannelLayer,
     ServiceFault
 } from "node-opcua-secure-channel";
 import {
-    AddStandardEndpointDescriptionsParam,
+    type AddStandardEndpointDescriptionsParam,
     OPCUABaseServer,
-    OPCUABaseServerOptions,
+    OPCUABaseServerEvents,
+    type OPCUABaseServerOptions,
     OPCUAServerEndPoint
 } from "node-opcua-server";
-
 import {
-    Announcement,
+    type Announcement,
+    announcementToServiceConfig,
     BonjourHolder,
     FindServersOnNetworkRequest,
     FindServersOnNetworkResponse,
+    isSameService,
     MdnsDiscoveryConfiguration,
-    RegisteredServer,
+    type RegisteredServer,
     RegisterServer2Request,
     RegisterServer2Response,
     RegisterServerRequest,
     RegisterServerResponse,
-    isSameService,
-    serviceToString,
-    announcementToServiceConfig,
-    ServerOnNetwork
+    ServerOnNetwork, 
+    serviceToString
 } from "node-opcua-service-discovery";
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { ApplicationDescription } from "node-opcua-service-endpoints";
-import { ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
-import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
-
+import { ApplicationDescription, type ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
+import { ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { MDNSResponder } from "./mdns_responder";
 
 const debugLog = make_debugLog("LDSSERVER");
@@ -97,17 +94,14 @@ function getDefaultCertificateManager(): OPCUACertificateManager {
     });
 }
 
-export interface OPCUADiscoveryServer {
-    on(eventName: "onUnregisterServer", eventHandler: (server: RegisteredServer, forced: boolean) => void): this;
-    on(eventName: "onRegisterServer", eventHandler: (server: RegisteredServer, firstTime: boolean) => void): this;
-    once(eventName: "onUnregisterServer", eventHandler: (server: RegisteredServer, forced: boolean) => void): this;
-    once(eventName: "onRegisterServer", eventHandler: (server: RegisteredServer, firstTime: boolean) => void): this;
-
+export interface OPCUADiscoveryServerEvents extends OPCUABaseServerEvents {
+    onUnregisterServer: [server: RegisteredServer, forced: boolean];
+    onRegisterServer: [server: RegisteredServer, firstTime: boolean];
 }
 
 // const weakMap = new WeakMap<MdnsDiscoveryConfiguration, BonjourHolder>;
 
-export class OPCUADiscoveryServer extends OPCUABaseServer {
+export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEvents> {
     private mDnsLDSAnnouncer?: BonjourHolder;
     public mDnsResponder?: MDNSResponder;
     public readonly registeredServers: RegisterServerMap;

@@ -15,6 +15,7 @@ import {
     type MethodFunctorC,
     makeDefaultCloneExtraInfo,
     type UAMethod,
+    type UAMethodEvents, 
     type UAObject,
     type UAObjectType,
     type UAVariable
@@ -31,7 +32,7 @@ import { type CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { DataType, Variant, type VariantLike } from "node-opcua-variant";
 import type { SessionContext } from "../source/session_context";
 import type { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl } from "./base_node_impl";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
 
@@ -40,10 +41,14 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 
 function default_check_valid_argument(arg: unknown): boolean {
-    return (arg as any) instanceof Argument;
+    return (arg as object) instanceof Argument;
 }
 
-export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
+export interface IMethodOptons extends InternalBaseNodeOptions {
+    value: unknown;
+    methodDeclarationId: NodeId;
+}
+export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMethod {
     public static checkValidArgument(args: unknown): boolean {
         return default_check_valid_argument(args);
     }
@@ -58,13 +63,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         return super.parent as UAObject;
     }
 
-    public value?: any;
+    public value?: unknown;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: ISessionContext | null) => boolean;
 
     public _asyncExecutionFunction?: MethodFunctor;
 
-    constructor(options: any) {
+    constructor(options: IMethodOptons) {
         super(options);
         this.value = options.value;
         this.methodDeclarationId = options.methodDeclarationId;
@@ -175,11 +180,11 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
             warningLog(
                 "Method " +
-                this.nodeId.toString() +
-                " " +
-                this.browseName.toString() +
-                " called for a node that is not a Object/ObjectType but " +
-                NodeClass[context.object?.nodeClass as number]
+                    this.nodeId.toString() +
+                    " " +
+                    this.browseName.toString() +
+                    " called for a node that is not a Object/ObjectType but " +
+                    NodeClass[context.object?.nodeClass as number]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }
@@ -264,7 +269,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
                         // ── afterCall event ──
                         try {
-                            this.emit("afterCall", context, coercedInputArguments, callMethodResult);
+                            (this as UAMethod).emit("afterCall", context, coercedInputArguments, callMethodResult);
                         } catch (afterCallErr) {
                             if (afterCallErr instanceof Error) {
                                 warningLog(chalk.red("ERR in afterCall listener"), afterCallErr.message);
@@ -314,7 +319,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         clonedMethod._getExecutableFlag = this._getExecutableFlag;
 
         if (options.componentOf) {
-            const m = options.componentOf.getMethodByName(clonedMethod.browseName.name!);
+            const m = options.componentOf.getMethodByName(clonedMethod.browseName.name || "");
             assert(m);
         }
         return clonedMethod as UAMethod;

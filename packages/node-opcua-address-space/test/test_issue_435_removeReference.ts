@@ -1,10 +1,9 @@
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-
-import { AddressSpace, BaseNode } from "..";
+import { AddressSpace, type BaseNode } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { BoilerType, createBoilerType } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { type BoilerType, createBoilerType } from "../testHelpers";
 
 describe("UANode#removeReference", () => {
     const nodesetFilename = nodesets.standard;

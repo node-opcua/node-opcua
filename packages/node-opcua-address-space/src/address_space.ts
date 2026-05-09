@@ -51,24 +51,17 @@ import type {
     ModelChangeStructureDataType,
     RelativePathElement
 } from "node-opcua-types";
-import {
-    BrowsePath,
-    BrowsePathResult,
-} from "node-opcua-types";
+import { BrowsePath, BrowsePathResult } from "node-opcua-types";
 import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions, type VariantT } from "node-opcua-variant";
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
-import type {
-    ExtensionObjectConstructorFuncWithSchema
-} from "../source/interfaces/extension_object_constructor";
+import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import type { UARootFolder } from "../source/ua_root_folder";
 import type { AddressSpacePrivate } from "./address_space_private";
-import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
+import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarms_and_conditions";
 import { BaseNodeImpl } from "./base_node_impl";
 import { EventData } from "./event_data";
-import {
-    AddressSpace_installHistoricalDataNode
-} from "./historical_access/address_space_historical_data_node";
+import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl";
 import type { NamespacePrivate } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
@@ -139,7 +132,7 @@ function _extract_namespace_and_browse_name_as_string(
     }
 
     /* c8 ignore next */
-    if (!result || !result[0]) {
+    if (!result?.[0]) {
         throw new Error(` Cannot find namespace associated with ${browseNameOrNodeId} ${namespaceIndex}`);
     }
     return result as [NamespacePrivate, string];
@@ -510,9 +503,9 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!(dataTypeNode instanceof UADataTypeImpl)) {
             throw new Error(
                 "we are expecting an UADataType here :  " +
-                _orig_dataTypeNode.toString() +
-                " should not refer to a  " +
-                (dataTypeNode as BaseNode).browseName.name
+                    _orig_dataTypeNode.toString() +
+                    " should not refer to a  " +
+                    (dataTypeNode as BaseNode).browseName.name
             );
         }
 
@@ -711,7 +704,6 @@ export class AddressSpace implements AddressSpacePrivate {
         /* c8 ignore next */
         if (!eventTypeNode) throw new Error(` cannot find EventType for ${eventTypeId}`);
 
-
         assert(eventTypeNode instanceof UAObjectTypeImpl, "eventTypeId must represent a UAObjectType");
 
         // eventId
@@ -793,18 +785,18 @@ export class AddressSpace implements AddressSpacePrivate {
                         // tslint:disable:no-console
                         errorLog(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
-                            self.browseName.toString() +
-                            " => " +
-                            chalk.cyan(lowerName)
+                                self.browseName.toString() +
+                                " => " +
+                                chalk.cyan(lowerName)
                         );
                     } else {
                         errorLog(
                             chalk.yellow(
                                 "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
                             ) +
-                            self.browseName.toString() +
-                            " => " +
-                            chalk.cyan(lowerName)
+                                self.browseName.toString() +
+                                " => " +
+                                chalk.cyan(lowerName)
                         );
                     }
                 }
@@ -821,11 +813,11 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (!alreadyVisited(k)) {
                     warningLog(
                         "constructEventData:  cannot find property '" +
-                        k +
-                        "' in [ " +
-                        Object.keys(visitedProperties).join(", ") +
-                        "] when filling " +
-                        eventTypeNode?.browseName.toString()
+                            k +
+                            "' in [ " +
+                            Object.keys(visitedProperties).join(", ") +
+                            "] when filling " +
+                            eventTypeNode?.browseName.toString()
                     );
                 }
             });
@@ -963,7 +955,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // TranslateBrowsePathToNodeIds further restrict RelativePath targetName rules:
         // The last element in the relativePath shall always have a targetName specified.
         const last_el = browsePath.relativePath.elements[elements_length - 1];
-        if (!last_el.targetName || !last_el.targetName.name || last_el.targetName.name.length === 0) {
+        if (!last_el.targetName?.name || last_el.targetName.name.length === 0) {
             return new BrowsePathResult({ statusCode: StatusCodes.BadBrowseNameInvalid });
         }
 
@@ -1359,7 +1351,7 @@ export class AddressSpace implements AddressSpacePrivate {
             params.node = params.nodeId as BaseNode;
             params.nodeId = params.node.nodeId;
         } else {
-            let _nodeId = params.nodeId! as NodeId;
+            let _nodeId = params.nodeId as NodeId;
             assert(!!_nodeId, "missing 'nodeId' in reference");
             if (_nodeId && (_nodeId as any).nodeId) {
                 _nodeId = (_nodeId as any).nodeId as NodeId;
@@ -1392,8 +1384,8 @@ export class AddressSpace implements AddressSpacePrivate {
      *
      */
     public installAlarmsAndConditionsService(): void {
-        UAConditionImpl.install_condition_refresh_handle(this);
-        UAAcknowledgeableConditionImpl.install_method_handle_on_type(this);
+        UAConditionImplBase.install_condition_refresh_handle(this);
+        UAAcknowledgeableConditionImplBase.install_method_handle_on_type(this);
     }
 
     // -- internal stuff -----------------------------------------------------------------------------------------------

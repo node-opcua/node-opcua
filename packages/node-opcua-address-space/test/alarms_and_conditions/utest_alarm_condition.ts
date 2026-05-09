@@ -1,18 +1,15 @@
 // tslint:disable:no-console
-import should from "should";
-import sinon from "sinon";
 
+import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { LocalizedText } from "node-opcua-data-model";
-import { coerceLocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-
-import { DataValue } from "node-opcua-data-value";
-import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionEx, UAObject, UAVariable } from "../..";
+import type { CallMethodResultOptions } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import sinon from "sinon";
+import { type AddressSpace, type BaseNode, SessionContext, type UAAlarmConditionEx, type UAObject, type UAVariable } from "../..";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -21,12 +18,12 @@ export function utest_alarm_condition(test: any): void {
     describe("AlarmConditionType", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let engine: UAObject;
+        let _engine: UAObject;
         let variableWithAlarm: UAVariable;
         before(() => {
             addressSpace = test.addressSpace;
             source = test.source;
-            engine = test.engine;
+            _engine = test.engine;
             variableWithAlarm = test.variableWithAlarm;
         });
 
@@ -51,7 +48,7 @@ export function utest_alarm_condition(test: any): void {
                 inputNode: variableWithAlarm
             }) as UAAlarmConditionEx;
 
-            alarm.constructor.name.should.eql("UAAlarmConditionImpl");
+            alarm.constructor.name.should.eql("UAAlarmConditionImplBase");
             should.not.exist(alarm.maxTimeShelved);
             should.not.exist(alarm.confirmedState);
             // HasTrueSubState and HasFalseSubState relationship must be maintained
@@ -87,8 +84,8 @@ export function utest_alarm_condition(test: any): void {
             });
             should.exist(alarm.maxTimeShelved);
 
-            alarm.maxTimeShelved!.readValue().value.dataType.should.eql(DataType.Double);
-            alarm.maxTimeShelved!.readValue().value.value.should.eql(10 * 1000);
+            alarm.maxTimeShelved?.readValue().value.dataType.should.eql(DataType.Double);
+            alarm.maxTimeShelved?.readValue().value.value.should.eql(10 * 1000);
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", async () => {
@@ -120,9 +117,9 @@ export function utest_alarm_condition(test: any): void {
             });
 
             it("checking basic properties", () => {
-                alarm.confirmedState!.browseName.toString();
-                alarm.ackedState.isTrueSubStateOf!.should.eql(alarm.enabledState);
-                alarm.confirmedState!.isTrueSubStateOf!.should.eql(alarm.enabledState);
+                alarm.confirmedState?.browseName.toString();
+                alarm.ackedState.isTrueSubStateOf?.should.eql(alarm.enabledState);
+                alarm.confirmedState?.isTrueSubStateOf?.should.eql(alarm.enabledState);
                 alarm.enabledState.getTrueSubStates().length.should.eql(5);
 
                 alarm.inputNode
@@ -145,15 +142,15 @@ export function utest_alarm_condition(test: any): void {
                 // playing with suppressed State
                 // ---------------------------------------------------------------------------------------------
                 // we can set suppressedState this way ( by setting the id as a boolean)
-                alarm.suppressedState!.constructor.name.should.eql("UATwoStateVariableImpl");
+                alarm.suppressedState?.constructor.name.should.eql("UATwoStateVariableImpl");
 
-                alarm.suppressedState!.setValue(true);
-                alarm.suppressedState!.getValue().should.eql(true);
-                alarm.suppressedState!.getValueAsString().should.eql("Suppressed");
+                alarm.suppressedState?.setValue(true);
+                alarm.suppressedState?.getValue().should.eql(true);
+                alarm.suppressedState?.getValueAsString().should.eql("Suppressed");
 
-                alarm.suppressedState!.setValue(false);
-                alarm.suppressedState!.getValue().should.eql(false);
-                alarm.suppressedState!.getValueAsString().should.eql("Unsuppressed");
+                alarm.suppressedState?.setValue(false);
+                alarm.suppressedState?.getValue().should.eql(false);
+                alarm.suppressedState?.getValueAsString().should.eql("Unsuppressed");
             });
 
             it("checking shelving state behavior", () => {
@@ -165,23 +162,23 @@ export function utest_alarm_condition(test: any): void {
                     return x.browseName.toString();
                 }
 
-                alarm.shelvingState!.getStates().map(getBrowseName).should.eql(["Unshelved", "TimedShelved", "OneShotShelved"]);
+                alarm.shelvingState?.getStates().map(getBrowseName).should.eql(["Unshelved", "TimedShelved", "OneShotShelved"]);
 
-                alarm.shelvingState!.setState("Unshelved");
-                alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
+                alarm.shelvingState?.setState("Unshelved");
+                alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
 
-                alarm.shelvingState!.setState("TimedShelved");
-                alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
+                alarm.shelvingState?.setState("TimedShelved");
+                alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
 
-                alarm.shelvingState!.setState("OneShotShelved");
-                alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
+                alarm.shelvingState?.setState("OneShotShelved");
+                alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
             });
 
             it("checking shelving state behavior with automatic unshelving", async () => {
-                alarm.shelvingState!.constructor.name.should.eql("UAShelvedStateMachineExImpl");
+                alarm.shelvingState?.constructor.name.should.eql("UAShelvedStateMachineExImplBase");
 
-                alarm.shelvingState!.setState("Unshelved");
-                alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
+                alarm.shelvingState?.setState("Unshelved");
+                alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
 
                 // xx alarm.shelvingState!.maxTimeShelved.setValueFromSource({dataType: "Double",value: 100 });
 
@@ -195,10 +192,10 @@ export function utest_alarm_condition(test: any): void {
                 const values: any[] = [];
 
                 // function calling_timedShelve(callback) {
-                const callMethodResponse1 = await alarm.shelvingState!.timedShelve.execute(null, [shelvingTime], context);
+                const _callMethodResponse1 = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
 
                 const currentStateChangePromise = new Promise<void>((resolve) => {
-                    alarm.shelvingState!.currentState.once("value_changed", (newValue: DataValue) => {
+                    alarm.shelvingState?.currentState.once("value_changed", (newValue: DataValue) => {
                         debugLog(" alarm.shelvingState.currentState. ", newValue.toString());
 
                         newValue.value.value.text.should.eql("Unshelved");
@@ -211,20 +208,22 @@ export function utest_alarm_condition(test: any): void {
                     });
                 });
 
-                alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
+                alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
 
                 let previous = timeShelvedDuration + 1;
 
                 const _timer = setInterval(() => {
-                    const variant = alarm.shelvingState!.unshelveTime.readValue().value;
-                    variant.dataType.should.eql(DataType.Double);
 
-                    should(variant.value < timeShelvedDuration).eql(true);
-                    should(variant.value >= 0).eql(true, " unshelveTime must be greater than 0");
-                    should(variant.value < previous).eql(true);
+                   
+                    const variant = alarm.shelvingState?.unshelveTime.readValue().value;
+                    should(variant?.dataType).eql(DataType.Double);
 
-                    values.push(variant.value);
-                    previous = variant.value;
+                    should((variant?.value || 0) < timeShelvedDuration).eql(true);
+                    should((variant?.value || 0) >= 0).eql(true, " unshelveTime must be greater than 0");
+                    should((variant?.value || 0) < previous).eql(true);
+
+                    values.push(variant?.value || 0);
+                    previous = variant?.value || 0;
                 }, 400);
 
                 await currentStateChangePromise;
@@ -239,80 +238,80 @@ export function utest_alarm_condition(test: any): void {
                 alarm.suppressedOrShelved.constructor.name.should.eql("UAVariableImpl");
                 alarm.suppressedOrShelved.dataType.toString().should.eql("ns=0;i=1"); // Boolean
 
-                alarm.shelvingState!.setState("Unshelved");
-                alarm.suppressedState!.setValue(true);
+                alarm.shelvingState?.setState("Unshelved");
+                alarm.suppressedState?.setValue(true);
 
                 alarm.getSuppressedOrShelved().should.eql(true);
 
-                alarm.suppressedState!.setValue(false);
+                alarm.suppressedState?.setValue(false);
                 alarm.getSuppressedOrShelved().should.eql(false);
 
-                alarm.shelvingState!.setState("Unshelved");
-                alarm.suppressedState!.setValue(false);
+                alarm.shelvingState?.setState("Unshelved");
+                alarm.suppressedState?.setValue(false);
                 alarm.getSuppressedOrShelved().should.eql(false);
 
-                alarm.shelvingState!.setState("OneShotShelved");
+                alarm.shelvingState?.setState("OneShotShelved");
                 alarm.getSuppressedOrShelved().should.eql(true);
             });
 
             describe("Testing alarm  ShelvingStateMachine methods", () => {
                 beforeEach(() => {
-                    alarm.shelvingState!.setState("Unshelved");
-                    alarm.suppressedState!.setValue(false);
+                    alarm.shelvingState?.setState("Unshelved");
+                    alarm.suppressedState?.setValue(false);
                 });
 
                 const context = new SessionContext();
 
                 it("unshelving an already unshelved alarm should return BadConditionNotShelved", async () => {
-                    alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
-                    const callMethodResult = await alarm.shelvingState!.unshelve.execute(null, [], context);
-                    callMethodResult.statusCode!.should.eql(StatusCodes.BadConditionNotShelved);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
+                    should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionNotShelved);
                 });
                 it("unshelving an TimedShelved  alarm should succeed", async () => {
-                    alarm.shelvingState!.setState("TimedShelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
+                    alarm.shelvingState?.setState("TimedShelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
 
-                    const callMethodResult = await alarm.shelvingState!.unshelve.execute(null, [], context);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
-                    callMethodResult.statusCode!.should.eql(StatusCodes.Good);
+                    const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it("unshelving an OneShotShelved  alarm should succeed", async () => {
-                    alarm.shelvingState!.setState("OneShotShelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
-                    const callMethodResult = await alarm.shelvingState!.unshelve.execute(null, [], context);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
-                    callMethodResult.statusCode!.should.eql(StatusCodes.Good);
+                    alarm.shelvingState?.setState("OneShotShelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it("timed-shelving an already timed-shelved alarm should return BadConditionAlreadyShelved", async () => {
                     // Duration  20 seconds
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 20 * 1000 });
 
-                    alarm.shelvingState!.setState("TimedShelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
+                    alarm.shelvingState?.setState("TimedShelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
 
-                    const callMethodResult = await alarm.shelvingState!.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
-                    callMethodResult.statusCode!.should.eql(StatusCodes.BadConditionAlreadyShelved);
+                    const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
                 });
                 it("timed-shelving an already oneshot-shelved alarm should return BadConditionAlreadyShelved", async () => {
                     // Duration (ms)
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 });
-                    alarm.shelvingState!.setState("OneShotShelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
+                    alarm.shelvingState?.setState("OneShotShelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
 
-                    const callMethodResult = await alarm.shelvingState!.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
-                    callMethodResult.statusCode!.should.eql(StatusCodes.BadConditionAlreadyShelved);
+                    const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
                 });
                 it("timed-shelving an unshelved alarm should return Good when ShelvingTime is OK", async () => {
                     alarm.setMaxTimeShelved(100);
 
                     // Duration (ms)
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 });
-                    alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
-                    const callMethodResult = await alarm.shelvingState!.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("TimedShelved");
-                    callMethodResult.statusCode!.should.eql(StatusCodes.Good);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it(
                     "timed-shelving an unshelved alarm should return ShelvingTimeOutOfRange" + " when ShelvingTime is out of range",
@@ -320,30 +319,30 @@ export function utest_alarm_condition(test: any): void {
                         alarm.setMaxTimeShelved(5 * 1000);
 
                         const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 * 1000 }); // Duration (ms)
-                        alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
+                        alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
 
-                        const callMethodResult = await alarm.shelvingState!.timedShelve.execute(null, [shelvingTime], context);
-                        alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
-                        callMethodResult.statusCode!.should.eql(StatusCodes.BadShelvingTimeOutOfRange);
+                        const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
+                        alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                        should(callMethodResult?.statusCode).eql(StatusCodes.BadShelvingTimeOutOfRange);
                     }
                 );
 
                 it("one-shot-shelving an already one-shot-shelved alarm should return BadConditionAlreadyShelved", async () => {
-                    alarm.shelvingState!.setState("OneShotShelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
+                    alarm.shelvingState?.setState("OneShotShelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
 
-                    const callMethodResult = await alarm.shelvingState!.oneShotShelve.execute(null, [], context);
-                    callMethodResult.statusCode!.should.eql(StatusCodes.BadConditionAlreadyShelved);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
+                    const callMethodResult = await alarm.shelvingState?.oneShotShelve.execute(null, [], context);
+                    should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
                 });
 
                 it("one-shot-shelving an unshelved alarm should return Good", async () => {
-                    alarm.shelvingState!.setState("Unshelved");
-                    alarm.shelvingState!.getCurrentState()!.should.eql("Unshelved");
+                    alarm.shelvingState?.setState("Unshelved");
+                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
 
-                    const callMethodResult = await alarm.shelvingState!.oneShotShelve.execute(null, [], context);
-                    callMethodResult.statusCode!.should.eql(StatusCodes.Good);
-                    alarm.shelvingState!.getCurrentState()!.should.eql("OneShotShelved");
+                    const callMethodResult = await alarm.shelvingState?.oneShotShelve.execute(null, [], context);
+                    should(callMethodResult?.statusCode).eql(StatusCodes.Good);
+                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
                 });
             });
         });
@@ -352,11 +351,11 @@ export function utest_alarm_condition(test: any): void {
     describe("AlarmConditionType: Server maintains current state only", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let engine: UAObject;
+        let _engine: UAObject;
         before(() => {
             addressSpace = test.addressSpace;
             source = test.source;
-            engine = test.engine;
+            _engine = test.engine;
         });
 
         it("should follow the example opcua 1.03 part 9 - annexe B  B.1.2 ", async () => {
@@ -384,7 +383,7 @@ export function utest_alarm_condition(test: any): void {
             //
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(3);
             condition.enabledState.getFalseSubStates().length.should.eql(0);
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition4");
@@ -396,7 +395,7 @@ export function utest_alarm_condition(test: any): void {
 
             // sanity check
             branch.getActiveState().should.eql(false);
-            condition.activeState.readValue().value.value.text!.should.eql("Inactive");
+            condition.activeState.readValue().value.value.text?.should.eql("Inactive");
 
             branch.setAckedState(true);
             branch.getAckedState().should.eql(true);
@@ -408,51 +407,45 @@ export function utest_alarm_condition(test: any): void {
             branch.getAckedState().should.eql(true);
             branch.getRetain().should.eql(false);
 
-            condition.findBranchForEventId(null)!.should.eql(branch);
+            condition.findBranchForEventId(null)?.should.eql(branch);
 
             const acknowledged_spy = sinon.spy();
+            
             condition.on("acknowledged", acknowledged_spy);
 
             const confirmed_spy = sinon.spy();
             condition.on("confirmed", confirmed_spy);
+            //    initial states:
+            //    branchId  |  Active  | Acked | Confirmed | Retain |
+            // 0) null      |  false   | true  | true      | false  |
 
-            //           function step0(callback) {
-            {
-                //    initial states:
-                //    branchId  |  Active  | Acked | Confirmed | Retain |
-                // 0) null      |  false   | true  | true      | false  |
+            should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+            should(condition.activeState.readValue().value.value.text).eql("Inactive");
+            should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+            should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+            should(condition.retain.readValue().value.value).eql(false);
 
-                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain.readValue().value.value).eql(false);
+            condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+            condition.currentBranch().getActiveState().should.eql(false);
+            condition.currentBranch().getAckedState().should.eql(true);
+            condition.currentBranch().getConfirmedState().should.eql(true);
+            condition.currentBranch().getRetain().should.eql(false);
+            // Step 1 : Alarm goes active
+            //    branchId  |  Active  | Acked | Confirmed | Retain |
+            // 1) null      |  true    | false | true      | true   |
 
-                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                condition.currentBranch().getActiveState().should.eql(false);
-                condition.currentBranch().getAckedState().should.eql(true);
-                condition.currentBranch().getConfirmedState().should.eql(true);
-                condition.currentBranch().getRetain().should.eql(false);
-            }
-            // step1_alarm_goes_active(callback) {
-            {
-                // Step 1 : Alarm goes active
-                //    branchId  |  Active  | Acked | Confirmed | Retain |
-                // 1) null      |  true    | false | true      | true   |
+            condition.activateAlarm();
+            should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+            should(condition.activeState.readValue().value.value.text).eql("Active");
+            should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+            should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+            should(condition.retain?.readValue().value.value).eql(true);
 
-                condition.activateAlarm();
-                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                should(condition.activeState.readValue().value.value.text).eql("Active");
-                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
-
-                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                condition.currentBranch().getActiveState().should.eql(true);
-                condition.currentBranch().getAckedState().should.eql(false);
-                condition.currentBranch().getConfirmedState().should.eql(true);
-                condition.currentBranch().getRetain().should.eql(true);
-            }
+            condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+            condition.currentBranch().getActiveState().should.eql(true);
+            condition.currentBranch().getAckedState().should.eql(false);
+            condition.currentBranch().getConfirmedState().should.eql(true);
+            condition.currentBranch().getRetain().should.eql(true);
             //  step2_condition_acknowledged
             {
                 // Step 2 : Condition acknowledged :=> Confirmed required
@@ -470,16 +463,16 @@ export function utest_alarm_condition(test: any): void {
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
                 should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                 should(condition.activeState.readValue().value.value.text).eql("Active");
                 should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
+                should(condition.confirmedState?.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain?.readValue().value.value).eql(true);
 
                 condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                 condition.currentBranch().getActiveState().should.eql(true);
@@ -493,7 +486,7 @@ export function utest_alarm_condition(test: any): void {
                 should.not.exist(acknowledged_spy.getCall(0).args[0], "eventId is null");
                 acknowledged_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
                 // acknowledged_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
-                acknowledged_spy.thisValues[0].should.eql(condition);
+                should(acknowledged_spy.thisValues[0]?.nodeId?.toString()).eql(condition.nodeId.toString());
                 //  step3_alarm_goes_inactive(callback) {
                 // Step 3 : Alarm goes inactive
                 //    branchId  |  Active  | Acked | Confirmed | Retain |
@@ -502,8 +495,8 @@ export function utest_alarm_condition(test: any): void {
                 should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                 should(condition.activeState.readValue().value.value.text).eql("Inactive");
                 should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
+                should(condition.confirmedState?.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain?.readValue().value.value).eql(true);
 
                 condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                 condition.currentBranch().getActiveState().should.eql(false);
@@ -524,20 +517,20 @@ export function utest_alarm_condition(test: any): void {
                     //
                     { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
                 ];
-                condition.confirm!.execute(
+                condition.confirm?.execute(
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
                 should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                 should(condition.activeState.readValue().value.value.text).eql("Inactive");
                 should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain!.readValue().value.value).eql(false);
+                should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain?.readValue().value.value).eql(false);
 
                 condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                 condition.currentBranch().getActiveState().should.eql(false);
@@ -551,44 +544,38 @@ export function utest_alarm_condition(test: any): void {
                 confirmed_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
                 // xx confirmed_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
             }
-            //  step5_alarm_goes_active(callback)
-            {
-                //    branchId  |  Active  | Acked | Confirmed | Retain |
-                //    null      |  true    | false | true      | true   |
+            //    branchId  |  Active  | Acked | Confirmed | Retain |
+            //    null      |  true    | false | true      | true   |
 
-                condition.activateAlarm();
+            condition.activateAlarm();
 
-                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                should(condition.activeState.readValue().value.value.text).eql("Active");
-                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
+            should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+            should(condition.activeState.readValue().value.value.text).eql("Active");
+            should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+            should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+            should(condition.retain?.readValue().value.value).eql(true);
 
-                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                condition.currentBranch().getActiveState().should.eql(true);
-                condition.currentBranch().getAckedState().should.eql(false);
-                condition.currentBranch().getConfirmedState().should.eql(true);
-                condition.currentBranch().getRetain().should.eql(true);
-            }
-            // step6_alarm_goes_inactive(callback)
-            {
-                //    branchId  |  Active  | Acked | Confirmed | Retain |
-                //    null      |  fals    | false | true      | true   |
+            condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+            condition.currentBranch().getActiveState().should.eql(true);
+            condition.currentBranch().getAckedState().should.eql(false);
+            condition.currentBranch().getConfirmedState().should.eql(true);
+            condition.currentBranch().getRetain().should.eql(true);
+            //    branchId  |  Active  | Acked | Confirmed | Retain |
+            //    null      |  fals    | false | true      | true   |
 
-                condition.deactivateAlarm();
+            condition.deactivateAlarm();
 
-                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
+            should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+            should(condition.activeState.readValue().value.value.text).eql("Inactive");
+            should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+            should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+            should(condition.retain?.readValue().value.value).eql(true);
 
-                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                condition.currentBranch().getActiveState().should.eql(false);
-                condition.currentBranch().getAckedState().should.eql(false);
-                condition.currentBranch().getConfirmedState().should.eql(true);
-                condition.currentBranch().getRetain().should.eql(true);
-            }
+            condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+            condition.currentBranch().getActiveState().should.eql(false);
+            condition.currentBranch().getAckedState().should.eql(false);
+            condition.currentBranch().getConfirmedState().should.eql(true);
+            condition.currentBranch().getRetain().should.eql(true);
             // step7_condition_acknowledge_confirmed_require(callback)
             {
                 //    branchId  |  Active  | Acked | Confirmed | Retain |
@@ -605,15 +592,15 @@ export function utest_alarm_condition(test: any): void {
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
                 should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                 should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                should(condition.retain!.readValue().value.value).eql(true);
+                should(condition.confirmedState?.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain?.readValue().value.value).eql(true);
 
                 condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                 condition.currentBranch().getActiveState().should.eql(false);
@@ -633,19 +620,19 @@ export function utest_alarm_condition(test: any): void {
                     //
                     { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
                 ];
-                condition.confirm!.execute(
+                condition.confirm?.execute(
                     null,
                     param,
                     context,
-                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
                     }
                 );
 
                 should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
                 should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                should(condition.retain!.readValue().value.value).eql(false);
+                should(condition.confirmedState?.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain?.readValue().value.value).eql(false);
 
                 condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
                 condition.currentBranch().getActiveState().should.eql(false);

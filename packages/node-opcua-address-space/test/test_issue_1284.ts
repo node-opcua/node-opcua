@@ -10,8 +10,8 @@ describe("setDescription", () => {
 
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
-         const xml_files = [mini_nodeset_filename];
-         await generateAddressSpace(addressSpace, xml_files);
+        const xml_files = [mini_nodeset_filename];
+        await generateAddressSpace(addressSpace, xml_files);
 
         addressSpace.registerNamespace("Private");
     });
@@ -27,15 +27,13 @@ describe("setDescription", () => {
             browseName: "MyVariable",
             dataType: "Double",
             organizedBy: addressSpace.rootFolder.objects,
-            description: {locale: "fr", text:"Ma Variable"}
+            description: { locale: "fr", text: "Ma Variable" }
         });
 
-        uaVariable.description.text!.should.eql("Ma Variable");
-
+        uaVariable.description.text?.should.eql("Ma Variable");
 
         uaVariable.setDescription({ locale: "fi", text: "minun muuttujani" });
 
-        uaVariable.description.text!.should.eql("minun muuttujani");
-
+        uaVariable.description.text?.should.eql("minun muuttujani");
     });
 });

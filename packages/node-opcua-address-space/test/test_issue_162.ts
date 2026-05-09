@@ -1,13 +1,11 @@
-import fs from "fs";
-import should from "should";
+import fs from "node:fs";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { nodesets } from "node-opcua-nodesets";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-
-import { AddressSpace, UAObject, UAVariable } from "..";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, type UAObject, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 interface MyCustomObject extends UAObject {
     customProperty: UAVariable;
@@ -22,7 +20,7 @@ function findOrCreateCustomObjectType(addressSpace: AddressSpace) {
         myCustomObjectType = namespace.addObjectType({
             browseName: "MyCustomObjectType"
         });
-        const myCustomProperty = namespace.addVariable({
+        const _myCustomProperty = namespace.addVariable({
             browseName: "CustomProperty",
             dataType: "Double",
             description: "Descr",

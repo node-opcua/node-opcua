@@ -1,27 +1,32 @@
-import { ContinuationData, IContinuationPointInfo, IContinuationPointManager, ISessionBase } from "node-opcua-address-space-base";
-import { DataValue } from "node-opcua-data-value";
+import type {
+    ContinuationData,
+    IContinuationPointInfo,
+    IContinuationPointManager,
+    ISessionBase
+} from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { ReferenceDescription } from "node-opcua-service-browse";
+import type { ReferenceDescription } from "node-opcua-service-browse";
 
 export class MockContinuationPointManager implements IContinuationPointManager {
     public registerHistoryReadRaw(
-        maxElements: number,
-        dataValues: DataValue[],
-        cnt: ContinuationData
+        _maxElements: number,
+        _dataValues: DataValue[],
+        _cnt: ContinuationData
     ): IContinuationPointInfo<DataValue> {
         throw new Error("Method not implemented.");
     }
-    public getNextHistoryReadRaw(numValues: number, cnt: ContinuationData): IContinuationPointInfo<DataValue> {
+    public getNextHistoryReadRaw(_numValues: number, _cnt: ContinuationData): IContinuationPointInfo<DataValue> {
         throw new Error("Method not implemented.");
     }
     public registerReferences(
-        maxElements: number,
-        values: ReferenceDescription[],
-        cnt: ContinuationData
+        _maxElements: number,
+        _values: ReferenceDescription[],
+        _cnt: ContinuationData
     ): IContinuationPointInfo<ReferenceDescription> {
         throw new Error("Method not implemented.");
     }
-    public getNextReferences(numValue: number, cnt: ContinuationData): IContinuationPointInfo<ReferenceDescription> {
+    public getNextReferences(_numValue: number, _cnt: ContinuationData): IContinuationPointInfo<ReferenceDescription> {
         throw new Error("Method not implemented.");
     }
     public dispose(): void {

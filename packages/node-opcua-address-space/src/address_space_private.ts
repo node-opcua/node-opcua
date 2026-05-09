@@ -1,33 +1,32 @@
 /**
  * @module node-opcua-address-space.Private
  */
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { ModelChangeStructureDataType, ReadProcessedDetails, HistoryReadResult } from "node-opcua-types";
-import { NumericRange } from "node-opcua-numeric-range";
-import { CallbackT } from "node-opcua-status-code";
 
-import {
-    IAddressSpace,
-    BaseNode,
-    UADataType,
-    UAView,
-    ISessionContext,
+import type {
     AddReferenceOpts,
-    UAVariableType,
+    BaseNode,
+    ContinuationData,
+    IAddressSpace,
+    ISessionContext,
+    MethodCallInterceptor,
+    UADataType,
     UAObjectType,
     UAReference,
     UAVariable,
-    ContinuationData,
-    MethodCallInterceptor
+    UAVariableType,
+    UAView
 } from "node-opcua-address-space-base";
-import { UARootFolder } from "../source/ua_root_folder";
-import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
+import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import type { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import type { CallbackT } from "node-opcua-status-code";
+import type { HistoryReadResult, ModelChangeStructureDataType, ReadProcessedDetails } from "node-opcua-types";
+import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
+import type { UARootFolder } from "../source/ua_root_folder";
 
-import { NamespacePrivate } from "./namespace_private";
-
+import type { NamespacePrivate } from "./namespace_private";
 
 export interface AddressSpacePrivate extends IAddressSpace {
     rootFolder: UARootFolder;

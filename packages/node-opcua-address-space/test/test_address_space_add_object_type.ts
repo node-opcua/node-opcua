@@ -1,20 +1,12 @@
-import should from "should";
-
 import { assert } from "node-opcua-assert";
-import { DataType } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
-
-import { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
-
-import { getMiniAddressSpace } from "../testHelpers";
-import { createCameraType, FakeCameraType } from "./fixture_camera_type";
-import {
-    createTemperatureSensorType,
-    TemperatureSensor,
-    TemperatureSensorType
-} from "./fixture_temperature_sensor_type";
-
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { DataType } from "node-opcua-variant";
+import should from "should";
+import type { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
+import { getMiniAddressSpace } from "../testHelpers";
+import { createCameraType, type FakeCameraType } from "./fixture_camera_type";
+import { createTemperatureSensorType, type TemperatureSensor, type TemperatureSensorType } from "./fixture_temperature_sensor_type";
 
 interface MockMachine extends UAObject {
     temperatureSensor: UAVariable;
@@ -45,7 +37,7 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
     });
 
     should.exist(machineTypeNode.temperatureSensor);
-    machineTypeTemperatureSensorNode.modellingRule!.should.eql("Mandatory");
+    machineTypeTemperatureSensorNode.modellingRule?.should.eql("Mandatory");
 
     // MachineType.HeaderSwitch
     const machineTypeHeaderSwitchNode = namespace.addVariable({
@@ -131,12 +123,12 @@ describe("testing add new ObjectType ", () => {
 
         // xx console.log(" Machine 1 = ", machine1.toString());
 
-        const machine2 = machineTypeNode.instantiate({ organizedBy: folder, browseName: "Machine2" });
+        const _machine2 = machineTypeNode.instantiate({ organizedBy: folder, browseName: "Machine2" });
 
         const specialTemperatureSensorTypeNode = createSpecialTempSensorType(addressSpace);
         specialTemperatureSensorTypeNode.nodeClass.should.eql(NodeClass.ObjectType);
 
-        specialTemperatureSensorTypeNode.subtypeOfObj!.browseName.toString().should.eql("1:TemperatureSensorType");
+        specialTemperatureSensorTypeNode.subtypeOfObj?.browseName.toString().should.eql("1:TemperatureSensorType");
 
         const specialSensor = specialTemperatureSensorTypeNode.instantiate({
             browseName: "mySpecialSensor",
@@ -171,13 +163,13 @@ describe("testing add new ObjectType ", () => {
         cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
         cameraType.getComponents()[0].browseName.toString().should.eql("1:Trigger");
 
-        cameraType.getMethodByName("Trigger")!.nodeClass.should.eql(NodeClass.Method);
-        camera1.getMethodByName("Trigger")!.nodeClass.should.eql(NodeClass.Method);
+        cameraType.getMethodByName("Trigger")?.nodeClass.should.eql(NodeClass.Method);
+        camera1.getMethodByName("Trigger")?.nodeClass.should.eql(NodeClass.Method);
 
         camera1
-            .getMethodByName("Trigger")!
-            .methodDeclarationId.toString()
-            .should.eql(cameraType.getMethodByName("Trigger")!.nodeId.toString());
+            .getMethodByName("Trigger")
+            ?.methodDeclarationId.toString()
+            .should.eql(cameraType.getMethodByName("Trigger")?.nodeId.toString());
 
         camera1.trigger.nodeId.namespace.should.eql(1);
         camera1.pictureTakenCount.nodeId.namespace.should.eql(1);
@@ -198,7 +190,7 @@ describe("testing add new ObjectType ", () => {
         camera.browseName.toString().should.eql(`${namespace.index}:Camera2`);
 
         camera.nodeId.namespace.should.eql(namespace.index);
-        camera.getMethodByName("Trigger")!.nodeId.namespace.should.eql(namespace.index);
+        camera.getMethodByName("Trigger")?.nodeId.namespace.should.eql(namespace.index);
 
         camera.pictureTakenCount.browseName.toString().should.eql("1:PictureTakenCount");
         camera.pictureTakenCount.nodeId.namespace.should.eql(namespace.index);

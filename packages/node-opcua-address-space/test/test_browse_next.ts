@@ -1,10 +1,10 @@
 /* eslint-disable max-statements */
 import "should";
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
 import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -22,7 +22,7 @@ describe("BrowseNext", function () {
             nodeId: "s=MyObjectWith3References",
             organizedBy: addressSpace.rootFolder.objects
         });
-        
+
         namespace.addObject({
             browseName: "SomeObject1",
             componentOf: uaObjectWith3References
@@ -75,33 +75,33 @@ describe("BrowseNext", function () {
         //  console.log(browse1.toString());
         browse1.statusCode.should.eql(StatusCodes.Good);
         should(browse1.continuationPoint).eql(null);
-        browse1.references!.length.should.eql(3);
+        browse1.references?.length.should.eql(3);
 
         pseudoSession.requestedMaxReferencesPerNode = 1;
 
         const accumulatedReferences: any[] = [];
         const b1 = await pseudoSession.browse(nodeToBrowse);
         should.exist(b1.continuationPoint);
-        b1.references!.length.should.eql(1);
+        b1.references?.length.should.eql(1);
         accumulatedReferences.push(...b1.references!);
 
         let continuationPoint = b1.continuationPoint!;
         const b2 = await pseudoSession.browseNext(continuationPoint, false);
         should.exist(b2.continuationPoint);
-        b2.references!.length.should.eql(1);
+        b2.references?.length.should.eql(1);
         accumulatedReferences.push(...b2.references!);
 
         continuationPoint = b2.continuationPoint!;
         const b3 = await pseudoSession.browseNext(continuationPoint, false);
         should.not.exist(b3.continuationPoint);
-        b3.references!.length.should.eql(1);
+        b3.references?.length.should.eql(1);
         accumulatedReferences.push(...b3.references!);
 
         continuationPoint = b3.continuationPoint!;
         if (continuationPoint) {
             const b4 = await pseudoSession.browseNext(continuationPoint, false);
             should.exist(b4.continuationPoint);
-            b4.references!.length.should.eql(1);
+            b4.references?.length.should.eql(1);
             accumulatedReferences.push(...b4.references!);
         }
 
@@ -127,20 +127,20 @@ describe("BrowseNext", function () {
 
         browse1.statusCode.should.eql(StatusCodes.Good);
         should(browse1.continuationPoint).eql(null);
-        browse1.references!.length.should.eql(3);
+        browse1.references?.length.should.eql(3);
 
         pseudoSession.requestedMaxReferencesPerNode = 1;
 
         const accumulatedReferences: any[] = [];
         const b1 = await pseudoSession.browse(nodeToBrowse);
         should.exist(b1.continuationPoint);
-        b1.references!.length.should.eql(1);
+        b1.references?.length.should.eql(1);
         accumulatedReferences.push(...b1.references!);
 
         const continuationPoint = b1.continuationPoint!;
         const b2 = await pseudoSession.browseNext(continuationPoint, true /* want to fee continuation point */);
         should.not.exist(b2.continuationPoint);
-        b2.references!.length.should.eql(0);
+        b2.references?.length.should.eql(0);
 
         const b3 = await pseudoSession.browseNext(continuationPoint, true);
         b3.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
@@ -192,12 +192,12 @@ describe("BrowseNext", function () {
          */
         const browseResult1 = await pseudoSession.browse(nodeToBrowse1);
         browseResult1.statusCode.should.eql(StatusCodes.Good);
-        browseResult1.references!.length.should.eql(1);
+        browseResult1.references?.length.should.eql(1);
         should.exist(browseResult1.continuationPoint);
 
         const browseResult2 = await pseudoSession.browse(nodeToBrowse2);
         browseResult2.statusCode.should.eql(StatusCodes.Good);
-        browseResult2.references!.length.should.eql(1);
+        browseResult2.references?.length.should.eql(1);
         should.exist(browseResult2.continuationPoint);
 
         browseResult1.continuationPoint.toString("hex").should.not.equal(browseResult2.continuationPoint.toString("hex"));
@@ -221,8 +221,8 @@ describe("BrowseNext", function () {
         browseNextResult1[0].statusCode.should.eql(StatusCodes.Good);
         browseNextResult1[1].statusCode.should.eql(StatusCodes.Good);
 
-        browseNextResult1[0].references!.length.should.eql(1);
-        browseNextResult1[1].references!.length.should.eql(1);
+        browseNextResult1[0].references?.length.should.eql(1);
+        browseNextResult1[1].references?.length.should.eql(1);
         accumulatedReferencesNode1.push(...browseNextResult1[0].references!);
         accumulatedReferencesNode2.push(...browseNextResult1[1].references!);
 
@@ -230,8 +230,8 @@ describe("BrowseNext", function () {
         const browseNextResult2 = await pseudoSession.browseNext(continuationPoints, false);
         browseNextResult2[0].statusCode.should.eql(StatusCodes.Good);
         browseNextResult2[1].statusCode.should.eql(StatusCodes.Good);
-        browseNextResult2[0].references!.length.should.eql(1);
-        browseNextResult2[1].references!.length.should.eql(1);
+        browseNextResult2[0].references?.length.should.eql(1);
+        browseNextResult2[1].references?.length.should.eql(1);
         accumulatedReferencesNode1.push(...browseNextResult2[0].references!);
         accumulatedReferencesNode2.push(...browseNextResult2[1].references!);
 

@@ -1,28 +1,35 @@
-import { AttributeIds, CallbackT, DataType, PreciseClock, StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
-import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { DataValue } from "node-opcua-data-value";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NumericRange } from "node-opcua-numeric-range";
+import type {
+    AttributeIds,
+    CallbackT,
+    DataType,
+    PreciseClock,
+    StatusCode,
+    StatusCodeCallback,
+    UInt32
+} from "node-opcua-basic-types";
+import type { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
 
-import {
-    WriteValueOptions,
+import type {
     HistoryReadDetails,
     HistoryReadResult,
-    ReadRawModifiedDetails,
+    ReadAtTimeDetails,
     ReadEventDetails,
     ReadProcessedDetails,
-    ReadAtTimeDetails
+    ReadRawModifiedDetails,
+    WriteValueOptions
 } from "node-opcua-types";
-import { Variant, VariantLike } from "node-opcua-variant";
-
+import type { VariantLike } from "node-opcua-variant";
+import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node";
+import type { BindVariableOptions } from "./bind_variable";
 //
-import { CloneOptions, CloneFilter, CloneExtraInfo } from "./clone_options";
-import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
-import { ISessionContext, ContinuationData } from "./session_context";
-import { UADataType } from "./ua_data_type";
-import { UAVariableType } from "./ua_variable_type";
-import { BindVariableOptions } from "./bind_variable";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
+import type { ContinuationData, ISessionContext } from "./session_context";
+import type { UADataType } from "./ua_data_type";
+import type { UAVariableType } from "./ua_variable_type";
 
 export interface IVariableHistorian {
     /**
@@ -81,7 +88,15 @@ export interface BindExtensionObjectOptions {
 export interface IVariableDataTypeChange {
     changeDataType(newDataType: NodeIdLike, newValue?: VariantLike): void;
 }
-export interface UAVariable extends BaseNode, VariableAttributes, IVariableDataTypeChange,  IPropertyAndComponentHolder {
+export interface UAVariableEvents extends BaseNodeEvents {
+    value_changed: (newDataValue: DataValue, index_range?: NumericRange |null) => void;
+    semantic_changed: () => void;
+}
+export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = UAVariableEvents>
+    extends BaseNode<T>,
+        VariableAttributes,
+        IVariableDataTypeChange,
+        IPropertyAndComponentHolder {
     readonly nodeClass: NodeClass.Variable;
     readonly parent: BaseNode | null;
     readonly dataTypeObj: UADataType;
@@ -395,14 +410,4 @@ export interface UAVariable extends BaseNode, VariableAttributes, IVariableDataT
     ): void;
 
     clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAVariable;
-
-    // ----------------- Event handlers
-
-    on(eventName: "semantic_changed", eventHandler: () => void): this;
-
-    on(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
-
-    once(eventName: "semantic_changed", eventHandler: () => void): this;
-
-    once(eventName: "value_changed", eventHandler: (dataValue: DataValue) => void): this;
 }

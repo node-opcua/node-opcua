@@ -1,13 +1,10 @@
-import path from "path";
-import fs from "fs";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, UAVariable } from "..";
+import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing loading ExtensionObject value from NodeSet XML file", function (this: any) {
     this.timeout(Math.max(this.timeout(), 30000)); // could be slow on appveyor !

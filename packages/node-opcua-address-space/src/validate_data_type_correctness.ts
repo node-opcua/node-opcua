@@ -1,9 +1,9 @@
 import chalk from "chalk";
+import type { IAddressSpace, UADataType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { IAddressSpace, UADataType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-basic-types";
-import { make_debugLog, make_warningLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -15,7 +15,7 @@ function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType)
     const dataTypeNode = addressSpace.findDataType(DataType[dataType]);
     /* c8 ignore next */
     if (!dataTypeNode) {
-        throw new Error(" Cannot find DataType " + DataType[dataType] + " in address Space");
+        throw new Error(` Cannot find DataType ${DataType[dataType]} in address Space`);
     }
     return dataTypeNode as UADataType;
 }
@@ -47,15 +47,19 @@ export function validateDataTypeCorrectness(
     let builtInType: DataType;
     let builtInUADataType: UADataType;
 
-    const destUADataType = addressSpace.findDataType(dataTypeNodeId)!;
+    const destUADataType = addressSpace.findDataType(dataTypeNodeId);
 
     // c8 ignore next
     if (!destUADataType) {
-        throw new Error("Cannot find UADataType " + dataTypeNodeId.toString() + " in address Space");
+        throw new Error(`Cannot find UADataType ${dataTypeNodeId.toString()} in address Space`);
     }
 
     if (variantDataType === DataType.ExtensionObject) {
-        const structure = addressSpace.findDataType("Structure")!;
+        const structure = addressSpace.findDataType("Structure");
+        // c8 ignore next
+        if (!structure) {
+            throw new Error("Cannot find Structure DataType node in standard address space");
+        }
         if (destUADataType.isSubtypeOf(structure)) {
             return true;
         }
@@ -70,7 +74,12 @@ export function validateDataTypeCorrectness(
             // it should have been trapped earlier
             return false;
         }
-        builtInUADataType = addressSpace.findDataType(builtInType)!;
+        const foundDataType = addressSpace.findDataType(builtInType);
+        /* c8 ignore next */
+        if (!foundDataType) {
+            throw new Error(`Cannot find DataType ${DataType[builtInType]} in address Space`);
+        }
+        builtInUADataType = foundDataType;
     }
 
     const enumerationUADataType = addressSpace.findDataType("Enumeration");

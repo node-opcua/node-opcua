@@ -1,11 +1,10 @@
-import { NodeClass } from "node-opcua-data-model";
-import { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { DataType } from "node-opcua-variant";
-import { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
+import type { NodeClass } from "node-opcua-data-model";
+import type { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
+import type { DataType } from "node-opcua-variant";
+import type { BaseNode, BaseNodeEvents } from "./base_node";
 
-import { BaseNode } from "./base_node";
-
-export interface UADataType extends BaseNode {
+export interface UADataType extends BaseNode<BaseNodeEvents> {
     readonly nodeClass: NodeClass.DataType;
 
     readonly subtypeOfObj: UADataType | null;

@@ -1,9 +1,9 @@
-import path from "path";
-// import fs from "fs";
-import should from "should";
+import path from "node:path";
 import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
-import { AddressSpace, preLoad, findOrder, generateAddressSpaceRaw } from "..";
+// import fs from "fs";
+import should from "should";
+import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "..";
 import { readNodeSet2XmlFile } from "../nodeJS";
 
 // const fixtureFolder = path.join(__dirname, "../../test_fixtures");
@@ -58,7 +58,7 @@ describe("Ordering NodeSet2 files", () => {
         const xmlFile = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
 
         const xmlFiles = [nodesets.standard, xmlFile];
-       
+
         const addressSpace = AddressSpace.create();
         await generateAddressSpaceRaw(addressSpace, xmlFiles, readNodeSet2XmlFile, {});
 
@@ -81,6 +81,6 @@ describe("Ordering NodeSet2 files", () => {
             addressSpace.dispose();
         }
         should(_err!).be.instanceOf(Error);
-        should(_err!.message).match(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//);
+        should(_err?.message).match(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//);
     });
 });

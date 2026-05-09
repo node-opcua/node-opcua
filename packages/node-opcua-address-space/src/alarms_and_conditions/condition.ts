@@ -2,8 +2,6 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 
-
-
 /*
  As per spec OPCUA 1.03 part 9:
 

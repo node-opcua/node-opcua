@@ -1,17 +1,15 @@
-import path from "path";
+import path from "node:path";
 import "should";
 
-import { nodesets } from "node-opcua-nodesets";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { AttributeIds } from "node-opcua-data-model";
-import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { ExtensionObject } from "node-opcua-extension-object";
-
-import { AddressSpace, UAObject, SessionContext } from "..";
+import { AttributeIds } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { AddressSpace, SessionContext, type UAObject, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { UAVariable } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
@@ -271,7 +269,5 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
         const extObj = v1.readValue().value.value as ExtensionObject;
         const binaryStream = new BinaryStream(100);
         extObj.encode(binaryStream);
-
-
     });
 });

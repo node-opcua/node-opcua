@@ -15,15 +15,17 @@ import { utest_limit_alarm } from "./utest_limit_alarm";
 import { utest_non_exclusive_deviation_alarm } from "./utest_non_exclusive_deviation_alarm";
 import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
 
+
+export type MochaSuiteEx = Mocha.Suite & {
+    addressSpace: AddressSpace;
+    source: UAObject;
+    green: UAObject;
+    variableWithAlarm: UAVariable;
+    setpointNodeNode: UAVariable;
+};
 describe("AddressSpace : Conditions 1", function (this: Mocha.Suite) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this as unknown as {
-        addressSpace: AddressSpace;
-        source: UAObject;
-        green: UAObject;
-        variableWithAlarm: UAVariable;
-        setpointNodeNode: UAVariable;
-    };
+    const test = this as MochaSuiteEx;
 
     let addressSpace: AddressSpace;
 

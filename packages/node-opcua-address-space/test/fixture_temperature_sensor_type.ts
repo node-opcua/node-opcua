@@ -1,8 +1,8 @@
 import "should";
 
-import { Double } from "node-opcua-basic-types";
+import type { Double } from "node-opcua-basic-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace, InstantiateObjectOptions, UAObject, UAObjectType, UAVariableT } from "..";
+import type { AddressSpace, InstantiateObjectOptions, UAObject, UAObjectType, UAVariableT } from "..";
 
 export interface TemperatureSensor extends UAObject {
     temperature: UAVariableT<Double, DataType.Double>;

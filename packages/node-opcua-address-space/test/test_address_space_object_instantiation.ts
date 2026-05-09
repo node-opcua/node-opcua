@@ -1,9 +1,9 @@
-import should from "should";
 import { BrowseDirection } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { sameNodeId } from "node-opcua-nodeid";
-import { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
+import should from "should";
+import type { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;
@@ -16,7 +16,7 @@ describe("testing add new ObjectType ", () => {
             const mySubObjectType1 = namespace.addObjectType({
                 browseName: "MySubObjectType1"
             }) as MySubObjectType1;
-            const prop1 = namespace.addVariable({
+            const _prop1 = namespace.addVariable({
                 browseName: "Property1",
                 dataType: "Double",
                 modellingRule: "Mandatory",
@@ -25,13 +25,13 @@ describe("testing add new ObjectType ", () => {
 
             mySubObjectType1.property1.browseName.toString().should.eql("1:Property1");
 
-            const prop2 = namespace.addVariable({
+            const _prop2 = namespace.addVariable({
                 browseName: "Property2",
                 dataType: "Double",
                 modellingRule: "Optional",
                 propertyOf: mySubObjectType1
             });
-            const prop3 = namespace.addVariable({
+            const _prop3 = namespace.addVariable({
                 browseName: "Property3",
                 dataType: "Double",
                 modellingRule: "Optional",
@@ -42,22 +42,22 @@ describe("testing add new ObjectType ", () => {
                 browseName: "MyObjectType1"
             }) as MyObjectType1;
 
-            const subObj = mySubObjectType1.instantiate({
+            const _subObj = mySubObjectType1.instantiate({
                 browseName: "SubObj",
                 componentOf: myObjectType2,
                 modellingRule: "Optional",
                 optionals: ["Property2", "Property3"]
             }) as MySubObject1;
 
-            myObjectType2.getComponentByName("SubObj")!.browseName.toString().should.eql("1:SubObj");
-            myObjectType2.subObj.getPropertyByName("Property1")!.browseName.toString().should.eql("1:Property1");
-            myObjectType2.subObj.getPropertyByName("Property2")!.browseName.toString().should.eql("1:Property2");
-            myObjectType2.subObj.getPropertyByName("Property3")!.browseName.toString().should.eql("1:Property3");
+            myObjectType2.getComponentByName("SubObj")?.browseName.toString().should.eql("1:SubObj");
+            myObjectType2.subObj.getPropertyByName("Property1")?.browseName.toString().should.eql("1:Property1");
+            myObjectType2.subObj.getPropertyByName("Property2")?.browseName.toString().should.eql("1:Property2");
+            myObjectType2.subObj.getPropertyByName("Property3")?.browseName.toString().should.eql("1:Property3");
 
-            myObjectType2.subObj.modellingRule!.should.eql("Optional");
-            myObjectType2.subObj.property1.modellingRule!.should.eql("Mandatory");
-            myObjectType2.subObj.property2.modellingRule!.should.eql("Optional");
-            myObjectType2.subObj.property3.modellingRule!.should.eql("Optional");
+            myObjectType2.subObj.modellingRule?.should.eql("Optional");
+            myObjectType2.subObj.property1.modellingRule?.should.eql("Mandatory");
+            myObjectType2.subObj.property2.modellingRule?.should.eql("Optional");
+            myObjectType2.subObj.property3.modellingRule?.should.eql("Optional");
         }
         constructObjectType();
     });
@@ -78,19 +78,19 @@ describe("testing add new ObjectType ", () => {
             subtypeOf: aggregatesReference
         });
 
-        hasWeezbeReferenceType.subtypeOfObj!.browseName.toString().should.eql("Aggregates");
+        hasWeezbeReferenceType.subtypeOfObj?.browseName.toString().should.eql("Aggregates");
         sameNodeId(hasWeezbeReferenceType.subtypeOf!, aggregatesReference.nodeId).should.eql(true);
-        hasWeezbeReferenceType.subtypeOfObj!.should.eql(aggregatesReference);
+        hasWeezbeReferenceType.subtypeOfObj?.should.eql(aggregatesReference);
 
         //xx console.log(hasWeezbeReferenceType.isSubtypeOf(aggregatesReference));
         //xx console.log(aggregatesReference.isSubtypeOf(hasWeezbeReferenceType));
 
         hasWeezbeReferenceType.isSubtypeOf(aggregatesReference).should.eql(true);
-        const a: UAReferenceType[] = aggregatesReference.getAllSubtypes();
+        const _a: UAReferenceType[] = aggregatesReference.getAllSubtypes();
         //xx console.log(a.map(a => a.browseName.toString()));
 
         const hasChildReference = aggregatesReference.subtypeOfObj!;
-        const b: UAReferenceType[] = hasChildReference.getAllSubtypes();
+        const _b: UAReferenceType[] = hasChildReference.getAllSubtypes();
         //xx console.log(b.map(b => b.browseName.toString()));
 
         //xx console.log(hasWeezbeReferenceType.toString());
@@ -169,7 +169,7 @@ describe("testing add new ObjectType ", () => {
         }) as MyObject1;
 
         should.exist(obj2.getComponentByName("SubObj"));
-        obj2.getComponentByName("SubObj")!.browseName.toString().should.eql("1:SubObj");
+        obj2.getComponentByName("SubObj")?.browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj2.subObj.getPropertyByName("Property1"));
         should.not.exist(obj2.subObj.getPropertyByName("Property2"));
@@ -181,7 +181,7 @@ describe("testing add new ObjectType ", () => {
             optionals: ["SubObj.Property2", "SubObj.Property3"],
             organizedBy: addressSpace.rootFolder.objects
         }) as MyObject1;
-        obj3.getComponentByName("SubObj")!.browseName.toString().should.eql("1:SubObj");
+        obj3.getComponentByName("SubObj")?.browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj3.subObj.getPropertyByName("Property1"));
         should.exist(obj3.subObj.getPropertyByName("Property2"));
@@ -194,7 +194,7 @@ describe("testing add new ObjectType ", () => {
             organizedBy: addressSpace.rootFolder.objects
         }) as MyObject1;
 
-        obj4.getComponentByName("SubObj")!.browseName.toString().should.eql("1:SubObj");
+        obj4.getComponentByName("SubObj")?.browseName.toString().should.eql("1:SubObj");
 
         should.exist(obj4.subObj.getPropertyByName("Property1"));
         should.not.exist(obj4.subObj.getPropertyByName("Property2"));
@@ -202,7 +202,7 @@ describe("testing add new ObjectType ", () => {
     });
 
     it("should not replicate HasModelling Reference during instantiation if top most parent node is not a Type", () => {
-        const namespace = addressSpace.getOwnNamespace();
+        const _namespace = addressSpace.getOwnNamespace();
 
         const myObjectType1 = addressSpace.findObjectType("1:MyObjectType1")!;
 

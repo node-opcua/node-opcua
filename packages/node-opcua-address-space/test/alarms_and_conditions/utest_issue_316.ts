@@ -1,7 +1,6 @@
-"use strict";
 import "should";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, UAObject } from "../..";
+import type { AddressSpace, UAObject } from "../..";
 
 export function utest_issue_316(test: any): void {
     describe("Alarm&Condition ConditionClassName and ConditionName ", () => {
@@ -12,12 +11,13 @@ export function utest_issue_316(test: any): void {
             source = test.source;
         });
         it("CC1 - should be possible to set the ConditionName and ConditionClassName of an alarm", () => {
+            const processConditionClassTypeNodeId = addressSpace.findObjectType("ProcessConditionClassType")!.nodeId;
             const condition = addressSpace.getOwnNamespace().instantiateCondition("AlarmConditionType", {
                 browseName: "AlarmCondition1",
                 componentOf: source,
                 conditionSource: source,
 
-                conditionClass: "ProcessConditionClassType",
+                conditionClass: processConditionClassTypeNodeId,
                 conditionName: "MyConditionName"
             });
             condition.browseName.toString().should.eql("1:AlarmCondition1");
@@ -50,7 +50,7 @@ export function utest_issue_316(test: any): void {
             condition.conditionClassName.readValue().value.dataType.should.equal(DataType.LocalizedText);
             condition.conditionClassName
                 .readValue()
-                .value.value.text!.toString()
+                .value.value.text?.toString()
                 .should.equal(processConditionClassType.displayName[0].text);
 
             // ConditionName identifies the Condition instance that the Event originated from. It can be used
@@ -58,7 +58,7 @@ export function utest_issue_316(test: any): void {
             // instances. If a ConditionSource has only one instance of a ConditionType, and the Server has
             // no instance name, the Server shall supply the ConditionType browse name.
             condition.conditionName.readValue().value.dataType.should.eql(DataType.String);
-            condition.conditionName.readValue().value.value!.should.eql("MyConditionName");
+            condition.conditionName.readValue().value.value?.should.eql("MyConditionName");
         });
     });
 }

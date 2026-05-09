@@ -1,4 +1,4 @@
-import { UAMethod, UAObjectType } from "node-opcua-address-space-base";
+import type { UAMethod, UAObjectType } from "node-opcua-address-space-base";
 
 export interface UAConditionType extends UAObjectType {
     disable: UAMethod;

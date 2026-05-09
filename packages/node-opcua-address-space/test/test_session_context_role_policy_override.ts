@@ -1,33 +1,42 @@
 import "should";
 
-import { resolveNodeId, NodeId } from "node-opcua-nodeid";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
 import {
+    type IRolePolicyOverride,
+    type IServerBase,
+    type ISessionBase,
+    type IUserManager,
     SessionContext,
-    IServerBase,
-    IRolePolicyOverride,
-    WellKnownRoles,
-    IUserManager,
-    ISessionBase
+    WellKnownRoles
 } from "..";
 
 function makeSessionWithToken(token: AnonymousIdentityToken | UserNameIdentityToken): ISessionBase {
     return {
         userIdentityToken: token,
-        getSessionId: () => ({ namespace: 0, value: 1 } as any),
+        getSessionId: () => ({ namespace: 0, value: 1 }) as any,
         continuationPointManager: {
-            registerHistoryReadRaw: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            getNextHistoryReadRaw: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
+            registerHistoryReadRaw: () => ({
+                values: null,
+                continuationPoint: undefined,
+                statusCode: { isGood: () => true } as any
+            }),
+            getNextHistoryReadRaw: () => ({
+                values: null,
+                continuationPoint: undefined,
+                statusCode: { isGood: () => true } as any
+            }),
             registerReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
             getNextReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            dispose: () => { /* empty */ }
+            dispose: () => {
+                /* empty */
+            }
         }
     };
 }
 
 describe("US-028: IRolePolicyOverride", () => {
-
     const securityAdminRole = resolveNodeId(WellKnownRoles.SecurityAdmin);
     const anonymousRole = resolveNodeId(WellKnownRoles.Anonymous);
 

@@ -14,11 +14,10 @@ import type { ConditionInfo } from "../../source/interfaces/alarms_and_condition
 import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 import type { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
 import type { AddressSpacePrivate } from "../address_space_private";
-import { _clear_timer_if_any, UAShelvedStateMachineExImpl } from "../state_machine/ua_shelving_state_machine_ex";
+import { _clear_timer_if_any, type UAShelvedStateMachineExImpl, UAShelvedStateMachineExImplBase } from "../state_machine/ua_shelving_state_machine_ex";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-
 import { ConditionInfoImpl } from "./condition_info_impl";
-import { UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
+import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl";
 
 const debugLog = make_debugLog(__filename);
 
@@ -28,11 +27,9 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
         value: alarmNode.isSuppressedOrShelved()
     });
 }
-export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAcknowledgeableConditionImpl {
-    on(eventName: string, eventHandler: any): this;
-}
 
-export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl implements UAAlarmConditionEx {
+const  $ = (a: UAAlarmConditionImplBase): UAAlarmConditionEx =>  a as unknown as UAAlarmConditionEx;
+export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase {
     public static MaxDuration = 2 ** 31;
 
     public static instantiate(
@@ -60,17 +57,17 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         options.optionals = options.optionals || [];
         if (Object.hasOwn(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
-            assert(Number.isFinite(options.maxTimeShelved!));
+            assert(Number.isFinite(options.maxTimeShelved));
         }
 
         assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSubtypeOf(alarmConditionTypeBase));
 
-        const alarmNode = UAAcknowledgeableConditionImpl.instantiate(
+        const alarmNode = UAAcknowledgeableConditionImplBase.instantiate(
             namespace,
             alarmConditionTypeId,
             options,
             data
-        ) as UAAlarmConditionImpl;
+        ) as unknown as UAAlarmConditionImpl;
         Object.setPrototypeOf(alarmNode, UAAlarmConditionImpl.prototype);
 
         // ----------------------- Install Alarm specifics
@@ -123,7 +120,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          * @type ShelvingStateMachine
          */
         if (alarmNode.shelvingState) {
-            UAShelvedStateMachineExImpl.promote(alarmNode.shelvingState);
+            UAShelvedStateMachineExImplBase.promote(alarmNode.shelvingState);
         }
 
         // SuppressedOrShelved : Mandatory
@@ -181,9 +178,10 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         return alarmNode;
     }
 
+
     public dispose(): void {
-        if (this.shelvingState) {
-            _clear_timer_if_any(this.shelvingState as any as UAShelvedStateMachineExImpl);
+        if ($(this).shelvingState) {
+            _clear_timer_if_any($(this).shelvingState as unknown as UAShelvedStateMachineExImpl);
         }
         super.dispose();
     }
@@ -217,12 +215,12 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
 
     public isSuppressedOrShelved(): boolean {
         let suppressed = false;
-        if (this.suppressedState) {
-            suppressed = this.suppressedState.id?.readValue().value.value;
+        if ($(this).suppressedState) {
+            suppressed = $(this).suppressedState?.id?.readValue().value.value || false;
         }
         let shelved = false;
-        if (this.shelvingState) {
-            const shelvedValue = this.shelvingState.currentState.readValue().value.value;
+        if ($(this).shelvingState) {
+            const shelvedValue = $(this).shelvingState?.currentState.readValue().value.value;
             if (shelvedValue && shelvedValue.text !== "Unshelved") {
                 shelved = true;
             }
@@ -231,7 +229,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     }
 
     public getSuppressedOrShelved(): boolean {
-        return this.suppressedOrShelved.readValue().value.value;
+        return $(this).suppressedOrShelved.readValue().value.value;
     }
 
     /**
@@ -242,7 +240,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         if (duration < 10 || duration >= 2 ** 31) {
             throw new Error(` Invalid maxTimeShelved duration: ${duration}  must be [10,2**31] `);
         }
-        this.maxTimeShelved?.setValueFromSource({
+       $(this).maxTimeShelved?.setValueFromSource({
             dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
             value: duration
         });
@@ -252,14 +250,14 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      * note: return a  Duration
      */
     public getMaxTimeShelved(): number {
-        if (!this.maxTimeShelved) {
+        if (!$(this).maxTimeShelved) {
             // if maxTimeShelved is not provided we assume MaxDuration
-            assert(UAAlarmConditionImpl.MaxDuration <= 2147483648, "MaxDuration cannot be greater than 2**31");
-            return UAAlarmConditionImpl.MaxDuration;
+            assert(UAAlarmConditionImplBase.MaxDuration <= 2147483648, "MaxDuration cannot be greater than 2**31");
+            return UAAlarmConditionImplBase.MaxDuration;
         }
-        const dataValue = this.maxTimeShelved.readValue();
-        assert(dataValue.value.dataType === DataType.Double); // Double <= Duration
-        return dataValue.value.value;
+        const dataValue = $(this).maxTimeShelved?.readValue();
+        assert(dataValue?.value.dataType === DataType.Double); // Double <= Duration
+        return dataValue?.value.value || 0;
     }
 
     /**
@@ -273,20 +271,20 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
      *       whose node id is stored in alarm.inputNode
      */
     public getInputNodeNode(): UAVariable | null {
-        const nodeId = this.inputNode.readValue().value.value;
+        const nodeId =$(this).inputNode.readValue().value.value;
         assert(nodeId instanceof NodeId || nodeId === null);
         return this.addressSpace.findNode(nodeId) as UAVariable | null;
     }
     /**
      *
      */
-    public getInputNodeValue(): any | null {
+    public getInputNodeValue(): number | null {
         const node = this.getInputNodeNode();
         if (!node) {
             return null;
         }
         assert(node.nodeClass === NodeClass.Variable);
-        return node.readValue().value.value;
+        return node.readValue().value.value || 0;
     }
 
     public updateState(): void {
@@ -317,18 +315,18 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          * @property inputNode
          * @type     UAVariable
          */
-        assert(this.inputNode.nodeClass === NodeClass.Variable);
+        assert($(this).inputNode.nodeClass === NodeClass.Variable);
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
         if (inputNode instanceof NodeId) {
-            this.inputNode.setValueFromSource({
+           $(this).inputNode.setValueFromSource({
                 dataType: DataType.NodeId,
                 value: inputNode as NodeId
             });
         } else {
-            this.inputNode.setValueFromSource({
+           $(this).inputNode.setValueFromSource({
                 dataType: "NodeId",
                 value: (inputNode as BaseNode).nodeId
             });
@@ -338,7 +336,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
                 debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
-                this.inputNode.setValueFromSource({
+               $(this).inputNode.setValueFromSource({
                     dataType: DataType.NodeId,
                     value: _node.nodeId
                 });
@@ -420,7 +418,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         this.currentBranch().setActiveState(false);
         this.currentBranch().setAckedState(true);
     }
-    public _signalNewCondition(stateName: string | null, isActive?: boolean, value?: string): void {
+    public _signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         // xx if(stateName === null) {
         // xx     alarm.currentBranch().setActiveState(false);
         // xx     alarm.currentBranch().setAckedState(true);
@@ -431,7 +429,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         // xx assert(isActive !== alarm.activeState.getValue());
 
         const oldConditionInfo = this.getCurrentConditionInfo();
-        const newConditionInfo = this._calculateConditionInfo(stateName, !!isActive, value!, oldConditionInfo);
+        const newConditionInfo = this._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
@@ -469,3 +467,6 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         }
     }
 }
+
+export type UAAlarmConditionImpl = UAAlarmConditionImplBase & UAAlarmConditionEx;
+export const UAAlarmConditionImpl = UAAlarmConditionImplBase as unknown as new () => UAAlarmConditionImpl;

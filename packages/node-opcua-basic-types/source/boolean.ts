@@ -2,7 +2,7 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 export function isValidBoolean(value: unknown): boolean {
     return typeof value === "boolean";
@@ -23,7 +23,7 @@ export function decodeBoolean(stream: BinaryStream, _value?: boolean): boolean {
 
 const falseDetectionRegex = /^(?:f(?:alse)?|no?|0+)$/i;
 
-export function coerceBoolean(value: boolean | string|number | null | undefined): boolean {
+export function coerceBoolean(value: boolean | string | number | null | undefined): boolean {
     if (value === null || value === undefined) {
         return false;
     }

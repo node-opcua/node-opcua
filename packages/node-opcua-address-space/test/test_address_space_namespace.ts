@@ -1,12 +1,11 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
+import fs from "node:fs";
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
+import should from "should";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-
 
 describe("testing address space namespace", () => {
     it("#getNamespaceUri : should have namespace 0", () => {
@@ -31,10 +30,7 @@ describe("testing address space namespace", () => {
 describe("testing address space namespace loading", function (this: any) {
     it("PIO1 should process namespaces and translate namespace index when loading node set xml files", async () => {
         const addressSpace = AddressSpace.create();
-        const xml_files = [
-            path.join(__dirname, "../nodesets/mini.Nodeset2.xml"),
-            getFixture("fixture_custom_nodeset.xml")
-        ];
+        const xml_files = [path.join(__dirname, "../nodesets/mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
         // xx fs.existsSync(xml_files[2]).should.be.eql(true,"invalid file : "+ xml_files[2]);
@@ -52,8 +48,8 @@ describe("testing address space namespace loading", function (this: any) {
         addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
         addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
 
-        addressSpace.findNode("ns=2;i=1")!.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1")!.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+        addressSpace.findNode("ns=2;i=1")?.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+        addressSpace.findNode("ns=3;i=1")?.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
         addressSpace
             .getNamespaceArray()
@@ -89,13 +85,13 @@ describe("testing address space namespace loading", function (this: any) {
         addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
         addressSpace.getNamespaceArray()[4].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
 
-        addressSpace.findNode("ns=2;i=1")!.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1")!.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+        addressSpace.findNode("ns=2;i=1")?.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
+        addressSpace.findNode("ns=3;i=1")?.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-        addressSpace.findNode("ns=2;i=1000")!.browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1000")!.browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
+        addressSpace.findNode("ns=2;i=1000")?.browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
+        addressSpace.findNode("ns=3;i=1000")?.browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
 
-        addressSpace.findNode("ns=4;i=1")!.browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
+        addressSpace.findNode("ns=4;i=1")?.browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
 
         addressSpace
             .getNamespaceArray()

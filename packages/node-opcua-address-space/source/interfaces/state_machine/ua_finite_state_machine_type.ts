@@ -1,9 +1,9 @@
 /**
  * @module node-opcua-address-space
  */
-import { InstantiateObjectOptions } from "node-opcua-address-space-base";
+import type { InstantiateObjectOptions } from "node-opcua-address-space-base";
 
-import { UAStateMachineEx, UAStateMachineType } from "./ua_state_machine_type";
+import type { UAStateMachineEx, UAStateMachineType } from "./ua_state_machine_type";
 /**
  * Finite State Machine
  *

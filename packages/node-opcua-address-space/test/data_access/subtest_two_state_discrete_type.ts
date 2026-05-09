@@ -1,17 +1,15 @@
-import fs from "fs";
-
+import fs from "node:fs";
+import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
+import { DataValue, type DataValueT } from "node-opcua-data-value";
+import { getCurrentClock } from "node-opcua-date-time";
+import { getTempFilename } from "node-opcua-debug/nodeJS";
+import { nodesets } from "node-opcua-nodesets";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
-import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
-import { nodesets } from "node-opcua-nodesets";
-import { getTempFilename } from "node-opcua-debug/nodeJS";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataValue, DataValueT } from "node-opcua-data-value";
-import { getCurrentClock } from "node-opcua-date-time";
-import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, UAObject, UAObjectType, SessionContext, UATwoStateDiscreteEx } from "../..";
+import { AddressSpace, SessionContext, type UAObject, type UAObjectType, type UATwoStateDiscreteEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";
 
 const doDebug = false;
@@ -43,14 +41,14 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
             twoStateDiscreteVariable.browseName.toString().should.eql("1:MySwitch");
 
             twoStateDiscreteVariable
-                .getPropertyByName("TrueState")!
-                .readValue()
+                .getPropertyByName("TrueState")
+                ?.readValue()
                 .value.toString()
                 .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
 
             twoStateDiscreteVariable
-                .getPropertyByName("FalseState")!
-                .readValue()
+                .getPropertyByName("FalseState")
+                ?.readValue()
                 .value.toString()
                 .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
 
@@ -125,7 +123,7 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
             // verification
             obj.myState.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             obj.myState.readValue().value.value.should.eql(true);
-            obj.myState.trueState.readValue().value.value.text!.should.eql("SomeTrueState");
+            obj.myState.trueState.readValue().value.value.text?.should.eql("SomeTrueState");
 
             // it
             obj.myState.setValue(true);
@@ -195,14 +193,14 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
 
             // because we use getter and setter, we need to call at least readValueAsync once
             // to get the initial value....
-            const dv0 = await myObject.myState.readValueAsync(SessionContext.defaultContext);
+            const _dv0 = await myObject.myState.readValueAsync(SessionContext.defaultContext);
 
             v.getValue().should.eql(true);
             v.readValue().statusCode.should.eql(StatusCodes.Good);
             // ----------------
 
             _theValue = false;
-            const dv1 = await myObject.myState.readValueAsync(SessionContext.defaultContext);
+            const _dv1 = await myObject.myState.readValueAsync(SessionContext.defaultContext);
             myObject.myState.getValueAsString().should.eql("SomeFalseState");
             //
             _theValue = true;
@@ -264,13 +262,13 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
             const addressSpace = AddressSpace.create();
             await generateAddressSpace(addressSpace, [nodesets.standard, xmlFile]);
 
-            const namespace = addressSpace.registerNamespace("uri:myOwnNamespace");
+            const _namespace = addressSpace.registerNamespace("uri:myOwnNamespace");
 
             const ns = addressSpace.getNamespaceIndex("uri:mynamespace");
             const myObjectWithTwoStateDiscreteType = addressSpace.findObjectType("MyObjectWithTwoStateDiscreteType", ns);
 
             const o = myObjectWithTwoStateDiscreteType?.instantiate({ browseName: "MyObject" }) as MyObjectWithTwoStateDiscrete;
-            o.myState.constructor.name.should.eql("UATwoStateDiscreteImpl");
+            o.myState.constructor.name.should.eql("UATwoStateDiscreteImplBase");
 
             addressSpace.dispose();
         });

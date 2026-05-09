@@ -1,15 +1,11 @@
-import should from "should";
-import sinon from "sinon";
-
 import { Range, standardUnits } from "node-opcua-data-access";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { WriteValue } from "node-opcua-service-write";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, SessionContext } from "../..";
-import { UAAnalogItem } from "../..";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import sinon from "sinon";
+import { AddressSpace, SessionContext, type UAAnalogItem } from "../..";
 
 const context = SessionContext.defaultContext;
 

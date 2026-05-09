@@ -1,12 +1,18 @@
 // tslint:disable:no-console
 import chalk from "chalk";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
+import {
+    AddressSpace,
+    type BaseNode,
+    type Namespace,
+    promoteToStateMachine,
+    SessionContext,
+    type UAProgramStateMachineEx
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { SessionContext, UAStateMachineEx } from "..";
-import { AddressSpace, BaseNode, Namespace, UAProgramStateMachineEx, promoteToStateMachine } from "..";
 import { createBoilerType, makeBoiler } from "../testHelpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
@@ -102,7 +108,7 @@ describe("Testing Boiler System", () => {
         boiler
             .getNotifiers()
             .map((x: BaseNode) => {
-                return x.browseName.name!.toString();
+                return x.browseName.name?.toString();
             })
             .join(" ")
             .should.eql("InputPipe BoilerDrum OutputPipe");
@@ -122,7 +128,7 @@ describe("Testing Boiler System", () => {
 
         const callMethodResponse = await haltMethod.execute(null, [], context);
         if (doDebug) {
-            console.log(chalk.bgWhite.cyan(" Halt has been called"), callMethodResponse.statusCode!.toString());
+            console.log(chalk.bgWhite.cyan(" Halt has been called"), callMethodResponse.statusCode?.toString());
         }
         haltMethod.getExecutableFlag(context).should.eql(false);
         resetMethod.getExecutableFlag(context).should.eql(true);
@@ -131,7 +137,7 @@ describe("Testing Boiler System", () => {
 
         const callMethodResponse1 = await resetMethod.execute(null, [], context);
         if (doDebug) {
-            console.log(chalk.bgWhite.cyan(" resetMethod has been called"), callMethodResponse1.statusCode!.toString());
+            console.log(chalk.bgWhite.cyan(" resetMethod has been called"), callMethodResponse1.statusCode?.toString());
         }
         haltMethod.getExecutableFlag(context).should.eql(true);
         resetMethod.getExecutableFlag(context).should.eql(false);
@@ -141,7 +147,7 @@ describe("Testing Boiler System", () => {
         const callMethodResponse2 = await startMethod.execute(null, [], context);
 
         if (doDebug) {
-            console.log(chalk.bgWhite.cyan(" startMethod has been called"), callMethodResponse2.statusCode!.toString());
+            console.log(chalk.bgWhite.cyan(" startMethod has been called"), callMethodResponse2.statusCode?.toString());
         }
         haltMethod.getExecutableFlag(context).should.eql(true);
         resetMethod.getExecutableFlag(context).should.eql(true);
@@ -151,7 +157,7 @@ describe("Testing Boiler System", () => {
         const callMethodResponse3 = await suspendMethod.execute(null, [], context);
 
         if (doDebug) {
-            console.log(chalk.bgWhite.cyan("suspendMethod has been called"), callMethodResponse3.statusCode!.toString());
+            console.log(chalk.bgWhite.cyan("suspendMethod has been called"), callMethodResponse3.statusCode?.toString());
         }
         haltMethod.getExecutableFlag(context).should.eql(true);
         resetMethod.getExecutableFlag(context).should.eql(true);
@@ -185,7 +191,7 @@ describe("Testing Boiler System", () => {
 
         // when state is "Halted" , the Halt method is not executable
         boilerStateMachine.setState(haltedState);
-        boilerStateMachine.currentStateNode!.browseName.toString().should.eql("Halted");
+        boilerStateMachine.currentStateNode?.browseName.toString().should.eql("Halted");
 
         const haltMethod = boilerStateMachine.getMethodByName("Halt")!;
         // halt method should not be executable when current State is Halted

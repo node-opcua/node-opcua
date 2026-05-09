@@ -1,8 +1,7 @@
+import type { IAddressSpace, INamespace, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-
-import { UAObject, UAVariable, IAddressSpace, INamespace, UAVariableType } from "node-opcua-address-space-base";
-import { NamespacePrivate } from "../../src/namespace_private";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import type { NamespacePrivate } from "../../src/namespace_private";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

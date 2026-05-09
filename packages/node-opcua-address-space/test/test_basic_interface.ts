@@ -8,7 +8,6 @@ import { generateAddressSpace } from "../nodeJS";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-
 describe("testing object instantiation with Interfaces - case 1", () => {
     let addressSpace: AddressSpace;
     beforeEach(async () => {
@@ -83,8 +82,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
             description: "MachineType"
         });
 
-        implementInterface( machineType, iVendorPlateTypeExtended, []);
-
+        implementInterface(machineType, iVendorPlateTypeExtended, []);
 
         should.exist(machineType.getChildByName("ProductName", 2));
         should.exist(machineType.getChildByName("SerialNumber", 2));
@@ -138,8 +136,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
 
         const iVendorPlateTypeExtended = namespace1.findObjectType("IVendorPlateTypeExtended");
         if (!iVendorPlateTypeExtended) throw new Error("cannot find IVendorPlateTypeExtended");
-        
-   
+
         // #region now instantiate a machine
         const namespace2 = addressSpace.registerNamespace("Instance");
 
@@ -153,7 +150,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         });
         implementInterface(machine, iVendorPlateTypeExtended, ["SoftwareRevision"]);
         // #endregion
-       
+
         doDebug && debugLog(machine.toString());
 
         should.exist(machine.getChildByName("ProductName", 2));
@@ -161,7 +158,6 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         should.exist(machine.getChildByName("Manufacturer", 2));
         should.exist(machine.getChildByName("SoftwareRevision", 2));
     });
-
 
     function addInterfaceWith2Optionals(addressSpace: AddressSpace) {
         // UAInterface1 {
@@ -187,8 +183,6 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         return uaInterface1;
     }
     it("INT-03 should expose optional interface members that are in the optionals property", async () => {
-
-
         const uaInterface1 = addInterfaceWith2Optionals(addressSpace);
 
         const uaObjectType1 = addressSpace.getOwnNamespace().addObjectType({
@@ -217,11 +211,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         should.exist(uaObject2.getChildByName("OptionalVariable2", 1), "OptionalVariable2 should be exposed");
     });
 
-
-
-        
     it("INT-04 should instantiate an object with optionals,  of a type that implements an interface with no override", async () => {
-
         const uaInterface1 = addInterfaceWith2Optionals(addressSpace);
 
         // #region define a object type that implements the interface
@@ -229,7 +219,7 @@ describe("testing object instantiation with Interfaces - case 1", () => {
             browseName: "UAObjectType1",
             subtypeOf: "BaseObjectType"
         });
-        
+
         // using simply add Reference to implement the interface should work as well
         uaObjectType1.addReference({
             nodeId: uaInterface1,
@@ -237,7 +227,6 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         });
         // #endregion
 
-        
         const uaObject1 = uaObjectType1.instantiate({
             browseName: "UAObject1",
             organizedBy: addressSpace.rootFolder.objects,
@@ -256,5 +245,4 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         should.not.exist(uaObject2.getChildByName("OptionalVariable1", 1), "OptionalVariable1 should not be exposed");
         should.exist(uaObject2.getChildByName("OptionalVariable2", 1), "OptionalVariable2 should be exposed");
     });
-
 });

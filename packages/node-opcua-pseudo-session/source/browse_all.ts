@@ -6,13 +6,13 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
 import { make_debugLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
+import type { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    IBasicSessionReadAsyncMultiple,
+import type {
+    BrowseDescriptionLike,
     IBasicSessionBrowseAsyncMultiple,
     IBasicSessionBrowseNextAsyncMultiple,
-    BrowseDescriptionLike
+    IBasicSessionReadAsyncMultiple
 } from "./basic_session_interface";
 
 const debugLog = make_debugLog(__filename);
@@ -36,14 +36,16 @@ function coerceToBrowseDescription(nodeToBrowse: BrowseDescriptionLike): BrowseD
         return nodeToBrowse as BrowseDescriptionOptions;
     }
 }
-export type ISessionForBrowseAll = IBasicSessionBrowseAsyncMultiple & IBasicSessionBrowseNextAsyncMultiple & IBasicSessionReadAsyncMultiple;
+export type ISessionForBrowseAll = IBasicSessionBrowseAsyncMultiple &
+    IBasicSessionBrowseNextAsyncMultiple &
+    IBasicSessionReadAsyncMultiple;
 export async function browseAll(session: ISessionForBrowseAll, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
 export async function browseAll(session: ISessionForBrowseAll, nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
 export async function browseAll(
     session: ISessionForBrowseAll,
     nodesToBrowse: BrowseDescriptionLike[] | BrowseDescriptionLike
 ): Promise<BrowseResult | BrowseResult[]> {
-    if (!(nodesToBrowse instanceof Array)) {
+    if (!Array.isArray(nodesToBrowse)) {
         return (await browseAll(session, [nodesToBrowse]))[0];
     }
     const { maxBrowseContinuationPoints, maxNodesPerBrowse } = await readLimits(session);
@@ -102,7 +104,7 @@ export async function browseAll2(
         for (let i = 0; i < browseNextResults.length; i++) {
             const browseResult = browseNextResults[i];
             const references = tmp[i].references || [];
-            if (browseResult.references && browseResult.references.length) {
+            if (browseResult.references?.length) {
                 references.push(...browseResult.references);
             }
             const continuationPoint = browseResult.continuationPoint;

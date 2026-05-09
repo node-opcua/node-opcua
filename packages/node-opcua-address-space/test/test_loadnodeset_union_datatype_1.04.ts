@@ -1,14 +1,13 @@
-import path from "path";
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
-import { coerceNodeId } from "node-opcua-nodeid";
-import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import path from "node:path";
 import {
     ExtraDataTypeManager,
     getExtensionObjectConstructor,
     getExtraDataTypeManager
 } from "node-opcua-client-dynamic-extension-object";
+import { coerceNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, PseudoSession } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("Testing loadNodeSet - Union DataType", async function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
@@ -28,14 +27,11 @@ describe("Testing loadNodeSet - Union DataType", async function (this: any) {
         a.schema.name.should.eql("CustomUnion");
         console.log(a);
 
-
-        const manager = new ExtraDataTypeManager();
+        const _manager = new ExtraDataTypeManager();
         const session = new PseudoSession(addressSpace);
-        const manager2 = await getExtraDataTypeManager(session);
+        const _manager2 = await getExtraDataTypeManager(session);
         const c = await getExtensionObjectConstructor(session, coerceNodeId("ns=1;i=1000"));
         const a1 = new c({});
         console.log(a1);
-
-        
     });
 });

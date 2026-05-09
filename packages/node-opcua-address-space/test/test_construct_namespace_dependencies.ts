@@ -1,15 +1,15 @@
-import path from "path";
-import fs from "fs";
+import fs from "node:fs";
+import path from "node:path";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import {
-    AddressSpace,
-    IAddressSpace,
-    constructNamespaceDependency,
-    constructNamespacePriorityTable,
     _constructNamespaceTranslationTable,
     _recomputeRequiredModelsFromTypes,
-    _recomputeRequiredModelsFromTypes2
+    _recomputeRequiredModelsFromTypes2,
+    AddressSpace,
+    constructNamespaceDependency,
+    constructNamespacePriorityTable,
+    type IAddressSpace
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { makeBoiler } from "../testHelpers";
@@ -18,7 +18,7 @@ const tmpFolder = path.join(__dirname, "../tmp");
 
 function getCoffeeMachineDeviceType(addressSpace: IAddressSpace) {
     const nsKitchen = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
-    if (nsKitchen == -1) {
+    if (nsKitchen === -1) {
         throw new Error("cannot find kitchen namespace");
     }
     const coffeeMachineDeviceType = addressSpace.findObjectType("CoffeeMachineDeviceType", nsKitchen)!;
@@ -30,7 +30,7 @@ function getCoffeeMachineDeviceType(addressSpace: IAddressSpace) {
 }
 
 export function installBoilerStuff(addressSpace: AddressSpace) {
-    const namespace = addressSpace.getOwnNamespace();
+    const _namespace = addressSpace.getOwnNamespace();
     // createBoilerType(namespace);
     makeBoiler(addressSpace, {
         browseName: "Boiler#1",
@@ -97,7 +97,7 @@ describe("constructNamespaceDependency", function () {
         installBoilerStuff(addressSpace);
         for (const namespace of addressSpace.getNamespaceArray()) {
             const { requiredNamespaceIndexes, nbTypes } = _recomputeRequiredModelsFromTypes(namespace);
-            console.log(namespace.index, namespace.namespaceUri.padEnd(55, ".") + ":", { requiredNamespaceIndexes, nbTypes });
+            console.log(namespace.index, `${namespace.namespaceUri.padEnd(55, ".")}:`, { requiredNamespaceIndexes, nbTypes });
         }
         return addressSpace;
     };
@@ -164,7 +164,7 @@ describe("constructNamespaceDependency", function () {
 
     it("RRR-3b checking import", async () => {
         const nsKitchen = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
-        if (nsKitchen == -1) {
+        if (nsKitchen === -1) {
             throw new Error("cannot find kitchen namespace");
         }
         const commercialKitchenDeviceType = addressSpace.findObjectType("CommercialKitchenDeviceType", nsKitchen)!;
@@ -172,7 +172,6 @@ describe("constructNamespaceDependency", function () {
         console.log(commercialKitchenDeviceType.toString());
     });
     it("RRR-4 testing reloading namespace after exports", async () => {
-        
         const nodeFilenames = await exportedNamespace(addressSpace);
 
         const addressSpace2 = AddressSpace.create();

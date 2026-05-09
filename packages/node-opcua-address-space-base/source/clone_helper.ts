@@ -20,8 +20,8 @@ const traceLog = errorLog;
 type UAConcrete = UAVariable | UAObject | UAMethod;
 
 /* c8 ignore start */
-/** 
- * @private 
+/**
+ * @private
  */
 export function fullPath(node: BaseNode): string {
     const browseName = node.browseName.toString();
@@ -128,9 +128,8 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
     const parents = originalObject.findReferencesEx("HasChild", BrowseDirection.Inverse);
     // c8 ignore next
     if (parents.length > 1) {
-
         // it could be a tricky buggy situation  like that we have seen with SIOME
-        //  
+        //
         //  AnalogUnitTyoe
         //    |-- HasProperty --> EngineeringUnits (i=17052)
         //  MyObjectType
@@ -141,12 +140,20 @@ function _get_parent_type_and_path(originalObject: BaseNode): {
             const n = addressSpace.findNode(p.nodeId);
             return n && (n.nodeClass === NodeClass.ObjectType || n.nodeClass === NodeClass.VariableType);
         });
-        
+
         if (parentTypes.length === 1) {
-            return { parentType: addressSpace.findNode(parentTypes[0].nodeId) as UAObjectType | UAVariableType, path: [originalObject.browseName] };
+            return {
+                parentType: addressSpace.findNode(parentTypes[0].nodeId) as UAObjectType | UAVariableType,
+                path: [originalObject.browseName]
+            };
         }
 
-        warningLog(" object ", originalObject.browseName.toString(), originalObject.nodeId.toString(), " has more than one parent !");
+        warningLog(
+            " object ",
+            originalObject.browseName.toString(),
+            originalObject.nodeId.toString(),
+            " has more than one parent !"
+        );
         warningLog(originalObject.toString());
         warningLog(" parents : ");
         for (const parent of parents) {

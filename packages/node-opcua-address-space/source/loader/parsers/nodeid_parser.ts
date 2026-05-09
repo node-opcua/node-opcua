@@ -1,5 +1,4 @@
-import { resolveNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
-
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
 export const makeNodeIdParser = (_translateNodeId: (nodeId: string) => NodeId) => ({
     NodeId: {

@@ -9,13 +9,12 @@ import type {
     INamespace,
     ModellingRuleType,
     RequiredModel,
-    UADataType,
+    UADataType
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
 
 import type { AddressSpacePrivate } from "./address_space_private";
-
 
 export interface NamespacePrivate extends INamespace {
     addressSpace: AddressSpacePrivate;
@@ -45,8 +44,6 @@ export interface NamespacePrivate extends INamespace {
     _variableTypeCount(): number;
     _dataTypeCount(): number;
     _referenceTypeCount(): number;
-
-
 }
 
 export declare const NamespacePrivate: new (options: unknown) => NamespacePrivate;
@@ -67,10 +64,7 @@ function isValidModellingRule(ruleName: string) {
  * @param modellingRule
  * @private
  */
-export function UANamespace_process_modelling_rule(
-    references: AddReferenceOpts[],
-    modellingRule?: ModellingRuleType
-): void {
+export function UANamespace_process_modelling_rule(references: AddReferenceOpts[], modellingRule?: ModellingRuleType): void {
     if (modellingRule) {
         assert(isValidModellingRule(modellingRule), "expecting a valid modelling rule");
         const modellingRuleName = `ModellingRule_${modellingRule}`;

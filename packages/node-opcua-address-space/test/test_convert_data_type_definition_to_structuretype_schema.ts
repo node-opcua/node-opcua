@@ -1,27 +1,23 @@
-
-import should from "should";
-import path from "path";
-import { AttributeIds } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
-import { StructureDefinition } from "node-opcua-types";
-
-import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, PseudoSession, SessionContext } from "..";
-import { generateAddressSpace } from "../nodeJS";
-
+import path from "node:path";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { DataTypeIds } from "../../node-opcua-constants/dist";
-import { coerceNodeId } from "node-opcua-nodeid";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { AttributeIds } from "node-opcua-data-model";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
+import type { StructureDefinition } from "node-opcua-types";
+import should from "should";
+import { DataTypeIds } from "../../node-opcua-constants/dist";
+import { AddressSpace, PseudoSession } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     let addressSpace: AddressSpace;
     let dataTypeManager: ExtraDataTypeManager;
     before(async () => {
         addressSpace = AddressSpace.create();
-        
+
         addressSpace.registerNamespace("PRIVATE");
         await generateAddressSpace(addressSpace, [nodesets.standard]);
         dataTypeManager = new ExtraDataTypeManager();
@@ -34,7 +30,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
 
     it("should convert a simple structure data type", async () => {
         const ns = addressSpace.getOwnNamespace();
- 
+
         const myStructure = ns.createDataType({
             browseName: "MyStructure",
             isAbstract: false,
@@ -84,7 +80,6 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     });
 
     it("should convert a data type with an enumeration", async () => {
-
         const ns = addressSpace.getOwnNamespace();
 
         const myEnum = ns.addEnumerationType({
@@ -133,9 +128,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
         schema.fields[0].fieldType.should.eql("MyEnum");
     });
 
-
     it("should convert a data type with two enumeration fields", async () => {
-
         const ns = addressSpace.getOwnNamespace();
 
         const myEnum = ns.addEnumerationType({
@@ -159,10 +152,10 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
                     description: "the enum value",
                     name: "EnumValue2",
                     valueRank: -1
-                },
+                }
             ]
         });
-        const myStructureWithEnum2= ns.createDataType({
+        const _myStructureWithEnum2 = ns.createDataType({
             browseName: "MyStructureWith2Enum2",
             isAbstract: false,
             subtypeOf: "Structure",
@@ -178,7 +171,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
                     description: "the enum value",
                     name: "EnumValue2",
                     valueRank: -1
-                },
+                }
             ]
         });
         const dataTypeDefinitionDataValue = myStructureWithEnum1.readAttribute(null, AttributeIds.DataTypeDefinition);
@@ -209,14 +202,13 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
         schema.fields[1].name.should.eql("enumValue2");
         schema.fields[1].fieldType.should.eql("MyEnum2");
 
-
         const schema2 = await convertDataTypeDefinitionToStructureTypeSchema(
             pseudoSession,
             myStructureWithEnum1.nodeId,
             "MyStructureWith2Enum2",
             definition,
             null,
-            dataTypeManager ,
+            dataTypeManager,
             false,
             {}
         );
@@ -239,16 +231,15 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     after(async () => {
         addressSpace.dispose();
     });
-    it("ZZZ should load a enum referenced twice", async()=>{
+    it("ZZZ should load a enum referenced twice", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
         const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_enum2.xml");
         const xml_files = [nodesets.standard, xml_file2];
-        
+
         await generateAddressSpace(addressSpace, xml_files);
 
         const d = addressSpace.findDataType("2:RunInfoDataType");
         should.exist(d);
     });
-
 });

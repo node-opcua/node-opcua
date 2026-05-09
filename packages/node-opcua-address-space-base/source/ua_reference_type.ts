@@ -1,25 +1,25 @@
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { BaseNode } from "./base_node";
-import { UAReference } from "./ua_reference";
+import type { LocalizedText, NodeClass } from "node-opcua-data-model";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { BaseNode } from "./base_node";
+import type { UAReference } from "./ua_reference";
 
-export declare class UAReferenceType extends BaseNode {
-    public readonly nodeClass: NodeClass.ReferenceType;
-    public readonly subtypeOfObj: UAReferenceType | null;
-    public readonly subtypeOf: NodeId | null;
-    public readonly isAbstract: boolean;
-    public readonly inverseName: LocalizedText;
+export interface UAReferenceType extends BaseNode {
+    readonly nodeClass: NodeClass.ReferenceType;
+    readonly subtypeOfObj: UAReferenceType | null;
+    readonly subtypeOf: NodeId | null;
+    readonly isAbstract: boolean;
+    readonly inverseName: LocalizedText;
 
-    public isSubtypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
+    isSubtypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
 
     /** @deprecated - use  isSubtypeOf instead */
-    public isSupertypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
+    isSupertypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
 
-    public getAllSubtypes(): UAReferenceType[];
+    getAllSubtypes(): UAReferenceType[];
 
     /**
      *
      * @param reference
      */
-    public checkHasSubtype(referenceType: NodeId | UAReference): boolean;
+    checkHasSubtype(referenceType: NodeId | UAReference): boolean;
 }

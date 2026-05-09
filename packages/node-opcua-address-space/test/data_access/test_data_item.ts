@@ -1,15 +1,10 @@
-import fs from "fs";
-
-import mocha from "mocha";
-import should from "should";
-
+import fs from "node:fs";
 import { standardUnits } from "node-opcua-data-access";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-
 import { AddressSpace } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
-
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed";
 import { subtest_analog_item_type } from "./subtest_analog_item_type";
 import { subtest_data_item_PercentDeadband } from "./subtest_data_item_PercentDeadband";
@@ -17,8 +12,6 @@ import { subtest_multi_state_discrete_type } from "./subtest_multi_state_discret
 import { subtest_multi_state_value_discrete_type } from "./subtest_multi_state_value_discrete_type";
 import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_type";
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("DataAccess", () => {
     let addressSpace: AddressSpace;
@@ -109,17 +102,17 @@ describe("DataAccess", () => {
 
     it("should have a UAVariableType XYArrayItemType", () => {
         const xyArrayItemType = addressSpace.findVariableType("XYArrayItemType")!;
-        xyArrayItemType.arrayDimensions!.should.eql([0]);
+        xyArrayItemType.arrayDimensions?.should.eql([0]);
     });
 
     it("should have a ImageItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("ImageItemType")!;
-        xyArrayItemType.arrayDimensions!.should.eql([0, 0]);
+        xyArrayItemType.arrayDimensions?.should.eql([0, 0]);
     });
 
     it("should have a CubeItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("CubeItemType")!;
-        xyArrayItemType.arrayDimensions!.should.eql([0, 0, 0]);
+        xyArrayItemType.arrayDimensions?.should.eql([0, 0, 0]);
     });
 
     it("should encode and decode a string containing fancy characters", (done: any) => {

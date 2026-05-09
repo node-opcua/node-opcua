@@ -120,14 +120,14 @@ describe("testing Method in address space", () => {
     it("should provide a way to find a Method object by nodeId", () => {
         should.exist(addressSpace.findMethod("ns=0;i=11489"));
         should.exist(addressSpace.findNode("ns=0;i=11489"));
-        addressSpace.findMethod("ns=0;i=11489")!.nodeClass.should.eql(NodeClass.Method);
-        addressSpace.findNode("ns=0;i=11489")!.nodeClass.should.eql(NodeClass.Method);
+        addressSpace.findMethod("ns=0;i=11489")?.nodeClass.should.eql(NodeClass.Method);
+        addressSpace.findNode("ns=0;i=11489")?.nodeClass.should.eql(NodeClass.Method);
     });
     it("should provide a way to find a Method object by nodeId", () => {
         should.exist(addressSpace.findMethod("ns=0;i=11492"));
         should.exist(addressSpace.findNode("ns=0;i=11492"));
-        addressSpace.findMethod("ns=0;i=11492")!.nodeClass.should.eql(NodeClass.Method);
-        addressSpace.findNode("ns=0;i=11492")!.nodeClass.should.eql(NodeClass.Method);
+        addressSpace.findMethod("ns=0;i=11492")?.nodeClass.should.eql(NodeClass.Method);
+        addressSpace.findNode("ns=0;i=11492")?.nodeClass.should.eql(NodeClass.Method);
     });
 
     it("should provide a input Parameter variable", () => {
@@ -185,11 +185,11 @@ describe("testing Method binding", () => {
     it("should bind a method with a method - MethodFunctorC ", async () => {
         const server = rootFolder.objects.server;
 
-        server.getMonitoredItems!.bindMethod(fake_getMonitoredItemId);
+        server.getMonitoredItems?.bindMethod(fake_getMonitoredItemId);
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
 
-        const _result = await server.getMonitoredItems!.execute(null, inputArguments, context);
+        const _result = await server.getMonitoredItems?.execute(null, inputArguments, context);
     });
 
     it("should bind a method with a method - MethodFunctorA ", async () => {
@@ -216,17 +216,17 @@ describe("testing Method binding", () => {
             return myResult;
         }
 
-        server.getMonitoredItems!.bindMethod(method);
+        server.getMonitoredItems?.bindMethod(method);
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
-        const result = await server.getMonitoredItems!.execute(null, inputArguments, context);
+        const result = await server.getMonitoredItems?.execute(null, inputArguments, context);
         const outputArguments = result.outputArguments as VariantLike[];
         outputArguments.should.have.length(2);
         should.exist(outputArguments[0]);
         should.exist(outputArguments[1]);
         (outputArguments[0] as Variant).dataType.should.eql(DataType.UInt32);
         (outputArguments[1] as Variant).dataType.should.eql(DataType.UInt32);
-        result.statusCode!.should.eql(StatusCodes.BadBoundNotFound);
+        result.statusCode?.should.eql(StatusCodes.BadBoundNotFound);
     });
 });
 
@@ -391,7 +391,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            result.statusCode?.should.eql(StatusCodes.BadUserAccessDenied);
             callOrder.should.eql(["interceptor1"], "second interceptor should not run");
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor1);

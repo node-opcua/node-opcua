@@ -2,18 +2,18 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-empty-interface
-import { DateTime, UInt32 } from "node-opcua-basic-types";
-import { LocalizedText } from "node-opcua-data-model";
-import { DataType } from "node-opcua-variant";
-import {
-    UAProperty,
+
+import type {
     InstantiateObjectOptions,
     UAObject,
     UAObjectType,
+    UAProperty,
     UAReferenceType,
     UAVariableTypeT
 } from "node-opcua-address-space-base";
-import {
+import type { DateTime, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type {
     UAInitialState,
     UAInitialState_Base,
     UAState,
@@ -22,8 +22,9 @@ import {
     UATransition_Base,
     UATransitionEvent_Base
 } from "node-opcua-nodeset-ua";
+import type { DataType } from "node-opcua-variant";
 
-import { UATransitionEx } from "./ua_transition_ex";
+import type { UATransitionEx } from "./ua_transition_ex";
 
 export type UtcTime = DateTime;
 
@@ -262,7 +263,9 @@ export interface UAStateMachineHelper {
     setState(toStateNode: UAState | string | null, predicate?: TransitionSelector): void;
 }
 
-export interface UAStateMachineEx extends UAObject, UAStateMachineHelper, UAStateMachine_Base {}
+export interface UAStateMachineEx extends UAObject, UAStateMachineHelper, UAStateMachine_Base {
+    _currentStateNode: UAState | null;
+}
 
 export interface UAStateMachineTypeHelper extends UAObjectType {
     /**

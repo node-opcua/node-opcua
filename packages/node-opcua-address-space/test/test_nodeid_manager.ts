@@ -1,11 +1,10 @@
 import "should";
-import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
-
-import { AddressSpace, ConstructNodeIdOptions, NodeIdManager, getNodeIdManager, setSymbols } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
+import { AddressSpace, type ConstructNodeIdOptions, getNodeIdManager, NodeIdManager, setSymbols } from "..";
 import { get_mini_nodeset_filename } from "../distHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("NodeIdManager", () => {
     const namespaceUri = "urn:namespace";
@@ -25,13 +24,13 @@ describe("NodeIdManager", () => {
     });
 
     it("should register a new node id", () => {
-        const index = 1;
+        const _index = 1;
         const nodeId = nodeIdManager.buildNewNodeId();
         nodeId.toString().should.eql("ns=1;i=1000");
     });
 
     it("should register a new node id", () => {
-        const index = 1;
+        const _index = 1;
 
         const nodeId1 = nodeIdManager.buildNewNodeId();
         nodeId1.toString().should.eql("ns=1;i=1000");
@@ -120,7 +119,6 @@ describe("NodeIdManager", () => {
     });
 
     it("should maintain a list of Symbol and recycle the one that exists already", () => {
-
         const ns = addressSpace.getOwnNamespace();
         setSymbols(ns, [["SomeName", 1000, "Object"]]);
 
@@ -132,7 +130,6 @@ describe("NodeIdManager", () => {
         nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object`);
 
         s.nodeId.toString().should.eql("ns=1;i=1000");
-
 
         const p = ns.addVariable({
             browseName: "Property1",
@@ -153,15 +150,13 @@ describe("NodeIdManager", () => {
                 {
                     isForward: false,
                     nodeId: s.nodeId,
-                    referenceType: resolveNodeId("HasComponent"),
+                    referenceType: resolveNodeId("HasComponent")
                 }
-            ],
-
+            ]
         };
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");
 
         nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object\nSomeName_Property1;1001;Variable`);
     });
-
 });

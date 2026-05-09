@@ -1,13 +1,11 @@
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
 import { coerceQualifiedName } from "node-opcua-data-model";
+import { nodesets } from "node-opcua-nodesets";
+import should from "should";
 
-import { AddressSpace, Namespace, UAObjectType } from "..";
+import { AddressSpace, type Namespace, type UAObjectType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
-
-
-describe("Object Instantiate with various nested properties defined at different subType level", function () {
+describe("Object Instantiate with various nested properties defined at different subType level", () => {
     /**
      * *    MyDeriveType  ------------------- -> MyBaseType    --------------> TopologyElementType
      *        |                                   |                                   |
@@ -61,7 +59,7 @@ describe("Object Instantiate with various nested properties defined at different
         myDerivedType = namespace.addObjectType({
             browseName: "MyDerivedType",
             subtypeOf: myBaseType,
-            modellingRule: "Mandatory",
+            modellingRule: "Mandatory"
         });
         const uaParameterSet2 = namespace.addObject({
             browseName: coerceQualifiedName({ name: "ParameterSet", namespaceIndex: nsDI }),
@@ -85,7 +83,7 @@ describe("Object Instantiate with various nested properties defined at different
             addressSpace.dispose();
         }
     });
-    it("should instantiate grand children of a property defined in the supertype", function () {
+    it("should instantiate grand children of a property defined in the supertype", () => {
         const uaInstance = myDerivedType.instantiate({
             browseName: "MyInstance"
         });
@@ -93,16 +91,22 @@ describe("Object Instantiate with various nested properties defined at different
         // console.log(uaInstance.toString());
         // console.log(uaInstance.getComponentByName("ParameterSet",1).toString());
 
-        const uaParameterSet = uaInstance.getComponentByName("ParameterSet",1);
+        const uaParameterSet = uaInstance.getComponentByName("ParameterSet", 1);
         should.exist(uaParameterSet);
-        should.exist(uaParameterSet?.getComponentByName("Foo",2), "Manadatory ParameterSet.Foo property defined myDerivedType should exist ");
-        should.exist(uaParameterSet?.getComponentByName("Bar",2), "Manadatory ParameterSet.Foo property defined myDerivedType superType, but missing in myDerivedType should exist ");
+        should.exist(
+            uaParameterSet?.getComponentByName("Foo", 2),
+            "Manadatory ParameterSet.Foo property defined myDerivedType should exist "
+        );
+        should.exist(
+            uaParameterSet?.getComponentByName("Bar", 2),
+            "Manadatory ParameterSet.Foo property defined myDerivedType superType, but missing in myDerivedType should exist "
+        );
     });
 
     // See issue #1326.
-    it("shold not add aggregates of ObjectType if name of that ObjectType conflict with name of other object", function () {
+    it("shold not add aggregates of ObjectType if name of that ObjectType conflict with name of other object", () => {
         const parameterSetType = namespace.addObjectType({
-            browseName: "ParameterSet",
+            browseName: "ParameterSet"
         });
 
         namespace.addVariable({
@@ -116,7 +120,7 @@ describe("Object Instantiate with various nested properties defined at different
             browseName: "MyInstance"
         });
 
-        const uaParameterSet = uaInstance.getComponentByName("ParameterSet",1);
+        const uaParameterSet = uaInstance.getComponentByName("ParameterSet", 1);
         should.not.exist(uaParameterSet?.getComponentByName("ExtraVar"), "Property ExtraVar from unrelated ObjectType added");
     });
 });

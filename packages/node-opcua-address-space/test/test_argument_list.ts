@@ -1,23 +1,22 @@
-import should from "should";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { Argument } from "node-opcua-types";
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import {
+    AddressSpace,
     binaryStoreSize_ArgumentList,
     decode_ArgumentList,
     encode_ArgumentList,
-    verifyArguments_ArgumentList,
-    AddressSpace
+    verifyArguments_ArgumentList
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 describe("testing ArgumentList special encode/decode process", () => {
     it("should encode/decode an ArgumentList (scalar)", () => {
@@ -115,7 +114,7 @@ describe("verifyArguments_ArgumentList", () => {
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
 
         // tslint:disable: no-console
-        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
 
         result.should.eql({
@@ -127,7 +126,7 @@ describe("verifyArguments_ArgumentList", () => {
         const argsBad = [new Variant({ dataType: DataType.String, value: "Bad" })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, argsBad);
         // tslint:disable: no-console
-        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
@@ -185,7 +184,7 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsGood1);
         // tslint:disable: no-console
-        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],
@@ -203,7 +202,7 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
-        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
@@ -220,7 +219,7 @@ describe("verifyArguments_ArgumentList", () => {
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         // tslint:disable: no-console
-        debugLog("inputArgumentResults[0]", result.inputArgumentResults![0].toString());
+        debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.Good],

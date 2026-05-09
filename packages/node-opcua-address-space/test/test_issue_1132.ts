@@ -1,12 +1,10 @@
-import path from "path";
+import path from "node:path";
 import "should";
 
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-
-import { AddressSpace } from "..";
+import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { UAVariable } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
@@ -23,16 +21,16 @@ describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", ()
     after(() => {
         addressSpace.dispose();
     });
-    it("should load a extension object containing a NodeId field", ()=>{
+    it("should load a extension object containing a NodeId field", () => {
         const ns = addressSpace.getNamespaceIndex("http://mynamespace");
         if (ns === -1) {
             throw new Error("Cannot find namespace");
         }
 
         const v = addressSpace.findNode(`ns=${ns};i=1272`) as UAVariable;
-        console.log(v.readValue().value.value.toJSON() );
+        console.log(v.readValue().value.value.toJSON());
         v.readValue().value.value.toJSON().should.eql({
-            sessionId: 'ns=1;g=7BC32991-2103-2344-DE12-84ED18A855B4',
+            sessionId: "ns=1;g=7BC32991-2103-2344-DE12-84ED18A855B4",
             subscriptionId: 869582,
             priority: 0,
             publishingInterval: 100,
@@ -63,7 +61,6 @@ describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", ()
             monitoringQueueOverflowCount: 0,
             nextSequenceNumber: 1,
             eventQueueOverflowCount: 0
-          });
+        });
     });
 });
-

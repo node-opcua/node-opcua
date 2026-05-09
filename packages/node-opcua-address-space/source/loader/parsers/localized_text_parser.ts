@@ -1,5 +1,5 @@
-import { coerceLocalizedText, LocalizedTextOptions, LocalizedText } from "node-opcua-data-model";
-import { ReaderStateParserLike } from "node-opcua-xml2json";
+import { coerceLocalizedText, type LocalizedText, type LocalizedTextOptions } from "node-opcua-data-model";
+import type { ReaderStateParserLike } from "node-opcua-xml2json";
 
 type LocalizedTextParserLikeL1 = ReaderStateParserLike & {
     localizedText: LocalizedTextOptions;
@@ -16,7 +16,7 @@ export const localizedText_parser = {
         parser: {
             Locale: {
                 finish(this: LocalizedTextParserLikeL2) {
-                    this.parent.localizedText = this.parent.localizedText || { text: undefined};
+                    this.parent.localizedText = this.parent.localizedText || { text: undefined };
                     this.parent.localizedText.locale = this.text.trim();
                 }
             },

@@ -1,15 +1,14 @@
-import { NodeClass } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { Argument, CallMethodResultOptions } from "node-opcua-types";
-import { Variant, VariantLike } from "node-opcua-variant";
-import { CallbackT } from "node-opcua-status-code";
-//
-import { BaseNode } from "./base_node";
-import { ISessionContext } from "./session_context";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAVariable } from "./ua_variable";
-import { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
+import type { NodeClass } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { CallbackT } from "node-opcua-status-code";
+import type { Argument, CallMethodResultOptions } from "node-opcua-types";
+import type { Variant, VariantLike } from "node-opcua-variant";
+import type { BaseNode, BaseNodeEvents, ListenerSignature } from "./base_node";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
+import type { ISessionContext } from "./session_context";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAVariable } from "./ua_variable";
 
 export declare type MethodFunctorC = (
     this: UAMethod,
@@ -25,46 +24,51 @@ export declare type MethodFunctorA = (
 
 export type MethodFunctor = MethodFunctorC | MethodFunctorA;
 
-export declare class UAMethod extends BaseNode {
-    public readonly nodeClass: NodeClass.Method;
-    public readonly typeDefinition: NodeId;
-    public readonly typeDefinitionObj: UAObjectType;
 
-    public readonly parent: UAObject | null;
+export interface UAMethodEvents extends BaseNodeEvents {
+    "method_executed": (inputArguments: Variant[], context: ISessionContext, callMethodResult: CallMethodResultOptions) => void;
+    "afterCall": (context: ISessionContext,inputArguments: Variant[], callMethodResult: CallMethodResultOptions) => void;
+}
+export interface UAMethod<T extends UAMethodEvents & ListenerSignature<T>   = UAMethodEvents> extends BaseNode<T> {
+    readonly nodeClass: NodeClass.Method;
+    readonly typeDefinition: NodeId;
+    readonly typeDefinitionObj: UAObjectType;
 
-    public readonly inputArguments?: UAVariable;
-    public readonly outputArguments?: UAVariable;
+    readonly parent: UAObject | null;
 
-    public readonly methodDeclarationId: NodeId;
+    readonly inputArguments?: UAVariable;
+    readonly outputArguments?: UAVariable;
+
+    readonly methodDeclarationId: NodeId;
 
     /**
      *
      */
-    public _getExecutableFlag?: (sessionContext: ISessionContext | null) => boolean;
+    _getExecutableFlag?: (sessionContext: ISessionContext | null) => boolean;
 
-    public bindMethod(methodFunction: MethodFunctor): void;
+    bindMethod(methodFunction: MethodFunctor): void;
 
-    public getExecutableFlag(context: ISessionContext): boolean;
+    getExecutableFlag(context: ISessionContext): boolean;
 
-    public getInputArguments(): Argument[];
+    getInputArguments(): Argument[];
 
-    public getOutputArguments(): Argument[];
+    getOutputArguments(): Argument[];
 
     /**
      */
-    public execute(
+    execute(
         object: UAObject | UAObjectType | null,
         inputArguments: VariantLike[] | null,
         context: ISessionContext,
         callback: CallbackT<CallMethodResultOptions>
     ): void;
-    public execute(
+    execute(
         object: UAObject | UAObjectType | null,
         inputArguments: null | VariantLike[],
         context: ISessionContext
     ): Promise<CallMethodResultOptions>;
 
-    public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod;
+    clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod;
 
-    public isBound(): boolean;
+    isBound(): boolean;
 }

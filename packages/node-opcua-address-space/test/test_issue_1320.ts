@@ -1,7 +1,7 @@
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-basic-types";
-import { AddressSpace, Namespace } from "..";
+import { nodesets } from "node-opcua-nodesets";
+import should from "should";
+import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1320", () => {
@@ -10,9 +10,9 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
 
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
-         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di]);
 
-        namespace =  addressSpace.registerNamespace("Private");
+        namespace = addressSpace.registerNamespace("Private");
     });
 
     afterEach(() => {

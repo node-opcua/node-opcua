@@ -1,13 +1,13 @@
 /* eslint-disable max-statements */
 import "should";
-import sinon from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
+import sinon from "sinon";
 
-import { AddressSpace, UAVariable } from "..";
+import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
-describe("testing extension object binding", function () {
+describe("testing extension object binding", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -27,7 +27,7 @@ describe("testing extension object binding", function () {
             organizedBy: addressSpace.rootFolder.objects
         });
         const cncPositionDataType = addressSpace.findDataType("CncPositionDataType", nsCNC)!;
-        const posTcpBcsX = channel.getComponentByName("PosTcpBcsX")! as UAVariable; 
+        const posTcpBcsX = channel.getComponentByName("PosTcpBcsX")! as UAVariable;
 
         posTcpBcsX.readValue().value.value.actPos.should.eql(0);
         posTcpBcsX.readValue().value.value.cmdPos.should.eql(0);
@@ -74,8 +74,8 @@ describe("testing extension object binding", function () {
         const remDist = posTcpBcsX.getComponentByName("RemDist")! as UAVariable;
 
         const changeSpyActPos = sinon.spy();
-        actPos.on("value_changed", ()=>{ 
-            changeSpyActPos()
+        actPos.on("value_changed", () => {
+            changeSpyActPos();
         });
 
         const changeSpyCmdPos = sinon.spy();
@@ -134,19 +134,16 @@ describe("testing extension object binding", function () {
         posTcpBcsX.readValue().value.value.remDist.should.eql(87);
 
         changeSpy1.callCount.should.eql(1); // should be 1
-        
+
         changeSpyActPos.callCount.should.eql(1);
         changeSpyCmdPos.callCount.should.eql(1);
         changeSpyRemDist.callCount.should.eql(1);
 
         // now change posTcpBcsX again
         const actPos1 = posTcpBcsX.getComponentByName("ActPos")! as UAVariable;
-        actPos1.setValueFromSource({dataType: DataType.Double, value: 88888});
+        actPos1.setValueFromSource({ dataType: DataType.Double, value: 88888 });
         posTcpBcsX.readValue().value.value.actPos.should.eql(88888);
         posTcpBcsX.readValue().value.value.cmdPos.should.eql(89);
         posTcpBcsX.readValue().value.value.remDist.should.eql(87);
-
-
     });
-    
 });

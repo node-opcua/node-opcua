@@ -1,6 +1,3 @@
-
-
-
 /**
  * This valueRank indicates whether the Value attribute of the Variable is an array and how many dimensions the array has.
  * It may have the following values:
@@ -13,7 +10,10 @@
  *   * All DataTypes are considered to be scalar, even if they have array-like semantics like ByteString and String.
  */
 
-export function checkValueRankCompatibility(actualValueRank: number, baseTypeValueRank: number): { result: boolean, errorMessage?: string } {
+export function checkValueRankCompatibility(
+    actualValueRank: number,
+    baseTypeValueRank: number
+): { result: boolean; errorMessage?: string } {
     const ScalarOrOneDimension = -3;
     const OneOrMoreDimensions = 0;
     const AnyDimension = -2;
@@ -21,17 +21,22 @@ export function checkValueRankCompatibility(actualValueRank: number, baseTypeVal
     const Scalar = -1;
     const t = (valueRank: number): string => {
         switch (valueRank) {
-            case ScalarOrOneDimension: return `ScalarOrOneDimension(${valueRank})`;
-            case OneOrMoreDimensions: return `OneOrMoreDimensions(${valueRank})`;
-            case AnyDimension: return `AnyDimension(${valueRank})`;
-            case OneDimension: return `OneDimension(${valueRank})`;
-            case Scalar: return `Scalar(${valueRank})`;
+            case ScalarOrOneDimension:
+                return `ScalarOrOneDimension(${valueRank})`;
+            case OneOrMoreDimensions:
+                return `OneOrMoreDimensions(${valueRank})`;
+            case AnyDimension:
+                return `AnyDimension(${valueRank})`;
+            case OneDimension:
+                return `OneDimension(${valueRank})`;
+            case Scalar:
+                return `Scalar(${valueRank})`;
         }
         if (valueRank < 0) {
             return `InvalidValueRank(${valueRank})`;
         }
         return `${valueRank}`;
-    }
+    };
     if (actualValueRank < 0) {
         if (actualValueRank !== Scalar && actualValueRank !== AnyDimension && actualValueRank !== ScalarOrOneDimension) {
             return {
@@ -46,7 +51,7 @@ export function checkValueRankCompatibility(actualValueRank: number, baseTypeVal
     if (baseTypeValueRank === OneDimension || baseTypeValueRank > 1) {
         if (actualValueRank === baseTypeValueRank) {
             return { result: true };
-        };
+        }
         return {
             result: false,
             errorMessage: `Invalid valueRank: ${t(actualValueRank)}:  valueRank can only be identical to base type ${t(baseTypeValueRank)}`
@@ -67,7 +72,8 @@ export function checkValueRankCompatibility(actualValueRank: number, baseTypeVal
         };
     }
     if (baseTypeValueRank === ScalarOrOneDimension) {
-        if (actualValueRank === OneDimension || actualValueRank === Scalar || actualValueRank === ScalarOrOneDimension) return { result: true };
+        if (actualValueRank === OneDimension || actualValueRank === Scalar || actualValueRank === ScalarOrOneDimension)
+            return { result: true };
         return {
             result: false,
             errorMessage: `Invalid valueRank: ${t(actualValueRank)}: valueRank can only be identical to base type ${t(ScalarOrOneDimension)} , ${t(Scalar)} or ${t(OneDimension)}.`
@@ -75,5 +81,3 @@ export function checkValueRankCompatibility(actualValueRank: number, baseTypeVal
     }
     return { result: false };
 }
-
-

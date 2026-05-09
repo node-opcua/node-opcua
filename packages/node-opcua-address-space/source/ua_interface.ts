@@ -3,12 +3,11 @@ import { NodeClass } from "node-opcua-types";
 import { initialize_properties_and_components } from "../src/_instantiate_helpers";
 
 export function implementInterface(
-    uaNode: UAObject | UAObjectType | UAVariable | UAVariableType, 
+    uaNode: UAObject | UAObjectType | UAVariable | UAVariableType,
     interfaceType: UAObjectType,
     optionals?: string[],
     isModellingType?: boolean
 ) {
-
     optionals = optionals || [];
 
     const addressSpace = uaNode.addressSpace;
@@ -17,15 +16,19 @@ export function implementInterface(
         throw new Error("cannot find BaseInterfaceType");
     }
 
-    isModellingType = isModellingType === undefined ? uaNode.nodeClass === NodeClass.ObjectType || uaNode.nodeClass === NodeClass.VariableType : isModellingType;
+    isModellingType =
+        isModellingType === undefined
+            ? uaNode.nodeClass === NodeClass.ObjectType || uaNode.nodeClass === NodeClass.VariableType
+            : isModellingType;
 
     const copyAlsoModellingRules = isModellingType;
     const copyAlsoAllOptionals = isModellingType;
     initialize_properties_and_components(
-        uaNode as UAObject | UAVariable, 
-        topMost, interfaceType, 
-        copyAlsoModellingRules, 
-        copyAlsoAllOptionals, 
+        uaNode as UAObject | UAVariable,
+        topMost,
+        interfaceType,
+        copyAlsoModellingRules,
+        copyAlsoAllOptionals,
         optionals
     );
     uaNode.addReference({

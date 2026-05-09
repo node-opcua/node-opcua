@@ -1,10 +1,17 @@
+import { nodesets } from "node-opcua-nodesets";
+import type { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-
-import { nodesets } from "node-opcua-nodesets";
-import { DataType } from "node-opcua-variant";
+import {
+    type AddObjectOptions,
+    AddressSpace,
+    type EventData,
+    type Namespace,
+    type UAObject,
+    type UAProperty,
+    type UAVariable
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAProperty, UAVariable } from "..";
 
 interface UAObjectWithVersion extends UAObject {
     nodeVersion: UAProperty<string, DataType.String>;
@@ -12,7 +19,7 @@ interface UAObjectWithVersion extends UAObject {
 
 function createNodeWithNodeVersion(addressSpace: AddressSpace, options: AddObjectOptions): UAObjectWithVersion {
     const versionableNode = addressSpace.getOwnNamespace().addObject({
-        browseName: "VersionableNode" + options.browseName,
+        browseName: `VersionableNode${options.browseName}`,
         nodeVersion: "0"
     });
 
@@ -122,7 +129,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
 
             sinon.spy(addressSpacePriv, "_collectModelChange");
 
-            const n1 = namespace.addObject({
+            const _n1 = namespace.addObject({
                 browseName: "SomeNode",
                 componentOf: node
             });
@@ -130,7 +137,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
@@ -150,7 +157,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
 
             sinon.spy(addressSpacePriv, "_collectModelChange");
 
-            const n1 = namespace.addObject({
+            const _n1 = namespace.addObject({
                 browseName: "SomeNode",
                 organizedBy: node
             });
@@ -158,7 +165,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
@@ -186,7 +193,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
             nodeVersionBefore.toString().should.eql("2");
 
             sinon.spy(addressSpacePriv, "_collectModelChange");
-            addressSpacePriv.rootFolder.objects.server.on("event", (eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
@@ -231,7 +238,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
@@ -252,7 +259,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
         nodeVersionBefore.toString().should.eql("1");
 
         sinon.spy(addressSpacePriv, "_collectModelChange");
-        addressSpacePriv.rootFolder.objects.server.on("event", (eventData: EventData) => {
+        addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
             // xx console.log("xxx eventData",eventData.toString());
         });
 
@@ -260,7 +267,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
         // When:  many operations are applied to a node , within a ModelChange Scope
         // -----------------------------------------------------------------------------------------------
         addressSpacePriv.modelChangeTransaction(() => {
-            const n1 = namespace.addObject({
+            const _n1 = namespace.addObject({
                 browseName: "SomeNode2",
                 componentOf: node
             });
@@ -269,7 +276,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
                 componentOf: node
             });
 
-            const n3 = namespace.addObject({
+            const _n3 = namespace.addObject({
                 browseName: "SomeNode3",
                 componentOf: node
             });
@@ -303,7 +310,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
         const addressSpacePriv = addressSpace as any;
         sinon.spy(addressSpacePriv, "_collectModelChange");
         addressSpacePriv.modelChangeTransaction(() => {
-            const subNode = customNamespace.addObject({
+            const _subNode = customNamespace.addObject({
                 browseName: "SubNode",
                 componentOf: versionableNode
             });

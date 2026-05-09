@@ -1,15 +1,12 @@
-import path from "path";
-
-import should from "should";
-
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-types";
-import { Variant, DataType, VariantArrayType } from "node-opcua-variant";
-
-import { AddressSpace, Namespace } from "..";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { isArgumentValid } from "../source/helpers/argument_list";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
@@ -22,11 +19,11 @@ interface TestCase {
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", () => {
     let addressSpace: AddressSpace;
-    let namespace: Namespace;
+    let _namespace: Namespace;
 
     before(async () => {
         addressSpace = AddressSpace.create();
-        namespace = addressSpace.registerNamespace("private");
+        _namespace = addressSpace.registerNamespace("private");
         await generateAddressSpace(addressSpace, nodesetFilename);
     });
     after(async () => {

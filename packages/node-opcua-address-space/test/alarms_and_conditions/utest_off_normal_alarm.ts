@@ -1,19 +1,18 @@
 /* eslint-disable max-statements */
 // tslint:disable:max-statement
-import should from "should";
+
+import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
+import type { AddressSpace, Namespace, UAMultiStateDiscreteEx, UAObject, UAVariable, UAVariableT } from "../..";
+import { MochaSuiteEx } from "./test_alarms_and_conditions";
+import should from "should";
 
-import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace, Namespace, UAObject, UAVariable } from "../..";
-import { UAMultiStateDiscreteEx } from "../..";
-
-export function utest_off_normal_alarm(test: any): void {
+export function utest_off_normal_alarm(test: MochaSuiteEx): void {
     describe("Off Normal Alarms ", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let engine: UAObject;
-        let variableWithAlarm: UAVariable;
-        let setpointNodeNode: UAVariable;
+        let _variableWithAlarm: UAVariable;
+        let _setpointNodeNode: UAVariable;
         let namespace: Namespace;
         let normalStateNode: UAMultiStateDiscreteEx<string, DataType.String>;
         let multiStateDiscreteNode: UAMultiStateDiscreteEx<string, DataType.String>;
@@ -22,9 +21,8 @@ export function utest_off_normal_alarm(test: any): void {
             namespace = addressSpace.getOwnNamespace();
 
             source = test.source;
-            engine = test.engine;
-            variableWithAlarm = test.variableWithAlarm;
-            setpointNodeNode = test.setpointNodeNode;
+            _variableWithAlarm = test.variableWithAlarm as UAVariableT<number, DataType.Double>;
+            _setpointNodeNode = test.setpointNodeNode as UAVariableT<number, DataType.Double>;
 
             multiStateDiscreteNode = namespace.addMultiStateDiscrete<string, DataType.String>({
                 browseName: "MyMultiStateDiscreteVariable1",
@@ -91,7 +89,7 @@ export function utest_off_normal_alarm(test: any): void {
 
             normalStateNode.setValueFromSource({ dataType: "UInt32", value: green });
             normalStateNode.getValue().should.eql(2);
-            alarm.getNormalStateValue()!.should.eql(2);
+            alarm.getNormalStateValue()?.should.eql(2);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(1);
 
@@ -101,7 +99,7 @@ export function utest_off_normal_alarm(test: any): void {
             inputNodeNode.setValue("Green");
             inputNodeNode.getValueAsString().should.eql("Green");
             inputNodeNode.getValue().should.eql(2);
-            alarm.getInputNodeValue().should.eql(2);
+            should(alarm.getInputNodeValue()).eql(2);
 
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(3); // auto confirm + new event
@@ -130,19 +128,19 @@ export function utest_off_normal_alarm(test: any): void {
             // changing the normalStateNode Value shall also automatically update the alarm
             normalStateNode.setValue("Orange");
             normalStateNode.getValue().should.eql(1);
-            alarm.getNormalStateValue()!.should.eql(1);
+            alarm.getNormalStateValue()?.should.eql(1);
 
             alarm.activeState.getValue().should.eql(true);
 
             normalStateNode.setValue("Green");
             normalStateNode.getValue().should.eql(2);
-            alarm.getNormalStateValue()!.should.eql(2);
+            alarm.getNormalStateValue()?.should.eql(2);
 
             alarm.activeState.getValue().should.eql(false);
 
             normalStateNode.setValue("Red");
             normalStateNode.getValue().should.eql(0);
-            alarm.getNormalStateValue()!.should.eql(0);
+            alarm.getNormalStateValue()?.should.eql(0);
         });
     });
 }

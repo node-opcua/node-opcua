@@ -1,16 +1,12 @@
-"use strict";
-import should from "should";
-
-import { Range } from "node-opcua-data-access";
-import { standardUnits } from "node-opcua-data-access";
+import { Range, standardUnits } from "node-opcua-data-access";
 import { BrowseDirection, makeAccessLevelFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 
-import { AddressSpace, Namespace, SessionContext } from "../..";
+import { AddressSpace, type Namespace, SessionContext } from "../..";
 
 export function subtest_analog_item_type(maintest: any): void {
     describe("AnalogDataItem", () => {
@@ -60,18 +56,18 @@ export function subtest_analog_item_type(maintest: any): void {
             // xx console.log(JSON.stringify(analogItem,null," "));
             // analogItem.dataType.should.eql(addressSpace.findVariableType("AnalogItemType").nodeId);
 
-            analogItem.definition!.browseName.toString().should.eql("Definition");
-            analogItem.valuePrecision!.browseName.toString().should.eql("ValuePrecision");
+            analogItem.definition?.browseName.toString().should.eql("Definition");
+            analogItem.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
             analogItem.euRange.browseName.toString().should.eql("EURange");
-            analogItem.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
+            analogItem.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
             analogItem.engineeringUnits?.browseName.toString().should.eql("EngineeringUnits");
 
             // xx console.log("xxxx = analogItem.euRange.readValue().value.value", analogItem.euRange.readValue().toString());
             analogItem.euRange.readValue().value.value.low.should.eql(100);
             analogItem.euRange.readValue().value.value.high.should.eql(200);
 
-            analogItem.instrumentRange!.readValue().value.value.low.should.eql(-100);
-            analogItem.instrumentRange!.readValue().value.value.high.should.eql(200);
+            analogItem.instrumentRange?.readValue().value.value.low.should.eql(-100);
+            analogItem.instrumentRange?.readValue().value.value.high.should.eql(200);
 
             // browsing variable
             const browseDescription = new BrowseDescription({
@@ -84,7 +80,10 @@ export function subtest_analog_item_type(maintest: any): void {
 
             references.length.should.eql(6);
 
-            const dataValue1 = await analogItem.instrumentRange!.readValueAsync(context);
+            const dataValue1 = await analogItem.instrumentRange?.readValueAsync(context);
+            if (!dataValue1) {
+                throw new Error("InstrumentRange should be defined");
+            }
             dataValue1.statusCode.should.eql(StatusCodes.Good);
             dataValue1.value.dataType.should.eql(DataType.ExtensionObject);
             dataValue1.value.value.should.be.instanceOf(Range);

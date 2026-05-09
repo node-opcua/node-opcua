@@ -1,12 +1,9 @@
-import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { NumericRange } from "node-opcua-numeric-range";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-import { VariantArrayType } from "node-opcua-variant";
-import { AddressSpace } from "..";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import type { AddressSpace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Testing bug found in #337", () => {
     let addressSpace: AddressSpace;
@@ -46,6 +43,6 @@ describe("Testing bug found in #337", () => {
         const dataValue = n.readValue(null, new NumericRange());
         dataValue.isValid().should.eql(true);
         dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValue.value.dimensions!.should.eql([3, 3]);
+        dataValue.value.dimensions?.should.eql([3, 3]);
     });
 });

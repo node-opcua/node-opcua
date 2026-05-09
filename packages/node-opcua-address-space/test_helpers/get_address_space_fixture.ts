@@ -5,16 +5,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 export function getAddressSpaceFixture(pathname: string): string {
-  
     // find in nodesets folder in the first place
-    const folder1 = path.join(__dirname, "../nodesets");   
+    const folder1 = path.join(__dirname, "../nodesets");
     if (fs.existsSync(folder1)) {
         const filename = path.join(folder1, pathname);
         if (fs.existsSync(filename)) {
-            return filename;      
+            return filename;
         }
     }
-    
+
     // find in  test_fixtures seconds
     let folder = path.join(__dirname, "./test_fixtures");
     if (!fs.existsSync(folder)) {
@@ -33,7 +32,7 @@ export function getAddressSpaceFixture(pathname: string): string {
 
     // c8 ignore next
     if (!fs.existsSync(filename)) {
-        throw new Error(" cannot find fixture with name " + pathname);
+        throw new Error(` cannot find fixture with name ${pathname}`);
     }
     return filename;
 }

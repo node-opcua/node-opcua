@@ -1,21 +1,18 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-
+import should from "should";
 import {
     AddressSpace,
-    UAVariable,
-    UAMultiStateValueDiscreteEx,
-    UAMultiStateDiscreteEx,
+    type UAMultiStateDiscreteEx,
+    type UAMultiStateValueDiscreteEx,
+    type UAVariable,
     validateIsNumericDataType
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
-
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;
@@ -79,7 +76,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
     });
 
     it("ZYZ-2 it should promoteToMultiStateDiscrete from an existing nodeset", async () => {
-        const ns = addressSpace.getNamespaceIndex("mydemo/");
+        const _ns = addressSpace.getNamespaceIndex("mydemo/");
 
         const variable = addressSpace.findNode("ns=2;i=26001") as UAVariable;
         variable.browseName.toString().should.eql("2:VariableMultiStateDiscrete");

@@ -62,6 +62,7 @@
         "packages_extra/*"
     ],
     "devDependencies": {
+        "@biomejs/biome": "^2.4.14",
         "@types/mocha": "^10.0.10",
         "@types/node": "24.12.2",
         "app-module-path": "^2.2.0",

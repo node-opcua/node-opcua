@@ -1,13 +1,10 @@
-import should from "should";
-import sinon from "sinon";
-import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-basic-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
 import { Variant } from "node-opcua-variant";
-import { AddressSpace, Namespace } from "..";
+import should from "should";
+import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
-
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1342", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 20000));
@@ -54,7 +51,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         const dataValue3 = uaVariable.readValue();
         console.log(dataValue1.toString(), dataValue2.toString());
 
-        should(dataValue1.sourceTimestamp?.getTime()).be.below(dataValue2.sourceTimestamp!.getTime());
-        should(dataValue2.sourceTimestamp?.getTime()).be.below(dataValue3.sourceTimestamp!.getTime());
+        should(dataValue1.sourceTimestamp?.getTime()).be.below(dataValue2.sourceTimestamp?.getTime());
+        should(dataValue2.sourceTimestamp?.getTime()).be.below(dataValue3.sourceTimestamp?.getTime());
     });
 });

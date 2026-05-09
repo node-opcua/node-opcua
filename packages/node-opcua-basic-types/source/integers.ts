@@ -2,11 +2,11 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { getRandomInt } from "./utils";
 
 export function isValidUInt16(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= 0 && value <= 0xffff;
@@ -35,12 +35,12 @@ export function encodeUInt16(value: UInt16, stream: OutputBinaryStream): void {
     stream.writeUInt16(value);
 }
 
-export function decodeUInt16(stream: BinaryStream, value?: number): UInt16 {
+export function decodeUInt16(stream: BinaryStream, _value?: number): UInt16 {
     return stream.readUInt16() as UInt16;
 }
 
 export function isValidInt16(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= -0x8000 && value <= 0x7fff;
@@ -51,16 +51,16 @@ export function randomInt16(): Int16 {
 }
 
 export function encodeInt16(value: Int16, stream: OutputBinaryStream): void {
-    assert(isFinite(value));
+    assert(Number.isFinite(value));
     stream.writeInt16(value);
 }
 
-export function decodeInt16(stream: BinaryStream, value?: number): Int16 {
+export function decodeInt16(stream: BinaryStream, _value?: number): Int16 {
     return stream.readInt16() as Int16;
 }
 
 export function isValidInt32(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= -0x80000000 && value <= 0x7fffffff;
@@ -71,16 +71,16 @@ export function randomInt32(): Int32 {
 }
 
 export function encodeInt32(value: Int32, stream: OutputBinaryStream): void {
-    assert(isFinite(value));
+    assert(Number.isFinite(value));
     stream.writeInteger(value);
 }
 
-export function decodeInt32(stream: BinaryStream, value?: number): Int32 {
+export function decodeInt32(stream: BinaryStream, _value?: number): Int32 {
     return stream.readInteger() as Int32;
 }
 
 export function isValidUInt32(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= 0 && value <= 0xffffffff;
@@ -94,12 +94,12 @@ export function encodeUInt32(value: UInt32, stream: OutputBinaryStream): void {
     stream.writeUInt32(value);
 }
 
-export function decodeUInt32(stream: BinaryStream, value?: number): UInt32 {
+export function decodeUInt32(stream: BinaryStream, _value?: number): UInt32 {
     return stream.readUInt32() as UInt32;
 }
 
 export function isValidInt8(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= -0x80 && value <= 0x7f;
@@ -114,7 +114,7 @@ export function encodeInt8(value: Int8, stream: OutputBinaryStream): void {
     stream.writeInt8(value);
 }
 
-export function decodeInt8(stream: BinaryStream, value?: number): Int8 {
+export function decodeInt8(stream: BinaryStream, _value?: number): Int8 {
     return stream.readInt8();
 }
 
@@ -124,7 +124,7 @@ export const encodeSByte = encodeInt8;
 export const decodeSByte = decodeInt8;
 
 export function isValidUInt8(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value >= 0x00 && value <= 0xff;
@@ -138,7 +138,7 @@ export function encodeUInt8(value: UInt8, stream: OutputBinaryStream): void {
     stream.writeUInt8(value);
 }
 
-export function decodeUInt8(stream: BinaryStream, value?: number): UInt8 {
+export function decodeUInt8(stream: BinaryStream, _value?: number): UInt8 {
     return stream.readUInt8();
 }
 
@@ -148,7 +148,7 @@ export const encodeByte = encodeUInt8;
 export const decodeByte = decodeUInt8;
 
 export function isValidUInt64(value?: number | number[]): boolean {
-    return value instanceof Array && value.length === 2;
+    return Array.isArray(value) && value.length === 2;
 }
 
 export function randomUInt64(): UInt64 {
@@ -166,7 +166,7 @@ export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream)
     }
 }
 
-export function decodeUInt64(stream: BinaryStream, value?: UInt64): UInt64 {
+export function decodeUInt64(stream: BinaryStream, _value?: UInt64): UInt64 {
     const low = stream.readUInt32() as UInt32;
     const high = stream.readUInt32() as UInt32;
     return constructInt64(high, low);
@@ -182,15 +182,14 @@ export function constructInt64(high: UInt32, low: UInt32): Int64 {
     return [high, low];
 }
 
-export function 
-coerceUInt64(value: number | UInt64 | Int32 | string | null): UInt64 {
+export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UInt64 {
     let high;
     let low;
     let v;
     if (value === null || value === undefined) {
         return [0, 0];
     }
-    if (value instanceof Array) {
+    if (Array.isArray(value)) {
         assert(typeof value[0] === "number");
         assert(typeof value[1] === "number");
         return value;
@@ -299,7 +298,7 @@ export function coerceUInt32(value: null | string | number | EnumItemLike): UInt
     if (value === null || value === undefined) {
         return 0;
     }
-    if (value && Object.prototype.hasOwnProperty.call(value, "value")) {
+    if (value && typeof value === "object" && Object.hasOwn(value, "value")) {
         return coerceUInt32((value as EnumItemLike).value);
     }
     if (typeof value === "number") {
@@ -312,7 +311,7 @@ export function coerceInt32(value: null | Int64 | UInt64 | number | string): Int
     if (value === null || value === undefined) {
         return 0;
     }
-    if (value instanceof Array) {
+    if (Array.isArray(value)) {
         // Int64 as a [high,low]
         return coerceInt64toInt32(value);
     }
@@ -343,14 +342,14 @@ export function UInt64ToBigInt(value: UInt64): bigint {
 }
 
 export function coerceInt64toInt32(value: Int64 | Int32): Int32 {
-    if (value instanceof Array) {
+    if (Array.isArray(value)) {
         const b = Int64ToBigInt(value);
         return Number(b);
     }
     return value;
 }
 export function coerceUInt64toInt32(value: UInt64 | UInt32): Int32 {
-    if (value instanceof Array) {
+    if (Array.isArray(value)) {
         const b = UInt64ToBigInt(value);
         return Number(b);
     }

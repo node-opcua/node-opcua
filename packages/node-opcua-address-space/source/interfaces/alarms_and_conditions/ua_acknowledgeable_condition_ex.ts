@@ -1,38 +1,24 @@
-import { UAMethod } from "node-opcua-address-space-base";
-import { LocalizedTextLike, LocalizedText } from "node-opcua-data-model";
-import { UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua";
-import { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import { ConditionSnapshot } from "./condition_snapshot";
-import { UAConditionEx, UAConditionHelper } from "./ua_condition_ex";
+import type { ListenerSignature, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import type { UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
+import type { ConditionSnapshot } from "./condition_snapshot";
+import type { UAConditionEvents, UAConditionEx } from "./ua_condition_ex";
 
 export interface UAAcknowledgeableConditionHelper {
     autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void;
-
-
     acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void;
 }
 
-export interface UAAcknowledgeableConditionHelper extends UAConditionHelper {
-    ///
-    on(eventName: string, eventHandler: (...args: any[]) => void): this;
-    once(eventName: string, eventHandler: (...args: any[]) => void): this;
-
-    on(
-        eventName: "acknowledged" | "confirmed",
-        eventHandler: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void
-    ): this;
+export interface UAAcknowledgeableConditionEvents extends UAConditionEvents {
+    acknowledged: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
+    confirmed: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
 }
 
-
-export interface UAAcknowledgeableConditionEx
+export interface UAAcknowledgeableConditionEx<T extends UAAcknowledgeableConditionEvents & ListenerSignature<T> = UAAcknowledgeableConditionEvents>
     extends UAAcknowledgeableCondition_Base,
         UAAcknowledgeableConditionHelper,
-        UAConditionEx {
-
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
-
-    
+        UAConditionEx<T> {
     enabledState: UATwoStateVariableEx;
     ackedState: UATwoStateVariableEx;
     confirmedState?: UATwoStateVariableEx;

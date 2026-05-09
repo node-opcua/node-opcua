@@ -2,7 +2,7 @@ import "should";
 import semver from "semver";
 import { makeSemverCompatible } from "../source/loader/make_semver_compatible";
 
-describe("make semver compatible", function () {
+describe("make semver compatible", () => {
     [
         ["01.02.03", "1.2.3"],
         ["RC 1.00.3", "1.0.3"],

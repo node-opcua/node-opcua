@@ -1,15 +1,14 @@
-
 import "should";
-import { DataType, Variant } from "node-opcua-variant";
-import { resolveNodeId } from "node-opcua-nodeid";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { DataType, Variant } from "node-opcua-variant";
 
-import { AddressSpace, SessionContext, UADataType, UAVariable } from "..";
+import { type AddressSpace, SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
 const doDebug = false;
 
-const context = SessionContext.defaultContext;
+const _context = SessionContext.defaultContext;
 
 describe("testing UAVariable -  change datatype", () => {
     let addressSpace: AddressSpace;
@@ -31,7 +30,6 @@ describe("testing UAVariable -  change datatype", () => {
         uaVariable.dataType.should.eql(resolveNodeId(DataType.Double));
         uaVariable.setValueFromSource({ dataType: "Double", value: 3.14 });
         uaVariable.readValue().value.value.should.eql(3.14);
-
 
         // Change data type to Int32
         uaVariable.changeDataType("Int32", { dataType: DataType.Int32, value: 3 });
@@ -74,6 +72,5 @@ describe("testing UAVariable -  change datatype", () => {
         uaVariable.readValue().value.dataType.should.eql(DataType.String);
         uaVariable.dataType.toString().should.eql(resolveNodeId(DataType.String).toString());
         doDebug && console.log(uaVariable.readValue().toString());
-
     });
 });

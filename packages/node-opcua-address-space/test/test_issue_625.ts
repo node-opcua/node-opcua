@@ -1,12 +1,12 @@
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("#625 automatic string nodeid assignment", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const ns1 = addressSpace.registerNamespace("namespace0");
+        const _ns1 = addressSpace.registerNamespace("namespace0");
         const ns2 = addressSpace.registerNamespace("namespace2");
         ns2.addAlias("MyAlias", coerceNodeId("ns=2;i=32"));
     });

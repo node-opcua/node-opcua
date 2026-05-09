@@ -1,11 +1,11 @@
-import { CallbackT } from "node-opcua-status-code";
+import type { CallbackT } from "node-opcua-status-code";
 import should from "should";
 
 import {
-    MultiformFunc,
     convertToCallbackFunction,
-    MultiformFunc1,
-    convertToCallbackFunction1
+    convertToCallbackFunction1,
+    type MultiformFunc,
+    type MultiformFunc1
 } from "../source/helpers/multiform_func";
 
 class Stuff {}
@@ -27,12 +27,12 @@ describe("Async Callback Straight functors", () => {
     async function testFailing(func: MultiformFunc<Output, Stuff>) {
         let _err: Error | undefined;
         try {
-            const result = await test(func);
+            const _result = await test(func);
         } catch (err) {
             _err = err as Error;
         }
         should.exist(_err);
-        _err!.message.should.eql("this is failing");
+        _err?.message.should.eql("this is failing");
     }
 
     it("should work with a straight function", async () => {
@@ -97,10 +97,10 @@ describe("Async Callback Straight functors", () => {
             }
             callback(null, new Output("A"));
         }
-        const result = await test(func);
+        const _result = await test(func);
     });
     it("should work with a callback function - that raise an execption ", async () => {
-        function func(this: Stuff, callback: CallbackT<Output>): void {
+        function func(this: Stuff, _callback: CallbackT<Output>): void {
             throw new Error("this is failing");
             // callback(null, new Output("A"));
         }
@@ -130,12 +130,12 @@ describe("Async Callback Straight functors with one arguments", () => {
     async function testFailing(func: MultiformFunc1<Output, string, Stuff>) {
         let _err: Error | undefined;
         try {
-            const result = await test(func);
+            const _result = await test(func);
         } catch (err) {
             _err = err as Error;
         }
         should.exist(_err);
-        _err!.message.should.eql("this is failing");
+        _err?.message.should.eql("this is failing");
     }
 
     it("should work with a straight function", async () => {
@@ -143,7 +143,7 @@ describe("Async Callback Straight functors with one arguments", () => {
             if (!(this instanceof Stuff)) {
                 throw new Error("this is not a Stuff");
             }
-            return new Output("A" + param);
+            return new Output(`A${param}`);
         }
         const result = await test(func);
         result.should.be.instanceOf(Output);
@@ -151,7 +151,7 @@ describe("Async Callback Straight functors with one arguments", () => {
     });
 
     it("should work with a straight function that throw an exception", async () => {
-        function func(this: Stuff, param: string): Output {
+        function func(this: Stuff, _param: string): Output {
             throw new Error("this is failing");
         }
         await testFailing(func);
@@ -163,7 +163,7 @@ describe("Async Callback Straight functors with one arguments", () => {
                 throw new Error("this is not a Stuff");
             }
             await new Promise((resolve) => setTimeout(resolve, 10));
-            return new Output("A" + param);
+            return new Output(`A${param}`);
         }
         const result = await test(func);
         result.should.be.instanceOf(Output);
@@ -187,7 +187,7 @@ describe("Async Callback Straight functors with one arguments", () => {
             if (!(this instanceof Stuff)) {
                 throw new Error("this is not a Stuff");
             }
-            callback(null, new Output("A" + param));
+            callback(null, new Output(`A${param}`));
         }
         const result = await test(func);
         result.should.be.instanceOf(Output);
@@ -198,19 +198,19 @@ describe("Async Callback Straight functors with one arguments", () => {
             if (!(this instanceof Stuff)) {
                 throw new Error("this is not a Stuff");
             }
-            callback(null, new Output("A" + param));
+            callback(null, new Output(`A${param}`));
         }
-        const result = await test(func);
+        const _result = await test(func);
     });
     it("should work with a callback function - that raise an execption ", async () => {
-        function func(this: Stuff, param: string, callback: CallbackT<Output>): void {
+        function func(this: Stuff, _param: string, _callback: CallbackT<Output>): void {
             throw new Error("this is failing");
             // callback(null, new Output("A"));
         }
         await testFailing(func);
     });
     it("should work with a callback function - that returns an error in callback", async () => {
-        function func(this: Stuff, param: string, callback: CallbackT<Output>): void {
+        function func(this: Stuff, _param: string, callback: CallbackT<Output>): void {
             callback(new Error("this is failing"));
         }
         await testFailing(func);

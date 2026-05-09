@@ -1,16 +1,14 @@
-import should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { nodesets } from "node-opcua-nodesets";
-
-import { AddressSpace, getSymbols, IAddressSpace, SessionContext, setSymbols } from "..";
-import { generateAddressSpace } from "../distNodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import should from "should";
+import { AddressSpace, getSymbols, type IAddressSpace, SessionContext, setSymbols } from "..";
+import { generateAddressSpace } from "../distNodeJS";
 
-const context = SessionContext.defaultContext;
+const _context = SessionContext.defaultContext;
 
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
-
+const _debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 describe("Test object instantiate multi", () => {
     let addressSpace: AddressSpace;
@@ -18,7 +16,7 @@ describe("Test object instantiate multi", () => {
     async function buildAddressSpace() {
         const addressSpace = AddressSpace.create();
 
-        const n = addressSpace.registerNamespace("Private");
+        const _n = addressSpace.registerNamespace("Private");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.commercialKitchenEquipment]);
         return addressSpace;
@@ -46,8 +44,8 @@ describe("Test object instantiate multi", () => {
 
     it("should be possible to instantiate 2 objects - registerSymbolicNames = false", () => {
         const { coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
-        const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
-        const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const _coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const _coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
     });
 
     it("should be possible to instantiate 2 objects - registerSymbolicNames = true", async () => {
@@ -56,8 +54,8 @@ describe("Test object instantiate multi", () => {
         setSymbols(ns, []);
 
         const { coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
-        const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
-        const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
+        const _coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const _coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
 
         const theSymbols = getSymbols(ns);
         console.log(getSymbols(ns));
@@ -65,14 +63,14 @@ describe("Test object instantiate multi", () => {
         {
             const addressSpace2 = await buildAddressSpace();
             const ns2 = addressSpace.getOwnNamespace();
-            const { coffeeMachineDeviceType: coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace2);
+            const { coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace2);
 
             setSymbols(ns2, theSymbols);
 
             // let's buiild in  a diffiernt order !!
-            const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
+            const _coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
 
-            const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+            const _coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
 
             console.log(getSymbols(ns2));
             getSymbols(ns2).should.eql(theSymbols, "symbols should not be affected");

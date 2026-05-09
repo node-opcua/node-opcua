@@ -1,17 +1,17 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { EventEmitter } from "events";
-import { Variant } from "node-opcua-variant";
-import { IEventData, UAVariable, BaseNode } from "node-opcua-address-space-base";
-import { UInt16 } from "node-opcua-basic-types";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { StatusCode } from "node-opcua-status-code";
-import { TimeZoneDataType } from "node-opcua-types";
-import { UtcTime } from "../state_machine/ua_state_machine_type";
-import { ISetStateOptions } from "../i_set_state_options";
-import { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options";
+import type { EventEmitter } from "node:events";
+import type { BaseNode, IEventData, UAVariable } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { TimeZoneDataType } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
+import type { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options";
+import type { ISetStateOptions } from "../i_set_state_options";
+import type { UtcTime } from "../state_machine/ua_state_machine_type";
 
 export interface ConditionSnapshot {
     on(
@@ -108,7 +108,7 @@ export interface ConditionSnapshot extends EventEmitter {
      */
     setQuality(quality: StatusCode, options?: IConditionVariableTypeSetterOptions): void;
     /**
-     * 
+     *
      */
     getQuality(): StatusCode;
     /*
@@ -203,7 +203,7 @@ export interface ConditionSnapshot extends EventEmitter {
     getSourceNode(): NodeId;
 
     /**
-     * 
+     *
      */
     getEventType(): NodeId;
     getMessage(): LocalizedText;

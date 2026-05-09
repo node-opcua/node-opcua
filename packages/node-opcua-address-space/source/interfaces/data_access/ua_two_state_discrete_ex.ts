@@ -1,8 +1,8 @@
-import { LocalizedTextLike } from "node-opcua-data-model";
-import { DataType } from "node-opcua-variant";
-import { UAVariableT } from "node-opcua-address-space-base";
-import { UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua";
-import { ISetStateOptions } from "../i_set_state_options";
+import type { UAVariableT } from "node-opcua-address-space-base";
+import type { LocalizedTextLike } from "node-opcua-data-model";
+import type { UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua";
+import type { DataType } from "node-opcua-variant";
+import type { ISetStateOptions } from "../i_set_state_options";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/VariableTypes/TwoStateDiscreteType/

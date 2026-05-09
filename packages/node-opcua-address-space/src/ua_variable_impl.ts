@@ -2,99 +2,94 @@
 /**
  * @module node-opcua-address-space
  */
-import { types } from "util";
+import { types } from "node:util";
 import chalk from "chalk";
-
-import {
-    BindExtensionObjectOptions,
-    CloneExtraInfo,
-    ContinuationData,
-    makeDefaultCloneExtraInfo,
-    defaultCloneFilter,
-    GetFunc,
-    SetFunc,
-    VariableDataValueGetterSync,
-    VariableDataValueSetterWithCallback
-} from "node-opcua-address-space-base";
-import { assert } from "node-opcua-assert";
-import {
-    isValidDataEncoding,
-    convertAccessLevelFlagToByte,
-    QualifiedNameLike,
-    NodeClass,
-    AccessLevelFlag,
-    makeAccessLevelFlag,
-    AttributeIds,
-    isDataEncoding,
-    QualifiedName
-} from "node-opcua-data-model";
-import { extractRange, sameDataValue, DataValue, DataValueLike, DataValueT } from "node-opcua-data-value";
-import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { NumericRange } from "node-opcua-numeric-range";
-import { WriteValue } from "node-opcua-service-write";
-import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
-import {
-    HistoryReadDetails,
-    HistoryReadResult,
-    PermissionType,
-    ReadAtTimeDetails,
-    ReadEventDetails,
-    ReadProcessedDetails,
-    ReadRawModifiedDetails,
-    WriteValueOptions
-} from "node-opcua-types";
-import { isNullOrUndefined } from "node-opcua-utils";
-import {
-    Variant,
-    VariantLike,
-    DataType,
-    sameVariant,
-    VariantArrayType,
-    adjustVariant,
-    verifyRankAndDimensions
-} from "node-opcua-variant";
-import { StatusCodeCallback } from "node-opcua-status-code";
-import {
+import type {
     BindVariableOptions,
+    CloneFilter,
+    CloneOptions,
+    ISessionContext,
     IVariableHistorian,
+    ListenerSignature,
     TimestampGetFunc,
     TimestampSetFunc,
     UADataType,
     UAVariable,
-    UAVariableType,
-    CloneOptions,
-    CloneFilter,
-    ISessionContext,
-    BaseNode,
-    UAVariableT
+    UAVariableEvents,
+    UAVariableType
 } from "node-opcua-address-space-base";
-import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
-
-import { SessionContext } from "../source/session_context";
-import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
-import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
-import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 import {
+    type BindExtensionObjectOptions,
+    type CloneExtraInfo,
+    type ContinuationData,
+    defaultCloneFilter,
+    type GetFunc,
+    makeDefaultCloneExtraInfo,
+    type SetFunc,
+    type VariableDataValueGetterSync,
+    type VariableDataValueSetterWithCallback
+} from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
+import {
+    AccessLevelFlag,
+    AttributeIds,
+    convertAccessLevelFlagToByte,
+    isDataEncoding,
+    isValidDataEncoding,
+    makeAccessLevelFlag,
+    NodeClass,
+    type QualifiedName,
+    type QualifiedNameLike
+} from "node-opcua-data-model";
+import { DataValue, type DataValueLike, type DataValueT, extractRange, sameDataValue } from "node-opcua-data-value";
+import { coerceClock, getCurrentClock, type PreciseClock } from "node-opcua-date-time";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
+import { NodeId, type NodeIdLike } from "node-opcua-nodeid";
+import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
+import { NumericRange } from "node-opcua-numeric-range";
+import { WriteValue } from "node-opcua-service-write";
+import type { StatusCodeCallback } from "node-opcua-status-code";
+import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import {
+    type HistoryReadDetails,
+    HistoryReadResult,
+    PermissionType,
+    type ReadAtTimeDetails,
+    type ReadEventDetails,
+    type ReadProcessedDetails,
+    type ReadRawModifiedDetails,
+    type WriteValueOptions
+} from "node-opcua-types";
+import {
+    adjustVariant,
+    DataType,
+    sameVariant,
+    Variant,
+    VariantArrayType,
+    type VariantLike,
+    verifyRankAndDimensions
+} from "node-opcua-variant";
+import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
+import { SessionContext } from "../source/session_context";
+import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
+import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
+import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
+import { _getBasicDataType } from "./get_basic_datatype";
+import { type EnumerationInfo, type IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
+import {
+    _bindExtensionObject,
+    _bindExtensionObjectArrayOrMatrix,
+    _installExtensionObjectBindingOnProperties,
     extractPartialData,
     incrementElement,
     propagateTouchValueDownward,
     propagateTouchValueDownwardArray,
     propagateTouchValueUpward,
-    setExtensionObjectPartialValue,
-    _bindExtensionObject,
-    _bindExtensionObjectArrayOrMatrix,
-    _installExtensionObjectBindingOnProperties,
-    _touchValue
+    setExtensionObjectPartialValue
 } from "./ua_variable_impl_ext_obj";
-import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
-import { _getBasicDataType } from "./get_basic_datatype";
 import { validateDataTypeCorrectness } from "./validate_data_type_correctness";
-import { DataTypeIds } from "node-opcua-constants";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -103,16 +98,15 @@ const errorLog = make_errorLog(__filename);
 
 const plainChalk = new Proxy(chalk, { get: () => (s: string) => s }) as typeof chalk;
 
-export function adjust_accessLevel(accessLevel: string | number | null): AccessLevelFlag {
-    accessLevel = isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
-    accessLevel = makeAccessLevelFlag(accessLevel);
-    assert(isFinite(accessLevel));
-    return accessLevel;
+export function adjust_accessLevel(accessLevel: string | number | AccessLevelFlag | null | undefined): AccessLevelFlag {
+    const flag = makeAccessLevelFlag(accessLevel ?? "CurrentRead | CurrentWrite");
+    assert(Number.isFinite(flag));
+    return flag;
 }
 
 export function adjust_userAccessLevel(
-    userAccessLevel: string | number | null | undefined,
-    accessLevel: string | number | null
+    userAccessLevel: string | number | AccessLevelFlag | null | undefined,
+    accessLevel: string | number | AccessLevelFlag | null
 ): AccessLevelFlag | undefined {
     if (userAccessLevel === undefined) {
         return undefined;
@@ -123,21 +117,20 @@ export function adjust_userAccessLevel(
 }
 
 function adjust_samplingInterval(minimumSamplingInterval: number): number {
-    assert(isFinite(minimumSamplingInterval));
+    assert(Number.isFinite(minimumSamplingInterval));
     if (minimumSamplingInterval < 0) {
         return -1; // only -1 is a valid negative value for samplingInterval and means "unspecified"
     }
     return minimumSamplingInterval;
 }
 
-function is_Variant(v: any): boolean {
+function is_Variant(v: unknown): boolean {
     return v instanceof Variant;
 }
 
-function is_StatusCode(v: any): boolean {
-    return (
-        v &&
-        v.constructor &&
+function is_StatusCode(v: unknown): boolean {
+    return !!(
+        v?.constructor &&
         (v instanceof StatusCode ||
             v.constructor.name === "ConstantStatusCode" ||
             v.constructor.name === "StatusCode" ||
@@ -145,7 +138,7 @@ function is_StatusCode(v: any): boolean {
     );
 }
 
-function is_Variant_or_StatusCode(v: any): boolean {
+function is_Variant_or_StatusCode(v: unknown): boolean {
     if (is_Variant(v)) {
         // /@@assert(v.isValid());
     }
@@ -157,7 +150,7 @@ function default_func(this: UAVariable, dataValue1: DataValue, callback1: Callba
 }
 
 interface UAVariableOptions extends InternalBaseNodeOptions {
-    value?: any;
+    value?: unknown;
     dataType: NodeId | string;
     /**
      * This attribute indicates whether the Value attribute of the Variable is an array and how many dimensions the array has.
@@ -172,10 +165,10 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
      */
     valueRank?: number;
     arrayDimensions?: null | number[];
-    accessLevel?: any;
-    userAccessLevel?: any;
+    accessLevel?: keyof typeof AccessLevelFlag | AccessLevelFlag | null;
+    userAccessLevel?: keyof typeof AccessLevelFlag | AccessLevelFlag | null;
     minimumSamplingInterval?: number; // default -1
-    historizing?: number;
+    historizing?: boolean;
 }
 
 /**
@@ -204,7 +197,19 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
  *  indicates if the history of the Variable is available via the OPC UA server.
  *
  */
-export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
+export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>    = UAVariableEvents>
+    extends BaseNodeImpl<T>
+    implements UAVariable<T>, UAVariableImplExtArray
+{
+    
+    // -------------- UAvaraibleImplExArray
+    $$variableType?: UAVariableType;
+    $$dataType?: UADataType  = undefined;
+    $$getElementBrowseName?: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
+    $$extensionObjectArray?: ExtensionObject[];
+    $$indexPropertyName?: string;
+    // --------------
+
     public readonly nodeClass = NodeClass.Variable;
 
     public dataType: NodeId;
@@ -241,7 +246,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // this could happen in faulty external nodeset and has been seen once
             // in an nano server
             warningLog(super.typeDefinitionObj.toString());
-            const baseVariableType= this.addressSpace.findVariableType("BaseVariableType");
+            const baseVariableType = this.addressSpace.findVariableType("BaseVariableType");
             if (!baseVariableType) throw new Error("Cannot find BaseVariableType in address space");
             return baseVariableType;
         }
@@ -254,8 +259,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         super(options);
 
         verifyRankAndDimensions(options);
-        this.valueRank = options.valueRank!;
-        this.arrayDimensions = options.arrayDimensions!;
+        this.valueRank = options.valueRank ?? -1;
+        this.arrayDimensions = options.arrayDimensions ?? null;
 
         this.dataType = this.resolveNodeId(options.dataType); // DataType (NodeId)
 
@@ -308,7 +313,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return this.checkAccessLevelPrivate(context, accessLevel);
     }
 
-    public isReadable(context: ISessionContext): boolean {
+    public isReadable(_context: ISessionContext): boolean {
         return (this.accessLevel & AccessLevelFlag.CurrentRead) === AccessLevelFlag.CurrentRead;
     }
 
@@ -322,7 +327,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         return this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead);
     }
 
-    public isWritable(context: ISessionContext): boolean {
+    public isWritable(_context: ISessionContext): boolean {
         return (this.accessLevel & AccessLevelFlag.CurrentWrite) === AccessLevelFlag.CurrentWrite;
     }
 
@@ -408,7 +413,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (this._timestamped_get_func) {
             if (this._timestamped_get_func.length === 0) {
                 const dataValueOrPromise = (this._timestamped_get_func as VariableDataValueGetterSync)();
-                if (!Object.prototype.hasOwnProperty.call(dataValueOrPromise.constructor.prototype, "then")) {
+                if (!Object.hasOwn(dataValueOrPromise.constructor.prototype, "then")) {
                     if (dataValueOrPromise !== this.$dataValue) {
                         // we may have a problem here if we use a getter that returns a dataValue that is a ExtensionObject
                         if (dataValueOrPromise.value?.dataType === DataType.ExtensionObject) {
@@ -450,10 +455,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         ) {
             debugLog(
                 chalk.red(" Warning:  UAVariable#readValue ") +
-                chalk.cyan(this.browseName.toString()) +
-                " (" +
-                chalk.yellow(this.nodeId.toString()) +
-                ") exists but dataValue has not been defined"
+                    chalk.cyan(this.browseName.toString()) +
+                    " (" +
+                    chalk.yellow(this.nodeId.toString()) +
+                    ") exists but dataValue has not been defined"
             );
         }
         return dataValue;
@@ -472,9 +477,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (this.dataType.isEmpty()) return false;
         const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataType;
         if (!dataTypeNode) {
-            throw new Error(" Cannot find  DataType  " + this.dataType.toString() + " in standard address Space");
+            throw new Error(` Cannot find  DataType  ${this.dataType.toString()} in standard address Space`);
         }
-        const structureNode = this.addressSpace.findDataType("Structure")!;
+        const structureNode = this.addressSpace.findDataType("Structure");
         if (!structureNode) {
             throw new Error(" Cannot find 'Structure' DataType in standard address Space");
         }
@@ -484,7 +489,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public _getEnumerationInfo(): EnumerationInfo {
         // DataType must be one of Enumeration
         assert(this.isEnumeration(), "Variable is not an enumeration");
-        const dataTypeNode = this.addressSpace.findDataType(this.dataType)! as UADataTypeImpl;
+        const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataTypeImpl;
         return dataTypeNode._getEnumerationInfo();
     }
 
@@ -566,18 +571,18 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const enumInfo = this._getEnumerationInfo();
 
         if (typeof value === "string") {
-            if (!Object.prototype.hasOwnProperty.call(enumInfo.nameIndex, value)) {
+            if (!Object.hasOwn(enumInfo.nameIndex, value)) {
                 const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
-                throw new Error("UAVariable#writeEnumValue: cannot find value " + value + " in [" + possibleValues + "]");
+                throw new Error(`UAVariable#writeEnumValue: cannot find value ${value} in [${possibleValues}]`);
             }
             const valueIndex = enumInfo.nameIndex[value].value;
             value = valueIndex;
         }
-        if (isFinite(value)) {
+        if (Number.isFinite(value)) {
             const possibleValues = Object.keys(enumInfo.nameIndex).join(",");
 
             if (!enumInfo.valueIndex[value]) {
-                throw new Error("UAVariable#writeEnumValue : value out of range " + value + " in [" + possibleValues + "]");
+                throw new Error(`UAVariable#writeEnumValue : value out of range ${value} in [${possibleValues}]`);
             }
             this.setValueFromSource({
                 dataType: DataType.Int32,
@@ -600,7 +605,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const options: DataValueLike = {};
 
         if (attributeId !== AttributeIds.Value) {
-            if (indexRange && indexRange.isDefined()) {
+            if (indexRange?.isDefined()) {
                 options.statusCode = StatusCodes.BadIndexRangeNoData;
                 return new DataValue(options);
             }
@@ -651,13 +656,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public verifyVariantCompatibility(variant: Variant): void {
         try {
             // c8 ignore next
-            if (Object.prototype.hasOwnProperty.call(variant, "value")) {
+            if (Object.hasOwn(variant, "value")) {
                 if (variant.dataType === null || variant.dataType === undefined) {
                     throw new Error(
                         "Variant must provide a valid dataType : variant = " +
-                        variant.toString() +
-                        " this.dataType= " +
-                        this.dataType.toString()
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
                     );
                 }
                 if (
@@ -666,9 +671,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid Boolean : variant = " +
-                        variant.toString() +
-                        " this.dataType= " +
-                        this.dataType.toString()
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
                     );
                 }
                 if (
@@ -679,9 +684,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid LocalizedText : variant = " +
-                        variant.toString() +
-                        " this.dataType= " +
-                        this.dataType.toString()
+                            variant.toString() +
+                            " this.dataType= " +
+                            this.dataType.toString()
                     );
                 }
             }
@@ -840,14 +845,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         // test write permission
         if (!this.isWritable(context)) {
-            return callback!(null, StatusCodes.BadNotWritable);
+            return callback?.(null, StatusCodes.BadNotWritable);
         }
         if (!this.checkPermissionPrivate(context, PermissionType.Write)) {
             return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
         }
 
         if (!this.isUserWritable(context)) {
-            return callback!(null, StatusCodes.BadWriteNotSupported);
+            return callback?.(null, StatusCodes.BadWriteNotSupported);
         }
 
         // adjust special case
@@ -855,21 +860,21 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         const statusCode = this.checkVariantCompatibility(variant);
         if (statusCode.isNot(StatusCodes.Good)) {
-            return callback!(null, statusCode);
+            return callback?.(null, statusCode);
         }
 
         // adjust dataValue.statusCode based on InstrumentRange and EngineeringUnits
         const statusCode2 = this.adjustDataValueStatusCode(dataValue);
         if (statusCode2.isNotGood()) {
-            return callback!(null, statusCode2);
+            return callback?.(null, statusCode2);
         }
 
         const write_func = this._timestamped_set_func || default_func;
 
         if (!write_func) {
-            warningLog(" warning " + this.nodeId.toString() + " " + this.browseName.toString() + " has no setter. \n");
+            warningLog(` warning ${this.nodeId.toString()} ${this.browseName.toString()} has no setter. \n`);
             warningLog("Please make sure to bind the variable or to pass a valid value: new Variant({}) during construction time");
-            return callback!(null, StatusCodes.BadNotWritable);
+            return callback?.(null, StatusCodes.BadNotWritable);
         }
         assert(write_func);
 
@@ -879,7 +884,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
                 if (indexRange && !indexRange.isEmpty()) {
                     if (!indexRange.isValid()) {
-                        return callback!(null, StatusCodes.BadIndexRangeInvalid);
+                        return callback?.(null, StatusCodes.BadIndexRangeInvalid);
                     }
 
                     const newArrayOrMatrix = dataValue.value.value;
@@ -894,7 +899,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         const result = indexRange.set_values(destArr, newArrayOrMatrix);
 
                         if (result.statusCode.isNot(StatusCodes.Good)) {
-                            return callback!(null, result.statusCode);
+                            return callback?.(null, result.statusCode);
                         }
                         dataValue.value.value = result.array;
 
@@ -904,7 +909,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         const dimensions = this.$dataValue.value.dimensions;
                         if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
                             // not a matrix !
-                            return callback!(null, StatusCodes.BadTypeMismatch);
+                            return callback?.(null, StatusCodes.BadTypeMismatch);
                         }
                         const matrix = this.$dataValue.value.value;
                         const result = indexRange.set_values_matrix(
@@ -915,7 +920,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                             newArrayOrMatrix
                         );
                         if (result.statusCode.isNot(StatusCodes.Good)) {
-                            return callback!(null, result.statusCode);
+                            return callback?.(null, result.statusCode);
                         }
                         dataValue.value.dimensions = this.$dataValue.value.dimensions;
                         dataValue.value.value = result.matrix;
@@ -923,7 +928,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         // scrap original array so we detect range
                         this.$dataValue.value.value = null;
                     } else {
-                        return callback!(null, StatusCodes.BadTypeMismatch);
+                        return callback?.(null, StatusCodes.BadTypeMismatch);
                     }
                 }
                 try {
@@ -932,10 +937,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     if (types.isNativeError(err)) {
                         warningLog(err.message);
                     }
-                    return callback!(null, StatusCodes.BadInternalError);
+                    return callback?.(null, StatusCodes.BadInternalError);
                 }
             }
-            callback!(err || null, statusCode1);
+            callback?.(err || null, statusCode1);
         });
     }
 
@@ -962,7 +967,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         assert(context instanceof SessionContext);
         assert(writeValue instanceof WriteValue);
         assert(writeValue.value instanceof DataValue);
-        assert(writeValue.value!.value instanceof Variant);
+        assert(writeValue.value?.value instanceof Variant);
         assert(typeof callback === "function");
 
         // Spec 1.0.2 Part 4 page 58
@@ -976,7 +981,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 this.writeValue(context, writeValue.value!, writeValue.indexRange!, callback);
                 break;
             case AttributeIds.Historizing:
-                if (writeValue.value!.value.dataType !== DataType.Boolean) {
+                if (writeValue.value?.value.dataType !== DataType.Boolean) {
                     return callback(null, StatusCodes.BadTypeMismatch);
                 }
                 if (!this.checkPermissionPrivate(context, PermissionType.WriteHistorizing)) {
@@ -993,7 +998,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 }
                 // check if user is allowed to do that !
                 // TODO
-                this.historizing = !!writeValue.value!.value.value; // yes ! indeed !
+                this.historizing = !!writeValue.value?.value.value; // yes ! indeed !
                 return callback(null, StatusCodes.Good);
 
             default:
@@ -1015,7 +1020,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         try {
             this.verifyVariantCompatibility(value);
-        } catch (err) {
+        } catch (_err) {
             return StatusCodes.BadTypeMismatch;
         }
         return StatusCodes.Good;
@@ -1179,7 +1184,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         // post conditions
         assert(typeof this._timestamped_set_func === "function");
-        assert(this._timestamped_set_func!.length === 2, "expecting 2 parameters");
+        assert(this._timestamped_set_func?.length === 2, "expecting 2 parameters");
     }
 
     /**
@@ -1201,7 +1206,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
 
         if (this.isDisposed()) {
-            return callback!(null, new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown }));
+            return callback?.(null, new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown }));
         }
 
         const readImmediate = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
@@ -1236,7 +1241,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // now call all pending callbacks
             const callbacks = this.__waiting_callbacks || [];
             this.__waiting_callbacks = [];
-            const n = callbacks.length;
+            const _n = callbacks.length;
             for (const callback1 of callbacks) {
                 callback1.call(this, err, dataValue);
             }
@@ -1281,11 +1286,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         const newVariable = _clone(
             this,
-            UAVariableImpl,
+            UAVariableImpl<T>,
             options,
             optionalFilter || defaultCloneFilter,
             extraInfo || makeDefaultCloneExtraInfo(this)
-        ) as UAVariableImpl;
+        ) as UAVariableImpl<T>;
 
         newVariable.bindVariable();
 
@@ -1321,7 +1326,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const dt = addressSpace.findNode(this.dataType);
         // c8 ignore next
         if (!dt) {
-            throw new Error("getDataTypeNode: cannot find dataType " + this.dataType.toString());
+            throw new Error(`getDataTypeNode: cannot find dataType ${this.dataType.toString()}`);
         }
         return dt as UADataType;
     }
@@ -1336,7 +1341,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         const addressSpace = this.addressSpace;
         if (!addressSpace) {
-
             return true;
         }
         const dataType = addressSpace.findDataType(this.dataType);
@@ -1352,13 +1356,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         if (this.valueRank === -1) {
             /** Scalar */
-            if (extObj instanceof Array) {
+            if (Array.isArray(extObj)) {
                 return false;
             }
             return checkExtensionObjectIsCorrectScalar.call(this, extObj);
         } else if (this.valueRank >= 1) {
             /** array */
-            if (!(extObj instanceof Array)) {
+            if (!Array.isArray(extObj)) {
                 // let's coerce this scalar into an 1-element array if it is a valid extension object
                 if (checkExtensionObjectIsCorrectScalar.call(this, extObj)) {
                     warningLog(
@@ -1381,16 +1385,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 `checkExtensionObjectIsCorrect: Not Implemented case, please contact sterfive : this.valueRank =${this.valueRank}`
             );
         }
-        function checkExtensionObjectIsCorrectScalar(
-            this: UAVariableImpl,
-            extObj: ExtensionObject | null
-        ): boolean {
+        function checkExtensionObjectIsCorrectScalar(this: UAVariableImpl, extObj: ExtensionObject | null): boolean {
             // c8 ignore next
-            if (!(extObj && extObj.constructor)) {
+            if (!extObj?.constructor) {
                 errorLog(extObj);
                 throw new Error("expecting an valid extension object");
             }
-            
+
             if (extObj.constructor.name === Constructor.name) {
                 return true;
             }
@@ -1412,7 +1413,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         function checkExtensionObjectIsCorrectArray(this: UAVariableImpl, extObjArray: ExtensionObject[]): boolean {
             // c8 ignore next
             for (const extObj of extObjArray) {
-                if (!(extObj && extObj.constructor)) {
+                if (!extObj?.constructor) {
                     errorLog(extObj);
                     throw new Error("expecting an valid extension object");
                 }
@@ -1486,12 +1487,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
 
         if (optionalExtensionObject) {
-            if (optionalExtensionObject instanceof Array) {
+            if (Array.isArray(optionalExtensionObject)) {
                 assert(this.valueRank >= 1, "bindExtensionObject: expecting an Array of Matrix variable here");
                 return _bindExtensionObjectArrayOrMatrix(this, optionalExtensionObject, options);
             } else {
                 if (this.valueRank !== -1 && this.valueRank !== 0) {
-                    throw new Error("bindExtensionObject: expecting an Scalar variable here but got value rank " + this.valueRank);
+                    throw new Error(`bindExtensionObject: expecting an Scalar variable here but got value rank ${this.valueRank}`);
                 }
                 return _bindExtensionObject(this, optionalExtensionObject, options) as ExtensionObject;
             }
@@ -1566,7 +1567,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             const dv = this.$dataValue;
             if (dv) {
                 if (dv.statusCode) statusStr = dv.statusCode.toString();
-                if (dv.value && dv.value.value !== undefined && dv.value.value !== null && !(dv.value.value instanceof OpaqueStructure)) {
+                if (
+                    dv.value &&
+                    dv.value.value !== undefined &&
+                    dv.value.value !== null &&
+                    !(dv.value.value instanceof OpaqueStructure)
+                ) {
                     const v = dv.value.value;
                     valueStr = typeof v === "object" ? Object.prototype.toString.call(v) : String(v);
                     if (valueStr.length > 80) valueStr = `${valueStr.slice(0, 77)}...`;
@@ -1597,7 +1603,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         return lines.join("\n");
     }
-
 
     // ---------------------------------------------------------------------------------------------------
     // History
@@ -1645,45 +1650,45 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
         if (typeof this._historyRead !== "function") {
-            return callback!(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
+            return callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
         }
 
         this._historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData, callback!);
     }
 
     public _historyReadRaw(
-        context: ISessionContext,
-        historyReadRawModifiedDetails: ReadRawModifiedDetails,
-        indexRange: NumericRange | null,
-        dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationData,
-        callback: CallbackT<HistoryReadResult>
+        _context: ISessionContext,
+        _historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        _indexRange: NumericRange | null,
+        _dataEncoding: QualifiedNameLike | null,
+        _continuationData: ContinuationData,
+        _callback: CallbackT<HistoryReadResult>
     ): void {
         throw new Error("");
     }
 
     public _historyReadRawModify(
-        context: ISessionContext,
-        historyReadRawModifiedDetails: ReadRawModifiedDetails,
-        indexRange: NumericRange | null,
-        dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationData,
-        callback?: CallbackT<HistoryReadResult>
+        _context: ISessionContext,
+        _historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        _indexRange: NumericRange | null,
+        _dataEncoding: QualifiedNameLike | null,
+        _continuationData: ContinuationData,
+        _callback?: CallbackT<HistoryReadResult>
     ): any {
         throw new Error("");
     }
 
     public _historyRead(
         context: ISessionContext,
-        historyReadDetails:
+        _historyReadDetails:
             | HistoryReadDetails
             | ReadRawModifiedDetails
             | ReadEventDetails
             | ReadProcessedDetails
             | ReadAtTimeDetails,
-        indexRange: NumericRange | null,
-        dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationData,
+        _indexRange: NumericRange | null,
+        _dataEncoding: QualifiedNameLike | null,
+        _continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void {
         if (!this.checkPermissionPrivate(context, PermissionType.ReadHistory)) {
@@ -1704,37 +1709,37 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         callback(null, result);
     }
 
-    public _historyPush(newDataValue: DataValue): any {
+    public _historyPush(_newDataValue: DataValue): any {
         throw new Error("");
     }
 
     public _historyReadRawAsync(
-        historyReadRawModifiedDetails: ReadRawModifiedDetails,
-        maxNumberToExtract: number,
-        isReversed: boolean,
-        reverseDataValue: boolean,
-        callback: CallbackT<DataValue[]>
+        _historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        _maxNumberToExtract: number,
+        _isReversed: boolean,
+        _reverseDataValue: boolean,
+        _callback: CallbackT<DataValue[]>
     ): any {
         throw new Error("");
     }
 
     public _historyReadModify(
-        context: ISessionContext,
-        historyReadRawModifiedDetails: ReadRawModifiedDetails,
-        indexRange: NumericRange | null,
-        dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationData,
-        callback: CallbackT<HistoryReadResult>
+        _context: ISessionContext,
+        _historyReadRawModifiedDetails: ReadRawModifiedDetails,
+        _indexRange: NumericRange | null,
+        _dataEncoding: QualifiedNameLike | null,
+        _continuationData: ContinuationData,
+        _callback: CallbackT<HistoryReadResult>
     ): any {
         throw new Error("");
     }
 
-    public _update_startOfOnlineArchive(newDate: Date): void {
+    public _update_startOfOnlineArchive(_newDate: Date): void {
         // please install
         throw new Error("");
     }
 
-    public _update_startOfArchive(newDate: Date): void {
+    public _update_startOfArchive(_newDate: Date): void {
         throw new Error("");
     }
 
@@ -1770,7 +1775,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             const nbElements = dataValue.value.dimensions.reduce((acc, x) => acc * x, 1);
             if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== nbElements) {
                 throw new Error(
-                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${dataValue.value.value.length
+                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${
+                        dataValue.value.value.length
                     }`
                 );
             }
@@ -1781,7 +1787,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // c8 ignore next
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
                 warningLog(dataValue.toString());
-                throw new Error("Invalid Extension Object on nodeId =" + this.nodeId.toString());
+                throw new Error(`Invalid Extension Object on nodeId =${this.nodeId.toString()}`);
             }
         }
 
@@ -1848,7 +1854,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     propagateTouchValueDownward(this, preciseClock, cache);
                 }
             } else {
-                this.emit("value_changed", this.$dataValue.clone(), indexRange);
+                (this as UAVariable).emit("value_changed", this.$dataValue.clone(), indexRange);
             }
         }
     }
@@ -1857,9 +1863,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         apply_condition_refresh.call(this, _cache);
     }
 
-    public handle_semantic_changed(): void {
+    public handle_semantic_changed(_dataValue: DataValue): void {
         this.semantic_version = this.semantic_version + 1;
-        this.emit("semantic_changed");
+        (this as UAVariable).emit("semantic_changed");
     }
 
     private _readDataType(): DataValue {
@@ -1949,9 +1955,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
 }
 
+
+import type { IStructuredTypeSchema } from "node-opcua-factory";
 // tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
-import { IStructuredTypeSchema } from "node-opcua-factory";
+
 UAVariableImpl.prototype.asyncRefresh = withCallback(UAVariableImpl.prototype.asyncRefresh);
 UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
 UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
@@ -1960,12 +1968,14 @@ UAVariableImpl.prototype.readValueAsync = withCallback(UAVariableImpl.prototype.
 
 export interface UAVariableImplExtArray {
     $$variableType?: UAVariableType;
-    $$dataType: UADataType;
-    $$getElementBrowseName: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
-    $$extensionObjectArray: ExtensionObject[];
-    $$indexPropertyName: string;
+    $$dataType?: UADataType;
+    $$getElementBrowseName?: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
+    $$extensionObjectArray?: ExtensionObject[];
+    $$indexPropertyName?: string;
 }
-export interface UAVariableImpl extends UAVariableImplExtArray { }
+
+
+
 function check_valid_array(dataType: DataType, array: any): boolean {
     if (Array.isArray(array)) {
         return true;
@@ -2008,7 +2018,7 @@ function check_valid_array(dataType: DataType, array: any): boolean {
 function unsetFlag(flags: number, mask: number): number {
     return flags & ~mask;
 }
-function setFlag(flags: number, mask: number): number {
+function _setFlag(flags: number, mask: number): number {
     return flags | mask;
 }
 
@@ -2048,7 +2058,7 @@ function _calculateEffectiveUserAccessLevelFromPermission(
 
 function adjustVariant2(this: UAVariableImpl, variant: Variant): Variant {
     // convert Variant( Scalar|ByteString) =>  Variant(Array|ByteArray)
-    const addressSpace = this.addressSpace;
+    const _addressSpace = this.addressSpace;
     const basicType = this.getBasicDataType();
     variant = adjustVariant(variant, this.valueRank, basicType);
     return variant;
@@ -2127,14 +2137,15 @@ function _Variable_bind_with_async_refresh(
     assert(!this.refreshFunc);
 
     this.refreshFunc = options.refreshFunc;
-
+/*
     // TO DO : REVISIT THIS ASSUMPTION
     if (false && this.minimumSamplingInterval === 0) {
         // when a getter /timestamped_getter or async_getter is provided
         // samplingInterval cannot be 0, as the item value must be scanned to be updated.
         this.minimumSamplingInterval = _default_minimumSamplingInterval; // MonitoredItem.minimumSamplingInterval;
-        debugLog("adapting minimumSamplingInterval on " + this.browseName.toString() + " to " + this.minimumSamplingInterval);
+        debugLog(`adapting minimumSamplingInterval on ${this.browseName.toString()} to ${this.minimumSamplingInterval}`);
     }
+        */
 }
 
 // variation 2
@@ -2152,7 +2163,7 @@ function _Variable_bind_with_timestamped_get(
     assert(!this._timestamped_get_func);
 
     const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
-        Promise.resolve((this._timestamped_get_func! as VariableDataValueGetterSync).call(this))
+        Promise.resolve((this._timestamped_get_func as VariableDataValueGetterSync).call(this))
             .then((dataValue) => callback(null, dataValue))
             .catch((err) => {
                 errorLog("asyncRefresh error: Variable is  ", this.nodeId.toString(), this.browseName.toString());
@@ -2172,7 +2183,7 @@ function _Variable_bind_with_timestamped_get(
             errorLog(
                 chalk.red(" Bind variable error: "),
                 " the timestamped_get function must return a DataValue or a Promise<DataValue>" +
-                "\n value_check.constructor.name ",
+                    "\n value_check.constructor.name ",
                 dataValue_verify ? dataValue_verify.constructor.name : "null"
             );
 
@@ -2191,7 +2202,7 @@ function _Variable_bind_with_timestamped_get(
 function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOptions) {
     assert(this instanceof UAVariableImpl);
     assert(typeof options.get === "function", "should specify get function");
-    assert(options.get!.length === 0, "get function should not have arguments");
+    assert(options.get?.length === 0, "get function should not have arguments");
     assert(!options.timestamped_get, "should not specify a timestamped_get function when get is specified");
     assert(!this._timestamped_get_func);
     assert(!this._get_func);
@@ -2215,11 +2226,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
         if (is_StatusCode(value)) {
             return new DataValue({ statusCode: value as StatusCode });
         } else {
-            if (
-                !this.$dataValue ||
-                !this.$dataValue.statusCode.isGoodish() ||
-                !sameVariant(this.$dataValue.value, value as Variant)
-            ) {
+            if (!this.$dataValue?.statusCode.isGoodish() || !sameVariant(this.$dataValue.value, value as Variant)) {
                 // rebuilding artificially timestamps with current clock as they are not provided
                 // by the underlying getter function
                 const { timestamp: sourceTimestamp, picoseconds: sourcePicoseconds } = getCurrentClock();
@@ -2267,7 +2274,7 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
                 errorLog(chalk.yellow("StatusCode.Good is assumed"));
                 return callback(err, StatusCodes.Good, timestamped_value);
             }
-            if (statusCode && statusCode.isNotGood()) {
+            if (statusCode?.isNotGood()) {
                 // record the value but still record the statusCode !
                 timestamped_value.statusCode = statusCode;
             }
@@ -2351,10 +2358,7 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         }
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.refreshFunc! });
     } else {
-        assert(
-            !Object.prototype.hasOwnProperty.call(options, "set"),
-            "getter is missing : a getter must be provided if a setter is provided"
-        );
+        assert(!Object.hasOwn(options, "set"), "getter is missing : a getter must be provided if a setter is provided");
         // xx bind_variant.call(this,options);
         if (options.dataType !== undefined) {
             // if (options.dataType !== DataType.ExtensionObject) {
@@ -2364,34 +2368,50 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
     }
 }
 
-export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl, UAVariableT<T, DT> {
-    on(): any;
-    once(): any;
-    readValueAsync(context: ISessionContext | null): Promise<DataValueT<T, DT>>;
-    readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>): void;
-
-    readValue(
+export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {
+    public readValue(
         context?: ISessionContext | null,
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T, DT>;
+    ): DataValueT<T, DT> {
+        return super.readValue(context, indexRange, dataEncoding) as DataValueT<T, DT>;
+    }
 
-    readValue(
-        context?: ISessionContext | null,
-        indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T, DT>;
+    public readValueAsync(context: ISessionContext | null): Promise<DataValueT<T, DT>>;
+    public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>): void;
+    public readValueAsync(
+        context: ISessionContext | null,
+        callback?: CallbackT<DataValueT<T, DT>>
+    ): Promise<DataValueT<T, DT>> | undefined {
+        return super.readValueAsync(context, callback as CallbackT<DataValue>) as Promise<DataValueT<T, DT>> | undefined;
+    }
 
-    writeValue(
+    public writeValue(
         context: ISessionContext,
         dataValue: DataValueT<T, DT>,
         indexRange: NumericRange | null,
         callback: StatusCodeCallback
     ): void;
-    writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
-    writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
+    public writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
+    public writeValue(
+        context: ISessionContext,
+        dataValue: DataValueT<T, DT>,
+        indexRange?: NumericRange | null
+    ): Promise<StatusCode>;
+    public writeValue(
+        context: ISessionContext,
+        dataValue: DataValueT<T, DT>,
+        indexRangeOrCallback?: NumericRange | null | StatusCodeCallback,
+        callback?: StatusCodeCallback
+    ): Promise<StatusCode> | undefined {
+        return (super.writeValue as (...args: unknown[]) => Promise<StatusCode> | undefined)(
+            context,
+            dataValue,
+            indexRangeOrCallback,
+            callback
+        );
+    }
 }
-export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl { }
 
 function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeIdLike, valueLike?: VariantLike) {
     let value: Variant | null = valueLike ? (valueLike instanceof Variant ? valueLike : new Variant(valueLike)) : null;
@@ -2400,7 +2420,7 @@ function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeI
     const newDataTypeNode = addressSpace.findNode(newDataType) as UADataType;
     // c8 ignore next
     if (!newDataTypeNode || !(newDataTypeNode instanceof UADataTypeImpl)) {
-        throw new Error("Cannot find newDataTypeNode " + newDataType.toString());
+        throw new Error(`Cannot find newDataTypeNode ${newDataType.toString()}`);
     }
 
     const newBaseDataType: DataType = newDataTypeNode.basicDataType;

@@ -54,14 +54,14 @@ import {
     encodeUInt64,
     getMinOPCUADate
 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { DataTypeIds } from "node-opcua-constants";
 
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
 import { defaultEncode, defaultDecode, decodeNull, encodeNull, decodeAny, encodeAny, toJSONGuid } from "./encode_decode";
-import { BasicTypeDefinition, BasicTypeDefinitionOptions, BasicTypeDefinitionOptionsBase, CommonInterface, FieldCategory, TypeSchemaConstructorOptions } from "./types";
+import { type BasicTypeDefinition, type BasicTypeDefinitionOptions, type BasicTypeDefinitionOptionsBase, type CommonInterface, FieldCategory, type TypeSchemaConstructorOptions } from "./types";
 
 
 /**

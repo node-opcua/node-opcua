@@ -1,19 +1,14 @@
-import should from "should";
-
-import { Double } from "node-opcua-basic-types";
+import type { Double } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
 import { standardUnits } from "node-opcua-data-access";
-import { DataValue, DataValueT } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { DataValue, type DataValueT } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, SessionContext, UAAnalogItem } from "..";
+import { DataType, Variant } from "node-opcua-variant";
+import { AddressSpace, SessionContext, type UAAnalogItem } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("AnalogDataItem ValuePrecision issue #410", () => {
     const nodesetFilename = nodesets.standard;
@@ -47,8 +42,8 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
     });
 
     it("ValuePrecision should have a DataType Double", () => {
-        analogItem.valuePrecision!.dataType.should.be.instanceOf(NodeId);
-        analogItem.valuePrecision!.dataType.should.eql(resolveNodeId(DataTypeIds.Double));
+        analogItem.valuePrecision?.dataType.should.be.instanceOf(NodeId);
+        analogItem.valuePrecision?.dataType.should.eql(resolveNodeId(DataTypeIds.Double));
     });
     it("ValuePrecision should be writable ", async () => {
         analogItem = analogItem!;
@@ -57,7 +52,7 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
             value: new Variant({ dataType: DataType.Double, value: 0.25 })
         }) as DataValueT<Double, DataType.Double>;
         const context = SessionContext.defaultContext;
-        const statusCode = await analogItem.valuePrecision!.writeValue(context, dataValue);
+        const statusCode = await analogItem.valuePrecision?.writeValue(context, dataValue);
         statusCode.should.eql(StatusCodes.Good);
     });
 });

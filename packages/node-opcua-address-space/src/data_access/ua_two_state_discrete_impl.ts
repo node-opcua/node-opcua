@@ -1,33 +1,26 @@
+import type {
+    BindVariableOptions,
+    CloneExtraInfo,
+    CloneFilter,
+    CloneOptions,
+    INamespace,
+    UAVariable
+} from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
-import { coerceLocalizedText, LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
 import { VariableTypeIds } from "node-opcua-constants";
-import { INamespace, UAVariable, BindVariableOptions, UAProperty, ISessionContext } from "node-opcua-address-space-base";
-import { DataValueT } from "node-opcua-data-value";
-import { NumericRange } from "node-opcua-numeric-range";
-
-import { UAVariableImpl } from "../ua_variable_impl";
+import { coerceLocalizedText, type LocalizedText, type LocalizedTextLike } from "node-opcua-data-model";
+import { DataType, Variant } from "node-opcua-variant";
+import type { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
+import type { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
-import { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
-import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-
+import { UAVariableImpl } from "../ua_variable_impl";
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
-
-export interface UATwoStateDiscreteImpl {
-    falseState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
-    trueState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
-
-    readValue(
-        context?: ISessionContext | null,
-        indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<boolean, DataType.Boolean>;
-
-    readValueAsync(context: ISessionContext | null, callback?: any): any;
-}
-export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoStateDiscreteEx {
+export class UATwoStateDiscreteImplBase extends UAVariableImpl {
+    private get $5(): UATwoStateDiscreteEx {
+        return this as unknown as UATwoStateDiscreteEx;
+    }
     /*
      * @private
      */
@@ -40,9 +33,8 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
         const falseState = this.getPropertyByName("FalseState");
         if (falseState) {
             falseState.on("value_changed", handler);
-        }
-        /* c8 ignore next */
-        else {
+        } else {
+            /* c8 ignore next */
             console.warn(
                 "warning: UATwoStateDiscrete -> a FalseState property is mandatory ",
                 this.browseName.toString(),
@@ -52,9 +44,8 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
         const trueState = this.getPropertyByName("TrueState");
         if (trueState) {
             trueState.on("value_changed", handler);
-        }
-        /* c8 ignore next */
-        else {
+        } else {
+            /* c8 ignore next */
             console.warn(
                 "waring: UATwoStateDiscrete -> a TrueState property is mandatory",
                 this.browseName.toString(),
@@ -72,7 +63,7 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
             } else if (text === this.getFalseStateAsString()) {
                 this.setValue(false, options);
             } else {
-                throw new Error("setValue invalid value " + value);
+                throw new Error(`setValue invalid value ${value}`);
             }
         }
     }
@@ -87,18 +78,20 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
         }
     }
     getTrueStateAsString(): string {
-        return (this.trueState.readValue().value.value as LocalizedText).text || "";
+        return (this.$5.trueState.readValue().value.value as LocalizedText).text || "";
     }
     getFalseStateAsString(): string {
-        return (this.falseState.readValue().value.value as LocalizedText).text || "";
+        return (this.$5.falseState.readValue().value.value as LocalizedText).text || "";
     }
 
-    public clone(options1: any, optionalFilter: any, extraInfo: any): UAVariable {
+    public clone(options1: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAVariable {
         const variable1 = UAVariableImpl.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         promoteToTwoStateDiscrete(variable1);
         return variable1;
     }
 }
+export type UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase & UATwoStateDiscreteEx;
+export const UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase as unknown as new () => UATwoStateDiscreteImpl;
 
 export function promoteToTwoStateDiscrete(node: UAVariable): UATwoStateDiscreteEx {
     if (node instanceof UATwoStateDiscreteImpl) {
@@ -115,7 +108,7 @@ registerNodePromoter(VariableTypeIds.TwoStateDiscreteType, promoteToTwoStateDisc
 export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoStateDiscreteOptions): UATwoStateDiscreteEx {
     const addressSpace = namespace.addressSpace;
 
-    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
+    assert(!Object.hasOwn(options, "ValuePrecision"));
 
     const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType");
     if (!twoStateDiscreteType) {

@@ -1,9 +1,9 @@
 /**
  * @module node-opcua-address-space
  */
-import { UInt16 } from "node-opcua-basic-types";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { StatusCode } from "node-opcua-status-code";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import type { StatusCode } from "node-opcua-status-code";
 
 export interface ConditionInfoOptions {
     message?: string | LocalizedTextLike | null;
@@ -13,7 +13,6 @@ export interface ConditionInfoOptions {
 
     time?: Date | null;
     receiveTime?: Date | null;
-
 }
 
 export interface ConditionInfo {

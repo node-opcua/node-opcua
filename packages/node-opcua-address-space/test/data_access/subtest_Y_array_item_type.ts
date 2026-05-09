@@ -1,13 +1,10 @@
-import should from "should";
-
-import { AxisInformation, AxisScaleEnumeration, standardUnits } from "node-opcua-data-access";
+import { AxisScaleEnumeration, standardUnits } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-import { VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 
-import { AddressSpace, UAFolder, Namespace } from "../..";
+import { AddressSpace, type Namespace, type UAFolder } from "../..";
 
 export function subtest_Y_array_item_type(maintest: any): void {
     describe("YArrayItemType", () => {
@@ -71,20 +68,18 @@ export function subtest_Y_array_item_type(maintest: any): void {
             yArrayItem.readValue().value.value[2].should.eql(3);
             yArrayItem.readValue().value.value[3].should.eql(2);
 
-            Object.prototype.hasOwnProperty
-                .call(yArrayItem, "instrumentRange")
-                .should.eql(false, "optional instrument Range not expected");
+            Object.hasOwn(yArrayItem, "instrumentRange").should.eql(false, "optional instrument Range not expected");
 
             yArrayItem.euRange.readValue().value.value.low.should.eql(100);
             yArrayItem.euRange.readValue().value.value.high.should.eql(200);
 
-            yArrayItem.title.readValue().value.value.text!.should.eql("My Little YArray Item");
+            yArrayItem.title.readValue().value.value.text?.should.eql("My Little YArray Item");
 
             // access xAxisDefinition from extension object
             const x = yArrayItem.xAxisDefinition.readValue().value.value;
 
             x.engineeringUnits.should.eql(standardUnits.second);
-            x.title!.text!.should.eql("the X axis legend");
+            x.title?.text?.should.eql("the X axis legend");
             x.euRange.low.should.eql(-10);
             x.euRange.high.should.eql(100);
 
@@ -126,8 +121,8 @@ export function subtest_Y_array_item_type(maintest: any): void {
 
             prop.dataType.should.eql(resolveNodeId("Float"));
 
-            prop.instrumentRange!.readValue().value.value.low.should.eql(-100);
-            prop.instrumentRange!.readValue().value.value.high.should.eql(200);
+            prop.instrumentRange?.readValue().value.value.low.should.eql(-100);
+            prop.instrumentRange?.readValue().value.value.high.should.eql(200);
         });
     });
 }

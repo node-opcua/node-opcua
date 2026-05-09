@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import should from "should";
 
-import { AddressSpace, UAObjectType, UAServerStatus, DTServerStatus } from "..";
+import type { AddressSpace, DTServerStatus, UAObjectType, UAServerStatus } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { createCameraType, FakeCamera } from "./fixture_camera_type";
+import { createCameraType, type FakeCamera } from "./fixture_camera_type";
 
 describe("Automatic Generation of  string nodeId", () => {
     let addressSpace: AddressSpace;
@@ -96,7 +96,7 @@ describe("Automatic Generation of  string nodeId", () => {
 
             // xx console.log(serverStatus.toString());
 
-            serverStatus.getComponentByName("BuildInfo")!.should.eql(serverStatus.buildInfo);
+            serverStatus.getComponentByName("BuildInfo")?.should.eql(serverStatus.buildInfo);
 
             // xx console.log(serverStatus.toString());
             // xx console.log(serverStatus.buildInfo.toString());

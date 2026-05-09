@@ -1,7 +1,7 @@
 // tslint:disable:max-line-length
 import { resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
-import { AddressSpace, UAReference } from "..";
+import { AddressSpace } from "..";
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 describe("testing AddressSpace#findReferenceType and findReferenceTypeFromInverseName", () => {
@@ -15,10 +15,10 @@ describe("testing AddressSpace#findReferenceType and findReferenceTypeFromInvers
     });
 
     it("findReferenceType findReferenceTypeFromInverseName - should provide a way to access a referenceType from its inverse name", () => {
-        const n1 = addressSpace.findReferenceType("Organizes")!.nodeId;
+        const n1 = addressSpace.findReferenceType("Organizes")?.nodeId;
         should.not.exist(addressSpace.findReferenceType("OrganizedBy"));
 
-        const n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy")!.nodeId;
+        const n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy")?.nodeId;
         should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
 
         n1.should.equal(n2);

@@ -1,12 +1,18 @@
+import {
+    type BaseNode,
+    type CloneFilter,
+    fullPath2,
+    type UAMethod,
+    type UAObject,
+    type UAReference,
+    type UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { BaseNode, UAMethod, UAObject, UAReference, UAVariable, CloneFilter, fullPath2 } from "node-opcua-address-space-base";
-import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { BrowseDirection } from "node-opcua-data-model";
-
-import { _clone_hierarchical_references } from "./base_node_private";
+import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
 
 // const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doTrace = checkDebugFlag("INSTANTIATE");
@@ -14,17 +20,18 @@ const traceLog = errorLog;
 
 export type OptionalMap = Record<string, string | Record<string, any>>;
 export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
-    private readonly instance: BaseNode;
     private readonly optionalsMap: OptionalMap;
     private readonly references: UAReference[];
     private readonly copyAlsoAllOptionals: boolean = false;
+
+    private readonly _instance: BaseNode;
 
     constructor(instance: BaseNode, copyAlsoAllOptionals: boolean, optionalsMap: OptionalMap) {
         this.copyAlsoAllOptionals = copyAlsoAllOptionals;
         // should we clone the node to be a component or propertyOf of a instance
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
-        this.instance = instance;
+        this._instance = instance;
         this.references = instance.findReferencesEx("Aggregates", BrowseDirection.Forward);
     }
 
@@ -54,13 +61,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
             case null:
             case undefined:
                 // c8 ignore next
-                doTrace &&
-                    traceLog(
-                        "node ",
-                        fullPath2(node),
-                        " has no modellingRule ",
-                        node ? fullPath2(node) : ""
-                    );
+                doTrace && traceLog("node ", fullPath2(node), " has no modellingRule ", node ? fullPath2(node) : "");
                 /**
                  * in some badly generated NodeSet2.xml file, the modellingRule is not specified
                  *
@@ -76,7 +77,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 return true; // keep;
             case "Optional":
                 // only if in requested optionals
-                return this.copyAlsoAllOptionals || ((node.browseName?.name || "") in this.optionalsMap);
+                return this.copyAlsoAllOptionals || (node.browseName?.name || "") in this.optionalsMap;
             case "OptionalPlaceholder":
                 return false; // ignored
             default:

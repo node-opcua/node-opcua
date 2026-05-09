@@ -1,36 +1,33 @@
 /**
  * @module node-opcua-address-space
  */
-import { assert } from "node-opcua-assert";
-import { NodeClass } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { isNullOrUndefined } from "node-opcua-utils";
-import { DataType } from "node-opcua-variant";
-import {
+
+import type {
     AddObjectOptions,
+    BaseNodeEvents,
     InstantiateObjectOptions,
     ISessionContext,
     UAObject,
     UAObjectType,
     UAReference
 } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
+import { AttributeIds, NodeClass } from "node-opcua-data-model";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import { isNullOrUndefined } from "node-opcua-utils";
+import { DataType } from "node-opcua-variant";
 
 import { SessionContext } from "../source/session_context";
+import { initialize_properties_and_components } from "./_instantiate_helpers";
+import type { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
 import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
-import { } from "./tool_isSubtypeOf";
-import {
-    assertUnusedChildBrowseName,
-    topMostParentIsObjectTypeOrVariableType
-} from "./ua_variable_type_impl";
-import { AddressSpacePrivate } from "./address_space_private";
-import { initialize_properties_and_components } from "./_instantiate_helpers";
+import { assertUnusedChildBrowseName, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl";
 
-export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
+export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UAObjectType {
     public readonly nodeClass = NodeClass.ObjectType;
     public readonly isAbstract: boolean;
     /**
@@ -43,11 +40,9 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
         return get_subtypeOf.call(this);
     }
 
-
     public get subtypeOfObj(): UAObjectType | null {
-        return get_subtypeOfObj.call(this) as any as UAObjectType;
+        return get_subtypeOfObj.call(this) as unknown as UAObjectType;
     }
-
 
     public isSubtypeOf = construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
     /** @deprecated - use  isSubtypeOf instead */
@@ -151,8 +146,13 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
 
         const copyAlsoAllOptionals = options.copyAlsoAllOptionals || false;
         initialize_properties_and_components(
-            instance, baseObjectType, this, 
-            copyAlsoModellingRules, copyAlsoAllOptionals, options.optionals);
+            instance,
+            baseObjectType,
+            this,
+            copyAlsoModellingRules,
+            copyAlsoAllOptionals,
+            options.optionals
+        );
 
         assert(instance.typeDefinition.toString() === this.nodeId.toString());
 

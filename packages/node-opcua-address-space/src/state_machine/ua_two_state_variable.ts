@@ -1,28 +1,36 @@
-    /**
+/**
  * @module node-opcua-address-space
  */
+
+import type {
+    BaseNode,
+    BindVariableOptions,
+    INamespace,
+    ISessionContext,
+    UAReference,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-
 import { VariableTypeIds } from "node-opcua-constants";
-import { BrowseDirection, coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { DataValueT } from "node-opcua-data-value";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes, StatusCode, StatusCodeCallback } from "node-opcua-status-code";
-import { Variant, VariantLike, VariantT } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-import { BaseNode, BindVariableOptions, INamespace, UAReference, UAVariable, ISessionContext } from "node-opcua-address-space-base";
-import { NumericRange } from "node-opcua-numeric-range";
-import { QualifiedNameLike } from "node-opcua-data-model";
-
+import {
+    BrowseDirection,
+    coerceLocalizedText,
+    type LocalizedText,
+    type LocalizedTextLike,
+    type QualifiedNameLike
+} from "node-opcua-data-model";
+import type { DataValueT } from "node-opcua-data-value";
+import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant, type VariantLike, type VariantT } from "node-opcua-variant";
+import type { AddTwoStateVariableOptions } from "../../source/address_space_ts";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 // public interfaces
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { AddTwoStateVariableOptions } from "../../source/address_space_ts";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import type { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
 // private types
 import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl";
-import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-
 
 const hasTrueSubState_ReferenceTypeNodeId = resolveNodeId("HasTrueSubState");
 const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");
@@ -64,9 +72,8 @@ function _updateTransitionTime(node: UATwoStateVariableEx, _subState?: UAVariabl
     }
 }
 
-function _updateEffectiveTransitionTime(node: UATwoStateVariableImpl,options?: ISetStateOptions) {
+function _updateEffectiveTransitionTime(node: UATwoStateVariableImpl, options?: ISetStateOptions) {
     if (node.effectiveTransitionTime) {
-        
         const effectiveTransitionTime = options?.effectiveTransitionTime || new Date();
 
         // because subStateNode ",subStateNode.browseName.toString());
@@ -77,7 +84,7 @@ function _updateEffectiveTransitionTime(node: UATwoStateVariableImpl,options?: I
     }
 }
 
-function _getEffectiveDisplayName<T, DT extends DataType>(
+function _getEffectiveDisplayName<_T, _DT extends DataType>(
     node: UATwoStateVariableImpl
 ): DataValueT<LocalizedText, DataType.LocalizedText> {
     const humanReadableString = _getHumanReadableString(node);
@@ -92,7 +99,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
     } else {
         subStateNodes = node.findReferencesExAsObject("HasFalseSubState", BrowseDirection.Forward);
     }
-    const states = subStateNodes.forEach((n: any) => {
+    const _states = subStateNodes.forEach((_n: any) => {
         // todo happen
     });
 
@@ -133,7 +140,7 @@ export function _install_TwoStateVariable_machinery(
     assert(node.minimumSamplingInterval === 0);
     assert(node.typeDefinitionObj.browseName.toString() === "TwoStateVariableType");
     assert(node.dataTypeObj.browseName.toString() === "LocalizedText");
-    assert(Object.prototype.hasOwnProperty.call(node, "valueRank") && (node.valueRank === -1 || node.valueRank === 0));
+    assert(Object.hasOwn(node, "valueRank") && (node.valueRank === -1 || node.valueRank === 0));
 
     // promote node into a UATwoStateVariable
     const _node = promoteToTwoStateVariable(node);
@@ -196,10 +203,6 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
     private _trueState?: string;
     private _falseState?: string;
 
-    public constructor(opts: any) {
-        super(opts);
-    }
-
     get isFalseSubStateOf(): UATwoStateVariableEx {
         return super.isFalseSubStateOf as UATwoStateVariableEx;
     }
@@ -219,7 +222,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                     value: coerceLocalizedText(options.falseState)
                 });
             } else {
-                this._trueState = coerceLocalizedText(options.trueState)!.text!;
+                this._trueState = coerceLocalizedText(options.trueState)?.text!;
             }
             if (this.trueState) {
                 this.trueState.setValueFromSource({
@@ -227,7 +230,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                     value: coerceLocalizedText(options.trueState)
                 });
             } else {
-                this._falseState = coerceLocalizedText(options.falseState)!.text!;
+                this._falseState = coerceLocalizedText(options.falseState)?.text!;
             }
         }
 
@@ -264,7 +267,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                 },
                 StatusCodes.Good
             );
-        } else if (Object.prototype.hasOwnProperty.call(options.value, "dataType")) {
+        } else if (Object.hasOwn(options.value, "dataType")) {
             assert((options.value as VariantLike).dataType === DataType.Boolean);
             this.id.setValueFromSource(options.value as VariantLike, StatusCodes.Good);
         } else {
@@ -312,7 +315,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      */
     public setValue(boolValue: boolean, options?: ISetStateOptions): void {
         assert(typeof boolValue === "boolean");
-        const dataValue = this.id!.readValue();
+        const dataValue = this.id?.readValue();
         const oldValue = dataValue.value.value;
         if (dataValue.statusCode.isGood() && boolValue === oldValue) {
             return; // nothing to do
@@ -326,7 +329,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
     /**
      */
     public getValue(): boolean {
-        const dataValue = this.id!.readValue();
+        const dataValue = this.id?.readValue();
         assert(dataValue.statusCode.isGood());
         assert(dataValue.value.dataType === DataType.Boolean);
         return dataValue.value.value;

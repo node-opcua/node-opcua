@@ -1,10 +1,6 @@
-import { UADiscreteAlarm_Base } from "node-opcua-nodeset-ua";
-import { UAAlarmConditionEx, UAAlarmConditionHelper } from "./ua_alarm_condition_ex";
+import type { UADiscreteAlarm_Base } from "node-opcua-nodeset-ua";
+import type { UAAlarmConditionEx } from "./ua_alarm_condition_ex";
 
-export interface UADiscreteAlarmHelper extends UAAlarmConditionHelper {
-    on(eventName: string, eventHandle: any): this;
-    once(eventName: string, eventHandle: any): this;
-}
 export interface UADiscreteAlarmEx
     extends UAAlarmConditionEx,
         Omit<
@@ -16,33 +12,6 @@ export interface UADiscreteAlarmEx
             | "latchedState"
             | "confirmedState"
             | "ackedState"
-            | "comfirmedState"
             | "activeState"
             | "enabledState"
-        >,
-        UADiscreteAlarmHelper {
-    /** empty interface */
-        }
-/*=
- *      +----------------------+
- *      | UAAlarmCondition     |
- *      +----------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      | UADiscreteAlarm  |
- *      +------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      | UAOffNormalAlarm |
- *      +------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      |   UATripAlarm    |
- *      +------------------+
- *
- *
- *
- */
+        > {}

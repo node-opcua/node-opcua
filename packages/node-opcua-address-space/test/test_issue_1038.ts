@@ -1,20 +1,18 @@
 import "should";
 
-import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-
-import { Namespace, PseudoSession } from "..";
-import { AddressSpace, UAVariable } from "..";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { AddressSpace, type Namespace, PseudoSession, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing github issue #1038", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let variable: UAVariable;
+    let _variable: UAVariable;
     before(async () => {
         addressSpace = AddressSpace.create();
         const xml_files = [nodesets.standard];
@@ -22,7 +20,7 @@ describe("testing github issue #1038", () => {
         addressSpace.registerNamespace("Private");
         namespace = addressSpace.getOwnNamespace();
 
-        variable = namespace.addVariable({
+        _variable = namespace.addVariable({
             browseName: "MyVariable",
             nodeId: "s=Variable",
             dataType: DataType.Double,

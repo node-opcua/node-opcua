@@ -16,6 +16,7 @@ import type {
     AddViewOptions,
     AddYArrayItemOptions,
     BaseNode,
+
     CreateDataTypeOptions,
     CreateNodeOptions,
     EnumerationItem,
@@ -74,6 +75,7 @@ import type {
     AddTwoStateDiscreteOptions,
     AddTwoStateVariableOptions
 } from "../source/address_space_ts";
+import type { InstantiateConditionOptions } from "../source/interfaces/alarms_and_conditions/instantiate_condition_options";
 import type { InstantiateExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options";
 import type { InstantiateNonExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options";
 import type { InstantiateNonExclusiveLimitAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options";
@@ -93,15 +95,20 @@ import type { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import type { AddressSpacePrivate } from "./address_space_private";
-import { UAAcknowledgeableConditionImpl, UAAlarmConditionImpl } from "./alarms_and_conditions";
-import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
+import {
+    type UAAcknowledgeableConditionImpl,
+    UAAcknowledgeableConditionImplBase,
+    UAAlarmConditionImplBase,
+    UAConditionImplBase,
+    UADiscreteAlarmImplBase
+} from "./alarms_and_conditions";
 import { UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
-import { UAExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
-import { UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
-import { UANonExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
-import { UANonExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
-import { type UAOffNormalAlarmEx, UAOffNormalAlarmImpl } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
+import { UAExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
+import { UAExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
+import { UALimitAlarmImplBase } from "./alarms_and_conditions/ua_limit_alarm_impl";
+import { UANonExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
+import { UANonExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
+import { type UAOffNormalAlarmEx, UAOffNormalAlarmImplBase } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
 import { BaseNodeImpl } from "./base_node_impl";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff";
 import { _addMultiStateDiscrete, type UAMultiStateDiscreteImpl } from "./data_access/ua_multistate_discrete_impl";
@@ -500,7 +507,6 @@ export class NamespaceImpl implements NamespacePrivate {
      * add a variable as a component of the parent node
      */
     public addVariable(options: AddVariableOptions): UAVariable {
-        assert(arguments.length === 1, "Invalid arguments IAddressSpace#addVariable now takes only one argument.");
         if (Object.hasOwn(options, "propertyOf") && options.propertyOf) {
             assert(!options.typeDefinition || options.typeDefinition === "PropertyType");
             options.typeDefinition = options.typeDefinition || "PropertyType";
@@ -572,11 +578,11 @@ export class NamespaceImpl implements NamespacePrivate {
 
         const addressSpace = this.addressSpace;
 
-        assert(!(options as any).typeDefinition, "addFolder does not expect typeDefinition to be defined ");
+        assert(!(options as CreateNodeOptions).typeDefinition, "addFolder does not expect typeDefinition to be defined ");
         const typeDefinition = addressSpace._coerceTypeDefinition("FolderType");
         parentFolder = addressSpace._coerceFolder(parentFolder) as UAObject;
-        (options as any).nodeClass = NodeClass.Object;
-        (options as any).references = [
+        (options as CreateNodeOptions).nodeClass = NodeClass.Object;
+        (options as CreateNodeOptions).references = [
             { referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition },
             { referenceType: "Organizes", isForward: false, nodeId: parentFolder.nodeId }
         ];
@@ -669,7 +675,7 @@ export class NamespaceImpl implements NamespacePrivate {
      * @internal
      */
     public createNode(options: CreateNodeOptions): BaseNode {
-        let node: BaseNode = null as any as BaseNode;
+        let node: BaseNode = null as unknown as BaseNode;
 
         const addressSpace = this.addressSpace;
         addressSpace.modelChangeTransaction(() => {
@@ -712,11 +718,11 @@ export class NamespaceImpl implements NamespacePrivate {
      *
      */
     public deleteNode(nodeOrNodeId: NodeId | BaseNode): void {
-        let node: BaseNode | null = null;
+        let node: BaseNodeImpl | null = null;
         let nodeId: NodeId = new NodeId();
         if (nodeOrNodeId instanceof NodeId) {
             nodeId = nodeOrNodeId;
-            node = this.findNode(nodeId);
+            node = this.findNode(nodeId) as BaseNodeImpl;
             // c8 ignore next
             if (!node) {
                 throw new Error(` deleteNode : cannot find node with nodeId${nodeId.toString()}`);
@@ -819,7 +825,7 @@ export class NamespaceImpl implements NamespacePrivate {
      *      });
      *
      */
-    public addEventType(options: any): UAObjectType {
+    public addEventType(options: AddObjectTypeOptions): UAObjectType {
         options.subtypeOf = options.subtypeOf || "BaseEventType";
         // are eventType always abstract ?? No => Condition can be instantiated!
         // but, by default is abstract is true
@@ -899,7 +905,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
-        const variable = this.addVariable(clone_options) as UAVariableImpl;
+        const variable = this.addVariable(clone_options) as unknown as UAVariableImpl;
 
         add_dataItem_stuff(variable, options);
 
@@ -925,7 +931,7 @@ export class NamespaceImpl implements NamespacePrivate {
                 dataType: DataType.ExtensionObject,
                 value: new Range(options.engineeringUnitsRange)
             })
-        }) as UAVariableImpl;
+        }) as unknown as UAVariableImpl;
 
         assert(euRange.readValue().value.value instanceof Range);
 
@@ -1084,8 +1090,8 @@ export class NamespaceImpl implements NamespacePrivate {
             optionals
         }) as UAYArrayItemEx<DataType.Float | DataType.Double>;
 
-        function coerceAxisScale(value: any) {
-            const ret = AxisScaleEnumeration[value];
+        function coerceAxisScale(value: unknown) {
+            const ret = AxisScaleEnumeration[value as keyof typeof AxisScaleEnumeration];
             assert(!isNullOrUndefined(ret));
             return ret;
         }
@@ -1448,8 +1454,15 @@ export class NamespaceImpl implements NamespacePrivate {
 
         assert(_component.nodeClass === NodeClass.Object || _component.nodeClass === NodeClass.ObjectType);
 
-        const initialStateType = addressSpace.findObjectType("InitialStateType")!;
-        const stateType = addressSpace.findObjectType("StateType")!;
+        const initialStateType = addressSpace.findObjectType("InitialStateType");
+        const stateType = addressSpace.findObjectType("StateType");
+
+        if (!initialStateType) {
+            throw new Error("Cannot find InitialStateType");
+        }
+        if (!stateType) {
+            throw new Error("Cannot find StateType");
+        }
 
         let state: UAState | UAInitialState;
         if (isInitialState) {
@@ -1558,10 +1571,10 @@ export class NamespaceImpl implements NamespacePrivate {
     // --- Alarms & Conditions -------------------------------------------------
     public instantiateCondition(
         conditionTypeId: UAEventType | NodeId | string,
-        options: any,
+        options: InstantiateConditionOptions,
         data: Record<string, VariantOptions>
     ): UAConditionEx {
-        return UAConditionImpl.instantiate(this, conditionTypeId, options, data);
+        return UAConditionImplBase.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAcknowledgeableCondition(
@@ -1569,7 +1582,7 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateAlarmConditionOptions,
         data?: Record<string, VariantOptions>
     ): UAAcknowledgeableConditionImpl {
-        return UAAcknowledgeableConditionImpl.instantiate(this, conditionTypeId, options, data);
+        return UAAcknowledgeableConditionImplBase.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAlarmCondition(
@@ -1577,7 +1590,7 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateAlarmConditionOptions,
         data?: Record<string, VariantOptions>
     ): UAAlarmConditionEx {
-        return UAAlarmConditionImpl.instantiate(this, alarmConditionTypeId, options, data);
+        return UAAlarmConditionImplBase.instantiate(this, alarmConditionTypeId, options, data);
     }
 
     public instantiateLimitAlarm(
@@ -1585,7 +1598,7 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateLimitAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UALimitAlarmEx {
-        return UALimitAlarmImpl.instantiate(this, limitAlarmTypeId, options, data);
+        return UALimitAlarmImplBase.instantiate(this, limitAlarmTypeId, options, data);
     }
 
     public instantiateExclusiveLimitAlarm(
@@ -1593,14 +1606,14 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateLimitAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UAExclusiveLimitAlarmEx {
-        return UAExclusiveLimitAlarmImpl.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
+        return UAExclusiveLimitAlarmImplBase.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
     }
 
     public instantiateExclusiveDeviationAlarm(
         options: InstantiateExclusiveDeviationAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UAExclusiveDeviationAlarmEx {
-        return UAExclusiveDeviationAlarmImpl.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
+        return UAExclusiveDeviationAlarmImplBase.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
     }
 
     public instantiateNonExclusiveLimitAlarm(
@@ -1608,14 +1621,14 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateNonExclusiveLimitAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UANonExclusiveLimitAlarmEx {
-        return UANonExclusiveLimitAlarmImpl.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
+        return UANonExclusiveLimitAlarmImplBase.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
     }
 
     public instantiateNonExclusiveDeviationAlarm(
         options: InstantiateNonExclusiveDeviationAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UANonExclusiveDeviationAlarmEx {
-        return UANonExclusiveDeviationAlarmImpl.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
+        return UANonExclusiveDeviationAlarmImplBase.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
     }
 
     public instantiateDiscreteAlarm(
@@ -1623,13 +1636,13 @@ export class NamespaceImpl implements NamespacePrivate {
         options: InstantiateAlarmConditionOptions,
         data?: Record<string, VariantOptions>
     ): UADiscreteAlarmEx {
-        return UADiscreteAlarmImpl.instantiate(this, discreteAlarmType, options, data);
+        return UADiscreteAlarmImplBase.instantiate(this, discreteAlarmType, options, data);
     }
     public instantiateOffNormalAlarm(
         options: InstantiateOffNormalAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UAOffNormalAlarmEx {
-        return UAOffNormalAlarmImpl.instantiate(this, "OffNormalAlarmType", options, data);
+        return UAOffNormalAlarmImplBase.instantiate(this, "OffNormalAlarmType", options, data);
     }
 
     // default roles and permissions
@@ -1661,12 +1674,12 @@ export class NamespaceImpl implements NamespacePrivate {
         if (node.nodeId.namespace !== this.index) {
             throw new Error(
                 "node must belong to this namespace : " +
-                node.nodeId.toString() +
-                "  " +
-                " node.browseName = " +
-                node.browseName.toString() +
-                " this.index = " +
-                this.index
+                    node.nodeId.toString() +
+                    "  " +
+                    " node.browseName = " +
+                    node.browseName.toString() +
+                    " this.index = " +
+                    this.index
             );
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
@@ -1676,24 +1689,24 @@ export class NamespaceImpl implements NamespacePrivate {
 
         // c8 ignore next
         if (this._nodeid_index.has(hashKey)) {
-            const existingNode = this.findNode(node.nodeId)!;
+            const existingNode = this.findNode(node.nodeId);
             throw new Error(
                 "node " +
-                node.browseName.toString() +
-                " nodeId = " +
-                node.nodeId.displayText() +
-                " already registered " +
-                node.nodeId.toString() +
-                "\n" +
-                " in namespace " +
-                this.namespaceUri +
-                " index = " +
-                this.index +
-                "\n" +
-                "existing node = " +
-                existingNode.toString() +
-                "this parent : " +
-                node.parentNodeId?.toString()
+                    node.browseName.toString() +
+                    " nodeId = " +
+                    node.nodeId.displayText() +
+                    " already registered " +
+                    node.nodeId.toString() +
+                    "\n" +
+                    " in namespace " +
+                    this.namespaceUri +
+                    " index = " +
+                    this.index +
+                    "\n" +
+                    "existing node = " +
+                    existingNode?.toString() +
+                    "this parent : " +
+                    node.parentNodeId?.toString()
             );
         }
 
@@ -1756,15 +1769,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                            indexVerify +
-                            " do not match the index of the current namespace (" +
-                            this.index +
-                            ")"
+                                indexVerify +
+                                " do not match the index of the current namespace (" +
+                                this.index +
+                                ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                        " please refer to the NodeOPCUA documentation"
+                            " please refer to the NodeOPCUA documentation"
                     );
                 }
             }
@@ -2019,7 +2032,7 @@ export class NamespaceImpl implements NamespacePrivate {
             warningLog(
                 "[NODE-OPCUA-W30",
                 "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms\nvariable = " +
-                options?.browseName?.toString()
+                    options?.browseName?.toString()
             );
             options.minimumSamplingInterval = 1000;
         }
@@ -2087,7 +2100,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 }
 
-const _constructors_map: Record<keyof Omit<typeof NodeClass, "Unspecified">, typeof BaseNodeImpl> = {
+const _constructors_map: Record<keyof Omit<typeof NodeClass, "Unspecified">, new (options: any) => BaseNodeImpl<any>> = {
     DataType: UADataTypeImpl,
     Method: UAMethodImpl,
     Object: UAObjectImpl,

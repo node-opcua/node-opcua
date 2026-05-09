@@ -4,13 +4,21 @@
 // tslint:disable:no-console
 
 import chalk from "chalk";
-
+import type {
+    ContinuationData,
+    IAddressSpace,
+    ISessionContext,
+    IVariableHistorian,
+    IVariableHistorianOptions,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { AccessLevelFlag, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { AccessLevelFlag, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
 import { isMinDate, minDate } from "node-opcua-date-time";
-import { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
-import { NumericRange } from "node-opcua-numeric-range";
+import { make_warningLog } from "node-opcua-debug";
+import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
+import type { NumericRange } from "node-opcua-numeric-range";
 import {
     HistoryData,
     HistoryReadResult,
@@ -19,72 +27,73 @@ import {
     ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
-import { CallbackT } from "node-opcua-status-code";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import {
-    IAddressSpace,
-    IVariableHistorian,
-    IVariableHistorianOptions,
-    UAVariable,
-    ContinuationData
-} from "node-opcua-address-space-base";
-import { make_warningLog } from "node-opcua-debug";
-import { ISessionContext } from "node-opcua-address-space-base";
-
-import { UAVariableImpl } from "../ua_variable_impl";
 import { AddressSpace } from "../../source/address_space_ts";
-import { AddressSpacePrivate } from "../address_space_private";
+import type { AddressSpacePrivate } from "../address_space_private";
+import { UAVariableImpl } from "../ua_variable_impl";
 
 const warningLog = make_warningLog(__filename);
 
 // tslint:disable:no-var-requires
+interface DequeueItem<T> {
+    data: T | null;
+    next: DequeueItem<T>;
+    prev: DequeueItem<T>;
+}
+interface Dequeue<T> {
+    push(value: T): void;
+    shift(): T | undefined;
+    first(): T | undefined;
+    length: number;
+    head: DequeueItem<T>;
+}
 const Dequeue = require("dequeue");
 
 /* interface Historian  */
 // {
 //
 // }
-function inInTimeRange(historyReadDetails: any, dataValue: DataValue): boolean {
+function inInTimeRange(historyReadDetails: ReadRawModifiedDetails, dataValue: DataValue): boolean {
     if (
         historyReadDetails.startTime &&
         !isMinDate(historyReadDetails.startTime) &&
-        dataValue.sourceTimestamp! < historyReadDetails.startTime
+        (dataValue.sourceTimestamp || 0) < historyReadDetails.startTime
     ) {
         return false;
     }
     if (
         historyReadDetails.endTime &&
         !isMinDate(historyReadDetails.endTime) &&
-        dataValue.sourceTimestamp! > historyReadDetails.endTime
+        (dataValue.sourceTimestamp || 0) > historyReadDetails.endTime
     ) {
         return false;
     }
     return true;
 }
 
-function inInTimeRange2(historyReadDetails: any, dataValue: DataValue): boolean {
+function inInTimeRange2(historyReadDetails: ReadRawModifiedDetails, dataValue: DataValue): boolean {
     if (
         historyReadDetails.endTime &&
         !isMinDate(historyReadDetails.endTime) &&
-        dataValue.sourceTimestamp! > historyReadDetails.endTime
+        (dataValue.sourceTimestamp || 0) > historyReadDetails.endTime
     ) {
         return false;
     }
     return !(
         historyReadDetails.startTime &&
         !isMinDate(historyReadDetails.startTime) &&
-        dataValue.sourceTimestamp! < historyReadDetails.startTime
+        (dataValue.sourceTimestamp || 0) < historyReadDetails.startTime
     );
 }
 
 function filter_dequeue(
-    q: any,
+    q: Dequeue<DataValue>,
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
     onlyThisNumber: number,
     isReversed: boolean
-) {
-    const r: any[] = [];
+): DataValue[] {
+    const r: DataValue[] = [];
     const predicate = isReversed
         ? inInTimeRange2.bind(null, historyReadRawModifiedDetails)
         : inInTimeRange.bind(null, historyReadRawModifiedDetails);
@@ -117,7 +126,7 @@ function filter_dequeue(
 
 export class VariableHistorian implements IVariableHistorian {
     public readonly node: UAVariable;
-    private readonly _timeline: any /* Dequeue */;
+    private readonly _timeline: Dequeue<DataValue>;
     private readonly _maxOnlineValues: number;
     private lastDate: Date;
     private lastDatePicoSeconds: number;
@@ -149,8 +158,8 @@ export class VariableHistorian implements IVariableHistorian {
                     this.lastDate,
                     "\n last known picoSeconds = ",
                     this.lastDatePicoSeconds,
-                    "\n lastValue = ",
-                    this._timeline[this._timeline.length - 1]?.toString()
+                    "\n lastValue = "
+                    /// this._timeline[this._timeline.length - 1]?.toString()
                 );
                 // artificially increment date by one 100 picoseconds
                 newDataValue.sourcePicoseconds++;
@@ -170,7 +179,7 @@ export class VariableHistorian implements IVariableHistorian {
 
         if (this._timeline.length >= this._maxOnlineValues || this._timeline.length === 1) {
             const first = this._timeline.first();
-            (this.node as UAVariableImpl)._update_startOfOnlineArchive(first.sourceTimestamp);
+            (this.node as UAVariableImpl)._update_startOfOnlineArchive(first?.sourceTimestamp || minDate);
             // we update the node startOnlineDate
         }
     }
@@ -204,7 +213,7 @@ function _get_startOfArchive(node: UAVariableImpl) {
     if (!node.$historicalDataConfiguration) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
-    return node.$historicalDataConfiguration!.startOfArchive?.readValue();
+    return node.$historicalDataConfiguration?.startOfArchive?.readValue();
 }
 
 function _update_startOfArchive(this: UAVariableImpl, newDate: Date): void {
@@ -255,7 +264,7 @@ function _historyPush(this: UAVariableImpl, newDataValue: DataValue) {
     if (!this.varHistorian) {
         throw new Error("this variable has no HistoricalDataConfiguration");
     }
-    assert(Object.prototype.hasOwnProperty.call(this, "historizing"), "expecting a historizing attribute on node");
+    assert(Object.hasOwn(this, "historizing"), "expecting a historizing attribute on node");
     if (!this.historizing) {
         return; //
     }
@@ -265,11 +274,11 @@ function _historyPush(this: UAVariableImpl, newDataValue: DataValue) {
 
 function _historyReadModify(
     this: UAVariable,
-    context: ISessionContext,
-    historyReadRawModifiedDetails: ReadRawModifiedDetails,
-    indexRange: NumericRange | null,
-    dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationData,
+    _context: ISessionContext,
+    _historyReadRawModifiedDetails: ReadRawModifiedDetails,
+    _indexRange: NumericRange | null,
+    _dataEncoding: QualifiedNameLike | null,
+    _continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
     //
@@ -338,15 +347,18 @@ function _historyReadRawAsync(
     callback: CallbackT<DataValue[]>
 ) {
     assert(typeof callback === "function");
-    this.varHistorian!.extractDataValues(historyReadRawModifiedDetails, maxNumberToExtract, isReversed, reverseDataValue, callback);
+    if (!this.varHistorian) {
+        return callback(new Error("this variable has no HistoricalDataConfiguration"));
+    }
+    this.varHistorian.extractDataValues(historyReadRawModifiedDetails, maxNumberToExtract, isReversed, reverseDataValue, callback);
 }
 
 function _historyReadRaw(
     this: UAVariable,
     context: ISessionContext,
     historyReadRawModifiedDetails: ReadRawModifiedDetails,
-    indexRange: NumericRange | null,
-    dataEncoding: QualifiedNameLike | null,
+    _indexRange: NumericRange | null,
+    _dataEncoding: QualifiedNameLike | null,
     continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ): void {
@@ -455,7 +467,8 @@ function _historyReadRaw(
             historyData: new HistoryData({ dataValues: values }),
             statusCode
         });
-        return callback(null, result2);
+        callback(null, result2);
+        return;
     }
 
     // todo add special treatment for when startTime > endTime
@@ -464,17 +477,18 @@ function _historyReadRaw(
     let maxNumberToExtract = 0;
     let isReversed = false;
     let reverseDataValue = false;
-    if (isMinDate(historyReadRawModifiedDetails.endTime!)) {
+    if (isMinDate(historyReadRawModifiedDetails.endTime)) {
         // end time is not specified
         maxNumberToExtract = historyReadRawModifiedDetails.numValuesPerNode;
-        if (isMinDate(historyReadRawModifiedDetails.startTime!)) {
+        if (isMinDate(historyReadRawModifiedDetails.startTime)) {
             // end start and start time are not specified, this is invalid
             const result = new HistoryReadResult({
                 statusCode: StatusCodes.BadHistoryOperationUnsupported // should be an error
             });
-            return callback(null, result);
+            callback(null, result);
+            return;
         }
-    } else if (isMinDate(historyReadRawModifiedDetails.startTime!)) {
+    } else if (isMinDate(historyReadRawModifiedDetails.startTime)) {
         // start time is not specified
         // end time is specified
         maxNumberToExtract = historyReadRawModifiedDetails.numValuesPerNode;
@@ -488,12 +502,13 @@ function _historyReadRaw(
             const result = new HistoryReadResult({
                 statusCode: StatusCodes.BadHistoryOperationUnsupported // should be an error
             });
-            return callback(null, result);
+            callback(null, result);
+            return;
         }
     } else {
         // start time is specified
         // end time is specified
-        if (historyReadRawModifiedDetails.endTime!.getTime() < historyReadRawModifiedDetails.startTime!.getTime()) {
+        if ((historyReadRawModifiedDetails.endTime?.getTime() || 0) < (historyReadRawModifiedDetails.startTime?.getTime() || 0)) {
             reverseDataValue = true;
             const tmp = historyReadRawModifiedDetails.endTime;
             historyReadRawModifiedDetails.endTime = historyReadRawModifiedDetails.startTime;
@@ -714,7 +729,7 @@ export function AddressSpace_installHistoricalDataNode(
     node._historyReadRaw = _historyReadRaw;
     node._historyReadRawAsync = _historyReadRawAsync;
 
-    node.varHistorian = (options as any).historian || AddressSpace.historizerFactory.create(node, options);
+    node.varHistorian = (options as { historian?: boolean }).historian || AddressSpace.historizerFactory.create(node, options);
 
     const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
     if (!historicalDataConfigurationType) {

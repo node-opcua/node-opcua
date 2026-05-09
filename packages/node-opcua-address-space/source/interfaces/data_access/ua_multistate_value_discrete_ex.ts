@@ -1,11 +1,8 @@
-/**
- * @module node-opcua-address-space.DataAccess
- */
-import { DataType, Variant } from "node-opcua-variant";
-import { Int64, UInt64 } from "node-opcua-basic-types";
-import { UAMultiStateValueDiscrete_Base } from "node-opcua-nodeset-ua";
-import { UAVariableT } from "node-opcua-address-space-base";
-import { ISetStateOptions } from "../i_set_state_options";
+import type { UAVariableT } from "node-opcua-address-space-base";
+import type { Int64, UInt64 } from "node-opcua-basic-types";
+import type { UAMultiStateValueDiscrete_Base } from "node-opcua-nodeset-ua";
+import type { DataType, Variant } from "node-opcua-variant";
+import type { ISetStateOptions } from "../i_set_state_options";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/docs/Part8/5.3.3/#5.3.3.4

@@ -1,25 +1,23 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
-import { AttributeIds, UInt64 } from "node-opcua-basic-types";
-import { DataSetMetaDataType, TransferSubscriptionsRequest } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import {
-    AddressSpace,
-    Namespace,
-    SessionContext,
-    UAObject,
-    UAVariable,
-    _recomputeRequiredModelsFromTypes,
-    _recomputeRequiredModelsFromTypes2,
-    _getCompleteRequiredModelsFromValuesAndReferences,
-    constructNamespacePriorityTable
-} from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { create_minimalist_address_space_nodeset } from "../distHelpers";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { AttributeIds, type UInt64 } from "node-opcua-basic-types";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import type { DataSetMetaDataType } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
+import should from "should";
+import {
+    _getCompleteRequiredModelsFromValuesAndReferences,
+    _recomputeRequiredModelsFromTypes2,
+    AddressSpace,
+    constructNamespacePriorityTable,
+    SessionContext,
+    type UAObject,
+    type UAVariable
+} from "..";
+import { create_minimalist_address_space_nodeset } from "../distHelpers";
+import { generateAddressSpace } from "../nodeJS";
 
 const doDebug = false;
 
@@ -27,10 +25,10 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     let addressSpace: AddressSpace;
 
     const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/variabletype_with_value.xml");
-    fs.existsSync(xml_file1).should.be.eql(true, " should find " + xml_file1);
+    fs.existsSync(xml_file1).should.be.eql(true, ` should find ${xml_file1}`);
 
     const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/variable_with_value.xml");
-    fs.existsSync(xml_file2).should.be.eql(true, " should find " + xml_file2);
+    fs.existsSync(xml_file2).should.be.eql(true, ` should find ${xml_file2}`);
 
     const context = SessionContext.defaultContext;
 
@@ -53,8 +51,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         value.value.constructor.name.should.eql("ConnectionDetails");
 
         //
-        const certificateVariable = connectionDetailsType.getChildByName("Certificates")! as UAVariable;
-        const urlVariable = connectionDetailsType.getChildByName("Url")! as UAVariable;
+        const _certificateVariable = connectionDetailsType.getChildByName("Certificates")! as UAVariable;
+        const _urlVariable = connectionDetailsType.getChildByName("Url")! as UAVariable;
 
         // xx console.log(certificateVariable.toString());
         // xx  console.log(urlVariable.toString());
@@ -91,7 +89,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         otherConnectionsValue[0].constructor.name.should.eql("ConnectionDetails");
         otherConnectionsValue[1].constructor.name.should.eql("ConnectionDetails");
 
-        const c1 = addressSpace.constructExtensionObject(connectionDetailDataType!, {
+        const _c1 = addressSpace.constructExtensionObject(connectionDetailDataType!, {
             certificates: Buffer.from("Hello World"),
             url: "http://10.0.19.120"
         });
@@ -100,7 +98,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     it("LNEX3 - should load an nodeset with a Extension Object Variable containing an enum", async () => {
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
 
-        const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
+        const _nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
 
         const testVar = addressSpace.findNode("ns=1;i=6009")! as UAVariable;
 
@@ -120,7 +118,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         // console.log(xml);
 
         // prettier-ignore
-        x(xml).should.eql(x(`<?xml version="1.0"?>
+        x(xml).should.eql(
+            x(`<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://sterfive.com/Small_model/Type.xsd">
     <NamespaceUris>
         <Uri>http://sterfive.com/Small_model/</Uri>
@@ -416,7 +415,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ExtensionObject>
         </Value>
     </UAVariable>
-</UANodeSet>`));
+</UANodeSet>`)
+        );
     });
 
     it("LNEX5 - export back a nodeset2.xml file with dataType & enum as values", async () => {
@@ -463,7 +463,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         // console.log(xml);
 
         // prettier-ignore
-        x(xml).should.eql(x(`<?xml version="1.0"?>
+        x(xml).should.eql(
+            x(`<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns2="http://opcfoundation.org/UA/DI/Type.xsd" xmlns:ns3="http://opcfoundation.org/UA/AutoID/Type.xsd" xmlns:ns1="MyNamespace/Type.xsd">
     <NamespaceUris>
         <Uri>MyNamespace</Uri>
@@ -523,7 +524,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ExtensionObject>
         </Value>
     </UAVariable>
-</UANodeSet>`));
+</UANodeSet>`)
+        );
 
         const tmp_nodeset2 = path.join(os.tmpdir(), "temp_nodeset2.xml");
         await fs.promises.writeFile(tmp_nodeset2, xml);
@@ -598,7 +600,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const objectA = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
 
         const namespace2 = addressSpace.registerNamespace("B");
-        const objectB1 = namespace2.addObject({ browseName: "B1", componentOf: objectA });
+        const _objectB1 = namespace2.addObject({ browseName: "B1", componentOf: objectA });
 
         const objectB2 = namespace2.addObject({ browseName: "B2" });
         objectA.addReference({ referenceType: "HasComponent", nodeId: objectB2 });
@@ -700,8 +702,8 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             create_minimalist_address_space_nodeset(addressSpace);
 
             const namespace1 = addressSpace.registerNamespace("A");
-            const objectA = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
-            const matrixVariable = namespace1.addVariable({
+            const _objectA = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
+            const _matrixVariable = namespace1.addVariable({
                 browseName: "MatrixVariable",
                 nodeId: "s=MatrixVariable",
                 dataType: DataType.Double,

@@ -1,4 +1,3 @@
-
 import should from "should";
 import { checkValueRankCompatibility } from "../src/check_value_rank_compatibility";
 
@@ -9,7 +8,6 @@ const OneDimension = 1;
 const Scalar = -1;
 const InvalidValueRank = -99;
 describe("test value rank compatibility", () => {
-
     describe("when base valueRank is ScalarOrOneDimension", () => {
         const referencedValueRank = ScalarOrOneDimension;
 
@@ -17,7 +15,9 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(InvalidValueRank, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number"
+            );
         });
 
         it("Scalar", () => {
@@ -30,36 +30,45 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(AnyDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1).");
+            should(errorMessage).equal(
+                "Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1)."
+            );
         });
         it("OneOrMoreDimensions", () => {
             const { result, errorMessage } = checkValueRankCompatibility(OneOrMoreDimensions, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: OneOrMoreDimensions(0): valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1).");
+            should(errorMessage).equal(
+                "Invalid valueRank: OneOrMoreDimensions(0): valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1)."
+            );
         });
         it("2 ", () => {
             const { result, errorMessage } = checkValueRankCompatibility(2, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: 2: valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1).");
+            should(errorMessage).equal(
+                "Invalid valueRank: 2: valueRank can only be identical to base type ScalarOrOneDimension(-3) , Scalar(-1) or OneDimension(1)."
+            );
         });
     });
     describe("when base valueRank is OneOrMoreDimensions", () => {
-
         const referencedValueRank = OneOrMoreDimensions;
         it("invalid valueRank", () => {
             const { result, errorMessage } = checkValueRankCompatibility(InvalidValueRank, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number"
+            );
         });
 
         it("Scalar", () => {
             const { result, errorMessage } = checkValueRankCompatibility(Scalar, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: Scalar(-1): valueRank can only be identical to base type OneOrMoreDimensions(0) or be a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: Scalar(-1): valueRank can only be identical to base type OneOrMoreDimensions(0) or be a positive number"
+            );
         });
         it("OneDimension", () => {
             checkValueRankCompatibility(OneDimension, referencedValueRank).result.should.equal(true);
@@ -68,7 +77,9 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(AnyDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type OneOrMoreDimensions(0) or be a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type OneOrMoreDimensions(0) or be a positive number"
+            );
         });
         it("OneOrMoreDimensions", () => {
             const { result, errorMessage: _ } = checkValueRankCompatibility(OneOrMoreDimensions, referencedValueRank);
@@ -86,7 +97,9 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(InvalidValueRank, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number"
+            );
         });
         it("ScalarOrOneDimension", () => {
             const { result, errorMessage: _ } = checkValueRankCompatibility(ScalarOrOneDimension, referencedValueRank);
@@ -111,8 +124,6 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage: _ } = checkValueRankCompatibility(2, referencedValueRank);
             result.should.equal(true);
         });
-
-
     });
 
     describe("when base valueRank OneDimension", () => {
@@ -121,19 +132,25 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(InvalidValueRank, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number"
+            );
         });
         it("ScalarOrOneDimension", () => {
             const { result, errorMessage } = checkValueRankCompatibility(ScalarOrOneDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: ScalarOrOneDimension(-3):  valueRank can only be identical to base type OneDimension(1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: ScalarOrOneDimension(-3):  valueRank can only be identical to base type OneDimension(1)"
+            );
         });
         it("Scalar", () => {
             const { result, errorMessage } = checkValueRankCompatibility(Scalar, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: Scalar(-1):  valueRank can only be identical to base type OneDimension(1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: Scalar(-1):  valueRank can only be identical to base type OneDimension(1)"
+            );
         });
         it("OneDimension", () => {
             checkValueRankCompatibility(OneDimension, referencedValueRank).result.should.equal(true);
@@ -142,12 +159,16 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(AnyDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: AnyDimension(-2):  valueRank can only be identical to base type OneDimension(1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: AnyDimension(-2):  valueRank can only be identical to base type OneDimension(1)"
+            );
         });
         it("OneOrMoreDimensions", () => {
             const { result, errorMessage } = checkValueRankCompatibility(OneOrMoreDimensions, referencedValueRank);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: OneOrMoreDimensions(0):  valueRank can only be identical to base type OneDimension(1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: OneOrMoreDimensions(0):  valueRank can only be identical to base type OneDimension(1)"
+            );
             result.should.equal(false);
         });
         it("2 ", () => {
@@ -156,7 +177,7 @@ describe("test value rank compatibility", () => {
             should(errorMessage).equal("Invalid valueRank: 2:  valueRank can only be identical to base type OneDimension(1)");
             result.should.equal(false);
         });
-    })
+    });
 
     describe("when base valueRank Scalar", () => {
         const referencedValueRank = Scalar;
@@ -164,34 +185,44 @@ describe("test value rank compatibility", () => {
             const { result, errorMessage } = checkValueRankCompatibility(InvalidValueRank, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number");
+            should(errorMessage).equal(
+                "Invalid valueRank: InvalidValueRank(-99)  can only be ScalarOrOneDimension(-3) AnyDimension(-2), Scalar(-1) OneOrMoreDimensions(0) or a positive number"
+            );
         });
         it("ScalarOrOneDimension", () => {
             const { result, errorMessage } = checkValueRankCompatibility(ScalarOrOneDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: ScalarOrOneDimension(-3): valueRank can only be identical to base type Scalar(-1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: ScalarOrOneDimension(-3): valueRank can only be identical to base type Scalar(-1)"
+            );
         });
         it("Scalar", () => {
-            const { result, errorMessage: _  } = checkValueRankCompatibility(Scalar, referencedValueRank);
+            const { result, errorMessage: _ } = checkValueRankCompatibility(Scalar, referencedValueRank);
             result.should.equal(true);
         });
         it("OneDimension", () => {
             const { result, errorMessage } = checkValueRankCompatibility(OneDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: OneDimension(1): valueRank can only be identical to base type Scalar(-1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: OneDimension(1): valueRank can only be identical to base type Scalar(-1)"
+            );
         });
         it("AnyDimension", () => {
             const { result, errorMessage } = checkValueRankCompatibility(AnyDimension, referencedValueRank);
             result.should.equal(false);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type Scalar(-1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: AnyDimension(-2): valueRank can only be identical to base type Scalar(-1)"
+            );
         });
         it("OneOrMoreDimensions", () => {
             const { result, errorMessage } = checkValueRankCompatibility(OneOrMoreDimensions, referencedValueRank);
             should(errorMessage).not.equal(null);
-            should(errorMessage).equal("Invalid valueRank: OneOrMoreDimensions(0): valueRank can only be identical to base type Scalar(-1)");
+            should(errorMessage).equal(
+                "Invalid valueRank: OneOrMoreDimensions(0): valueRank can only be identical to base type Scalar(-1)"
+            );
             result.should.equal(false);
         });
         it("2 ", () => {
@@ -200,6 +231,5 @@ describe("test value rank compatibility", () => {
             should(errorMessage).equal("Invalid valueRank: 2: valueRank can only be identical to base type Scalar(-1)");
             result.should.equal(false);
         });
-    })
-
+    });
 });

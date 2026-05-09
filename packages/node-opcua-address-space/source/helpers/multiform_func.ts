@@ -1,5 +1,5 @@
 import { make_warningLog } from "node-opcua-debug";
-import { CallbackT } from "node-opcua-status-code";
+import type { CallbackT } from "node-opcua-status-code";
 
 const warningLog = make_warningLog(__filename);
 

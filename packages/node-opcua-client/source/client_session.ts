@@ -2,7 +2,7 @@
  * @module node-opcua-client
  */
 
-import type { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 
 import type { DateTime, UInt8 } from "node-opcua-basic-types";
 import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -13,19 +13,18 @@ import type { LocalizedTextLike } from "node-opcua-data-model";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import {
-    type ArgumentDefinition,
-    CallMethodRequestLike,
-    type IBasicSession,
-    type IBasicSessionBrowse,
-    type IBasicSessionBrowseNext,
-    type IBasicSessionCall,
-    type IBasicSessionChangeUser,
-    type IBasicSessionRead,
-    type IBasicSessionTranslateBrowsePath,
-    type IBasicSessionWrite,
-    type MethodId,
-    type ResponseCallback
+import type {
+    ArgumentDefinition,
+    IBasicSession,
+    IBasicSessionBrowse,
+    IBasicSessionBrowseNext,
+    IBasicSessionCall,
+    IBasicSessionChangeUser,
+    IBasicSessionRead,
+    IBasicSessionTranslateBrowsePath,
+    IBasicSessionWrite,
+    MethodId,
+    ResponseCallback
 } from "node-opcua-pseudo-session";
 import type { EndpointDescription } from "node-opcua-service-endpoints";
 import type { HistoryReadResult } from "node-opcua-service-history";
@@ -55,14 +54,12 @@ import type {
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
-import {
-    type AggregateConfigurationOptions,
-    CallMethodResult,
-    type HistoryReadRequest,
-    type HistoryReadResponse,
-    type HistoryReadValueIdOptions,
-    ReadValueId,
-    type ReadValueIdOptions
+import type {
+    AggregateConfigurationOptions,
+    HistoryReadRequest,
+    HistoryReadResponse,
+    HistoryReadValueIdOptions,
+    ReadValueIdOptions
 } from "node-opcua-types";
 import type { DataType, Variant } from "node-opcua-variant";
 

@@ -1,7 +1,8 @@
 import { NodeClass } from "node-opcua-data-model";
-import should from "should";
-import { AddressSpace, Namespace } from "..";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { AddressSpace } from "..";
+
 const _should = should;
 
 describe("AddressSpace Namespace", () => {

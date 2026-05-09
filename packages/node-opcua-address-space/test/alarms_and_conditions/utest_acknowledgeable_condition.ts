@@ -1,23 +1,20 @@
-import should from "should";
-import sinon from "sinon";
-
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 
-import { AddressSpace, UAObject } from "../..";
-import { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
+import type { AddressSpace, UAObject } from "../..";
+import type { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
+import { MochaSuiteEx } from "./test_alarms_and_conditions";
 
-export function utest_acknowledgeable_condition(test: any): void {
+export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
     describe("AddressSpace : Acknowledgeable Conditions ", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let engine: UAObject;
         before(() => {
             addressSpace = test.addressSpace;
             source = test.source;
-            engine = test.engine;
         });
 
         it("should instantiate AcknowledgeableConditionType", () => {
@@ -56,7 +53,7 @@ export function utest_acknowledgeable_condition(test: any): void {
             //        |                                           |
             //        |     +-------------------+                 |
             //        +---- |EnabledState       |<|---------------+
-            //        |     +-------------------+                       
+            //        |     +-------------------+
 
             should.exist(condition.enabledState, "enabledState must exist");
             should.exist(condition.ackedState, "ackedState must exist");
@@ -64,13 +61,12 @@ export function utest_acknowledgeable_condition(test: any): void {
             const trueSubStates = condition.enabledState.findReferencesEx("HasTrueSubState", BrowseDirection.Forward);
             trueSubStates.length.should.eql(1);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
-            
 
             should.exist(condition.ackedState.isTrueSubStateOf, "isTrueSubStateOf must exist");
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
-            
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
         });
         it("should instantiate AcknowledgeableConditionType (variation 3)", async () => {
@@ -88,7 +84,7 @@ export function utest_acknowledgeable_condition(test: any): void {
             ) as UAAcknowledgeableConditionEx;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition3");
         });
@@ -108,9 +104,9 @@ export function utest_acknowledgeable_condition(test: any): void {
                 }
             ) as UAAcknowledgeableConditionEx;
 
-            condition.confirmedState!.browseName.toString();
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
-            condition.confirmedState!.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.confirmedState?.browseName.toString();
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            condition.confirmedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(2);
         });
 
@@ -136,23 +132,23 @@ export function utest_acknowledgeable_condition(test: any): void {
             condition.enabledState.getTrueSubStates().length.should.eql(5);
 
             condition.ackedState.browseName.toString().should.eql("AckedState");
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
 
             condition.activeState.browseName.toString().should.eql("ActiveState");
-            condition.activeState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.activeState.isTrueSubStateOf?.should.eql(condition.enabledState);
 
-            condition.shelvingState!.browseName.toString().should.eql("ShelvingState");
+            condition.shelvingState?.browseName.toString().should.eql("ShelvingState");
             //condition.shelvingState!.isTrueSubStateOf!.should.eql(condition.enabledState);
 
-            condition.suppressedState!.browseName.toString().should.eql("SuppressedState");
-            condition.suppressedState!.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.suppressedState?.browseName.toString().should.eql("SuppressedState");
+            condition.suppressedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
 
-            condition.confirmedState!.browseName.toString().should.eql("ConfirmedState");
-            condition.confirmedState!.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.confirmedState?.browseName.toString().should.eql("ConfirmedState");
+            condition.confirmedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
 
-            condition.confirm!.nodeClass.should.eql(NodeClass.Method);
+            condition.confirm?.nodeClass.should.eql(NodeClass.Method);
 
-            condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
+            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
 
             // lets disable the alarm now
             const statusCode = condition.setEnabledState(false);

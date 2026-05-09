@@ -421,7 +421,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _attribute_changed_callback: any;
     private _value_changed_callback: any;
     private _semantic_changed_callback: any;
-    private _on_node_disposed_listener: any;
+    private _on_node_disposed_listener: (() => void) | null;
     private _linkedItems?: number[];
     private _triggeredNotifications?: QueueItem[];
 
@@ -527,7 +527,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         MonitoredItem.registry.unregister(this);
 
         if (this._on_node_disposed_listener) {
-            this._node!.removeListener("dispose", this._on_node_disposed_listener);
+            (this._node as BaseNode).removeListener("dispose", this._on_node_disposed_listener);
             this._on_node_disposed_listener = null;
         }
 
@@ -971,7 +971,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
         if (this._on_opcua_event_received_callback) {
             assert(typeof this._on_opcua_event_received_callback === "function");
-            this.node.removeListener("event", this._on_opcua_event_received_callback);
+            (this.node as BaseNode).removeListener("event", this._on_opcua_event_received_callback);
             this._on_opcua_event_received_callback = null;
         }
 
@@ -979,7 +979,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             assert(typeof this._attribute_changed_callback === "function");
 
             const event_name = makeAttributeEventName(this.itemToMonitor.attributeId);
-            this.node.removeListener(event_name, this._attribute_changed_callback);
+            (this.node as BaseNode).removeListener(event_name, this._attribute_changed_callback);
             this._attribute_changed_callback = null;
         }
 
@@ -989,14 +989,14 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             assert(typeof this._value_changed_callback === "function");
             assert(!this._samplingId);
 
-            this.node.removeListener("value_changed", this._value_changed_callback);
+            (this.node as UAVariable).removeListener("value_changed", this._value_changed_callback);
             this._value_changed_callback = null;
         }
 
         if (this._semantic_changed_callback) {
             assert(typeof this._semantic_changed_callback === "function");
             assert(!this._samplingId);
-            this.node.removeListener("semantic_changed", this._semantic_changed_callback);
+            (this.node as UAVariable).removeListener("semantic_changed", this._semantic_changed_callback);
             this._semantic_changed_callback = null;
         }
         if (this._samplingId) {
@@ -1432,7 +1432,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             })
         );
         this._stop_sampling();
-        node.removeListener("dispose", this._on_node_disposed_listener);
-        this._on_node_disposed_listener = null;
+        if (this._on_node_disposed_listener) {
+            node.removeListener("dispose", this._on_node_disposed_listener);
+            this._on_node_disposed_listener = null;
+        }
     }
 }

@@ -3,9 +3,9 @@
  */
 // tslint:disable:no-console
 import chalk from "chalk";
-import { AddReferenceOpts, UAReference, BaseNode, UAReferenceType } from "node-opcua-address-space-base";
+import type { AddReferenceOpts, BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { coerceNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
 
 export function isNodeIdString(str: string): boolean {
@@ -15,9 +15,7 @@ export function isNodeIdString(str: string): boolean {
 
 function is_valid_reference(ref: UAReference): boolean {
     const hasRequestedProperties =
-        Object.prototype.hasOwnProperty.call(ref, "referenceType") &&
-        Object.prototype.hasOwnProperty.call(ref, "nodeId") &&
-        !isNullOrUndefined(ref.isForward);
+        Object.hasOwn(ref, "referenceType") && Object.hasOwn(ref, "nodeId") && !isNullOrUndefined(ref.isForward);
 
     if (!hasRequestedProperties) {
         return false;
@@ -44,9 +42,9 @@ function _arrow(text: string, length: number, isForward: boolean): string {
     const extra = text.length % 2 === 1 ? "-" : "";
 
     if (isForward) {
-        return extra + h + " " + text + " " + h + "> ";
+        return `${extra + h} ${text} ${h}> `;
     }
-    return "<" + h + " " + text + " " + h + extra + " ";
+    return `<${h} ${text} ${h}${extra} `;
 }
 
 function _w(str: string, width: number): string {
@@ -54,7 +52,7 @@ function _w(str: string, width: number): string {
 }
 
 function _localCoerceToNodeID(nodeIdLike: string | NodeIdLike | { nodeId: NodeId }): NodeId {
-    if (Object.prototype.hasOwnProperty.call(nodeIdLike, "nodeId")) {
+    if (typeof nodeIdLike === "object" &&  Object.hasOwn(nodeIdLike, "nodeId")) {
         return (nodeIdLike as { nodeId: NodeId }).nodeId;
     }
     return coerceNodeId(nodeIdLike);
@@ -133,13 +131,13 @@ export class ReferenceImpl implements UAReference {
         let infoNode = _w(this.nodeId.toString(), 24);
         let refType = this.referenceType.toString();
 
-        if (options && options.addressSpace) {
+        if (options?.addressSpace) {
             const node = options.addressSpace.findNode(this.nodeId);
-            infoNode = "[" + infoNode + "]" + _w(node?.browseName.toString(), 40);
+            infoNode = `[${infoNode}]${_w(node?.browseName.toString(), 40)}`;
 
             const ref = options.addressSpace.findReferenceType(this.referenceType);
             const refNode = options.addressSpace.findNode(ref.nodeId);
-            refType = refNode.browseName.toString() + " (" + ref.nodeId.toString() + ")";
+            refType = `${refNode.browseName.toString()} (${ref.nodeId.toString()})`;
         }
         return _arrow(refType, 40, this.isForward) + infoNode;
     }
@@ -149,7 +147,7 @@ export class ReferenceImpl implements UAReference {
      */
     get hash(): string {
         if (!this.__hash) {
-            this.__hash = (this.isForward ? "" : "!") + this.referenceType.toString() + "-" + this.nodeId.toString();
+            this.__hash = `${(this.isForward ? "" : "!") + this.referenceType.toString()}-${this.nodeId.toString()}`;
         }
         return this.__hash;
     }
@@ -167,7 +165,6 @@ export class ReferenceImpl implements UAReference {
         */
     }
 }
-function errorLog(arg0: string, reference: UAReference) {
+function errorLog(_arg0: string, _reference: UAReference) {
     throw new Error("Function not implemented.");
 }
-

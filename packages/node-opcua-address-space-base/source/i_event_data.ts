@@ -14,5 +14,4 @@ export interface IEventData {
     _createValue(fullBrowsePath: string, node: BaseNode, variant: VariantLike): void;
     _readValue(nodeId: NodeId): Variant | null;
     _browse(browsePath: BrowsePath): BrowsePathResult | null;
-    
 }

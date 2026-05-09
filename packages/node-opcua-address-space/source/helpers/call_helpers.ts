@@ -1,14 +1,15 @@
 /**
  * @module node-opcua-address-space
  */
+
+import type { IAddressSpace, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { CallMethodRequest } from "node-opcua-service-call";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
-import { Variant } from "node-opcua-variant";
-import { ISessionContext, IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { CallMethodRequest } from "node-opcua-service-call";
+import { StatusCodes } from "node-opcua-status-code";
+import type { CallMethodResultOptions } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
 import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
@@ -72,16 +73,11 @@ export async function callMethodHelper(
         return response;
     }
 
-
     try {
         await resolveOpaqueOnAddressSpace(addressSpace, inputArguments);
 
-        const callMethodResponse = await methodObj.execute(
-            object,
-            inputArguments,
-            context);
-        callMethodResponse.inputArgumentResults =
-            callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
+        const callMethodResponse = await methodObj.execute(object, inputArguments, context);
+        callMethodResponse.inputArgumentResults = callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
         assert(callMethodResponse.statusCode);
 
         if (callMethodResponse.statusCode?.isGood()) {
@@ -89,14 +85,13 @@ export async function callMethodHelper(
         }
 
         assert(Array.isArray(callMethodResponse.inputArgumentResults));
-        assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
+        assert(callMethodResponse.inputArgumentResults?.length === methodInputArguments.length);
 
         const outputArguments = callMethodResponse.outputArguments || [];
         await resolveOpaqueOnAddressSpace(addressSpace, outputArguments as Variant[]);
 
         return callMethodResponse;
-    } catch (err) {
+    } catch (_err) {
         return { statusCode: StatusCodes.BadInternalError };
     }
-
 }

@@ -12,14 +12,14 @@ import {
     type UAObject,
     type UAObjectType,
     type UAVariable,
-    type UAVariableType,
+    type UAVariableType
 } from "node-opcua-address-space-base";
-import { checkDebugFlag, make_errorLog, make_warningLog} from "node-opcua-debug";
+import { BrowseDirection } from "node-opcua-data-model";
+import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { makeOptionalsMap, type OptionalMap } from "../source/helpers/make_optionals_map";
 import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter";
 import { _clone_hierarchical_references } from "./base_node_private";
-import { BrowseDirection } from "node-opcua-data-model";
 
 // const debugLog = make_debugLog("INSTANTIATE");
 // const doDebug = checkDebugFlag("INSTANTIATE");
@@ -86,7 +86,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
             ),
             baseTypeDefinition ? baseTypeDefinition.browseName.toString() : "undefined"
         );
- 
+
     // c8 ignore next
     if (!baseTypeDefinition) {
         throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeDefinitionNodeId);
@@ -108,10 +108,14 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
 export function initialize_properties_and_components<
     B extends UAObject | UAVariable | UAMethod,
     T extends UAVariableType | UAObjectType
->(instance: B, topMostType: T, nodeType: T,
+>(
+    instance: B,
+    topMostType: T,
+    nodeType: T,
     copyAlsoModellingRules: boolean,
     copyAlsoAllOptionals: boolean,
-    optionals?: string[]): void {
+    optionals?: string[]
+): void {
     const extraInfo = new CloneHelper();
 
     extraInfo.pushContext({
@@ -139,7 +143,15 @@ export function initialize_properties_and_components<
     );
 
     // instantiate optionals from interfaces
-    instantiate_interface_children<B>(nodeType, extraInfo, instance, copyAlsoModellingRules, copyAlsoAllOptionals, optionalsMap, browseNameMap);
+    instantiate_interface_children<B>(
+        nodeType,
+        extraInfo,
+        instance,
+        copyAlsoModellingRules,
+        copyAlsoAllOptionals,
+        optionalsMap,
+        browseNameMap
+    );
 
     reconstructFunctionalGroupType(extraInfo);
 
@@ -147,12 +159,12 @@ export function initialize_properties_and_components<
 }
 
 function instantiate_interface_children<B extends UAObject | UAVariable | UAMethod>(
-    nodeType: UAObjectType | UAVariableType, 
-    extraInfo: CloneHelper, 
-    instance: B, 
-    copyAlsoModellingRules: boolean, 
-    copyAlsoAllOptionals: boolean, 
-    optionalsMap: OptionalMap, 
+    nodeType: UAObjectType | UAVariableType,
+    extraInfo: CloneHelper,
+    instance: B,
+    copyAlsoModellingRules: boolean,
+    copyAlsoAllOptionals: boolean,
+    optionalsMap: OptionalMap,
     browseNameMap: Set<string>
 ) {
     const interfaces = nodeType.findReferencesEx(resolveNodeId("HasInterface"), BrowseDirection.Forward);
@@ -160,8 +172,7 @@ function instantiate_interface_children<B extends UAObject | UAVariable | UAMeth
         return;
     }
     for (const reference of interfaces) {
-        const interfaceType =
-            (reference.node as UAObjectType) || nodeType.addressSpace.findObjectType(reference.nodeId);
+        const interfaceType = (reference.node as UAObjectType) || nodeType.addressSpace.findObjectType(reference.nodeId);
         if (!interfaceType) {
             warningLog(" cannot find node ", reference.nodeId.toString());
             continue;
@@ -187,4 +198,3 @@ function instantiate_interface_children<B extends UAObject | UAVariable | UAMeth
         );
     }
 }
-

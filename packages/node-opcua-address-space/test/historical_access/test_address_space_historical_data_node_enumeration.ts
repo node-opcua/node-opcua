@@ -1,10 +1,8 @@
-import fs from "fs";
-import { nodesets } from "node-opcua-nodesets";
-import should from "should";
-import { AddressSpace, SessionContext } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
+import fs from "node:fs";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
+import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace } from "../..";
+import { generateAddressSpace } from "../../nodeJS";
 
 describe("Testing Historical Data Node Enumeration", () => {
     let addressSpace: AddressSpace;
@@ -12,7 +10,7 @@ describe("Testing Historical Data Node Enumeration", () => {
     before(async () => {
         addressSpace = AddressSpace.create();
         const xml_files = [nodesets.standard];
-        fs.existsSync(xml_files[0]).should.be.eql(true, "file " + xml_files[0] + " must exist");
+        fs.existsSync(xml_files[0]).should.be.eql(true, `file ${xml_files[0]} must exist`);
         await generateAddressSpace(addressSpace, xml_files);
 
         const namespace = addressSpace.registerNamespace("MyPrivateNamespace");
@@ -46,7 +44,7 @@ describe("Testing Historical Data Node Enumeration", () => {
     });
 
     it("should be easy to enumerate  UAVariable with History from a addressSpace", () => {
-        const historizingNode = [...addressSpace.historizingNodes!.values()];
+        const historizingNode = [...addressSpace.historizingNodes?.values()];
         historizingNode.length.should.eql(3);
         historizingNode.map((x) => x.browseName.toString()).should.eql(["1:MyVar1", "1:MyVar2", "1:MyVar3"]);
     });

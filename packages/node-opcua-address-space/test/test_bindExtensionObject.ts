@@ -7,7 +7,13 @@ import type { LocalizedText } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-import { type StructureField, ServerState, type ServerStatusDataType, ServiceCounterDataType, type SessionDiagnosticsDataType } from "node-opcua-types";
+import {
+    ServerState,
+    type ServerStatusDataType,
+    ServiceCounterDataType,
+    type SessionDiagnosticsDataType,
+    type StructureField
+} from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
@@ -199,7 +205,7 @@ describe("Extension Object binding and sub  components\n", () => {
             should.exist(serverStatusType);
             should(serverStatusType?.browseName.toString()).eql("ServerStatusType");
             const counter = 1;
-            const extensionObjectVar = serverStatusType!.instantiate({
+            const extensionObjectVar = serverStatusType?.instantiate({
                 browseName: `ServerStatusType${counter}`,
                 dataType: serverStatusDataType?.nodeId,
                 minimumSamplingInterval: 0,
@@ -447,7 +453,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-            "by acting on the whole ExtensionObject",
+                "by acting on the whole ExtensionObject",
             () => {
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
@@ -465,7 +471,7 @@ describe("Extension Object binding and sub  components\n", () => {
                 (sessionDiagnostics as any).clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
                 (sessionDiagnostics as any).readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
 
-                _sessionDiagnostics.clientDescription!.applicationUri!.should.eql("applicationUri-1");
+                _sessionDiagnostics.clientDescription?.applicationUri?.should.eql("applicationUri-1");
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -480,7 +486,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-            "by acting on the whole ExtensionObject - middle",
+                "by acting on the whole ExtensionObject - middle",
             () => {
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -511,7 +517,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-            "by increasing a value on ExtensionObject",
+                "by increasing a value on ExtensionObject",
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -544,7 +550,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
-            "to NodeVariables",
+                "to NodeVariables",
             () => {
                 _sessionDiagnostics.clientDescription!.applicationUri = "applicationUri-1";
 
@@ -557,7 +563,7 @@ describe("Extension Object binding and sub  components\n", () => {
 });
 
 // tslint:disable-next-line: no-empty-interface
-interface UAMeasIdDataType extends UAVariable { }
+interface UAMeasIdDataType extends UAVariable {}
 // tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;
@@ -666,9 +672,13 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             resultContent: [resultContent1]
         });
 
-        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer)
+            .toString("hex")
+            .should.eql("deadbeef");
         ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.id as string).should.eql("IIII");
-        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.version as string).should.eql("1.2");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.version as string).should.eql(
+            "1.2"
+        );
 
         const variant = new Variant({
             dataType: DataType.ExtensionObject,
@@ -731,7 +741,9 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             console.log("extObj", extObj.toString());
         }
         should.exist((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash);
-        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer).toString("hex").should.eql("deadbeef");
+        ((extObj as unknown as Record<string, Record<string, unknown>>).internalConfigurationId.hash as Buffer)
+            .toString("hex")
+            .should.eql("deadbeef");
 
         const result = resultType.instantiate({
             browseName: `Result2`,

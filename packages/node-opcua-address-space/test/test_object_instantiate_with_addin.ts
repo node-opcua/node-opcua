@@ -2,8 +2,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, UAObject } from "..";
-import { addDefaultInstanceBrowseName, getSymbols, instantiateAddIn, setSymbols } from "..";
+import { AddressSpace, addDefaultInstanceBrowseName, getSymbols, instantiateAddIn, setSymbols, type UAObject } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 const debugLog = make_debugLog("TEST");

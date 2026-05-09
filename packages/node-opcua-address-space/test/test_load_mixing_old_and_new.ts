@@ -1,17 +1,15 @@
-import path from "path";
-import should from "should";
-import { nodesets } from "node-opcua-nodesets";
+import path from "node:path";
 import { serverImplementsDataTypeDefinition } from "node-opcua-client-dynamic-extension-object";
-import { AddressSpace, UADataType, PseudoSession,  } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import should from "should";
+import { AddressSpace, PseudoSession, type UADataType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Testing address space with old and new nodeset", () => {
-
-
     let addressSpace: AddressSpace;
     beforeEach(() => {
-       addressSpace = AddressSpace.create();
+        addressSpace = AddressSpace.create();
     });
     afterEach(async () => {
         await addressSpace.shutdown();
@@ -25,14 +23,11 @@ describe("Testing address space with old and new nodeset", () => {
         await generateAddressSpace(addressSpace, [new_opcua, old]);
         addressSpace.registerNamespace("urn:OWN");
 
-
-        
         const session = new PseudoSession(addressSpace);
         const force104 = await serverImplementsDataTypeDefinition(session);
         should(force104).eql(false);
 
-        
-        const ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/");
+        const _ns = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/");
         const ns2 = addressSpace.getNamespaceIndex("http://DEMO/");
         if (ns2 === -1) {
             throw new Error("Cannot find namespace DEMO");
@@ -45,8 +40,6 @@ describe("Testing address space with old and new nodeset", () => {
 
         console.log("data = ", data.toString());
         should.exists(data.charge);
-
-
     });
     it("should create a server with old and new nodeset - B", async () => {
         const new_opcua = nodesets.standard;
@@ -59,7 +52,7 @@ describe("Testing address space with old and new nodeset", () => {
         const session = new PseudoSession(addressSpace);
         const force104 = await serverImplementsDataTypeDefinition(session);
         should(force104).eql(false);
-        
+
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         const ns2 = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
         if (ns2 === -1) {

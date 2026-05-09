@@ -1,11 +1,11 @@
 /***
  * @module node-opcua-basic-types
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { decodeUAString, encodeUAString, UAString } from "./string";
+import { decodeUAString, encodeUAString, type UAString } from "./string";
 
-export function validateLocaleId(value: unknown): boolean {
+export function validateLocaleId(_value: unknown): boolean {
     // TODO : check that localeID is well-formed
     // see part 3 $8.4 page 63
     return true;

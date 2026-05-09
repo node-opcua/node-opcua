@@ -6,19 +6,17 @@
 // ShelvingStateMachine
 // --------------------------------------------------------------------------------------------------
 
+import type { ISessionContext, UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
-
-import { UAProperty, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { UAState, UATransition } from "node-opcua-nodeset-ua";
-import { CallMethodResultOptions } from "node-opcua-service-call";
 import { DataValue } from "node-opcua-data-value";
-
-import { UAAlarmConditionImpl } from "../alarms_and_conditions/ua_alarm_condition_impl";
-import { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
-import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import type { UAState } from "node-opcua-nodeset-ua";
+import type { CallMethodResultOptions } from "node-opcua-service-call";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant, type VariantLike } from "node-opcua-variant";
+import type { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
+import type { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
+import { UAAlarmConditionImpl, UAAlarmConditionImplBase } from "../alarms_and_conditions/ua_alarm_condition_impl";
 
 import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
 
@@ -32,8 +30,8 @@ export interface UAShelvedStateMachineHelper {
     _duration: number;
 }
 
-export interface UAShelvedStateMachineExImpl extends UAShelvedStateMachineHelper {
-        unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
+export interface UAShelvedStateMachineHelper2 extends UAShelvedStateMachineHelper {
+    unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;
     oneShotShelved: UAState;
@@ -51,7 +49,7 @@ export interface UAShelvedStateMachineExImpl extends UAShelvedStateMachineHelper
     oneShotShelve2?: UAMethod;
 }
 
-export class UAShelvedStateMachineExImpl extends UAStateMachineImpl implements UAShelvedStateMachineEx {
+export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl {
     public static promote(object: UAObject): UAShelvedStateMachineEx {
         const shelvingState = object as UAShelvedStateMachineExImpl;
         promoteToStateMachine(shelvingState);
@@ -83,6 +81,8 @@ export class UAShelvedStateMachineExImpl extends UAStateMachineImpl implements U
         return shelvingState;
     }
 }
+export type UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase & UAShelvedStateMachineEx;
+export const  UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase as unknown as new () => UAShelvedStateMachineExImpl;
 
 // The Unshelve Method sets the AlarmCondition to the Unshelved state. Normally, the MethodId found
 // the Shelving child of the Condition instance and the NodeId of the Shelving object as the ObjectId
@@ -102,7 +102,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     //     return callback(null, {statusCode: StatusCodes.BadConditionDisabled});
     // }
 
-    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
+    const shelvingState = context.object as UAShelvedStateMachineExImpl;
     promoteToStateMachine(shelvingState);
 
     if (shelvingState.getCurrentState() === "Unshelved") {
@@ -149,8 +149,8 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
 }
 
 function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachineExImpl, duration: number) {
-    if (duration < 10 || duration >= Math.pow(2, 31)) {
-        throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
+    if (duration < 10 || duration >= 2 ** 31) {
+        throw new Error(` Invalid maxTimeShelved duration: ${duration}  must be [10,2**31] `);
     }
     assert(!shelvingState._timer);
 
@@ -162,7 +162,7 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
         debugLog("shelvingState._duration", shelvingState._duration);
     }
 
-    if (duration !== UAAlarmConditionImpl.MaxDuration) {
+    if (duration !== UAAlarmConditionImplBase.MaxDuration) {
         assert(!shelvingState._timer);
         shelvingState._timer = setTimeout(_automatically_unshelve.bind(null, shelvingState), shelvingState._duration);
     }
@@ -213,7 +213,7 @@ function _timedShelve_method(
         });
     }
     const maxTimeShelved = alarmNode.getMaxTimeShelved();
-    assert(isFinite(maxTimeShelved));
+    assert(Number.isFinite(maxTimeShelved));
 
     assert(inputArguments[0].dataType === DataType.Double); // Duration
     assert(inputArguments[0] instanceof Variant);
@@ -271,8 +271,8 @@ function _oneShotShelve_method(
     }
 
     const maxTimeShelved = alarmNode.getMaxTimeShelved();
-    assert(isFinite(maxTimeShelved));
-    assert(maxTimeShelved !== UAAlarmConditionImpl.MaxDuration);
+    assert(Number.isFinite(maxTimeShelved));
+    assert(maxTimeShelved !== UAAlarmConditionImplBase.MaxDuration);
 
     // set automatic un-shelving timer
     _clear_timer_if_any(shelvingState);
@@ -305,12 +305,12 @@ function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineExImpl): DataValu
             value: { dataType: DataType.Double, value: 0 }
         });
     }
-    if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionImpl.MaxDuration) {
+    if (shelvingState.getCurrentState() === "OneShotShelved" && shelvingState._duration === UAAlarmConditionImplBase.MaxDuration) {
         return new DataValue({
             statusCode: StatusCodes.Good,
             value: {
                 dataType: DataType.Double,
-                value: UAAlarmConditionImpl.MaxDuration
+                value: UAAlarmConditionImplBase.MaxDuration
             }
         });
     }

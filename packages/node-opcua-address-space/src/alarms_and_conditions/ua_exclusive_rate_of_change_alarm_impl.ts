@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { UAExclusiveRateOfChangeAlarm_Base } from "node-opcua-nodeset-ua";
-import { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
+import type { UAExclusiveRateOfChangeAlarm_Base } from "node-opcua-nodeset-ua";
+import type { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
 import { UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
 
 export interface UAExclusiveRateOfChangeAlarmEx
@@ -19,10 +19,7 @@ export interface UAExclusiveRateOfChangeAlarmEx
             | "silenceState"
             | "suppressedState"
         >,
-        UAExclusiveLimitAlarmEx {
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
-}
+        UAExclusiveLimitAlarmEx {}
 export class UAExclusiveRateOfChangeAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveRateOfChangeAlarmEx {
     /** empty interface */
 }

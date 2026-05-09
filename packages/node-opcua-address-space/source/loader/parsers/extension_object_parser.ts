@@ -1,20 +1,19 @@
-import assert from "assert";
-import { IAddressSpace } from "node-opcua-address-space-base";
+import assert from "node:assert";
+import type { IAddressSpace } from "node-opcua-address-space-base";
+import { coerceInt64 } from "node-opcua-basic-types";
+import { Range } from "node-opcua-data-access";
+import { coerceLocalizedText, LocalizedText, type LocalizedTextOptions } from "node-opcua-data-model";
+import { make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { InternalFragmentClonerReaderState, ParserLike, ReaderStateParser, ReaderStateParserLike } from "node-opcua-xml2json";
+import { Argument, EnumValueType, EUInformation, type EUInformationOptions } from "node-opcua-types";
+import { InternalFragmentClonerReaderState, type ParserLike, type ReaderStateParserLike } from "node-opcua-xml2json";
 import { decodeXmlExtensionObject } from "../decode_xml_extension_object";
-import { coerceLocalizedText, LocalizedText, LocalizedTextOptions } from "node-opcua-data-model";
-import { Argument, EnumValueType, EUInformation, EUInformationOptions } from "node-opcua-types";
 import { localizedText_parser } from "./localized_text_parser";
-import { coerceInt64 } from "node-opcua-basic-types";
-import { make_debugLog } from "node-opcua-debug";
-import { Range } from "node-opcua-data-access";
-
 
 const debugLog = make_debugLog("ExtensionObjectParser");
 const errorLog = make_debugLog("ExtensionObjectParser");
-const doDebug = false;
+const _doDebug = false;
 export type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
 interface PostExtensionObjectData {
@@ -75,7 +74,7 @@ const makeArgumentParser = (_translateNodeId: (nodeId: string) => NodeId) => ({
 
 // #region Range parser
 type RangeParser = ParserLike & { range: Range };
-type RangeParserL2 = ParserLike & { parent: RangeParser, text: string };
+type RangeParserL2 = ParserLike & { parent: RangeParser; text: string };
 
 const Range_parser = {
     Range: {
@@ -103,14 +102,14 @@ const Range_parser = {
 
 type EUInformationParser = ReaderStateParserLike & {
     euInformation: EUInformationOptions;
-    parser: any
+    parser: any;
 };
 type EUInformationParserLevel2 = { parent: EUInformationParser } & { text: string };
 type EUInformationParserLevel2L = { parent: EUInformationParser } & { localizedText: LocalizedTextOptions };
 
 const EUInformation_parser: ParserLike = {
     EUInformation: <EUInformationParser>{
-        init(this: EUInformationParser, name, attrs, parent, engine) {
+        init(this: EUInformationParser, _name, _attrs, _parent, _engine) {
             this.euInformation = new EUInformation({});
         },
         parser: {
@@ -150,17 +149,17 @@ const EUInformation_parser: ParserLike = {
 type EnumValueParser = ReaderStateParserLike & {
     enumValueType: EnumValueType;
     parser: {
-        Value: ReaderStateParserLike,
-        DisplayName: ReaderStateParserLike,
-        Description: ReaderStateParserLike
-    }
+        Value: ReaderStateParserLike;
+        DisplayName: ReaderStateParserLike;
+        Description: ReaderStateParserLike;
+    };
 };
 type EnumValueParserL2 = ReaderStateParserLike & { parent: EnumValueParser } & { text: string };
 type EnumValueParserL2L = { parent: EnumValueParser } & { localizedText: LocalizedTextOptions };
 
 const enumValueType_parser = {
     EnumValueType: {
-        init(this: EnumValueParser) {  
+        init(this: EnumValueParser) {
             this.enumValueType = new EnumValueType({
                 description: undefined,
                 displayName: undefined,
@@ -179,14 +178,14 @@ const enumValueType_parser = {
             DisplayName: {
                 ...localizedText_parser.LocalizedText,
                 finish(this: EnumValueParserL2L) {
-                    this.parent.enumValueType.displayName = new LocalizedText({...this.localizedText});
+                    this.parent.enumValueType.displayName = new LocalizedText({ ...this.localizedText });
                 }
             },
 
             Description: {
                 ...localizedText_parser.LocalizedText,
                 finish(this: EnumValueParserL2L) {
-                    this.parent.enumValueType.description = new LocalizedText({...this.localizedText});
+                    this.parent.enumValueType.description = new LocalizedText({ ...this.localizedText });
                 }
             }
         },
@@ -196,8 +195,6 @@ const enumValueType_parser = {
     }
 };
 // #endregion
-
-
 
 export interface ExtensionObjectTypeIdParser {
     parent: ExtensionObjectParser;
@@ -213,31 +210,30 @@ export interface ExtensionObjectParserInner {
 }
 type ExtensionObjectParser = ExtensionObjectParserInner & any;
 export interface ExtensionObjectBodyParser {
-
     parent: ExtensionObjectParser;
     _cloneFragment: InternalFragmentClonerReaderState;
     engine: any;
     parser: {
-        Argument: ArgumentParser,
-        EUInformation: EUInformationParser,
-        EnumValueType: EnumValueParser,
-        Range: RangeParser
+        Argument: ArgumentParser;
+        EUInformation: EUInformationParser;
+        EnumValueType: EnumValueParser;
+        Range: RangeParser;
     };
 }
 
 export function makeExtensionObjectInnerParser<T>(
     translateNodeId: (nodeId: string) => NodeId,
     setExtensionObject: (extensionObject: ExtensionObject) => void,
-    setExtensionObjectPojo: (typeDefinition: NodeId, xmlData: string, data: T) => void,
+    setExtensionObjectPojo: (typeDefinition: NodeId, xmlData: string, data: T) => void
 ): ReaderStateParserLike {
     const a = makeExtensionObjectParser(translateNodeId, setExtensionObject, setExtensionObjectPojo);
     return a.ExtensionObject;
-};
+}
 
 export function makeExtensionObjectParser<T>(
     translateNodeId: (nodeId: string) => NodeId,
     setExtensionObject: (extensionObject: ExtensionObject, data: T) => void,
-    setExtensionObjectPojo: (typeDefinition: NodeId, xmlData: string, data: T) => void,
+    setExtensionObjectPojo: (typeDefinition: NodeId, xmlData: string, data: T) => void
 ): ParserLike {
     return {
         ExtensionObject: <ExtensionObjectParser>{
@@ -266,47 +262,53 @@ export function makeExtensionObjectParser<T>(
                         Range: Range_parser.Range
                     },
                     startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: any) {
-                        if (!Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
+                        if (!Object.hasOwn(this.parser, elementName)) {
                             // treat it as a opaque XML bloc for the time being
                             // until we find the definition of this object, so we know how to interpret the fields
                             this._cloneFragment = new InternalFragmentClonerReaderState();
-                            this.engine!._promote(this._cloneFragment, this.engine!.currentLevel, elementName, attrs);
+                            this.engine?._promote(this._cloneFragment, this.engine?.currentLevel, elementName, attrs);
                         }
                     },
                     finish(this: ExtensionObjectBodyParser) {
-
                         const data = this.parent.parent as T;
                         const typeDefinitionId = this.parent.typeDefinitionId;
                         // typeDefinitionId is also the "Default XML" encoding nodeId !
                         switch (typeDefinitionId.toString()) {
                             case "i=7616": // EnumValueType
-                            case "ns=0;i=7616":
+                            case "ns=0;i=7616": {
                                 const extensionObject = this.parser.EnumValueType.enumValueType;
                                 assert(extensionObject !== null && typeof extensionObject === "object");
                                 assert(extensionObject instanceof ExtensionObject);
                                 setExtensionObject(extensionObject, data);
                                 break;
+                            }
                             case "i=297": // Arguments
-                            case "ns=0;i=297": {
-                                const extensionObject = this.parser.Argument.argument;
-                                assert(extensionObject !== null && typeof extensionObject === "object");
-                                assert(extensionObject instanceof ExtensionObject);
-                                setExtensionObject(extensionObject, data);
-                            } break;
-                            case "i=888":// EUInformation
-                            case "ns=0;i=888": {
-                                const extensionObject = this.parser.EUInformation.euInformation;
-                                assert(extensionObject !== null && typeof extensionObject === "object");
-                                assert(extensionObject instanceof ExtensionObject);
-                                setExtensionObject(extensionObject, data);
-                            } break;
+                            case "ns=0;i=297":
+                                {
+                                    const extensionObject = this.parser.Argument.argument;
+                                    assert(extensionObject !== null && typeof extensionObject === "object");
+                                    assert(extensionObject instanceof ExtensionObject);
+                                    setExtensionObject(extensionObject, data);
+                                }
+                                break;
+                            case "i=888": // EUInformation
+                            case "ns=0;i=888":
+                                {
+                                    const extensionObject = this.parser.EUInformation.euInformation;
+                                    assert(extensionObject !== null && typeof extensionObject === "object");
+                                    assert(extensionObject instanceof ExtensionObject);
+                                    setExtensionObject(extensionObject, data);
+                                }
+                                break;
                             case "i=885": // Range
-                            case "ns=0;i=885": {
-                                const extensionObject = this.parser.Range.range;
-                                assert(extensionObject !== null && typeof extensionObject === "object");
-                                assert(extensionObject instanceof ExtensionObject);
-                                setExtensionObject(extensionObject, data);
-                            } break;
+                            case "ns=0;i=885":
+                                {
+                                    const extensionObject = this.parser.Range.range;
+                                    assert(extensionObject !== null && typeof extensionObject === "object");
+                                    assert(extensionObject instanceof ExtensionObject);
+                                    setExtensionObject(extensionObject, data);
+                                }
+                                break;
                             default: {
                                 // c8 ignore next
                                 if (!this._cloneFragment) {
@@ -319,13 +321,13 @@ export function makeExtensionObjectParser<T>(
                                     );
                                     break;
                                 }
-                                const bodyXML = this._cloneFragment!.value;
+                                const bodyXML = this._cloneFragment?.value;
                                 this._cloneFragment!.value = null;
 
                                 // the "Default Xml" encoding  nodeId
                                 const xmlEncodingNodeId = typeDefinitionId;
                                 if (typeDefinitionId.isEmpty()) {
-                                    debugLog("xmlEncodingNodeId is empty for " + typeDefinitionId.toString());
+                                    debugLog(`xmlEncodingNodeId is empty for ${typeDefinitionId.toString()}`);
                                     break;
                                 }
                                 setExtensionObjectPojo(xmlEncodingNodeId, bodyXML, data);
@@ -339,16 +341,15 @@ export function makeExtensionObjectParser<T>(
                 /* empty */
             }
         }
-    }
-};
-
+    };
+}
 
 export function createXMLExtensionObjectDecodingTask(
-    translateNodeId: (nodeId:string) => NodeId,
-    xmlEncodingNodeId: NodeId, bodyXML: string,
-    withDecoded: (extensionObject: ExtensionObject) => void,
+    translateNodeId: (nodeId: string) => NodeId,
+    xmlEncodingNodeId: NodeId,
+    bodyXML: string,
+    withDecoded: (extensionObject: ExtensionObject) => void
 ) {
-
     const capturedXmlBody = bodyXML;
 
     const task = async (addressSpace2: IAddressSpace) => {

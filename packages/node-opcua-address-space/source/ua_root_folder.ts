@@ -1,4 +1,4 @@
-import { UAFolder, UAServer } from "node-opcua-nodeset-ua";
+import type { UAFolder, UAServer } from "node-opcua-nodeset-ua";
 export interface UAObjectsFolder extends UAFolder {
     server: UAServer;
 }

@@ -2,22 +2,19 @@
  * @module node-opcua-address-space
  */
 
-import { UAReference, UAReferenceType } from "node-opcua-address-space-base";
+import type { BaseNodeEvents, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { coerceLocalizedText, LocalizedTextOptions } from "node-opcua-data-model";
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
+import { AttributeIds, coerceLocalizedText, LocalizedText, type LocalizedTextOptions, NodeClass } from "node-opcua-data-model";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { SessionContext, UAReferenceType as UAReferenceTypePublic } from "../source";
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { construct_isSubtypeOf, construct_slow_isSubtypeOf } from "./tool_isSubtypeOf";
-import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
-import { ReferenceImpl } from "./reference_impl";
+import { SessionContext, type UAReferenceType as UAReferenceTypePublic } from "../source";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { BaseNode_getCache } from "./base_node_private";
+import { ReferenceImpl } from "./reference_impl";
+import { construct_isSubtypeOf, construct_slow_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 
 const ReferenceTypeCounter = { count: 0 };
 
@@ -25,14 +22,16 @@ function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTy
     const addressSpace = referenceType.addressSpace;
     const possibleReferenceTypes: UAReferenceType[] = [];
 
-    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype")!;
+    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype");
 
     function _findAllSubType(referenceTypeInner: UAReferenceType) {
+        if (!hasSubtypeReferenceType) throw new Error("cannot find HasSubtype reference type");
         possibleReferenceTypes.push(referenceTypeInner);
         assert(referenceTypeInner.nodeClass === NodeClass.ReferenceType);
         const references = referenceTypeInner.findReferences(hasSubtypeReferenceType, true);
         for (const _r of references) {
-            const subType: UAReferenceTypePublic = addressSpace.findReferenceType(_r.nodeId)!;
+            const subType: UAReferenceTypePublic | null = addressSpace.findReferenceType(_r.nodeId);
+            if (!subType) throw new Error("cannot find subtype reference type");
             _findAllSubType(subType);
         }
     }
@@ -53,12 +52,12 @@ function _getAllSubtypes(ref: UAReferenceType) {
     return _cache._allSubTypes;
 }
 
-function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string,UAReferenceTypePublic> {
+function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceTypePublic> {
     const possibleReferenceTypes = _getAllSubtypes(referenceType);
     // create a index of reference type with browseName as key for faster search
     const keys: Map<string, UAReferenceType> = new Map();
     for (const refType of possibleReferenceTypes) {
-        keys.set(refType.nodeId.toString(),refType);
+        keys.set(refType.nodeId.toString(), refType);
     }
     return keys;
 }
@@ -81,14 +80,14 @@ export interface UAReferenceTypeOptions extends InternalBaseNodeOptions {
     symmetric?: boolean;
     inverseName: null | string | LocalizedTextOptions;
 }
-export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType {
+export class UAReferenceTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UAReferenceType {
     public readonly nodeClass = NodeClass.ReferenceType;
     public readonly isAbstract: boolean;
     public readonly symmetric: boolean;
     public readonly inverseName: LocalizedText;
 
     public get subtypeOfObj(): UAReferenceTypePublic | null {
-        return get_subtypeOfObj.call(this) as UAReferenceType;
+        return get_subtypeOfObj.call(this) as unknown as UAReferenceType;
     }
 
     public get subtypeOf(): NodeId | null {
@@ -113,7 +112,8 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         this.isAbstract = options.isAbstract === undefined ? false : !!options.isAbstract;
         this.symmetric = options.symmetric === undefined ? false : !!options.symmetric;
         // Note: Inverse name is not required anymore in 1.0.4
-        this.inverseName = coerceLocalizedText(options.inverseName || this.browseName.name)!;
+        this.inverseName =
+            new LocalizedText(options.inverseName || this.browseName.name);
 
         ReferenceTypeCounter.count += 1;
     }
@@ -145,7 +145,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         let str = "";
         str += this.isAbstract ? "A" : " ";
         str += this.symmetric ? "S" : " ";
-        str += " " + this.browseName.toString() + "/" + this.inverseName.text + " ";
+        str += ` ${this.browseName.toString()}/${this.inverseName.text} `;
         str += this.nodeId.toString();
         return str;
     }

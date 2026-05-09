@@ -2,31 +2,32 @@
 /**
  * @module node-opcua-address-space
  */
+
+import { EventNotifierFlags } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
+import type { UAAnalogItem, UAFolder } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
+import type { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { VariantLike, DataType } from "node-opcua-variant";
-import { UAFolder, UAAnalogItem } from "node-opcua-nodeset-ua";
-import { EventNotifierFlags } from "node-opcua-address-space-base";
+import type { DataType, VariantLike } from "node-opcua-variant";
 import {
-    AddressSpace,
-    BaseNode,
-    InstantiateObjectOptions,
-    Namespace,
-    UATransitionEventType,
-    UAMethod,
-    UAObject,
-    UAObjectType,
-    UAReferenceType,
-    UAVariable,
+    type AddressSpace,
+    type BaseNode,
+    type InstantiateObjectOptions,
+    type ISessionContext,
+    type Namespace,
     promoteToStateMachine,
-    ISessionContext,
-    UAProgramStateMachineEx
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type UAProgramStateMachineEx,
+    type UAReferenceType,
+    type UATransitionEventType,
+    type UAVariable
 } from "..";
 
-import { UAStateMachineImpl } from "../src/state_machine/finite_state_machine";
+import type { UAStateMachineImpl } from "../src/state_machine/finite_state_machine";
 
 export interface FlowToReference extends UAReferenceType {}
 
@@ -148,7 +149,7 @@ export interface Boiler extends UAObject {
     simulation: BoilerStateMachine;
 }
 
-function myGetExecutableFlag(method: UAMethod, toState: string, methodName: string) {
+function myGetExecutableFlag(method: UAMethod, toState: string, _methodName: string) {
     const stateMachineW = promoteToStateMachine(method.parent!);
     return stateMachineW.isValidTransition(toState);
 }
@@ -161,29 +162,31 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
             // 'method' has ModellingRule=OptionalPlaceholder and should be created from the type definition
             let methodToClone = programStateMachine.typeDefinitionObj.getMethodByName(methodName);
             if (!methodToClone) {
-                methodToClone = programStateMachine.typeDefinitionObj!.subtypeOfObj!.getMethodByName(methodName)!;
+                methodToClone = programStateMachine.typeDefinitionObj?.subtypeOfObj?.getMethodByName(methodName) || null;
             }
-            methodToClone.clone({
+            methodToClone?.clone({
                 namespace: programStateMachine.namespace,
                 componentOf: programStateMachine
             });
-            method = programStateMachine.getMethodByName(methodName)!;
+            method = programStateMachine.getMethodByName(methodName);
             assert(method !== null, "Method clone should cause parent object to be extended");
         }
-        assert(method.nodeClass === NodeClass.Method);
+        assert(method?.nodeClass === NodeClass.Method);
 
-        method._getExecutableFlag = function (/* sessionContext: SessionContext */) {
-            // must use  a function here to capture 'this'
-            return myGetExecutableFlag(this as UAMethod, toState, methodName);
-        };
+        if (method) {
+            method._getExecutableFlag = function (/* sessionContext: SessionContext */) {
+                // must use  a function here to capture 'this'
+                return myGetExecutableFlag(this as UAMethod, toState, methodName);
+            };
+        }
 
-        method.bindMethod(function (
+        method?.bindMethod(function (
             this: UAMethod,
-            inputArguments: VariantLike[],
-            context: ISessionContext,
+            _inputArguments: VariantLike[],
+            _context: ISessionContext,
             callback: (err: Error | null, callMethodResult: CallMethodResultOptions) => void
         ) {
-            const stateMachineW = this.parent! as UAStateMachineImpl;
+            const stateMachineW = this.parent as UAStateMachineImpl;
             stateMachineW.setState(toState);
             callback(null, {
                 outputArguments: [],
@@ -193,9 +196,9 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
 
         assert(
             programStateMachine.getMethodByName(methodName) !== null,
-            "Method " + methodName + " should be added to parent object (checked with getMethodByName)"
+            `Method ${methodName} should be added to parent object (checked with getMethodByName)`
         );
-        const lc_name = lowerFirstLetter(methodName);
+        const _lc_name = lowerFirstLetter(methodName);
     }
 
     installMethod("Halt", "Halted");
@@ -255,16 +258,16 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
     hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
 
-    const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
-    NonHierarchicalReferences;
+    const _NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
+    _NonHierarchicalReferences;
     // --------------------------------------------------------
     // EventTypes
     // --------------------------------------------------------
-    const boilerHaltedEventType = namespace.addEventType({
+    const _boilerHaltedEventType = namespace.addEventType({
         browseName: "BoilerHaltedEventType",
         subtypeOf: "TransitionEventType"
     }) as BoilerHaltedEventType;
-    boilerHaltedEventType;
+    _boilerHaltedEventType;
 
     // --------------------------------------------------------
     // CustomControllerType
@@ -274,46 +277,46 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         description: "a custom PID controller with 3 inputs"
     }) as CustomControllerType;
 
-    const input1: UAVariable = namespace.addVariable({
+    const _input1: UAVariable = namespace.addVariable({
         browseName: "Input1",
         dataType: "Double",
         description: "a reference that indicates an electrical signal between two variables",
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
-    input1;
+    _input1;
 
-    const input2: UAVariable = namespace.addVariable({
+    const _input2: UAVariable = namespace.addVariable({
         browseName: "Input2",
         dataType: "Double",
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
-    input2;
+    _input2;
 
-    const input3: UAVariable = namespace.addVariable({
+    const _input3: UAVariable = namespace.addVariable({
         browseName: "Input3",
         dataType: "Double",
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
-    input3;
+    _input3;
 
-    const controlOut: UAVariable = namespace.addVariable({
+    const _controlOut: UAVariable = namespace.addVariable({
         browseName: "ControlOut",
         dataType: "Double",
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
-    controlOut;
+    _controlOut;
 
-    const description: UAVariable = namespace.addVariable({
+    const _description: UAVariable = namespace.addVariable({
         browseName: "Description",
         dataType: "LocalizedText",
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
-    description;
+    _description;
 
     // --------------------------------------------------------
     // GenericSensorType
@@ -332,7 +335,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     genericSensorType.install_extra_properties();
 
     genericSensorType.getComponentByName("Output");
-    assert(genericSensorType.getComponentByName("Output")!.modellingRule === "Mandatory");
+    assert(genericSensorType.getComponentByName("Output")?.modellingRule === "Mandatory");
 
     // --------------------------------------------------------
     // GenericSensorType  <---- GenericControllerType
@@ -433,7 +436,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
 
     assert(ftx1.output.browseName.toString() === `${namespace.index}:Output`);
 
-    const valve1 = valveType.instantiate({
+    const _valve1 = valveType.instantiate({
         browseName: "Valve",
         componentOf: boilerInputPipeType,
         modellingRule: "Mandatory"
@@ -455,7 +458,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as FlowTransmitter;
 
-    ftx2.getComponentByName("Output")!.browseName.toString();
+    ftx2.getComponentByName("Output")?.browseName.toString();
 
     // --------------------------------)------------------------------------------------
     // FolderType  <---- BoilerDrumType
@@ -490,13 +493,13 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     function addMethod(baseType: UAObjectType, objectType: UAObjectType, methodName: string) {
         assert(!objectType.getMethodByName(methodName));
         const method = baseType.getMethodByName(methodName)!;
-        const m = method.clone({
+        const _m = method.clone({
             namespace,
             componentOf: objectType,
             modellingRule: "Mandatory"
         });
         assert(objectType.getMethodByName(methodName));
-        assert(objectType.getMethodByName(methodName)!.modellingRule === "Mandatory");
+        assert(objectType.getMethodByName(methodName)?.modellingRule === "Mandatory");
     }
 
     addMethod(programFiniteStateMachineType, boilerStateMachineType, "Halt");
@@ -514,28 +517,28 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     }) as BoilerType;
 
     // BoilerType.CustomController (CustomControllerType)
-    const customController = customControllerType.instantiate({
+    const _customController = customControllerType.instantiate({
         browseName: "CustomController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as CustomController;
-    customController;
+    _customController;
 
     // BoilerType.FlowController (FlowController)
-    const flowController = flowControllerType.instantiate({
+    const _flowController = flowControllerType.instantiate({
         browseName: "FlowController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as FlowController;
-    flowController;
+    _flowController;
 
     // BoilerType.LevelController (LevelControllerType)
-    const levelController = levelControllerType.instantiate({
+    const _levelController = levelControllerType.instantiate({
         browseName: "LevelController",
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as LevelController;
-    levelController;
+    _levelController;
 
     // BoilerType.LevelIndicator (BoilerInputPipeType)
     const inputPipe = boilerInputPipeType.instantiate({
@@ -566,13 +569,13 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     }) as BoilerOutputPipe;
 
     // BoilerType.Simulation (BoilerStateMachineType)
-    const simulation = boilerStateMachineType.instantiate({
+    const _simulation = boilerStateMachineType.instantiate({
         browseName: "Simulation",
         componentOf: boilerType,
         eventSourceOf: boilerType,
         modellingRule: "Mandatory"
     }) as BoilerStateMachine;
-    simulation;
+    _simulation;
 
     addRelation(inputPipe, flowTo, boilerDrum);
     addRelation(boilerDrum, hotFlowTo, outputPipe);

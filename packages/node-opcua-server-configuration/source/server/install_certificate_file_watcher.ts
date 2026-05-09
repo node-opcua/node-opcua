@@ -1,14 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { UAObject } from "node-opcua-address-space-base";
+import type { ITypedEventEmitter, UAObject, UAObjectEvents } from "node-opcua-address-space-base";
 import { make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("ServerConfiguration");
 
-export interface ChangeDetector {
-    on(eventName: "certificateChange", handler: () => void): this;
+
+export interface CertificateChangeEvents extends UAObjectEvents  {
+    certificateChange: () => void;
 }
-export function installCertificateFileWatcher(node: UAObject, certificateFile: string): ChangeDetector {
+export function installCertificateFileWatcher(
+    node: UAObject<CertificateChangeEvents>,
+    certificateFile: string
+): ITypedEventEmitter<CertificateChangeEvents> {
     const fileToWatch = path.basename(certificateFile);
     const fsWatcher = fs.watch(
         path.dirname(certificateFile),
@@ -25,5 +29,5 @@ export function installCertificateFileWatcher(node: UAObject, certificateFile: s
     addressSpace?.registerShutdownTask(() => {
         fsWatcher.close();
     });
-    return node as unknown as ChangeDetector;
+    return node;
 }

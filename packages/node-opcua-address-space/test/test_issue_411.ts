@@ -1,20 +1,17 @@
 import { standardUnits } from "node-opcua-data-access";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-
+import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { AddressSpace } from "..";
-import { Namespace } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("#411 - AddMethod  should not changes namespace of custom datatype", () => {
     const nodesetFilename = nodesets.standard;
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let analogItem;
+    let _analogItem;
 
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -27,7 +24,7 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
 
         const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
 
-        analogItem = namespace.addAnalogDataItem({
+        _analogItem = namespace.addAnalogDataItem({
             browseName: "TemperatureSensor",
             dataType: "Double",
             definition: "(tempA -25) + tempB",
@@ -47,7 +44,7 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
 
     it("should verify that addMethod doesn't mess up with dataType namespace", () => {
         // create a custom DataType ( derived from String )
-        const dataType = namespace.createDataType({
+        const _dataType = namespace.createDataType({
             browseName: "MyCustomString",
             isAbstract: false,
             subtypeOf: "String"
@@ -76,7 +73,7 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
             outputArguments: []
         });
 
-        const inputArguments = method.inputArguments!.readValue().value.value;
+        const inputArguments = method.inputArguments?.readValue().value.value;
 
         inputArguments[0].constructor.name.should.eql("Argument");
         inputArguments[0].dataType

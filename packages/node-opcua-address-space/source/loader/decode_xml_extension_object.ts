@@ -1,22 +1,22 @@
-import { IAddressSpace, UADataType } from "node-opcua-address-space-base";
+import type { IAddressSpace, UADataType } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
 import { NodeClass } from "node-opcua-types";
 import { Xml2Json } from "node-opcua-xml2json";
 
-import { DefinitionMap2, makeXmlExtensionObjectReader, TypeInfo } from "./make_xml_extension_object_parser";
+import { type DefinitionMap2, makeXmlExtensionObjectReader, type TypeInfo } from "./make_xml_extension_object_parser";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const _errorLog = make_errorLog(__filename);
 
 function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId)!;
 
     // c8 ignore next
     if (!encodingNode) {
-        throw new Error("findDataTypeNode:  Cannot find encoding NodeId" + encodingNodeId.toString());
+        throw new Error(`findDataTypeNode:  Cannot find encoding NodeId${encodingNodeId.toString()}`);
     }
     const refs = encodingNode.findReferences("HasEncoding", false);
     const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
@@ -33,7 +33,7 @@ export function makeDefinitionMap(addressSpace: IAddressSpace): DefinitionMap2 {
         findDefinition(dataTypeNodeId: NodeId): TypeInfo {
             const dataTypeNode = addressSpace.findDataType(dataTypeNodeId);
             if (!dataTypeNode) {
-                throw new Error("findDefinition: cannot find dataType " + dataTypeNodeId.toString());
+                throw new Error(`findDefinition: cannot find dataType ${dataTypeNodeId.toString()}`);
             }
             if (dataTypeNode.nodeClass !== NodeClass.DataType) {
                 throw new Error("Expecting a DataType node here");

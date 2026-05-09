@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
 export enum DeadbandType {
     None = 0x00,
@@ -26,7 +26,7 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
     let diff;
     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
         // c8 ignore next
-        if (!(value1 instanceof Array && value2 instanceof Array)) {
+        if (!(Array.isArray(value1) && Array.isArray(value2))) {
             throw new Error("Invalid");
         }
         const h1 = value1[0]; // high
@@ -38,21 +38,21 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
             }
         }
         diff = value1[1] - value2[1];
-        assert(typeof diff === "number" && isFinite(diff));
+        assert(typeof diff === "number" && Number.isFinite(diff));
         return Math.abs(diff) > absoluteDeadband;
     }
     // c8 ignore next
     if (!(typeof value1 === "number" && typeof value2 === "number")) {
         throw new Error(
-            "Invalid value in _isOutsideDeadbandScalar > expecting number only but got " + typeof value1 + " " + typeof value2
+            `Invalid value in _isOutsideDeadbandScalar > expecting number only but got ${typeof value1} ${typeof value2}`
         );
     }
     diff = value2 - value1;
-    assert(typeof diff === "number" && isFinite(diff));
+    assert(typeof diff === "number" && Number.isFinite(diff));
     return Math.abs(diff) > absoluteDeadband;
 }
 function isOutsideDeadbandVariant(v1: Variant, v2: Variant, absoluteDeadBand: number): boolean {
-    assert(isFinite(absoluteDeadBand));
+    assert(Number.isFinite(absoluteDeadBand));
 
     if (v1.arrayType === VariantArrayType.Array || v1.arrayType === VariantArrayType.Matrix) {
         // If the Value of the MonitoredItem is an array, then the deadband calculation logic shall be applied to
@@ -90,7 +90,7 @@ function isOutsideDeadbandVariant(v1: Variant, v2: Variant, absoluteDeadBand: nu
 // ): boolean {
 //     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
 //         // c8 ignore next
-//         if (!(currentValue instanceof Array && newValue instanceof Array)) {
+//         if (!(Array.isArray(currentValue) && Array.isArray(newValue))) {
 //             throw new Error("Invalid");
 //         }
 //         currentValue = currentValue[1];
@@ -144,7 +144,12 @@ export function isOutsideDeadbandAbsolute(variant1: Variant, variant2: Variant, 
 
  * @return true if the element is outside deadBand
  */
-export function isOutsideDeadbandPercent(variant1: Variant, variant2: Variant, deadbandValuePercent: number, range: PseudoRange): boolean {
+export function isOutsideDeadbandPercent(
+    variant1: Variant,
+    variant2: Variant,
+    deadbandValuePercent: number,
+    range: PseudoRange
+): boolean {
     // DeadbandType = PercentDeadband
     // For this type of deadband the deadbandValue is defined as the percentage of the EURange. That is,
     // it applies only to AnalogItems with an EURange Property that defines the typical value range for the

@@ -2,33 +2,32 @@
 /**
  * @module node-opcua-address-space
  */
+
+import type { IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { decodeArray, encodeArray } from "node-opcua-basic-types";
-import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { findBuiltInType } from "node-opcua-factory";
-import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { Argument } from "node-opcua-service-call";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-import { VariantArrayType } from "node-opcua-variant";
+import { type BinaryStream, BinaryStreamSizeCalculator, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { DataTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
-import { IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { type BasicTypeDefinition, findBuiltInType } from "node-opcua-factory";
+import { coerceNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { Argument } from "node-opcua-service-call";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-function myfindBuiltInType(dataType: DataType): any {
+function myfindBuiltInType(dataType: DataType): BasicTypeDefinition {
     return findBuiltInType(DataType[dataType]);
 }
 export interface ArgumentDef {
     dataType: DataType;
     valueRank?: undefined | number;
 }
-export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stream: OutputBinaryStream): void {
+export function encode_ArgumentList(definition: ArgumentDef[], args: unknown[], stream: OutputBinaryStream): void {
     assert(definition.length === args.length);
 
     assert(Array.isArray(definition));
@@ -43,20 +42,26 @@ export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stre
         const value = args[i];
 
         const encodeFunc = myfindBuiltInType(def.dataType).encode;
+        if (!encodeFunc) {
+            throw new Error(
+                "This BaseDataType cannot be encoded because it has no definition.\n" +
+                    "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
+            );
+        }
         // assert((def.valueRank === -1) || (def.valueRank === 0));
 
         // todo : handle -3 -2
         const isArray = def.valueRank && (def.valueRank === 1 || def.valueRank !== -1);
 
         if (isArray) {
-            encodeArray(value, stream, encodeFunc);
+            encodeArray(value as unknown[], stream, encodeFunc);
         } else {
             encodeFunc(value, stream);
         }
     }
 }
 
-export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): any[] {
+export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): unknown[] {
     // c8 ignore next
     if (!Array.isArray(definition)) {
         throw new Error(
@@ -65,12 +70,19 @@ export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStr
         );
     }
 
-    const args: any[] = [];
-    let value;
+    const args: unknown[] = [];
+    let value: unknown;
 
     for (const def of definition) {
         const decodeFunc = myfindBuiltInType(def.dataType).decode;
-
+        if (!decodeFunc) {
+            throw new Error(
+                "This BaseDataType cannot be decoded because it has no definition.\n" +
+                    "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
+            );
+        }
+        // assert(def.valueRank === -1 || def.valueRank==0);
+        // todo : handle -3 -2
         // xx assert(def.valueRank === -1 || def.valueRank==0);
         const isArray = def.valueRank === 1 || def.valueRank === -1;
 
@@ -84,7 +96,7 @@ export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStr
     return args;
 }
 
-export function binaryStoreSize_ArgumentList(description: ArgumentDef[], args: any[]): number {
+export function binaryStoreSize_ArgumentList(description: ArgumentDef[], args: unknown[]): number {
     assert(Array.isArray(description));
     assert(Array.isArray(args));
     assert(args.length === description.length);
@@ -169,8 +181,8 @@ function checkValueRank(argDefinition: Argument, arg: Variant) {
  * @private
  */
 export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argument, arg: Variant): boolean {
-    assert(Object.prototype.hasOwnProperty.call(argDefinition, "dataType"));
-    assert(Object.prototype.hasOwnProperty.call(argDefinition, "valueRank"));
+    assert(Object.hasOwn(argDefinition, "dataType"));
+    assert(Object.hasOwn(argDefinition, "valueRank"));
 
     const argDefDataType = addressSpace.findDataType(argDefinition.dataType);
     const argDataType = addressSpace.findDataType(resolveNodeId(arg.dataType));
@@ -204,7 +216,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
         doDebug && debugLog(" checking argDataType ", argDataType.toString());
     }
 
-    if (argDataType.nodeId.value === argDefDataType!.nodeId.value) {
+    if (argDataType.nodeId.value === argDefDataType?.nodeId.value) {
         return true;
     }
 
@@ -220,8 +232,8 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 
     // special case for Enumeration
     if (arg.dataType === DataType.Int32) {
-        const enumDataType = addressSpace.findDataType(coerceNodeId(DataTypeIds.Enumeration))!;
-        if (argDefDataType.isSubtypeOf(enumDataType)) {
+        const enumDataType = addressSpace.findDataType(coerceNodeId(DataTypeIds.Enumeration));
+        if (enumDataType && argDefDataType.isSubtypeOf(enumDataType)) {
             return true;
         }
     }
@@ -229,7 +241,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 }
 
 /**
-*/
+ */
 export function verifyArguments_ArgumentList(
     addressSpace: IAddressSpace,
     methodInputArguments: Argument[],
@@ -239,7 +251,7 @@ export function verifyArguments_ArgumentList(
     statusCode: StatusCode;
 } {
     const inputArgumentResults: StatusCode[] = methodInputArguments.map((methodInputArgument, index) => {
-        const argument = inputArguments![index];
+        const argument = inputArguments?.[index];
         if (!argument) {
             return StatusCodes.BadNoData;
         } else if (!isArgumentValid(addressSpace, methodInputArgument, argument)) {

@@ -1,10 +1,9 @@
-import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, NamespaceOptions } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { AddressSpace, Namespace, NamespaceOptions } from "..";
-import { BoilerType, createBoilerType } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { type BoilerType, createBoilerType } from "../testHelpers";
 
 describe("Testing automatic string nodeid assignment", () => {
     const nodesetFilename = nodesets.standard;
@@ -33,7 +32,7 @@ describe("Testing automatic string nodeid assignment", () => {
     });
 
     it("should automatically assign string nodeId in same namespace as parent object", () => {
-        const someNamespace1 = addressSpace.getNamespace("SomeOtherNamespace1");
+        const _someNamespace1 = addressSpace.getNamespace("SomeOtherNamespace1");
 
         const boiler = boilerType.instantiate({
             browseName: "Boiler#1",

@@ -1,5 +1,5 @@
-import { INamespace, UAObject, UAVariable } from "node-opcua-address-space-base";
-import { UANamespaceMetadata } from "node-opcua-nodeset-ua";
+import type { INamespace, UAObject, UAVariable } from "node-opcua-address-space-base";
+import type { UANamespaceMetadata } from "node-opcua-nodeset-ua";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 function specialEncode(namespaceUri: string): string {
@@ -27,7 +27,7 @@ export function setNamespaceMetaData(namespace: INamespace): void {
 
     /* c8 ignore next */
     if (existingMetaData) {
-        throw new Error("INamespace meta data already exists for " + deriveName);
+        throw new Error(`INamespace meta data already exists for ${deriveName}`);
     }
     const metaData = namespaceMetadataType.instantiate({
         browseName: deriveName,

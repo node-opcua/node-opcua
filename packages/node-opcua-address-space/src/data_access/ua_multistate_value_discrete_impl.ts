@@ -1,29 +1,39 @@
-/**
- * @module node-opcua-address-space.DataAccess
- */
+import type {
+    BindVariableOptions,
+    CloneExtraInfo,
+    CloneFilter,
+    CloneOptions,
+    INamespace,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { coerceInt32, coerceInt64toInt32, coerceUInt64, coerceUInt64toInt32, Int32, Int64, isValidInt64, isValidUInt64 } from "node-opcua-basic-types";
-import { coerceLocalizedText, LocalizedText, QualifiedNameLike } from "node-opcua-data-model";
-import { DataValue, DataValueT } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
-import { StatusCode } from "node-opcua-status-code";
-import { NumericRange } from "node-opcua-numeric-range";
-import { DTEnumValue } from "node-opcua-nodeset-ua";
-import { BindVariableOptions, INamespace, UAVariable, UAProperty, ISessionContext } from "node-opcua-address-space-base";
+import {
+    coerceInt32,
+    coerceInt64toInt32,
+    coerceUInt64,
+    coerceUInt64toInt32,
+    type Int32,
+    type Int64,
+    isValidInt64,
+    isValidUInt64,
+    type UInt64
+} from "node-opcua-basic-types";
 import { VariableTypeIds } from "node-opcua-constants";
-import { _getBasicDataType, _getBasicDataTypeFromDataTypeNodeId } from "../get_basic_datatype";
-
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { coerceLocalizedText } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { DTEnumValue } from "node-opcua-nodeset-ua";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import type { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
 import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
-import { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
-import { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
-import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
+import type { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter";
+import { _getBasicDataTypeFromDataTypeNodeId } from "../get_basic_datatype";
 import { UAVariableImpl } from "../ua_variable_impl";
-
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
-function convertToArray<T>(array: any): T[] {
+function convertToArray<T>(array: ArrayLike<T> | T[]): T[] {
     if (Array.isArray(array)) return array;
     const result: T[] = [];
     for (let i = 0; i < array.length; i++) {
@@ -42,18 +52,19 @@ const getCoerceToInt32 = (dataType: DataType) => {
     }
 };
 
-function install_synchronization<T extends number | Int64 | Int64, DT extends DataType>(
-    variable: UAMultiStateValueDiscreteEx<T, DT>
+type Number = number | Int64 | UInt64;
+
+function install_synchronization<T extends Number, DT extends DataType>(
+    _variable: UAVariableImpl & UAMultiStateValueDiscreteEx<T, DT>
 ) {
-    const _variable = variable as UAMultiStateValueDiscreteEx<T, DT>;
     _variable.on("value_changed", (dataValue: DataValue) => {
-        const valueAsTextNode = variable.valueAsText || (_variable.getComponentByName("ValueAsText") as UAVariable);
+        const valueAsTextNode = _variable.valueAsText || (_variable.getComponentByName("ValueAsText") as UAVariable);
         if (!valueAsTextNode) {
             return;
         }
         if (dataValue.value.arrayType === VariantArrayType.Array || dataValue.value.arrayType === VariantArrayType.Matrix) {
             //
-            const coerce = getCoerceToInt32(_variable.getBasicDataType());
+            const _coerce = getCoerceToInt32(_variable.getBasicDataType());
 
             const values: number[] = convertToArray<Int32>(dataValue.value.value).map((a) => coerceInt32(a));
             const variantArray: Variant[] = values.map((a) => _variable.findValueAsText(a));
@@ -76,50 +87,38 @@ function install_synchronization<T extends number | Int64 | Int64, DT extends Da
     _variable.emit("value_changed", dataValue);
 }
 
-export interface UAMultiStateValueDiscreteImpl<T, DT extends DataType> {
-    enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
-    valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
-
-    readValue(
-        context?: ISessionContext | null,
-        indexRange?: NumericRange,
-        dataEncoding?: QualifiedNameLike | null
-    ): DataValueT<T, DT>;
-
-    readValueAsync(context: ISessionContext | null, callback?: any): any;
-}
-export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
-    extends UAVariableImpl
-    implements UAMultiStateValueDiscreteEx<T, DT>
-{
+export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends DataType> extends UAVariableImpl {
+    private get $6(): UAMultiStateValueDiscreteEx<T, DT> {
+        return this as unknown as UAMultiStateValueDiscreteEx<T, DT>;
+    }
     public setValue(value: string | number | Int64, options?: ISetStateOptions): void {
         if (typeof value === "string") {
-            const enumValues = this.enumValues.readValue().value.value;
-            const selected = enumValues.filter((a: any) => a.displayName.text === value)[0];
+            const enumValues = this.$6.enumValues.readValue().value.value;
+            const selected = enumValues.filter((a) => a.displayName.text === value)[0];
             if (selected) {
                 this._setValue(selected.value);
             } else {
-                throw new Error("cannot find enum string " + value + " in " + enumValues.toString());
+                throw new Error(`cannot find enum string ${value} in ${enumValues.toString()}`);
             }
         } else {
             this._setValue(coerceUInt64(value), options);
         }
     }
 
-    public getValueAsString(): any {
-        const v = this.valueAsText.readValue().value.value;
+    public getValueAsString(): string | string[] {
+        const v = this.$6.valueAsText.readValue().value.value;
         if (Array.isArray(v)) {
             return v.map((a) => a.text);
         }
         return v.text || "";
     }
 
-    public getValueAsNumber(): any {
+    public getValueAsNumber(): number {
         return this.readValue().value.value;
     }
 
     public checkVariantCompatibility(value: Variant): StatusCode {
-        if (this.enumValues) {
+        if (this.$6.enumValues) {
             if (!this._isValueInRange(coerceInt32(value.value))) {
                 return StatusCodes.BadOutOfRange;
             }
@@ -127,7 +126,11 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
         return StatusCodes.Good;
     }
 
-    public clone<T, DT extends DataType>(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateValueDiscreteImpl<T, DT> {
+    public clone(
+        options1: CloneOptions,
+        optionalFilter?: CloneFilter,
+        extraInfo?: CloneExtraInfo
+    ): UAMultiStateValueDiscreteImpl<T, DT> {
         const variable1 = UAVariableImpl.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         return promoteToMultiStateValueDiscrete(variable1);
     }
@@ -137,7 +140,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      */
     public _isValueInRange(value: number): boolean {
         // MultiStateValueDiscreteType
-        const enumValues = this.enumValues.readValue().value.value as DTEnumValue[];
+        const enumValues = this.$6.enumValues.readValue().value.value as DTEnumValue[];
         const e = enumValues.findIndex((x: DTEnumValue) => coerceInt64toInt32(x.value) === value);
         return !(e === -1);
     }
@@ -147,9 +150,9 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      */
     public _enumValueIndex(): Record<Int32, DTEnumValue> {
         // construct an index to quickly find a EnumValue from a value
-        const enumValues: DTEnumValue[] = this.enumValues.readValue().value.value;
+        const enumValues: DTEnumValue[] = this.$6.enumValues.readValue().value.value;
         const enumValueIndex: Record<Int32, DTEnumValue> = Object.create(null);
-        if (!enumValues || !enumValues.forEach) {
+        if (!enumValues?.forEach) {
             return enumValueIndex;
         }
         enumValues.forEach((e: DTEnumValue) => {
@@ -163,11 +166,11 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _setValue(value: Int64, options?: ISetStateOptions): void {
+    public _setValue(value: Int64, _options?: ISetStateOptions): void {
         const int32Value = coerceInt64toInt32(value);
         // check that value is in bound
         if (!this._isValueInRange(int32Value)) {
-            throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);
+            throw new Error(`UAMultiStateValueDiscrete#_setValue out of range ${value}`);
         }
 
         const dataType = this._getDataType();
@@ -205,7 +208,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
             return DataType.UInt32;
         }
         const dataTypeStr = DataType[this.dataType.value as number] as string;
-        return (DataType as any)[dataTypeStr] as DataType;
+        return DataType[dataTypeStr as keyof typeof DataType];
     }
 
     /**
@@ -220,11 +223,19 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
         validateIsNumericDataType(this.dataType.value);
 
         // find the enum value type
-        install_synchronization(this);
+        install_synchronization(this as unknown as UAVariableImpl & UAMultiStateValueDiscreteEx<T, DT>);
     }
 }
+export type UAMultiStateValueDiscreteImpl<T extends Number, DT extends DataType> = UAMultiStateValueDiscreteImplBase<T, DT> &
+    UAMultiStateValueDiscreteEx<T, DT>;
+export const UAMultiStateValueDiscreteImpl = UAMultiStateValueDiscreteImplBase as unknown as new <
+    T extends Number,
+    DT extends DataType
+>() => UAMultiStateValueDiscreteImpl<T, DT>;
 
-export function promoteToMultiStateValueDiscrete<T, DT extends DataType>(node: UAVariable): UAMultiStateValueDiscreteImpl<T, DT> {
+export function promoteToMultiStateValueDiscrete<T extends Number, DT extends DataType>(
+    node: UAVariable
+): UAMultiStateValueDiscreteImpl<T, DT> {
     if (node instanceof UAMultiStateValueDiscreteImpl) {
         return node; // already promoted
     }
@@ -240,8 +251,8 @@ export function _addMultiStateValueDiscrete<T, DT extends DataType>(
     namespace: INamespace,
     options: AddMultiStateValueDiscreteOptions
 ): UAMultiStateValueDiscreteEx<T, DT> {
-    assert(Object.prototype.hasOwnProperty.call(options, "enumValues"));
-    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
+    assert(Object.hasOwn(options, "enumValues"));
+    assert(!Object.hasOwn(options, "ValuePrecision"));
 
     const addressSpace = namespace.addressSpace;
 
@@ -275,7 +286,7 @@ export function _addMultiStateValueDiscrete<T, DT extends DataType>(
             value: options.value
         });
     } else {
-        value = options.value as any;
+        value = options.value as BindVariableOptions;
     }
 
     const cloned_options = {
@@ -344,13 +355,13 @@ const validBasicNumericDataTypes = [
     DataType.Byte,
     DataType.Byte,
     DataType.SByte,
-    26, /* Number  (abstract)*/
-    27, /* Integer  (abstract)*/
-    28  /* UInteger (abstract)*/
+    26 /* Number  (abstract)*/,
+    27 /* Integer  (abstract)*/,
+    28 /* UInteger (abstract)*/
 ];
-export function validateIsNumericDataType(dataTypeValue: any): void {
+export function validateIsNumericDataType(dataTypeValue: unknown): void {
     if (typeof dataTypeValue !== "number" || validBasicNumericDataTypes.indexOf(dataTypeValue) < 0) {
-        throw new Error(`Invalid DataType in UAMultiStateValueDiscrete => ${dataTypeValue.toString()}`);
+        throw new Error(`Invalid DataType in UAMultiStateValueDiscrete => ${dataTypeValue}`);
     }
 }
 

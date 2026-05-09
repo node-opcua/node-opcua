@@ -2,46 +2,45 @@
 /**
  * @module node-opcua-address-space
  */
-import { DateTime, Int64, UAString, UInt32 } from "node-opcua-basic-types";
 
-import { AttributeIds, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { ReadRawModifiedDetails } from "node-opcua-service-history";
-import { DataType } from "node-opcua-variant";
-import {
-    BaseNode,
-    IAddressSpace,
-    AddVariableOptionsWithoutValue,
-    BindVariableOptions,
-    UAMethod,
-    UAVariableT,
-    UAReference,
+import type {
     AddBaseNodeOptions,
-    VariableStuff,
-    UAVariableType,
-    UAVariable,
-    UAObject,
-    IVariableHistorianOptions,
+    AddVariableOptionsWithoutValue,
+    AttributeEventName,
+    BaseNode,
+    BindVariableOptions,
+    IAddressSpace,
+    INamespace,
     IVariableHistorian,
-    UAObjectType,
+    IVariableHistorianOptions,
     UADynamicVariableArray,
+    UAMethod,
+    UAObject,
+    UAReference,
     UAReferenceType,
-    ISessionContext,
-    INamespace
+    UAVariable,
+    UAVariableT,
+    UAVariableType,
+    VariableStuff
 } from "node-opcua-address-space-base";
-import { UAFolder } from "node-opcua-nodeset-ua";
+import type { Int64, UAString, UInt32 } from "node-opcua-basic-types";
+import type { AttributeIds, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { UAFolder } from "node-opcua-nodeset-ua";
+import type { ReadRawModifiedDetails } from "node-opcua-service-history";
+import type { DataType } from "node-opcua-variant";
 
-import { MinimalistAddressSpace } from "../src/reference_impl";
-import { Namespace } from "./namespace";
-import { UARootFolder } from "./ua_root_folder";
+import type { MinimalistAddressSpace } from "../src/reference_impl";
+import type { Namespace } from "./namespace";
+import type { UARootFolder } from "./ua_root_folder";
 
 export declare function resolveReferenceType(addressSpace: MinimalistAddressSpace, reference: UAReference): UAReferenceType;
 
 export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
 
-export declare function makeAttributeEventName(attributeId: AttributeIds): string;
+export declare function makeAttributeEventName(attributeId: AttributeIds): AttributeEventName;
 
 export interface EnumValueTypeOptionsLike {
     value?: Int64 | UInt32;
@@ -201,7 +200,7 @@ export declare function addElement<T extends ExtensionObject>(
 
 export declare function removeElement<T extends ExtensionObject>(
     uaArrayVariableNode: UADynamicVariableArray<T>,
-    element: number | UAVariable | ((a: T)=>boolean )
+    element: number | UAVariable | ((a: T) => boolean)
 ): void;
 
 // }}

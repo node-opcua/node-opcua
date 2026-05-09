@@ -1,10 +1,10 @@
 /***
  * @module node-opcua-basic-types
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-const minFloat = -3.4 * Math.pow(10, 38);
-const maxFloat = 3.4 * Math.pow(10, 38);
+const minFloat = -3.4 * 10 ** 38;
+const maxFloat = 3.4 * 10 ** 38;
 
 /**
  * return a random float value in the range of  min inclusive and  max exclusive
@@ -19,7 +19,7 @@ function getRandomDouble(min: number, max: number) {
 }
 
 export function isValidFloat(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return value > minFloat && value < maxFloat;
@@ -43,12 +43,12 @@ export function encodeFloat(value: Float, stream: OutputBinaryStream): void {
     stream.writeFloat(value);
 }
 
-export function decodeFloat(stream: BinaryStream, value?: number): Float {
+export function decodeFloat(stream: BinaryStream, _value?: number): Float {
     return stream.readFloat();
 }
 
 export function isValidDouble(value: number): boolean {
-    if (!isFinite(value)) {
+    if (!Number.isFinite(value)) {
         return false;
     }
     return true;
@@ -64,7 +64,7 @@ export function encodeDouble(value: Double, stream: OutputBinaryStream): void {
     stream.writeDouble(value);
 }
 
-export function decodeDouble(stream: BinaryStream, value?: number): Double {
+export function decodeDouble(stream: BinaryStream, _value?: number): Double {
     return stream.readDouble();
 }
 

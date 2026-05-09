@@ -1,20 +1,18 @@
-import fs from "fs";
+import fs from "node:fs";
 import should from "should";
 import "should";
 
-import { getTempFilename } from "node-opcua-debug/nodeJS";
-import { DataType, VariantArrayType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
-import { nodesets } from "node-opcua-nodesets";
+import { DataTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 import { checkDebugFlag } from "node-opcua-debug";
-import { DataTypeIds } from "node-opcua-constants";
-import { ThreeDCartesianCoordinates } from "node-opcua-types";
-import { AddressSpace, Namespace, UAVariable, UARootFolder, BaseNode } from "..";
-import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
+import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
+import { nodesets } from "node-opcua-nodesets";
+import { ThreeDCartesianCoordinates } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 
 const XMLWriter = require("xml-writer");
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
@@ -147,7 +145,7 @@ describe("testing nodeset to xml", () => {
         });
 
         // variation 2
-        const temperatureSensor2 = temperatureSensorType.instantiate({
+        const _temperatureSensor2 = temperatureSensorType.instantiate({
             browseName: "MyTemperatureSensor",
             organizedBy: "RootFolder"
         });
@@ -469,7 +467,7 @@ describe("Namespace to NodeSet2.xml", () => {
             subtypeOf: "BaseObjectType"
         });
 
-        const myObjectType = namespace.addObjectType({
+        const _myObjectType = namespace.addObjectType({
             browseName: "MyObjectType",
             isAbstract: false,
             subtypeOf: myObjectBaseType
@@ -632,7 +630,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
 
     it("NSXML1 should output an XML file - with Variant GUID", async () => {
-        const v = namespace.addVariable({
+        const _v = namespace.addVariable({
             browseName: "Test",
             dataType: "Guid",
             organizedBy: addressSpace.rootFolder.objects,
@@ -652,7 +650,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         // console.log(xml);
     });
     it("NSXML2 should output an XML file - with Variant LocalizedText", async () => {
-        const v1 = namespace.addVariable({
+        const _v1 = namespace.addVariable({
             browseName: "TestLocalizedText",
             dataType: DataType.LocalizedText,
             organizedBy: addressSpace.rootFolder.objects,
@@ -662,7 +660,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        const v2 = namespace.addVariable({
+        const _v2 = namespace.addVariable({
             browseName: "TestLocalizedTextArray",
             dataType: DataType.LocalizedText,
             valueRank: 1,
@@ -689,7 +687,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<\/ListOfLocalizedText>/);
     });
     it("NSXML3 should output an XML file - with Variant XmlElement", async () => {
-        const v1 = namespace.addVariable({
+        const _v1 = namespace.addVariable({
             browseName: "TestXmlElement",
             dataType: DataType.XmlElement,
             organizedBy: addressSpace.rootFolder.objects,
@@ -699,7 +697,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        const v2 = namespace.addVariable({
+        const _v2 = namespace.addVariable({
             browseName: "TestXmlElementArray",
             dataType: DataType.XmlElement,
             valueRank: 1,
@@ -726,7 +724,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<\/ListOfXmlElement>/);
     });
     it("NSXML4 should output an XML file - with Variant QualifiedName", async () => {
-        const v1 = namespace.addVariable({
+        const _v1 = namespace.addVariable({
             browseName: "TestQualifiedName",
             dataType: DataType.QualifiedName,
             organizedBy: addressSpace.rootFolder.objects,
@@ -735,7 +733,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
                 value: coerceQualifiedName("Hello")
             }
         });
-        const v2 = namespace.addVariable({
+        const _v2 = namespace.addVariable({
             browseName: "TestQualifiedName2",
             dataType: DataType.QualifiedName,
             organizedBy: addressSpace.rootFolder.objects,
@@ -745,7 +743,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        const v3 = namespace.addVariable({
+        const _v3 = namespace.addVariable({
             browseName: "TestQualifiedNameArray",
             dataType: DataType.QualifiedName,
             arrayDimensions: [2],
@@ -777,7 +775,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.should.match(/<\/ListOfQualifiedName>/);
     });
     it("NSXML5 should output an XML file - with Variant Matrix UAVariable", async () => {
-        const v = namespace.addVariable({
+        const _v = namespace.addVariable({
             browseName: "TestUInt32Matrix",
             dataType: "UInt32",
 
@@ -807,7 +805,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         // console.log(xml);
     });
     it("NSXML6 should output an XML file - with Variant Matrix UAVariableType", async () => {
-        const v = namespace.addVariableType({
+        const _v = namespace.addVariableType({
             browseName: "TestVariableType",
             dataType: "UInt32",
 
@@ -837,7 +835,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         // console.log(xml);
     });
     it("NSXML7 - empty buffer #861 ", async () => {
-        const v = namespace.addVariable({
+        const _v = namespace.addVariable({
             browseName: "TestVariable",
             dataType: DataType.ByteString,
             organizedBy: addressSpace.rootFolder.objects,
@@ -921,7 +919,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
 
     it("NSXML10 -Variable containing a LocalizedTest", async () => {
-        const v = namespace.addVariable({
+        const _v = namespace.addVariable({
             browseName: "TestVariableLT",
             dataType: DataTypeIds.LocalizedText,
             organizedBy: addressSpace.rootFolder.objects,
@@ -944,7 +942,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
     it("NSXML11 -Variable containing a QualifiedName", async () => {
         const value = coerceQualifiedName({ name: "Hello", namespaceIndex: 1 });
-        value.name!.should.eql("Hello");
+        value.name?.should.eql("Hello");
         value.namespaceIndex.should.eql(1);
 
         const v = namespace.addVariable({
@@ -957,8 +955,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        v.readValue().value.value.name!.should.eql(value.name);
-        v.readValue().value.value.namespaceIndex!.should.eql(value.namespaceIndex);
+        v.readValue().value.value.name?.should.eql(value.name);
+        v.readValue().value.value.namespaceIndex?.should.eql(value.namespaceIndex);
 
         const xml = namespace.toNodeset2XML();
         const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
@@ -978,7 +976,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         var objectType = namespace.addObjectType({
             browseName: "MyObjectType"
         });
-        var method = namespace.addMethod(objectType, {
+        var _method = namespace.addMethod(objectType, {
             browseName: "MyMethod",
             componentOf: objectType,
             modellingRule: "Mandatory",
@@ -986,7 +984,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             outputArguments: [{ name: "Image", dataType: DataType.ExtensionObject }]
         });
 
-        var instance = objectType.instantiate({
+        var _instance = objectType.instantiate({
             browseName: "Instance",
             organizedBy: addressSpace.rootFolder.objects
         });
@@ -1003,7 +1001,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
-        const match = r_xml2.match(/\<ArrayDimensions\/\>/gm);
+        const match = r_xml2.match(/<ArrayDimensions\/>/gm);
         doDebug && console.log(match);
         should(match).not.eql(null);
         match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance

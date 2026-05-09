@@ -1,13 +1,13 @@
-import path from "path";
+import path from "node:path";
 import "should";
 
-import { nodesets } from "node-opcua-nodesets";
+import { AttributeIds, coerceInt64toInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DataValue } from "node-opcua-data-value";
-import { AttributeIds, coerceInt64toInt32 } from "node-opcua-basic-types";
-import { AddressSpace, UADataType, UAVariable } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, type UADataType, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Enum with negative values #937", () => {
     it("should load a nodeset.xml file containing enums with negative values", async () => {
@@ -34,7 +34,7 @@ describe("Enum with negative values #937", () => {
     it("should load a nodeset.xml file containing EnumValues with negative values", async () => {
         const addressSpace = AddressSpace.create();
 
-        const namespace = addressSpace.registerNamespace("own");
+        const _namespace = addressSpace.registerNamespace("own");
 
         await generateAddressSpace(addressSpace, [
             nodesets.standard,

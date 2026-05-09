@@ -2,8 +2,8 @@
  * @module node-opcua-basic-types
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Guid } from "node-opcua-guid";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { Guid } from "node-opcua-guid";
 import { ExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 
 import { decodeByteString, encodeByteString } from "./byte_string";
@@ -14,7 +14,7 @@ import { getRandomInt } from "./utils";
 
 // tslint:disable:no-bitwise
 
-const enum EnumNodeIdEncoding {
+enum EnumNodeIdEncoding {
     TwoBytes = 0x00, // A numeric value that fits into the two byte representation.
     FourBytes = 0x01, // A numeric value that fits into the four byte representation.
     Numeric = 0x02, // A numeric value that does not fit into the two or four byte representations.
@@ -62,10 +62,10 @@ function nodeID_encodingByte(nodeId: NodeId): number {
         encodingByte = encodingByte | EnumNodeIdEncoding.Guid;
     }
 
-    if (Object.prototype.hasOwnProperty.call(nodeId,"namespaceUri") && (nodeId as ExpandedNodeId).namespaceUri) {
+    if (Object.hasOwn(nodeId, "namespaceUri") && (nodeId as ExpandedNodeId).namespaceUri) {
         encodingByte = encodingByte | EnumNodeIdEncoding.NamespaceUriFlag;
     }
-    if (Object.prototype.hasOwnProperty.call(nodeId,"serverIndex") && (nodeId as ExpandedNodeId).serverIndex) {
+    if (Object.hasOwn(nodeId, "serverIndex") && (nodeId as ExpandedNodeId).serverIndex) {
         encodingByte = encodingByte | EnumNodeIdEncoding.ServerIndexFlag;
     }
     return encodingByte;
@@ -169,7 +169,7 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: Nod
         default:
             // c8 ignore next
             if (encodingByte !== EnumNodeIdEncoding.Guid) {
-                throw new Error("decodeNodeId: unknown encoding_byte = 0x" + encodingByte.toString(16));
+                throw new Error(`decodeNodeId: unknown encoding_byte = 0x${encodingByte.toString(16)}`);
             }
             namespace = stream.readUInt16();
             value = decodeGuid(stream);
@@ -207,4 +207,4 @@ export function decodeExpandedNodeId(stream: BinaryStream, _nodeId?: ExpandedNod
     return new ExpandedNodeId(e.identifierType, e.value, e.namespace, e.namespaceUri, e.serverIndex);
 }
 
-export { coerceNodeId, coerceExpandedNodeId } from "node-opcua-nodeid";
+export { coerceExpandedNodeId, coerceNodeId } from "node-opcua-nodeid";

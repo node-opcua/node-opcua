@@ -1,8 +1,6 @@
-import should from "should";
-
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { AddressSpace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { AddressSpace } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/432", () => {
     let addressSpace: AddressSpace;
@@ -17,11 +15,11 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
 
     it("should be possible to specify a custom nodeId when creating an object type", () => {
         // assuming that the namespace exist !!!
-        const ns2 = addressSpace.registerNamespace("N2");
-        const ns3 = addressSpace.registerNamespace("N3");
+        const _ns2 = addressSpace.registerNamespace("N2");
+        const _ns3 = addressSpace.registerNamespace("N3");
         const ns4 = addressSpace.registerNamespace("N4");
-        const ns5 = addressSpace.registerNamespace("N5");
-        const ns6 = addressSpace.registerNamespace("N6");
+        const _ns5 = addressSpace.registerNamespace("N5");
+        const _ns6 = addressSpace.registerNamespace("N6");
         addressSpace.getNamespaceArray().length.should.be.greaterThan(4);
         const customObjectType = ns4.addObjectType({
             browseName: "MyCustomType",

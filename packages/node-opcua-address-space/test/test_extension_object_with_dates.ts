@@ -157,7 +157,7 @@ describe("Testing loading nodeset with extension objects containing DateTime val
         // the output should contain the previous value
         should.exist(result.outputArguments);
         should(result.outputArguments?.length).eql(1);
-        const previousExtObj = result.outputArguments![0]!.value;
+        const previousExtObj = result.outputArguments?.[0]?.value;
         previousExtObj.dateTime.toISOString().should.eql("2026-02-06T10:30:00.000Z");
 
         // the variable should now have the new value

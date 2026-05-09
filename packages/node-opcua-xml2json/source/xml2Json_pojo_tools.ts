@@ -1,38 +1,35 @@
 import { lowerFirstLetter } from "node-opcua-utils";
-import { IReaderState, ReaderStateBase, Xml2Json, XmlAttributes } from "./xml2json";
-export type withPojoLambda = (name: string, pojo: any) => void;
+import { type IReaderState, ReaderStateBase, type Xml2Json, type XmlAttributes } from "./xml2json";
+export type withPojoLambda = (name: string, pojo: unknown) => void;
 
 export class ReaderState2 extends ReaderStateBase {
-    public _stack: any;
-    public _pojo: any;
+    public _stack: unknown[];
+    public _pojo: unknown;
+    
+    // biome-ignore lint/suspicious/noExplicitAny: explanation
     public _element: any;
     public text: string;
-
     public _withPojo: withPojoLambda;
 
-    private parent?: IReaderState;
-    private engine?: Xml2Json;
-    private initLevel = 0;
 
+    private initLevel = 0;
     constructor() {
         super();
         this._pojo = {};
         this._stack = [];
         this._element = {};
         this.text = "";
-        this.parent = undefined;
-        this._withPojo = (pojo: any) => {
+        this._withPojo = (_pojo: unknown) => {
             /* empty */
         };
     }
 
-    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void {
-        this.parent = parent;
-        this.engine = engine;
+    public _on_init(_elementName: string, _attrs: XmlAttributes, _parent: IReaderState, level: number, _engine: Xml2Json): void {
+
         this.initLevel = level;
         if (this._stack.length === 0) {
             this._pojo = {};
-            this._element = this._pojo;
+            this._element = this._pojo as Record<string, unknown>   ;
         }
     }
 
@@ -40,14 +37,14 @@ export class ReaderState2 extends ReaderStateBase {
         /* empy */
     }
 
-    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
+    public _on_startElement(_level: number, elementName: string, _attrs: XmlAttributes): void {
         this._stack.push(this._element);
 
         if (elementName.match(/^ListOf/)) {
             elementName = elementName.substring(6);
             const elName = lowerFirstLetter(elementName);
-            if (this._element instanceof Array) {
-                const array: any[] = [];
+            if (Array.isArray(this._element)) {
+                const array: unknown[] = [];
                 this._element.push(array);
                 this._element = array;
             } else {
@@ -56,8 +53,8 @@ export class ReaderState2 extends ReaderStateBase {
             }
         } else {
             const elName = lowerFirstLetter(elementName);
-            if (this._element instanceof Array) {
-                const obj = {};
+            if (Array.isArray(this._element)) {
+                const obj: Record<string, unknown> = {};
                 this._element.push(obj);
                 this._element = obj;
             } else {
@@ -67,7 +64,7 @@ export class ReaderState2 extends ReaderStateBase {
         }
     }
 
-    public _on_endElement2(level: number, elementName: string): void {
+    public _on_endElement2(_level: number, _elementName: string): void {
         /* empty */
     }
 

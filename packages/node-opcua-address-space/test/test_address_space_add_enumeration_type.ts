@@ -1,12 +1,12 @@
 import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType } from "node-opcua-variant";
 import should from "should";
+import { type AddressSpace, type Namespace, SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { AddressSpace, BaseNode, Namespace, SessionContext } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("AddressSpace : testing add enumeration type", () => {
     let addressSpace: AddressSpace;
@@ -22,14 +22,12 @@ describe("AddressSpace : testing add enumeration type", () => {
     });
 
     it("should add a new Enumeration type into an address space - Form 1", () => {
-
-
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType2",
             enumeration: ["RUNNING", "BLOCKED", "IDLE", "UNDER MAINTENANCE"]
         });
 
-        namespace.index.should.eql(1);  
+        namespace.index.should.eql(1);
 
         myEnumType.browseName.toString().should.eql("1:MyEnumType2");
 
@@ -45,7 +43,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         });
         const r = enumerationType?.browseNode(browseDescription) || [];
         const names = r.map((x) => x.browseName.toString());
-       
+
         names.filter((x: string) => x === "1:MyEnumType2").length.should.eql(1, "MyEnumType2 should be found in enum");
 
         // now instantiate a variable that have this type.

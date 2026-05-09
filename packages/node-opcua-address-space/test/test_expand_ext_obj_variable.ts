@@ -1,20 +1,19 @@
 /* eslint-disable max-statements */
 /* eslint-disable no-inner-declarations */
-import should from "should";
+
+import { AttributeIds, type DateTime } from "node-opcua-basic-types";
+import { DataTypeIds } from "node-opcua-constants";
+import { makeAccessLevelFlag } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataTypeIds } from "node-opcua-constants";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { StatusCodes } from "node-opcua-status-code";
-import { AttributeIds, DateTime } from "node-opcua-basic-types";
-import { makeAccessLevelFlag } from "node-opcua-data-model";
-import { ExtensionObject } from "node-opcua-extension-object";
-
-import { AddressSpace, BaseNode, INamespace, PseudoSession, UAVariable } from "..";
+import { ThreeDCartesianCoordinates } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, type BaseNode, type INamespace, PseudoSession, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
 
 async function simulateExternalWriteEx(node: BaseNode, value: ExtensionObject, sourceTimestamp: DateTime) {
     const addressSpace = node.addressSpace;
@@ -60,9 +59,9 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 500000));
     let addressSpace: AddressSpace;
     let namespace: INamespace;
-    
+
     const nextYear = new Date().getUTCFullYear() + 1;
-     
+
     before(async () => {
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, [nodesets.standard]);
@@ -156,224 +155,218 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
         uaVariable.bindExtensionObject([p1.clone(), p2.clone()], { createMissingProp: true });
         return uaVariable;
     }
+    [
+        addVariable_bindExtensionObject,
+        addVariable_setValueFromSource_installExtensionObjectVariable,
+        addVariable_with_init_installExtensionObjectVariable
+    ].forEach((build, index) => {
+        it(`D0-${index} ${build.name} - should expand a scalar extension object variable`, async () => {
+            const uaVariable = build();
 
-    {
-        [
-            addVariable_bindExtensionObject,
-            addVariable_setValueFromSource_installExtensionObjectVariable,
-            addVariable_with_init_installExtensionObjectVariable
-        ].forEach((build, index) => {
-            it(`D0-${index} ${build.name} - should expand a scalar extension object variable`, async () => {
+            // the inner properties of the extension should now be exposed
+            const uaX = uaVariable.getComponentByName("X")! as UAVariable;
+            const uaY = uaVariable.getComponentByName("Y")! as UAVariable;
+            const uaZ = uaVariable.getComponentByName("Z")! as UAVariable;
+
+            uaX.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
+            uaY.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
+            uaZ.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
+
+            should.exist(uaX);
+            should.exist(uaY);
+            should.exist(uaZ);
+
+            const verify = ({ x, y, z }: { x: number; y: number; z: number }) => {
+                const dataValue = uaVariable.readValue();
+                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+                dataValue.value.value.x.should.eql(x);
+                dataValue.value.value.y.should.eql(y);
+                dataValue.value.value.z.should.eql(z);
+
+                const xDataValue = uaX.readValue();
+                xDataValue.value.dataType.should.eql(DataType.Double);
+                xDataValue.value.value.should.eql(x);
+
+                const yDataValue = uaY.readValue();
+                yDataValue.value.dataType.should.eql(DataType.Double);
+                yDataValue.value.value.should.eql(y);
+
+                const zDataValue = uaZ.readValue();
+                zDataValue.value.dataType.should.eql(DataType.Double);
+                zDataValue.value.value.should.eql(z);
+
+                //s dataValue.sourceTimestamp?.toISOString().should.eql("2023-01-02T06:47:55.065Z");
+                xDataValue.sourceTimestamp
+                    ?.getTime()
+                    .should.lessThanOrEqual(
+                        dataValue.sourceTimestamp?.getTime(),
+                        `x ${xDataValue.sourceTimestamp.toISOString()} ext =${dataValue.sourceTimestamp?.toISOString()}`
+                    );
+                yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp?.getTime());
+                zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp?.getTime());
+            };
+            verify({ x: 1, y: 2, z: 3 });
+
+            //
+            //
+            await simulateExternalWrite(uaZ, 33, new Date(Date.UTC(nextYear, 0, 2, 0, 0, 0)));
+            verify({ x: 1, y: 2, z: 33 });
+            //
+
+            await simulateExternalWriteEx(uaVariable, p2.clone(), new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
+
+            verify({ x: 4, y: 5, z: 6 });
+        });
+    });
+    [addVariable_setValueFromSource_installExtensionObjectVariable_array, addVariable_bindExtensionObject_array].forEach(
+        (build, index) => {
+            // eslint-disable-next-line max-statements
+            it(`D1-${index} ${build.name}- should expand a array extension object variable`, async () => {
                 const uaVariable = build();
 
-                // the inner properties of the extension should now be exposed
-                const uaX = uaVariable.getComponentByName("X")! as UAVariable;
-                const uaY = uaVariable.getComponentByName("Y")! as UAVariable;
-                const uaZ = uaVariable.getComponentByName("Z")! as UAVariable;
+                const el0 = uaVariable.getComponentByName("0") as UAVariable;
+                sameNodeId(el0.dataType, uaVariable.dataType).should.eql(true);
+                el0?.nodeId.toString().should.eql(`${uaVariable.nodeId?.toString()}[0]`);
 
-                uaX.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
-                uaY.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
-                uaZ.typeDefinitionObj.browseName.toString().should.eql("BaseDataVariableType");
+                const el1 = uaVariable.getComponentByName("1") as UAVariable;
+                sameNodeId(el1.dataType, uaVariable.dataType).should.eql(true);
+                el1.nodeId.toString().should.eql(`${uaVariable.nodeId?.toString()}[1]`);
 
-                should.exist(uaX);
-                should.exist(uaY);
-                should.exist(uaZ);
+                //xx console.log(v.toString());
+                should.exist(el0);
+                should.exist(el1);
 
-                const verify = ({ x, y, z }: { x: number; y: number; z: number }) => {
+                const dataValue = uaVariable.readValue();
+                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+                dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+                dataValue.value.value.length.should.eql(2);
+                dataValue.value.value[0].x.should.eql(1);
+                dataValue.value.value[0].y.should.eql(2);
+                dataValue.value.value[0].z.should.eql(3);
+                dataValue.value.value[1].x.should.eql(4);
+                dataValue.value.value[1].y.should.eql(5);
+                dataValue.value.value[1].z.should.eql(6);
+
+                {
+                    if (!el0) return;
+                    const x = el0.getComponentByName("X");
+                    const y = el0.getComponentByName("Y");
+                    const z = el0.getComponentByName("Z");
+
+                    should.exist(x);
+                    should.exist(y);
+                    should.exist(z);
+                }
+                {
+                    if (!el1) return;
+                    const x = el1.getComponentByName("X");
+                    const y = el1.getComponentByName("Y");
+                    const z = el1.getComponentByName("Z");
+
+                    should.exist(x);
+                    should.exist(y);
+                    should.exist(z);
+                }
+                const verify = (array: { x: number; y: number; z: number }[]) => {
                     const dataValue = uaVariable.readValue();
-                    dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-                    dataValue.value.value.x.should.eql(x);
-                    dataValue.value.value.y.should.eql(y);
-                    dataValue.value.value.z.should.eql(z);
-
-                    const xDataValue = uaX.readValue();
-                    xDataValue.value.dataType.should.eql(DataType.Double);
-                    xDataValue.value.value.should.eql(x);
-
-                    const yDataValue = uaY.readValue();
-                    yDataValue.value.dataType.should.eql(DataType.Double);
-                    yDataValue.value.value.should.eql(y);
-
-                    const zDataValue = uaZ.readValue();
-                    zDataValue.value.dataType.should.eql(DataType.Double);
-                    zDataValue.value.value.should.eql(z);
-
-                    //s dataValue.sourceTimestamp?.toISOString().should.eql("2023-01-02T06:47:55.065Z");
-                    xDataValue.sourceTimestamp
-                        ?.getTime()
-                        .should.lessThanOrEqual(
-                            dataValue.sourceTimestamp!.getTime(),
-                            "x " + xDataValue.sourceTimestamp.toISOString() + " ext =" + dataValue.sourceTimestamp?.toISOString()
-                        );
-                    yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
-                    zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
-                };
-                verify({ x: 1, y: 2, z: 3 });
-
-                //
-                //
-                await simulateExternalWrite(uaZ, 33, new Date(Date.UTC(nextYear, 0, 2, 0, 0, 0)));
-                verify({ x: 1, y: 2, z: 33 });
-                //
-
-                await simulateExternalWriteEx(uaVariable, p2.clone(), new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
-
-                verify({ x: 4, y: 5, z: 6 });
-            });
-        });
-    }
-
-    {
-        [addVariable_setValueFromSource_installExtensionObjectVariable_array, addVariable_bindExtensionObject_array].forEach(
-            (build, index) => {
-                // eslint-disable-next-line max-statements
-                it(`D1-${index} ${build.name}- should expand a array extension object variable`, async () => {
-                    const uaVariable = build();
-
-                    const el0 = uaVariable.getComponentByName("0") as UAVariable;
-                    sameNodeId(el0.dataType, uaVariable.dataType).should.eql(true);
-                    el0?.nodeId.toString().should.eql(uaVariable.nodeId?.toString() + "[0]");
-
-                    const el1 = uaVariable.getComponentByName("1") as UAVariable;
-                    sameNodeId(el1.dataType, uaVariable.dataType).should.eql(true);
-                    el1.nodeId.toString().should.eql(uaVariable.nodeId?.toString() + "[1]");
-
-                    //xx console.log(v.toString());
-                    should.exist(el0);
-                    should.exist(el1);
-
-                    const dataValue = uaVariable.readValue();
+                    dataValue.statusCode.should.eql(StatusCodes.Good);
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                     dataValue.value.arrayType.should.eql(VariantArrayType.Array);
-                    dataValue.value.value.length.should.eql(2);
-                    dataValue.value.value[0].x.should.eql(1);
-                    dataValue.value.value[0].y.should.eql(2);
-                    dataValue.value.value[0].z.should.eql(3);
-                    dataValue.value.value[1].x.should.eql(4);
-                    dataValue.value.value[1].y.should.eql(5);
-                    dataValue.value.value[1].z.should.eql(6);
 
-                    {
-                        if (!el0) return;
-                        const x = el0.getComponentByName("X");
-                        const y = el0.getComponentByName("Y");
-                        const z = el0.getComponentByName("Z");
+                    const dataValue00 = el0.readValue();
+                    dataValue00.statusCode.should.eql(StatusCodes.Good);
+                    dataValue00.value.dataType.should.eql(DataType.ExtensionObject);
+                    dataValue00.value.arrayType.should.eql(VariantArrayType.Scalar);
+                    dataValue00.value.value.x.should.eql(array[0].x);
+                    dataValue00.value.value.y.should.eql(array[0].y);
+                    dataValue00.value.value.z.should.eql(array[0].z);
 
-                        should.exist(x);
-                        should.exist(y);
-                        should.exist(z);
-                    }
-                    {
-                        if (!el1) return;
-                        const x = el1.getComponentByName("X");
-                        const y = el1.getComponentByName("Y");
-                        const z = el1.getComponentByName("Z");
+                    const dataValue01 = el1.readValue();
+                    dataValue01.statusCode.should.eql(StatusCodes.Good);
+                    dataValue01.value.dataType.should.eql(DataType.ExtensionObject);
+                    dataValue01.value.arrayType.should.eql(VariantArrayType.Scalar);
+                    dataValue01.value.value.x.should.eql(array[1].x);
+                    dataValue01.value.value.y.should.eql(array[1].y);
+                    dataValue01.value.value.z.should.eql(array[1].z);
 
-                        should.exist(x);
-                        should.exist(y);
-                        should.exist(z);
-                    }
-                    const verify = (array: { x: number; y: number; z: number }[]) => {
-                        const dataValue = uaVariable.readValue();
-                        dataValue.statusCode.should.eql(StatusCodes.Good);
-                        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-                        dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+                    const extGlobal = dataValue.value.value as any[];
 
-                        const dataValue00 = el0.readValue();
-                        dataValue00.statusCode.should.eql(StatusCodes.Good);
-                        dataValue00.value.dataType.should.eql(DataType.ExtensionObject);
-                        dataValue00.value.arrayType.should.eql(VariantArrayType.Scalar);
-                        dataValue00.value.value.x.should.eql(array[0].x);
-                        dataValue00.value.value.y.should.eql(array[0].y);
-                        dataValue00.value.value.z.should.eql(array[0].z);
+                    extGlobal[0].x.should.eql(array[0].x);
+                    extGlobal[0].y.should.eql(array[0].y);
+                    extGlobal[0].z.should.eql(array[0].z);
 
-                        const dataValue01 = el1.readValue();
-                        dataValue01.statusCode.should.eql(StatusCodes.Good);
-                        dataValue01.value.dataType.should.eql(DataType.ExtensionObject);
-                        dataValue01.value.arrayType.should.eql(VariantArrayType.Scalar);
-                        dataValue01.value.value.x.should.eql(array[1].x);
-                        dataValue01.value.value.y.should.eql(array[1].y);
-                        dataValue01.value.value.z.should.eql(array[1].z);
+                    extGlobal[1].x.should.eql(array[1].x);
+                    extGlobal[1].y.should.eql(array[1].y);
+                    extGlobal[1].z.should.eql(array[1].z);
 
-                        const extGlobal = dataValue.value.value as any[];
+                    const el0x = el0.getComponentByName("X")! as UAVariable;
+                    const el0y = el0.getComponentByName("Y")! as UAVariable;
+                    const el0z = el0.getComponentByName("Z")! as UAVariable;
 
-                        extGlobal[0].x.should.eql(array[0].x);
-                        extGlobal[0].y.should.eql(array[0].y);
-                        extGlobal[0].z.should.eql(array[0].z);
+                    const el1x = el1.getComponentByName("X")! as UAVariable;
+                    const el1y = el1.getComponentByName("Y")! as UAVariable;
+                    const el1z = el1.getComponentByName("Z")! as UAVariable;
 
-                        extGlobal[1].x.should.eql(array[1].x);
-                        extGlobal[1].y.should.eql(array[1].y);
-                        extGlobal[1].z.should.eql(array[1].z);
+                    const el0xDataValue = el0x.readValue();
+                    el0xDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el0xDataValue.value.dataType.should.eql(DataType.Double);
+                    el0xDataValue.value.value.should.eql(array[0].x);
 
-                        const el0x = el0.getComponentByName("X")! as UAVariable;
-                        const el0y = el0.getComponentByName("Y")! as UAVariable;
-                        const el0z = el0.getComponentByName("Z")! as UAVariable;
+                    const el0yDataValue = el0y.readValue();
+                    el0yDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el0yDataValue.value.dataType.should.eql(DataType.Double);
+                    el0yDataValue.value.value.should.eql(array[0].y);
 
-                        const el1x = el1.getComponentByName("X")! as UAVariable;
-                        const el1y = el1.getComponentByName("Y")! as UAVariable;
-                        const el1z = el1.getComponentByName("Z")! as UAVariable;
+                    const el0zDataValue = el0z.readValue();
+                    el0zDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el0zDataValue.value.dataType.should.eql(DataType.Double);
+                    el0zDataValue.value.value.should.eql(array[0].z);
 
-                        const el0xDataValue = el0x.readValue();
-                        el0xDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el0xDataValue.value.dataType.should.eql(DataType.Double);
-                        el0xDataValue.value.value.should.eql(array[0].x);
+                    const el1xDataValue = el1x.readValue();
+                    el1xDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el1xDataValue.value.dataType.should.eql(DataType.Double);
+                    el1xDataValue.value.value.should.eql(array[1].x);
 
-                        const el0yDataValue = el0y.readValue();
-                        el0yDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el0yDataValue.value.dataType.should.eql(DataType.Double);
-                        el0yDataValue.value.value.should.eql(array[0].y);
+                    const el1yDataValue = el1y.readValue();
+                    el1yDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el1yDataValue.value.dataType.should.eql(DataType.Double);
+                    el1yDataValue.value.value.should.eql(array[1].y);
 
-                        const el0zDataValue = el0z.readValue();
-                        el0zDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el0zDataValue.value.dataType.should.eql(DataType.Double);
-                        el0zDataValue.value.value.should.eql(array[0].z);
+                    const el1zDataValue = el1z.readValue();
+                    el1zDataValue.statusCode.should.eql(StatusCodes.Good);
+                    el1zDataValue.value.dataType.should.eql(DataType.Double);
+                    el1zDataValue.value.value.should.eql(array[1].z);
+                };
+                verify([
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 }
+                ]);
 
-                        const el1xDataValue = el1x.readValue();
-                        el1xDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el1xDataValue.value.dataType.should.eql(DataType.Double);
-                        el1xDataValue.value.value.should.eql(array[1].x);
+                // now write  a leaf property and verify that the value cascade upward
+                const x = el1.getComponentByName("X")!;
 
-                        const el1yDataValue = el1y.readValue();
-                        el1yDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el1yDataValue.value.dataType.should.eql(DataType.Double);
-                        el1yDataValue.value.value.should.eql(array[1].y);
+                const nextYear = new Date().getUTCFullYear() + 1;
 
-                        const el1zDataValue = el1z.readValue();
-                        el1zDataValue.statusCode.should.eql(StatusCodes.Good);
-                        el1zDataValue.value.dataType.should.eql(DataType.Double);
-                        el1zDataValue.value.value.should.eql(array[1].z);
-                    };
-                    verify([
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 }
-                    ]);
+                await simulateExternalWrite(x, 44, new Date(Date.UTC(nextYear, 0, 2)));
+                verify([
+                    { x: 1, y: 2, z: 3 },
+                    { x: 44, y: 5, z: 6 }
+                ]);
 
-                    // now write  a leaf property and verify that the value cascade upward
-                    const x = el1.getComponentByName("X")!;
+                await simulateExternalWriteEx(el1, p3.clone(), new Date(Date.UTC(nextYear, 0, 3)));
+                verify([
+                    { x: 1, y: 2, z: 3 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
 
-                    const nextYear = new Date().getUTCFullYear() + 1;
-
-                    await simulateExternalWrite(x, 44, new Date(Date.UTC(nextYear, 0, 2)));
-                    verify([
-                        { x: 1, y: 2, z: 3 },
-                        { x: 44, y: 5, z: 6 }
-                    ]);
-
-                    await simulateExternalWriteEx(el1, p3.clone(), new Date(Date.UTC(nextYear, 0, 3)));
-                    verify([
-                        { x: 1, y: 2, z: 3 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-
-                    await simulateExternalWrite(x, 22, new Date(Date.UTC(nextYear, 0, 4)));
-                    verify([
-                        { x: 1, y: 2, z: 3 },
-                        { x: 22, y: 8, z: 9 }
-                    ]);
-                });
-            }
-        );
-    }
+                await simulateExternalWrite(x, 22, new Date(Date.UTC(nextYear, 0, 4)));
+                verify([
+                    { x: 1, y: 2, z: 3 },
+                    { x: 22, y: 8, z: 9 }
+                ]);
+            });
+        }
+    );
 
     function addVariable_setValueFromSource_installExtensionObjectVariable_matrix() {
         const uaVariable = namespace.addVariable({
@@ -428,7 +421,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                     const dataValue = uaVariable.readValue();
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                     dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
-                    dataValue.value.dimensions!.should.eql([2, 3]);
+                    dataValue.value.dimensions?.should.eql([2, 3]);
 
                     const dataValue00 = el00.readValue();
                     dataValue00.value.dataType.should.eql(DataType.ExtensionObject);
@@ -520,19 +513,16 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                     { x: 4, y: 5, z: 6 },
                     { x: 7, y: 8, z: 9 }
                 ]);
+                await simulateExternalWrite(el11.getComponentByName("X")!, 33, new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
 
-                {
-                    await simulateExternalWrite(el11.getComponentByName("X")!, 33, new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
-
-                    verify([
-                        { x: 1, y: 2, z: 3 },
-                        { x: 4, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 },
-                        { x: 1, y: 2, z: 3 },
-                        { x: 33, y: 5, z: 6 },
-                        { x: 7, y: 8, z: 9 }
-                    ]);
-                }
+                verify([
+                    { x: 1, y: 2, z: 3 },
+                    { x: 4, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 },
+                    { x: 1, y: 2, z: 3 },
+                    { x: 33, y: 5, z: 6 },
+                    { x: 7, y: 8, z: 9 }
+                ]);
                 {
                     await simulateExternalWriteEx(el11, p4.clone(), new Date(Date.UTC(nextYear, 0, 4, 0, 0, 0)));
 
@@ -618,7 +608,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
 
         uaVariable.bindExtensionObject([p1.clone(), p2.clone()], { createMissingProp: true });
         should.exist(uaVariable.getComponentByName("0"));
-        should.exist(uaVariable.getComponentByName("0")!.getComponentByName("X"));
+        should.exist(uaVariable.getComponentByName("0")?.getComponentByName("X"));
     });
     it("D4-2- edge case - array - calling bindExtensionObject followed by installExtensionObjectVariables", () => {
         const uaVariable = namespace.addVariable({

@@ -1,16 +1,15 @@
-import path from "path";
+import path from "node:path";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { spy } from "sinon";
-import { nodesets } from "node-opcua-nodesets";
-import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { DataType, Variant } from "node-opcua-variant";
 //
-import { AddressSpace, adjustNamespaceArray } from "..";
-import { PseudoSession } from "..";
+import { AddressSpace, adjustNamespaceArray, PseudoSession } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition available)", () => {
     let addressSpace: AddressSpace;
@@ -30,7 +29,7 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
         const nsA = addressSpace.getNamespaceIndex("http://A");
         const dataTypeNodeId = addressSpace.findDataType("MyStructure", nsA);
         should.exist(dataTypeNodeId);
-        const o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
+        const _o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
     });
 
     it("WY2- PseudoSession & getExtensionObjectConstructor ", async () => {
@@ -112,8 +111,8 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
         const nsA = addressSpace.getNamespaceIndex("http://A");
         const dataTypeNodeId = addressSpace.findDataType("MyCustomDataType", nsA);
         should.exist(dataTypeNodeId);
-        dataTypeNodeId!.nodeId.toString().should.eql("ns=1;i=3011");
-        const o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
+        dataTypeNodeId?.nodeId.toString().should.eql("ns=1;i=3011");
+        const _o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
     });
 
     it("WZ2- PseudoSession & getExtensionObjectConstructor ", async () => {
@@ -121,7 +120,7 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
 
-        const d = addressSpace.findDataType("MyCustomDataType");
+        const _d = addressSpace.findDataType("MyCustomDataType");
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3011");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);

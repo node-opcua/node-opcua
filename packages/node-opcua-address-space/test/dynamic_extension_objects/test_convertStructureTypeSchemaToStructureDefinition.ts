@@ -1,17 +1,17 @@
 import "should";
-import should from "should";
+import { convertStructureTypeSchemaToStructureDefinition } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
+import { type DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
 import { MockProvider } from "node-opcua-schemas/test/mock_id_provider";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { convertStructureTypeSchemaToStructureDefinition } from "node-opcua-client-dynamic-extension-object";
+import should from "should";
 
 const idProvider = new MockProvider();
 const doDebug = false;
 
-describe("test convertStructureTypeSchemaToStructureDefinition", function () {
+describe("test convertStructureTypeSchemaToStructureDefinition", () => {
     it("should convert a structure type schema to structure definition", async () => {
         /**
          *
@@ -64,7 +64,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         await parseBinaryXSD(schema1, idProvider, dataTypeFactory);
 
         for (const f of dataTypeFactory.getStructureIterator()) {
-            const ss = convertStructureTypeSchemaToStructureDefinition(f.schema);
+            const _ss = convertStructureTypeSchemaToStructureDefinition(f.schema);
         }
 
         // --------------------------------------------------------------------------
@@ -75,21 +75,21 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         customUnionType.structureType.should.eql(StructureType.Union);
         customUnionType.baseDataType.toString().should.eql("ns=0;i=0");
 
-        customUnionType.fields!.length.should.eql(2);
+        customUnionType.fields?.length.should.eql(2);
 
-        customUnionType.fields![0].name!.should.eql("foo");
-        customUnionType.fields![0].dataType.toString().should.eql(resolveNodeId(DataType.UInt32).toString());
-        customUnionType.fields![0].valueRank.should.eql(-1);
-        customUnionType.fields![0].arrayDimensions!.should.eql([]);
-        customUnionType.fields![1].isOptional.should.eql(false);
-        should(customUnionType.fields![0].description.text).eql(null);
+        customUnionType.fields?.[0].name?.should.eql("foo");
+        customUnionType.fields?.[0].dataType.toString().should.eql(resolveNodeId(DataType.UInt32).toString());
+        customUnionType.fields?.[0].valueRank.should.eql(-1);
+        customUnionType.fields?.[0].arrayDimensions?.should.eql([]);
+        customUnionType.fields?.[1].isOptional.should.eql(false);
+        should(customUnionType.fields?.[0].description.text).eql(null);
 
-        customUnionType.fields![1].name!.should.eql("bar");
-        customUnionType.fields![1].dataType.toString().should.eql(resolveNodeId(DataType.String).toString());
-        customUnionType.fields![1].valueRank.should.eql(-1);
-        customUnionType.fields![1].arrayDimensions!.should.eql([]);
-        customUnionType.fields![1].isOptional.should.eql(false);
-        should(customUnionType.fields![1].description.text).eql(null);
+        customUnionType.fields?.[1].name?.should.eql("bar");
+        customUnionType.fields?.[1].dataType.toString().should.eql(resolveNodeId(DataType.String).toString());
+        customUnionType.fields?.[1].valueRank.should.eql(-1);
+        customUnionType.fields?.[1].arrayDimensions?.should.eql([]);
+        customUnionType.fields?.[1].isOptional.should.eql(false);
+        should(customUnionType.fields?.[1].description.text).eql(null);
 
         // ----------------------------------------------------------------------- CustomStructType
         const b = dataTypeFactory.getStructureInfoByTypeName("CustomStructType");
@@ -99,18 +99,18 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         customStructType.structureType.should.eql(StructureType.Structure);
         customStructType.baseDataType.toString().should.eql("ns=0;i=0");
 
-        customStructType.fields!.length.should.eql(5);
+        customStructType.fields?.length.should.eql(5);
 
-        customStructType.fields![0].name!.should.eql("foo");
-        customStructType.fields![0].dataType.toString().should.eql(resolveNodeId("String").toString());
-        customStructType.fields![1].name!.should.eql("bar");
-        customStructType.fields![1].dataType.toString().should.eql(resolveNodeId("UInt32").toString());
-        customStructType.fields![2].name!.should.eql("baz");
-        customStructType.fields![2].dataType.toString().should.eql(resolveNodeId("Boolean").toString());
-        customStructType.fields![3].name!.should.eql("fiz");
-        customStructType.fields![3].dataType.toString().should.eql("ns=0;i=0".toString());
-        customStructType.fields![4].name!.should.eql("poc");
-        customStructType.fields![4].dataType.toString().should.eql("ns=1;i=1".toString());
+        customStructType.fields?.[0].name?.should.eql("foo");
+        customStructType.fields?.[0].dataType.toString().should.eql(resolveNodeId("String").toString());
+        customStructType.fields?.[1].name?.should.eql("bar");
+        customStructType.fields?.[1].dataType.toString().should.eql(resolveNodeId("UInt32").toString());
+        customStructType.fields?.[2].name?.should.eql("baz");
+        customStructType.fields?.[2].dataType.toString().should.eql(resolveNodeId("Boolean").toString());
+        customStructType.fields?.[3].name?.should.eql("fiz");
+        customStructType.fields?.[3].dataType.toString().should.eql("ns=0;i=0".toString());
+        customStructType.fields?.[4].name?.should.eql("poc");
+        customStructType.fields?.[4].dataType.toString().should.eql("ns=1;i=1".toString());
     });
 
     it("should convert a enumeration with unicode characters", async () => {
@@ -159,7 +159,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         const dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSD(schema1, idProvider, dataTypeFactory);
 
-        const e = dataTypeFactory.getEnumeration("MyEnumeration");
+        const _e = dataTypeFactory.getEnumeration("MyEnumeration");
 
         const s = dataTypeFactory.constructObject(binaryEncodingNodeId) as any;
         s.shape.should.eql(1);

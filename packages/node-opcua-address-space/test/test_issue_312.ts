@@ -1,15 +1,12 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
-
-import { getFixture } from "node-opcua-test-fixtures";
-
-import { generateAddressSpace } from "../nodeJS";
-import { AddressSpace } from "..";
+import fs from "node:fs";
+import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { getFixture } from "node-opcua-test-fixtures";
+import { AddressSpace } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 describe("Issue 132", function (this: any) {
-    this.timeout(Math.max(40000,this.timeout()));
+    this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;
 

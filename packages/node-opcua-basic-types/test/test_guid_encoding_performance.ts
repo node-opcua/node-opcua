@@ -1,7 +1,7 @@
 // tslint:disable: no-console
 import { Benchmarker } from "node-opcua-benchmarker";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Guid, isValidGuid } from "node-opcua-guid";
+import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
+import { type Guid, isValidGuid } from "node-opcua-guid";
 import should from "should";
 import { encodeGuid, randomGuid } from "..";
 
@@ -28,7 +28,7 @@ function write_UInt8Old(stream: OutputBinaryStream, guid: string, starts: number
 }
 export function encodeGuidOld(guid: Guid, stream: OutputBinaryStream): void {
     if (!isValidGuid(guid)) {
-        throw new Error(" Invalid GUID : '" + JSON.stringify(guid) + "'");
+        throw new Error(` Invalid GUID : '${JSON.stringify(guid)}'`);
     }
     write_UInt32Old(stream, guid, [0]);
     write_UInt16Old(stream, guid, [9, 14]);
@@ -70,7 +70,7 @@ describe("GUID", () => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.5 });
@@ -97,7 +97,7 @@ describe("Map vs Object", () => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });
@@ -121,14 +121,14 @@ describe("Map vs Object", () => {
                 counter = (counter + 1) % 120000;
             })
             .add("with Object", () => {
-                Object.prototype.hasOwnProperty.call(_map, counter.toString());
+                Object.hasOwn(_map, counter.toString());
                 counter = (counter + 1) % 120000;
             })
             .on("cycle", (message) => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });
@@ -147,18 +147,18 @@ describe("Map vs Object", () => {
         }
         bench
             .add("has with Map", () => {
-                const a = map.get(counter.toString());
+                const _a = map.get(counter.toString());
                 counter = (counter + 1) % 120000;
             })
             .add("with Object", () => {
-                const a = _map[counter.toString()];
+                const _a = _map[counter.toString()];
                 counter = (counter + 1) % 120000;
             })
             .on("cycle", (message) => {
                 console.log(message);
             })
             .on("complete", function (this: any) {
-                console.log(" Fastest is " + this.fastest.name);
+                console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });

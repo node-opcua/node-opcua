@@ -1,7 +1,7 @@
-import { UALimitAlarm_Base } from "node-opcua-nodeset-ua";
-import { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
-import { UAAlarmConditionHelper, UAAlarmConditionEx } from "./ua_alarm_condition_ex";
+import type { UALimitAlarm_Base } from "node-opcua-nodeset-ua";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
+import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
+import type { UAAlarmConditionEx, UAAlarmConditionHelper } from "./ua_alarm_condition_ex";
 
 export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
     setLowLowLimit(value: number): void;
@@ -14,9 +14,6 @@ export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
     getLowLowLimit(): number;
 }
 export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, UALimitAlarmHelper {
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
-
     enabledState: UATwoStateVariableEx;
     ackedState: UATwoStateVariableEx;
     confirmedState?: UATwoStateVariableEx;

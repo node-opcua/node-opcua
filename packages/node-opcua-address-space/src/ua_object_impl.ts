@@ -1,48 +1,50 @@
 /**
  * @module node-opcua-address-space
  */
-import chalk from "chalk";
 
+import chalk from "chalk";
+import {
+    type BaseNode,
+    type CloneExtraInfo,
+    type CloneFilter,
+    type CloneOptions,
+    defaultCloneFilter,
+    EventNotifierFlags,
+    type EventTypeLike,
+    type IEventData,
+    type ISessionContext,
+    type ListenerSignature,
+    makeDefaultCloneExtraInfo,
+    type RaiseEventData,
+    type UAEventType,
+    type UAMethod,
+    type UAObject,
+    type UAObjectEvents,
+    type UAObjectType
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { isValidByte } from "node-opcua-basic-types";
-import { NodeClass, type QualifiedNameLike, type QualifiedNameOptions } from "node-opcua-data-model";
-import { AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, NodeClass, type QualifiedNameLike, type QualifiedNameOptions } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
+import { make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import {
-    type EventTypeLike,
-    type RaiseEventData,
-    type ISessionContext,
-    type UAMethod,
-    type UAObject,
-    type UAObjectType,
-    type CloneOptions,
-    type CloneFilter,
-    type CloneExtraInfo,
-    type BaseNode,
-    type UAEventType,
-    type IEventData,
-    defaultCloneFilter,
-    makeDefaultCloneExtraInfo,
-    EventNotifierFlags
-} from "node-opcua-address-space-base";
-import { make_errorLog } from "node-opcua-debug";
-
+import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
-import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
 
 const errorLog = make_errorLog(__filename);
 
-export class UAObjectImpl extends BaseNodeImpl implements UAObject {
+export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAObjectEvents>
+    extends BaseNodeImpl<T>
+    implements UAObject<T>
+{
     private _eventNotifier: EventNotifierFlags;
     public readonly nodeClass = NodeClass.Object;
     public get eventNotifier(): EventNotifierFlags {
-
         // ensure eventNotifier is set if the node has some event
 
         if (!this._eventNotifier) {
@@ -105,12 +107,12 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         options = {
             eventNotifier: this.eventNotifier,
             symbolicName: this.symbolicName || undefined,
-            ...options,
+            ...options
         };
 
         const cloneObject = _clone(
             this,
-            UAObjectImpl,
+            UAObjectImpl<T>,
             options,
             optionalFilter || defaultCloneFilter,
             extraInfo || makeDefaultCloneExtraInfo(this)
@@ -130,7 +132,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
     public getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
     public getMethodByName(methodName: QualifiedNameLike, namespaceIndex?: number): UAMethod | null {
-        return super.getMethodByName(methodName as any, namespaceIndex);
+        return super.getMethodByName(methodName as string, namespaceIndex);
     }
 
     public getMethods(): UAMethod[] {
@@ -150,7 +152,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         if (typeof eventType === "string") {
             const eventTypeFound = addressSpace.findEventType(eventType);
             if (!eventTypeFound) {
-                throw new Error("raiseEvent: eventType cannot find event Type " + eventType.toString());
+                throw new Error(`raiseEvent: eventType cannot find event Type ${eventType.toString()}`);
             }
             eventType = eventTypeFound;
             if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
@@ -161,7 +163,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             if (!eventTypeFound) {
                 throw new Error(`raiseEvent: eventType cannot find event Type ${eventType.toString()}`);
             }
-            eventType = eventTypeFound!;
+            eventType = eventTypeFound;
             if (!eventType || eventType.nodeClass !== NodeClass.ObjectType) {
                 throw new Error(`eventType must exist and be an UAObjectType: ${eventType.toString()}`);
             }
@@ -179,7 +181,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
         const _baseEventType = addressSpace.findEventType("BaseEventType");
 
-        data.$eventDataSource =eventTypeNode;
+        data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };
 
         const eventData1 = addressSpace.constructEventData(eventTypeNode, data);
@@ -190,9 +192,9 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public _bubble_up_event(eventData: IEventData): void {
         const addressSpace = this.addressSpace;
 
-        const queue: any[] = [];
+        const queue: BaseNode[] = [];
         // walk up the hasNotify / hasEventSource chain
-        const m: any = {};
+        const m: Record<string, BaseNode> = {};
 
         // all events are notified to the server object
         // emit on server object
@@ -222,6 +224,9 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
 
         while (queue.length) {
             const obj = queue.pop();
+            if (!obj) {
+                continue;
+            }
             // emit on object
             obj.emit("event", eventData);
 

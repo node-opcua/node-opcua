@@ -1,11 +1,12 @@
 /**
  * @module node-opcua-address-space
  */
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
-import { INamespace, UAObject, ISessionContext } from "node-opcua-address-space-base";
-import { UAFolder } from "node-opcua-nodeset-ua";
-import { CallMethodResultOptions } from "node-opcua-types";
+
+import type { INamespace, ISessionContext, UAObject } from "node-opcua-address-space-base";
+import type { UAFolder } from "node-opcua-nodeset-ua";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
+import type { CallMethodResultOptions } from "node-opcua-types";
+import { DataType, type Variant } from "node-opcua-variant";
 
 export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UAFolder | string): void {
     const myEvtType = namespace.addEventType({
@@ -42,7 +43,6 @@ export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UA
     });
 
     method.bindMethod((inputArguments: Variant[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) => {
-       
         const message = inputArguments[0].value || "Hello from Event Generator Object";
         const severity = inputArguments[1].value || 0;
 

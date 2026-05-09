@@ -1,7 +1,6 @@
-import should from "should";
-import { AddressSpace, Namespace } from "../";
-import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { AddressSpace, Namespace } from "../";
+import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers";
 
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
 
@@ -17,7 +16,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         // let's declare a custom folder Type
         const myFolderType = namespace.addObjectType({ browseName: "MyFolderType", subtypeOf: "FolderType" });
         myFolderType.browseName.toString().should.eql("1:MyFolderType");
-        myFolderType.subtypeOfObj!.browseName.toString().should.eql("FolderType");
+        myFolderType.subtypeOfObj?.browseName.toString().should.eql("FolderType");
     });
     after(async () => {
         addressSpace?.dispose();

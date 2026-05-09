@@ -27,7 +27,6 @@ interface INamespacePrivate {
     _objectTypeCount(): number;
 }
 describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
-
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
@@ -45,7 +44,6 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU00 should load a nodeset xml file", async () => {
-
         const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
@@ -62,7 +60,6 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU01 should load a large nodeset xml file", async () => {
-
         const xml_file = nodesets.standard;
 
         fs.existsSync(xml_file).should.be.eql(true);
@@ -108,7 +105,6 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU03 should read accessLevel and userAccessLevel attributes", async () => {
-
         const xml_file = getFixture("fixture_node_with_various_access_level_nodeset.xml");
 
         const xml_files = [nodesets.standard, xml_file];
@@ -131,7 +127,6 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU04 should read predefined values for variables", async () => {
-
         const xml_file = getFixture("fixture_node_with_predefined_variable.xml");
 
         const xml_files = [nodesets.standard, xml_file];
@@ -494,7 +489,6 @@ async function testEncodeDecode(
 }
 
 describe("VVA", () => {
-
     let addressSpace: AddressSpace;
     let session: IBasicSessionAsync2;
     let nsIndex: number;
@@ -541,9 +535,7 @@ describe("VVA", () => {
         (communicationLink as any).field3.value.should.eql(3);
         (communicationLink as any).field3.constructor.name.should.eql("Variant");
 
-        await testEncodeDecode(
-            addressSpace, communicationLink,
-            pubSubcommunicationLinksDatType, session);
+        await testEncodeDecode(addressSpace, communicationLink, pubSubcommunicationLinksDatType, session);
     });
 
     it("VVA-3 ----------- load datatype with AllowSubtype", async () => {
@@ -586,8 +578,7 @@ describe("VVA", () => {
         (object as any).communicationLinks[0].field2.should.eql(2);
         (object as any).communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
 
-        await testEncodeDecode(
-            addressSpace, object, connectionEndpointConfigurationDataType, session);
+        await testEncodeDecode(addressSpace, object, connectionEndpointConfigurationDataType, session);
     });
 
     it("VVA-4 - should reject invalid combination at construction- Number", async () => {
@@ -621,7 +612,6 @@ describe("VVA", () => {
         });
     });
 });
-
 
 describe("Testing variables loading ", function (this: any) {
     this.timeout(200000); // could be slow on appveyor !

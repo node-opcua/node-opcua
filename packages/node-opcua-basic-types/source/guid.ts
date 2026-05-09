@@ -3,12 +3,12 @@
  */
 
 import assert from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { isValidGuid } from "node-opcua-guid";
 
 import { getRandomInt } from "./utils";
 
-export { isValidGuid, emptyGuid } from "node-opcua-guid";
+export { emptyGuid, isValidGuid } from "node-opcua-guid";
 
 function toHex(i: number, nb: number): string {
     return i.toString(16).padStart(nb, "0");
@@ -45,7 +45,6 @@ assert(hexCharToNum("b".charCodeAt(0)) === 11);
 assert(hexCharToNum("B".charCodeAt(0)) === 11);
 assert(hexCharToNum("0".charCodeAt(0)) === 0);
 assert(hexCharToNum("9".charCodeAt(0)) === 9);
-
 
 function write_UInt32(stream: OutputBinaryStream, guid: string, starts: number[]) {
     const n = starts.length;
@@ -93,7 +92,7 @@ function write_UInt8(stream: OutputBinaryStream, guid: string, starts: number[])
 
 export function encodeGuid(guid: Guid, stream: OutputBinaryStream): void {
     if (!isValidGuid(guid)) {
-        throw new Error(" Invalid GUID : '" + JSON.stringify(guid) + ": the format should be 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'");
+        throw new Error(` Invalid GUID : '${JSON.stringify(guid)}: the format should be 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'`);
     }
     write_UInt32(stream, guid, [0]);
     write_UInt16(stream, guid, [9, 14]);
@@ -120,7 +119,7 @@ function read_many(stream: BinaryStream, func: (stream: BinaryStream) => string,
     return result;
 }
 
-export function decodeGuid(stream: BinaryStream, value?: Guid): Guid {
+export function decodeGuid(stream: BinaryStream, _value?: Guid): Guid {
     const data1 = read_UInt32(stream);
 
     const data2 = read_UInt16(stream);
@@ -131,7 +130,7 @@ export function decodeGuid(stream: BinaryStream, value?: Guid): Guid {
 
     const data6B = read_many(stream, read_UInt8, 6);
 
-    const guid = data1 + "-" + data2 + "-" + data3 + "-" + data45 + "-" + data6B;
+    const guid = `${data1}-${data2}-${data3}-${data45}-${data6B}`;
 
     return guid.toUpperCase();
 }

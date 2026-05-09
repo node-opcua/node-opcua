@@ -1,12 +1,13 @@
 // tslint:disable:no-console
-import should from "should";
+
 import { Benchmarker } from "node-opcua-benchmarker";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { constructEventFilter, checkSelectClause } from "node-opcua-service-filter";
+import { checkSelectClause, constructEventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-import type { AddressSpace, Namespace, UAEventType } from "..";
+import should from "should";
+import type { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("AddressSpace : add event type ", () => {
     let addressSpace: AddressSpace;
@@ -38,7 +39,7 @@ describe("AddressSpace : add event type ", () => {
     });
 
     it("should find BaseEventType", () => {
-        addressSpace.findEventType("BaseEventType")!.nodeId.toString().should.eql("ns=0;i=2041");
+        addressSpace.findEventType("BaseEventType")?.nodeId.toString().should.eql("ns=0;i=2041");
     });
 
     it("BaseEventType should be abstract ", () => {
@@ -118,7 +119,9 @@ describe("AddressSpace : add event type ", () => {
         if (!baseEventType) throw new Error("cannot find BaseEventType");
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        if (!eventFilter.selectClauses) { throw new Error("expecting selectClauses to be defined"); }
+        if (!eventFilter.selectClauses) {
+            throw new Error("expecting selectClauses to be defined");
+        }
         should(eventFilter.selectClauses?.length).eql(3, "expecting 3 select clauses");
 
         let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses[0]);
@@ -131,14 +134,15 @@ describe("AddressSpace : add event type ", () => {
         statusCode.should.eql(StatusCodes.Good);
     });
 
-    
     it("should select node in a EventType using a SelectClause  n AuditEventType", () => {
         // browseNodeByTargetName
         const auditEventType = addressSpace.findEventType("AuditEventType");
         if (!auditEventType) throw new Error("cannot find AuditEventType");
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        if (!eventFilter.selectClauses) { throw new Error("expecting selectClauses to be defined"); }
+        if (!eventFilter.selectClauses) {
+            throw new Error("expecting selectClauses to be defined");
+        }
         should(eventFilter.selectClauses?.length).eql(3, "expecting 3 select clauses");
 
         let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses[0]);
@@ -184,7 +188,7 @@ describe("AddressSpace : add event type ", () => {
     });
 
     it("#constructEventData ", () => {
-        const auditEventType = addressSpace.findObjectType("AuditEventType") 
+        const auditEventType = addressSpace.findObjectType("AuditEventType");
         if (!auditEventType) throw new Error("cannot find AuditEventType");
         const data = {
             actionTimeStamp: { dataType: "Null" },
@@ -211,7 +215,7 @@ describe("AddressSpace : add event type ", () => {
             "sourceName",
             "sourceNode",
             "status",
-            "time",
+            "time"
         ];
 
         Object.keys(data1).sort().should.eql(expected_fields);

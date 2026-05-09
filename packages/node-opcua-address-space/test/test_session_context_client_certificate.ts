@@ -1,15 +1,15 @@
 import "should";
 
 import {
-    Certificate,
+    type Certificate,
     CertificatePurpose,
     convertPEMtoDER,
-    generateKeyPair,
-    createSelfSignedCertificate
+    createSelfSignedCertificate,
+    generateKeyPair
 } from "node-opcua-crypto/web";
 import { MessageSecurityMode } from "node-opcua-types";
 
-import { SessionContext, IChannelBase, ISessionBase } from "..";
+import { type IChannelBase, type ISessionBase, SessionContext } from "..";
 
 function makeChannelWithCert(certificate: Certificate | null): IChannelBase {
     return {
@@ -23,20 +23,29 @@ function makeChannelWithCert(certificate: Certificate | null): IChannelBase {
 function makeSession(channel?: IChannelBase): ISessionBase {
     return {
         channel,
-        getSessionId: () => ({ namespace: 0, value: 1 } as any),
+        getSessionId: () => ({ namespace: 0, value: 1 }) as any,
         userIdentityToken: undefined,
         continuationPointManager: {
-            registerHistoryReadRaw: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            getNextHistoryReadRaw: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
+            registerHistoryReadRaw: () => ({
+                values: null,
+                continuationPoint: undefined,
+                statusCode: { isGood: () => true } as any
+            }),
+            getNextHistoryReadRaw: () => ({
+                values: null,
+                continuationPoint: undefined,
+                statusCode: { isGood: () => true } as any
+            }),
             registerReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
             getNextReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            dispose: () => { /* empty */ }
+            dispose: () => {
+                /* empty */
+            }
         }
     };
 }
 
 describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () => {
-
     it("should return null clientCertificate when no session", () => {
         const ctx = new SessionContext({});
         (ctx.clientCertificate === null).should.eql(true);
@@ -55,7 +64,7 @@ describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () 
     it("should return certificate from the channel", () => {
         const fakeCert = Buffer.from("fake-cert-data");
         const ctx = new SessionContext({ session: makeSession(makeChannelWithCert(fakeCert)) });
-        ctx.clientCertificate!.should.eql(fakeCert);
+        ctx.clientCertificate?.should.eql(fakeCert);
     });
 
     it("should extract applicationUri from a real self-signed certificate", async () => {
@@ -73,8 +82,8 @@ describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () 
         const certDer = convertPEMtoDER(certPem);
 
         const ctx = new SessionContext({ session: makeSession(makeChannelWithCert(certDer)) });
-        ctx.clientCertificate!.should.be.instanceOf(Buffer);
-        ctx.clientApplicationUri!.should.eql(applicationUri);
+        ctx.clientCertificate?.should.be.instanceOf(Buffer);
+        ctx.clientApplicationUri?.should.eql(applicationUri);
     });
 
     it("should return null applicationUri for invalid certificate data", () => {

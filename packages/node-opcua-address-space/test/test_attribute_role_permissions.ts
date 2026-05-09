@@ -1,14 +1,14 @@
 // tslint:disable:no-bitwise
 import "should";
 
-import { AccessRestrictionsFlag, allPermissions, AttributeIds, makePermissionFlag } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantArrayType } from "node-opcua-variant";
-import { PermissionType, RolePermissionType } from "node-opcua-types";
+import { AttributeIds, allPermissions, makePermissionFlag } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { AddressSpace, Namespace, WellKnownRoles } from "..";
+import { StatusCodes } from "node-opcua-status-code";
+import { PermissionType, type RolePermissionType } from "node-opcua-types";
+import { DataType, VariantArrayType } from "node-opcua-variant";
+import { type AddressSpace, type Namespace, WellKnownRoles } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing RolePermission Attribute ", () => {
     let addressSpace: AddressSpace;
@@ -23,7 +23,7 @@ describe("testing RolePermission Attribute ", () => {
         addressSpace.dispose();
     });
 
-    const all = makePermissionFlag("Read | Browse");
+    const _all = makePermissionFlag("Read | Browse");
 
     it("ARP-1 attribute RolePermission: ", () => {
         const v = namespace.addVariable({

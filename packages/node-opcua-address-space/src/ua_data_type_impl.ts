@@ -37,7 +37,6 @@ import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_i
 const debugLog = make_debugLog("DATA_TYPE");
 const doDebug = checkDebugFlag("DATA_TYPE");
 
-
 export interface StructureFieldOptionsEx extends StructureFieldOptions {
     allowSubTypes: boolean;
 }
@@ -374,24 +373,24 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-        chalk.yellow("          binaryEncodingNodeId: ") +
-        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          binaryEncodingNodeId: ") +
+            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          xmlEncodingNodeId   : ") +
-        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          xmlEncodingNodeId   : ") +
+            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          jsonEncodingNodeId  : ") +
-        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          jsonEncodingNodeId  : ") +
+            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOfObj        : ") +
-            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+                chalk.yellow("          subtypeOfObj        : ") +
+                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -435,10 +434,10 @@ function makeStructureDefinition(
             ? StructureType.UnionWithSubtypedValues
             : StructureType.Union
         : hasOptionalFields
-            ? StructureType.StructureWithOptionalFields
-            : hasSubtypedFields
-                ? StructureType.StructureWithSubtypedValues
-                : StructureType.Structure;
+          ? StructureType.StructureWithOptionalFields
+          : hasSubtypedFields
+            ? StructureType.StructureWithSubtypedValues
+            : StructureType.Structure;
 
     // note:  https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
     // field.isOptional has a special behavior depending on the structure type

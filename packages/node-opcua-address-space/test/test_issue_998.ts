@@ -1,15 +1,12 @@
 import "should";
-import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
-import { getBuiltInDataType } from "node-opcua-pseudo-session";
 import { DataTypeIds } from "node-opcua-constants";
-import { DataType } from "node-opcua-variant";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { coerceNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-
-import { Namespace, PseudoSession } from "..";
-import { AddressSpace } from "..";
+import { getBuiltInDataType } from "node-opcua-pseudo-session";
+import { DataType } from "node-opcua-variant";
+import { AddressSpace, type Namespace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS";
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing github issue #998", () => {
     let addressSpace: AddressSpace;
@@ -26,19 +23,19 @@ describe("testing github issue #998", () => {
             nodeId: "s=MyDataData",
             subtypeOf: resolveNodeId("Double")
         });
-        const variable = namespace.addVariable({
+        const _variable = namespace.addVariable({
             browseName: "MyVar",
             dataType,
             nodeId: "s=MyVar"
         });
-        const variableEnum = namespace.addVariable({
+        const _variableEnum = namespace.addVariable({
             browseName: "MyVarWithEnum",
             dataType: coerceNodeId(DataTypeIds.OpenFileMode),
             nodeId: "s=MyVarWithEnum"
         });
     });
     after(async () => {
-        addressSpace && addressSpace.dispose();
+        addressSpace?.dispose();
     });
 
     it("getBuiltInDataType should succeed when dataType is not numeric", async () => {

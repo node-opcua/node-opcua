@@ -3,13 +3,11 @@
  */
 // tslint:disable:no-console
 import chalk from "chalk";
-
+import type { BaseNode, IAddressSpace, UAReference, UAReferenceType as UAReferenceTypePublic } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { BrowseDirection } from "node-opcua-data-model";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { BrowseDescription, BrowseDescriptionOptions, ReferenceDescription } from "node-opcua-types";
-
-import { IAddressSpace, BaseNode, UAReference, UAReferenceType as UAReferenceTypePublic } from "node-opcua-address-space-base";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { BrowseDescription, type BrowseDescriptionOptions, type ReferenceDescription } from "node-opcua-types";
 
 import { resolveReferenceType } from "../../src/reference_impl";
 
@@ -19,14 +17,14 @@ export function referenceTypeToString(addressSpace: IAddressSpace, referenceType
         return "<null> ";
     } else {
         const referenceType = addressSpace.findNode(referenceTypeId)! as UAReferenceTypePublic;
-        return referenceTypeId.toString() + " " + referenceType.browseName.toString() + "/" + referenceType.inverseName!.text;
+        return `${referenceTypeId.toString()} ${referenceType.browseName.toString()}/${referenceType.inverseName?.text}`;
     }
 }
 
 function nodeIdInfo(addressSpace: IAddressSpace, nodeId: NodeId): string {
     const obj = addressSpace.findNode(nodeId);
     const name = obj ? obj.browseName.toString() : " <????>";
-    return nodeId.toString() + " [ " + name + " ]";
+    return `${nodeId.toString()} [ ${name} ]`;
 }
 
 export function dumpReferenceDescription(addressSpace: IAddressSpace, referenceDescription: ReferenceDescription): void {
@@ -67,10 +65,7 @@ export function dumpBrowseDescription(node: BaseNode, _browseDescription: Browse
 
 /**
  */
-export function dumpReferences(
-    addressSpace: IAddressSpace, 
-    references: UAReference[] |MapIterator<UAReference>
-): void {
+export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[] | MapIterator<UAReference>): void {
     assert(addressSpace);
     for (const reference of references) {
         const referenceType = resolveReferenceType(addressSpace, reference);

@@ -1,29 +1,26 @@
-import path from "path";
-import should from "should";
-import sinon from "sinon";
-import { DataTypeIds } from "node-opcua-constants";
+import path from "node:path";
+import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";
-import { NodeId, makeNodeId, resolveNodeId } from "node-opcua-nodeid";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { NumericRange } from "node-opcua-numeric-range";
-import { WriteValue, WriteValueOptions } from "node-opcua-types";
-import { StatusCodeCallback } from "node-opcua-status-code";
-import { VariableTypeIds } from "node-opcua-constants";
 import { getCurrentClock } from "node-opcua-date-time";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NumericRange } from "node-opcua-numeric-range";
+import { type CallbackT, type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
+import { WriteValue, type WriteValueOptions } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
+import sinon from "sinon";
 
 const nodeset_filename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
 import {
     AddressSpace,
-    BindVariableOptionsVariation2,
-    Namespace,
-    PseudoSession,
-    UARootFolder,
+    type BindVariableOptionsVariation2,
+    type Namespace,
     SessionContext,
-    UAVariable
+    type UARootFolder,
+    type UAVariable
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
@@ -223,7 +220,7 @@ describe("Address Space : add Variable :  testing various variations for specify
 
     it("AddressSpace#addVariable should throw if typeDefinition is invalid", () => {
         should(() => {
-            const nodeVar = namespace.addVariable({
+            const _nodeVar = namespace.addVariable({
                 browseName: "SomeVariable9",
                 dataType: "Double",
                 organizedBy: rootFolder,
@@ -256,7 +253,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T1 - testing Variable#bindVariable -> Getter - " +
-        "should create a static read only variable (static value defined at construction time)",
+            "should create a static read only variable (static value defined at construction time)",
         async () => {
             const variable = namespace.addVariable({
                 accessLevel: "CurrentRead",
@@ -299,7 +296,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T2 - testing Variable#bindVariable -> Getter - " +
-        "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
+            "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
         async () => {
             const variable = namespace.addVariable({
                 browseName: "Variable37",
@@ -337,7 +334,7 @@ describe("testing Variable#bindVariable", () => {
             options.get.callCount.should.eql(2 + base);
 
             sameDataValue(dataValue1, dataValue2).should.eql(true);
-            dataValue1.serverTimestamp!.getTime().should.eql(dataValue2.serverTimestamp!.getTime());
+            dataValue1.serverTimestamp?.getTime().should.eql(dataValue2.serverTimestamp?.getTime());
 
             // now change data value
             value = value + 200;
@@ -346,7 +343,7 @@ describe("testing Variable#bindVariable", () => {
             options.get.callCount.should.eql(3 + base);
             sameDataValue(dataValue1, dataValue3).should.eql(false); // dataValue must have changed
 
-            dataValue1.serverTimestamp!.getTime().should.be.belowOrEqual(dataValue3.serverTimestamp!.getTime());
+            dataValue1.serverTimestamp?.getTime().should.be.belowOrEqual(dataValue3.serverTimestamp?.getTime());
         }
     );
 
@@ -434,7 +431,7 @@ describe("testing Variable#bindVariable", () => {
             dataValueCheck1.should.be.instanceOf(DataValue);
             dataValueCheck1.statusCode.should.eql(StatusCodes.Good);
             dataValueCheck1.value.value.should.eql(987654);
-            dataValueCheck1.sourceTimestamp!.should.eql(new Date(1789, 7, 14));
+            dataValueCheck1.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
 
             // write_simple_value
             const dataValue = new DataValue({
@@ -451,7 +448,7 @@ describe("testing Variable#bindVariable", () => {
             const dataValueCheck2 = await variable.readValueAsync(context);
             dataValueCheck2.should.be.instanceOf(DataValue);
             dataValueCheck2.value.value.should.eql(987654);
-            dataValueCheck2.sourceTimestamp!.should.eql(new Date(1789, 7, 14));
+            dataValueCheck2.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
         }
     );
 
@@ -501,7 +498,7 @@ describe("testing Variable#bindVariable", () => {
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.eql(expected_value);
         if (expected_date) {
-            dataValue.sourceTimestamp!.should.eql(expected_date);
+            dataValue.sourceTimestamp?.should.eql(expected_date);
         }
     }
 
@@ -524,7 +521,7 @@ describe("testing Variable#bindVariable", () => {
             }
         });
 
-        const d1 = await variable.readValueAsync(context);
+        const _d1 = await variable.readValueAsync(context);
 
         const dataValue = new DataValue({
             value: { dataType: DataType.Double, value: (innerValue = 20) }
@@ -669,7 +666,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "Q4 - testing Variable#bindVariable -> Setter - " +
-        "issue#332 should create a variable with async setter and an async getter",
+            "issue#332 should create a variable with async setter and an async getter",
         async () => {
             const value_with_timestamp = new DataValue({
                 sourcePicoseconds: 100,
@@ -726,7 +723,7 @@ describe("testing Variable#bindVariable", () => {
 describe("testing Variable#writeValue Scalar", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: UARootFolder;
+    let _rootFolder: UARootFolder;
     let variable: UAVariable;
 
     before(async () => {
@@ -739,7 +736,7 @@ describe("testing Variable#writeValue Scalar", () => {
 
         namespace = addressSpace.getOwnNamespace();
 
-        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        _rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         variable = namespace.addVariable({
             accessLevel: "CurrentRead | CurrentWrite",
@@ -753,7 +750,6 @@ describe("testing Variable#writeValue Scalar", () => {
                 value: 100.0
             })
         });
-
     });
 
     beforeEach((done: (err?: Error) => void) => {
@@ -971,7 +967,7 @@ describe("testing Variable#writeValue Array", () => {
         dataValueCheck2.should.be.instanceOf(DataValue);
         dataValueCheck2.statusCode.should.eql(StatusCodes.GoodClamped);
         dataValueCheck2.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
-        dataValueCheck2.sourceTimestamp!.should.eql(new Date(1789, 7, 14));
+        dataValueCheck2.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
     });
 
     it("A6 - should write a ByteString into a Array of Byte", async () => {
@@ -1020,7 +1016,7 @@ describe("testing Variable#writeValue Array", () => {
 describe("testing Variable#writeValue on Integer", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let rootFolder: UARootFolder;
+    let _rootFolder: UARootFolder;
     let variableNotInteger: UAVariable;
     let variableInt32: UAVariable;
 
@@ -1030,7 +1026,7 @@ describe("testing Variable#writeValue on Integer", () => {
         addressSpace.registerNamespace("Private");
         namespace = addressSpace.getOwnNamespace();
 
-        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        _rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
         variableNotInteger = namespace.addVariable({
             accessLevel: "CurrentRead | CurrentWrite",
@@ -1059,7 +1055,6 @@ describe("testing Variable#writeValue on Integer", () => {
                 value: 1
             })
         });
-
     });
     beforeEach((done: (err?: Error) => void) => {
         done();
@@ -1250,8 +1245,8 @@ describe("testing UAVariable ", () => {
             value: {
                 refreshFunc(callback) {
                     const temperature = 20 + 10 * Math.sin(Date.now() / 10000);
-                    const value = new Variant({ dataType: DataType.Double, value: temperature });
-                    const sourceTimestamp = new Date();
+                    const _value = new Variant({ dataType: DataType.Double, value: temperature });
+                    const _sourceTimestamp = new Date();
                     // simulate a asynchronous behaviour
                     setTimeout(() => {
                         callback(new Error("Something goes wrong here  (intentional error for testing purpose)"));
@@ -1262,7 +1257,7 @@ describe("testing UAVariable ", () => {
 
         let _err: any;
         try {
-            const dataValue = await temperatureVar.readValueAsync(context);
+            const _dataValue = await temperatureVar.readValueAsync(context);
         } catch (err) {
             _err = err as Error;
         }
@@ -1278,7 +1273,7 @@ describe("testing UAVariable ", () => {
             organizedBy: rootFolder,
             minimumSamplingInterval: 100,
             value: {
-                refreshFunc(callback: CallbackT<DataValue>) {
+                refreshFunc(_callback: CallbackT<DataValue>) {
                     throw new Error("Something goes wrong here! (intentional error for testing purpose)");
                 }
             }
@@ -1378,7 +1373,7 @@ describe("testing UAVariable ", () => {
         temperatureVar.minimumSamplingInterval.should.eql(0);
 
         let changeDetected = 0;
-        temperatureVar.on("value_changed", (dataValue: DataValue) => {
+        temperatureVar.on("value_changed", (_dataValue: DataValue) => {
             changeDetected += 1;
         });
 
@@ -1451,7 +1446,7 @@ describe("testing UAVariable ", () => {
 
         const dataValue = uaExtObjVariable.readValue();
         const dataValue2 = await new Promise<DataValue>((resolve) => {
-            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+            uaExtObjVariable.readValueAsync(context, (_err, dataValue) => {
                 resolve(dataValue!);
             });
         });
@@ -1480,7 +1475,7 @@ describe("testing UAVariable ", () => {
         });
 
         const dataValue2 = await new Promise<DataValue>((resolve) => {
-            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+            uaExtObjVariable.readValueAsync(context, (_err, dataValue) => {
                 resolve(dataValue!);
             });
         });
@@ -1510,7 +1505,7 @@ describe("testing UAVariable ", () => {
         });
 
         const dataValue2 = await new Promise<DataValue>((resolve) => {
-            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+            uaExtObjVariable.readValueAsync(context, (_err, dataValue) => {
                 resolve(dataValue!);
             });
         });

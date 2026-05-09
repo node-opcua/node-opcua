@@ -2,24 +2,12 @@
 import path from "node:path";
 import sinon from "sinon";
 import "should";
-import {
-    readCertificateChain
-} from "node-opcua-crypto";
-import {
-    exploreCertificate
-} from "node-opcua-crypto/web";
+import { readCertificateChain } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto/web";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import {
-    NodeId
-} from "node-opcua-nodeid";
-import {
-    nodesets
-} from "node-opcua-nodesets";
-import {
-    AddressSpace,
-    instantiateCertificateExpirationAlarm,
-    type UACertificateExpirationAlarmEx
-} from "../..";
+import { NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, instantiateCertificateExpirationAlarm, type UACertificateExpirationAlarmEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";
 
 export const OneDayDuration = 1000 * 60 * 60 * 24;

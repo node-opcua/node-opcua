@@ -1,6 +1,6 @@
 import "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("registerShutdownTask", () => {
     it("should run shutdown tasks in correct order", async () => {

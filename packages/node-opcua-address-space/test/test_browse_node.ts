@@ -1,13 +1,12 @@
-import should from "should";
-
 import { BrowseDirection } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescriptionOptions } from "node-opcua-types";
-import { AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
+import type { BrowseDescriptionOptions } from "node-opcua-types";
+import should from "should";
+import { type AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing address space", () => {
     let addressSpace: AddressSpace;

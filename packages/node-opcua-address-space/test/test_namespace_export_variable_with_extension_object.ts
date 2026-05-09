@@ -1,17 +1,16 @@
 import "should";
-import path from "path";
-import fs from "fs";
-import { nodesets } from "node-opcua-nodesets";
-import { resolveNodeId } from "node-opcua-nodeid";
+import fs from "node:fs";
+import path from "node:path";
 import { AttributeIds, DataType, StatusCodes } from "node-opcua-basic-types";
-import { Variant } from "node-opcua-variant";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import type { Variant } from "node-opcua-variant";
 import { AddressSpace } from "..";
+import type { UAVariableImpl } from "../dist/src/ua_variable_impl";
 import { generateAddressSpace } from "../distNodeJS";
-import { UAVariableImpl } from "../dist/src/ua_variable_impl";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Advanced nodeset to XML", () => {
-
     const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_extensionObjects_datatype.xml");
     const tmpFolder = path.join(__dirname, "../tmp");
     before(() => {
@@ -25,7 +24,7 @@ describe("Advanced nodeset to XML", () => {
         {
             const addressSpace = AddressSpace.create();
 
-           addressSpace.registerNamespace("https://mynamespace");
+            addressSpace.registerNamespace("https://mynamespace");
             await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.adi, nodesetFilename]);
 
             const ns = addressSpace.getNamespaceIndex("http://sterfive.com/UA/test/");
@@ -35,7 +34,7 @@ describe("Advanced nodeset to XML", () => {
                 field1: 3.14,
                 field2: 42
             });
-             const ownNamespace = addressSpace.getOwnNamespace();
+            const ownNamespace = addressSpace.getOwnNamespace();
             const uaVariable = ownNamespace.addVariable({
                 browseName: "MyVariable",
                 dataType: resolveNodeId(DataType.ExtensionObject),
@@ -70,20 +69,17 @@ describe("Advanced nodeset to XML", () => {
     });
 
     it("exporting own namespace with Extension object from a different namespace", async () => {
-       
         const exportedNodeSet2Filename = path.join(tmpFolder, "someOtherNodeSet2.xml");
         {
             const addressSpace = AddressSpace.create();
             // register own namespace first
             addressSpace.registerNamespace("https://mynamespace");
             await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.autoId]);
-            
+
             const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
             const rfidScanResultDataType = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
 
-            const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataType, {
-            });
-
+            const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataType, {});
 
             const ownNamespace = addressSpace.getOwnNamespace();
             const uaVariable = ownNamespace.addVariable({

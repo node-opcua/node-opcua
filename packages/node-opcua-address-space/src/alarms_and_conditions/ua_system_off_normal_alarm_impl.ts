@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { INamespace } from "node-opcua-address-space-base";
-import { NodeId } from "node-opcua-nodeid";
-import { DataType, VariantOptions } from "node-opcua-variant";
-import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
-import { UAOffNormalAlarmImpl } from "./ua_off_normal_alarm_impl";
+import type { INamespace } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { VariantOptions } from "node-opcua-variant";
+import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
+import { UAOffNormalAlarmImpl, UAOffNormalAlarmImplBase } from "./ua_off_normal_alarm_impl";
 
 /**
  *
@@ -21,6 +21,6 @@ export class UASystemOffNormalAlarmImpl extends UAOffNormalAlarmImpl {
         options: InstantiateOffNormalAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UASystemOffNormalAlarmImpl {
-        return UAOffNormalAlarmImpl.instantiate(namespace, limitAlarmTypeId, options, data) as UASystemOffNormalAlarmImpl;
+        return UAOffNormalAlarmImplBase.instantiate(namespace, limitAlarmTypeId, options, data) as UASystemOffNormalAlarmImpl;
     }
 }

@@ -36,10 +36,13 @@ const AttributeIds_LAST = AttributeIds.AccessLevelEx;
 
 // see https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore/issues/296
 function invert(a: { [key: string]: string | number }) {
-    return Object.entries(a).reduce((c, [k, v]) => {
-        c[v] = k;
-        return c;
-    }, {} as { [key: string]: string | number });
+    return Object.entries(a).reduce(
+        (c, [k, v]) => {
+            c[v] = k;
+            return c;
+        },
+        {} as { [key: string]: string | number }
+    );
 }
 export const attributeNameById = invert(AttributeIds);
 

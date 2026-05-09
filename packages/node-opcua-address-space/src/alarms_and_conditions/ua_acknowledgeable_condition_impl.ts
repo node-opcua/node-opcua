@@ -1,42 +1,49 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { UAAcknowledgeableCondition_Base, UAAcknowledgeableCondition, UACondition } from "node-opcua-nodeset-ua";
-import { assert } from "node-opcua-assert";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantLike, VariantOptions } from "node-opcua-variant";
-import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
-import { CallMethodResultOptions } from "node-opcua-service-call";
-import { make_debugLog } from "node-opcua-debug";
 
-import { AddressSpacePrivate } from "../address_space_private";
+import type { INamespace, ISessionContext, ListenerSignature, RaiseEventData, UAEventType } from "node-opcua-address-space-base";
+import { assert } from "node-opcua-assert";
+import { coerceLocalizedText, LocalizedText, type LocalizedTextLike } from "node-opcua-data-model";
+import { make_debugLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua";
+import type { CallMethodResultOptions } from "node-opcua-service-call";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, type VariantLike, type VariantOptions } from "node-opcua-variant";
+import type { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
+import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
+import type { UAAcknowledgeableConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
+import type { UAConditionEvents } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
+import type { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { UAAcknowledgeableConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
-import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
-import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
-import {  UAConditionImpl } from "./ua_condition_impl";
+import { type UAConditionImpl, UAConditionImplBase } from "./ua_condition_impl";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = false;;
-export declare interface UAAcknowledgeableConditionImpl extends UAAcknowledgeableConditionEx, UAConditionImpl {
-    on(eventName: string, eventHandler: any): this;
-    once(eventName: string, eventHandler: any): this;
+const doDebug = false;
 
+
+const $ = (a: UAAcknowledgeableConditionImplBase): UAAcknowledgeableConditionEx => a as unknown as UAAcknowledgeableConditionEx;
+
+
+export interface UAAcknowegeableConditionEvents extends UAConditionEvents  {
+    acknowledged: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
+    confirmed: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
 }
-
-export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements UAAcknowledgeableConditionEx {
+export class UAAcknowledgeableConditionImplBase<
+    T extends UAAcknowegeableConditionEvents & ListenerSignature<T>  = UAAcknowegeableConditionEvents
+> extends UAConditionImplBase<T> {
     /**
      */
+
     public static instantiate(
         namespace: INamespace,
         conditionTypeId: UAEventType | NodeId | string,
         options: InstantiateAlarmConditionOptions,
         data?: Record<string, VariantOptions>
     ): UAAcknowledgeableConditionImpl {
-        const conditionNode = UAConditionImpl.instantiate(
+        const conditionNode = UAConditionImplBase.instantiate(
             namespace,
             conditionTypeId,
             options,
@@ -180,7 +187,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
             return statusCode;
         }
 
-        if (this.confirmedState) {
+        if ($(this).confirmedState) {
             // alarm has a confirmed state !
             // we should be waiting for confirmation now
             branch.setConfirmedState(false);
@@ -194,7 +201,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         this.raiseNewBranchState(branch);
 
         this._raiseAuditConditionAcknowledgeEvent(branch);
-
+        
         /**
          * @event acknowledged
          * @param  eventId   {Buffer|null}
@@ -202,7 +209,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
          * @param  branch    {ConditionSnapshot}
          * raised when the alarm branch has been acknowledged
          */
-        this.emit("acknowledged", conditionEventId, comment, branch);
+        (this as UAAcknowledgeableConditionImplBase).emit("acknowledged", conditionEventId, coerceLocalizedText(comment), branch);
 
         return StatusCodes.Good;
     }
@@ -233,21 +240,22 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
 
         this.raiseNewBranchState(branch);
 
-        /**
+       /**
          * @event confirmed
          * @param  eventId
          * @param  comment
          * @param  eventId
          * raised when the alarm branch has been confirmed
          */
-        this.emit("confirmed", conditionEventId, comment, branch);
+        (this as UAAcknowledgeableConditionImplBase).emit("confirmed", conditionEventId, coerceLocalizedText(comment), branch);
     }
 
     /**
+     * 
      */
     public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
         assert(branch instanceof ConditionSnapshotImpl);
-        if (!this.confirmedState) {
+        if (!$(this).confirmedState) {
             // no confirmedState => ignoring
             return;
         }
@@ -260,10 +268,10 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     /**
-     * 
+     *
      */
     public acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void {
-        comment = LocalizedText.coerce(comment)!;
+        comment = LocalizedText.coerce(comment) as LocalizedText;
         const conditionEventId = branch.getEventId();
         branch.setRetain(false);
         this._acknowledge_branch(conditionEventId, comment, branch, "Server/Acknowledge");
@@ -271,17 +279,21 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 }
 
+export type UAAcknowledgeableConditionImpl = UAAcknowledgeableConditionImplBase & UAAcknowledgeableConditionEx;
+export const UAAcknowledgeableConditionImpl =
+    UAAcknowledgeableConditionImplBase as unknown as new () => UAAcknowledgeableConditionImpl;
+
 function _acknowledge_method(
     inputArguments: VariantLike[],
     context: ISessionContext,
     callback: CallbackT<CallMethodResultOptions>
 ) {
-    UAConditionImpl.with_condition_method(
+    UAConditionImplBase.with_condition_method(
         inputArguments,
         context,
         callback,
         (conditionEventId: Buffer, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionImpl) => {
-            const ackConditionNode = conditionNode as UAAcknowledgeableConditionImpl;
+            const ackConditionNode = conditionNode as unknown as UAAcknowledgeableConditionImplBase;
             // precondition checking
             assert(!conditionEventId || conditionEventId instanceof Buffer, "must have a valid eventId or  null");
             assert(comment instanceof LocalizedText, "expecting a comment as LocalizedText");
@@ -301,7 +313,7 @@ function _acknowledge_method(
  * @private
  */
 function _confirm_method(inputArguments: VariantLike[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) {
-    UAConditionImpl.with_condition_method(
+    UAConditionImplBase.with_condition_method(
         inputArguments,
         context,
         callback,
@@ -310,7 +322,7 @@ function _confirm_method(inputArguments: VariantLike[], context: ISessionContext
             assert(branch.getEventId() instanceof Buffer);
             assert(branch.getEventId().toString("hex") === eventId.toString("hex"));
 
-            const ackConditionNode = conditionNode as UAAcknowledgeableConditionImpl;
+            const ackConditionNode = conditionNode as unknown as UAAcknowledgeableConditionImplBase;
             if (branch.getConfirmedState()) {
                 return StatusCodes.BadConditionBranchAlreadyConfirmed;
             }

@@ -1,9 +1,8 @@
-import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-
-import { AddressSpace, UAReferenceType } from "..";
+import should from "should";
+import { AddressSpace, type UAReferenceType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("AddIns", () => {
     let addressSpace: AddressSpace;

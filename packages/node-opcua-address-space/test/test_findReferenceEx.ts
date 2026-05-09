@@ -1,13 +1,12 @@
 // tslint:disable:no-console
 import chalk from "chalk";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-import should from "should";
+import { AddressSpace, type UAReference } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { AddressSpace, BaseNode, UAReference } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing findReferencesEx", () => {
-    const nodesetFilename = nodesets.standard;
+    const _nodesetFilename = nodesets.standard;
 
     const my_nodesets = [nodesets.standard, nodesets.di];
 
@@ -30,27 +29,27 @@ describe("testing findReferencesEx", () => {
         function isMandatory(reference: UAReference) {
             // xx console.log(reference.node.modellingRule ,
             // reference._referenceType.browseName.toString(),reference.node.browseName.toString());
-            if (!reference.node!.modellingRule) {
+            if (!reference.node?.modellingRule) {
                 return false;
             }
-            (typeof reference.node!.modellingRule === "string").should.eql(true);
-            return reference.node!.modellingRule === "Mandatory" || reference.node!.modellingRule === "Optional";
+            (typeof reference.node?.modellingRule === "string").should.eql(true);
+            return reference.node?.modellingRule === "Mandatory" || reference.node?.modellingRule === "Optional";
         }
 
         const r1_child = deviceType
             .findReferencesEx("Aggregates")
             .filter((x: UAReference) => isMandatory(x))
-            .map((x: UAReference) => x.node!.browseName.name!.toString());
+            .map((x: UAReference) => x.node?.browseName.name?.toString());
 
         const r1_components = deviceType
             .findReferencesEx("HasComponent")
             .filter((x: UAReference) => isMandatory(x))
-            .map((x: UAReference) => x.node!.browseName.name!.toString());
+            .map((x: UAReference) => x.node?.browseName.name?.toString());
 
         const r1_properties = deviceType
             .findReferencesEx("HasProperty")
             .filter((x: UAReference) => isMandatory(x))
-            .map((x: UAReference) => x.node!.browseName.name!.toString());
+            .map((x: UAReference) => x.node?.browseName.name?.toString());
 
         console.log("Aggregates from ", deviceType.browseName.toString(), ": ", chalk.yellow.bold(r1_child.sort().join(" ")));
 
@@ -59,9 +58,9 @@ describe("testing findReferencesEx", () => {
         ([] as string[]).concat(r1_components, r1_properties).sort().should.eql(r1_child.sort());
 
         const r2_child = topologyElementType
-            .findReferencesEx("Aggregates")!
-            .filter((x: UAReference) => isMandatory(x))
-            .map((x: UAReference) => x.node!.browseName.name!.toString());
+            .findReferencesEx("Aggregates")
+            ?.filter((x: UAReference) => isMandatory(x))
+            .map((x: UAReference) => x.node?.browseName.name?.toString());
 
         r2_child.length.should.be.greaterThan(1);
 
@@ -87,12 +86,12 @@ describe("testing findReferencesEx", () => {
         });
         for (const opt of optionals) {
             const child = someDevice.getChildByName(opt);
-            const childName = child ? child.browseName.toString() : " ???";
+            const _childName = child ? child.browseName.toString() : " ???";
             // xx console.log("opt ",opt,childName);
         }
         const instance_children = someDevice
             .findReferencesEx("Aggregates")
-            .map((x: UAReference) => x.node!.browseName.name!.toString());
+            .map((x: UAReference) => x.node?.browseName.name?.toString());
 
         // xx console.log(instance_children);
 

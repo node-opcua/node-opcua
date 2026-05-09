@@ -1,17 +1,16 @@
 import { AttributeIds } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
 import { AddressSpace, SessionContext } from "..";
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 describe("testing UAObjectType", () => {
     let addressSpace: AddressSpace;

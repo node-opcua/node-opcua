@@ -1,13 +1,11 @@
-import should from "should";
-
-import { DataValue, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataValue, DataValueT } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import sinon from "sinon";
 
-import { AddressSpace, SessionContext, UAMultiStateDiscrete, UAMultiStateDiscreteEx } from "../..";
+import { AddressSpace, SessionContext, type UAMultiStateDiscreteEx } from "../..";
 
 export function subtest_multi_state_discrete_type(mainTest: { addressSpace: AddressSpace }): void {
     describe("MultiStateDiscreteType", () => {
@@ -39,8 +37,8 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
             multiStateDiscreteVariable.valueRank.should.eql(-2);
 
             multiStateDiscreteVariable
-                .getPropertyByName("EnumStrings")!
-                .readValue()
+                .getPropertyByName("EnumStrings")
+                ?.readValue()
                 .value.toString()
                 .should.eql(
                     "Variant(Array<LocalizedText>, l= 3, value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])"
@@ -97,7 +95,7 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
 
             // because we use getter and setter, we need to call at least readValueAsync once
             // to get the initial value....
-            const dv0 = await multiStateDiscreteVariable.readValueAsync(SessionContext.defaultContext);
+            const _dv0 = await multiStateDiscreteVariable.readValueAsync(SessionContext.defaultContext);
 
             multiStateDiscreteVariable.getValue().should.eql(0);
             multiStateDiscreteVariable.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -105,7 +103,7 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
             // ----------------
 
             _theValue = 2;
-            const dv1 = await multiStateDiscreteVariable.readValueAsync(SessionContext.defaultContext);
+            const _dv1 = await multiStateDiscreteVariable.readValueAsync(SessionContext.defaultContext);
             multiStateDiscreteVariable.getValueAsString().should.eql("Green");
             //
             _theValue = 1;

@@ -1,14 +1,16 @@
-import should from "should";
-
 import { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
-import { Variant } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 
+import {
+    type AddressSpace,
+    type AddVariableOptions,
+    type BindVariableOptionsVariation1,
+    SessionContext,
+    type UAVariable
+} from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-    
-import { AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", () => {
     let addressSpace: AddressSpace;
@@ -34,7 +36,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
                         value: this.browseName.toString()
                     });
                 },
-                set: function (this: UAVariable, variant: Variant) {
+                set: function (this: UAVariable, _variant: Variant) {
                     // in set - it doesn't
                     this.browseName.toString().should.eql("1:TEST");
                     this.should.eql(node);

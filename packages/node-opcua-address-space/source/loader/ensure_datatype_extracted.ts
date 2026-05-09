@@ -1,4 +1,4 @@
-import { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
+import type { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
 import {
     convertStructureTypeSchemaToStructureDefinition,
     DataTypeExtractStrategy,
@@ -7,11 +7,14 @@ import {
 } from "node-opcua-client-dynamic-extension-object";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-import { CallbackT } from "node-opcua-status-code";
-import { StructureField } from "node-opcua-types";
-import { AddressSpacePrivate } from "../../src/address_space_private";
+import type { CallbackT } from "node-opcua-status-code";
+import type { StructureField } from "node-opcua-types";
+import type { AddressSpacePrivate } from "../../src/address_space_private";
+import {
+    constructNamespaceDependency,
+    constructNamespacePriorityTable
+} from "../../src/nodeset_tools/construct_namespace_dependency";
 import { PseudoSession } from "../pseudo_session";
-import { constructNamespaceDependency, constructNamespacePriorityTable } from "../../src/nodeset_tools/construct_namespace_dependency";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -20,11 +23,7 @@ interface UADataTypePriv extends UADataType {
     $partialDefinition?: StructureField[];
 }
 
-function fixDefinition103(
-    addressSpace: IAddressSpace,
-    namespaceArray: string[],
-    dataTypeManager: ExtraDataTypeManager
-): void {
+function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[], dataTypeManager: ExtraDataTypeManager): void {
     // fix datatype _getDefinition();
     for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
         const df = dataTypeManager.getDataTypeFactory(namespaceIndex);
@@ -36,11 +35,11 @@ function fixDefinition103(
             if (!dataType) {
                 continue;
             }
-            if (dataType.$partialDefinition && dataType.$partialDefinition.length) {
+            if (dataType.$partialDefinition?.length) {
                 continue;
             }
             // debugLog(" Exploration", dataType.browseName.toString());
-            if (!dataType.$partialDefinition || (dataType.$partialDefinition.length === 0 && s.schema.fields!.length > 0)) {
+            if (!dataType.$partialDefinition || (dataType.$partialDefinition.length === 0 && s.schema.fields?.length > 0)) {
                 const sd = convertStructureTypeSchemaToStructureDefinition(s.schema);
                 dataType.$partialDefinition = sd.fields || undefined;
             }
@@ -48,10 +47,7 @@ function fixDefinition103(
     }
 }
 
-export async function ensureDatatypeExtracted(
-    addressSpace: IAddressSpace
-): Promise<ExtraDataTypeManager> {
-
+export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
     const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
 
     if (!addressSpacePriv.$$extraDataTypeManager) {
@@ -70,7 +66,6 @@ export async function ensureDatatypeExtracted(
         const priorityTable = constructNamespacePriorityTable(addressSpace).priorityTable;
 
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-
             const namespace = addressSpace.getNamespace(namespaceIndex);
 
             if (doDebug) {
@@ -88,13 +83,13 @@ export async function ensureDatatypeExtracted(
                         debugLog("namespace = ", namespace.namespaceUri);
                         debugLog("priorityTable", priorityTable);
                         debugLog(dependency.map((ns) => `${ns.index} ${ns.namespaceUri}`).join("\n"));
-                        throw new Error("Cannot find factory for namespace " + ns.namespaceUri);
+                        throw new Error(`Cannot find factory for namespace ${ns.namespaceUri}`);
                     }
                     return df;
                 });
                 //            getStandardDataTypeFactory()
 
-                const dataTypeFactory1 = new DataTypeFactory(dependFactories);
+                const _dataTypeFactory1 = new DataTypeFactory(dependFactories);
             }
             const dataTypeFactory1 = new DataTypeFactory([...factories]);
             dataTypeFactory1.targetNamespace = namespace.namespaceUri;

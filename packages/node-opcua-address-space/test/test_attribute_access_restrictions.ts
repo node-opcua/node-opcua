@@ -1,14 +1,12 @@
 // tslint:disable:no-bitwise
 import "should";
 
-import { AccessRestrictionsFlag, AttributeIds, makeAccessLevelExFlag, makeAccessRestrictionsFlag } from "node-opcua-data-model";
+import { AccessRestrictionsFlag, AttributeIds, makeAccessRestrictionsFlag } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, Namespace } from "..";
+import type { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("testing AccessRestrictions ", () => {
     let addressSpace: AddressSpace;

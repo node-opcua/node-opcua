@@ -1,15 +1,14 @@
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
-
-import { BaseNode } from "./base_node";
-import { ModellingRuleType } from "./modelling_rule_type";
-import { INamespace } from "./namespace";
-import { UAMethod } from "./ua_method";
-import { UAObject } from "./ua_object";
-import { UAObjectType } from "./ua_object_type";
-import { UAReference } from "./ua_reference";
-import { UAVariable } from "./ua_variable";
+import type { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { BaseNode } from "./base_node";
 import { CloneHelper } from "./clone_helper";
+import type { ModellingRuleType } from "./modelling_rule_type";
+import type { INamespace } from "./namespace";
+import type { UAMethod } from "./ua_method";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAReference } from "./ua_reference";
+import type { UAVariable } from "./ua_variable";
 
 export interface CloneFilter {
     shouldKeep(node: BaseNode): boolean;
@@ -22,8 +21,8 @@ export const defaultCloneFilter: CloneFilter = {
         }
         return true;
     },
-    filterFor(node: BaseNode) {
-        return this;
+    filterFor(_childInstance: UAVariable | UAObject | UAMethod): CloneFilter {
+        return defaultCloneFilter;
     }
 };
 
@@ -46,7 +45,7 @@ export interface CloneExtraInfo {
 export const makeDefaultCloneExtraInfo = (node: UAVariable | UAMethod | UAObject): CloneExtraInfo => {
     const extraInfo = new CloneHelper();
     extraInfo.pushContext({ originalParent: node, clonedParent: node });
-    return extraInfo;
+    return extraInfo as CloneExtraInfo;
 };
 
 export interface CloneOptions /* extends ConstructNodeIdOptions */ {

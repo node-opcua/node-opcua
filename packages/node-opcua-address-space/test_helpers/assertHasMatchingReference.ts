@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import { AddReferenceOpts, BaseNode, UAReference } from "..";
+import type { AddReferenceOpts, BaseNode, UAReference } from "..";
 
 /**
  * asserts that the provided reference exists in the node references
@@ -34,10 +34,10 @@ export function assertHasMatchingReference(node: BaseNode, reference: AddReferen
         return sameNodeId(ref.nodeId, normalizedReference.nodeId);
     });
 
-    const dispOpts = { addressSpace };
+    const _dispOpts = { addressSpace };
 
     if (refs.length !== 1) {
-        throw new Error(" Cannot find reference " + JSON.stringify(normalizedReference));
+        throw new Error(` Cannot find reference ${JSON.stringify(normalizedReference)}`);
     }
     assert(refs.length === 1);
 }

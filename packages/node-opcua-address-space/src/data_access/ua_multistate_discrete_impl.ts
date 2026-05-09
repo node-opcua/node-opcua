@@ -1,19 +1,25 @@
 /**
  * @module node-opcua-address-space.DataAccess
  */
+
+import type {
+    BindVariableOptions,
+    CloneExtraInfo,
+    CloneFilter,
+    CloneOptions,
+    INamespace,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { VariableTypeIds } from "node-opcua-constants";
-import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
-import { BindVariableOptions, INamespace, UAVariable, UAProperty } from "node-opcua-address-space-base";
-
-import { UAMultiStateDiscrete, UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
+import { coerceLocalizedText, type LocalizedText } from "node-opcua-data-model";
+import type { UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import type { AddMultiStateDiscreteOptions } from "../../source/address_space_ts";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { UAVariableImpl } from "../ua_variable_impl";
-import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-
-import { AddMultiStateDiscreteOptions } from "../../source/address_space_ts";
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
@@ -27,26 +33,26 @@ export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAMultiS
     checkVariantCompatibility(value: Variant): StatusCode;
 }
 
-export interface UAMultiStateDiscreteImpl<T, DT extends DataType> {
-    enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;
-}
 /**
  * @class UAMultiStateDiscrete
  */
-export class UAMultiStateDiscreteImpl<T, DT extends DataType> extends UAVariableImpl implements UAMultiStateDiscreteEx<T, DT> {
+export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVariableImpl {
+    private get $7(): UAMultiStateDiscreteEx<T, DT> {
+        return this as unknown as UAMultiStateDiscreteEx<T, DT>;
+    }
     public getValue(): number {
         return this.readValue().value.value;
     }
 
     public getValueAsString(): string {
         const index = this.getValue();
-        const arr = this.enumStrings.readValue().value.value;
+        const arr = this.$7.enumStrings.readValue().value.value;
         assert(Array.isArray(arr));
-        return arr[index].text ? arr[index].text!.toString() : "????";
+        return arr[index].text ? arr[index].text?.toString() : "????";
     }
 
     public getIndex(value: string): number {
-        const arr = this.enumStrings.readValue().value.value;
+        const arr = this.$7.enumStrings.readValue().value.value;
         assert(Array.isArray(arr));
         const index = arr.findIndex((a: LocalizedText) => a.text === value);
         return index;
@@ -56,24 +62,25 @@ export class UAMultiStateDiscreteImpl<T, DT extends DataType> extends UAVariable
         if (typeof value === "string") {
             const index = this.getIndex(value);
             if (index < 0) {
-                throw new Error("UAMultiStateDiscrete#setValue invalid multi state value provided : " + value);
+                throw new Error(`UAMultiStateDiscrete#setValue invalid multi state value provided : ${value}`);
             }
-            return this.setValue(index, options);
+            this.setValue(index, options);
+            return;
         }
-        const arrayEnumStrings = this.enumStrings.readValue().value.value;
+        const arrayEnumStrings = this.$7.enumStrings.readValue().value.value;
         if (value >= arrayEnumStrings.length) {
-            throw new Error("UAMultiStateDiscrete#setValue BadOutOfRange " + value);
+            throw new Error(`UAMultiStateDiscrete#setValue BadOutOfRange ${value}`);
         }
-        assert(isFinite(value));
-        return this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
+        assert(Number.isFinite(value));
+        this.setValueFromSource(new Variant({ dataType: DataType.UInt32, value }));
     }
 
     public checkVariantCompatibility(value: Variant): StatusCode {
         if (!this._validate_DataType(value.dataType)) {
             return StatusCodes.BadTypeMismatch;
         }
-        if (this.enumStrings) {
-            const arrayEnumStrings = this.enumStrings.readValue().value.value;
+        if (this.$7.enumStrings) {
+            const arrayEnumStrings = this.$7.enumStrings.readValue().value.value;
             // MultiStateDiscreteType
             assert(value.dataType === DataType.UInt32);
             if (value.value >= arrayEnumStrings.length) {
@@ -87,11 +94,20 @@ export class UAMultiStateDiscreteImpl<T, DT extends DataType> extends UAVariable
         /* empty */
     }
 
-    public clone<T, DT extends DataType>(options1: any, optionalFilter: any, extraInfo: any): UAMultiStateDiscreteImpl<T, DT> {
+    public clone(
+        options1: CloneOptions,
+        optionalFilter?: CloneFilter,
+        extraInfo?: CloneExtraInfo
+    ): UAMultiStateDiscreteImpl<T, DT> {
         const variable1 = UAVariableImpl.prototype.clone.call(this, options1, optionalFilter, extraInfo);
         return promoteToMultiStateDiscrete(variable1);
     }
 }
+export type UAMultiStateDiscreteImpl<T, DT extends DataType> = UAMultiStateDiscreteImplBase<T, DT> & UAMultiStateDiscreteEx<T, DT>;
+export const UAMultiStateDiscreteImpl = UAMultiStateDiscreteImplBase as unknown as new <
+    T,
+    DT extends DataType
+>() => UAMultiStateDiscreteImpl<T, DT>;
 
 export function promoteToMultiStateDiscrete<T, DT extends DataType>(node: UAVariable): UAMultiStateDiscreteImpl<T, DT> {
     if (node instanceof UAMultiStateDiscreteImpl) {
@@ -116,8 +132,8 @@ export function _addMultiStateDiscrete<T, DT extends DataType>(
     options: AddMultiStateDiscreteOptions
 ): UAMultiStateDiscreteImpl<T, DT> {
     const addressSpace = namespace.addressSpace;
-    assert(Object.prototype.hasOwnProperty.call(options, "enumStrings"));
-    assert(!Object.prototype.hasOwnProperty.call(options, "ValuePrecision"));
+    assert(Object.hasOwn(options, "enumStrings"));
+    assert(!Object.hasOwn(options, "ValuePrecision"));
 
     const multiStateDiscreteType = addressSpace.findVariableType("MultiStateDiscreteType");
     if (!multiStateDiscreteType) {
@@ -153,7 +169,7 @@ export function _addMultiStateDiscrete<T, DT extends DataType>(
         return coerceLocalizedText(value);
     });
 
-    const enumStringsNode = namespace.addVariable({
+    const _enumStringsNode = namespace.addVariable({
         accessLevel: "CurrentRead", // | CurrentWrite",
         browseName: { name: "EnumStrings", namespaceIndex: 0 },
         dataType: "LocalizedText",

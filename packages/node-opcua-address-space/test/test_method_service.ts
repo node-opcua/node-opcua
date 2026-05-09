@@ -1,19 +1,16 @@
 // tslint:disable:no-console
 /* global: describe it before after beforeEach afterEach require*/
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { NodeClass } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId } from "node-opcua-nodeid";
 import { CallRequest } from "node-opcua-service-call";
 import { DataType } from "node-opcua-variant";
-
-import { AddressSpace, UAMethod, UAObject } from "..";
+import { AddressSpace, type UAObject } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 

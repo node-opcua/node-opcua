@@ -1,16 +1,14 @@
-"use strict";
 /* global describe,it,before*/
 
-import fs from "fs";
+import fs from "node:fs";
 import { assert } from "node-opcua-assert";
-import should from "should";
-
 import { standardUnits } from "node-opcua-data-access";
-import { DataType } from "node-opcua-variant";
-import { nodesets, constructNodesetFilename } from "node-opcua-nodesets";
-import { AddressSpace, UARootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
-import { generateAddressSpace } from "../nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { constructNodesetFilename, nodesets } from "node-opcua-nodesets";
+import type { DataType } from "node-opcua-variant";
+import should from "should";
+import { AddressSpace, type UAAnalogItem, type UAObject, type UAObjectType, type UARootFolder } from "..";
+import { generateAddressSpace } from "../nodeJS";
 
 interface MyCustomType extends UAObjectType {
     temperature: UAAnalogItem<number, DataType.Double>;
@@ -36,9 +34,9 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
         valuePrecision: 0.01
     });
 
-    customTypeNode.getComponentByName("Temperature")!.browseName.toString().should.eql("1:Temperature");
+    customTypeNode.getComponentByName("Temperature")?.browseName.toString().should.eql("1:Temperature");
 
-    assert(customTypeNode.temperature!.browseName.toString() === "1:Temperature");
+    assert(customTypeNode.temperature?.browseName.toString() === "1:Temperature");
     return customTypeNode;
 }
 describe("testing add new DataType ", function (this: any) {
@@ -62,10 +60,10 @@ describe("testing add new DataType ", function (this: any) {
     it("should instantiate an object whose type defines an analog item", () => {
         const customType = createCustomType(addressSpace);
         customType.temperature.browseName.toString().should.eql("1:Temperature");
-        customType.temperature.valuePrecision!.browseName.toString().should.eql("ValuePrecision");
-        customType.temperature.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
-        customType.temperature.instrumentRange!.readValue().value.value.low.should.eql(-70);
-        customType.temperature.instrumentRange!.readValue().value.value.high.should.eql(120);
+        customType.temperature.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
+        customType.temperature.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
+        customType.temperature.instrumentRange?.readValue().value.value.low.should.eql(-70);
+        customType.temperature.instrumentRange?.readValue().value.value.high.should.eql(120);
 
         const customNode1 = customType.instantiate({
             browseName: "TestNode",
@@ -75,10 +73,10 @@ describe("testing add new DataType ", function (this: any) {
         customNode1.browseName.toString().should.eql("1:TestNode");
         customNode1.temperature.browseName.toString().should.eql("1:Temperature");
 
-        customNode1.temperature.valuePrecision!.browseName.toString().should.eql("ValuePrecision");
-        customNode1.temperature.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
-        customNode1.temperature.instrumentRange!.readValue().value.value.low.should.eql(-70);
-        customNode1.temperature.instrumentRange!.readValue().value.value.high.should.eql(120);
+        customNode1.temperature.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
+        customNode1.temperature.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
+        customNode1.temperature.instrumentRange?.readValue().value.value.low.should.eql(-70);
+        customNode1.temperature.instrumentRange?.readValue().value.value.high.should.eql(120);
     });
 });
 

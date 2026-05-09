@@ -1,18 +1,19 @@
 /**
  * @module node-opcua-server
  */
-import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription } from "node-opcua-types";
-import {
-    ContinuationPoint,
-    IContinuationPointManager,
-    IContinuationPointInfo,
-    ContinuationData
-} from "node-opcua-address-space-base";
-import { DataValue } from "node-opcua-data-value";
-import { make_warningLog } from "node-opcua-debug";
 
-const warningLog = make_warningLog(__filename);
+import type {
+    ContinuationData,
+    ContinuationPoint,
+    IContinuationPointInfo,
+    IContinuationPointManager
+} from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
+import { make_warningLog } from "node-opcua-debug";
+import { StatusCodes } from "node-opcua-status-code";
+import type { ReferenceDescription } from "node-opcua-types";
+
+const _warningLog = make_warningLog(__filename);
 
 let counter = 0;
 

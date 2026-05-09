@@ -1,8 +1,6 @@
-import should from "should";
-
-import { AddressSpace, Namespace } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("#513 Testing issue porting from 0.4.0 0.4.2", () => {
     let addressSpace: AddressSpace;
@@ -39,6 +37,6 @@ describe("#513 Testing issue porting from 0.4.0 0.4.2", () => {
         });
         o.browseName.namespaceIndex.should.eql(1);
         o.browseName.toString().should.eql("1:MyObject:With:3:Columns");
-        o.browseName.name!.should.eql("MyObject:With:3:Columns");
+        o.browseName.name?.should.eql("MyObject:With:3:Columns");
     });
 });

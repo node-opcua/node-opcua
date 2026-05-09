@@ -1,24 +1,24 @@
-import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { AnyConstructorFunc } from "node-opcua-schemas";
-import { StatusCode } from "node-opcua-status-code";
-import { BrowseDescription, BrowsePath, BrowsePathResult, BrowseResult } from "node-opcua-types";
-import { DataType, Variant, VariantByteString } from "node-opcua-variant";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import type { AnyConstructorFunc } from "node-opcua-schemas";
+import type { StatusCode } from "node-opcua-status-code";
+import type { BrowseDescription, BrowsePath, BrowsePathResult, BrowseResult } from "node-opcua-types";
+import type { DataType, Variant, VariantByteString } from "node-opcua-variant";
 //
-import { AddReferenceOpts, BaseNode } from "./base_node";
-import { INamespace } from "./namespace";
-import { ISessionContext } from "./session_context";
-import { UADataType } from "./ua_data_type";
-import { IEventData } from "./i_event_data";
-import { UAMethod } from "./ua_method";
-import { UAObject } from "./ua_object";
-import { UAEventType } from "./ua_event_type";
-import { UAObjectType } from "./ua_object_type";
-import { UAReference } from "./ua_reference";
-import { UAReferenceType } from "./ua_reference_type";
-import { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable";
-import { UAVariableType } from "./ua_variable_type";
-import { UAView } from "./ua_view";
+import type { AddReferenceOpts, BaseNode } from "./base_node";
+import type { IEventData } from "./i_event_data";
+import type { INamespace } from "./namespace";
+import type { ISessionContext } from "./session_context";
+import type { UADataType } from "./ua_data_type";
+import type { UAEventType } from "./ua_event_type";
+import type { UAMethod } from "./ua_method";
+import type { UAObject } from "./ua_object";
+import type { UAObjectType } from "./ua_object_type";
+import type { UAReference } from "./ua_reference";
+import type { UAReferenceType } from "./ua_reference_type";
+import type { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable";
+import type { UAVariableType } from "./ua_variable_type";
+import type { UAView } from "./ua_view";
 
 export type ShutdownTask = ((this: IAddressSpace) => void) | ((this: IAddressSpace) => Promise<void>);
 

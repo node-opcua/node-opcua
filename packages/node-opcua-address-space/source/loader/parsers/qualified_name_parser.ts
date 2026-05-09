@@ -1,10 +1,9 @@
-import { QualifiedNameOptions, QualifiedName, coerceQualifiedName } from "node-opcua-data-model";
-import { resolveNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { ReaderStateParserLike } from "node-opcua-xml2json";
-
+import { coerceQualifiedName, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { ReaderStateParserLike } from "node-opcua-xml2json";
 
 interface QualifiedNameParserL1 extends ReaderStateParserLike {
-    value: QualifiedName| null;
+    value: QualifiedName | null;
     qualifiedName: QualifiedNameOptions;
 }
 
@@ -13,7 +12,7 @@ export interface QualifiedNameParserL2 {
     text: string;
 }
 
-export const makeQualifiedNameParser = (_translateNodeId: (nodeId: string)=> NodeId) => ({
+export const makeQualifiedNameParser = (_translateNodeId: (nodeId: string) => NodeId) => ({
     QualifiedName: {
         init(this: QualifiedNameParserL1) {
             this.qualifiedName = {
@@ -37,7 +36,7 @@ export const makeQualifiedNameParser = (_translateNodeId: (nodeId: string)=> Nod
             }
         },
         finish(this: QualifiedNameParserL1) {
-            this.value = coerceQualifiedName(this.qualifiedName)
+            this.value = coerceQualifiedName(this.qualifiedName);
         }
     }
 });

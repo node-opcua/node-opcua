@@ -1,54 +1,45 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:max-classes-per-file
-// tslint:disable:no-console
-
-import { assert } from "node-opcua-assert";
-import {
-    IAddressSpace,
+import type {
     AddVariableOptions,
     BaseNode,
+    BaseNodeEvents,
+    IAddressSpace,
+    INamespace,
     InstantiateVariableOptions,
     ModellingRuleType,
-    INamespace,
+    UAMethod,
+    UAObject,
+    UAObjectType,
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
-
-import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
-import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
-import { coerceNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { assert } from "node-opcua-assert";
+import type { UInt32 } from "node-opcua-basic-types";
+import { AttributeIds, BrowseDirection, coerceQualifiedName, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import { DataValue, type DataValueLike } from "node-opcua-data-value";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { UInt32 } from "node-opcua-basic-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
-
 import { SessionContext } from "../source/session_context";
-
 import { initialize_properties_and_components } from "./_instantiate_helpers";
-import { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone_hierarchical_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
-import { construct_isSubtypeOf } from "./tool_isSubtypeOf";
-import { get_subtypeOfObj } from "./tool_isSubtypeOf";
-import { get_subtypeOf } from "./tool_isSubtypeOf";
+import type { AddressSpacePrivate } from "./address_space_private";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
+import { ToStringBuilder, UAVariableType_toString } from "./base_node_private";
 import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
 import { _getBasicDataType } from "./get_basic_datatype";
+import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
-// eslint-disable-next-line prefer-const
-let doTrace = checkDebugFlag("INSTANTIATE");
-const traceLog = errorLog;
-
 interface InstantiateS {
-    propertyOf?: any;
-    componentOf?: any;
+    propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
+    componentOf?: NodeIdLike | BaseNode;
     modellingRule?: ModellingRuleType;
     copyAlsoModellingRules?: boolean;
     copyAlsoAllOptionals?: boolean;
@@ -65,7 +56,7 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
     if (!parent) {
         return false;
     }
-    const parentNode = addressSpace._coerceNode(parent);
+    const parentNode = addressSpace._coerceNode(parent as BaseNode | NodeIdLike);
     if (!parentNode) {
         return false;
     }
@@ -99,14 +90,14 @@ export interface UAVariableTypeOptions extends InternalBaseNodeOptions {
     arrayDimensions?: number[] | null;
     historizing?: boolean;
     isAbstract?: boolean;
-    value?: any;
+    value?: unknown;
     dataType: NodeIdLike;
 }
 
 function deprecate<T>(func: T): T {
     return func;
 }
-export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
+export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UAVariableType {
     public readonly nodeClass = NodeClass.VariableType;
 
     public get subtypeOf(): NodeId | null {
@@ -127,7 +118,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
     public valueRank: number;
     public arrayDimensions: UInt32[] | null;
     public readonly minimumSamplingInterval: number;
-    public readonly value: any;
+    public readonly value: unknown;
     public historizing: boolean;
 
     constructor(options: UAVariableTypeOptions) {
@@ -157,13 +148,13 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.IsAbstract:
-                options.value = { dataType: DataType.Boolean, value: this.isAbstract ? true : false };
+                options.value = { dataType: DataType.Boolean, value: !!this.isAbstract };
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.Value:
-                if (Object.prototype.hasOwnProperty.call(this, "value") && this.value !== undefined) {
-                    assert(this.value.schema.name === "Variant");
-                    options.value = this.value;
+                if (Object.hasOwn(this, "value") && this.value !== undefined) {
+                    assert((this.value as Variant).schema.name === "Variant");
+                    options.value = this.value as Variant;
                     options.statusCode = StatusCodes.Good;
                 } else {
                     debugLog(" warning Value not implemented");
@@ -228,15 +219,15 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             typeof options.browseName === "string" || (options.browseName !== null && typeof options.browseName === "object"),
             "expecting a browse name"
         );
-        assert(
-            !Object.prototype.hasOwnProperty.call(options, "propertyOf"),
-            "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property"
-        );
+        assert(!Object.hasOwn(options, "propertyOf"), "Use addressSpace#addVariable({ propertyOf: xxx}); to add a property");
 
         assertUnusedChildBrowseName(addressSpace, options);
 
-        const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
-        assert(baseVariableType, "BaseVariableType must be defined in the address space");
+        const baseVariableType = addressSpace.findVariableType("BaseVariableType");
+        // c8 ignore next
+        if (!baseVariableType) {
+            throw new Error("BaseVariableType must be defined in the address space");
+        }
 
         let dataType = options.dataType !== undefined ? options.dataType : this.dataType;
         // may be required (i.e YArrayItemType )
@@ -267,7 +258,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         // BadAttributeIdInvalid
         const defaultDataValue = this.readAttribute(null, AttributeIds.Value);
         const defaultValue =
-            (defaultDataType.namespace === 0 && defaultDataType.value == 0) || defaultDataValue.statusCode.isNotGood()
+            (defaultDataType.namespace === 0 && defaultDataType.value === 0) || defaultDataValue.statusCode.isNotGood()
                 ? undefined
                 : defaultDataValue.value;
 
@@ -296,10 +287,13 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         const copyAlsoAllOptionals = options.copyAlsoAllOptionals || false;
 
         initialize_properties_and_components(
-            instance, baseVariableType, this, 
+            instance,
+            baseVariableType,
+            this,
             copyAlsoModellingRules,
             copyAlsoAllOptionals,
-            options.optionals);
+            options.optionals
+        );
 
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue
@@ -311,7 +305,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         instance.install_extra_properties();
 
         if (this._postInstantiateFunc) {
-            this._postInstantiateFunc(instance, this);
+            this._postInstantiateFunc(instance as BaseNode, this);
         }
 
         return instance;
@@ -364,14 +358,14 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     }
     assert(parent !== null && typeof parent === "object");
     if (!(parent instanceof BaseNodeImpl)) {
-        throw new Error("Invalid parent  parent is " + parent.constructor.name);
+        throw new Error(`Invalid parent  parent is ${parent.constructor.name}`);
     }
     // c8 ignore next
     // verify that no components already exists in parent
-    if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
+    if (parent && hasChildWithBrowseName(parent as BaseNode, coerceQualifiedName(options.browseName))) {
         throw new Error(
             "object " +
-                parent.browseName.name!.toString() +
+                parent.browseName.name?.toString() +
                 " have already a child with browseName " +
                 options.browseName.toString()
         );

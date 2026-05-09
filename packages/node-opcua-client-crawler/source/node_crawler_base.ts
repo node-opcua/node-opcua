@@ -9,16 +9,16 @@ import {
     AttributeIds,
     browseAll,
     BrowseDescription,
-    BrowseDescriptionLike,
+    type BrowseDescriptionLike,
     BrowseDirection,
     BrowseResult,
     checkDebugFlag,
     coerceLocalizedText,
     coerceQualifiedName,
-    DataTypeDefinition,
+    type DataTypeDefinition,
     DataValue,
-    ErrorCallback,
-    IBasicSessionAsync2,
+    type ErrorCallback,
+    type IBasicSessionAsync2,
     LocalizedText,
     make_debugLog,
     make_warningLog,
@@ -26,9 +26,9 @@ import {
     makeResultMask,
     NodeClass,
     NodeId,
-    NodeIdLike,
+    type NodeIdLike,
     QualifiedName,
-    ReadValueIdOptions,
+    type ReadValueIdOptions,
     ReferenceDescription,
     ReferenceTypeIds,
     resolveNodeId,
@@ -38,22 +38,22 @@ import {
 } from "node-opcua-client";
 
 import {
-    CacheNodeReferenceType,
+    type CacheNodeReferenceType,
     CacheNodeVariableType,
-    CacheNodeObjectType,
+    type CacheNodeObjectType,
     CacheNodeVariable,
     CacheNode,
-    CacheNodeDataType
+    type CacheNodeDataType
 } from "./cache_node";
 import {
     pendingBrowseName,
-    TaskExtraReference,
-    Task,
-    TaskBase,
-    TaskBrowseNode,
-    EmptyCallback,
-    TaskCrawl,
-    TaskProcessBrowseResponse,
+    type TaskExtraReference,
+    type Task,
+    type TaskBase,
+    type TaskBrowseNode,
+    type EmptyCallback,
+    type TaskCrawl,
+    type TaskProcessBrowseResponse,
     dedup_reference
 } from "./private";
 

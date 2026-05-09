@@ -1,11 +1,11 @@
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { CallbackT } from "node-opcua-status-code";
-import { IAddressSpace, RequiredModel } from "node-opcua-address-space-base";
-import { ReaderStateParser, ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
+import type { IAddressSpace, RequiredModel } from "node-opcua-address-space-base";
 import { getMinOPCUADate } from "node-opcua-date-time";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import type { CallbackT } from "node-opcua-status-code";
+import { type ReaderStateParser, type ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
+import type { NamespacePrivate } from "../../src/namespace_private";
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
-import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
-import { NamespacePrivate } from "../../src/namespace_private";
+import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { NodeSetLoader } from "./load_nodeset2";
 
 const doDebug = checkDebugFlag(__filename);
@@ -24,7 +24,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
     const namespaceUris: string[] = [];
 
     const models: Model[] = [];
-    let currentModel: Model | undefined = undefined;
+    let currentModel: Model | undefined;
     const state0: ReaderStateParser = {
         parser: {
             UANodeSet: {
@@ -32,7 +32,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
                     NamespaceUris: {
                         parser: {
                             Uri: <ReaderStateParserLike & { text: string }>{
-                                finish(this: ReaderStateParserLike & {text: string}) {
+                                finish(this: ReaderStateParserLike & { text: string }) {
                                     namespaceUris.push(this.text);
                                 }
                             }
@@ -41,7 +41,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
                     Models: {
                         parser: {
                             Model: {
-                                init(elementName: string, attrs: any) {
+                                init(_elementName: string, attrs: any) {
                                     const modelUri = attrs.ModelUri;
                                     const version = attrs.Version;
                                     const publicationDate = new Date(Date.parse(attrs.PublicationDate));
@@ -56,7 +56,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
                                 },
                                 parser: {
                                     RequiredModel: {
-                                        init(elementName: string, attrs: any) {
+                                        init(_elementName: string, attrs: any) {
                                             const modelUri = attrs.ModelUri;
                                             const version = attrs.Version;
                                             const publicationDate = new Date(Date.parse(attrs.PublicationDate));
@@ -146,7 +146,7 @@ export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
         for (const requiredModel of model.requiredModel) {
             const requiredModelIndex = findNodesetIndex(requiredModel.modelUri);
             if (requiredModelIndex === -1) {
-                throw new Error("Cannot find namespace for " + requiredModel.modelUri);
+                throw new Error(`Cannot find namespace for ${requiredModel.modelUri}`);
             }
             const nd = nodesetDescs[requiredModelIndex];
             for (const n of nd.namespaceModel.models) {
@@ -154,7 +154,7 @@ export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
             }
         }
         const nodesetIndex = findNodesetIndex(model.modelUri);
-        const alreadyIn = order.findIndex((x) => x === nodesetIndex) !== -1;
+        const alreadyIn = order.indexOf(nodesetIndex) !== -1;
         if (!alreadyIn) order.push(nodesetIndex);
     };
     const visit2 = (nodesetDesc: NodesetDesc) => {
@@ -196,7 +196,6 @@ export async function generateAddressSpaceRaw(
             ns.setRequiredModels(model.requiredModel);
         }
     }
-
 
     for (let index = 0; index < order.length; index++) {
         const nodesetIndex = order[index];
