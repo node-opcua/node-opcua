@@ -23,6 +23,7 @@ const FIXTURES = path.join(__dirname, "fixtures");
 function runMocha(fixtureFiles, extraArgs = []) {
     const files = Array.isArray(fixtureFiles) ? fixtureFiles : [fixtureFiles];
     const args = [
+        "--no-config",
         "--timeout", "10000",
         ...extraArgs,
         ...files.map((f) => path.join(FIXTURES, f)),
