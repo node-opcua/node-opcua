@@ -1,17 +1,15 @@
-import { NodeId } from "node-opcua-nodeid";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { Byte, DateTime, Int16, Int32, SByte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
-import { StatusCode } from "node-opcua-status-code";
-import { LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
-
-import { ExtensionObject } from "node-opcua-extension-object";
-import { CloneOptions, CloneFilter, CloneExtraInfo } from "./clone_options";
-import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
-import { UAObjectType } from "./ua_object_type";
-import { IEventData } from "./i_event_data";
-import { UAEventType } from "./ua_event_type";
-import { UAMethod } from "./ua_method";
-import { EventNotifierFlags } from "./event_notifier_flags";
+import type { Byte, DateTime, Int16, Int32, SByte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
+import type { EventNotifierFlags } from "./event_notifier_flags";
+import type { UAEventType } from "./ua_event_type";
+import type { UAMethod } from "./ua_method";
+import type { UAObjectType } from "./ua_object_type";
 
 export type EventTypeLike = string | NodeId | UAEventType;
 
@@ -144,7 +142,7 @@ export type PseudoVariant =
     | PseudoVariantExtensionObjectArray
     | PseudoVariantVariant
     | PseudoVariantVariantArray;
-    
+
 export interface RaiseEventData {
     $eventDataSource?: UAEventType;
 
@@ -156,10 +154,18 @@ export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
 
+export interface UAObjectEvents extends BaseNodeEvents {    
+
+    "event_raised":()=>void;
+}
+
 /**
  * @interface UAObject
  */
-export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHolder {
+export interface UAObject<T extends UAObjectEvents & ListenerSignature<T>  = UAObjectEvents>
+    extends BaseNode<T>,
+        EventRaiser,
+        IPropertyAndComponentHolder {
     readonly nodeClass: NodeClass.Object;
     get parent(): BaseNode | null;
     get typeDefinitionObj(): UAObjectType;
@@ -180,11 +186,6 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     getMethods(): UAMethod[];
 
     raiseEvent(eventType: EventTypeLike | BaseNode, eventData: RaiseEventData): void;
-
-    on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
-    on(eventName: "dispose", eventHandler: () => void): this;
-    once(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
-    once(eventName: "dispose", eventHandler: () => void): this;
 
     setEventNotifier(eventNotifierFlags: EventNotifierFlags): void;
 
