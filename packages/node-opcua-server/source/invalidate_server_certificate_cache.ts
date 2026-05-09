@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-import { invalidateCachedSecrets } from "node-opcua-common";
 import type { OPCUABaseServer } from "./base_server";
 
 /**
@@ -19,7 +18,7 @@ import type { OPCUABaseServer } from "./base_server";
  * ```
  */
 export function invalidateServerCertificateCache(server: OPCUABaseServer): void {
-    invalidateCachedSecrets(server);
+    server.invalidateCachedCertificates();
     for (const ep of server.endpoints) {
         ep.invalidateCertificates();
     }

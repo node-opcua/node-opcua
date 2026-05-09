@@ -7,6 +7,7 @@ import envPaths from "env-paths";
 import { assert } from "node-opcua-assert";
 import { type Certificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import type { ICertificateStore } from "node-opcua-common";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CertificateManager, type CertificateManagerOptions } from "node-opcua-pki";
 import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
@@ -74,7 +75,7 @@ export interface OPCUACertificateManagerOptions {
     disableFileWatchers?: boolean;
 }
 
-export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
+export class OPCUACertificateManager extends CertificateManager implements ICertificateManager, ICertificateStore {
     public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
     public static registry = new ObjectRegistry();

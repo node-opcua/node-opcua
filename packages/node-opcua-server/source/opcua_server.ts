@@ -36,7 +36,7 @@ import {
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { SecretHolder, ServerState } from "node-opcua-common";
+import { DiskCertificateKeyPairProvider, ServerState } from "node-opcua-common";
 import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
@@ -3850,13 +3850,11 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             transportSettings: serverOptions.transportSettings
         });
 
-        // SecretHolder reads certificateFile/privateKeyFile from `this`
-        // on each access, so it follows Object.defineProperty redirects
-        // (e.g. from push cert management) automatically.
-        // Note: creates a cycle (server → endpoint → SecretHolder → server)
-        // which is harmless — V8 mark-and-sweep handles it, and
-        // endpoint.dispose() breaks it by replacing #certProvider.
-        endPoint.setCertificateProvider(new SecretHolder(this));
+        // DiskCertificateKeyPairProvider takes file paths directly —
+        // no reference cycle back to the server object.
+        // Push certificate management replaces this provider via
+        // server.setProvider() when installing new cert paths.
+        endPoint.setCertificateProvider(new DiskCertificateKeyPairProvider(this.certificateFile, this.privateKeyFile));
 
         return endPoint;
     }

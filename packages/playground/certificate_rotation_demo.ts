@@ -13,7 +13,7 @@ import path from "node:path";
 
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-client";
-import { invalidateCachedSecrets } from "node-opcua-common";
+
 import { makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { OPCUAServer } from "node-opcua-server";
 
@@ -58,7 +58,7 @@ async function main() {
             n++;
             const subject = `/CN=Rotation-${n}`;
             await generateCert(cm, subject);
-            invalidateCachedSecrets(server);
+            server.invalidateCachedCertificates();
             for (const ep of server.endpoints) {
                 ep.invalidateCertificates();
             }

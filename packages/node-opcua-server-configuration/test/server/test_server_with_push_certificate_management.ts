@@ -10,7 +10,7 @@ import "should";
 import { makeRoles } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, makeApplicationUrn, OPCUAClient, type UserIdentityInfoUserName } from "node-opcua-client";
-import { invalidateCachedSecrets } from "node-opcua-common";
+
 import {
     type Certificate,
     certificateMatchesPrivateKey,
@@ -597,7 +597,7 @@ describe("Testing server configured with push certificate management", function 
         const { certificate, privateKeyPEM } = await produceCertificateAndPrivateKey(_folder);
 
         // Write the new certificate and private key to disk at the
-        // locations the SecretHolder will read from
+        // locations the DiskCertificateKeyPairProvider will read from
         const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
         const privateKeyFile = server.serverCertificateManager.privateKey;
         fs.writeFileSync(certificateFile, toPem(certificate, "CERTIFICATE"), "utf8");
@@ -605,7 +605,7 @@ describe("Testing server configured with push certificate management", function 
 
         // Invalidate cached secrets so next getCertificate()/getPrivateKey()
         // re-reads from disk
-        invalidateCachedSecrets(server);
+        server.invalidateCachedCertificates();
 
         await server.suspendEndPoints();
         await server.shutdownChannels();

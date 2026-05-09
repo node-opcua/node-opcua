@@ -2,12 +2,10 @@
  * @module node-opcua-common
  */
 import { EventEmitter } from "node:events";
-import fs from "node:fs";
 import { assert } from "node-opcua-assert";
-import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { type Certificate, type PrivateKey, split_der } from "node-opcua-crypto/web";
 
-import type { ICertificateChainProvider } from "./certificate_chain_provider";
+import { DiskCertificateKeyPairProvider } from "./disk_certificate_key_pair_provider";
 
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
@@ -15,120 +13,50 @@ export interface ICertificateKeyPairProvider {
     getPrivateKey(): PrivateKey;
 }
 
-export interface IHasCertificateFile {
+/**
+ * Extends {@link ICertificateKeyPairProvider} with diagnostic
+ * file-location properties so that consumers can report where
+ * certificates are stored (real path or `"<in-memory>"`).
+ *
+ * Does **not** alter the public `ICertificateKeyPairProvider`
+ * interface — zero breaking change to `ServerSecureChannelParent`,
+ * `ClientSecureChannelParent`, or any external implementation.
+ */
+export interface ICertificateKeyPairProviderWithLocation extends ICertificateKeyPairProvider {
     readonly certificateFile: string;
     readonly privateKeyFile: string;
+    invalidate?(): void;
 }
 
 /**
- * Holds cryptographic secrets (certificate chain and private key) for a
- * certificate/key file pair. Secrets are lazily loaded from disk on first
- * access and kept in truly private `#`-fields so they never appear in
- * `JSON.stringify`, `console.log`, `Object.keys`, or `util.inspect`.
- */
-export class SecretHolder implements ICertificateChainProvider {
-    #certificateChain: Certificate[] | null = null;
-    #privateKey: PrivateKey | null = null;
-    #obj: IHasCertificateFile;
-
-    constructor(obj: IHasCertificateFile) {
-        this.#obj = obj;
-    }
-
-    public getCertificate(): Certificate {
-        // Ensure the chain is loaded before accessing [0]
-        const chain = this.getCertificateChain();
-        return chain[0];
-    }
-
-    public getCertificateChain(): Certificate[] {
-        if (!this.#certificateChain) {
-            const file = this.#obj.certificateFile;
-            if (!fs.existsSync(file)) {
-                throw new Error(`Certificate file must exist: ${file}`);
-            }
-            const chain = readCertificateChain(file);
-            if (!chain || chain.length === 0) {
-                throw new Error(`Invalid certificate chain (length=0) ${file}`);
-            }
-            this.#certificateChain = chain;
-        }
-        return this.#certificateChain;
-    }
-
-    public getPrivateKey(): PrivateKey {
-        if (!this.#privateKey) {
-            const file = this.#obj.privateKeyFile;
-            if (!fs.existsSync(file)) {
-                throw new Error(`Private key file must exist: ${file}`);
-            }
-            const key = readPrivateKey(file);
-            if (key instanceof Buffer) {
-                throw new Error(`Invalid private key ${file}. Should not be a buffer`);
-            }
-            this.#privateKey = key;
-        }
-        return this.#privateKey;
-    }
-
-    /**
-     * Clears cached secrets so the GC can reclaim sensitive material.
-     * After calling dispose the holder will re-read from disk on next access.
-     */
-    public dispose(): void {
-        this.#certificateChain = null;
-        this.#privateKey = null;
-    }
-
-    /**
-     * Alias for {@link dispose}.
-     * Implements `ICertificateChainProvider.invalidate()`.
-     */
-    public invalidate(): void {
-        this.dispose();
-    }
-
-    // Prevent secrets from leaking through JSON serialization
-    public toJSON(): Record<string, string> {
-        return { certificateFile: this.#obj.certificateFile, privateKeyFile: this.#obj.privateKeyFile };
-    }
-
-    // Prevent secrets from leaking through console.log / util.inspect
-    public [Symbol.for("nodejs.util.inspect.custom")](): string {
-        return `SecretHolder { certificateFile: "${this.#obj.certificateFile}", privateKeyFile: "${this.#obj.privateKeyFile}" }`;
-    }
-}
-
-/**
- * Module-private WeakMap that associates an ICertificateKeyPairProvider
- * with its SecretHolder. Using a WeakMap means:
- * - The secret holder is invisible from the outside (no enumerable property)
- * - If the owning object is GC'd, the SecretHolder is automatically collected
- */
-const secretHolders = new WeakMap<object, SecretHolder>();
-
-function getSecretHolder(obj: ICertificateKeyPairProvider & IHasCertificateFile): SecretHolder {
-    let holder = secretHolders.get(obj);
-    if (!holder) {
-        holder = new SecretHolder(obj);
-        secretHolders.set(obj, holder);
-    }
-    return holder;
-}
-
-/**
- * Invalidate any cached certificate chain and private key for the given
- * provider so that the next `getCertificate()` / `getPrivateKey()` call
- * re-reads from disk.
+ * Wrap a bare {@link ICertificateKeyPairProvider} (without location
+ * properties) into an {@link ICertificateKeyPairProviderWithLocation}.
  *
- * This is the public replacement for the old `$$certificateChain = null`
- * / `$$privateKey = null` pattern.
+ * If the provider already implements the extended interface, it is
+ * returned as-is. Otherwise a thin wrapper adds `"<unknown>"` defaults.
  */
-export function invalidateCachedSecrets(obj: ICertificateKeyPairProvider): void {
-    const holder = secretHolders.get(obj);
-    if (holder) {
-        holder.dispose();
+function ensureProviderHasLocation(
+    provider: ICertificateKeyPairProvider
+): ICertificateKeyPairProviderWithLocation {
+    if ("certificateFile" in provider && "privateKeyFile" in provider) {
+        return provider as ICertificateKeyPairProviderWithLocation;
     }
+    return {
+        get certificateFile() {
+            return "<unknown>";
+        },
+        get privateKeyFile() {
+            return "<unknown>";
+        },
+        getCertificate: () => provider.getCertificate(),
+        getCertificateChain: () => provider.getCertificateChain(),
+        getPrivateKey: () => provider.getPrivateKey(),
+        invalidate: () => {
+            if ("invalidate" in provider && typeof provider.invalidate === "function") {
+                provider.invalidate();
+            }
+        }
+    };
 }
 
 /**
@@ -176,68 +104,91 @@ export interface IOPCUASecureObjectOptions {
      * Optional pre-built certificate + private-key provider. When supplied,
      * `OPCUASecureObject.getCertificate()` / `.getCertificateChain()` /
      * `.getPrivateKey()` delegate to this object verbatim, and the disk-backed
-     * `SecretHolder` path (`fs.existsSync` + `readCertificateChain` +
-     * `readPrivateKey`) is not used.
+     * path (`fs.existsSync` + `readCertificateChain` + `readPrivateKey`) is
+     * not used.
      *
      * Intended for browser builds (bundled via esbuild) and test fixtures that
-     * want to stage a cert+key pair without staging PKI folders on disk. A
-     * caller that wants in-memory semantics simply passes an implementation of
-     * {@link ICertificateKeyPairProvider} whose methods return values from
-     * memory.
+     * want to stage a cert+key pair without staging PKI folders on disk.
      *
      * When present, `certificateFile` / `privateKeyFile` become optional and
-     * may be omitted (internal placeholders are used for toJSON output).
-     * When absent, those two fields remain required strings.
+     * may be omitted.
+     * When absent, those two fields remain required strings and a
+     * {@link DiskCertificateKeyPairProvider} is created automatically.
      */
     certificateKeyPairProvider?: ICertificateKeyPairProvider;
 }
 
 /**
  * An object that provides a certificate and a privateKey.
- * Secrets are loaded lazily and stored in a module-private WeakMap
- * so they never appear on the instance.
+ *
+ * All certificate/key access is delegated to an internal
+ * {@link ICertificateKeyPairProviderWithLocation} provider.
+ *
+ * - When constructed with file paths, a {@link DiskCertificateKeyPairProvider}
+ *   is created automatically.
+ * - When constructed with an injected provider, it is used directly.
+ * - The provider can be replaced at runtime via {@link setProvider}.
  */
-
 // biome-ignore lint/suspicious/noExplicitAny: EventEmitter use any
 export class OPCUASecureObject<T extends Record<string | symbol, any> = any>
     extends EventEmitter<T>
-    implements ICertificateKeyPairProvider, IHasCertificateFile
+    implements ICertificateKeyPairProvider
 {
-    public readonly certificateFile: string;
-    public readonly privateKeyFile: string;
-    readonly #certificateKeyPairProvider?: ICertificateKeyPairProvider;
+    #provider: ICertificateKeyPairProviderWithLocation;
 
     constructor(options: IOPCUASecureObjectOptions) {
         super();
         if (options.certificateKeyPairProvider) {
-            // When a provider is supplied, the file paths become diagnostic
-            // placeholders only — `SecretHolder` is never consulted.
-            this.certificateFile = options.certificateFile ?? "<in-memory>";
-            this.privateKeyFile = options.privateKeyFile ?? "<in-memory>";
-            this.#certificateKeyPairProvider = options.certificateKeyPairProvider;
+            // Injected provider — wrap if missing location properties
+            this.#provider = ensureProviderHasLocation(options.certificateKeyPairProvider);
         } else {
-            assert(typeof options.certificateFile === "string");
-            assert(typeof options.privateKeyFile === "string");
-            this.certificateFile = options.certificateFile || "invalid certificate file";
-            this.privateKeyFile = options.privateKeyFile || "invalid private key file";
+            // Auto-create disk provider from file paths
+            assert(typeof options.certificateFile === "string", "certificateFile or certificateKeyPairProvider is required");
+            assert(typeof options.privateKeyFile === "string", "privateKeyFile or certificateKeyPairProvider is required");
+            this.#provider = new DiskCertificateKeyPairProvider(
+                options.certificateFile || "invalid certificate file",
+                options.privateKeyFile || "invalid private key file"
+            );
         }
     }
 
+    /** File path of the certificate (or `"<in-memory>"`). */
+    public get certificateFile(): string {
+        return this.#provider.certificateFile;
+    }
+
+    /** File path of the private key (or `"<in-memory>"`). */
+    public get privateKeyFile(): string {
+        return this.#provider.privateKeyFile;
+    }
+
     public getCertificate(): Certificate {
-        return this.#certificateKeyPairProvider
-            ? this.#certificateKeyPairProvider.getCertificate()
-            : getSecretHolder(this).getCertificate();
+        return this.#provider.getCertificate();
     }
 
     public getCertificateChain(): Certificate[] {
-        return this.#certificateKeyPairProvider
-            ? this.#certificateKeyPairProvider.getCertificateChain()
-            : getSecretHolder(this).getCertificateChain();
+        return this.#provider.getCertificateChain();
     }
 
     public getPrivateKey(): PrivateKey {
-        return this.#certificateKeyPairProvider
-            ? this.#certificateKeyPairProvider.getPrivateKey()
-            : getSecretHolder(this).getPrivateKey();
+        return this.#provider.getPrivateKey();
+    }
+
+    /**
+     * Replace the internal provider.
+     * Accepts any {@link ICertificateKeyPairProvider} — wraps it
+     * with location defaults if it lacks `certificateFile`/`privateKeyFile`.
+     */
+    public setProvider(provider: ICertificateKeyPairProvider): void {
+        this.#provider = ensureProviderHasLocation(provider);
+    }
+
+    /**
+     * Invalidate cached certificate chain and private key so the next
+     * `getCertificate()` / `getPrivateKey()` call re-reads from the
+     * underlying source. For in-memory providers, this is a no-op.
+     */
+    public invalidateCachedCertificates(): void {
+        this.#provider.invalidate?.();
     }
 }

@@ -21,6 +21,7 @@
     "dependencies": {
         "env-paths": "2.2.1",
         "node-opcua-assert": "2.164.0",
+        "node-opcua-common": "2.170.0",
         "node-opcua-crypto": "5.3.5",
         "node-opcua-debug": "2.168.0",
         "node-opcua-object-registry": "2.169.0",

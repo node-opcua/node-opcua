@@ -4,7 +4,7 @@
 // tslint:disable:no-unused-expression
 import type { LocaleId } from "node-opcua-basic-types";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import type { OPCUASecureObject } from "node-opcua-common";
+import type { ICertificateKeyPairProvider, ICertificateStore, OPCUASecureObject } from "node-opcua-common";
 import type { Certificate } from "node-opcua-crypto/web";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import type { ResponseCallback } from "node-opcua-pseudo-session";
@@ -32,7 +32,7 @@ export interface FindEndpointOptions {
     privateKeyFile: string;
     applicationName: string;
     applicationUri: string;
-    clientCertificateManager: OPCUACertificateManager;
+    clientCertificateManager: OPCUACertificateManager | ICertificateStore;
 }
 
 export interface FindEndpointResult {
@@ -142,7 +142,7 @@ export interface OPCUAClientBaseOptions {
      *  - you want multiple instances of OPCUAClient to share the same OPCUACertificateManager
      *
      */
-    clientCertificateManager?: OPCUACertificateManager;
+    clientCertificateManager?: OPCUACertificateManager | ICertificateStore;
 
     /**
      * The client certificate pem file.
@@ -195,6 +195,14 @@ export interface OPCUAClientBaseOptions {
      * defaultTransactionTimeout
      */
     defaultTransactionTimeout?: number;
+
+    /**
+     * An optional in-memory certificate/key provider.
+     *
+     * When supplied, the client skips disk-based certificate
+     * path resolution and uses the provider directly.
+     */
+    certificateKeyPairProvider?: ICertificateKeyPairProvider;
 }
 
 export interface GetEndpointsOptions {
@@ -207,7 +215,7 @@ export interface OPCUAClientBase<Events extends OPCUAClientBaseEvents = OPCUACli
     /**
      * certificate Manager
      */
-    readonly clientCertificateManager: OPCUACertificateManager;
+    readonly clientCertificateManager: ICertificateStore;
 
     /***
      *

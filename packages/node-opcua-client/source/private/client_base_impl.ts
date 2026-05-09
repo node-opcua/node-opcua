@@ -9,8 +9,8 @@ import { withLock } from "@ster5/global-mutex";
 
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type IOPCUASecureObjectOptions, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
+import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { type ICertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
 import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -228,7 +228,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
 /**
  * check if certificate is trusted or untrusted
  */
-async function _verify_serverCertificate(certificateManager: OPCUACertificateManager, serverCertificate: Certificate) {
+async function _verify_serverCertificate(certificateManager: ICertificateStore, serverCertificate: Certificate) {
     const status = await certificateManager.checkCertificate(serverCertificate);
     if (!status.isGood()) {
         // c8 ignore next
@@ -388,7 +388,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     private _transportSettings: TransportSettings;
     private _transportTimeout?: number;
 
-    public clientCertificateManager: OPCUACertificateManager;
+    public clientCertificateManager: ICertificateStore;
 
     public isUnusable() {
         return (
@@ -430,14 +430,27 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     }
     constructor(options?: OPCUAClientBaseOptions) {
         options = options || {};
-        if (!options.clientCertificateManager) {
-            options.clientCertificateManager = getDefaultCertificateManager("PKI");
-        }
-        options.privateKeyFile = options.privateKeyFile || options.clientCertificateManager.privateKey;
-        options.certificateFile =
-            options.certificateFile || path.join(options.clientCertificateManager.rootDir, "own/certs/client_certificate.pem");
 
-        super(options as IOPCUASecureObjectOptions);
+        if (options.certificateKeyPairProvider) {
+            // In-memory path — skip disk-specific cert manager defaults
+            if (!options.clientCertificateManager) {
+                // Provide a minimal no-op store when using in-memory provider
+                // The caller should supply their own ICertificateStore if they
+                // need trust management.
+                options.clientCertificateManager = getDefaultCertificateManager("PKI");
+            }
+            super(options as IOPCUASecureObjectOptions);
+        } else {
+            // Disk path — derive cert/key paths from certificate manager
+            if (!options.clientCertificateManager) {
+                options.clientCertificateManager = getDefaultCertificateManager("PKI");
+            }
+            const cm = options.clientCertificateManager as OPCUACertificateManager;
+            options.privateKeyFile = options.privateKeyFile || cm.privateKey;
+            options.certificateFile =
+                options.certificateFile || path.join(cm.rootDir, "own/certs/client_certificate.pem");
+            super(options as IOPCUASecureObjectOptions);
+        }
 
         this._setInternalState("uninitialized");
 
@@ -450,7 +463,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         // we need to delay _applicationUri initialization
         this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
-        this.clientCertificateManager = options.clientCertificateManager;
+        this.clientCertificateManager = options.clientCertificateManager!;
         this.clientCertificateManager.referenceCounter++;
 
         this._secureChannel = null;
@@ -773,7 +786,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     }
 
     static async createCertificate(
-        clientCertificateManager: OPCUACertificateManager,
+        clientCertificateManager: ICertificateStore,
         certificateFile: string,
         applicationName: string,
         applicationUri: string
@@ -781,7 +794,11 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         if (!fs.existsSync(certificateFile)) {
             const hostname = getHostname();
             // this.serverInfo.applicationUri!;
-            await clientCertificateManager.createSelfSignedCertificate({
+            // Cast is safe: createDefaultCertificate only calls
+            // this in the disk path, where the manager is always
+            // an OPCUACertificateManager.
+            const cm = clientCertificateManager as unknown as OPCUACertificateManager;
+            await cm.createSelfSignedCertificate({
                 applicationUri,
                 dns: [hostname],
                 // ip: await getIpAddresses(),
@@ -819,7 +836,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     this._getBuiltApplicationUri()
                 );
                 debugLog("privateKey      = ", this.privateKeyFile);
-                debugLog("                = ", this.clientCertificateManager.privateKey);
+                if ("privateKey" in this.clientCertificateManager) {
+                    debugLog("                = ", (this.clientCertificateManager as unknown as OPCUACertificateManager).privateKey);
+                }
                 debugLog("certificateFile = ", this.certificateFile);
                 const _certificate = this.getCertificate();
                 const _privateKey = this.getPrivateKey();
@@ -847,10 +866,16 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             return;
         }
         await this.clientCertificateManager.initialize();
-        await this.createDefaultCertificate();
-        // c8 ignore next
-        if (!fs.existsSync(this.privateKeyFile)) {
-            throw new Error(` cannot locate private key file ${this.privateKeyFile}`);
+
+        if (this.certificateFile === "<in-memory>" || this.certificateFile === "<unknown>") {
+            // In-memory provider — cert already available, skip disk operations
+        } else {
+            // Disk path — create default cert if missing
+            await this.createDefaultCertificate();
+            // c8 ignore next
+            if (!fs.existsSync(this.privateKeyFile)) {
+                throw new Error(` cannot locate private key file ${this.privateKeyFile}`);
+            }
         }
         if (this.isUnusable()) return;
 
@@ -1479,7 +1504,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 })
                 .catch((err1: Error) => {
                     warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
-                    warningLog("                 clientCertificateManager.rootDir = ", this.clientCertificateManager.rootDir);
+                    if ("rootDir" in this.clientCertificateManager) {
+                        warningLog("                 clientCertificateManager.rootDir = ", (this.clientCertificateManager as unknown as { rootDir: string }).rootDir);
+                    }
 
                     const chain = split_der(endpoint.serverCertificate);
                     warningLog(`                 server certificate chain contains ${chain.length} element(s)`);
@@ -1515,7 +1542,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         warningLog(
                             "                 verify also that the issuer certificate is trusted and the issuer's certificate is present in the issuer.cert folder\n" +
                             "                 of the client certificate manager located in ",
-                            this.clientCertificateManager.rootDir
+                            "rootDir" in this.clientCertificateManager
+                                ? (this.clientCertificateManager as unknown as { rootDir: string }).rootDir
+                                : "<in-memory>"
                         );
                     } else {
                         warningLog(

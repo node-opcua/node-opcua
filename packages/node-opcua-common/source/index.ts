@@ -43,4 +43,9 @@ export {
 
 export * from "./applicationurn";
 export * from "./certificate_chain_provider";
+export * from "./disk_certificate_key_pair_provider";
+export * from "./i_certificate_store";
+export * from "./in_memory_certificate_key_pair_provider";
+export * from "./in_memory_certificate_store";
+export * from "./make_subject";
 export * from "./opcua_secure_object";

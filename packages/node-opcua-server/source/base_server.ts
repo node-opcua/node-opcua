@@ -11,9 +11,9 @@ import { withLock } from "@ster5/global-mutex";
 
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { getDefaultCertificateManager, makeSubject, type OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "node-opcua-client";
-import { type IOPCUASecureObjectOptions, invalidateCachedSecrets, makeApplicationUrn, OPCUASecureObject } from "node-opcua-common";
+import { type ICertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
 import { exploreCertificate } from "node-opcua-crypto/web";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
@@ -100,7 +100,7 @@ export interface OPCUABaseServerOptions extends IOPCUASecureObjectOptions {
     /**
      * the server Certificate Manager
      */
-    serverCertificateManager?: OPCUACertificateManager;
+    serverCertificateManager?: OPCUACertificateManager | ICertificateStore;
 }
 
 const emptyCallback = () => {
@@ -130,7 +130,7 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
 
     public serverInfo: ApplicationDescription;
     public endpoints: OPCUAServerEndPoint[];
-    public readonly serverCertificateManager: OPCUACertificateManager;
+    public readonly serverCertificateManager: ICertificateStore;
     public capabilitiesForMDNS: string[];
     protected _preInitTask: (() => Promise<void>)[];
 
@@ -142,9 +142,15 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         if (!options.serverCertificateManager) {
             options.serverCertificateManager = getDefaultCertificateManager("PKI");
         }
-        options.privateKeyFile = options.privateKeyFile || options.serverCertificateManager.privateKey;
-        options.certificateFile =
-            options.certificateFile || path.join(options.serverCertificateManager.rootDir, "own/certs/certificate.pem");
+
+        if ("rootDir" in options.serverCertificateManager) {
+            // Disk path — derive cert/key paths from certificate manager
+            const cm = options.serverCertificateManager as OPCUACertificateManager;
+            options.privateKeyFile = options.privateKeyFile || cm.privateKey;
+            options.certificateFile =
+                options.certificateFile || path.join(cm.rootDir, "own/certs/certificate.pem");
+        }
+        // else: in-memory path — caller must provide cert/key via provider
 
         super(options);
 
@@ -225,6 +231,10 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     }
 
     public async createDefaultCertificate(): Promise<void> {
+        if (this.certificateFile === "<in-memory>" || this.certificateFile === "<unknown>") {
+            // In-memory provider — skip disk operations
+            return;
+        }
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
@@ -249,7 +259,10 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
                 // alternateHostname / advertisedEndpoints) are checked at startup.
                 const ip = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
 
-                await this.serverCertificateManager.createSelfSignedCertificate({
+                // Cast is safe: in the disk path, serverCertificateManager is
+                // always an OPCUACertificateManager.
+                const cm = this.serverCertificateManager as unknown as OPCUACertificateManager;
+                await cm.createSelfSignedCertificate({
                     applicationUri,
                     dns,
                     ip,
@@ -267,7 +280,11 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     public async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         await this.createDefaultCertificate();
-        debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
+        if ("privateKey" in this.serverCertificateManager) {
+            debugLog("privateKey      = ", this.privateKeyFile, (this.serverCertificateManager as unknown as { privateKey: string }).privateKey);
+        } else {
+            debugLog("privateKey      = ", this.privateKeyFile);
+        }
         debugLog("certificateFile = ", this.certificateFile);
         this._checkCertificateSanMismatch();
         await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
@@ -405,7 +422,7 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         // recreate with current hostnames
         await this.createDefaultCertificate();
         // invalidate cached cert so next getCertificate() reloads from disk
-        invalidateCachedSecrets(this);
+        this.invalidateCachedCertificates();
     }
 
     private _checkCertificateSanMismatch(): void {

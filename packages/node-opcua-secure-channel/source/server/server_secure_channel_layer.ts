@@ -8,8 +8,7 @@ import { EventEmitter } from "node:events";
 import type { Socket } from "node:net";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import type { ICertificateManager } from "node-opcua-certificate-manager";
-import { getPartialCertificateChain } from "node-opcua-common";
+import { getPartialCertificateChain, type ICertificateStore } from "node-opcua-common";
 import {
     type Certificate,
     combine_der,
@@ -89,7 +88,7 @@ function getNextChannelId() {
 }
 
 export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
-    certificateManager: ICertificateManager;
+    certificateManager: ICertificateStore;
 
     getCertificate(): Certificate;
 
@@ -245,7 +244,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return Object.keys(this.sessionTokens).length > 0;
     }
 
-    public get certificateManager(): ICertificateManager {
+    public get certificateManager(): ICertificateStore {
         if (!this.#parent) {
             throw new Error("certificateManager not found");
         }

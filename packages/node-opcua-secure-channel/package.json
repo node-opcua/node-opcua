@@ -17,7 +17,6 @@
         "node-opcua-assert": "2.164.0",
         "node-opcua-basic-types": "2.169.0",
         "node-opcua-binary-stream": "2.169.0",
-        "node-opcua-certificate-manager": "2.169.0",
         "node-opcua-chunkmanager": "2.169.0",
         "node-opcua-common": "2.170.0",
         "node-opcua-crypto": "5.3.5",

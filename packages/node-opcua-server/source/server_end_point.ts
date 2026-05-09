@@ -9,8 +9,7 @@ import net, { type Server, type Socket } from "node:net";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type ICertificateChainProvider, StaticCertificateChainProvider } from "node-opcua-common";
+import { type ICertificateChainProvider, type ICertificateStore, StaticCertificateChainProvider } from "node-opcua-common";
 import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -125,7 +124,7 @@ export interface OPCUAServerEndPointOptions {
      */
     privateKey: PrivateKey;
 
-    certificateManager: OPCUACertificateManager;
+    certificateManager: ICertificateStore;
 
     /**
      *  the default secureToken lifetime @default=60000
@@ -322,7 +321,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     public port: number;
     public host: string | undefined;
-    public certificateManager: OPCUACertificateManager;
+    public certificateManager: ICertificateStore;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
     public timeout: number;

@@ -9,14 +9,14 @@
  */
 import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 
-import type { ICertificateKeyPairProvider } from "./opcua_secure_object";
+import type { ICertificateKeyPairProvider, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
 
 /**
  * Provides a certificate chain and private key to an OPC UA endpoint.
  *
  * Implementations may read from memory, disk, or any other source.
- * See also {@link SecretHolder} which implements this interface for
- * disk-based access with lazy caching.
+ * See also {@link DiskCertificateKeyPairProvider} which implements this
+ * interface for disk-based access with lazy caching.
  */
 export interface ICertificateChainProvider extends ICertificateKeyPairProvider {
     /**
@@ -32,13 +32,21 @@ export interface ICertificateChainProvider extends ICertificateKeyPairProvider {
  * Used as the default provider when push certificate management
  * is NOT installed. The chain can be replaced in-place via `update()`.
  */
-export class StaticCertificateChainProvider implements ICertificateChainProvider {
+export class StaticCertificateChainProvider implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation {
     #chain: Certificate[];
     #key: PrivateKey;
 
     constructor(chain: Certificate[], key: PrivateKey) {
         this.#chain = chain;
         this.#key = key;
+    }
+
+    public get certificateFile(): string {
+        return "<in-memory>";
+    }
+
+    public get privateKeyFile(): string {
+        return "<in-memory>";
     }
 
     public getCertificate(): Certificate {

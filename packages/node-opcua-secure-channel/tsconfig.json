@@ -21,9 +21,6 @@
             "path": "../node-opcua-binary-stream"
         },
         {
-            "path": "../node-opcua-certificate-manager"
-        },
-        {
             "path": "../node-opcua-chunkmanager"
         },
         {

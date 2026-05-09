@@ -8,7 +8,7 @@ import chalk from "chalk";
 import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type ICertificateKeyPairProvider, invalidateCachedSecrets } from "node-opcua-common";
+import { DiskCertificateKeyPairProvider, type ICertificateKeyPairProvider } from "node-opcua-common";
 import { type Certificate, split_der, exploreCertificateInfo } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { invalidateServerCertificateCache, type OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
@@ -29,10 +29,12 @@ const CERT_PEM_RELATIVE_PATH = "own/certs/certificate.pem";
 export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     serverInfo?: ApplicationDescriptionOptions;
     serverCertificateManager: OPCUACertificateManager;
-    privateKeyFile: string;
     certificateFile: string;
+    privateKeyFile: string;
     engine: { addressSpace?: AddressSpace };
     createDefaultCertificate(): Promise<void>;
+    setProvider(provider: ICertificateKeyPairProvider): void;
+    invalidateCachedCertificates(): void;
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -76,23 +78,20 @@ async function onApplyChangesCompleted(server: OPCUAServer) {
 }
 
 /**
- * Redirect the server's `certificateFile` and `privateKeyFile`
- * properties to the cert manager's paths, create a default
- * certificate if none exists, and invalidate cached secrets.
+ * Redirect the server's certificate provider to the cert manager's
+ * paths, create a default certificate if none exists, and invalidate
+ * cached secrets.
  */
 async function install(this: OPCUAServerPartial): Promise<void> {
     doDebug && debugLog("install push certificate management", this.serverCertificateManager.rootDir);
 
-    Object.defineProperty(this, "privateKeyFile", {
-        get: () => this.serverCertificateManager.privateKey,
-        configurable: true,
-        enumerable: true
-    });
-    Object.defineProperty(this, "certificateFile", {
-        get: () => path.join(this.serverCertificateManager.rootDir, CERT_PEM_RELATIVE_PATH),
-        configurable: true,
-        enumerable: true
-    });
+    const certFile = path.join(this.serverCertificateManager.rootDir, CERT_PEM_RELATIVE_PATH);
+    const keyFile = this.serverCertificateManager.privateKey;
+
+    // Inject a new disk provider pointing at the cert manager's
+    // paths. The server's certificateFile/privateKeyFile getters
+    // now automatically return the new paths.
+    this.setProvider(new DiskCertificateKeyPairProvider(certFile, keyFile));
 
     // Delegate to the base server's createDefaultCertificate() which
     // handles DNS (fqdn + hostname + configured), IPs (auto + configured),
@@ -101,7 +100,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
 
     // Invalidate any previously cached secrets so that
     // getCertificateChain() / getPrivateKey() will re-read from disk.
-    invalidateCachedSecrets(this);
+    this.invalidateCachedCertificates();
 }
 
 interface UAServerConfigurationEx extends UAServerConfiguration {
@@ -117,14 +116,20 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     }
     await install.call(server as unknown as OPCUAServerPartial);
 
-    // After install() redirected certificateFile / privateKeyFile,
-    // the SecretHolder(this) in each endpoint already follows the
-    // new paths. Just invalidate their cached values so the next
-    // access re-reads from the cert manager's files.
-    invalidateServerCertificateCache(server);
+    // After install() injected a new DiskCertificateKeyPairProvider,
+    // set the same provider on each endpoint so they all read from
+    // the cert manager's paths.
+    // Push certificate management is inherently disk-based.
+    // Cast to concrete type to access rootDir / privateKey.
+    const cm = server.serverCertificateManager as unknown as OPCUACertificateManager;
+    const certFile = path.join(cm.rootDir, CERT_PEM_RELATIVE_PATH);
+    const keyFile = cm.privateKey;
+    for (const endpoint of server.endpoints) {
+        endpoint.setCertificateProvider(new DiskCertificateKeyPairProvider(certFile, keyFile));
+    }
 
     await installPushCertificateManagement(server.engine.addressSpace, {
-        applicationGroup: server.serverCertificateManager,
+        applicationGroup: cm,
         userTokenGroup: server.userCertificateManager,
 
         applicationUri: server.serverInfo.applicationUri || "InvalidURI"
@@ -241,7 +246,7 @@ async function autoTrustCertificateChain(
         return;
     }
 
-    const cm = server.serverCertificateManager;
+    const cm = server.serverCertificateManager as unknown as OPCUACertificateManager;
 
     for (let i = 0; i < chain.length; i++) {
         const cert = chain[i];

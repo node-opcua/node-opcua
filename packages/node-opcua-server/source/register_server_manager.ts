@@ -7,8 +7,8 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import type { UAString } from "node-opcua-basic-types";
-import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { coerceLocalizedText, type LocalizedTextOptions, OPCUAClientBase, type ResponseCallback } from "node-opcua-client";
+import type { ICertificateStore } from "node-opcua-common";
 import { exploreCertificate } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -232,7 +232,7 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
 }
 
 export interface IPartialServer {
-    serverCertificateManager: OPCUACertificateManager;
+    serverCertificateManager: ICertificateStore;
     certificateFile: string;
     privateKeyFile: string;
     serverType: ApplicationType;

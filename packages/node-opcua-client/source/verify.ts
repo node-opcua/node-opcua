@@ -1,9 +1,7 @@
-import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import type { OPCUASecureObject } from "node-opcua-common";
+import type { ICertificateStore, OPCUASecureObject } from "node-opcua-common";
 
 import { type Certificate, exploreCertificate, explorePrivateKey, publicKeyAndPrivateKeyMatches } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import type { VerifyCertificateOptions } from "node-opcua-pki";
 
 const _doDebug = checkDebugFlag(__filename);
 const _debugLog = make_debugLog(__filename);
@@ -117,7 +115,7 @@ export function verifyIsOPCUAValidCertificate(
 export async function performCertificateSanityCheck(
     secureObject: OPCUASecureObject,
     serverOrClient: "server" | "client",
-    certificateManager: OPCUACertificateManager,
+    certificateStore: ICertificateStore,
     applicationUri: string
 ): Promise<void> {
     // verify that certificate is matching private key, and inform the developer if not
@@ -128,7 +126,6 @@ export async function performCertificateSanityCheck(
         errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !");
         errorLog("                  please check the configuration of the OPCUA Server");
         errorLog("                    privateKey= ", secureObject.privateKeyFile);
-        errorLog(" certificateManager.privateKey= ", certificateManager.privateKey);
         errorLog("               certificateFile= ", secureObject.certificateFile);
         throw new Error(
             "[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match ! please fix your configuration"
@@ -145,13 +142,11 @@ export async function performCertificateSanityCheck(
         );
     }
 
-    const options: VerifyCertificateOptions = {
-        acceptOutdatedCertificate: false,
-        acceptOutDatedIssuerCertificate: false,
-        acceptPendingCertificate: false
+    const options = {
+        acceptOutdatedCertificate: false
     };
 
-    const status = await certificateManager.verifyCertificate(certificate, options);
+    const status = await certificateStore.verifyCertificate(certificate, options);
 
     // BadCertificateUntrusted is expected for the application's own
     // certificate — it does not need to be in its own trust list.
