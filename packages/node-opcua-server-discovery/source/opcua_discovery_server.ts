@@ -87,14 +87,19 @@ type RegisterServerMap = Map<string, RegisteredServerExtended>;
 const defaultProductUri = "NodeOPCUA-LocalDiscoveryServer";
 const defaultApplicationUri = makeApplicationUrn(os.hostname(), defaultProductUri);
 
-function getDefaultCertificateManager(): OPCUACertificateManager {
-    const config = envPaths(defaultProductUri).config;
-    return new OPCUACertificateManager({
-        name: "PKI",
-        rootFolder: path.join(config, "PKI"),
+let _discoveryDefaultCertificateManager: OPCUACertificateManager | undefined;
 
-        automaticallyAcceptUnknownCertificate: true
-    });
+function getDefaultCertificateManager(): OPCUACertificateManager {
+    if (!_discoveryDefaultCertificateManager) {
+        const config = envPaths(defaultProductUri).config;
+        _discoveryDefaultCertificateManager = new OPCUACertificateManager({
+            name: "PKI",
+            rootFolder: path.join(config, "PKI"),
+            automaticallyAcceptUnknownCertificate: true
+        });
+    }
+    _discoveryDefaultCertificateManager.referenceCounter++;
+    return _discoveryDefaultCertificateManager;
 }
 
 export interface OPCUADiscoveryServer {

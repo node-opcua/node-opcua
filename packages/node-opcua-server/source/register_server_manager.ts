@@ -292,6 +292,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     private _registration_client: OPCUAClientBase | null = null;
     private selectedEndpoint?: EndpointDescription;
     private _serverEndpoints: EndpointDescription[] = [];
+    private _backgroundProcessPromise: Promise<void> | null = null;
 
     getState(): RegisterServerManagerStatus {
         return this.state;
@@ -353,9 +354,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         // Immediately set the state to INITIALIZING and run the process in the background.
         this.#_setState(RegisterServerManagerStatus.INITIALIZING);
 
-        // This method is called without await to ensure it is non-blocking.
-        // The catch block handles any synchronous errors.
-        this.#_runRegistrationProcess().catch((err) => {
+        // Run the registration process in the background.
+        // Store the promise so stop() can await full exit.
+        this._backgroundProcessPromise = this.#_runRegistrationProcess().catch((err) => {
             warningLog("Synchronous error in #_runRegistrationProcess: ", err?.message);
         });
     }
@@ -579,6 +580,13 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
         // Cancel any pending client connections
         await this.#_cancel_pending_client_if_any();
+
+        // Wait for the background registration loop to fully exit
+        // before proceeding with unregistration.
+        if (this._backgroundProcessPromise) {
+            await this._backgroundProcessPromise;
+            this._backgroundProcessPromise = null;
+        }
 
         if (this.selectedEndpoint) {
             try {

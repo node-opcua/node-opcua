@@ -1024,7 +1024,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             // this may happen if the Server has closed the connection abruptly for some unknown reason
             // or if the tcp connection has been broken.
             callback(
-                new Error("performMessageTransaction: No SecureChannel , connection may have been canceled abruptly by server")
+                new Error(
+                    "performMessageTransaction: No SecureChannel , connection may have been canceled abruptly by server" +
+                    " while performing " + request.schema.name
+                )
             );
             return;
         }

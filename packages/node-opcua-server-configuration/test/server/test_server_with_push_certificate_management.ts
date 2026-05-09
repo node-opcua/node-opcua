@@ -135,7 +135,7 @@ describe("Testing server configured with push certificate management", function 
 
         await installPushCertificateManagementOnServer(server);
 
-        const privateKey1 = readPrivateKey(server.serverCertificateManager.privateKey);
+        const privateKey1 = readPrivateKey((server.serverCertificateManager as OPCUACertificateManager).privateKey);
         const privateKey2 = server.getPrivateKey();
 
         toPem2(privateKey1, "RSA PRIVATE KEY").should.eql(toPem2(privateKey2, "RSA PRIVATE KEY"));
@@ -411,7 +411,7 @@ describe("Testing server configured with push certificate management", function 
         verifyServer(server);
 
         await installPushCertificateManagementOnServer(server);
-        debugLog("private key location =  ", server.serverCertificateManager.privateKey);
+        debugLog("private key location =  ", (server.serverCertificateManager as OPCUACertificateManager).privateKey);
 
         verifyServer(server);
 
@@ -541,7 +541,7 @@ describe("Testing server configured with push certificate management", function 
         await server.start();
 
         step("Given that we known the server key pair before it is changed");
-        const _privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
+        const _privateKey1PEM = await readFile((server.serverCertificateManager as OPCUACertificateManager).privateKey, "utf8");
         const certificateBefore = server.getCertificate();
         split_der(certificateBefore).length.should.eql(1, "certificateBefore should be a single certificate");
 
@@ -598,8 +598,9 @@ describe("Testing server configured with push certificate management", function 
 
         // Write the new certificate and private key to disk at the
         // locations the DiskCertificateKeyPairProvider will read from
-        const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
-        const privateKeyFile = server.serverCertificateManager.privateKey;
+        const cm = server.serverCertificateManager as OPCUACertificateManager;
+        const certificateFile = path.join(cm.rootDir, "own/certs/certificate.pem");
+        const privateKeyFile = cm.privateKey;
         fs.writeFileSync(certificateFile, toPem(certificate, "CERTIFICATE"), "utf8");
         fs.writeFileSync(privateKeyFile, privateKeyPEM, "utf8");
 
@@ -681,7 +682,7 @@ describe("Testing server configured with push certificate management", function 
         const server = await constructServerWithPushCertificate();
 
         step("Given that we known the server key pair before it is changed");
-        const _privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
+        const _privateKey1PEM = await readFile((server.serverCertificateManager as OPCUACertificateManager).privateKey, "utf8");
         const certificateBefore = server.getCertificate();
         const privateKeyBefore = server.getPrivateKey();
 
@@ -743,7 +744,7 @@ describe("Testing server configured with push certificate management", function 
         const server = await constructServerWithPushCertificate();
 
         step("Given that we known the server key pair before it is changed");
-        const _privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
+        const _privateKey1PEM = await readFile((server.serverCertificateManager as OPCUACertificateManager).privateKey, "utf8");
         const certificateBefore = server.getCertificate();
         const privateKeyBefore = server.getPrivateKey();
         step("Given that the server is started");

@@ -228,13 +228,22 @@ OPCUACertificateManager.prototype.checkCertificate = withCallback(OPCUACertifica
 OPCUACertificateManager.prototype.getTrustStatus = withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
 OPCUACertificateManager.prototype.initialize = withCallback(OPCUACertificateManager.prototype.initialize, opts);
 
-export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
-    const config = envPaths("node-opcua-default").config;
-    const pkiFolder = path.join(config, name);
-    return new OPCUACertificateManager({
-        name,
-        rootFolder: pkiFolder,
+const _defaultCertificateManagers: Map<string, OPCUACertificateManager> = new Map();
 
-        automaticallyAcceptUnknownCertificate: true
-    });
+export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
+    let cm = _defaultCertificateManagers.get(name);
+    if (!cm) {
+        const config = envPaths("node-opcua-default").config;
+        const pkiFolder = path.join(config, name);
+        cm = new OPCUACertificateManager({
+            name,
+            rootFolder: pkiFolder,
+            automaticallyAcceptUnknownCertificate: true
+        });
+        _defaultCertificateManagers.set(name, cm);
+    }
+    // Increment so that individual callers' dispose() calls
+    // just decrement without destroying the shared instance.
+    cm.referenceCounter++;
+    return cm;
 }
