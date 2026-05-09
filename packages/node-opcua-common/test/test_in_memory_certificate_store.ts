@@ -66,8 +66,24 @@ describe("InMemoryCertificateStore", () => {
         await store.rejectCertificate(certA);
 
         const status = await store.checkCertificate(certA);
-        // After rejection, the cert is unknown again — auto-accept re-trusts it
-        // But let's use autoAcceptUnknown: false to verify
+        // After rejection, checkCertificate sees the cert in the
+        // rejected set and returns untrusted — auto-accept only
+        // applies to unknown certs, not explicitly rejected ones.
+        status.should.equal(StatusCodes.BadCertificateUntrusted);
+    });
+
+    it("verifyCertificate should respect explicit rejection even with auto-accept", async () => {
+        const store = new InMemoryCertificateStore();
+        await store.initialize();
+
+        // Auto-accept on first check
+        await store.checkCertificate(certA);
+
+        // Now explicitly reject
+        await store.rejectCertificate(certA);
+
+        const result = await store.verifyCertificate(certA);
+        result.should.equal("BadCertificateUntrusted");
     });
 
     it("rejectCertificate + no auto-accept should stay rejected", async () => {

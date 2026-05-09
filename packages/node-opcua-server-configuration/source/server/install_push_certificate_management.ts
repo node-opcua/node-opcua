@@ -7,7 +7,7 @@ import chalk from "chalk";
 
 import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { DiskCertificateKeyPairProvider, type ICertificateKeyPairProvider } from "node-opcua-common";
 import { type Certificate, split_der, exploreCertificateInfo } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -120,8 +120,15 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     // set the same provider on each endpoint so they all read from
     // the cert manager's paths.
     // Push certificate management is inherently disk-based.
-    // Cast to concrete type to access rootDir / privateKey.
-    const cm = server.serverCertificateManager as unknown as OPCUACertificateManager;
+    // Assert that the store is a disk-based OPCUACertificateManager.
+    if (!(server.serverCertificateManager instanceof OPCUACertificateManager)) {
+        throw new Error(
+            "installPushCertificateManagementOnServer requires a" +
+            " disk-based OPCUACertificateManager as" +
+            " serverCertificateManager"
+        );
+    }
+    const cm = server.serverCertificateManager;
     const certFile = path.join(cm.rootDir, CERT_PEM_RELATIVE_PATH);
     const keyFile = cm.privateKey;
     for (const endpoint of server.endpoints) {

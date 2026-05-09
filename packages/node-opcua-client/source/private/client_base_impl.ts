@@ -10,7 +10,7 @@ import { withLock } from "@ster5/global-mutex";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type ICertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
+import { type ICertificateStore, InMemoryCertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
 import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -432,12 +432,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         options = options || {};
 
         if (options.certificateKeyPairProvider) {
-            // In-memory path — skip disk-specific cert manager defaults
+            // In-memory path — use a lightweight in-memory store
+            // when no cert manager was explicitly provided.
             if (!options.clientCertificateManager) {
-                // Provide a minimal no-op store when using in-memory provider
-                // The caller should supply their own ICertificateStore if they
-                // need trust management.
-                options.clientCertificateManager = getDefaultCertificateManager("PKI");
+                options.clientCertificateManager = new InMemoryCertificateStore();
             }
             super(options as IOPCUASecureObjectOptions);
         } else {

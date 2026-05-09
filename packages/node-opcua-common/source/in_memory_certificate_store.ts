@@ -47,7 +47,9 @@ export class InMemoryCertificateStore implements ICertificateStore {
     public async dispose(): Promise<void> {
         if (this.referenceCounter > 0) {
             this.referenceCounter--;
-            return;
+            if (this.referenceCounter > 0) {
+                return;
+            }
         }
         this.#trusted.clear();
         this.#rejected.clear();
@@ -83,6 +85,10 @@ export class InMemoryCertificateStore implements ICertificateStore {
         if (this.#trusted.has(tp)) {
             return "Good";
         }
+        if (this.#rejected.has(tp)) {
+            return "BadCertificateUntrusted";
+        }
+        // Unknown certificate
         if (this.#autoAccept) {
             this.#trusted.add(tp);
             return "Good";
