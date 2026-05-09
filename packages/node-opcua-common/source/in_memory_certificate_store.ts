@@ -30,6 +30,8 @@ function thumbprint(certificate: Certificate | Certificate[]): string {
 export class InMemoryCertificateStore implements ICertificateStore {
     #trusted = new Set<string>();
     #rejected = new Set<string>();
+    #issuers = new Set<string>();
+    #crls = new Set<string>();
     #autoAccept: boolean;
 
     public referenceCounter = 0;
@@ -49,6 +51,8 @@ export class InMemoryCertificateStore implements ICertificateStore {
         }
         this.#trusted.clear();
         this.#rejected.clear();
+        this.#issuers.clear();
+        this.#crls.clear();
     }
 
     public async checkCertificate(
@@ -109,5 +113,20 @@ export class InMemoryCertificateStore implements ICertificateStore {
         return this.#trusted.has(tp)
             ? StatusCodes.Good
             : StatusCodes.BadCertificateUntrusted;
+    }
+
+    public async addIssuer(
+        certificate: Certificate,
+        _validate?: boolean,
+        _addInTrustList?: boolean
+    ): Promise<void> {
+        this.#issuers.add(thumbprint(certificate));
+    }
+
+    public async addRevocationList(
+        crl: Certificate,
+        _target?: "issuers" | "trusted"
+    ): Promise<void> {
+        this.#crls.add(thumbprint(crl));
     }
 }

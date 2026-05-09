@@ -35,7 +35,7 @@ async function startServerWithExpiredCertificate() {
     const dns = [...new Set([fqdn, hostname])];
 
     // overwrite default certificate with a expired one
-    await server.serverCertificateManager.createSelfSignedCertificate({
+    await (server.serverCertificateManager as OPCUACertificateManager).createSelfSignedCertificate({
         applicationUri: server.serverInfo.applicationUri!,
         dns,
         startDate: new Date(2000, 10, 0),

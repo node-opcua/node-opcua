@@ -93,7 +93,7 @@ async function main() {
 
     const server = new OPCUAServer(serverOptions);
 
-    console.log(" Configuration root dir =  ", server.serverCertificateManager.rootDir);
+    console.log(" Configuration root dir =  ", (server.serverCertificateManager as OPCUACertificateManager).rootDir);
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     await server.initialize();
@@ -106,12 +106,12 @@ async function main() {
     const _ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
 
     await installPushCertificateManagement(addressSpace, {
-        applicationGroup: server.serverCertificateManager,
-        userTokenGroup: server.userCertificateManager,
+        applicationGroup: server.serverCertificateManager as OPCUACertificateManager,
+        userTokenGroup: server.userCertificateManager as OPCUACertificateManager,
         applicationUri: server.serverInfo.applicationUri || ""
     });
 
-    console.log("Certificate rejected folder ", server.serverCertificateManager.rejectedFolder);
+    console.log("Certificate rejected folder ", (server.serverCertificateManager as OPCUACertificateManager).rejectedFolder);
 
     try {
         await server.start();

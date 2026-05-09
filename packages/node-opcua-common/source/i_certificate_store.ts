@@ -77,4 +77,31 @@ export interface ICertificateStore {
     getTrustStatus(
         certificate: Certificate
     ): Promise<StatusCode>;
+
+    /**
+     * Register an issuer (CA) certificate so that certificates
+     * signed by this CA can be validated.
+     *
+     * @param certificate - the issuer certificate (DER)
+     * @param validate    - whether to validate the issuer cert
+     *                      itself (default: true)
+     * @param addInTrustList - also add to the trusted list
+     */
+    addIssuer(
+        certificate: Certificate,
+        validate?: boolean,
+        addInTrustList?: boolean
+    ): Promise<unknown>;
+
+    /**
+     * Register a Certificate Revocation List so that revoked
+     * certificates can be detected during validation.
+     *
+     * @param crl    - the CRL (DER-encoded)
+     * @param target - which folder/set to store the CRL in
+     */
+    addRevocationList(
+        crl: Certificate,
+        target?: "issuers" | "trusted"
+    ): Promise<unknown>;
 }
