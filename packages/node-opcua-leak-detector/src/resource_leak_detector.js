@@ -477,10 +477,8 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
 
         });
         beforeEach(() => {
-            // make sure we start with a garbage collected situation
-            if (global.gc) {
-                global.gc(true);
-            }
+            // takeMemorySnapshot now does its own major GC; no need for an
+            // explicit gc(true) here. Saves one ~100ms major-GC stall per test.
             beforeSnapshot = takeMemorySnapshot();
         });
         if (func) {
@@ -506,10 +504,7 @@ exports.installResourceLeakDetector = function(isGlobal, func) {
 
     } else {
         beforeEach(function(/*this: Mocha.Test*/) {
-
-            if (global.gc) {
-                global.gc(true);
-            }
+            // takeMemorySnapshot now does its own major GC; no separate gc(true) here.
             resourceLeakDetector.ctx = this.test.ctx;
             resourceLeakDetector.start();
             beforeSnapshot = takeMemorySnapshot();

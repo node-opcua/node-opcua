@@ -16,7 +16,9 @@ let noGCexposed;
  */
 function forceGC() {
     if (global.gc) {
-        global.gc();
+        // Major GC: thorough enough that callers don't need to invoke a separate
+        // global.gc(true) themselves before calling takeMemorySnapshot.
+        global.gc(true);
         noGCexposed = false;
     } else {
         if (noGCexposed === undefined) {
