@@ -7,5 +7,8 @@ packages:
   - tools/*
   # all packages in subdirs of components/
   # - 'packages_extra/*'
-allowBuilds:
-  esbuild: set this to true or false
+
+# pnpm 11 ignores install scripts of native packages by default;
+# this list explicitly allow-lists those we trust to run.
+onlyBuiltDependencies:
+  - esbuild
