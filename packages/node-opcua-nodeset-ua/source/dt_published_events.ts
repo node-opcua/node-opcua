@@ -1,9 +1,12 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTContentFilter } from "./dt_content_filter";
+import type { DTPublishedDataSetSource } from "./dt_published_data_set_source";
+import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand";
+
 // ----- this file has been automatically generated - do not edit
-import { NodeId } from "node-opcua-nodeid"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
-import { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand"
-import { DTContentFilter } from "./dt_content_filter"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

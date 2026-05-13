@@ -1,6 +1,9 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAFileDirectory_Base extends UAFolder_Base {
    // PlaceHolder for $FileDirectoryName$
    // PlaceHolder for $FileName$
 }
-export interface UAFileDirectory extends UAFolder, UAFileDirectory_Base {
-}
+export interface UAFileDirectory extends UAFolder, UAFileDirectory_Base {}

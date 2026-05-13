@@ -1,9 +1,12 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UATocSignal_signalConditionSet extends UAObject { // Object
       absoluteSampleGasPressure?: UAAnalogUnit<number, DataType.Float>;
       chopperFrequencyDeviation?: UABaseAnalog<number, DataType.Float>;
@@ -24,5 +27,4 @@ export interface UATocSignal_signalConditionSet extends UAObject { // Object
 export interface UATocSignal_Base extends UAAnalyticalSignal_Base {
     signalConditionSet?: UATocSignal_signalConditionSet;
 }
-export interface UATocSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UATocSignal_Base {
-}
+export interface UATocSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UATocSignal_Base {}

@@ -1,5 +1,7 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
+
 /**
  * Contains methods and properties required for
  * managing recipes.
@@ -16,5 +18,4 @@ export interface UARecipeManagement_Base {
     addRecipe?: UAMethod;
     removeRecipe?: UAMethod;
 }
-export interface UARecipeManagement extends UAObject, UARecipeManagement_Base {
-}
+export interface UARecipeManagement extends UAObject, UARecipeManagement_Base {}

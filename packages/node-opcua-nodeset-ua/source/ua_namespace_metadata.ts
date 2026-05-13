@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRolePermission } from "./dt_role_permission";
+import type { EnumId } from "./enum_id";
+import type { UAAddressSpaceFile } from "./ua_address_space_file";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { EnumId } from "./enum_id"
-import { UAAddressSpaceFile } from "./ua_address_space_file"
-import { DTRolePermission } from "./dt_role_permission"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UANamespaceMetadata_Base {
     configurationVersion?: UAProperty<UInt32, DataType.UInt32>;
     modelVersion?: UAProperty<UAString, DataType.String>;
 }
-export interface UANamespaceMetadata extends UAObject, UANamespaceMetadata_Base {
-}
+export interface UANamespaceMetadata extends UAObject, UANamespaceMetadata_Base {}

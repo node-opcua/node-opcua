@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 export interface UAAuditClientEvent_Base extends UAAuditEvent_Base {
     serverUri: UAProperty<UAString, DataType.String>;
 }
-export interface UAAuditClientEvent extends UAAuditEvent, UAAuditClientEvent_Base {
-}
+export interface UAAuditClientEvent extends UAAuditEvent, UAAuditClientEvent_Base {}

@@ -1,6 +1,9 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
+import type { UACyclicProcessValue } from "./ua_cyclic_process_value";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UACyclicProcessValue } from "./ua_cyclic_process_value"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAFormingPositions_Base {
     TDC?: UACyclicProcessValue;
     touch?: UACyclicProcessValue;
 }
-export interface UAFormingPositions extends UAObject, UAFormingPositions_Base {
-}
+export interface UAFormingPositions extends UAObject, UAFormingPositions_Base {}

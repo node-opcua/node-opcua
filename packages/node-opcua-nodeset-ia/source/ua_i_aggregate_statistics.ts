@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIStatistics, UAIStatistics_Base } from "./ua_i_statistics";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAIStatistics, UAIStatistics_Base } from "./ua_i_statistics"
+
 /**
  * Base interface for managing statistical data that
  * is not rolled over. All data from the start of
@@ -32,5 +35,4 @@ export interface UAIAggregateStatistics_Base extends UAIStatistics_Base {
      */
     resetCondition?: UAProperty<UAString, DataType.String>;
 }
-export interface UAIAggregateStatistics extends UAIStatistics, UAIAggregateStatistics_Base {
-}
+export interface UAIAggregateStatistics extends UAIStatistics, UAIAggregateStatistics_Base {}

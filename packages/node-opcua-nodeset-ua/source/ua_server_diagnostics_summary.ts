@@ -1,8 +1,11 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UAServerDiagnosticsSummary_Base<T extends DTServerDiagnosticsSu
     securityRejectedRequestsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
     rejectedRequestsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UAServerDiagnosticsSummary<T extends DTServerDiagnosticsSummary> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAServerDiagnosticsSummary_Base<T> {
-}
+export interface UAServerDiagnosticsSummary<T extends DTServerDiagnosticsSummary> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAServerDiagnosticsSummary_Base<T> {}

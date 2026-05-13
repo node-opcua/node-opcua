@@ -1,8 +1,10 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +20,4 @@ export interface UAIAssetLocationIndication_Base extends UABaseInterface_Base {
     usedIndicationType?: UAProperty<UInt16, DataType.UInt16>;
     supportedIndicationTypes?: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAIAssetLocationIndication extends UABaseInterface, UAIAssetLocationIndication_Base {
-}
+export interface UAIAssetLocationIndication extends UABaseInterface, UAIAssetLocationIndication_Base {}

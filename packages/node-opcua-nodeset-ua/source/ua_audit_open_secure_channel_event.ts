@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { EnumSecurityTokenRequest } from "./enum_security_token_request";
+import type { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { EnumSecurityTokenRequest } from "./enum_security_token_request"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
-import { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UAAuditOpenSecureChannelEvent_Base extends UAAuditChannelEvent_
     requestedLifetime: UAProperty<number, DataType.Double>;
     certificateErrorEventId?: UAProperty<Buffer, DataType.ByteString>;
 }
-export interface UAAuditOpenSecureChannelEvent extends UAAuditChannelEvent, UAAuditOpenSecureChannelEvent_Base {
-}
+export interface UAAuditOpenSecureChannelEvent extends UAAuditChannelEvent, UAAuditOpenSecureChannelEvent_Base {}

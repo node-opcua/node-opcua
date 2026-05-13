@@ -1,5 +1,6 @@
+import type { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring";
+
 // ----- this file has been automatically generated - do not edit
-import { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_moni
  * |isAbstract      |true                                                        |
  */
 export type UAWorkingUnitMonitoring_Base = UAElementMonitoring_Base;
-export interface UAWorkingUnitMonitoring extends UAElementMonitoring, UAWorkingUnitMonitoring_Base {
-}
+export interface UAWorkingUnitMonitoring extends UAElementMonitoring, UAWorkingUnitMonitoring_Base {}

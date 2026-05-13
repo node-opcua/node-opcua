@@ -1,8 +1,11 @@
+import type { Byte, UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt16, Byte } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAISrClass_Base extends UABaseInterface_Base {
     priority: UABaseDataVariable<Byte, DataType.Byte>;
     vid: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
-export interface UAISrClass extends UABaseInterface, UAISrClass_Base {
-}
+export interface UAISrClass extends UABaseInterface, UAISrClass_Base {}

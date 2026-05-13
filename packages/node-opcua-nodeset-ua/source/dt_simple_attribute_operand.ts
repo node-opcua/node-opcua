@@ -1,9 +1,12 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTFilterOperand } from "./dt_filter_operand";
+
 // ----- this file has been automatically generated - do not edit
-import { QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTFilterOperand } from "./dt_filter_operand"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

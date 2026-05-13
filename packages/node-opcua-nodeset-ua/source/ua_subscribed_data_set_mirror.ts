@@ -1,5 +1,6 @@
+import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_d
  * |isAbstract      |false                                                       |
  */
 export type UASubscribedDataSetMirror_Base = UASubscribedDataSet_Base;
-export interface UASubscribedDataSetMirror extends UASubscribedDataSet, UASubscribedDataSetMirror_Base {
-}
+export interface UASubscribedDataSetMirror extends UASubscribedDataSet, UASubscribedDataSetMirror_Base {}

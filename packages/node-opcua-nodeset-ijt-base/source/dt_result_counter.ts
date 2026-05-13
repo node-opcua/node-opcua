@@ -1,7 +1,9 @@
+import type { Int16, UAString, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, Int16, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+
 /**
  * This structure is used to provide various types
  * of counters associated to a Result. These

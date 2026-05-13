@@ -1,6 +1,8 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcu
 export interface UAMachineToolIdentification_Base extends UAMachineIdentification_Base {
     softwareIdentification?: UAObject;
 }
-export interface UAMachineToolIdentification extends UAMachineIdentification, UAMachineToolIdentification_Base {
-}
+export interface UAMachineToolIdentification extends UAMachineIdentification, UAMachineToolIdentification_Base {}

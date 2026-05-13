@@ -1,5 +1,6 @@
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                                       |
  */
 export type UAApplicationConfigurationFolder_Base = UAFolder_Base;
-export interface UAApplicationConfigurationFolder extends UAFolder, UAApplicationConfigurationFolder_Base {
-}
+export interface UAApplicationConfigurationFolder extends UAFolder, UAApplicationConfigurationFolder_Base {}

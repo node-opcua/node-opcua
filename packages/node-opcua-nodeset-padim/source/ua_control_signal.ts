@@ -1,7 +1,10 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAControlVariable } from "./ua_control_variable";
+import type { UASignal, UASignal_Base } from "./ua_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UASignal, UASignal_Base } from "./ua_signal"
-import { UAControlVariable } from "./ua_control_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ export interface UAControlSignal_Base extends UASignal_Base {
     autoAdjustPositioner?: UAMethod;
     controlSignal: UAControlVariable<(number | number[])>;
 }
-export interface UAControlSignal extends UASignal, UAControlSignal_Base {
-}
+export interface UAControlSignal extends UASignal, UAControlSignal_Base {}

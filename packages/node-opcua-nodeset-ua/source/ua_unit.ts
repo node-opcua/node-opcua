@@ -1,8 +1,10 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +18,4 @@ export interface UAUnit_Base {
     unitSystem: UAProperty<UAString, DataType.String>;
     discipline?: UAProperty<UAString, DataType.String>;
 }
-export interface UAUnit extends UAObject, UAUnit_Base {
-}
+export interface UAUnit extends UAObject, UAUnit_Base {}

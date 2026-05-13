@@ -1,13 +1,16 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyserChannelOperatingExecuteState } from "./ua_analyser_channel_operating_execute_state";
+import type { UAAnalyserChannel_OperatingModeExecuteSubStateMachine } from "./ua_analyser_channel_operating_mode_execute_sub_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UAAnalyserChannel_OperatingModeExecuteSubStateMachine } from "./ua_analyser_channel_operating_mode_execute_sub_state_machine"
-import { UAAnalyserChannelOperatingExecuteState } from "./ua_analyser_channel_operating_execute_state"
+
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppedToResettingTransition extends Omit<UATransition, "transitionNumber"> { // Object
       transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
@@ -348,5 +351,4 @@ export interface UAAnalyserChannel_OperatingModeSubStateMachine_Base extends UAF
     unholdingToAbortingTransition: UAAnalyserChannel_OperatingModeSubStateMachine_unholdingToAbortingTransition;
     stoppingToAbortingTransition: UAAnalyserChannel_OperatingModeSubStateMachine_stoppingToAbortingTransition;
 }
-export interface UAAnalyserChannel_OperatingModeSubStateMachine extends UAFiniteStateMachine, UAAnalyserChannel_OperatingModeSubStateMachine_Base {
-}
+export interface UAAnalyserChannel_OperatingModeSubStateMachine extends UAFiniteStateMachine, UAAnalyserChannel_OperatingModeSubStateMachine_Base {}

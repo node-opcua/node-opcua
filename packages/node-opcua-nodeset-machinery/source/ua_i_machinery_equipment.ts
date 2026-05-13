@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIMachineTagNameplate, UAIMachineTagNameplate_Base } from "./ua_i_machine_tag_nameplate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable"
-import { UAIMachineTagNameplate, UAIMachineTagNameplate_Base } from "./ua_i_machine_tag_nameplate"
+
 /**
  * Provides base identification information of
  * MachineryEquipment that can be set by the user.
@@ -38,5 +41,4 @@ export interface UAIMachineryEquipment_Base extends UAIMachineTagNameplate_Base 
      */
     machineryEquipmentTypeId: UAProperty<UAString, DataType.String>;
 }
-export interface UAIMachineryEquipment extends UAIMachineTagNameplate, UAIMachineryEquipment_Base {
-}
+export interface UAIMachineryEquipment extends UAIMachineTagNameplate, UAIMachineryEquipment_Base {}

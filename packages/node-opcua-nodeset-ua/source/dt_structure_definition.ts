@@ -1,9 +1,12 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTDataTypeDefinition } from "./dt_data_type_definition";
+import type { DTStructureField } from "./dt_structure_field";
+import type { EnumStructure } from "./enum_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { NodeId } from "node-opcua-nodeid"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataTypeDefinition } from "./dt_data_type_definition"
-import { EnumStructure } from "./enum_structure"
-import { DTStructureField } from "./dt_structure_field"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,6 +1,9 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UADataSetFolder_Base extends UAFolder_Base {
     removeDataSetFolder?: UAMethod;
    // PlaceHolder for $DataSetFolderName$
 }
-export interface UADataSetFolder extends UAFolder, UADataSetFolder_Base {
-}
+export interface UADataSetFolder extends UAFolder, UADataSetFolder_Base {}

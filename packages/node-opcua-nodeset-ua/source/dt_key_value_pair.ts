@@ -1,8 +1,11 @@
+import type { QualifiedName } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

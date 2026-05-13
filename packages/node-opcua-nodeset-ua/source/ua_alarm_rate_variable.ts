@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 export interface UAAlarmRateVariable_Base<T extends number>  extends UABaseDataVariable_Base<T, DataType.Double> {
     rate: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAAlarmRateVariable<T extends number> extends UABaseDataVariable<T, DataType.Double>, UAAlarmRateVariable_Base<T> {
-}
+export interface UAAlarmRateVariable<T extends number> extends UABaseDataVariable<T, DataType.Double>, UAAlarmRateVariable_Base<T> {}

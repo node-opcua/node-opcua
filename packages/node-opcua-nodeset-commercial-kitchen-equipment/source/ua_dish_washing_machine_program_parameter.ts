@@ -1,15 +1,18 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumHygieneMode } from "./enum_hygiene_mode";
+import type { EnumOperationMode } from "./enum_operation_mode";
+import type { EnumProgramMode } from "./enum_program_mode";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
-import { EnumHygieneMode } from "./enum_hygiene_mode"
-import { EnumOperationMode } from "./enum_operation_mode"
-import { EnumProgramMode } from "./enum_program_mode"
+
 export interface UADishWashingMachineProgramParameter_actualFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -75,5 +78,4 @@ export interface UADishWashingMachineProgramParameter_Base extends UAKitchenDevi
    // PlaceHolder for pumpedFinalRinseTemperatureSetpoint_$No_$
     pumpedFinalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
-export interface UADishWashingMachineProgramParameter extends UAKitchenDeviceParameter, UADishWashingMachineProgramParameter_Base {
-}
+export interface UADishWashingMachineProgramParameter extends UAKitchenDeviceParameter, UADishWashingMachineProgramParameter_Base {}

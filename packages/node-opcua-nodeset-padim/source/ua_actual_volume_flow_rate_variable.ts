@@ -1,5 +1,6 @@
+import type { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_flow_measurement_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_flow_measurement_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +13,4 @@ import { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_
  * |isAbstract      |false                                                       |
  */
 export type UAActualVolumeFlowRateVariable_Base<T extends (number | number[])> = UAFlowMeasurementVariable_Base<T>;
-export interface UAActualVolumeFlowRateVariable<T extends (number | number[])> extends UAFlowMeasurementVariable<T>, UAActualVolumeFlowRateVariable_Base<T> {
-}
+export interface UAActualVolumeFlowRateVariable<T extends (number | number[])> extends UAFlowMeasurementVariable<T>, UAActualVolumeFlowRateVariable_Base<T> {}

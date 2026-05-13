@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAComponent, UAComponent_Base } from "./ua_component";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAComponent, UAComponent_Base } from "./ua_component"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UASoftware_Base extends UAComponent_Base {
     model: UAProperty<LocalizedText, DataType.LocalizedText>;
     softwareRevision: UAProperty<UAString, DataType.String>;
 }
-export interface UASoftware extends Omit<UAComponent, "manufacturer"|"model"|"softwareRevision">, UASoftware_Base {
-}
+export interface UASoftware extends Omit<UAComponent, "manufacturer"|"model"|"softwareRevision">, UASoftware_Base {}

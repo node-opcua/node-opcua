@@ -1,7 +1,9 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -25,5 +27,4 @@ export interface UAFile_Base {
     getPosition: UAMethod;
     setPosition: UAMethod;
 }
-export interface UAFile extends UAObject, UAFile_Base {
-}
+export interface UAFile extends UAObject, UAFile_Base {}

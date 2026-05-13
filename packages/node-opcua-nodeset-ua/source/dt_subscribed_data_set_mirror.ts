@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTRolePermission } from "./dt_role_permission";
+import type { DTSubscribedDataSet } from "./dt_subscribed_data_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
-import { DTRolePermission } from "./dt_role_permission"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

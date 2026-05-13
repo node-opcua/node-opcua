@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format";
+import type { UAAggregateConfiguration } from "./ua_aggregate_configuration";
+import type { UAFolder } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format"
-import { UAAggregateConfiguration } from "./ua_aggregate_configuration"
-import { UAFolder } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UAHistoricalDataConfiguration_Base {
     maxTimeStoredValues?: UAProperty<number, DataType.Double>;
     maxCountStoredValues?: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAHistoricalDataConfiguration extends UAObject, UAHistoricalDataConfiguration_Base {
-}
+export interface UAHistoricalDataConfiguration extends UAObject, UAHistoricalDataConfiguration_Base {}

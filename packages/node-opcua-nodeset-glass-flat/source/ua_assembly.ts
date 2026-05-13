@@ -1,5 +1,6 @@
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
  * |isAbstract      |false                                                       |
  */
 export type UAAssembly_Base = UABaseMaterial_Base;
-export interface UAAssembly extends UABaseMaterial, UAAssembly_Base {
-}
+export interface UAAssembly extends UABaseMaterial, UAAssembly_Base {}

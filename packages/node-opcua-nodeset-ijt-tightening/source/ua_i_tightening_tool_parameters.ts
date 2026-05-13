@@ -1,10 +1,12 @@
+import type { Byte, UAString } from "node-opcua-basic-types";
+import type { UAJoiningDataVariable } from "node-opcua-nodeset-ijt-base/dist/ua_joining_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { Byte, UAString } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAJoiningDataVariable } from "node-opcua-nodeset-ijt-base/dist/ua_joining_data_variable"
+
 /**
  * This interface is inherited from
  * 0:BaseInterfaceType to add additional parameters
@@ -68,5 +70,4 @@ export interface UAITighteningToolParameters_Base extends UABaseInterface_Base {
      */
     shutOffMethod?: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
-export interface UAITighteningToolParameters extends UABaseInterface, UAITighteningToolParameters_Base {
-}
+export interface UAITighteningToolParameters extends UABaseInterface, UAITighteningToolParameters_Base {}

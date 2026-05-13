@@ -1,14 +1,17 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
+import type { DataType } from "node-opcua-variant";
+
+import type { UADeviceVariant } from "./ua_device_variant";
+import type { UAIOLinkDevice, UAIOLinkDevice_Base, UAIOLinkDevice_parameterSet } from "./ua_io_link_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Byte, UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAIOLinkDevice_parameterSet, UAIOLinkDevice, UAIOLinkDevice_Base } from "./ua_io_link_device"
-import { UADeviceVariant } from "./ua_device_variant"
+
 export interface UAIOLinkIODDDevice_deviceTypeImage extends UAFolder { // Object
    // PlaceHolder for $ImageIdentifier$
       deviceIcon?: UABaseDataVariable<Buffer, DataType.ByteString>;
@@ -52,5 +55,4 @@ export interface UAIOLinkIODDDevice_Base extends UAIOLinkDevice_Base {
     observer: UAFunctionalGroup;
     specialist: UAFunctionalGroup;
 }
-export interface UAIOLinkIODDDevice extends Omit<UAIOLinkDevice, "parameterSet">, UAIOLinkIODDDevice_Base {
-}
+export interface UAIOLinkIODDDevice extends Omit<UAIOLinkDevice, "parameterSet">, UAIOLinkIODDDevice_Base {}

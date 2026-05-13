@@ -1,9 +1,12 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
+import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -43,5 +46,4 @@ export interface UAVisionAutomaticModeStateMachine_Base extends UAFiniteStateMac
     startSingleJob: UAMethod;
     stop: UAMethod;
 }
-export interface UAVisionAutomaticModeStateMachine extends UAFiniteStateMachine, UAVisionAutomaticModeStateMachine_Base {
-}
+export interface UAVisionAutomaticModeStateMachine extends UAFiniteStateMachine, UAVisionAutomaticModeStateMachine_Base {}

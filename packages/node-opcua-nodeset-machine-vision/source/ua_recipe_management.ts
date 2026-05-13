@@ -1,11 +1,14 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProduct } from "./dt_product";
+import type { UAProductFolder } from "./ua_product_folder";
+import type { UARecipeFolder } from "./ua_recipe_folder";
+import type { UARecipeTransfer } from "./ua_recipe_transfer";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTProduct } from "./dt_product"
-import { UAProductFolder } from "./ua_product_folder"
-import { UARecipeFolder } from "./ua_recipe_folder"
-import { UARecipeTransfer } from "./ua_recipe_transfer"
+
 export interface UARecipeManagement_products extends Omit<UAProductFolder, "$Product$"> { // Object
       "$Product$": UABaseDataVariable<DTProduct, DataType.ExtensionObject>;
 }
@@ -31,5 +34,4 @@ export interface UARecipeManagement_Base {
     unprepareProduct?: UAMethod;
     unprepareRecipe: UAMethod;
 }
-export interface UARecipeManagement extends UAObject, UARecipeManagement_Base {
-}
+export interface UARecipeManagement extends UAObject, UARecipeManagement_Base {}

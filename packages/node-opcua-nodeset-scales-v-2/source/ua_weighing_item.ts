@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTWeight } from "./dt_weight";
+import type { UAWeightItem } from "./ua_weight_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { DTWeight } from "./dt_weight"
-import { UAWeightItem } from "./ua_weight_item"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -52,5 +55,4 @@ export interface UAWeighingItem_Base {
     measuredWidth?: UAAnalogUnit<any, any>;
     zoneName?: UAProperty<UAString, DataType.String>;
 }
-export interface UAWeighingItem extends UAObject, UAWeighingItem_Base {
-}
+export interface UAWeighingItem extends UAObject, UAWeighingItem_Base {}

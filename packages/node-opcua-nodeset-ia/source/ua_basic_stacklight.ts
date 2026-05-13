@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode";
+import type { UAStackLevel } from "./ua_stack_level";
+import type { UAStackRunning } from "./ua_stack_running";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
-import { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode"
-import { UAStackLevel } from "./ua_stack_level"
-import { UAStackRunning } from "./ua_stack_running"
+
 /**
  * Entry point to a stacklight containing elements
  * of the stacklight as well as additional
@@ -42,5 +45,4 @@ export interface UABasicStacklight_Base extends UAOrderedList_Base {
      */
     stackRunning?: UAStackRunning;
 }
-export interface UABasicStacklight extends Omit<UAOrderedList, "$OrderedObject$">, UABasicStacklight_Base {
-}
+export interface UABasicStacklight extends Omit<UAOrderedList, "$OrderedObject$">, UABasicStacklight_Base {}

@@ -1,14 +1,17 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProcessDataVariable } from "./ua_process_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
-import { UAProcessDataVariable } from "./ua_process_data_variable"
+
 export interface UAIOLinkDevice_general extends UAFunctionalGroup { // Object
       applicationReset: UAMethod;
       applicationSpecificTag: UABaseDataVariable<UAString, DataType.String>;
@@ -116,5 +119,4 @@ export interface UAIOLinkDevice_Base extends UATopologyElement_Base {
     softwareRevision?: UAProperty<UAString, DataType.String>;
     vendorText?: UAProperty<UAString, DataType.String>;
 }
-export interface UAIOLinkDevice extends Omit<UATopologyElement, "identification"|"methodSet"|"parameterSet">, UAIOLinkDevice_Base {
-}
+export interface UAIOLinkDevice extends Omit<UATopologyElement, "identification"|"methodSet"|"parameterSet">, UAIOLinkDevice_Base {}

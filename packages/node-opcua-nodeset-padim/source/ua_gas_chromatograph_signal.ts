@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal";
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAGasChromatographSignal_$SignalCalibrationIdentifier$ extends UAAnalogSignal_$SignalCalibrationIdentifier$ { // Object
       calibrationRange1ResponseFactor?: UAProperty<number, DataType.Float>;
       calibrationRange1LowerRangeValue?: UAAnalogUnit<number, DataType.Float>;
@@ -38,5 +41,4 @@ export interface UAGasChromatographSignal_Base extends UAAnalyticalSignal_Base {
    // PlaceHolder for $SignalCalibrationIdentifier$
     signalConditionSet?: UAGasChromatographSignal_signalConditionSet;
 }
-export interface UAGasChromatographSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAGasChromatographSignal_Base {
-}
+export interface UAGasChromatographSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAGasChromatographSignal_Base {}

@@ -1,9 +1,12 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProductionPlan } from "./ua_production_plan";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAProductionPlan } from "./ua_production_plan"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UAProduction_Base {
     productionPlan: UAProductionPlan;
     supportedMaterialTypes?: UAProperty<NodeId[], DataType.NodeId>;
 }
-export interface UAProduction extends UAObject, UAProduction_Base {
-}
+export interface UAProduction extends UAObject, UAProduction_Base {}

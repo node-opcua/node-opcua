@@ -1,5 +1,6 @@
+import type { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_key_credential_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_key_credential_audit_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_
  * |isAbstract      |false                                                       |
  */
 export type UAKeyCredentialUpdatedAuditEvent_Base = UAKeyCredentialAuditEvent_Base;
-export interface UAKeyCredentialUpdatedAuditEvent extends UAKeyCredentialAuditEvent, UAKeyCredentialUpdatedAuditEvent_Base {
-}
+export interface UAKeyCredentialUpdatedAuditEvent extends UAKeyCredentialAuditEvent, UAKeyCredentialUpdatedAuditEvent_Base {}

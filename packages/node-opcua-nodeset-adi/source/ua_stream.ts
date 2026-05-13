@@ -1,15 +1,18 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status";
+import type { EnumExecutionCycle } from "./enum_execution_cycle";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
-import { EnumExecutionCycle } from "./enum_execution_cycle"
-import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
+
 export interface UAStream_parameterSet extends UAObject { // Object
       /**
        * isEnabled
@@ -363,5 +366,4 @@ export interface UAStream_Base extends UATopologyElement_Base {
     chemometricModelSettings: UAFunctionalGroup;
     context: UAStream_context;
 }
-export interface UAStream extends Omit<UATopologyElement, "parameterSet"|"$GroupIdentifier$">, UAStream_Base {
-}
+export interface UAStream extends Omit<UATopologyElement, "parameterSet"|"$GroupIdentifier$">, UAStream_Base {}

@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +24,4 @@ export interface UARtlsDevice_Base extends UAAutoIdDevice_Base {
     scan?: UAMethod;
     speedUnit: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UARtlsDevice extends Omit<UAAutoIdDevice, "scan">, UARtlsDevice_Base {
-}
+export interface UARtlsDevice extends Omit<UAAutoIdDevice, "scan">, UARtlsDevice_Base {}

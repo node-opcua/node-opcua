@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTTimeZone } from "./dt_time_zone";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { DTTimeZone } from "./dt_time_zone"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UABaseEvent_Base {
     conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
     conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
-export interface UABaseEvent extends UAObject, UABaseEvent_Base {
-}
+export interface UABaseEvent extends UAObject, UABaseEvent_Base {}

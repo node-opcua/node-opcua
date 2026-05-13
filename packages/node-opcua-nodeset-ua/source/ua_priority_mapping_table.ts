@@ -1,7 +1,9 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTPriorityMappingEntry } from "./dt_priority_mapping_entry";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTPriorityMappingEntry } from "./dt_priority_mapping_entry"
 
 /**
  * |                |                                                            |
@@ -16,5 +18,4 @@ export interface UAPriorityMappingTable_Base {
     addPriorityMappingEntry?: UAMethod;
     deletePriorityMappingEntry?: UAMethod;
 }
-export interface UAPriorityMappingTable extends UAObject, UAPriorityMappingTable_Base {
-}
+export interface UAPriorityMappingTable extends UAObject, UAPriorityMappingTable_Base {}

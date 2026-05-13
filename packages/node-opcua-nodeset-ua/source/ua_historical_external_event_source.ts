@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEventFilter } from "./dt_event_filter";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
-import { DTUserTokenPolicy } from "./dt_user_token_policy"
-import { DTEventFilter } from "./dt_event_filter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UAHistoricalExternalEventSource_Base {
     transportProfileUri?: UAProperty<UAString, DataType.String>;
     historicalEventFilter: UAProperty<DTEventFilter, DataType.ExtensionObject>;
 }
-export interface UAHistoricalExternalEventSource extends UAObject, UAHistoricalExternalEventSource_Base {
-}
+export interface UAHistoricalExternalEventSource extends UAObject, UAHistoricalExternalEventSource_Base {}

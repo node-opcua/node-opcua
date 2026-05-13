@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UADiscrepancyAlarm_Base extends UAAlarmCondition_Base {
     expectedTime: UAProperty<number, DataType.Double>;
     tolerance?: UAProperty<number, DataType.Double>;
 }
-export interface UADiscrepancyAlarm extends UAAlarmCondition, UADiscrepancyAlarm_Base {
-}
+export interface UADiscrepancyAlarm extends UAAlarmCondition, UADiscrepancyAlarm_Base {}

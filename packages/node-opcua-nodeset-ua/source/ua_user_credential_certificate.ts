@@ -1,5 +1,6 @@
+import type { UACertificate, UACertificate_Base } from "./ua_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UACertificate, UACertificate_Base } from "./ua_certificate"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,5 @@ import { UACertificate, UACertificate_Base } from "./ua_certificate"
  * |isAbstract      |false                                                       |
  */
 export type UAUserCredentialCertificate_Base = UACertificate_Base;
-export interface UAUserCredentialCertificate extends UACertificate, UAUserCredentialCertificate_Base {
-}
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
+export interface UAUserCredentialCertificate extends UACertificate, UAUserCredentialCertificate_Base {}

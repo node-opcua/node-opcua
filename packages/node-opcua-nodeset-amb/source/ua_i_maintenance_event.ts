@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTNameNodeId } from "./dt_name_node_id";
+import type { EnumMaintenanceMethodEnum } from "./enum_maintenance_method_enum";
+import type { UAMaintenanceEventStateMachine } from "./ua_maintenance_event_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { EnumMaintenanceMethodEnum } from "./enum_maintenance_method_enum"
-import { DTNameNodeId } from "./dt_name_node_id"
-import { UAMaintenanceEventStateMachine } from "./ua_maintenance_event_state_machine"
+
 /**
  * Information on maintenance activities, should by
  * applied to conditions (ConditionType or subtypes)
@@ -140,5 +143,4 @@ export interface UAIMaintenanceEvent_Base extends UABaseInterface_Base {
      */
     qualificationOfPersonnel?: UAProperty<DTNameNodeId, DataType.ExtensionObject>;
 }
-export interface UAIMaintenanceEvent extends UABaseInterface, UAIMaintenanceEvent_Base {
-}
+export interface UAIMaintenanceEvent extends UABaseInterface, UAIMaintenanceEvent_Base {}

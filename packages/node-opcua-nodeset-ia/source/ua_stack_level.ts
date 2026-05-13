@@ -1,9 +1,12 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumLevelDisplayMode } from "./enum_level_display_mode";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { EnumLevelDisplayMode } from "./enum_level_display_mode"
+
 /**
  * Contains information relevant to a stacklight
  * operating as a level meter. The whole stack is
@@ -35,5 +38,4 @@ export interface UAStackLevel_Base {
      */
     levelPercent: UAAnalogItem<number, DataType.Float>;
 }
-export interface UAStackLevel extends UAObject, UAStackLevel_Base {
-}
+export interface UAStackLevel extends UAObject, UAStackLevel_Base {}

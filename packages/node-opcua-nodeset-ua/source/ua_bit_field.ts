@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTBitFieldDefinition } from "./dt_bit_field_definition";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTBitFieldDefinition } from "./dt_bit_field_definition"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UABitField_Base<T, DT extends DataType>  extends UABaseDataVari
    // PlaceHolder for $FieldName$
    // PlaceHolder for $OptionalFieldName$
 }
-export interface UABitField<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UABitField_Base<T, DT> {
-}
+export interface UABitField<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UABitField_Base<T, DT> {}

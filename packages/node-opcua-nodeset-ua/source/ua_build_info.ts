@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTBuildInfo } from "./dt_build_info";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTBuildInfo } from "./dt_build_info"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UABuildInfo_Base<T extends DTBuildInfo>  extends UABaseDataVari
     buildNumber: UABaseDataVariable<UAString, DataType.String>;
     buildDate: UABaseDataVariable<Date, DataType.DateTime>;
 }
-export interface UABuildInfo<T extends DTBuildInfo> extends UABaseDataVariable<T, DataType.ExtensionObject>, UABuildInfo_Base<T> {
-}
+export interface UABuildInfo<T extends DTBuildInfo> extends UABaseDataVariable<T, DataType.ExtensionObject>, UABuildInfo_Base<T> {}

@@ -1,12 +1,15 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+import type { DataType } from "node-opcua-variant";
+
+import type { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading";
+import type { UASoftwareVersion } from "./ua_software_version";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"
-import { UASoftwareVersion } from "./ua_software_version"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +24,4 @@ export interface UAPackageLoading_Base extends UASoftwareLoading_Base {
     errorMessage: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
     writeBlockSize?: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAPackageLoading extends UASoftwareLoading, UAPackageLoading_Base {
-}
+export interface UAPackageLoading extends UASoftwareLoading, UAPackageLoading_Base {}

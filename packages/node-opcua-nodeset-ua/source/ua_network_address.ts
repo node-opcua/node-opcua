@@ -1,8 +1,11 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UASelectionList } from "./ua_selection_list";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UASelectionList } from "./ua_selection_list"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UASelectionList } from "./ua_selection_list"
 export interface UANetworkAddress_Base {
     networkInterface: UASelectionList<UAString, DataType.String>;
 }
-export interface UANetworkAddress extends UAObject, UANetworkAddress_Base {
-}
+export interface UANetworkAddress extends UAObject, UANetworkAddress_Base {}

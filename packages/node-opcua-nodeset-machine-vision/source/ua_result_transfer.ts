@@ -1,6 +1,8 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcu
 export interface UAResultTransfer_Base extends UATemporaryFileTransfer_Base {
     generateFileForRead: UAMethod;
 }
-export interface UAResultTransfer extends Omit<UATemporaryFileTransfer, "generateFileForRead">, UAResultTransfer_Base {
-}
+export interface UAResultTransfer extends Omit<UATemporaryFileTransfer, "generateFileForRead">, UAResultTransfer_Base {}

@@ -1,5 +1,6 @@
+import type { UAStream, UAStream_Base } from "./ua_stream";
+
 // ----- this file has been automatically generated - do not edit
-import { UAStream, UAStream_Base } from "./ua_stream"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |isAbstract      |false                                                       |
  */
 export type UAChromatographDeviceStream_Base = UAStream_Base;
-export interface UAChromatographDeviceStream extends UAStream, UAChromatographDeviceStream_Base {
-}
+export interface UAChromatographDeviceStream extends UAStream, UAChromatographDeviceStream_Base {}

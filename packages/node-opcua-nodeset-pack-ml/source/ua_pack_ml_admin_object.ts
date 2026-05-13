@@ -1,11 +1,14 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTPackMLAlarm } from "./dt_pack_ml_alarm";
+import type { DTPackMLCount } from "./dt_pack_ml_count";
+import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTPackMLAlarm } from "./dt_pack_ml_alarm"
-import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
-import { DTPackMLCount } from "./dt_pack_ml_count"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -34,5 +37,4 @@ export interface UAPackMLAdminObject_Base {
     warning?: UABaseDataVariable<DTPackMLAlarm[], DataType.ExtensionObject>;
     warningExtent?: UABaseDataVariable<Int32, DataType.Int32>;
 }
-export interface UAPackMLAdminObject extends UAObject, UAPackMLAdminObject_Base {
-}
+export interface UAPackMLAdminObject extends UAObject, UAPackMLAdminObject_Base {}

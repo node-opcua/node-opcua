@@ -1,8 +1,11 @@
+import type { Byte } from "node-opcua-basic-types";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { Byte } from "node-opcua-basic-types"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
+
 export interface UAIController_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * type
@@ -27,5 +30,4 @@ export interface UAIController_Base extends UAIJoiningSystemAsset_Base {
      */
     parameters: UAIController_parameters;
 }
-export interface UAIController extends Omit<UAIJoiningSystemAsset, "parameters">, UAIController_Base {
-}
+export interface UAIController extends Omit<UAIJoiningSystemAsset, "parameters">, UAIController_Base {}

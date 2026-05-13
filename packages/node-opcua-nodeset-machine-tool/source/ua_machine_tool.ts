@@ -1,17 +1,20 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management";
+import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
+import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+
+import type { UAEquipment } from "./ua_equipment";
+import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine";
+import type { UAMachineToolIdentification } from "./ua_machine_tool_identification";
+import type { UAMonitoring } from "./ua_monitoring";
+import type { UANotification } from "./ua_notification";
+import type { UAProduction } from "./ua_production";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter"
-import { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components"
-import { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine"
-import { UAEquipment } from "./ua_equipment"
-import { UAMachineToolIdentification } from "./ua_machine_tool_identification"
-import { UAMonitoring } from "./ua_monitoring"
-import { UANotification } from "./ua_notification"
-import { UAProduction } from "./ua_production"
+
 export interface UAMachineTool_fileSystem extends Omit<UAFileDirectory, "createDirectory"|"createFile"|"delete"|"moveOrCopy"> { // Object
       createDirectory: UAMethod;
       createFile: UAMethod;
@@ -43,5 +46,4 @@ export interface UAMachineTool_Base {
     notification: UANotification;
     production: UAProduction;
 }
-export interface UAMachineTool extends UAObject, UAMachineTool_Base {
-}
+export interface UAMachineTool extends UAObject, UAMachineTool_Base {}

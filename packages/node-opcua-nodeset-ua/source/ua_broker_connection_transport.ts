@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UABrokerConnectionTransport_Base extends UAConnectionTransport_
     resourceUri: UAProperty<UAString, DataType.String>;
     authenticationProfileUri: UAProperty<UAString, DataType.String>;
 }
-export interface UABrokerConnectionTransport extends UAConnectionTransport, UABrokerConnectionTransport_Base {
-}
+export interface UABrokerConnectionTransport extends UAConnectionTransport, UABrokerConnectionTransport_Base {}

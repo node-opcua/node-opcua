@@ -1,7 +1,10 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTAbstractWeight } from "./dt_abstract_weight";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTAbstractWeight } from "./dt_abstract_weight"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

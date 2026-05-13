@@ -1,6 +1,8 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { DataType } from "node-opcua-variant"
 export interface UAPrognosis_Base {
     predictedTime: UAProperty<Date, DataType.DateTime>;
 }
-export interface UAPrognosis extends UAObject, UAPrognosis_Base {
-}
+export interface UAPrognosis extends UAObject, UAPrognosis_Base {}

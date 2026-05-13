@@ -1,8 +1,11 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumEDMGeneratorState } from "./enum_edm_generator_state";
+import type { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { EnumEDMGeneratorState } from "./enum_edm_generator_state"
-import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAEDMGeneratorMonitoring_Base extends UAWorkingUnitMonitoring_B
     edMGeneratorState: UABaseDataVariable<EnumEDMGeneratorState, DataType.Int32>;
     isOn: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UAEDMGeneratorMonitoring extends UAWorkingUnitMonitoring, UAEDMGeneratorMonitoring_Base {
-}
+export interface UAEDMGeneratorMonitoring extends UAWorkingUnitMonitoring, UAEDMGeneratorMonitoring_Base {}

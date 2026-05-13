@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMachineryItemIdentification, UAMachineryItemIdentification_Base } from "./ua_machinery_item_identification";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAMachineryItemIdentification, UAMachineryItemIdentification_Base } from "./ua_machinery_item_identification"
+
 /**
  * Contains information about the identification and
  * nameplate of a component
@@ -32,5 +35,4 @@ export interface UAMachineryComponentIdentification_Base extends UAMachineryItem
      */
     deviceRevision?: UAProperty<UAString, DataType.String>;
 }
-export interface UAMachineryComponentIdentification extends Omit<UAMachineryItemIdentification, "defaultInstanceBrowseName">, UAMachineryComponentIdentification_Base {
-}
+export interface UAMachineryComponentIdentification extends Omit<UAMachineryItemIdentification, "defaultInstanceBrowseName">, UAMachineryComponentIdentification_Base {}

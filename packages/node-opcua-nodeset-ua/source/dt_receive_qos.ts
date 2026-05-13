@@ -1,5 +1,6 @@
+import type { DTQos } from "./dt_qos";
+
 // ----- this file has been automatically generated - do not edit
-import { DTQos } from "./dt_qos"
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

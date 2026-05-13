@@ -1,8 +1,11 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { UASessionSecurityDiagnostics } from "./ua_session_security_diagnostics";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics"
-import { UASessionSecurityDiagnostics } from "./ua_session_security_diagnostics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ import { UASessionSecurityDiagnostics } from "./ua_session_security_diagnostics"
 export interface UASessionSecurityDiagnosticsArray_Base<T extends DTSessionSecurityDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     sessionSecurityDiagnostics: UASessionSecurityDiagnostics<DTSessionSecurityDiagnostics>;
 }
-export interface UASessionSecurityDiagnosticsArray<T extends DTSessionSecurityDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionSecurityDiagnosticsArray_Base<T> {
-}
+export interface UASessionSecurityDiagnosticsArray<T extends DTSessionSecurityDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionSecurityDiagnosticsArray_Base<T> {}

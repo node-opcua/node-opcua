@@ -1,5 +1,6 @@
+import type { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_non_exclusive_limit_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_non_exclusive_limit_alarm"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_no
  * |isAbstract      |false                                                       |
  */
 export type UANonExclusiveLevelAlarm_Base = UANonExclusiveLimitAlarm_Base;
-export interface UANonExclusiveLevelAlarm extends UANonExclusiveLimitAlarm, UANonExclusiveLevelAlarm_Base {
-}
+export interface UANonExclusiveLevelAlarm extends UANonExclusiveLimitAlarm, UANonExclusiveLevelAlarm_Base {}

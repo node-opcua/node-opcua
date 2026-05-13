@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTTransmitQos } from "./dt_transmit_qos";
+import type { UANetworkAddress } from "./ua_network_address";
+import type { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, Byte, UAString } from "node-opcua-basic-types"
-import { DTTransmitQos } from "./dt_transmit_qos"
-import { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport"
-import { UANetworkAddress } from "./ua_network_address"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UADatagramWriterGroupTransport_Base extends UAWriterGroupTransp
     discoveryAnnounceRate?: UAProperty<UInt32, DataType.UInt32>;
     topic?: UAProperty<UAString, DataType.String>;
 }
-export interface UADatagramWriterGroupTransport extends UAWriterGroupTransport, UADatagramWriterGroupTransport_Base {
-}
+export interface UADatagramWriterGroupTransport extends UAWriterGroupTransport, UADatagramWriterGroupTransport_Base {}

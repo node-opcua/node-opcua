@@ -1,8 +1,11 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTJoiningProcessMeta } from "./dt_joining_process_meta";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTJoiningProcessMeta } from "./dt_joining_process_meta"
+
 /**
  * This structure provides the base container for
  * any joining process in a joining system. 

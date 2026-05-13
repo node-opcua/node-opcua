@@ -1,10 +1,13 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProductId } from "./dt_product_id";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
-import { DTRecipeIdExternal } from "./dt_recipe_id_external"
-import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
-import { DTProductId } from "./dt_product_id"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -47,5 +50,4 @@ export interface UARecipe_Base {
     unlinkProduct?: UAMethod;
     unprepare: UAMethod;
 }
-export interface UARecipe extends UAObject, UARecipe_Base {
-}
+export interface UARecipe extends UAObject, UARecipe_Base {}

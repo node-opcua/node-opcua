@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UATransitionVariable_Base<T extends LocalizedText>  extends UAB
     transitionTime?: UAProperty<Date, DataType.DateTime>;
     effectiveTransitionTime?: UAProperty<Date, DataType.DateTime>;
 }
-export interface UATransitionVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UATransitionVariable_Base<T> {
-}
+export interface UATransitionVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UATransitionVariable_Base<T> {}

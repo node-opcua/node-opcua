@@ -1,5 +1,6 @@
+import type { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/dist/ua_audit_update_method_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/dist/ua_audit_update_method_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-op
  * |isAbstract      |true                                                        |
  */
 export type UAApplicationRegistrationChangedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
-export interface UAApplicationRegistrationChangedAuditEvent extends UAAuditUpdateMethodEvent, UAApplicationRegistrationChangedAuditEvent_Base {
-}
+export interface UAApplicationRegistrationChangedAuditEvent extends UAAuditUpdateMethodEvent, UAApplicationRegistrationChangedAuditEvent_Base {}

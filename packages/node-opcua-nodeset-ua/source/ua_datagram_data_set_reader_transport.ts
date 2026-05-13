@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTReceiveQos } from "./dt_receive_qos";
+import type { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport";
+import type { UANetworkAddress } from "./ua_network_address";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTReceiveQos } from "./dt_receive_qos"
-import { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport"
-import { UANetworkAddress } from "./ua_network_address"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UADatagramDataSetReaderTransport_Base extends UADataSetReaderTr
     datagramQos?: UAProperty<DTReceiveQos[], DataType.ExtensionObject>;
     topic?: UAProperty<UAString, DataType.String>;
 }
-export interface UADatagramDataSetReaderTransport extends UADataSetReaderTransport, UADatagramDataSetReaderTransport_Base {
-}
+export interface UADatagramDataSetReaderTransport extends UADataSetReaderTransport, UADatagramDataSetReaderTransport_Base {}

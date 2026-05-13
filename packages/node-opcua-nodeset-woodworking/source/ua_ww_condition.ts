@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTWwMessageArgument } from "./dt_ww_message_argument";
+import type { EnumWwEventCategory } from "./enum_ww_event_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition"
-import { DTWwMessageArgument } from "./dt_ww_message_argument"
-import { EnumWwEventCategory } from "./enum_ww_event_category"
+
 /**
  * The WwConditionType represents a state of a
  * woodworking system or one of its components.
@@ -79,5 +82,4 @@ export interface UAWwCondition_Base extends UACondition_Base {
      */
     pathParts: UAProperty<UAString[], DataType.String>;
 }
-export interface UAWwCondition extends UACondition, UAWwCondition_Base {
-}
+export interface UAWwCondition extends UACondition, UAWwCondition_Base {}

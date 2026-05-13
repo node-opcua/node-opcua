@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIMachineryItemVendorNameplate, UAIMachineryItemVendorNameplate_Base } from "./ua_i_machinery_item_vendor_nameplate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAIMachineryItemVendorNameplate, UAIMachineryItemVendorNameplate_Base } from "./ua_i_machinery_item_vendor_nameplate"
+
 /**
  * Interface containing identification and nameplate
  * information for a machine provided by the machine
@@ -23,5 +26,4 @@ export interface UAIMachineVendorNameplate_Base extends UAIMachineryItemVendorNa
      */
     productInstanceUri: UAProperty<UAString, DataType.String>;
 }
-export interface UAIMachineVendorNameplate extends Omit<UAIMachineryItemVendorNameplate, "productInstanceUri">, UAIMachineVendorNameplate_Base {
-}
+export interface UAIMachineVendorNameplate extends Omit<UAIMachineryItemVendorNameplate, "productInstanceUri">, UAIMachineVendorNameplate_Base {}

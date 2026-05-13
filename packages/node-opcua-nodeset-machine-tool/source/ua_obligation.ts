@@ -1,7 +1,9 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ export interface UAObligation_Base {
     endUserObligated: UABaseDataVariable<boolean, DataType.Boolean>;
     machineBuilderObligated: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UAObligation extends UAObject, UAObligation_Base {
-}
+export interface UAObligation extends UAObject, UAObligation_Base {}

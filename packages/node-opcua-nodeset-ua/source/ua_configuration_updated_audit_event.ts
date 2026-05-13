@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAConfigurationUpdatedAuditEvent_Base extends UAAuditEvent_Base
     oldVersion: UAProperty<UInt32, DataType.UInt32>;
     newVersion: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAConfigurationUpdatedAuditEvent extends UAAuditEvent, UAConfigurationUpdatedAuditEvent_Base {
-}
+export interface UAConfigurationUpdatedAuditEvent extends UAAuditEvent, UAConfigurationUpdatedAuditEvent_Base {}

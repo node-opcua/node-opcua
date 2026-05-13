@@ -1,13 +1,16 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumOperatingMode } from "./enum_operating_mode";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { Int32 } from "node-opcua-basic-types"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
-import { EnumOperatingMode } from "./enum_operating_mode"
+
 export interface UAMicrowaveCombiOvenParameter_actualTemperatureChamber<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -56,5 +59,4 @@ export interface UAMicrowaveCombiOvenParameter_Base extends UAKitchenDeviceParam
     setProcessTime: UAMicrowaveCombiOvenParameter_setProcessTime<Int32, DataType.Int32>;
     setTemperature: UAMicrowaveCombiOvenParameter_setTemperature<number, DataType.Float>;
 }
-export interface UAMicrowaveCombiOvenParameter extends UAKitchenDeviceParameter, UAMicrowaveCombiOvenParameter_Base {
-}
+export interface UAMicrowaveCombiOvenParameter extends UAKitchenDeviceParameter, UAMicrowaveCombiOvenParameter_Base {}

@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumSoftwareClass } from "./enum_software_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { EnumSoftwareClass } from "./enum_software_class"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UASoftwareFolder_Base extends UAFolder_Base {
     add: UAMethod;
     delete: UAMethod;
 }
-export interface UASoftwareFolder extends UAFolder, UASoftwareFolder_Base {
-}
+export interface UASoftwareFolder extends UAFolder, UASoftwareFolder_Base {}

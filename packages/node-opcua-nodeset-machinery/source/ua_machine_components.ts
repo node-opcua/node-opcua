@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMachineryItemIdentification } from "./ua_machinery_item_identification";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAMachineryItemIdentification } from "./ua_machinery_item_identification"
+
 export interface UAMachineComponents_$Component$ extends UAObject { // Object
       /**
        * identification
@@ -29,5 +32,4 @@ export interface UAMachineComponents_Base {
      */
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
 }
-export interface UAMachineComponents extends UAObject, UAMachineComponents_Base {
-}
+export interface UAMachineComponents extends UAObject, UAMachineComponents_Base {}

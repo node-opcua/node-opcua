@@ -1,10 +1,13 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element"
+
 /**
  * Represents a condition sleep step in a recipe.
  *
@@ -47,5 +50,4 @@ export interface UAConditionSleep_Base extends UARecipeElement_Base {
      */
     timeout?: UADataItem<number, DataType.Double>;
 }
-export interface UAConditionSleep extends UARecipeElement, UAConditionSleep_Base {
-}
+export interface UAConditionSleep extends UARecipeElement, UAConditionSleep_Base {}

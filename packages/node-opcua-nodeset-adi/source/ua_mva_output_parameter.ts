@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumAlarmState } from "./enum_alarm_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { EnumAlarmState } from "./enum_alarm_state"
+
 /**
  * Hold the descriptions of a mathematical process
  * and associated information to convert scaled data
@@ -27,5 +30,4 @@ export interface UAMVAOutputParameter_Base<T, DT extends DataType>  extends UABa
     vendorSpecificError?: UAProperty<UAString, DataType.String>;
    // PlaceHolder for statistics
 }
-export interface UAMVAOutputParameter<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAMVAOutputParameter_Base<T, DT> {
-}
+export interface UAMVAOutputParameter<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAMVAOutputParameter_Base<T, DT> {}

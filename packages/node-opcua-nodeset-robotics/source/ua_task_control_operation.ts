@@ -1,9 +1,12 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UATaskControlStateMachine } from "./ua_task_control_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UATaskControlStateMachine } from "./ua_task_control_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UATaskControlOperation_Base {
     motionDevicesUnderControl?: UAProperty<NodeId[], DataType.NodeId>;
     taskControlStateMachine: UATaskControlStateMachine;
 }
-export interface UATaskControlOperation extends UAObject, UATaskControlOperation_Base {
-}
+export interface UATaskControlOperation extends UAObject, UATaskControlOperation_Base {}

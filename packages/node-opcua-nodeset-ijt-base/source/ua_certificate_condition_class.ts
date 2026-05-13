@@ -1,5 +1,6 @@
+import type { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class"
 /**
  * Indicates a change in the certificate.
  *
@@ -11,5 +12,4 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-node
  * |isAbstract      |false                                                       |
  */
 export type UACertificateConditionClass_Base = UABaseConditionClass_Base;
-export interface UACertificateConditionClass extends UABaseConditionClass, UACertificateConditionClass_Base {
-}
+export interface UACertificateConditionClass extends UABaseConditionClass, UACertificateConditionClass_Base {}

@@ -1,8 +1,11 @@
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
+import type { UAProductionStateMachine, UAProductionStateMachine_Base } from "./ua_production_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
-import { UAProductionStateMachine, UAProductionStateMachine_Base } from "./ua_production_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UAProductionProgramStateMachine_Base extends UAProductionStateM
     runningToInterrupted: UATransition;
     runningToRunning: UATransition;
 }
-export interface UAProductionProgramStateMachine extends Omit<UAProductionStateMachine, "aborted"|"abortedToInitializing"|"ended"|"endedToInitializing"|"initializing"|"initializingToAborted"|"initializingToRunning"|"interrupted"|"interruptedToAborted"|"interruptedToRunning"|"running"|"runningToAborted"|"runningToEnded"|"runningToInterrupted"|"runningToRunning">, UAProductionProgramStateMachine_Base {
-}
+export interface UAProductionProgramStateMachine extends Omit<UAProductionStateMachine, "aborted"|"abortedToInitializing"|"ended"|"endedToInitializing"|"initializing"|"initializingToAborted"|"initializingToRunning"|"interrupted"|"interruptedToAborted"|"interruptedToRunning"|"running"|"runningToAborted"|"runningToEnded"|"runningToInterrupted"|"runningToRunning">, UAProductionProgramStateMachine_Base {}

@@ -1,11 +1,14 @@
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
+import type { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state";
+import type { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_maintenance_state";
+import type { UAAnalyserChannel_OperatingModeSubStateMachine } from "./ua_analyser_channel_operating_mode_sub_state_machine";
+import type { UAAnalyserChannelOperatingState } from "./ua_analyser_channel_operating_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAAnalyserChannel_OperatingModeSubStateMachine } from "./ua_analyser_channel_operating_mode_sub_state_machine"
-import { UAAnalyserChannelOperatingState } from "./ua_analyser_channel_operating_state"
-import { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state"
-import { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_maintenance_state"
+
 /**
  * Contains a nested state model that defines the
  * top level states Operating, Local and Maintenance
@@ -57,5 +60,4 @@ export interface UAAnalyserChannelStateMachine_Base extends UAFiniteStateMachine
     localToSlaveModeTransition: UATransition;
     maintenanceToSlaveModeTransition: UATransition;
 }
-export interface UAAnalyserChannelStateMachine extends UAFiniteStateMachine, UAAnalyserChannelStateMachine_Base {
-}
+export interface UAAnalyserChannelStateMachine extends UAFiniteStateMachine, UAAnalyserChannelStateMachine_Base {}

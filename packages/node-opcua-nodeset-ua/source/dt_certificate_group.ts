@@ -1,9 +1,12 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTBaseConfigurationRecord } from "./dt_base_configuration_record";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+
 // ----- this file has been automatically generated - do not edit
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTBaseConfigurationRecord } from "./dt_base_configuration_record"
-import { DTKeyValuePair } from "./dt_key_value_pair"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

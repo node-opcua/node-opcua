@@ -1,5 +1,6 @@
+import type { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_instrument_diagnostic_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_instrument_diagnostic_alarm"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "n
  * |isAbstract      |true                                                        |
  */
 export type UADeviceHealthDiagnosticAlarm_Base = UAInstrumentDiagnosticAlarm_Base;
-export interface UADeviceHealthDiagnosticAlarm extends UAInstrumentDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base {
-}
+export interface UADeviceHealthDiagnosticAlarm extends UAInstrumentDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base {}

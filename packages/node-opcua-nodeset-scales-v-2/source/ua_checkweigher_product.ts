@@ -1,8 +1,11 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+
+import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product";
+import type { UAStatistic } from "./ua_statistic";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product"
-import { UATargetItem } from "./ua_target_item"
-import { UAStatistic } from "./ua_statistic"
+
 /**
  * Represents a product of a Checkweigher.
  *
@@ -29,5 +32,4 @@ export interface UACheckweigherProduct_Base extends UACatchweigherProduct_Base {
      */
     statistic?: UAStatistic;
 }
-export interface UACheckweigherProduct extends Omit<UACatchweigherProduct, "statistic">, UACheckweigherProduct_Base {
-}
+export interface UACheckweigherProduct extends Omit<UACatchweigherProduct, "statistic">, UACheckweigherProduct_Base {}

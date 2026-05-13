@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +24,4 @@ export interface UAAnalogSignalVariable_Base<T, DT extends DataType>  extends UA
     damping?: UAProperty<number, DataType.Float>;
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAAnalogSignalVariable<T, DT extends DataType> extends Omit<UAAnalogUnitRange<T, DT>, "engineeringUnits">, UAAnalogSignalVariable_Base<T, DT> {
-}
+export interface UAAnalogSignalVariable<T, DT extends DataType> extends Omit<UAAnalogUnitRange<T, DT>, "engineeringUnits">, UAAnalogSignalVariable_Base<T, DT> {}

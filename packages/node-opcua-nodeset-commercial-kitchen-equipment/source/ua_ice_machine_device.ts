@@ -1,6 +1,8 @@
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+import type { UAIceMachineParameter } from "./ua_ice_machine_parameter";
+
 // ----- this file has been automatically generated - do not edit
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
-import { UAIceMachineParameter } from "./ua_ice_machine_parameter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UAIceMachineParameter } from "./ua_ice_machine_parameter"
 export interface UAIceMachineDevice_Base extends UACommercialKitchenDevice_Base {
     iceMachine: UAIceMachineParameter;
 }
-export interface UAIceMachineDevice extends UACommercialKitchenDevice, UAIceMachineDevice_Base {
-}
+export interface UAIceMachineDevice extends UACommercialKitchenDevice, UAIceMachineDevice_Base {}

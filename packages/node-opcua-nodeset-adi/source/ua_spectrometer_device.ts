@@ -1,9 +1,12 @@
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyserDevice, UAAnalyserDevice_Base, UAAnalyserDevice_parameterSet } from "./ua_analyser_device";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAAnalyserDevice_parameterSet, UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
+
 export interface UASpectrometerDevice_parameterSet extends UAAnalyserDevice_parameterSet { // Object
       spectralRange?: UADataItem<DTRange[], DataType.ExtensionObject>;
 }
@@ -23,5 +26,4 @@ export interface UASpectrometerDevice_Base extends UAAnalyserDevice_Base {
     parameterSet?: UASpectrometerDevice_parameterSet;
     factorySettings: UAFunctionalGroup;
 }
-export interface UASpectrometerDevice extends Omit<UAAnalyserDevice, "parameterSet"|"factorySettings">, UASpectrometerDevice_Base {
-}
+export interface UASpectrometerDevice extends Omit<UAAnalyserDevice, "parameterSet"|"factorySettings">, UASpectrometerDevice_Base {}

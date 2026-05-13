@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumChassisIdSubtype } from "./enum_chassis_id_subtype";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { EnumChassisIdSubtype } from "./enum_chassis_id_subtype"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UALldpLocalSystem_Base {
     systemCapabilitiesSupported?: UAProperty<UInt32, DataType.UInt32>;
     systemCapabilitiesEnabled?: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UALldpLocalSystem extends UAObject, UALldpLocalSystem_Base {
-}
+export interface UALldpLocalSystem extends UAObject, UALldpLocalSystem_Base {}

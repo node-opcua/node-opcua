@@ -1,5 +1,6 @@
+import type { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class"
 /**
  * Indicates that the asset is disconnected.
  *
@@ -11,5 +12,4 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-node
  * |isAbstract      |false                                                       |
  */
 export type UAAssetDisconnectedConditionClass_Base = UABaseConditionClass_Base;
-export interface UAAssetDisconnectedConditionClass extends UABaseConditionClass, UAAssetDisconnectedConditionClass_Base {
-}
+export interface UAAssetDisconnectedConditionClass extends UABaseConditionClass, UAAssetDisconnectedConditionClass_Base {}

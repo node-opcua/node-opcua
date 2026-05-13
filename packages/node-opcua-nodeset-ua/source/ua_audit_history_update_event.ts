@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_e
 export interface UAAuditHistoryUpdateEvent_Base extends UAAuditUpdateEvent_Base {
     parameterDataTypeId: UAProperty<NodeId, DataType.NodeId>;
 }
-export interface UAAuditHistoryUpdateEvent extends UAAuditUpdateEvent, UAAuditHistoryUpdateEvent_Base {
-}
+export interface UAAuditHistoryUpdateEvent extends UAAuditUpdateEvent, UAAuditHistoryUpdateEvent_Base {}

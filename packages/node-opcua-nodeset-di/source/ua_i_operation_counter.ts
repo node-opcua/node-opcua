@@ -1,7 +1,9 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+
 /**
  * Interface defining counters for the duration of
  * operation
@@ -68,5 +70,4 @@ export interface UAIOperationCounter_Base extends UABaseInterface_Base {
      */
     operationCycleCounter?: UAProperty<any, any>;
 }
-export interface UAIOperationCounter extends UABaseInterface, UAIOperationCounter_Base {
-}
+export interface UAIOperationCounter extends UABaseInterface, UAIOperationCounter_Base {}

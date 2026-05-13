@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate";
+import type { DTUserIdentityToken } from "./dt_user_identity_token";
+import type { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate"
-import { DTUserIdentityToken } from "./dt_user_identity_token"
-import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAAuditActivateSessionEvent_Base extends UAAuditSessionEvent_Ba
     secureChannelId: UAProperty<UAString, DataType.String>;
     currentRoleIds?: UAProperty<NodeId[], DataType.NodeId>;
 }
-export interface UAAuditActivateSessionEvent extends UAAuditSessionEvent, UAAuditActivateSessionEvent_Base {
-}
+export interface UAAuditActivateSessionEvent extends UAAuditSessionEvent, UAAuditActivateSessionEvent_Base {}

@@ -1,5 +1,6 @@
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |isAbstract      |false                                                       |
  */
 export type UAServeryCounterDevice_Base = UACommercialKitchenDevice_Base;
-export interface UAServeryCounterDevice extends UACommercialKitchenDevice, UAServeryCounterDevice_Base {
-}
+export interface UAServeryCounterDevice extends UACommercialKitchenDevice, UAServeryCounterDevice_Base {}

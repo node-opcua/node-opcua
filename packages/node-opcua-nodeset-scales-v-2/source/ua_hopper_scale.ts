@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator";
+import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator"
-import { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale"
+
 export interface UAHopperScale_levelMax<T, DT extends DataType> extends Omit<UAAnalogUnit<T, DT>, "engineeringUnits"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       levelMode?: UAProperty<EnumEqualityAndRelationalOperator, DataType.Int32>;
@@ -50,5 +53,4 @@ export interface UAHopperScale_Base extends UASimpleScale_Base {
      */
     limitMin: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAHopperScale extends UASimpleScale, UAHopperScale_Base {
-}
+export interface UAHopperScale extends UASimpleScale, UAHopperScale_Base {}

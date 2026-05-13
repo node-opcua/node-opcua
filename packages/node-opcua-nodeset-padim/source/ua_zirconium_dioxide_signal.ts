@@ -1,8 +1,11 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAZirconiumDioxideSignal_signalConditionSet extends UAObject { // Object
       relativeHeatOutput?: UAAnalogUnit<number, DataType.Float>;
       sampleGasVolumeFlow?: UAAnalogUnit<number, DataType.Float>;
@@ -19,5 +22,4 @@ export interface UAZirconiumDioxideSignal_signalConditionSet extends UAObject { 
 export interface UAZirconiumDioxideSignal_Base extends UAAnalyticalSignal_Base {
     signalConditionSet?: UAZirconiumDioxideSignal_signalConditionSet;
 }
-export interface UAZirconiumDioxideSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UAZirconiumDioxideSignal_Base {
-}
+export interface UAZirconiumDioxideSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UAZirconiumDioxideSignal_Base {}

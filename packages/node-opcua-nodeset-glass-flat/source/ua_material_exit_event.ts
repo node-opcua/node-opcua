@@ -1,5 +1,6 @@
+import type { UAGlassMaterialEvent, UAGlassMaterialEvent_Base } from "./ua_glass_material_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAGlassMaterialEvent, UAGlassMaterialEvent_Base } from "./ua_glass_material_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAGlassMaterialEvent, UAGlassMaterialEvent_Base } from "./ua_glass_mate
  * |isAbstract      |true                                                        |
  */
 export type UAMaterialExitEvent_Base = UAGlassMaterialEvent_Base;
-export interface UAMaterialExitEvent extends UAGlassMaterialEvent, UAMaterialExitEvent_Base {
-}
+export interface UAMaterialExitEvent extends UAGlassMaterialEvent, UAMaterialExitEvent_Base {}

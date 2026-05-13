@@ -1,5 +1,6 @@
+import type { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_audit_update_method_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_audit_update_method_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_au
  * |isAbstract      |true                                                        |
  */
 export type UACertificateUpdateRequestedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
-export interface UACertificateUpdateRequestedAuditEvent extends UAAuditUpdateMethodEvent, UACertificateUpdateRequestedAuditEvent_Base {
-}
+export interface UACertificateUpdateRequestedAuditEvent extends UAAuditUpdateMethodEvent, UACertificateUpdateRequestedAuditEvent_Base {}

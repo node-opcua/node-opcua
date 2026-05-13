@@ -1,12 +1,15 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { Int32, SByte, UInt32 } from "node-opcua-basic-types";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair";
+import type { UAAutoIdDevice, UAAutoIdDevice_Base, UAAutoIdDevice_diagnostics, UAAutoIdDevice_runtimeParameters } from "./ua_auto_id_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, Int32, SByte } from "node-opcua-basic-types"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair"
-import { UAAutoIdDevice_diagnostics, UAAutoIdDevice_runtimeParameters, UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
+
 export interface UARfidReaderDevice_diagnostics extends UAAutoIdDevice_diagnostics { // Object
       /**
        * lastAccess
@@ -79,5 +82,4 @@ export interface UARfidReaderDevice_Base extends UAAutoIdDevice_Base {
     writeTag?: UAMethod;
     writeTagID?: UAMethod;
 }
-export interface UARfidReaderDevice extends Omit<UAAutoIdDevice, "diagnostics"|"runtimeParameters"|"scan">, UARfidReaderDevice_Base {
-}
+export interface UARfidReaderDevice extends Omit<UAAutoIdDevice, "diagnostics"|"runtimeParameters"|"scan">, UARfidReaderDevice_Base {}

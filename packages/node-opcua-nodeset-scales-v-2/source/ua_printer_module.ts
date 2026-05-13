@@ -1,14 +1,16 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
+
 export interface UAPrinterModule_machineryBuildingBlocks extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
       machineryOperationMode?: UAMachineryOperationModeStateMachine;
@@ -63,5 +65,4 @@ export interface UAPrinterModule_Base extends UAComponent_Base {
      */
     printMediaStock?: UAAnalogItem<any, any>;
 }
-export interface UAPrinterModule extends Omit<UAComponent, "identification">, UAPrinterModule_Base {
-}
+export interface UAPrinterModule extends Omit<UAComponent, "identification">, UAPrinterModule_Base {}

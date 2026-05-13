@@ -1,7 +1,9 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ export interface UAIParamagneticSignalConditionSet_Base extends UABaseInterface_
     sampleTemperature?: UAAnalogUnit<number, DataType.Float>;
     sensingElementTemperature?: UAAnalogUnit<number, DataType.Float>;
 }
-export interface UAIParamagneticSignalConditionSet extends UABaseInterface, UAIParamagneticSignalConditionSet_Base {
-}
+export interface UAIParamagneticSignalConditionSet extends UABaseInterface, UAIParamagneticSignalConditionSet_Base {}

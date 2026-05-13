@@ -1,5 +1,6 @@
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

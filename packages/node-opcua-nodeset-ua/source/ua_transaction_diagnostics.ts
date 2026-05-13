@@ -1,9 +1,12 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTTransactionError } from "./dt_transaction_error";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { DTTransactionError } from "./dt_transaction_error"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UATransactionDiagnostics_Base {
     affectedCertificateGroups: UAProperty<NodeId[], DataType.NodeId>;
     errors: UAProperty<DTTransactionError[], DataType.ExtensionObject>;
 }
-export interface UATransactionDiagnostics extends UAObject, UATransactionDiagnostics_Base {
-}
+export interface UATransactionDiagnostics extends UAObject, UATransactionDiagnostics_Base {}

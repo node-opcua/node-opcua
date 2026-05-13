@@ -1,9 +1,12 @@
+import type { Int32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor";
+import type { DTPackMLIngredients } from "./dt_pack_ml_ingredients";
+
 // ----- this file has been automatically generated - do not edit
-import { Int32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
-import { DTPackMLIngredients } from "./dt_pack_ml_ingredients"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

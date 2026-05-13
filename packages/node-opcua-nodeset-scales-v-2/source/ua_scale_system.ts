@@ -1,17 +1,20 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UAConfigurableObject } from "node-opcua-nodeset-di/dist/ua_configurable_object";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_base_state_machine";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAStatistic } from "./ua_statistic";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAConfigurableObject } from "node-opcua-nodeset-di/dist/ua_configurable_object"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_base_state_machine"
-import { UAStatistic } from "./ua_statistic"
-import { UAProductionPreset } from "./ua_production_preset"
+
 export interface UAScaleSystem_machineryBuildingBlocks extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
       machineryOperationMode?: UAMachineryOperationModeStateMachine;
@@ -71,5 +74,4 @@ export interface UAScaleSystem_Base extends UAComponent_Base {
     subDevices?: UAConfigurableObject;
     systemState?: UAPackMLBaseStateMachine;
 }
-export interface UAScaleSystem extends Omit<UAComponent, "identification">, UAScaleSystem_Base {
-}
+export interface UAScaleSystem extends Omit<UAComponent, "identification">, UAScaleSystem_Base {}

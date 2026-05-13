@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "node-opcua-nodeset-ua/dist/ua_alarm_condition";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTWwMessageArgument } from "./dt_ww_message_argument";
+import type { EnumWwEventCategory } from "./enum_ww_event_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAAlarmCondition, UAAlarmCondition_Base } from "node-opcua-nodeset-ua/dist/ua_alarm_condition"
-import { DTWwMessageArgument } from "./dt_ww_message_argument"
-import { EnumWwEventCategory } from "./enum_ww_event_category"
+
 /**
  * The WwAlarmContitionType represents an
  * acknowledgeable and confirmable state of a
@@ -81,5 +84,4 @@ export interface UAWwAlarmCondition_Base extends UAAlarmCondition_Base {
      */
     pathParts: UAProperty<UAString[], DataType.String>;
 }
-export interface UAWwAlarmCondition extends UAAlarmCondition, UAWwAlarmCondition_Base {
-}
+export interface UAWwAlarmCondition extends UAAlarmCondition, UAWwAlarmCondition_Base {}

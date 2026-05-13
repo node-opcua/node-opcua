@@ -1,12 +1,15 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyserChannelStateMachine } from "./ua_analyser_channel_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
-import { UAAnalyserChannelStateMachine } from "./ua_analyser_channel_state_machine"
+
 export interface UAAnalyserChannel_parameterSet extends UAObject { // Object
       /**
        * channelId
@@ -90,5 +93,4 @@ export interface UAAnalyserChannel_Base extends UATopologyElement_Base {
    // PlaceHolder for $StreamIdentifier$
    // PlaceHolder for $AccessorySlotIdentifier$
 }
-export interface UAAnalyserChannel extends Omit<UATopologyElement, "parameterSet"|"methodSet"|"$GroupIdentifier$">, UAAnalyserChannel_Base {
-}
+export interface UAAnalyserChannel extends Omit<UATopologyElement, "parameterSet"|"methodSet"|"$GroupIdentifier$">, UAAnalyserChannel_Base {}

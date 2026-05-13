@@ -1,5 +1,6 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
 
 /**
  * A Job Response Receiver receives unsolicited Job
@@ -16,5 +17,4 @@ import { UAObject, UAMethod } from "node-opcua-address-space-base"
 export interface UAISA95JobResponseReceiverObject_Base {
     receiveJobResponse: UAMethod;
 }
-export interface UAISA95JobResponseReceiverObject extends UAObject, UAISA95JobResponseReceiverObject_Base {
-}
+export interface UAISA95JobResponseReceiverObject extends UAObject, UAISA95JobResponseReceiverObject_Base {}

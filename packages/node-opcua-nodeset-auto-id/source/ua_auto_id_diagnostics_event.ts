@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
+
 /**
  * AutoID diagnostic data
  *
@@ -20,5 +22,4 @@ export interface UAAutoIdDiagnosticsEvent_Base extends UABaseEvent_Base {
      */
     deviceName: UAProperty<UAString, DataType.String>;
 }
-export interface UAAutoIdDiagnosticsEvent extends UABaseEvent, UAAutoIdDiagnosticsEvent_Base {
-}
+export interface UAAutoIdDiagnosticsEvent extends UABaseEvent, UAAutoIdDiagnosticsEvent_Base {}

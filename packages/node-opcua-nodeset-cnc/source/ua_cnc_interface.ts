@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UACncAxisList } from "./ua_cnc_axis_list";
+import type { UACncChannelList } from "./ua_cnc_channel_list";
+import type { UACncSpindleList } from "./ua_cnc_spindle_list";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UACncAxisList } from "./ua_cnc_axis_list"
-import { UACncChannelList } from "./ua_cnc_channel_list"
-import { UACncSpindleList } from "./ua_cnc_spindle_list"
+
 /**
  * Entry point to CNC data interface.
  *
@@ -57,5 +60,4 @@ export interface UACncInterface_Base {
      */
     version: UAProperty<UAString, DataType.String>;
 }
-export interface UACncInterface extends UAObject, UACncInterface_Base {
-}
+export interface UACncInterface extends UAObject, UACncInterface_Base {}

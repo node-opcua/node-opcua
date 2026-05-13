@@ -1,8 +1,10 @@
+import type { DiagnosticInfo, QualifiedName } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { StatusCode } from "node-opcua-status-code";
+
 // ----- this file has been automatically generated - do not edit
-import { QualifiedName, DiagnosticInfo } from "node-opcua-data-model"
-import { StatusCode } from "node-opcua-status-code"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

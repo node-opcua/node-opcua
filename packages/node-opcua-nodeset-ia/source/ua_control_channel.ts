@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumSignalColor } from "./enum_signal_color";
+import type { EnumSignalModeLight } from "./enum_signal_mode_light";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { EnumSignalColor } from "./enum_signal_color"
-import { EnumSignalModeLight } from "./enum_signal_mode_light"
+
 /**
  * Used for control channels of single colour
  * elements within a stack element (e.g. RGB
@@ -49,5 +52,4 @@ export interface UAControlChannel_Base {
      */
     signalOn: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAControlChannel extends UAObject, UAControlChannel_Base {
-}
+export interface UAControlChannel extends UAObject, UAControlChannel_Base {}

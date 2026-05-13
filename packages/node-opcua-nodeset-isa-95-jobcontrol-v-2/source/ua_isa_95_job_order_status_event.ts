@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTISA95JobOrder } from "./dt_isa_95_job_order";
+import type { DTISA95JobResponse } from "./dt_isa_95_job_response";
+import type { DTISA95State } from "./dt_isa_95_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
-import { DTISA95JobOrder } from "./dt_isa_95_job_order"
-import { DTISA95JobResponse } from "./dt_isa_95_job_response"
-import { DTISA95State } from "./dt_isa_95_state"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UAISA95JobOrderStatusEvent_Base extends UABaseEvent_Base {
     jobResponse: UAProperty<DTISA95JobResponse, DataType.ExtensionObject>;
     jobState: UAProperty<DTISA95State[], DataType.ExtensionObject>;
 }
-export interface UAISA95JobOrderStatusEvent extends UABaseEvent, UAISA95JobOrderStatusEvent_Base {
-}
+export interface UAISA95JobOrderStatusEvent extends UABaseEvent, UAISA95JobOrderStatusEvent_Base {}

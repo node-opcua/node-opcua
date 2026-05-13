@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumSpacerMaterialClass } from "./enum_spacer_material_class";
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { EnumSpacerMaterialClass } from "./enum_spacer_material_class"
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
+
 export interface UASpacer_filling<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       fillLevel: UAAnalogUnit<number, DataType.Double>;
 }
@@ -23,5 +26,4 @@ export interface UASpacer_Base extends UABaseMaterial_Base {
     spacerMaterialClass: UAProperty<EnumSpacerMaterialClass, DataType.Int32>;
     spacerMaterialSubClass?: UAProperty<UAString, DataType.String>;
 }
-export interface UASpacer extends UABaseMaterial, UASpacer_Base {
-}
+export interface UASpacer extends UABaseMaterial, UASpacer_Base {}

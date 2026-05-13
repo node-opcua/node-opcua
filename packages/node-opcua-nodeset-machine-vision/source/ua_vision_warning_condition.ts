@@ -1,5 +1,6 @@
+import type { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition
  * |isAbstract      |false                                                       |
  */
 export type UAVisionWarningCondition_Base = UAVisionCondition_Base;
-export interface UAVisionWarningCondition extends UAVisionCondition, UAVisionWarningCondition_Base {
-}
+export interface UAVisionWarningCondition extends UAVisionCondition, UAVisionWarningCondition_Base {}

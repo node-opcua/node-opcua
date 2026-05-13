@@ -1,9 +1,12 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAFtnirOrFtirSignal_signalConditionSet extends UAObject { // Object
       transmissionRatio?: UADataItem<number, DataType.Float>;
       sensingElementTemperature?: UAAnalogUnit<number, DataType.Float>;
@@ -24,5 +27,4 @@ export interface UAFtnirOrFtirSignal_Base extends UAAnalyticalSignal_Base {
    // PlaceHolder for $SignalCalibrationIdentifier$
     signalConditionSet?: UAFtnirOrFtirSignal_signalConditionSet;
 }
-export interface UAFtnirOrFtirSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAFtnirOrFtirSignal_Base {
-}
+export interface UAFtnirOrFtirSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAFtnirOrFtirSignal_Base {}

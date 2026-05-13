@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport";
+import type { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataSetReaderTransport } from "./dt_data_set_reader_transport"
-import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

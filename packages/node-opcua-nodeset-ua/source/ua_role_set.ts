@@ -1,5 +1,7 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ export interface UARoleSet_Base {
     addRole: UAMethod;
     removeRole: UAMethod;
 }
-export interface UARoleSet extends UAObject, UARoleSet_Base {
-}
+export interface UARoleSet extends UAObject, UARoleSet_Base {}

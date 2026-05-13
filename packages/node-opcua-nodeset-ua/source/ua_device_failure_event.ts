@@ -1,5 +1,6 @@
+import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
  * |isAbstract      |true                                                        |
  */
 export type UADeviceFailureEvent_Base = UASystemEvent_Base;
-export interface UADeviceFailureEvent extends UASystemEvent, UADeviceFailureEvent_Base {
-}
+export interface UADeviceFailureEvent extends UASystemEvent, UADeviceFailureEvent_Base {}

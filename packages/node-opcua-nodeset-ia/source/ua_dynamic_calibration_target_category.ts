@@ -1,5 +1,6 @@
+import type { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category"
 /**
  * Characterizes a calibration target to be used
  * together with a measurement instrument, that
@@ -19,5 +20,4 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |isAbstract      |false                                                       |
  */
 export type UADynamicCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
-export interface UADynamicCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UADynamicCalibrationTargetCategory_Base {
-}
+export interface UADynamicCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UADynamicCalibrationTargetCategory_Base {}

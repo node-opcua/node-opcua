@@ -1,6 +1,9 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAFile, UAFile_Base } from "./ua_file";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFile, UAFile_Base } from "./ua_file"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +15,4 @@ import { UAFile, UAFile_Base } from "./ua_file"
 export interface UAAddressSpaceFile_Base extends UAFile_Base {
     exportNamespace?: UAMethod;
 }
-export interface UAAddressSpaceFile extends UAFile, UAAddressSpaceFile_Base {
-}
+export interface UAAddressSpaceFile extends UAFile, UAAddressSpaceFile_Base {}

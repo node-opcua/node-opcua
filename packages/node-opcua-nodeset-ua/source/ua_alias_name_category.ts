@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAAliasNameCategory_Base extends UAFolder_Base {
    // PlaceHolder for $Alias$
    // PlaceHolder for $SubAliasNameCategories$
 }
-export interface UAAliasNameCategory extends UAFolder, UAAliasNameCategory_Base {
-}
+export interface UAAliasNameCategory extends UAFolder, UAAliasNameCategory_Base {}

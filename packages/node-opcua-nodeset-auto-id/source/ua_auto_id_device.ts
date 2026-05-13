@@ -1,14 +1,17 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTLocation } from "./dt_location";
+import type { EnumDeviceStatus } from "./enum_device_status";
+import type { UALocationVariable } from "./ua_location_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
-import { DTLocation } from "./dt_location"
-import { EnumDeviceStatus } from "./enum_device_status"
-import { UALocationVariable } from "./ua_location_variable"
+
 export interface UAAutoIdDevice_diagnostics extends UAFunctionalGroup { // Object
       /**
        * lastAccess
@@ -102,5 +105,4 @@ export interface UAAutoIdDevice_Base extends UADevice_Base {
     scanStart?: UAMethod;
     scanStop?: UAMethod;
 }
-export interface UAAutoIdDevice extends UADevice, UAAutoIdDevice_Base {
-}
+export interface UAAutoIdDevice extends UADevice, UAAutoIdDevice_Base {}

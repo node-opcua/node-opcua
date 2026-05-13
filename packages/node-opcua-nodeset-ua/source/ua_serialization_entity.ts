@@ -1,11 +1,14 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTStructure } from "./dt_structure";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt16 } from "node-opcua-basic-types"
-import { DTStructure } from "./dt_structure"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -27,5 +30,4 @@ export interface UASerializationEntity_Base {
     includeDictionaryReference?: UAProperty<boolean, DataType.Boolean>;
     configureSerialization?: UAMethod;
 }
-export interface UASerializationEntity extends UAObject, UASerializationEntity_Base {
-}
+export interface UASerializationEntity extends UAObject, UASerializationEntity_Base {}

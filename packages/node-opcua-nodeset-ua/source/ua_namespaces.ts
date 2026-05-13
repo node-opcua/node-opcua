@@ -1,5 +1,7 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -8,8 +10,8 @@ import { UAObject } from "node-opcua-address-space-base"
  * |typedDefinition |NamespacesType i=11645                                      |
  * |isAbstract      |false                                                       |
  */
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
 export interface UANamespaces_Base {
    // PlaceHolder for $NamespaceIdentifier$
 }
-export interface UANamespaces extends UAObject, UANamespaces_Base {
-}
+export interface UANamespaces extends UAObject, UANamespaces_Base {}

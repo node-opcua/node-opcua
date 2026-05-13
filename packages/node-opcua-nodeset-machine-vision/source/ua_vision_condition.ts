@@ -1,16 +1,19 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt64 } from "node-opcua-basic-types";
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTConfigurationId } from "./dt_configuration_id";
+import type { DTJobId } from "./dt_job_id";
+import type { DTMeasId } from "./dt_meas_id";
+import type { DTPartId } from "./dt_part_id";
+import type { DTProductId } from "./dt_product_id";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+import type { DTResultId } from "./dt_result_id";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt64, UAString } from "node-opcua-basic-types"
-import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition"
-import { DTConfigurationId } from "./dt_configuration_id"
-import { DTRecipeIdExternal } from "./dt_recipe_id_external"
-import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
-import { DTJobId } from "./dt_job_id"
-import { DTMeasId } from "./dt_meas_id"
-import { DTPartId } from "./dt_part_id"
-import { DTProductId } from "./dt_product_id"
-import { DTResultId } from "./dt_result_id"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -35,5 +38,4 @@ export interface UAVisionCondition_Base extends UAAcknowledgeableCondition_Base 
     resultId?: UAProperty<DTResultId, DataType.ExtensionObject>;
     stopReaction: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAVisionCondition extends UAAcknowledgeableCondition, UAVisionCondition_Base {
-}
+export interface UAVisionCondition extends UAAcknowledgeableCondition, UAVisionCondition_Base {}

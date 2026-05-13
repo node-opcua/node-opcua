@@ -1,5 +1,6 @@
+import type { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category"
 /**
  * Categorizes a calibration target to be reused
  * several times. For example, a calibration target
@@ -15,5 +16,4 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |isAbstract      |false                                                       |
  */
 export type UAReusableCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
-export interface UAReusableCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base {
-}
+export interface UAReusableCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base {}

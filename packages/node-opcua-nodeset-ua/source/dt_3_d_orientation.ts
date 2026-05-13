@@ -1,6 +1,9 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTOrientation } from "./dt_orientation";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTOrientation } from "./dt_orientation"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

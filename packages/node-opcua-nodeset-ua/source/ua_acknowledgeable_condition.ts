@@ -1,8 +1,11 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+
+import type { UACondition, UACondition_Base } from "./ua_condition";
+import type { UATwoStateVariable } from "./ua_two_state_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { LocalizedText } from "node-opcua-data-model"
-import { UACondition, UACondition_Base } from "./ua_condition"
-import { UATwoStateVariable } from "./ua_two_state_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UAAcknowledgeableCondition_Base extends UACondition_Base {
     acknowledge: UAMethod;
     confirm?: UAMethod;
 }
-export interface UAAcknowledgeableCondition extends Omit<UACondition, "enabledState">, UAAcknowledgeableCondition_Base {
-}
+export interface UAAcknowledgeableCondition extends Omit<UACondition, "enabledState">, UAAcknowledgeableCondition_Base {}

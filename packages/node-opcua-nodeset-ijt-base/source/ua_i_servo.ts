@@ -1,8 +1,11 @@
+import type { Int16 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { Int16 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
+
 export interface UAIServo_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * nodeNumber
@@ -29,5 +32,4 @@ export interface UAIServo_Base extends UAIJoiningSystemAsset_Base {
      */
     parameters: UAIServo_parameters;
 }
-export interface UAIServo extends Omit<UAIJoiningSystemAsset, "parameters">, UAIServo_Base {
-}
+export interface UAIServo extends Omit<UAIJoiningSystemAsset, "parameters">, UAIServo_Base {}

@@ -1,11 +1,13 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { DT3DFrame } from "node-opcua-nodeset-ua/dist/dt_3_d_frame";
+import type { DT3DVector } from "node-opcua-nodeset-ua/dist/dt_3_d_vector";
+import type { UA3DFrame } from "node-opcua-nodeset-ua/dist/ua_3_d_frame";
+import type { UA3DVector } from "node-opcua-nodeset-ua/dist/ua_3_d_vector";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DT3DFrame } from "node-opcua-nodeset-ua/dist/dt_3_d_frame"
-import { UA3DFrame } from "node-opcua-nodeset-ua/dist/ua_3_d_frame"
-import { DT3DVector } from "node-opcua-nodeset-ua/dist/dt_3_d_vector"
-import { UA3DVector } from "node-opcua-nodeset-ua/dist/ua_3_d_vector"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * The LoadType is for describing loads mounted on
  * the motion device typically by an integrator or a
@@ -49,5 +51,4 @@ export interface UALoad_Base {
      */
     mass: UAAnalogUnit<number, DataType.Double>;
 }
-export interface UALoad extends UAObject, UALoad_Base {
-}
+export interface UALoad extends UAObject, UALoad_Base {}

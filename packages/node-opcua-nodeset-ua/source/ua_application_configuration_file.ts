@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTUserTokenPolicy } from "./dt_user_token_policy";
+import type { UAConfigurationFile, UAConfigurationFile_Base } from "./ua_configuration_file";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { UAConfigurationFile, UAConfigurationFile_Base } from "./ua_configuration_file"
-import { DTUserTokenPolicy } from "./dt_user_token_policy"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -23,5 +26,4 @@ export interface UAApplicationConfigurationFile_Base extends UAConfigurationFile
     certificateTypes: UAProperty<NodeId[], DataType.NodeId>;
     certificateGroupPurposes: UAProperty<NodeId[], DataType.NodeId>;
 }
-export interface UAApplicationConfigurationFile extends UAConfigurationFile, UAApplicationConfigurationFile_Base {
-}
+export interface UAApplicationConfigurationFile extends UAConfigurationFile, UAApplicationConfigurationFile_Base {}

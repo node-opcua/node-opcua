@@ -1,15 +1,18 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTApplicationIdentity } from "./dt_application_identity";
+import type { DTAuthorizationServiceConfiguration } from "./dt_authorization_service_configuration";
+import type { DTBaseConfiguration } from "./dt_base_configuration";
+import type { DTCertificateGroup } from "./dt_certificate_group";
+import type { DTEndpoint } from "./dt_endpoint";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTSecuritySettings } from "./dt_security_settings";
+import type { DTServerEndpoint } from "./dt_server_endpoint";
+import type { DTUserTokenSettings } from "./dt_user_token_settings";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTBaseConfiguration } from "./dt_base_configuration"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTApplicationIdentity } from "./dt_application_identity"
-import { DTCertificateGroup } from "./dt_certificate_group"
-import { DTServerEndpoint } from "./dt_server_endpoint"
-import { DTEndpoint } from "./dt_endpoint"
-import { DTSecuritySettings } from "./dt_security_settings"
-import { DTUserTokenSettings } from "./dt_user_token_settings"
-import { DTAuthorizationServiceConfiguration } from "./dt_authorization_service_configuration"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

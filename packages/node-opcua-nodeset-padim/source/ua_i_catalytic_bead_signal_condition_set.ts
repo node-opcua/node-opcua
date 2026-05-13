@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +23,4 @@ export interface UAICatalyticBeadSignalConditionSet_Base extends UABaseInterface
     sensorValue?: UAAnalogUnit<number, DataType.Float>;
     sensingElementResidualSensitivity?: UAProperty<number, DataType.Float>;
 }
-export interface UAICatalyticBeadSignalConditionSet extends UABaseInterface, UAICatalyticBeadSignalConditionSet_Base {
-}
+export interface UAICatalyticBeadSignalConditionSet extends UABaseInterface, UAICatalyticBeadSignalConditionSet_Base {}

@@ -1,5 +1,6 @@
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
  * |isAbstract      |false                                                       |
  */
 export type UAProductFolder_Base = UAFolder_Base;
-export interface UAProductFolder extends UAFolder, UAProductFolder_Base {
-}
+export interface UAProductFolder extends UAFolder, UAProductFolder_Base {}

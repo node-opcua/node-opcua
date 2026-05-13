@@ -1,10 +1,13 @@
+import type { NodeId } from "node-opcua-nodeid";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMaterial } from "./ua_material";
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element"
-import { UAMaterial } from "./ua_material"
-import { UATargetItem } from "./ua_target_item"
+
 /**
  * Represents a weighing process in a recipe. The
  * process can be an automatic or manual filling
@@ -37,5 +40,4 @@ export interface UAWeighing_Base extends UARecipeElement_Base {
      */
     weighingModuleNodeId: UABaseDataVariable<NodeId, DataType.NodeId>;
 }
-export interface UAWeighing extends UARecipeElement, UAWeighing_Base {
-}
+export interface UAWeighing extends UARecipeElement, UAWeighing_Base {}

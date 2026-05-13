@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumToleranceState } from "./enum_tolerance_state";
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { EnumToleranceState } from "./enum_tolerance_state"
-import { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device"
-import { UAProductionPreset } from "./ua_production_preset"
+
 /**
  * Represents an automatic filling scale.
  *
@@ -36,5 +39,4 @@ export interface UAAutomaticFillingScale_Base extends UAScaleDevice_Base {
      */
     toleranceState?: UAProperty<EnumToleranceState, DataType.Int32>;
 }
-export interface UAAutomaticFillingScale extends Omit<UAScaleDevice, "productionPreset">, UAAutomaticFillingScale_Base {
-}
+export interface UAAutomaticFillingScale extends Omit<UAScaleDevice, "productionPreset">, UAAutomaticFillingScale_Base {}

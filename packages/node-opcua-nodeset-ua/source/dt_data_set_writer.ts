@@ -1,10 +1,13 @@
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDataSetWriterMessage } from "./dt_data_set_writer_message";
+import type { DTDataSetWriterTransport } from "./dt_data_set_writer_transport";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTDataSetWriterTransport } from "./dt_data_set_writer_transport"
-import { DTDataSetWriterMessage } from "./dt_data_set_writer_message"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

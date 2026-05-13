@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAnnotation } from "./dt_annotation";
+import type { EnumPerformUpdate } from "./enum_perform_update";
+import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EnumPerformUpdate } from "./enum_perform_update"
-import { DTAnnotation } from "./dt_annotation"
-import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAAuditHistoryAnnotationUpdateEvent_Base extends UAAuditHistory
     newValues: UAProperty<DTAnnotation[], DataType.ExtensionObject>;
     oldValues: UAProperty<DTAnnotation[], DataType.ExtensionObject>;
 }
-export interface UAAuditHistoryAnnotationUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryAnnotationUpdateEvent_Base {
-}
+export interface UAAuditHistoryAnnotationUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryAnnotationUpdateEvent_Base {}

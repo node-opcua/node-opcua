@@ -1,6 +1,8 @@
+import type { LocalizedText } from "node-opcua-data-model";
+
+import type { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
  * |isAbstract      |false                                                       |
  */
 export type UAElseGuardVariable_Base<T extends LocalizedText> = UAGuardVariable_Base<T>;
-export interface UAElseGuardVariable<T extends LocalizedText> extends UAGuardVariable<T>, UAElseGuardVariable_Base<T> {
-}
+export interface UAElseGuardVariable<T extends LocalizedText> extends UAGuardVariable<T>, UAElseGuardVariable_Base<T> {}

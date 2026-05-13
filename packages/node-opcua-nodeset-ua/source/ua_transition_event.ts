@@ -1,8 +1,11 @@
+import type { LocalizedText } from "node-opcua-data-model";
+
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+import type { UAStateVariable } from "./ua_state_variable";
+import type { UATransitionVariable } from "./ua_transition_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
-import { UATransitionVariable } from "./ua_transition_variable"
-import { UAStateVariable } from "./ua_state_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UATransitionEvent_Base extends UABaseEvent_Base {
     fromState: UAStateVariable<LocalizedText>;
     toState: UAStateVariable<LocalizedText>;
 }
-export interface UATransitionEvent extends UABaseEvent, UATransitionEvent_Base {
-}
+export interface UATransitionEvent extends UABaseEvent, UATransitionEvent_Base {}

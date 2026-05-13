@@ -1,10 +1,12 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
+
 export interface UAWeighingRangeElement_range<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
@@ -46,5 +48,4 @@ export interface UAWeighingRangeElement_Base {
      */
     verificationScaleInterval: UAAnalogUnit<number, DataType.Double>;
 }
-export interface UAWeighingRangeElement extends UAObject, UAWeighingRangeElement_Base {
-}
+export interface UAWeighingRangeElement extends UAObject, UAWeighingRangeElement_Base {}

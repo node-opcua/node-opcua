@@ -1,5 +1,6 @@
+import type { UAStream, UAStream_Base } from "./ua_stream";
+
 // ----- this file has been automatically generated - do not edit
-import { UAStream, UAStream_Base } from "./ua_stream"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |isAbstract      |false                                                       |
  */
 export type UAMNRDeviceStream_Base = UAStream_Base;
-export interface UAMNRDeviceStream extends UAStream, UAMNRDeviceStream_Base {
-}
+export interface UAMNRDeviceStream extends UAStream, UAMNRDeviceStream_Base {}

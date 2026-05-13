@@ -1,6 +1,8 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { UADataItem, UADataItem_Base } from "./ua_data_item";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UADataItem, UADataItem_Base } from "./ua_data_item"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ import { UADataItem, UADataItem_Base } from "./ua_data_item"
  * |isAbstract      |true                                                        |
  */
 export type UADiscreteItem_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;
-export interface UADiscreteItem<T, DT extends DataType> extends UADataItem<T, DT>, UADiscreteItem_Base<T, DT> {
-}
+export interface UADiscreteItem<T, DT extends DataType> extends UADataItem<T, DT>, UADiscreteItem_Base<T, DT> {}

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UADataItem_Base<T, DT extends DataType>  extends UABaseDataVari
     definition?: UAProperty<UAString, DataType.String>;
     valuePrecision?: UAProperty<number, DataType.Double>;
 }
-export interface UADataItem<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UADataItem_Base<T, DT> {
-}
+export interface UADataItem<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UADataItem_Base<T, DT> {}

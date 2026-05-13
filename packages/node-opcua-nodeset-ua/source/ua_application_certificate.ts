@@ -1,5 +1,6 @@
+import type { UACertificate, UACertificate_Base } from "./ua_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UACertificate, UACertificate_Base } from "./ua_certificate"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UACertificate, UACertificate_Base } from "./ua_certificate"
  * |isAbstract      |true                                                        |
  */
 export type UAApplicationCertificate_Base = UACertificate_Base;
-export interface UAApplicationCertificate extends UACertificate, UAApplicationCertificate_Base {
-}
+export interface UAApplicationCertificate extends UACertificate, UAApplicationCertificate_Base {}

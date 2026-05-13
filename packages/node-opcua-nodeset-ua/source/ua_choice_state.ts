@@ -1,5 +1,6 @@
+import type { UAState, UAState_Base } from "./ua_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAState, UAState_Base } from "./ua_state"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAState, UAState_Base } from "./ua_state"
  * |isAbstract      |false                                                       |
  */
 export type UAChoiceState_Base = UAState_Base;
-export interface UAChoiceState extends UAState, UAChoiceState_Base {
-}
+export interface UAChoiceState extends UAState, UAChoiceState_Base {}

@@ -1,16 +1,19 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCncPosition } from "./dt_cnc_position";
+import type { EnumCncSpindleStatus } from "./enum_cnc_spindle_status";
+import type { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction";
+import type { UACncDrive, UACncDrive_Base } from "./ua_cnc_drive";
+import type { UACncPositionVariable } from "./ua_cnc_position_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UACncDrive, UACncDrive_Base } from "./ua_cnc_drive"
-import { EnumCncSpindleStatus } from "./enum_cnc_spindle_status"
-import { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction"
-import { DTCncPosition } from "./dt_cnc_position"
-import { UACncPositionVariable } from "./ua_cnc_position_variable"
+
 export interface UACncSpindle_actSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -79,5 +82,4 @@ export interface UACncSpindle_Base extends UACncDrive_Base {
      */
     cmdSpeed: UACncSpindle_cmdSpeed<number, DataType.Double>;
 }
-export interface UACncSpindle extends UACncDrive, UACncSpindle_Base {
-}
+export interface UACncSpindle extends UACncDrive, UACncSpindle_Base {}

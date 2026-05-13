@@ -1,7 +1,10 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTTransmitQos } from "./dt_transmit_qos";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTTransmitQos } from "./dt_transmit_qos"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

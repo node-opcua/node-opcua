@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
 export interface UAFiniteStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {
     id: UAProperty<NodeId, DataType.NodeId>;
 }
-export interface UAFiniteStateVariable<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id">, UAFiniteStateVariable_Base<T> {
-}
+export interface UAFiniteStateVariable<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id">, UAFiniteStateVariable_Base<T> {}

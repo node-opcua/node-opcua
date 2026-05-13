@@ -1,9 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
+
 export interface UAMachineryEquipmentFolder_$MachineryEquipment$ extends UAObject { // Object
       /**
        * assetId
@@ -80,5 +82,4 @@ export interface UAMachineryEquipmentFolder_Base extends UAFolder_Base {
      */
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
 }
-export interface UAMachineryEquipmentFolder extends UAFolder, UAMachineryEquipmentFolder_Base {
-}
+export interface UAMachineryEquipmentFolder extends UAFolder, UAMachineryEquipmentFolder_Base {}

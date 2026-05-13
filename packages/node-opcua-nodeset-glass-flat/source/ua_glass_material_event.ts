@@ -1,5 +1,6 @@
+import type { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
  * |isAbstract      |true                                                        |
  */
 export type UAGlassMaterialEvent_Base = UAGlassEvent_Base;
-export interface UAGlassMaterialEvent extends UAGlassEvent, UAGlassMaterialEvent_Base {
-}
+export interface UAGlassMaterialEvent extends UAGlassEvent, UAGlassMaterialEvent_Base {}

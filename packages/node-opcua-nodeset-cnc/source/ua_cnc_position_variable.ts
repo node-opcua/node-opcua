@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCncPosition } from "./dt_cnc_position";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { DTCncPosition } from "./dt_cnc_position"
+
 /**
  * Group of position values.
  *
@@ -37,5 +40,4 @@ export interface UACncPositionVariable_Base<T extends DTCncPosition>  extends UA
      */
     remDist: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UACncPositionVariable<T extends DTCncPosition> extends UABaseDataVariable<T, DataType.ExtensionObject>, UACncPositionVariable_Base<T> {
-}
+export interface UACncPositionVariable<T extends DTCncPosition> extends UABaseDataVariable<T, DataType.ExtensionObject>, UACncPositionVariable_Base<T> {}

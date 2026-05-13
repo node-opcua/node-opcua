@@ -1,5 +1,6 @@
+import type { UAIOLinkAlarm, UAIOLinkAlarm_Base } from "./ua_io_link_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UAIOLinkAlarm, UAIOLinkAlarm_Base } from "./ua_io_link_alarm"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAIOLinkAlarm, UAIOLinkAlarm_Base } from "./ua_io_link_alarm"
  * |isAbstract      |false                                                       |
  */
 export type UAIOLinkDeviceAlarm_Base = UAIOLinkAlarm_Base;
-export interface UAIOLinkDeviceAlarm extends UAIOLinkAlarm, UAIOLinkDeviceAlarm_Base {
-}
+export interface UAIOLinkDeviceAlarm extends UAIOLinkAlarm, UAIOLinkDeviceAlarm_Base {}

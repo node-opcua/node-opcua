@@ -1,5 +1,6 @@
+import type { UASystemConditionClass, UASystemConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_system_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UASystemConditionClass, UASystemConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_system_condition_class"
 /**
  * Over temperature
  *
@@ -11,5 +12,4 @@ import { UASystemConditionClass, UASystemConditionClass_Base } from "node-opcua-
  * |isAbstract      |true                                                        |
  */
 export type UAOverTemperatureConditionClass_Base = UASystemConditionClass_Base;
-export interface UAOverTemperatureConditionClass extends UASystemConditionClass, UAOverTemperatureConditionClass_Base {
-}
+export interface UAOverTemperatureConditionClass extends UASystemConditionClass, UAOverTemperatureConditionClass_Base {}

@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTLldpManagementAddressTxPort } from "./dt_lldp_management_address_tx_port";
+import type { EnumPortIdSubtype } from "./enum_port_id_subtype";
+import type { UAFolder } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Byte, UAString } from "node-opcua-basic-types"
-import { EnumPortIdSubtype } from "./enum_port_id_subtype"
-import { DTLldpManagementAddressTxPort } from "./dt_lldp_management_address_tx_port"
-import { UAFolder } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UALldpPortInformation_Base {
     managementAddressTxPort?: UAProperty<DTLldpManagementAddressTxPort[], DataType.ExtensionObject>;
     remoteSystemsData?: UAFolder;
 }
-export interface UALldpPortInformation extends UAObject, UALldpPortInformation_Base {
-}
+export interface UALldpPortInformation extends UAObject, UALldpPortInformation_Base {}

@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProductionJobStateMachine } from "./ua_production_job_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
-import { UAProductionJobStateMachine } from "./ua_production_job_state_machine"
+
 export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       isValid: UAProperty<boolean, DataType.Boolean>;
 }
@@ -29,5 +32,4 @@ export interface UAProductionJob_Base {
     runsPlanned: UAProductionJob_runsPlanned<UInt32, DataType.UInt32>;
     state: UAProductionJobStateMachine;
 }
-export interface UAProductionJob extends UAObject, UAProductionJob_Base {
-}
+export interface UAProductionJob extends UAObject, UAProductionJob_Base {}

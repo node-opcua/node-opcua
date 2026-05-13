@@ -1,7 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UATotalizerVariable_Base<T, DT extends DataType>  extends UAAna
     pulseValue: UAProperty<any, any>;
     pulseWidth: UAProperty<number, DataType.Float>;
 }
-export interface UATotalizerVariable<T, DT extends DataType> extends UAAnalogSignalVariable<T, DT>, UATotalizerVariable_Base<T, DT> {
-}
+export interface UATotalizerVariable<T, DT extends DataType> extends UAAnalogSignalVariable<T, DT>, UATotalizerVariable_Base<T, DT> {}

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTDeleteReferencesItem } from "./dt_delete_references_item";
+import type { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTDeleteReferencesItem } from "./dt_delete_references_item"
-import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./u
 export interface UAAuditDeleteReferencesEvent_Base extends UAAuditNodeManagementEvent_Base {
     referencesToDelete: UAProperty<DTDeleteReferencesItem[], DataType.ExtensionObject>;
 }
-export interface UAAuditDeleteReferencesEvent extends UAAuditNodeManagementEvent, UAAuditDeleteReferencesEvent_Base {
-}
+export interface UAAuditDeleteReferencesEvent extends UAAuditNodeManagementEvent, UAAuditDeleteReferencesEvent_Base {}

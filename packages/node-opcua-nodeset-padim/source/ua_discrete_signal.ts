@@ -1,6 +1,8 @@
+import type { UADiscreteSignalVariable } from "./ua_discrete_signal_variable";
+import type { UASignal, UASignal_Base } from "./ua_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UASignal, UASignal_Base } from "./ua_signal"
-import { UADiscreteSignalVariable } from "./ua_discrete_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UADiscreteSignalVariable } from "./ua_discrete_signal_variable"
 export interface UADiscreteSignal_Base extends UASignal_Base {
     discreteSignal: UADiscreteSignalVariable<any, any>;
 }
-export interface UADiscreteSignal extends UASignal, UADiscreteSignal_Base {
-}
+export interface UADiscreteSignal extends UASignal, UADiscreteSignal_Base {}

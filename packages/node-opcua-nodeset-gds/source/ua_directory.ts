@@ -1,6 +1,8 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +21,4 @@ export interface UADirectory_Base extends UAFolder_Base {
     queryApplications: UAMethod;
     queryServers: UAMethod;
 }
-export interface UADirectory extends UAFolder, UADirectory_Base {
-}
+export interface UADirectory extends UAFolder, UADirectory_Base {}

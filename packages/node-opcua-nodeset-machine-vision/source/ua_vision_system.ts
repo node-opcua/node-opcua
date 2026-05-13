@@ -1,19 +1,22 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSystemStateDescription } from "./dt_system_state_description";
+import type { UAConfigurationManagement } from "./ua_configuration_management";
+import type { UARecipeManagement } from "./ua_recipe_management";
+import type { UAResultManagement } from "./ua_result_management";
+import type { UASafetyStateManagement } from "./ua_safety_state_management";
+import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine";
+import type { UAVisionStateMachine } from "./ua_vision_state_machine";
+import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTSystemStateDescription } from "./dt_system_state_description"
-import { UAVisionStateMachine } from "./ua_vision_state_machine"
-import { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine"
-import { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine"
-import { UAConfigurationManagement } from "./ua_configuration_management"
-import { UARecipeManagement } from "./ua_recipe_management"
-import { UAResultManagement } from "./ua_result_management"
-import { UASafetyStateManagement } from "./ua_safety_state_management"
+
 export interface UAVisionSystem_visionStateMachine extends Omit<UAVisionStateMachine, "automaticModeStateMachine"|"confirmAll"|"currentState"|"error"|"errorStepModel"|"halt"|"halted"|"haltedStepModel"|"operational"|"preoperational"|"preoperationalStepModel"|"reset"|"selectModeAutomatic"> { // Object
       automaticModeStateMachine?: UAVisionAutomaticModeStateMachine;
       confirmAll?: UAMethod;
@@ -46,5 +49,4 @@ export interface UAVisionSystem_Base {
     systemState?: UABaseDataVariable<DTSystemStateDescription, DataType.ExtensionObject>;
     visionStateMachine: UAVisionSystem_visionStateMachine;
 }
-export interface UAVisionSystem extends UAObject, UAVisionSystem_Base {
-}
+export interface UAVisionSystem extends UAObject, UAVisionSystem_Base {}

@@ -1,13 +1,16 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor";
+import type { DTPackMLProduct } from "./dt_pack_ml_product";
+import type { DTPackMLRemoteInterface } from "./dt_pack_ml_remote_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { Int32 } from "node-opcua-basic-types"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
-import { DTPackMLProduct } from "./dt_pack_ml_product"
-import { DTPackMLRemoteInterface } from "./dt_pack_ml_remote_interface"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -33,5 +36,4 @@ export interface UAPackMLStatusObject_Base {
     unitModeRequested?: UABaseDataVariable<boolean, DataType.Boolean>;
     unitSupportedModes: UAProperty<NodeId, DataType.NodeId>;
 }
-export interface UAPackMLStatusObject extends UAObject, UAPackMLStatusObject_Base {
-}
+export interface UAPackMLStatusObject extends UAObject, UAPackMLStatusObject_Base {}

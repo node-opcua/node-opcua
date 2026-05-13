@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAxisInformation } from "./dt_axis_information";
+import type { UAArrayItem, UAArrayItem_Base } from "./ua_array_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTAxisInformation } from "./dt_axis_information"
-import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
 export interface UANDimensionArrayItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {
     axisDefinition: UAProperty<DTAxisInformation[], DataType.ExtensionObject>;
 }
-export interface UANDimensionArrayItem<T, DT extends DataType> extends UAArrayItem<T, DT>, UANDimensionArrayItem_Base<T, DT> {
-}
+export interface UANDimensionArrayItem<T, DT extends DataType> extends UAArrayItem<T, DT>, UANDimensionArrayItem_Base<T, DT> {}

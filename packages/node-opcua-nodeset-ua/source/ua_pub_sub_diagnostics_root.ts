@@ -1,9 +1,12 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UAPubSubDiagnostics, UAPubSubDiagnostics_Base } from "./ua_pub_sub_diagnostics";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "./ua_base_data_variable"
-import { UAPubSubDiagnostics, UAPubSubDiagnostics_Base } from "./ua_pub_sub_diagnostics"
+
 export interface UAPubSubDiagnosticsRoot_liveValues extends UAObject { // Object
       configuredDataSetWriters: UABaseDataVariable<UInt16, DataType.UInt16>;
       configuredDataSetReaders: UABaseDataVariable<UInt16, DataType.UInt16>;
@@ -21,5 +24,4 @@ export interface UAPubSubDiagnosticsRoot_liveValues extends UAObject { // Object
 export interface UAPubSubDiagnosticsRoot_Base extends UAPubSubDiagnostics_Base {
     liveValues: UAPubSubDiagnosticsRoot_liveValues;
 }
-export interface UAPubSubDiagnosticsRoot extends Omit<UAPubSubDiagnostics, "liveValues">, UAPubSubDiagnosticsRoot_Base {
-}
+export interface UAPubSubDiagnosticsRoot extends Omit<UAPubSubDiagnostics, "liveValues">, UAPubSubDiagnosticsRoot_Base {}

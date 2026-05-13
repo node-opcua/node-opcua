@@ -1,9 +1,12 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
+import type { DTSessionDiagnostics } from "./dt_session_diagnostics";
+import type { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics";
+import type { UASessionDiagnosticsArray } from "./ua_session_diagnostics_array";
+import type { UASessionSecurityDiagnosticsArray } from "./ua_session_security_diagnostics_array";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DTSessionDiagnostics } from "./dt_session_diagnostics"
-import { UASessionDiagnosticsArray } from "./ua_session_diagnostics_array"
-import { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics"
-import { UASessionSecurityDiagnosticsArray } from "./ua_session_security_diagnostics_array"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UASessionsDiagnosticsSummary_Base {
     sessionSecurityDiagnosticsArray: UASessionSecurityDiagnosticsArray<DTSessionSecurityDiagnostics[]>;
    // PlaceHolder for $ClientName$
 }
-export interface UASessionsDiagnosticsSummary extends UAObject, UASessionsDiagnosticsSummary_Base {
-}
+export interface UASessionsDiagnosticsSummary extends UAObject, UASessionsDiagnosticsSummary_Base {}

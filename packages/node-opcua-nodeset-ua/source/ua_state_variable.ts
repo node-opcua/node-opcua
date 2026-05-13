@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +24,4 @@ export interface UAStateVariable_Base<T extends LocalizedText>  extends UABaseDa
     number?: UAProperty<UInt32, DataType.UInt32>;
     effectiveDisplayName?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAStateVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAStateVariable_Base<T> {
-}
+export interface UAStateVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAStateVariable_Base<T> {}

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRootCause } from "./dt_root_cause";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { DTRootCause } from "./dt_root_cause"
+
 /**
  * Information on the root cause of conditions,
  * should be applied to alarms (AlarmType or
@@ -32,5 +35,4 @@ export interface UAIRootCauseIndication_Base extends UABaseInterface_Base {
      */
     potentialRootCauses: UAProperty<DTRootCause[], DataType.ExtensionObject>;
 }
-export interface UAIRootCauseIndication extends UABaseInterface, UAIRootCauseIndication_Base {
-}
+export interface UAIRootCauseIndication extends UABaseInterface, UAIRootCauseIndication_Base {}

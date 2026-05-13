@@ -1,8 +1,10 @@
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+
 /**
  * Describes the behaviour of an AccessorySlot when
  * a physical accessory is inserted or removed.
@@ -64,5 +66,4 @@ export interface UAAccessorySlotStateMachine_Base extends UAFiniteStateMachine_B
     installedToShutdownTransition: UATransition;
     removingToShutdownTransition: UATransition;
 }
-export interface UAAccessorySlotStateMachine extends UAFiniteStateMachine, UAAccessorySlotStateMachine_Base {
-}
+export interface UAAccessorySlotStateMachine extends UAFiniteStateMachine, UAAccessorySlotStateMachine_Base {}

@@ -1,7 +1,10 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAProduct, UAProduct_Base } from "./ua_product"
-import { UATargetItem } from "./ua_target_item"
+
 /**
  * Represents a product of a continuous scale.
  *
@@ -31,5 +34,4 @@ export interface UAContinuousProduct_Base extends UAProduct_Base {
      */
     targetWeight?: UATargetItem<any, any>;
 }
-export interface UAContinuousProduct extends UAProduct, UAContinuousProduct_Base {
-}
+export interface UAContinuousProduct extends UAProduct, UAContinuousProduct_Base {}

@@ -1,7 +1,10 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

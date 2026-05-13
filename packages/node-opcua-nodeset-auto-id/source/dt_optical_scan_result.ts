@@ -1,11 +1,14 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTLocation } from "./dt_location";
+import type { DTPosition } from "./dt_position";
+import type { DTScanData } from "./dt_scan_data";
+import type { DTScanResult } from "./dt_scan_result";
+
 // ----- this file has been automatically generated - do not edit
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTScanResult } from "./dt_scan_result"
-import { DTScanData } from "./dt_scan_data"
-import { DTLocation } from "./dt_location"
-import { DTPosition } from "./dt_position"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,7 +1,10 @@
+import type { LocalizedText } from "node-opcua-data-model";
+
+import type { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm";
+import type { UATwoStateVariable } from "./ua_two_state_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm"
-import { UATwoStateVariable } from "./ua_two_state_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UANonExclusiveLimitAlarm_Base extends UALimitAlarm_Base {
     lowState?: UATwoStateVariable<LocalizedText>;
     lowLowState?: UATwoStateVariable<LocalizedText>;
 }
-export interface UANonExclusiveLimitAlarm extends Omit<UALimitAlarm, "activeState">, UANonExclusiveLimitAlarm_Base {
-}
+export interface UANonExclusiveLimitAlarm extends Omit<UALimitAlarm, "activeState">, UANonExclusiveLimitAlarm_Base {}

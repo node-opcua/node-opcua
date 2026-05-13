@@ -1,10 +1,13 @@
+import type { Byte, Guid, Int32, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, Int32, UInt16, Byte, UAString, Guid } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTKeyValuePair } from "./dt_key_value_pair"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

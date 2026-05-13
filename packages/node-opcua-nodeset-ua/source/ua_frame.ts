@@ -1,13 +1,16 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates";
+import type { DTFrame } from "./dt_frame";
+import type { DTOrientation } from "./dt_orientation";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { UACartesianCoordinates } from "./ua_cartesian_coordinates";
+import type { UAOrientation } from "./ua_orientation";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { DTFrame } from "./dt_frame"
-import { DTCartesianCoordinates } from "./dt_cartesian_coordinates"
-import { DTOrientation } from "./dt_orientation"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { UACartesianCoordinates } from "./ua_cartesian_coordinates"
-import { UAOrientation } from "./ua_orientation"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -26,5 +29,4 @@ export interface UAFrame_Base<T extends DTFrame>  extends UABaseDataVariable_Bas
     baseFrame?: UABaseDataVariable<NodeId, DataType.NodeId>;
     fixedBase?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAFrame<T extends DTFrame> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAFrame_Base<T> {
-}
+export interface UAFrame<T extends DTFrame> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAFrame_Base<T> {}

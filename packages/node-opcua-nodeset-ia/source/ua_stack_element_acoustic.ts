@@ -1,9 +1,12 @@
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
+
 /**
  * Represents an acoustic element in a stacklight.
  *
@@ -44,5 +47,4 @@ export interface UAStackElementAcoustic_Base extends UAStackElement_Base {
      */
     operationMode: UABaseDataVariable<any, any>;
 }
-export interface UAStackElementAcoustic extends UAStackElement, UAStackElementAcoustic_Base {
-}
+export interface UAStackElementAcoustic extends UAStackElement, UAStackElementAcoustic_Base {}

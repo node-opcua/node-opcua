@@ -1,10 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumEnergySource } from "./enum_energy_source";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+import type { UACookingKettleParameter } from "./ua_cooking_kettle_parameter";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { EnumEnergySource } from "./enum_energy_source"
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
-import { UACookingKettleParameter } from "./ua_cooking_kettle_parameter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +21,4 @@ export interface UACookingKettleDevice_Base extends UACommercialKitchenDevice_Ba
     isWithAgitator: UAProperty<boolean, DataType.Boolean>;
     isWithCooling: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UACookingKettleDevice extends UACommercialKitchenDevice, UACookingKettleDevice_Base {
-}
+export interface UACookingKettleDevice extends UACommercialKitchenDevice, UACookingKettleDevice_Base {}

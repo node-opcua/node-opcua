@@ -1,10 +1,13 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTBuildInfo } from "./dt_build_info";
+import type { DTStructure } from "./dt_structure";
+import type { EnumServerState } from "./enum_server_state";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { EnumServerState } from "./enum_server_state"
-import { DTBuildInfo } from "./dt_build_info"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

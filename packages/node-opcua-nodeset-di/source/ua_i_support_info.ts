@@ -1,6 +1,8 @@
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +18,4 @@ export interface UAISupportInfo_Base extends UABaseInterface_Base {
     protocolSupport?: UAFolder;
     imageSet?: UAFolder;
 }
-export interface UAISupportInfo extends UABaseInterface, UAISupportInfo_Base {
-}
+export interface UAISupportInfo extends UABaseInterface, UAISupportInfo_Base {}

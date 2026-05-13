@@ -1,7 +1,10 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight";
+
+import type { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight"
-import { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAMonitoring_Base {
     machineTool: UAMachineOperationMonitoring;
     stacklight?: UABasicStacklight;
 }
-export interface UAMonitoring extends UAObject, UAMonitoring_Base {
-}
+export interface UAMonitoring extends UAObject, UAMonitoring_Base {}

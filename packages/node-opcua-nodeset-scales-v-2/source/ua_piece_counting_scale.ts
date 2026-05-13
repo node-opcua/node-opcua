@@ -1,9 +1,12 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+
+import type { UAMeasuredItem } from "./ua_measured_item";
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device"
-import { UAMeasuredItem } from "./ua_measured_item"
-import { UAProductionPreset } from "./ua_production_preset"
+
 /**
  * Represents a piece counting scale.
  *
@@ -36,5 +39,4 @@ export interface UAPieceCountingScale_Base extends UAScaleDevice_Base {
     setReferencePieceWeight: UAMethod;
     startReference?: UAMethod;
 }
-export interface UAPieceCountingScale extends Omit<UAScaleDevice, "productionPreset">, UAPieceCountingScale_Base {
-}
+export interface UAPieceCountingScale extends Omit<UAScaleDevice, "productionPreset">, UAPieceCountingScale_Base {}

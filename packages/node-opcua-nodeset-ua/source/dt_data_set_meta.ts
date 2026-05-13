@@ -1,13 +1,16 @@
+import type { Guid, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTConfigurationVersion } from "./dt_configuration_version";
+import type { DTDataTypeSchemaHeader } from "./dt_data_type_schema_header";
+import type { DTEnumDescription } from "./dt_enum_description";
+import type { DTFieldMetaData } from "./dt_field_meta_data";
+import type { DTSimpleTypeDescription } from "./dt_simple_type_description";
+import type { DTStructureDescription } from "./dt_structure_description";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString, Guid } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataTypeSchemaHeader } from "./dt_data_type_schema_header"
-import { DTStructureDescription } from "./dt_structure_description"
-import { DTEnumDescription } from "./dt_enum_description"
-import { DTSimpleTypeDescription } from "./dt_simple_type_description"
-import { DTFieldMetaData } from "./dt_field_meta_data"
-import { DTConfigurationVersion } from "./dt_configuration_version"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

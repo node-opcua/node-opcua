@@ -1,9 +1,12 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTActionMethod } from "./dt_action_method";
+import type { DTActionTarget } from "./dt_action_target";
+import type { DTDataSetMeta } from "./dt_data_set_meta";
+import type { DTPublishedAction } from "./dt_published_action";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTPublishedAction } from "./dt_published_action"
-import { DTDataSetMeta } from "./dt_data_set_meta"
-import { DTActionTarget } from "./dt_action_target"
-import { DTActionMethod } from "./dt_action_method"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

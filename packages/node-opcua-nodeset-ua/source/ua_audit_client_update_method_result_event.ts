@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { ExpandedNodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { ExpandedNodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UAAuditClientUpdateMethodResultEvent_Base extends UAAuditClient
     inputArguments: UAProperty<any, any>;
     outputArguments: UAProperty<any, any>;
 }
-export interface UAAuditClientUpdateMethodResultEvent extends UAAuditClientEvent, UAAuditClientUpdateMethodResultEvent_Base {
-}
+export interface UAAuditClientUpdateMethodResultEvent extends UAAuditClientEvent, UAAuditClientUpdateMethodResultEvent_Base {}

@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFile, UAFile_Base } from "./ua_file";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFile, UAFile_Base } from "./ua_file"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +24,4 @@ export interface UATrustList_Base extends UAFile_Base {
     addCertificate: UAMethod;
     removeCertificate: UAMethod;
 }
-export interface UATrustList extends UAFile, UATrustList_Base {
-}
+export interface UATrustList extends UAFile, UATrustList_Base {}

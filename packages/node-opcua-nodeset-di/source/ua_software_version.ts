@@ -1,8 +1,10 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +23,4 @@ export interface UASoftwareVersion_Base {
     hash?: UAProperty<Buffer, DataType.ByteString>;
     clear?: UAMethod;
 }
-export interface UASoftwareVersion extends UAObject, UASoftwareVersion_Base {
-}
+export interface UASoftwareVersion extends UAObject, UASoftwareVersion_Base {}

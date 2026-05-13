@@ -1,6 +1,8 @@
+import type { UACoffeeMachineParameter } from "./ua_coffee_machine_parameter";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
-import { UACoffeeMachineParameter } from "./ua_coffee_machine_parameter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ export interface UACoffeeMachineDevice_Base extends UACommercialKitchenDevice_Ba
    // PlaceHolder for $RecipeName$
     parameters: UACoffeeMachineParameter;
 }
-export interface UACoffeeMachineDevice extends UACommercialKitchenDevice, UACoffeeMachineDevice_Base {
-}
+export interface UACoffeeMachineDevice extends UACommercialKitchenDevice, UACoffeeMachineDevice_Base {}

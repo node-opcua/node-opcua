@@ -1,8 +1,10 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +24,4 @@ export interface UALockingServices_Base {
     exitLock: UAMethod;
     breakLock: UAMethod;
 }
-export interface UALockingServices extends UAObject, UALockingServices_Base {
-}
+export interface UALockingServices extends UAObject, UALockingServices_Base {}

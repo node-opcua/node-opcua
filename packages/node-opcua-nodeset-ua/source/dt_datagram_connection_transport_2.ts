@@ -1,9 +1,12 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDatagramConnectionTransport } from "./dt_datagram_connection_transport";
+import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTQos } from "./dt_qos";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDatagramConnectionTransport } from "./dt_datagram_connection_transport"
-import { DTNetworkAddress } from "./dt_network_address"
-import { DTQos } from "./dt_qos"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

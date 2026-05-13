@@ -1,17 +1,20 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCncPosition } from "./dt_cnc_position";
+import type { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status";
+import type { EnumCncChannelStatus } from "./enum_cnc_channel_status";
+import type { EnumCncOperationMode } from "./enum_cnc_operation_mode";
+import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component";
+import type { UACncPositionVariable } from "./ua_cnc_position_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UACncComponent, UACncComponent_Base } from "./ua_cnc_component"
-import { EnumCncOperationMode } from "./enum_cnc_operation_mode"
-import { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status"
-import { EnumCncChannelStatus } from "./enum_cnc_channel_status"
-import { DTCncPosition } from "./dt_cnc_position"
-import { UACncPositionVariable } from "./ua_cnc_position_variable"
+
 export interface UACncChannel_actFeedrate<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -263,5 +266,4 @@ export interface UACncChannel_Base extends UACncComponent_Base {
      */
     toolId: UADataItem<UInt32, DataType.UInt32>;
 }
-export interface UACncChannel extends UACncComponent, UACncChannel_Base {
-}
+export interface UACncChannel extends UACncComponent, UACncChannel_Base {}

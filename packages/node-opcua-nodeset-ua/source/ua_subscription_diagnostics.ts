@@ -1,9 +1,12 @@
+import type { Byte, UInt32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, Byte } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -48,5 +51,4 @@ export interface UASubscriptionDiagnostics_Base<T extends DTSubscriptionDiagnost
     nextSequenceNumber: UABaseDataVariable<UInt32, DataType.UInt32>;
     eventQueueOverflowCount: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UASubscriptionDiagnostics<T extends DTSubscriptionDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASubscriptionDiagnostics_Base<T> {
-}
+export interface UASubscriptionDiagnostics<T extends DTSubscriptionDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASubscriptionDiagnostics_Base<T> {}

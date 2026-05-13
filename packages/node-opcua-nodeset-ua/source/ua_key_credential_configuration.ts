@@ -1,8 +1,10 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { StatusCode } from "node-opcua-status-code"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +23,4 @@ export interface UAKeyCredentialConfiguration_Base {
     updateCredential?: UAMethod;
     deleteCredential?: UAMethod;
 }
-export interface UAKeyCredentialConfiguration extends UAObject, UAKeyCredentialConfiguration_Base {
-}
+export interface UAKeyCredentialConfiguration extends UAObject, UAKeyCredentialConfiguration_Base {}

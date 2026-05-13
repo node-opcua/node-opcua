@@ -1,6 +1,8 @@
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
 export interface UAProgramTransitionEvent_Base extends UATransitionEvent_Base {
     intermediateResult: UABaseDataVariable<any, any>;
 }
-export interface UAProgramTransitionEvent extends UATransitionEvent, UAProgramTransitionEvent_Base {
-}
+export interface UAProgramTransitionEvent extends UATransitionEvent, UAProgramTransitionEvent_Base {}

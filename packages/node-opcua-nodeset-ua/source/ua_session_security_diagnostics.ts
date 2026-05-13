@@ -1,10 +1,13 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -27,5 +30,4 @@ export interface UASessionSecurityDiagnostics_Base<T extends DTSessionSecurityDi
     securityPolicyUri: UABaseDataVariable<UAString, DataType.String>;
     clientCertificate: UABaseDataVariable<Buffer, DataType.ByteString>;
 }
-export interface UASessionSecurityDiagnostics<T extends DTSessionSecurityDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionSecurityDiagnostics_Base<T> {
-}
+export interface UASessionSecurityDiagnostics<T extends DTSessionSecurityDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionSecurityDiagnostics_Base<T> {}

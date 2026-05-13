@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int32, UAString } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +30,4 @@ export interface UAIVendorNameplate_Base extends UABaseInterface_Base {
     softwareReleaseDate?: UAProperty<Date, DataType.DateTime>;
     patchIdentifiers?: UAProperty<UAString[], DataType.String>;
 }
-export interface UAIVendorNameplate extends UABaseInterface, UAIVendorNameplate_Base {
-}
+export interface UAIVendorNameplate extends UABaseInterface, UAIVendorNameplate_Base {}

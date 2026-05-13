@@ -1,8 +1,11 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAbstractWeight } from "./dt_abstract_weight";
+import type { UAMeasuredItem } from "./ua_measured_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTAbstractWeight } from "./dt_abstract_weight"
-import { UAMeasuredItem } from "./ua_measured_item"
+
 /**
  * Contains the sum over the last measurement
  * results.
@@ -23,5 +26,4 @@ export interface UATotalizer_Base {
      */
     totalizedValue: UAMeasuredItem<DTAbstractWeight, DataType.ExtensionObject>;
 }
-export interface UATotalizer extends UAObject, UATotalizer_Base {
-}
+export interface UATotalizer extends UAObject, UATotalizer_Base {}

@@ -1,5 +1,6 @@
+import type { UATlsCertificate, UATlsCertificate_Base } from "./ua_tls_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UATlsCertificate, UATlsCertificate_Base } from "./ua_tls_certificate"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UATlsCertificate, UATlsCertificate_Base } from "./ua_tls_certificate"
  * |isAbstract      |false                                                       |
  */
 export type UATlsServerCertificate_Base = UATlsCertificate_Base;
-export interface UATlsServerCertificate extends UATlsCertificate, UATlsServerCertificate_Base {
-}
+export interface UATlsServerCertificate extends UATlsCertificate, UATlsServerCertificate_Base {}

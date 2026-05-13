@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusive_limit_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusive_limit_alarm"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusiv
 export interface UAExclusiveRateOfChangeAlarm_Base extends UAExclusiveLimitAlarm_Base {
     engineeringUnits?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAExclusiveRateOfChangeAlarm extends UAExclusiveLimitAlarm, UAExclusiveRateOfChangeAlarm_Base {
-}
+export interface UAExclusiveRateOfChangeAlarm extends UAExclusiveLimitAlarm, UAExclusiveRateOfChangeAlarm_Base {}

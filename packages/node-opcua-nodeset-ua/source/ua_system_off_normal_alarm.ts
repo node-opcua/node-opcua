@@ -1,5 +1,6 @@
+import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm"
  * |isAbstract      |false                                                       |
  */
 export type UASystemOffNormalAlarm_Base = UAOffNormalAlarm_Base;
-export interface UASystemOffNormalAlarm extends UAOffNormalAlarm, UASystemOffNormalAlarm_Base {
-}
+export interface UASystemOffNormalAlarm extends UAOffNormalAlarm, UASystemOffNormalAlarm_Base {}

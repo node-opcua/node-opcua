@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ export interface UAToolList_Base {
    // PlaceHolder for $Tool$
     nodeVersion?: UAProperty<UAString, DataType.String>;
 }
-export interface UAToolList extends UAObject, UAToolList_Base {
-}
+export interface UAToolList extends UAObject, UAToolList_Base {}

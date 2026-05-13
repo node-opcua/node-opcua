@@ -1,7 +1,10 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAProduct, UAProduct_Base } from "./ua_product"
-import { UATargetItem } from "./ua_target_item"
+
 /**
  * Represents a product of a totalizing hopper scale.
  *
@@ -25,5 +28,4 @@ export interface UATotalizingHopperProduct_Base extends UAProduct_Base {
      */
     volumeTargetValue?: UATargetItem<any, any>;
 }
-export interface UATotalizingHopperProduct extends UAProduct, UATotalizingHopperProduct_Base {
-}
+export interface UATotalizingHopperProduct extends UAProduct, UATotalizingHopperProduct_Base {}

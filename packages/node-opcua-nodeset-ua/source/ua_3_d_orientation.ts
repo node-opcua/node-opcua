@@ -1,8 +1,11 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { DT3DOrientation } from "./dt_3_d_orientation";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UAOrientation, UAOrientation_Base } from "./ua_orientation";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { DT3DOrientation } from "./dt_3_d_orientation"
-import { UAOrientation, UAOrientation_Base } from "./ua_orientation"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UA3DOrientation_Base<T extends DT3DOrientation>  extends UAOrie
     b: UABaseDataVariable<number, DataType.Double>;
     c: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UA3DOrientation<T extends DT3DOrientation> extends UAOrientation<T>, UA3DOrientation_Base<T> {
-}
+export interface UA3DOrientation<T extends DT3DOrientation> extends UAOrientation<T>, UA3DOrientation_Base<T> {}

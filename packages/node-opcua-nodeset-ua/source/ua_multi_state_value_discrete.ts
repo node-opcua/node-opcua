@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEnumValue } from "./dt_enum_value";
+import type { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { DTEnumValue } from "./dt_enum_value"
-import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UAMultiStateValueDiscrete_Base<T, DT extends DataType>  extends
     enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
     valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAMultiStateValueDiscrete<T, DT extends DataType> extends UADiscreteItem<T, DT>, UAMultiStateValueDiscrete_Base<T, DT> {
-}
+export interface UAMultiStateValueDiscrete<T, DT extends DataType> extends UADiscreteItem<T, DT>, UAMultiStateValueDiscrete_Base<T, DT> {}

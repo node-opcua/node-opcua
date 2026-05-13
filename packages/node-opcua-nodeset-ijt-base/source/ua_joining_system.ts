@@ -1,12 +1,15 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+
+import type { UAJoiningProcessManagement } from "./ua_joining_process_management";
+import type { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set";
+import type { UAJoiningSystemIdentification } from "./ua_joining_system_identification";
+import type { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management";
+import type { UAJointManagement } from "./ua_joint_management";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set"
-import { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management"
-import { UAJoiningSystemIdentification } from "./ua_joining_system_identification"
-import { UAJoiningProcessManagement } from "./ua_joining_process_management"
-import { UAJointManagement } from "./ua_joint_management"
+
 export interface UAJoiningSystem_assetManagement extends UAFunctionalGroup { // Object
       /**
        * assets
@@ -95,5 +98,4 @@ export interface UAJoiningSystem_Base {
      */
     resultManagement?: UAJoiningSystemResultManagement;
 }
-export interface UAJoiningSystem extends UAObject, UAJoiningSystem_Base {
-}
+export interface UAJoiningSystem extends UAObject, UAJoiningSystem_Base {}

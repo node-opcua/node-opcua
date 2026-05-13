@@ -1,5 +1,6 @@
+import type { UAApplicationCertificate, UAApplicationCertificate_Base } from "./ua_application_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAApplicationCertificate, UAApplicationCertificate_Base } from "./ua_application_certificate"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAApplicationCertificate, UAApplicationCertificate_Base } from "./ua_ap
  * |isAbstract      |false                                                       |
  */
 export type UARsaMinApplicationCertificate_Base = UAApplicationCertificate_Base;
-export interface UARsaMinApplicationCertificate extends UAApplicationCertificate, UARsaMinApplicationCertificate_Base {
-}
+export interface UARsaMinApplicationCertificate extends UAApplicationCertificate, UARsaMinApplicationCertificate_Base {}

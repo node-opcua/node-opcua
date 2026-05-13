@@ -1,5 +1,6 @@
+import type { UAMultiTool, UAMultiTool_Base } from "node-opcua-nodeset-machine-tool/dist/ua_multi_tool";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMultiTool, UAMultiTool_Base } from "node-opcua-nodeset-machine-tool/dist/ua_multi_tool"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAMultiTool, UAMultiTool_Base } from "node-opcua-nodeset-machine-tool/d
  * |isAbstract      |false                                                       |
  */
 export type UAFormingMultiTool_Base = UAMultiTool_Base;
-export interface UAFormingMultiTool extends UAMultiTool, UAFormingMultiTool_Base {
-}
+export interface UAFormingMultiTool extends UAMultiTool, UAFormingMultiTool_Base {}

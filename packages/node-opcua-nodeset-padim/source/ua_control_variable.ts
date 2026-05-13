@@ -1,9 +1,12 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
-import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAControlVariable_Base<T extends (number | number[])>  extends 
     operatingDirection: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
     actuatorType: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
 }
-export interface UAControlVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UAControlVariable_Base<T> {
-}
+export interface UAControlVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UAControlVariable_Base<T> {}

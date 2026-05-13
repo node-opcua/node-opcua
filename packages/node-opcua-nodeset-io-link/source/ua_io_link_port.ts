@@ -1,14 +1,17 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIOLinkDevice } from "./ua_io_link_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16, Byte } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
-import { UAIOLinkDevice } from "./ua_io_link_device"
+
 export interface UAIOLinkPort_capabilities extends UAFunctionalGroup { // Object
       maxPowerSupply: UABaseDataVariable<number, DataType.Double>;
       pin2Support: UABaseDataVariable<boolean, DataType.Boolean>;
@@ -96,5 +99,4 @@ export interface UAIOLinkPort_Base extends UATopologyElement_Base {
     siOProcessData: UAIOLinkPort_siOProcessData;
     statistics: UAIOLinkPort_statistics;
 }
-export interface UAIOLinkPort extends Omit<UATopologyElement, "methodSet"|"parameterSet">, UAIOLinkPort_Base {
-}
+export interface UAIOLinkPort extends Omit<UATopologyElement, "methodSet"|"parameterSet">, UAIOLinkPort_Base {}

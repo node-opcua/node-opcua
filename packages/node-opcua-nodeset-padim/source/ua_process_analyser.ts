@@ -1,5 +1,6 @@
+import type { UAPADIM, UAPADIM_Base } from "./ua_padim";
+
 // ----- this file has been automatically generated - do not edit
-import { UAPADIM, UAPADIM_Base } from "./ua_padim"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAPADIM, UAPADIM_Base } from "./ua_padim"
  * |isAbstract      |false                                                       |
  */
 export type UAProcessAnalyser_Base = UAPADIM_Base;
-export interface UAProcessAnalyser extends UAPADIM, UAProcessAnalyser_Base {
-}
+export interface UAProcessAnalyser extends UAPADIM, UAProcessAnalyser_Base {}

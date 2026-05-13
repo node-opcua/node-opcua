@@ -1,12 +1,15 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumCoatingClass } from "./enum_coating_class";
+import type { EnumSignificantSide } from "./enum_significant_side";
+import type { EnumStructureAlignment } from "./enum_structure_alignment";
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { EnumCoatingClass } from "./enum_coating_class"
-import { EnumSignificantSide } from "./enum_significant_side"
-import { EnumStructureAlignment } from "./enum_structure_alignment"
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -30,5 +33,4 @@ export interface UAGlass_Base extends UABaseMaterial_Base {
     x: UAAnalogUnit<number, DataType.Double>;
     y: UAAnalogUnit<number, DataType.Double>;
 }
-export interface UAGlass extends Omit<UABaseMaterial, "x"|"y">, UAGlass_Base {
-}
+export interface UAGlass extends Omit<UABaseMaterial, "x"|"y">, UAGlass_Base {}

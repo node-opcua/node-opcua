@@ -1,5 +1,6 @@
+import type { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry";
+
 // ----- this file has been automatically generated - do not edit
-import { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry
  * |isAbstract      |false                                                       |
  */
 export type UAIrdiDictionaryEntry_Base = UADictionaryEntry_Base;
-export interface UAIrdiDictionaryEntry extends UADictionaryEntry, UAIrdiDictionaryEntry_Base {
-}
+export interface UAIrdiDictionaryEntry extends UADictionaryEntry, UAIrdiDictionaryEntry_Base {}

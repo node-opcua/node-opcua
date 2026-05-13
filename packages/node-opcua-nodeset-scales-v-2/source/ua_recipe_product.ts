@@ -1,10 +1,13 @@
+import type { NodeId } from "node-opcua-nodeid";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRecipeReportElement } from "./dt_recipe_report_element";
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
-import { DTRecipeReportElement } from "./dt_recipe_report_element"
-import { UAProduct, UAProduct_Base } from "./ua_product"
+
 /**
  * Represents a product of a recipe scale.
  *
@@ -36,5 +39,4 @@ export interface UARecipeProduct_Base extends UAProduct_Base {
      */
     reportFile?: UAFile;
 }
-export interface UARecipeProduct extends UAProduct, UARecipeProduct_Base {
-}
+export interface UARecipeProduct extends UAProduct, UARecipeProduct_Base {}

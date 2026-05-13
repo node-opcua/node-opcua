@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStatisticCounter } from "./ua_statistic_counter";
+import type { UAWeighingItem } from "./ua_weighing_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAWeighingItem } from "./ua_weighing_item"
-import { UAStatisticCounter } from "./ua_statistic_counter"
+
 /**
  * Container for the different statisticvalues. All
  * variables are optional, so that the statistics
@@ -55,5 +58,4 @@ export interface UAStatistic_Base {
     totalPackages?: UAStatisticCounter;
     totalPackagesWeighed?: UAStatisticCounter;
 }
-export interface UAStatistic extends UAObject, UAStatistic_Base {
-}
+export interface UAStatistic extends UAObject, UAStatistic_Base {}

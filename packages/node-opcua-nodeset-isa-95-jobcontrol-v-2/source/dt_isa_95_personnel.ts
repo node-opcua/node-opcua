@@ -1,10 +1,13 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTISA95Property } from "./dt_isa_95_property";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTISA95Property } from "./dt_isa_95_property"
+
 /**
  * Defines a personnel resource or a person, a
  * quantity, an optional description, and an

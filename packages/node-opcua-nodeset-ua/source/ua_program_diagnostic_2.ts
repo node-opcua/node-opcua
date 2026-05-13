@@ -1,12 +1,15 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTArgument } from "./dt_argument";
+import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2"
-import { DTArgument } from "./dt_argument"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -32,5 +35,4 @@ export interface UAProgramDiagnostic2_Base<T extends DTProgramDiagnostic2>  exte
     lastMethodCallTime: UABaseDataVariable<Date, DataType.DateTime>;
     lastMethodReturnStatus: UABaseDataVariable<StatusCode, DataType.StatusCode>;
 }
-export interface UAProgramDiagnostic2<T extends DTProgramDiagnostic2> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic2_Base<T> {
-}
+export interface UAProgramDiagnostic2<T extends DTProgramDiagnostic2> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic2_Base<T> {}

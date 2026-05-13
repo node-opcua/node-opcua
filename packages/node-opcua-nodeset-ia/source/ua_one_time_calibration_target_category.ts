@@ -1,5 +1,6 @@
+import type { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category"
 /**
  * Categorizes a calibration target to be used only
  * once, for example because the calibration
@@ -16,5 +17,4 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |isAbstract      |false                                                       |
  */
 export type UAOneTimeCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
-export interface UAOneTimeCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAOneTimeCalibrationTargetCategory_Base {
-}
+export interface UAOneTimeCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAOneTimeCalibrationTargetCategory_Base {}

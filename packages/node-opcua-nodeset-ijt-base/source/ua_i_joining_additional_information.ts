@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+
 /**
  * The IJoiningAdditionalInformationType provides
  * additional parameters for Identification of a
@@ -36,5 +38,4 @@ export interface UAIJoiningAdditionalInformation_Base extends UABaseInterface_Ba
      */
     supplierCode?: UAProperty<UAString, DataType.String>;
 }
-export interface UAIJoiningAdditionalInformation extends UABaseInterface, UAIJoiningAdditionalInformation_Base {
-}
+export interface UAIJoiningAdditionalInformation extends UABaseInterface, UAIJoiningAdditionalInformation_Base {}

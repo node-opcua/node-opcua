@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_set_writer_message";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_set_writer_message"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_s
 export interface UAJsonDataSetWriterMessage_Base extends UADataSetWriterMessage_Base {
     dataSetMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAJsonDataSetWriterMessage extends UADataSetWriterMessage, UAJsonDataSetWriterMessage_Base {
-}
+export interface UAJsonDataSetWriterMessage extends UADataSetWriterMessage, UAJsonDataSetWriterMessage_Base {}

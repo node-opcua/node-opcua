@@ -1,5 +1,6 @@
+import type { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from "./ua_ecc_application_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from "./ua_ecc_application_certificate"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from ".
  * |isAbstract      |false                                                       |
  */
 export type UAEccCurve448ApplicationCertificate_Base = UAEccApplicationCertificate_Base;
-export interface UAEccCurve448ApplicationCertificate extends UAEccApplicationCertificate, UAEccCurve448ApplicationCertificate_Base {
-}
+export interface UAEccCurve448ApplicationCertificate extends UAEccApplicationCertificate, UAEccCurve448ApplicationCertificate_Base {}

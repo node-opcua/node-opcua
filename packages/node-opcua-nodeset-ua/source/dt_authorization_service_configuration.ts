@@ -1,9 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTBaseConfigurationRecord } from "./dt_base_configuration_record";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTServiceCertificate } from "./dt_service_certificate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTBaseConfigurationRecord } from "./dt_base_configuration_record"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTServiceCertificate } from "./dt_service_certificate"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

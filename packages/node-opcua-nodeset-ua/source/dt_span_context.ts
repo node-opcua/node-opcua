@@ -1,7 +1,10 @@
+import type { Guid, UInt64 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt64, Guid } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

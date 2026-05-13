@@ -1,7 +1,10 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device"
-import { UAProductionPreset } from "./ua_production_preset"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAVehicleScale_Base extends UAScaleDevice_Base {
      */
     productionPreset?: UAProductionPreset;
 }
-export interface UAVehicleScale extends Omit<UAScaleDevice, "productionPreset">, UAVehicleScale_Base {
-}
+export interface UAVehicleScale extends Omit<UAScaleDevice, "productionPreset">, UAVehicleScale_Base {}

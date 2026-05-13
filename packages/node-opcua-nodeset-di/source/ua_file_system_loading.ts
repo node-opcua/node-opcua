@@ -1,7 +1,10 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory";
+
+import type { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory"
-import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAFileSystemLoading_Base extends UASoftwareLoading_Base {
     getUpdateBehavior: UAMethod;
     validateFiles?: UAMethod;
 }
-export interface UAFileSystemLoading extends UASoftwareLoading, UAFileSystemLoading_Base {
-}
+export interface UAFileSystemLoading extends UASoftwareLoading, UAFileSystemLoading_Base {}

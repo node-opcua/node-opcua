@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +24,4 @@ export interface UAIGasChromatographCalibration_Base extends UABaseInterface_Bas
     calibrationRange3LowerRangeValue?: UAAnalogUnit<number, DataType.Float>;
     calibrationRange3UpperRangeValue?: UAAnalogUnit<number, DataType.Float>;
 }
-export interface UAIGasChromatographCalibration extends UABaseInterface, UAIGasChromatographCalibration_Base {
-}
+export interface UAIGasChromatographCalibration extends UABaseInterface, UAIGasChromatographCalibration_Base {}

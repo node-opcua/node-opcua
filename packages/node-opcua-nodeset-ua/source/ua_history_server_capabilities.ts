@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFolder } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFolder } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -29,5 +32,4 @@ export interface UAHistoryServerCapabilities_Base {
     aggregateFunctions: UAFolder;
     serverTimestampSupported?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAHistoryServerCapabilities extends UAObject, UAHistoryServerCapabilities_Base {
-}
+export interface UAHistoryServerCapabilities extends UAObject, UAHistoryServerCapabilities_Base {}

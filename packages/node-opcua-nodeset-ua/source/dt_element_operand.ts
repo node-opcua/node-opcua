@@ -1,7 +1,10 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTFilterOperand } from "./dt_filter_operand";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTFilterOperand } from "./dt_filter_operand"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

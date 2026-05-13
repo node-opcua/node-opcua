@@ -1,8 +1,11 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UALldpRemoteStatistics_Base {
     remoteDrops: UABaseDataVariable<UInt32, DataType.UInt32>;
     remoteAgeouts: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UALldpRemoteStatistics extends UAObject, UALldpRemoteStatistics_Base {
-}
+export interface UALldpRemoteStatistics extends UAObject, UALldpRemoteStatistics_Base {}

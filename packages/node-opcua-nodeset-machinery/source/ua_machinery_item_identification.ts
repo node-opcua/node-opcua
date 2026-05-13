@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import type { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group"
+
 /**
  * Contains information about the identification and
  * nameplate of a MachineryItem
@@ -144,5 +146,4 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      */
     yearOfConstruction?: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAMachineryItemIdentification extends UAFunctionalGroup, UAMachineryItemIdentification_Base {
-}
+export interface UAMachineryItemIdentification extends UAFunctionalGroup, UAMachineryItemIdentification_Base {}

@@ -1,8 +1,11 @@
+import type { Byte, UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt16, Byte } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAIIeeeTsnVlanTag_Base extends UABaseInterface_Base {
     vlanId: UABaseDataVariable<UInt16, DataType.UInt16>;
     priorityCodePoint: UABaseDataVariable<Byte, DataType.Byte>;
 }
-export interface UAIIeeeTsnVlanTag extends UABaseInterface, UAIIeeeTsnVlanTag_Base {
-}
+export interface UAIIeeeTsnVlanTag extends UABaseInterface, UAIIeeeTsnVlanTag_Base {}

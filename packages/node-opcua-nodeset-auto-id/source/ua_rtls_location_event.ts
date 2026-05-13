@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRtlsLocationResult } from "./dt_rtls_location_result";
+import type { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTRtlsLocationResult } from "./dt_rtls_location_result"
-import { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_eve
 export interface UARtlsLocationEvent_Base extends UAAutoIdScanEvent_Base {
     scanResult: UAProperty<DTRtlsLocationResult[], DataType.ExtensionObject>;
 }
-export interface UARtlsLocationEvent extends Omit<UAAutoIdScanEvent, "scanResult">, UARtlsLocationEvent_Base {
-}
+export interface UARtlsLocationEvent extends Omit<UAAutoIdScanEvent, "scanResult">, UARtlsLocationEvent_Base {}

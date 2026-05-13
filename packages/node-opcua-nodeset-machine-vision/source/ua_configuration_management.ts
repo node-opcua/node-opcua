@@ -1,10 +1,13 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTConfiguration } from "./dt_configuration";
+import type { UAConfigurationFolder } from "./ua_configuration_folder";
+import type { UAConfigurationTransfer } from "./ua_configuration_transfer";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTConfiguration } from "./dt_configuration"
-import { UAConfigurationFolder } from "./ua_configuration_folder"
-import { UAConfigurationTransfer } from "./ua_configuration_transfer"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -24,5 +27,4 @@ export interface UAConfigurationManagement_Base {
     releaseConfigurationHandle?: UAMethod;
     removeConfiguration?: UAMethod;
 }
-export interface UAConfigurationManagement extends UAObject, UAConfigurationManagement_Base {
-}
+export interface UAConfigurationManagement extends UAObject, UAConfigurationManagement_Base {}

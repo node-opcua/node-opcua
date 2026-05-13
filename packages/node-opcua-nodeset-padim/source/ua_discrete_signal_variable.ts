@@ -1,7 +1,9 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/dist/ua_discrete_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +20,4 @@ export interface UADiscreteSignalVariable_Base<T, DT extends DataType>  extends 
     simulationValue?: UABaseDataVariable<any, any>;
     simulationState?: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UADiscreteSignalVariable<T, DT extends DataType> extends UADiscreteItem<T, DT>, UADiscreteSignalVariable_Base<T, DT> {
-}
+export interface UADiscreteSignalVariable<T, DT extends DataType> extends UADiscreteItem<T, DT>, UADiscreteSignalVariable_Base<T, DT> {}

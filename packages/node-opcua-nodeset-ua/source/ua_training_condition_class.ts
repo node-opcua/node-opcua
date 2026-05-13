@@ -1,5 +1,6 @@
+import type { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condition_class"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condi
  * |isAbstract      |true                                                        |
  */
 export type UATrainingConditionClass_Base = UABaseConditionClass_Base;
-export interface UATrainingConditionClass extends UABaseConditionClass, UATrainingConditionClass_Base {
-}
+export interface UATrainingConditionClass extends UABaseConditionClass, UATrainingConditionClass_Base {}

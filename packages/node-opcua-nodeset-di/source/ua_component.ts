@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int32, UAString } from "node-opcua-basic-types"
-import { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UAComponent_Base extends UATopologyElement_Base {
     assetId?: UAProperty<UAString, DataType.String>;
     componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAComponent extends UATopologyElement, UAComponent_Base {
-}
+export interface UAComponent extends UATopologyElement, UAComponent_Base {}

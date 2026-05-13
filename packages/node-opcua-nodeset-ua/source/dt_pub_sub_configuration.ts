@@ -1,8 +1,11 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTPubSubConnection } from "./dt_pub_sub_connection";
+import type { DTPublishedDataSet } from "./dt_published_data_set";
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTPublishedDataSet } from "./dt_published_data_set"
-import { DTPubSubConnection } from "./dt_pub_sub_connection"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

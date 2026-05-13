@@ -1,11 +1,14 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumToolLocked } from "./enum_tool_locked";
+import type { EnumToolManagement } from "./enum_tool_management";
+import type { UABaseTool, UABaseTool_Base } from "./ua_base_tool";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { EnumToolLocked } from "./enum_tool_locked"
-import { UABaseTool, UABaseTool_Base } from "./ua_base_tool"
-import { EnumToolManagement } from "./enum_tool_management"
+
 export interface UATool_locked<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       reasonForLocking: UAProperty<EnumToolLocked, DataType.Int32>;
 }
@@ -26,5 +29,4 @@ export interface UATool_Base extends UABaseTool_Base {
     plannedForOperating?: UABaseDataVariable<boolean, DataType.Boolean>;
     toolLife?: UAObject;
 }
-export interface UATool extends UABaseTool, UATool_Base {
-}
+export interface UATool extends UABaseTool, UATool_Base {}

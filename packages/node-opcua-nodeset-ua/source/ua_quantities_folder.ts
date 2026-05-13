@@ -1,5 +1,6 @@
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,5 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                                       |
  */
 export type UAQuantitiesFolder_Base = UAFolder_Base;
-export interface UAQuantitiesFolder extends UAFolder, UAQuantitiesFolder_Base {
-}
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
+export interface UAQuantitiesFolder extends UAFolder, UAQuantitiesFolder_Base {}

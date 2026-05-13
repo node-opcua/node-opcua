@@ -1,7 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_security_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_security_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_secu
 export interface UAAuditCertificateEvent_Base extends UAAuditSecurityEvent_Base {
     certificate: UAProperty<Buffer, DataType.ByteString>;
 }
-export interface UAAuditCertificateEvent extends UAAuditSecurityEvent, UAAuditCertificateEvent_Base {
-}
+export interface UAAuditCertificateEvent extends UAAuditSecurityEvent, UAAuditCertificateEvent_Base {}

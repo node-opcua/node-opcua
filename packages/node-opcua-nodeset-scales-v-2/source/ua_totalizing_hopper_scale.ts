@@ -1,6 +1,8 @@
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device"
-import { UAProductionPreset } from "./ua_production_preset"
+
 /**
  * Represents a totalizing hopper scale.
  *
@@ -18,5 +20,4 @@ export interface UATotalizingHopperScale_Base extends UAScaleDevice_Base {
      */
     productionPreset?: UAProductionPreset;
 }
-export interface UATotalizingHopperScale extends Omit<UAScaleDevice, "productionPreset">, UATotalizingHopperScale_Base {
-}
+export interface UATotalizingHopperScale extends Omit<UAScaleDevice, "productionPreset">, UATotalizingHopperScale_Base {}

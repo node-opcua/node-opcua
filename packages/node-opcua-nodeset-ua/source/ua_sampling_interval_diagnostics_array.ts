@@ -1,8 +1,11 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { UASamplingIntervalDiagnostics } from "./ua_sampling_interval_diagnostics";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics"
-import { UASamplingIntervalDiagnostics } from "./ua_sampling_interval_diagnostics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ import { UASamplingIntervalDiagnostics } from "./ua_sampling_interval_diagnostic
 export interface UASamplingIntervalDiagnosticsArray_Base<T extends DTSamplingIntervalDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     samplingIntervalDiagnostics: UASamplingIntervalDiagnostics<DTSamplingIntervalDiagnostics>;
 }
-export interface UASamplingIntervalDiagnosticsArray<T extends DTSamplingIntervalDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnosticsArray_Base<T> {
-}
+export interface UASamplingIntervalDiagnosticsArray<T extends DTSamplingIntervalDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnosticsArray_Base<T> {}

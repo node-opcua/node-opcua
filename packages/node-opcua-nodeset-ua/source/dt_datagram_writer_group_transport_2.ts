@@ -1,9 +1,12 @@
+import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_transport";
+import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTTransmitQos } from "./dt_transmit_qos";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, Byte, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_transport"
-import { DTNetworkAddress } from "./dt_network_address"
-import { DTTransmitQos } from "./dt_transmit_qos"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

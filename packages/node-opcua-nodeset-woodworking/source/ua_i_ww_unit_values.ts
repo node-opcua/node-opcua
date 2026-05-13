@@ -1,8 +1,10 @@
+import type { UInt32, UInt64 } from "node-opcua-basic-types";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt64, UInt32 } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
+
 /**
  * The IWwUnitValuesType represents the values of a
  * unit
@@ -267,5 +269,4 @@ export interface UAIWwUnitValues_Base extends UABaseInterface_Base {
      */
     spindleOverride?: UABaseAnalog<UInt32, DataType.UInt32>;
 }
-export interface UAIWwUnitValues extends UABaseInterface, UAIWwUnitValues_Base {
-}
+export interface UAIWwUnitValues extends UABaseInterface, UAIWwUnitValues_Base {}

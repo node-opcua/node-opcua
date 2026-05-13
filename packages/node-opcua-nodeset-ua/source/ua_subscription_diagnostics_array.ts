@@ -1,8 +1,11 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics"
-import { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ import { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics"
 export interface UASubscriptionDiagnosticsArray_Base<T extends DTSubscriptionDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     subscriptionDiagnostics: UASubscriptionDiagnostics<DTSubscriptionDiagnostics>;
 }
-export interface UASubscriptionDiagnosticsArray<T extends DTSubscriptionDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASubscriptionDiagnosticsArray_Base<T> {
-}
+export interface UASubscriptionDiagnosticsArray<T extends DTSubscriptionDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASubscriptionDiagnosticsArray_Base<T> {}

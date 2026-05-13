@@ -1,12 +1,15 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { UADataSetWriterMessage } from "./ua_data_set_writer_message";
+import type { UADataSetWriterTransport } from "./ua_data_set_writer_transport";
+import type { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_set_writer";
+import type { UAPubSubStatus } from "./ua_pub_sub_status";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { UADataSetWriterTransport } from "./ua_data_set_writer_transport"
-import { UADataSetWriterMessage } from "./ua_data_set_writer_message"
-import { UAPubSubStatus } from "./ua_pub_sub_status"
-import { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_set_writer"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -25,5 +28,4 @@ export interface UADataSetWriter_Base {
     status: UAPubSubStatus;
     diagnostics?: UAPubSubDiagnosticsDataSetWriter;
 }
-export interface UADataSetWriter extends UAObject, UADataSetWriter_Base {
-}
+export interface UADataSetWriter extends UAObject, UADataSetWriter_Base {}

@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTScanDataEpc } from "./dt_scan_data_epc";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union"
-import { DTScanDataEpc } from "./dt_scan_data_epc"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

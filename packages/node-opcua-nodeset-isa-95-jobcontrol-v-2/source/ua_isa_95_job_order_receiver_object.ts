@@ -1,13 +1,16 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTISA95JobOrderAndState } from "./dt_isa_95_job_order_and_state";
+import type { DTISA95WorkMaster } from "./dt_isa_95_work_master";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { DTISA95JobOrderAndState } from "./dt_isa_95_job_order_and_state"
-import { DTISA95WorkMaster } from "./dt_isa_95_work_master"
+
 /**
  * The OPENSCSJobOrderReciverObjectType contains a
  * method to receive job order commands and optional
@@ -191,5 +194,4 @@ export interface UAISA95JobOrderReceiverObject_Base extends UAFiniteStateMachine
      */
     workMaster: UABaseDataVariable<DTISA95WorkMaster[], DataType.ExtensionObject>;
 }
-export interface UAISA95JobOrderReceiverObject extends UAFiniteStateMachine, UAISA95JobOrderReceiverObject_Base {
-}
+export interface UAISA95JobOrderReceiverObject extends UAFiniteStateMachine, UAISA95JobOrderReceiverObject_Base {}

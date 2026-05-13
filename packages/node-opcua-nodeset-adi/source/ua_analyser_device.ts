@@ -1,14 +1,17 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
+import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int32, UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
-import { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine"
+
 export interface UAAnalyserDevice_parameterSet extends UAObject { // Object
       /**
        * diagnosticStatus
@@ -84,5 +87,4 @@ export interface UAAnalyserDevice_Base extends UADevice_Base {
    // PlaceHolder for $ChannelIdentifier$
    // PlaceHolder for $AccessorySlotIdentifier$
 }
-export interface UAAnalyserDevice extends Omit<UADevice, "parameterSet"|"methodSet"|"identification">, UAAnalyserDevice_Base {
-}
+export interface UAAnalyserDevice extends Omit<UADevice, "parameterSet"|"methodSet"|"identification">, UAAnalyserDevice_Base {}

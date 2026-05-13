@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { DTCartesianCoordinates } from "./dt_cartesian_coordinates"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 export interface UACartesianCoordinates_Base<T extends DTCartesianCoordinates>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     lengthUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UACartesianCoordinates<T extends DTCartesianCoordinates> extends UABaseDataVariable<T, DataType.ExtensionObject>, UACartesianCoordinates_Base<T> {
-}
+export interface UACartesianCoordinates<T extends DTCartesianCoordinates> extends UABaseDataVariable<T, DataType.ExtensionObject>, UACartesianCoordinates_Base<T> {}

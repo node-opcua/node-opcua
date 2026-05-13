@@ -1,10 +1,13 @@
+import type { UInt16, UInt64 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumDuplex } from "./enum_duplex";
+import type { UAAnalogUnit } from "./ua_analog_unit";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt64, UInt16 } from "node-opcua-basic-types"
-import { EnumDuplex } from "./enum_duplex"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
-import { UAAnalogUnit } from "./ua_analog_unit"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UAIIeeeBaseEthernetPort_Base extends UABaseInterface_Base {
     duplex: UABaseDataVariable<EnumDuplex, DataType.Int32>;
     maxFrameLength: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
-export interface UAIIeeeBaseEthernetPort extends UABaseInterface, UAIIeeeBaseEthernetPort_Base {
-}
+export interface UAIIeeeBaseEthernetPort extends UABaseInterface, UAIIeeeBaseEthernetPort_Base {}

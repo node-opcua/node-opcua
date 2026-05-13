@@ -1,7 +1,9 @@
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -67,5 +69,4 @@ export interface UAISA95PrepareStateMachine_Base extends UAFiniteStateMachine_Ba
      */
     waiting: UAState;
 }
-export interface UAISA95PrepareStateMachine extends UAFiniteStateMachine, UAISA95PrepareStateMachine_Base {
-}
+export interface UAISA95PrepareStateMachine extends UAFiniteStateMachine, UAISA95PrepareStateMachine_Base {}

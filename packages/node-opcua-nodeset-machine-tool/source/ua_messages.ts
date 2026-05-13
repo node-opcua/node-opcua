@@ -1,14 +1,7 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-/**
- * |                |                                                            |
- * |----------------|------------------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
- * |nodeClass       |ObjectType                                                  |
- * |typedDefinition |MessagesType i=38                                           |
- * |isAbstract      |false                                                       |
- */
-export interface UAMessages_Base {
-}
-export interface UAMessages extends UAObject, UAMessages_Base {
-}
+
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
+export interface UAMessages_Base {}
+export interface UAMessages extends UAObject, UAMessages_Base {}

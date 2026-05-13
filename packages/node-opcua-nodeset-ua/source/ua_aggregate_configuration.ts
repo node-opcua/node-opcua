@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Byte } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +18,4 @@ export interface UAAggregateConfiguration_Base {
     percentDataGood: UAProperty<Byte, DataType.Byte>;
     useSlopedExtrapolation: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAAggregateConfiguration extends UAObject, UAAggregateConfiguration_Base {
-}
+export interface UAAggregateConfiguration extends UAObject, UAAggregateConfiguration_Base {}

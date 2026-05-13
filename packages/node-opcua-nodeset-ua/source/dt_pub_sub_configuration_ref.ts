@@ -1,7 +1,10 @@
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, UInt16 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_model";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_model"
+
 /**
  * Hold the descriptions of a mathematical process
  * and associated information to convert scaled data
@@ -22,5 +25,4 @@ export interface UAMVAModel_Base<T extends (Buffer | Buffer[])>  extends UAChemo
    // PlaceHolder for $User_defined_Output_$
     mainDataIndex: UAProperty<Int32, DataType.Int32>;
 }
-export interface UAMVAModel<T extends (Buffer | Buffer[])> extends Omit<UAChemometricModel<T>, "$User_defined_Output_$">, UAMVAModel_Base<T> {
-}
+export interface UAMVAModel<T extends (Buffer | Buffer[])> extends Omit<UAChemometricModel<T>, "$User_defined_Output_$">, UAMVAModel_Base<T> {}

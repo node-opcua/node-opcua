@@ -1,12 +1,15 @@
+import type { Int32, Int64, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProcessingTimes } from "./dt_processing_times";
+import type { DTResult } from "./dt_result";
+import type { DTResultMeta } from "./dt_result_meta";
+import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int64, Int32, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTProcessingTimes } from "./dt_processing_times"
-import { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum"
-import { DTResult } from "./dt_result"
-import { DTResultMeta } from "./dt_result_meta"
+
 export interface UAResult_resultMetaData<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       /**
        * creationTime
@@ -194,5 +197,4 @@ export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_B
     resultContent?: UABaseDataVariable<any, any>;
     resultMetaData: UAResult_resultMetaData<DTResultMeta, DataType.ExtensionObject>;
 }
-export interface UAResult<T extends DTResult> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAResult_Base<T> {
-}
+export interface UAResult<T extends DTResult> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAResult_Base<T> {}

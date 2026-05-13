@@ -1,12 +1,15 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UInt32, UInt64 } from "node-opcua-basic-types";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumWwUnitMode } from "./enum_ww_unit_mode";
+import type { EnumWwUnitState } from "./enum_ww_unit_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt64, UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { EnumWwUnitMode } from "./enum_ww_unit_mode"
-import { EnumWwUnitState } from "./enum_ww_unit_state"
+
 export interface UAIWwBaseState_flags extends UAObject { // Object
       /**
        * airPresent
@@ -472,5 +475,4 @@ export interface UAIWwBaseState_Base extends UABaseInterface_Base {
      */
     values?: UAIWwBaseState_values;
 }
-export interface UAIWwBaseState extends UABaseInterface, UAIWwBaseState_Base {
-}
+export interface UAIWwBaseState extends UABaseInterface, UAIWwBaseState_Base {}

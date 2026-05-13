@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTVector } from "./dt_vector";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { DTVector } from "./dt_vector"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 export interface UAVector_Base<T extends DTVector>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     vectorUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAVector<T extends DTVector> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAVector_Base<T> {
-}
+export interface UAVector<T extends DTVector> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAVector_Base<T> {}

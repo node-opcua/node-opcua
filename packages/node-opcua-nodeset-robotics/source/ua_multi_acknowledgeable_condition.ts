@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "nod
 export interface UAMultiAcknowledgeableCondition_Base extends UAAcknowledgeableCondition_Base {
     conditionDescriptions: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
-export interface UAMultiAcknowledgeableCondition extends UAAcknowledgeableCondition, UAMultiAcknowledgeableCondition_Base {
-}
+export interface UAMultiAcknowledgeableCondition extends UAAcknowledgeableCondition, UAMultiAcknowledgeableCondition_Base {}

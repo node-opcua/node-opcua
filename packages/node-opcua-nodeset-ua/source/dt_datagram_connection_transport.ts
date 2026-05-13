@@ -1,7 +1,10 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTConnectionTransport } from "./dt_connection_transport";
+import type { DTNetworkAddress } from "./dt_network_address";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTConnectionTransport } from "./dt_connection_transport"
-import { DTNetworkAddress } from "./dt_network_address"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

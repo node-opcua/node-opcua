@@ -1,8 +1,11 @@
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UAYArrayItem } from "node-opcua-nodeset-ua/dist/ua_y_array_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStream, UAStream_acquisitionData, UAStream_Base, UAStream_parameterSet } from "./ua_stream";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAYArrayItem } from "node-opcua-nodeset-ua/dist/ua_y_array_item"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAStream_parameterSet, UAStream_acquisitionData, UAStream, UAStream_Base } from "./ua_stream"
+
 export interface UAParticleSizeMonitorDeviceStream_parameterSet extends UAStream_parameterSet { // Object
       background?: UAYArrayItem<number, DataType.Float>;
       sizeDistribution: UAYArrayItem<number, DataType.Float>;
@@ -29,5 +32,4 @@ export interface UAParticleSizeMonitorDeviceStream_Base extends UAStream_Base {
     parameterSet?: UAParticleSizeMonitorDeviceStream_parameterSet;
     acquisitionData: UAParticleSizeMonitorDeviceStream_acquisitionData;
 }
-export interface UAParticleSizeMonitorDeviceStream extends Omit<UAStream, "parameterSet"|"acquisitionData">, UAParticleSizeMonitorDeviceStream_Base {
-}
+export interface UAParticleSizeMonitorDeviceStream extends Omit<UAStream, "parameterSet"|"acquisitionData">, UAParticleSizeMonitorDeviceStream_Base {}

@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Guid } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTConfigurationVersion } from "./dt_configuration_version";
+import type { DTDataSetMeta } from "./dt_data_set_meta";
+import type { UAExtensionFields } from "./ua_extension_fields";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Guid } from "node-opcua-basic-types"
-import { DTConfigurationVersion } from "./dt_configuration_version"
-import { DTDataSetMeta } from "./dt_data_set_meta"
-import { UAExtensionFields } from "./ua_extension_fields"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAPublishedDataSet_Base {
     cyclicDataSet?: UAProperty<boolean, DataType.Boolean>;
     extensionFields?: UAExtensionFields;
 }
-export interface UAPublishedDataSet extends UAObject, UAPublishedDataSet_Base {
-}
+export interface UAPublishedDataSet extends UAObject, UAPublishedDataSet_Base {}

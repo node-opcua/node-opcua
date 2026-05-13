@@ -1,11 +1,14 @@
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
+import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
-import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -33,5 +36,4 @@ export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base
     runningToInterrupted: UATransition;
     runningToRunning: UATransition;
 }
-export interface UAProductionStateMachine extends Omit<UAFiniteStateMachine, "currentState">, UAProductionStateMachine_Base {
-}
+export interface UAProductionStateMachine extends Omit<UAFiniteStateMachine, "currentState">, UAProductionStateMachine_Base {}

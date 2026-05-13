@@ -1,5 +1,6 @@
+import type { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event"
  * |isAbstract      |false                                                       |
  */
 export type UAVisionDiagnosticInfoEvent_Base = UAVisionEvent_Base;
-export interface UAVisionDiagnosticInfoEvent extends UAVisionEvent, UAVisionDiagnosticInfoEvent_Base {
-}
+export interface UAVisionDiagnosticInfoEvent extends UAVisionEvent, UAVisionDiagnosticInfoEvent_Base {}

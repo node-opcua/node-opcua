@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UADataTypeDictionary_Base<T extends Buffer>  extends UABaseData
     "$namespaceUri"?: UAProperty<UAString, DataType.String>;
     deprecated?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UADataTypeDictionary<T extends Buffer> extends UABaseDataVariable<T, DataType.ByteString>, UADataTypeDictionary_Base<T> {
-}
+export interface UADataTypeDictionary<T extends Buffer> extends UABaseDataVariable<T, DataType.ByteString>, UADataTypeDictionary_Base<T> {}

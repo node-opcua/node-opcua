@@ -1,11 +1,14 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_group";
+import type { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group";
+import type { UAWriterGroupMessage } from "./ua_writer_group_message";
+import type { UAWriterGroupTransport } from "./ua_writer_group_transport";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group"
-import { UAWriterGroupTransport } from "./ua_writer_group_transport"
-import { UAWriterGroupMessage } from "./ua_writer_group_message"
-import { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_group"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +31,4 @@ export interface UAWriterGroup_Base extends UAPubSubGroup_Base {
     addDataSetWriter?: UAMethod;
     removeDataSetWriter?: UAMethod;
 }
-export interface UAWriterGroup extends UAPubSubGroup, UAWriterGroup_Base {
-}
+export interface UAWriterGroup extends UAPubSubGroup, UAWriterGroup_Base {}

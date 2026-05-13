@@ -1,5 +1,6 @@
+import type { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event"
  * |isAbstract      |false                                                       |
  */
 export type UAIOLinkDeviceEvent_Base = UAIOLinkEvent_Base;
-export interface UAIOLinkDeviceEvent extends UAIOLinkEvent, UAIOLinkDeviceEvent_Base {
-}
+export interface UAIOLinkDeviceEvent extends UAIOLinkEvent, UAIOLinkDeviceEvent_Base {}

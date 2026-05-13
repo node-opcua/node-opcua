@@ -1,7 +1,9 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +18,4 @@ export interface UAIFlameIonisationDeviceConditionSet_Base extends UABaseInterfa
     combustionAirPressure?: UAAnalogUnit<number, DataType.Float>;
     fuelGasPressure?: UAAnalogUnit<number, DataType.Float>;
 }
-export interface UAIFlameIonisationDeviceConditionSet extends UABaseInterface, UAIFlameIonisationDeviceConditionSet_Base {
-}
+export interface UAIFlameIonisationDeviceConditionSet extends UABaseInterface, UAIFlameIonisationDeviceConditionSet_Base {}

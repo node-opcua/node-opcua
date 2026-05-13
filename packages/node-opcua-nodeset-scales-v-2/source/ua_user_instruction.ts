@@ -1,8 +1,11 @@
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element"
+
 /**
  * UserInstructionType represents a recipe step that
  * requires user interaction. The recipe scale
@@ -31,5 +34,4 @@ export interface UAUserInstruction_Base extends UARecipeElement_Base {
      */
     instructionId?: UABaseDataVariable<any, any>;
 }
-export interface UAUserInstruction extends UARecipeElement, UAUserInstruction_Base {
-}
+export interface UAUserInstruction extends UARecipeElement, UAUserInstruction_Base {}

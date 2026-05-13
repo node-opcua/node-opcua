@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTFieldTarget } from "./dt_field_target";
+import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTFieldTarget } from "./dt_field_target"
-import { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UATargetVariables_Base extends UASubscribedDataSet_Base {
     addTargetVariables?: UAMethod;
     removeTargetVariables?: UAMethod;
 }
-export interface UATargetVariables extends UASubscribedDataSet, UATargetVariables_Base {
-}
+export interface UATargetVariables extends UASubscribedDataSet, UATargetVariables_Base {}

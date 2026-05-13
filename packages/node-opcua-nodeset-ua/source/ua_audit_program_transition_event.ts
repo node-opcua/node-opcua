@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audi
 export interface UAAuditProgramTransitionEvent_Base extends UAAuditUpdateStateEvent_Base {
     transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAAuditProgramTransitionEvent extends UAAuditUpdateStateEvent, UAAuditProgramTransitionEvent_Base {
-}
+export interface UAAuditProgramTransitionEvent extends UAAuditUpdateStateEvent, UAAuditProgramTransitionEvent_Base {}

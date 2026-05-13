@@ -1,8 +1,11 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates";
+import type { DT3DOrientation } from "./dt_3_d_orientation";
+import type { DTFrame } from "./dt_frame";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTFrame } from "./dt_frame"
-import { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates"
-import { DT3DOrientation } from "./dt_3_d_orientation"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

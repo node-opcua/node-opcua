@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DataValue } from "node-opcua-data-value"
-import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAAuditHistoryRawModifyDeleteEvent_Base extends UAAuditHistoryD
     endTime: UAProperty<Date, DataType.DateTime>;
     oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
-export interface UAAuditHistoryRawModifyDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryRawModifyDeleteEvent_Base {
-}
+export interface UAAuditHistoryRawModifyDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryRawModifyDeleteEvent_Base {}

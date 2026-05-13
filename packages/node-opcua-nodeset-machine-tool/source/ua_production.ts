@@ -1,8 +1,11 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
+import type { UAProductionActiveProgram } from "./ua_production_active_program";
+import type { UAProductionJobList } from "./ua_production_job_list";
+import type { UAProductionStatistics } from "./ua_production_statistics";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UAProductionActiveProgram } from "./ua_production_active_program"
-import { UAProductionJobList } from "./ua_production_job_list"
-import { UAProductionStatistics } from "./ua_production_statistics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAProduction_Base {
     productionPlan?: UAProductionJobList;
     statistics?: UAProductionStatistics;
 }
-export interface UAProduction extends UAObject, UAProduction_Base {
-}
+export interface UAProduction extends UAObject, UAProduction_Base {}

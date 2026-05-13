@@ -1,6 +1,9 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +15,4 @@ import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 export interface UAIOrderedObject_Base extends UABaseInterface_Base {
     numberInList: UAProperty<any, any>;
 }
-export interface UAIOrderedObject extends UABaseInterface, UAIOrderedObject_Base {
-}
+export interface UAIOrderedObject extends UABaseInterface, UAIOrderedObject_Base {}

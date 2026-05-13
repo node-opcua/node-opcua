@@ -1,7 +1,8 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
 
 /**
  * |                |                                                            |
@@ -17,5 +18,4 @@ export interface UALogObject_Base {
     maxStorageDuration?: UAProperty<number, DataType.Double>;
     minimumSeverity?: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UALogObject extends UAObject, UALogObject_Base {
-}
+export interface UALogObject extends UAObject, UALogObject_Base {}

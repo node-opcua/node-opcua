@@ -1,11 +1,14 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEndpointDescription } from "./dt_endpoint_description";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { UAPubSubStatus } from "./ua_pub_sub_status";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
-import { DTEndpointDescription } from "./dt_endpoint_description"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { UAPubSubStatus } from "./ua_pub_sub_status"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UAPubSubGroup_Base {
     groupProperties: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
     status: UAPubSubStatus;
 }
-export interface UAPubSubGroup extends UAObject, UAPubSubGroup_Base {
-}
+export interface UAPubSubGroup extends UAObject, UAPubSubGroup_Base {}

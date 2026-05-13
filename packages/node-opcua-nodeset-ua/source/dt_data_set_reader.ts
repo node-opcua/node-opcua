@@ -1,15 +1,18 @@
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTDataSetMeta } from "./dt_data_set_meta";
+import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message";
+import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport";
+import type { DTEndpointDescription } from "./dt_endpoint_description";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTStructure } from "./dt_structure";
+import type { DTSubscribedDataSet } from "./dt_subscribed_data_set";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTDataSetMeta } from "./dt_data_set_meta"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
-import { DTEndpointDescription } from "./dt_endpoint_description"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTDataSetReaderTransport } from "./dt_data_set_reader_transport"
-import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
-import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

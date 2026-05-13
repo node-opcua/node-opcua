@@ -1,8 +1,11 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMultiStateDiscreteSignalVariable, UAMultiStateDiscreteSignalVariable_Base } from "./ua_multi_state_discrete_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
-import { UAMultiStateDiscreteSignalVariable, UAMultiStateDiscreteSignalVariable_Base } from "./ua_multi_state_discrete_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UAMultiStateDiscreteControlVariable_Base<T extends UInt32>  ext
     operatingDirection?: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
     faultState?: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
 }
-export interface UAMultiStateDiscreteControlVariable<T extends UInt32> extends UAMultiStateDiscreteSignalVariable<T>, UAMultiStateDiscreteControlVariable_Base<T> {
-}
+export interface UAMultiStateDiscreteControlVariable<T extends UInt32> extends UAMultiStateDiscreteSignalVariable<T>, UAMultiStateDiscreteControlVariable_Base<T> {}

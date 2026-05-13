@@ -1,13 +1,16 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTConnectionTransport } from "./dt_connection_transport";
+import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTReaderGroup } from "./dt_reader_group";
+import type { DTStructure } from "./dt_structure";
+import type { DTWriterGroup } from "./dt_writer_group";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTNetworkAddress } from "./dt_network_address"
-import { DTKeyValuePair } from "./dt_key_value_pair"
-import { DTConnectionTransport } from "./dt_connection_transport"
-import { DTWriterGroup } from "./dt_writer_group"
-import { DTReaderGroup } from "./dt_reader_group"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

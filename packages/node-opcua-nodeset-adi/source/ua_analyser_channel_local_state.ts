@@ -1,5 +1,6 @@
+import type { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state";
+
 // ----- this file has been automatically generated - do not edit
-import { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state"
  * |isAbstract      |false                                                       |
  */
 export type UAAnalyserChannelLocalState_Base = UAState_Base;
-export interface UAAnalyserChannelLocalState extends UAState, UAAnalyserChannelLocalState_Base {
-}
+export interface UAAnalyserChannelLocalState extends UAState, UAAnalyserChannelLocalState_Base {}

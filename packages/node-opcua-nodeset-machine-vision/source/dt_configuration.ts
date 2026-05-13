@@ -1,7 +1,10 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTConfigurationId } from "./dt_configuration_id";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTConfigurationId } from "./dt_configuration_id"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

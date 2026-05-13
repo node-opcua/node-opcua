@@ -1,17 +1,20 @@
+import type { Int32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTConfigurationId } from "./dt_configuration_id";
+import type { DTJobId } from "./dt_job_id";
+import type { DTMeasId } from "./dt_meas_id";
+import type { DTPartId } from "./dt_part_id";
+import type { DTProcessingTimes } from "./dt_processing_times";
+import type { DTProductId } from "./dt_product_id";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+import type { DTResult } from "./dt_result";
+import type { DTResultId } from "./dt_result_id";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTResult } from "./dt_result"
-import { DTConfigurationId } from "./dt_configuration_id"
-import { DTRecipeIdExternal } from "./dt_recipe_id_external"
-import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
-import { DTJobId } from "./dt_job_id"
-import { DTMeasId } from "./dt_meas_id"
-import { DTPartId } from "./dt_part_id"
-import { DTProcessingTimes } from "./dt_processing_times"
-import { DTProductId } from "./dt_product_id"
-import { DTResultId } from "./dt_result_id"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -41,5 +44,4 @@ export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_B
     resultId: UABaseDataVariable<DTResultId, DataType.ExtensionObject>;
     resultState: UABaseDataVariable<Int32, DataType.Int32>;
 }
-export interface UAResult<T extends DTResult> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAResult_Base<T> {
-}
+export interface UAResult<T extends DTResult> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAResult_Base<T> {}

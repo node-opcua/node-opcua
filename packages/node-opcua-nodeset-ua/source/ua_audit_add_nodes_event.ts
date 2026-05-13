@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAddNodesItem } from "./dt_add_nodes_item";
+import type { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTAddNodesItem } from "./dt_add_nodes_item"
-import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./u
 export interface UAAuditAddNodesEvent_Base extends UAAuditNodeManagementEvent_Base {
     nodesToAdd: UAProperty<DTAddNodesItem[], DataType.ExtensionObject>;
 }
-export interface UAAuditAddNodesEvent extends UAAuditNodeManagementEvent, UAAuditAddNodesEvent_Base {
-}
+export interface UAAuditAddNodesEvent extends UAAuditNodeManagementEvent, UAAuditAddNodesEvent_Base {}

@@ -1,10 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+
 /**
  * State machine representing the operation mode of
  * a MachineryItem
@@ -133,5 +135,4 @@ export interface UAMachineryOperationModeStateMachine_Base extends UAFiniteState
      */
     setup: UAState;
 }
-export interface UAMachineryOperationModeStateMachine extends UAFiniteStateMachine, UAMachineryOperationModeStateMachine_Base {
-}
+export interface UAMachineryOperationModeStateMachine extends UAFiniteStateMachine, UAMachineryOperationModeStateMachine_Base {}

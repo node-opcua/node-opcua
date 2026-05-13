@@ -1,5 +1,6 @@
+import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
  * |isAbstract      |false                                                       |
  */
 export type UAAuditConditionSuppressionEvent_Base = UAAuditConditionEvent_Base;
-export interface UAAuditConditionSuppressionEvent extends UAAuditConditionEvent, UAAuditConditionSuppressionEvent_Base {
-}
+export interface UAAuditConditionSuppressionEvent extends UAAuditConditionEvent, UAAuditConditionSuppressionEvent_Base {}

@@ -1,11 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
-import { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * Define the desired value of the Variable it
  * belongs to.
@@ -64,5 +66,4 @@ export interface UAProcessValueSetpointVariable_Base<T, DT extends DataType>  ex
      */
     substituteValue?: UABaseDataVariable<any, any>;
 }
-export interface UAProcessValueSetpointVariable<T, DT extends DataType> extends UAAnalogUnitRange<T, DT>, UAProcessValueSetpointVariable_Base<T, DT> {
-}
+export interface UAProcessValueSetpointVariable<T, DT extends DataType> extends UAAnalogUnitRange<T, DT>, UAProcessValueSetpointVariable_Base<T, DT> {}

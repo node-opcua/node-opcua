@@ -1,7 +1,9 @@
+import type { Byte, Int16, Int32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { Int32, Int16, Byte } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

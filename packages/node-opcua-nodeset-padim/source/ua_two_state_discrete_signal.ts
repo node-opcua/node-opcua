@@ -1,6 +1,8 @@
+import type { UASignal, UASignal_Base } from "./ua_signal";
+import type { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UASignal, UASignal_Base } from "./ua_signal"
-import { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal
 export interface UATwoStateDiscreteSignal_Base extends UASignal_Base {
     twoStateDiscreteSignal: UATwoStateDiscreteSignalVariable<(boolean | boolean[])>;
 }
-export interface UATwoStateDiscreteSignal extends UASignal, UATwoStateDiscreteSignal_Base {
-}
+export interface UATwoStateDiscreteSignal extends UASignal, UATwoStateDiscreteSignal_Base {}

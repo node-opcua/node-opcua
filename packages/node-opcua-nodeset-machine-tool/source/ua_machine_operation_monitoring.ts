@@ -1,14 +1,17 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32, UInt64 } from "node-opcua-basic-types";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumMachineOperationMode } from "./enum_machine_operation_mode";
+import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine";
+import type { UAObligation } from "./ua_obligation";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt64, UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
-import { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { EnumMachineOperationMode } from "./enum_machine_operation_mode"
-import { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine"
-import { UAObligation } from "./ua_obligation"
+
 export interface UAMachineOperationMonitoring_operationCounters extends Omit<UAMachineryOperationCounter, "powerOnDuration"> { // Object
       partsProducedInLifetime?: UABaseDataVariable<UInt64, DataType.UInt64>;
       /**
@@ -52,5 +55,4 @@ export interface UAMachineOperationMonitoring_Base {
     operationMode: UABaseDataVariable<EnumMachineOperationMode, DataType.Int32>;
     powerOnDuration?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UAMachineOperationMonitoring extends UAObject, UAMachineOperationMonitoring_Base {
-}
+export interface UAMachineOperationMonitoring extends UAObject, UAMachineOperationMonitoring_Base {}

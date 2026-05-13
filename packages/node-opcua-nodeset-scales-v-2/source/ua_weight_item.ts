@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTPrintableWeight } from "./dt_printable_weight";
+import type { DTWeight } from "./dt_weight";
+import type { EnumTareMode } from "./enum_tare_mode";
+import type { UAMeasuredItem, UAMeasuredItem_Base } from "./ua_measured_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { UAMeasuredItem, UAMeasuredItem_Base } from "./ua_measured_item"
-import { DTWeight } from "./dt_weight"
-import { DTPrintableWeight } from "./dt_printable_weight"
-import { EnumTareMode } from "./enum_tare_mode"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -41,5 +44,4 @@ export interface UAWeightItem_Base<T extends DTWeight>  extends UAMeasuredItem_B
     weightId?: UAProperty<UAString, DataType.String>;
     weightStable?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAWeightItem<T extends DTWeight> extends UAMeasuredItem<T, DataType.ExtensionObject>, UAWeightItem_Base<T> {
-}
+export interface UAWeightItem<T extends DTWeight> extends UAMeasuredItem<T, DataType.ExtensionObject>, UAWeightItem_Base<T> {}

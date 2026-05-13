@@ -1,8 +1,11 @@
+import type { Int32, UAString, UInt16 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTAccessResult } from "./dt_access_result";
+import type { DTScanData } from "./dt_scan_data";
+
 // ----- this file has been automatically generated - do not edit
-import { Int32, UInt16, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTAccessResult } from "./dt_access_result"
-import { DTScanData } from "./dt_scan_data"
+
 /**
  * Additional result values of an Rfid Transponder
  * access.

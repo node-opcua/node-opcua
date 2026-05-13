@@ -1,14 +1,17 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTISA95Equipment } from "./dt_isa_95_equipment";
+import type { DTISA95Material } from "./dt_isa_95_material";
+import type { DTISA95Parameter } from "./dt_isa_95_parameter";
+import type { DTISA95Personnel } from "./dt_isa_95_personnel";
+import type { DTISA95PhysicalAsset } from "./dt_isa_95_physical_asset";
+import type { DTISA95State } from "./dt_isa_95_state";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTISA95State } from "./dt_isa_95_state"
-import { DTISA95Parameter } from "./dt_isa_95_parameter"
-import { DTISA95Personnel } from "./dt_isa_95_personnel"
-import { DTISA95Equipment } from "./dt_isa_95_equipment"
-import { DTISA95PhysicalAsset } from "./dt_isa_95_physical_asset"
-import { DTISA95Material } from "./dt_isa_95_material"
+
 /**
  * Defines the information needed to schedule and
  * execute a job.

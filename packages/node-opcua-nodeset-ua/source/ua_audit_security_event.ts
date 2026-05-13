@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { StatusCode } from "node-opcua-status-code"
-import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 export interface UAAuditSecurityEvent_Base extends UAAuditEvent_Base {
     statusCodeId?: UAProperty<StatusCode, DataType.StatusCode>;
 }
-export interface UAAuditSecurityEvent extends UAAuditEvent, UAAuditSecurityEvent_Base {
-}
+export interface UAAuditSecurityEvent extends UAAuditEvent, UAAuditSecurityEvent_Base {}

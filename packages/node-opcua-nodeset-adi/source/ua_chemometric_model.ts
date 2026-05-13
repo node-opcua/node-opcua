@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * Hold the descriptions of a mathematical process
  * and associated information to convert scaled data
@@ -25,5 +27,4 @@ export interface UAChemometricModel_Base<T extends (Buffer | Buffer[])>  extends
    // PlaceHolder for $User_defined_Input_$
    // PlaceHolder for $User_defined_Output_$
 }
-export interface UAChemometricModel<T extends (Buffer | Buffer[])> extends UABaseDataVariable<T, DataType.ByteString>, UAChemometricModel_Base<T> {
-}
+export interface UAChemometricModel<T extends (Buffer | Buffer[])> extends UABaseDataVariable<T, DataType.ByteString>, UAChemometricModel_Base<T> {}

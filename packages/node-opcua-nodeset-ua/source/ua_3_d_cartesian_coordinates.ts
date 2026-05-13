@@ -1,8 +1,11 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UACartesianCoordinates, UACartesianCoordinates_Base } from "./ua_cartesian_coordinates";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates"
-import { UACartesianCoordinates, UACartesianCoordinates_Base } from "./ua_cartesian_coordinates"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UA3DCartesianCoordinates_Base<T extends DT3DCartesianCoordinate
     y: UABaseDataVariable<number, DataType.Double>;
     z: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UA3DCartesianCoordinates<T extends DT3DCartesianCoordinates> extends UACartesianCoordinates<T>, UA3DCartesianCoordinates_Base<T> {
-}
+export interface UA3DCartesianCoordinates<T extends DT3DCartesianCoordinates> extends UACartesianCoordinates<T>, UA3DCartesianCoordinates_Base<T> {}

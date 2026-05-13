@@ -1,13 +1,16 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+import type { UAConditionVariable } from "./ua_condition_variable";
+import type { UATwoStateVariable } from "./ua_two_state_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
-import { UATwoStateVariable } from "./ua_two_state_variable"
-import { UAConditionVariable } from "./ua_condition_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -36,5 +39,4 @@ export interface UACondition_Base extends UABaseEvent_Base {
     conditionRefresh: UAMethod;
     conditionRefresh2: UAMethod;
 }
-export interface UACondition extends Omit<UABaseEvent, "conditionClassId"|"conditionClassName"|"conditionSubClassId"|"conditionSubClassName">, UACondition_Base {
-}
+export interface UACondition extends Omit<UABaseEvent, "conditionClassId"|"conditionClassName"|"conditionSubClassId"|"conditionSubClassName">, UACondition_Base {}

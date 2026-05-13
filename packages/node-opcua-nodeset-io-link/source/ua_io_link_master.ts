@@ -1,12 +1,14 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
+
 export interface UAIOLinkMaster_capabilities extends UAFunctionalGroup { // Object
       maxNumberOfPorts: UABaseDataVariable<Byte, DataType.Byte>;
       maxPowerSupply: UABaseDataVariable<number, DataType.Double>;
@@ -80,5 +82,4 @@ export interface UAIOLinkMaster_Base extends UATopologyElement_Base {
     statistics: UAIOLinkMaster_statistics;
     vendorURL?: UAProperty<UAString, DataType.String>;
 }
-export interface UAIOLinkMaster extends Omit<UATopologyElement, "identification"|"methodSet"|"parameterSet">, UAIOLinkMaster_Base {
-}
+export interface UAIOLinkMaster extends Omit<UATopologyElement, "identification"|"methodSet"|"parameterSet">, UAIOLinkMaster_Base {}

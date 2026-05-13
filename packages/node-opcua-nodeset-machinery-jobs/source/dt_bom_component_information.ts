@@ -1,8 +1,11 @@
+import type { EUInformation } from "node-opcua-data-access";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTOutputInformation } from "./dt_output_information";
+
 // ----- this file has been automatically generated - do not edit
-import { EUInformation } from "node-opcua-data-access"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTOutputInformation } from "./dt_output_information"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

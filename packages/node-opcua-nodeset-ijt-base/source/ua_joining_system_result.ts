@@ -1,14 +1,17 @@
+import type { Byte, Int64, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result";
+import type { UAResult, UAResult_Base, UAResult_resultMetaData } from "node-opcua-nodeset-machinery-result/dist/ua_result";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEntity } from "./dt_entity";
+import type { DTJoiningResultMeta } from "./dt_joining_result_meta";
+import type { DTKeyValue } from "./dt_key_value";
+import type { DTResultCounter } from "./dt_result_counter";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int64, Byte, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAResult_resultMetaData, UAResult, UAResult_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result"
-import { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result"
-import { DTEntity } from "./dt_entity"
-import { DTKeyValue } from "./dt_key_value"
-import { DTResultCounter } from "./dt_result_counter"
-import { DTJoiningResultMeta } from "./dt_joining_result_meta"
+
 export interface UAJoiningSystemResult_resultMetaData<T, DT extends DataType> extends UAResult_resultMetaData<T, DT> { // Variable
       /**
        * assemblyType
@@ -122,5 +125,4 @@ export interface UAJoiningSystemResult_resultMetaData<T, DT extends DataType> ex
 export interface UAJoiningSystemResult_Base<T extends DTResult>  extends UAResult_Base<T> {
     resultMetaData: UAJoiningSystemResult_resultMetaData<DTJoiningResultMeta, DataType.ExtensionObject>;
 }
-export interface UAJoiningSystemResult<T extends DTResult> extends Omit<UAResult<T>, "resultMetaData">, UAJoiningSystemResult_Base<T> {
-}
+export interface UAJoiningSystemResult<T extends DTResult> extends Omit<UAResult<T>, "resultMetaData">, UAJoiningSystemResult_Base<T> {}

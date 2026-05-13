@@ -1,9 +1,12 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAContinuousScale, UAContinuousScale_Base } from "./ua_continuous_scale";
+import type { UAMeasuredItem } from "./ua_measured_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAContinuousScale, UAContinuousScale_Base } from "./ua_continuous_scale"
-import { UAMeasuredItem } from "./ua_measured_item"
+
 /**
  * Represents a loss in weight scale.
  *
@@ -30,5 +33,4 @@ export interface UALossInWeightScale_Base extends UAContinuousScale_Base {
     refillStart: UAMethod;
     refillStop: UAMethod;
 }
-export interface UALossInWeightScale extends UAContinuousScale, UALossInWeightScale_Base {
-}
+export interface UALossInWeightScale extends UAContinuousScale, UALossInWeightScale_Base {}

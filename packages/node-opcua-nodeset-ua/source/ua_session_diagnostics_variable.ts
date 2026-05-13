@@ -1,11 +1,14 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTApplicationDescription } from "./dt_application_description";
+import type { DTServiceCounter } from "./dt_service_counter";
+import type { DTSessionDiagnostics } from "./dt_session_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSessionDiagnostics } from "./dt_session_diagnostics"
-import { DTApplicationDescription } from "./dt_application_description"
-import { DTServiceCounter } from "./dt_service_counter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -62,5 +65,4 @@ export interface UASessionDiagnosticsVariable_Base<T extends DTSessionDiagnostic
     registerNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
     unregisterNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
 }
-export interface UASessionDiagnosticsVariable<T extends DTSessionDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionDiagnosticsVariable_Base<T> {
-}
+export interface UASessionDiagnosticsVariable<T extends DTSessionDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionDiagnosticsVariable_Base<T> {}

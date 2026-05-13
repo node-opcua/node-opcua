@@ -1,6 +1,9 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAPubSubKeyPushTargetFolder_Base extends UAFolder_Base {
     removePushTargetFolder?: UAMethod;
    // PlaceHolder for $PushTargetFolderName$
 }
-export interface UAPubSubKeyPushTargetFolder extends UAFolder, UAPubSubKeyPushTargetFolder_Base {
-}
+export interface UAPubSubKeyPushTargetFolder extends UAFolder, UAPubSubKeyPushTargetFolder_Base {}

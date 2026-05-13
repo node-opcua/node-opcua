@@ -1,7 +1,10 @@
+import type { UAProcessValue, UAProcessValue_Base } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value";
+
+import type { DTCyclicProcessValue } from "./dt_cyclic_process_value";
+import type { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProcessValue, UAProcessValue_Base } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value"
-import { DTCyclicProcessValue } from "./dt_cyclic_process_value"
-import { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable
 export interface UACyclicProcessValue_Base extends UAProcessValue_Base {
     cyclicProcessValue: UACyclicProcessValueVariable<DTCyclicProcessValue>;
 }
-export interface UACyclicProcessValue extends UAProcessValue, UACyclicProcessValue_Base {
-}
+export interface UACyclicProcessValue extends UAProcessValue, UACyclicProcessValue_Base {}

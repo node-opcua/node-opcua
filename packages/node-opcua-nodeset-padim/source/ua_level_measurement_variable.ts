@@ -1,6 +1,8 @@
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog
  * |isAbstract      |false                                                       |
  */
 export type UALevelMeasurementVariable_Base<T extends (number | number[])> = UAAnalogSignalVariable_Base<T, DataType.Float>;
-export interface UALevelMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UALevelMeasurementVariable_Base<T> {
-}
+export interface UALevelMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UALevelMeasurementVariable_Base<T> {}

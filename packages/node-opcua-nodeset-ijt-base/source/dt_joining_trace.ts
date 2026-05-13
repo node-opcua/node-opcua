@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTStepTrace } from "./dt_step_trace";
+import type { DTTrace } from "./dt_trace";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTTrace } from "./dt_trace"
-import { DTStepTrace } from "./dt_step_trace"
+
 /**
  * This structure is to describe the content of
  * traces for all the steps in the given program. It

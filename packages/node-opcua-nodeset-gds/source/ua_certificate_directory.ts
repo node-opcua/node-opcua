@@ -1,7 +1,10 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UACertificateGroupFolder } from "node-opcua-nodeset-ua/dist/ua_certificate_group_folder";
+
+import type { UADirectory, UADirectory_Base } from "./ua_directory";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UACertificateGroupFolder } from "node-opcua-nodeset-ua/dist/ua_certificate_group_folder"
-import { UADirectory, UADirectory_Base } from "./ua_directory"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UACertificateDirectory_Base extends UADirectory_Base {
     checkRevocationStatus?: UAMethod;
     certificateGroups: UACertificateGroupFolder;
 }
-export interface UACertificateDirectory extends UADirectory, UACertificateDirectory_Base {
-}
+export interface UACertificateDirectory extends UADirectory, UACertificateDirectory_Base {}

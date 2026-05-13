@@ -1,6 +1,9 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTAbstractWeight } from "./dt_abstract_weight";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTAbstractWeight } from "./dt_abstract_weight"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,9 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset";
+import type { UAJoiningDataVariable } from "./ua_joining_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
-import { UAJoiningDataVariable } from "./ua_joining_data_variable"
+
 export interface UAIPowerSupply_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * actualPower
@@ -47,5 +50,4 @@ export interface UAIPowerSupply_Base extends UAIJoiningSystemAsset_Base {
      */
     parameters: UAIPowerSupply_parameters;
 }
-export interface UAIPowerSupply extends Omit<UAIJoiningSystemAsset, "parameters">, UAIPowerSupply_Base {
-}
+export interface UAIPowerSupply extends Omit<UAIJoiningSystemAsset, "parameters">, UAIPowerSupply_Base {}

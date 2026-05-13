@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -72,5 +74,4 @@ export interface UAMachineryOperationCounter_Base extends UAFunctionalGroup_Base
      */
     powerOnDuration?: UAProperty<number, DataType.Double>;
 }
-export interface UAMachineryOperationCounter extends UAFunctionalGroup, UAMachineryOperationCounter_Base {
-}
+export interface UAMachineryOperationCounter extends UAFunctionalGroup, UAMachineryOperationCounter_Base {}

@@ -1,9 +1,12 @@
+import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumTsnStreamState } from "./enum_tsn_stream_state";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32, Byte, UAString } from "node-opcua-basic-types"
-import { EnumTsnStreamState } from "./enum_tsn_stream_state"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UAIIeeeBaseTsnStream_Base extends UABaseInterface_Base {
     accumulatedLatency?: UABaseDataVariable<UInt32, DataType.UInt32>;
     srClassId?: UABaseDataVariable<Byte, DataType.Byte>;
 }
-export interface UAIIeeeBaseTsnStream extends UABaseInterface, UAIIeeeBaseTsnStream_Base {
-}
+export interface UAIIeeeBaseTsnStream extends UABaseInterface, UAIIeeeBaseTsnStream_Base {}

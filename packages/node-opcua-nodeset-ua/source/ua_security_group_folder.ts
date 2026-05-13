@@ -1,8 +1,11 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UASecurityGroupFolder_Base extends UAFolder_Base {
     supportedSecurityPolicyUris?: UAProperty<UAString[], DataType.String>;
    // PlaceHolder for $SecurityGroupFolderName$
 }
-export interface UASecurityGroupFolder extends UAFolder, UASecurityGroupFolder_Base {
-}
+export interface UASecurityGroupFolder extends UAFolder, UASecurityGroupFolder_Base {}

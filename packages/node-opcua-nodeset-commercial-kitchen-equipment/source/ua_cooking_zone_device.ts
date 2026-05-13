@@ -1,12 +1,15 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumEnergySource } from "./enum_energy_source";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { Int32 } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { EnumEnergySource } from "./enum_energy_source"
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
+
 export interface UACookingZoneDevice_nominalVoltage<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -26,5 +29,4 @@ export interface UACookingZoneDevice_Base extends UACommercialKitchenDevice_Base
     nominalVoltage: UACookingZoneDevice_nominalVoltage<Int32, DataType.Int32>;
     numberOfPhases: UAProperty<Int32, DataType.Int32>;
 }
-export interface UACookingZoneDevice extends UACommercialKitchenDevice, UACookingZoneDevice_Base {
-}
+export interface UACookingZoneDevice extends UACommercialKitchenDevice, UACookingZoneDevice_Base {}

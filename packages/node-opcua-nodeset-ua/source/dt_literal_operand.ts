@@ -1,7 +1,10 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTFilterOperand } from "./dt_filter_operand";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTFilterOperand } from "./dt_filter_operand"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

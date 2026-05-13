@@ -1,13 +1,16 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumExecutionMode } from "./enum_execution_mode";
+import type { UATaskControlOperation } from "./ua_task_control_operation";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { EnumExecutionMode } from "./enum_execution_mode"
-import { UATaskControlOperation } from "./ua_task_control_operation"
+
 export interface UATaskControl_parameterSet extends UAObject { // Object
       /**
        * executionMode
@@ -54,5 +57,4 @@ export interface UATaskControl_Base extends UAComponent_Base {
     taskControlOperation?: UATaskControlOperation;
     taskModules?: UAFolder;
 }
-export interface UATaskControl extends Omit<UAComponent, "componentName"|"parameterSet">, UATaskControl_Base {
-}
+export interface UATaskControl extends Omit<UAComponent, "componentName"|"parameterSet">, UATaskControl_Base {}

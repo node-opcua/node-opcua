@@ -1,9 +1,12 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
+import type { UAInitialState } from "./ua_initial_state";
+import type { UAState } from "./ua_state";
+import type { UATransition } from "./ua_transition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
-import { UAInitialState } from "./ua_initial_state"
-import { UAState } from "./ua_state"
-import { UATransition } from "./ua_transition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -29,5 +32,4 @@ export interface UAFileTransferStateMachine_Base extends UAFiniteStateMachine_Ba
     errorToIdle: UATransition;
     reset: UAMethod;
 }
-export interface UAFileTransferStateMachine extends UAFiniteStateMachine, UAFileTransferStateMachine_Base {
-}
+export interface UAFileTransferStateMachine extends UAFiniteStateMachine, UAFileTransferStateMachine_Base {}

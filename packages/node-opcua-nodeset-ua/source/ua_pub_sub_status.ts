@@ -1,8 +1,11 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumPubSubState } from "./enum_pub_sub_state";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EnumPubSubState } from "./enum_pub_sub_state"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAPubSubStatus_Base {
     enable?: UAMethod;
     disable?: UAMethod;
 }
-export interface UAPubSubStatus extends UAObject, UAPubSubStatus_Base {
-}
+export interface UAPubSubStatus extends UAObject, UAPubSubStatus_Base {}

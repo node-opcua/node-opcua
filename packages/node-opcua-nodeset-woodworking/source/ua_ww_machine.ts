@@ -1,16 +1,19 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAUIElement } from "node-opcua-nodeset-di/dist/ua_ui_element";
+import type { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management";
+import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAUIElement } from "node-opcua-nodeset-di/dist/ua_ui_element"
-import { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management"
-import { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher"
+
 export interface UAWwMachine_identification extends Omit<UAMachineIdentification, "assetId"|"componentName"|"deviceClass"|"hardwareRevision"|"initialOperationDate"|"location"|"manufacturer"|"manufacturerUri"|"model"|"monthOfConstruction"|"productCode"|"productInstanceUri"|"serialNumber"|"softwareRevision"|"uiElement"|"yearOfConstruction"> { // Object
       /**
        * assetId
@@ -243,5 +246,4 @@ export interface UAWwMachine_Base {
      */
     state: UAWwMachine_state;
 }
-export interface UAWwMachine extends UAObject, UAWwMachine_Base {
-}
+export interface UAWwMachine extends UAObject, UAWwMachine_Base {}

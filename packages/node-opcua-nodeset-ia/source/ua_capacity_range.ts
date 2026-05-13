@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
+
 /**
  * Represent a scale of calibration values. The
  * value defines the range (lowest and highest
@@ -24,5 +26,4 @@ export interface UACapacityRange_Base<T extends DTRange>  extends UADataItem_Bas
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
     resolution: UAProperty<number, DataType.Double>;
 }
-export interface UACapacityRange<T extends DTRange> extends UADataItem<T, DataType.ExtensionObject>, UACapacityRange_Base<T> {
-}
+export interface UACapacityRange<T extends DTRange> extends UADataItem<T, DataType.ExtensionObject>, UACapacityRange_Base<T> {}

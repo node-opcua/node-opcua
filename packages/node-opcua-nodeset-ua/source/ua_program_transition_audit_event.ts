@@ -1,7 +1,10 @@
+import type { LocalizedText } from "node-opcua-data-model";
+
+import type { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event";
+import type { UAFiniteTransitionVariable } from "./ua_finite_transition_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event"
-import { UAFiniteTransitionVariable } from "./ua_finite_transition_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UAFiniteTransitionVariable } from "./ua_finite_transition_variable"
 export interface UAProgramTransitionAuditEvent_Base extends UAAuditUpdateStateEvent_Base {
     transition: UAFiniteTransitionVariable<LocalizedText>;
 }
-export interface UAProgramTransitionAuditEvent extends UAAuditUpdateStateEvent, UAProgramTransitionAuditEvent_Base {
-}
+export interface UAProgramTransitionAuditEvent extends UAAuditUpdateStateEvent, UAProgramTransitionAuditEvent_Base {}

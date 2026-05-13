@@ -1,13 +1,16 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStatistic } from "./ua_statistic";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete"
-import { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services"
-import { UAStatistic } from "./ua_statistic"
+
 /**
  * Represents a product related to the scale.
  *
@@ -59,5 +62,4 @@ export interface UAProduct_Base {
      */
     statistic?: UAStatistic;
 }
-export interface UAProduct extends UAObject, UAProduct_Base {
-}
+export interface UAProduct extends UAObject, UAProduct_Base {}

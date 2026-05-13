@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTHistoryEventFieldList } from "./dt_history_event_field_list";
+import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTHistoryEventFieldList } from "./dt_history_event_field_list"
-import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAAuditHistoryEventDeleteEvent_Base extends UAAuditHistoryDelet
     eventIds: UAProperty<Buffer[], DataType.ByteString>;
     oldValues: UAProperty<DTHistoryEventFieldList, DataType.ExtensionObject>;
 }
-export interface UAAuditHistoryEventDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryEventDeleteEvent_Base {
-}
+export interface UAAuditHistoryEventDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryEventDeleteEvent_Base {}

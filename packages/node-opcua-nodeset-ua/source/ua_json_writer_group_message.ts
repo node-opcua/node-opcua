@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAWriterGroupMessage, UAWriterGroupMessage_Base } from "./ua_writer_group_message";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAWriterGroupMessage, UAWriterGroupMessage_Base } from "./ua_writer_group_message"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAWriterGroupMessage, UAWriterGroupMessage_Base } from "./ua_writer_gro
 export interface UAJsonWriterGroupMessage_Base extends UAWriterGroupMessage_Base {
     networkMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAJsonWriterGroupMessage extends UAWriterGroupMessage, UAJsonWriterGroupMessage_Base {
-}
+export interface UAJsonWriterGroupMessage extends UAWriterGroupMessage, UAJsonWriterGroupMessage_Base {}

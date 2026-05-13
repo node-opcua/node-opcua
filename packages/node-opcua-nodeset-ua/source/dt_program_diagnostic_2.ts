@@ -1,11 +1,14 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTArgument } from "./dt_argument";
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTArgument } from "./dt_argument"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

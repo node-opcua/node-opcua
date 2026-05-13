@@ -1,8 +1,11 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAPADIM_deviceConditionSet } from "./ua_padim";
+import type { UAProcessAnalyser, UAProcessAnalyser_Base } from "./ua_process_analyser";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAPADIM_deviceConditionSet } from "./ua_padim"
-import { UAProcessAnalyser, UAProcessAnalyser_Base } from "./ua_process_analyser"
+
 export interface UATocAnalyser_deviceConditionSet extends UAPADIM_deviceConditionSet { // Object
       actualInjectedVolume?: UAAnalogUnit<number, DataType.Float>;
       carrierGasGaugePressure?: UAAnalogUnit<number, DataType.Float>;
@@ -23,5 +26,4 @@ export interface UATocAnalyser_deviceConditionSet extends UAPADIM_deviceConditio
 export interface UATocAnalyser_Base extends UAProcessAnalyser_Base {
     deviceConditionSet?: UATocAnalyser_deviceConditionSet;
 }
-export interface UATocAnalyser extends Omit<UAProcessAnalyser, "deviceConditionSet">, UATocAnalyser_Base {
-}
+export interface UATocAnalyser extends Omit<UAProcessAnalyser, "deviceConditionSet">, UATocAnalyser_Base {}

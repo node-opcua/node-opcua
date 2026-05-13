@@ -1,10 +1,13 @@
+import type { Byte, UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTApplicationDescription } from "./dt_application_description";
+import type { DTStructure } from "./dt_structure";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+
 // ----- this file has been automatically generated - do not edit
-import { Byte, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTApplicationDescription } from "./dt_application_description"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
-import { DTUserTokenPolicy } from "./dt_user_token_policy"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

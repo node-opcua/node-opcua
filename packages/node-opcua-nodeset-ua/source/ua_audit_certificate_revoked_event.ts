@@ -1,5 +1,6 @@
+import type { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audit_certificate_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audit_certificate_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audi
  * |isAbstract      |true                                                        |
  */
 export type UAAuditCertificateRevokedEvent_Base = UAAuditCertificateEvent_Base;
-export interface UAAuditCertificateRevokedEvent extends UAAuditCertificateEvent, UAAuditCertificateRevokedEvent_Base {
-}
+export interface UAAuditCertificateRevokedEvent extends UAAuditCertificateEvent, UAAuditCertificateRevokedEvent_Base {}

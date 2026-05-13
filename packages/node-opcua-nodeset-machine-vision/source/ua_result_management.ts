@@ -1,7 +1,10 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
+import type { UAResultFolder } from "./ua_result_folder";
+import type { UAResultTransfer } from "./ua_result_transfer";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { UAResultFolder } from "./ua_result_folder"
-import { UAResultTransfer } from "./ua_result_transfer"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UAResultManagement_Base {
     results?: UAResultFolder;
     resultTransfer?: UAResultTransfer;
 }
-export interface UAResultManagement extends UAObject, UAResultManagement_Base {
-}
+export interface UAResultManagement extends UAObject, UAResultManagement_Base {}

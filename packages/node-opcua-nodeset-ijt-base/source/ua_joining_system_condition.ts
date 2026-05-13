@@ -1,6 +1,9 @@
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
+
+import type { UAJoiningSystemEventContent } from "./ua_joining_system_event_content";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition"
-import { UAJoiningSystemEventContent } from "./ua_joining_system_event_content"
+
 /**
  * The JoiningSystemConditionType is used to send
  * any type of events with acknowledgement mechanism
@@ -25,5 +28,4 @@ export interface UAJoiningSystemCondition_Base extends UAAcknowledgeableConditio
      */
     joiningSystemEventContent?: UAJoiningSystemEventContent<any, any>;
 }
-export interface UAJoiningSystemCondition extends UAAcknowledgeableCondition, UAJoiningSystemCondition_Base {
-}
+export interface UAJoiningSystemCondition extends UAAcknowledgeableCondition, UAJoiningSystemCondition_Base {}

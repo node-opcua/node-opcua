@@ -1,8 +1,10 @@
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+
 /**
  * A human-readable name of something plus
  * optionally the NodeId in case the something is

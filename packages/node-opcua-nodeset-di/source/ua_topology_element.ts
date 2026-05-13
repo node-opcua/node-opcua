@@ -1,7 +1,10 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
+import type { UAFunctionalGroup } from "./ua_functional_group";
+import type { UALockingServices } from "./ua_locking_services";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UAFunctionalGroup } from "./ua_functional_group"
-import { UALockingServices } from "./ua_locking_services"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UATopologyElement_Base {
     identification?: UAFunctionalGroup;
     lock?: UALockingServices;
 }
-export interface UATopologyElement extends UAObject, UATopologyElement_Base {
-}
+export interface UATopologyElement extends UAObject, UATopologyElement_Base {}

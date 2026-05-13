@@ -1,9 +1,12 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UATargetItem } from "./ua_target_item";
+import type { UAWeighingItem } from "./ua_weighing_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAProduct, UAProduct_Base } from "./ua_product"
-import { UAWeighingItem } from "./ua_weighing_item"
-import { UATargetItem } from "./ua_target_item"
+
 /**
  * Represents a product of a Catchweigher.
  *
@@ -43,5 +46,4 @@ export interface UACatchweigherProduct_Base extends UAProduct_Base {
     removeZone?: UAMethod;
     targetThroughput?: UATargetItem<any, any>;
 }
-export interface UACatchweigherProduct extends UAProduct, UACatchweigherProduct_Base {
-}
+export interface UACatchweigherProduct extends UAProduct, UACatchweigherProduct_Base {}

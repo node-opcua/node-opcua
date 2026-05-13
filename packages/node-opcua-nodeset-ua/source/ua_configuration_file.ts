@@ -1,9 +1,12 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFile, UAFile_Base } from "./ua_file";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFile, UAFile_Base } from "./ua_file"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAConfigurationFile_Base extends UAFile_Base {
     confirmUpdate: UAMethod;
     closeAndUpdate: UAMethod;
 }
-export interface UAConfigurationFile extends UAFile, UAConfigurationFile_Base {
-}
+export interface UAConfigurationFile extends UAFile, UAConfigurationFile_Base {}

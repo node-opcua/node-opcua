@@ -1,9 +1,12 @@
+import type { Byte } from "node-opcua-basic-types";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTDataTypeDescription } from "./dt_data_type_description";
+
 // ----- this file has been automatically generated - do not edit
-import { QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { Byte } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataTypeDescription } from "./dt_data_type_description"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

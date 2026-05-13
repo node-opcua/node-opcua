@@ -1,8 +1,11 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTWriterGroupMessage } from "./dt_writer_group_message";
+import type { EnumDataSetOrdering } from "./enum_data_set_ordering";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTWriterGroupMessage } from "./dt_writer_group_message"
-import { EnumDataSetOrdering } from "./enum_data_set_ordering"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

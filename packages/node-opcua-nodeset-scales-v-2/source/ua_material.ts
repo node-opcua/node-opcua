@@ -1,9 +1,11 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * Represents a material.
  *
@@ -26,5 +28,4 @@ export interface UAMaterial_Base {
      */
     materialName: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAMaterial extends UAObject, UAMaterial_Base {
-}
+export interface UAMaterial extends UAObject, UAMaterial_Base {}

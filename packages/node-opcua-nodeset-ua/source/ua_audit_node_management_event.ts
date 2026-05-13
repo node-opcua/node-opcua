@@ -1,5 +1,6 @@
+import type { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
  * |isAbstract      |true                                                        |
  */
 export type UAAuditNodeManagementEvent_Base = UAAuditEvent_Base;
-export interface UAAuditNodeManagementEvent extends UAAuditEvent, UAAuditNodeManagementEvent_Base {
-}
+export interface UAAuditNodeManagementEvent extends UAAuditEvent, UAAuditNodeManagementEvent_Base {}

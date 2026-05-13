@@ -1,7 +1,10 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTContentFilterElement } from "./dt_content_filter_element";
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTContentFilterElement } from "./dt_content_filter_element"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

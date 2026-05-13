@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_vendor_nameplate";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_vendor_nameplate"
+
 /**
  * Interface containing identification and nameplate
  * information for a MachineryItem provided by the
@@ -58,5 +60,4 @@ export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate
      */
     yearOfConstruction?: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAIMachineryItemVendorNameplate extends Omit<UAIVendorNameplate, "manufacturer"|"serialNumber">, UAIMachineryItemVendorNameplate_Base {
-}
+export interface UAIMachineryItemVendorNameplate extends Omit<UAIVendorNameplate, "manufacturer"|"serialNumber">, UAIMachineryItemVendorNameplate_Base {}

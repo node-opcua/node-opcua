@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTOrientation } from "./dt_orientation";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { DTOrientation } from "./dt_orientation"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 export interface UAOrientation_Base<T extends DTOrientation>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     angleUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAOrientation<T extends DTOrientation> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAOrientation_Base<T> {
-}
+export interface UAOrientation<T extends DTOrientation> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAOrientation_Base<T> {}

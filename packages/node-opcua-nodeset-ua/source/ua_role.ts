@@ -1,9 +1,12 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEndpoint } from "./dt_endpoint";
+import type { DTIdentityMappingRule } from "./dt_identity_mapping_rule";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTIdentityMappingRule } from "./dt_identity_mapping_rule"
-import { DTEndpoint } from "./dt_endpoint"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -26,5 +29,4 @@ export interface UARole_Base {
     addEndpoint?: UAMethod;
     removeEndpoint?: UAMethod;
 }
-export interface UARole extends UAObject, UARole_Base {
-}
+export interface UARole extends UAObject, UARole_Base {}

@@ -1,5 +1,6 @@
+import type { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_monitoring";
+
 // ----- this file has been automatically generated - do not edit
-import { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_monitoring"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_moni
  * |isAbstract      |false                                                       |
  */
 export type UACombinedChannelMonitoring_Base = UAChannelMonitoring_Base;
-export interface UACombinedChannelMonitoring extends UAChannelMonitoring, UACombinedChannelMonitoring_Base {
-}
+export interface UACombinedChannelMonitoring extends UAChannelMonitoring, UACombinedChannelMonitoring_Base {}

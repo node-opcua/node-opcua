@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ import { UInt32 } from "node-opcua-basic-types"
 export interface UAState_Base {
     stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAState extends UAObject, UAState_Base {
-}
+export interface UAState extends UAObject, UAState_Base {}

@@ -1,5 +1,6 @@
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
  * |isAbstract      |false                                                       |
  */
 export type UADiscreteAlarm_Base = UAAlarmCondition_Base;
-export interface UADiscreteAlarm extends UAAlarmCondition, UADiscreteAlarm_Base {
-}
+export interface UADiscreteAlarm extends UAAlarmCondition, UADiscreteAlarm_Base {}

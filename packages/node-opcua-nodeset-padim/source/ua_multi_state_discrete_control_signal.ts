@@ -1,7 +1,10 @@
+import type { UInt32 } from "node-opcua-basic-types";
+
+import type { UAMultiStateDiscreteControlVariable } from "./ua_multi_state_discrete_control_variable";
+import type { UASignal, UASignal_Base } from "./ua_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32 } from "node-opcua-basic-types"
-import { UASignal, UASignal_Base } from "./ua_signal"
-import { UAMultiStateDiscreteControlVariable } from "./ua_multi_state_discrete_control_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UAMultiStateDiscreteControlVariable } from "./ua_multi_state_discrete_c
 export interface UAMultiStateDiscreteControlSignal_Base extends UASignal_Base {
     controlSignal: UAMultiStateDiscreteControlVariable<UInt32>;
 }
-export interface UAMultiStateDiscreteControlSignal extends UASignal, UAMultiStateDiscreteControlSignal_Base {
-}
+export interface UAMultiStateDiscreteControlSignal extends UASignal, UAMultiStateDiscreteControlSignal_Base {}

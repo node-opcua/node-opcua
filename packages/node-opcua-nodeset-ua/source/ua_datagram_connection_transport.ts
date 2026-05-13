@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTQos } from "./dt_qos";
+import type { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport";
+import type { UANetworkAddress } from "./ua_network_address";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { DTQos } from "./dt_qos"
-import { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport"
-import { UANetworkAddress } from "./ua_network_address"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UADatagramConnectionTransport_Base extends UAConnectionTranspor
     qosCategory?: UAProperty<UAString, DataType.String>;
     datagramQos?: UAProperty<DTQos[], DataType.ExtensionObject>;
 }
-export interface UADatagramConnectionTransport extends UAConnectionTransport, UADatagramConnectionTransport_Base {
-}
+export interface UADatagramConnectionTransport extends UAConnectionTransport, UADatagramConnectionTransport_Base {}

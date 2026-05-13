@@ -1,5 +1,6 @@
+import type { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_base_condition_class"
 /**
  * Indicates the result memory in a joining system
  * is above the configured limit of unacknowledged
@@ -13,5 +14,4 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-node
  * |isAbstract      |false                                                       |
  */
 export type UAUnacknowledgedResultsConditionClass_Base = UABaseConditionClass_Base;
-export interface UAUnacknowledgedResultsConditionClass extends UABaseConditionClass, UAUnacknowledgedResultsConditionClass_Base {
-}
+export interface UAUnacknowledgedResultsConditionClass extends UABaseConditionClass, UAUnacknowledgedResultsConditionClass_Base {}

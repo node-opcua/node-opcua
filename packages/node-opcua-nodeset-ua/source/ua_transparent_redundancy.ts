@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRedundantServer } from "./dt_redundant_server";
+import type { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redundancy";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTRedundantServer } from "./dt_redundant_server"
-import { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redundancy"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UATransparentRedundancy_Base extends UAServerRedundancy_Base {
     redundantServerArray: UAProperty<DTRedundantServer[], DataType.ExtensionObject>;
     currentServerId: UAProperty<UAString, DataType.String>;
 }
-export interface UATransparentRedundancy extends Omit<UAServerRedundancy, "redundantServerArray">, UATransparentRedundancy_Base {
-}
+export interface UATransparentRedundancy extends Omit<UAServerRedundancy, "redundantServerArray">, UATransparentRedundancy_Base {}

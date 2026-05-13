@@ -1,5 +1,6 @@
+import type { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication"
 /**
  * Indicates the abraded diameter, for example of a
  * drill.
@@ -12,5 +13,4 @@ import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_ba
  * |isAbstract      |true                                                        |
  */
 export type UADiameterIndication_Base = UABaseLifetimeIndication_Base;
-export interface UADiameterIndication extends UABaseLifetimeIndication, UADiameterIndication_Base {
-}
+export interface UADiameterIndication extends UABaseLifetimeIndication, UADiameterIndication_Base {}

@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
+
 /**
  * The UserType ObjectType describes information of
  * the registered user groups within the control
@@ -29,5 +31,4 @@ export interface UAUser_Base {
      */
     name?: UAProperty<UAString, DataType.String>;
 }
-export interface UAUser extends UAObject, UAUser_Base {
-}
+export interface UAUser extends UAObject, UAUser_Base {}

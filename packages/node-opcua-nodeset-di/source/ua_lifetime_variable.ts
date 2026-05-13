@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * Remaining lifetime
  *
@@ -44,5 +46,4 @@ export interface UALifetimeVariable_Base<T, DT extends DataType>  extends UAAnal
      */
     warningValues?: UAProperty<any, any>;
 }
-export interface UALifetimeVariable<T, DT extends DataType> extends UAAnalogUnit<T, DT>, UALifetimeVariable_Base<T, DT> {
-}
+export interface UALifetimeVariable<T, DT extends DataType> extends UAAnalogUnit<T, DT>, UALifetimeVariable_Base<T, DT> {}

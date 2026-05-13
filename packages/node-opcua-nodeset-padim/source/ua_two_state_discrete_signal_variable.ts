@@ -1,7 +1,9 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UATwoStateDiscrete, UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UATwoStateDiscrete, UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +20,4 @@ export interface UATwoStateDiscreteSignalVariable_Base<T extends (boolean | bool
     simulationValue?: UABaseDataVariable<(boolean | boolean[]), DataType.Boolean>;
     simulationState?: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UATwoStateDiscreteSignalVariable<T extends (boolean | boolean[])> extends UATwoStateDiscrete<T>, UATwoStateDiscreteSignalVariable_Base<T> {
-}
+export interface UATwoStateDiscreteSignalVariable<T extends (boolean | boolean[])> extends UATwoStateDiscrete<T>, UATwoStateDiscreteSignalVariable_Base<T> {}

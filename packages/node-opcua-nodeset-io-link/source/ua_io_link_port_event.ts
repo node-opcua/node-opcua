@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event"
 export interface UAIOLinkPortEvent_Base extends UAIOLinkEvent_Base {
     ioLinkEventCode: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAIOLinkPortEvent extends Omit<UAIOLinkEvent, "ioLinkEventCode">, UAIOLinkPortEvent_Base {
-}
+export interface UAIOLinkPortEvent extends Omit<UAIOLinkEvent, "ioLinkEventCode">, UAIOLinkPortEvent_Base {}

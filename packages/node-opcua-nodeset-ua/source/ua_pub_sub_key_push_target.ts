@@ -1,8 +1,11 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTUserTokenPolicy } from "./dt_user_token_policy";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { DTUserTokenPolicy } from "./dt_user_token_policy"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -24,5 +27,4 @@ export interface UAPubSubKeyPushTarget_Base {
     disconnectSecurityGroups: UAMethod;
     triggerKeyUpdate: UAMethod;
 }
-export interface UAPubSubKeyPushTarget extends UAObject, UAPubSubKeyPushTarget_Base {
-}
+export interface UAPubSubKeyPushTarget extends UAObject, UAPubSubKeyPushTarget_Base {}

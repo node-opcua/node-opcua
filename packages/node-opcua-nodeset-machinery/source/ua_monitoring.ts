@@ -1,13 +1,16 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
+import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMachineryItemState_StateMachine } from "./ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "./ua_machinery_operation_mode_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { UAMachineryItemState_StateMachine } from "./ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "./ua_machinery_operation_mode_state_machine"
-import { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight"
+
 export interface UAMonitoring_health extends UAFolder { // Object
       deviceHealth?: UABaseDataVariable<EnumDeviceHealth, DataType.Int32>;
       deviceHealthAlarms?: UAFolder;
@@ -63,5 +66,4 @@ export interface UAMonitoring_Base extends UAFolder_Base {
      */
     status?: UAMonitoring_status;
 }
-export interface UAMonitoring extends UAFolder, UAMonitoring_Base {
-}
+export interface UAMonitoring extends UAFolder, UAMonitoring_Base {}

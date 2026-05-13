@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFolder, UAFolder_Base } from "./ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -25,5 +28,4 @@ export interface UAOperationLimits_Base extends UAFolder_Base {
     maxNodesPerNodeManagement?: UAProperty<UInt32, DataType.UInt32>;
     maxMonitoredItemsPerCall?: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAOperationLimits extends UAFolder, UAOperationLimits_Base {
-}
+export interface UAOperationLimits extends UAFolder, UAOperationLimits_Base {}

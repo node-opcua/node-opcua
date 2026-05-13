@@ -1,21 +1,24 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UAConfigurableObject } from "node-opcua-nodeset-di/dist/ua_configurable_object";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_base_state_machine";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTWeight } from "./dt_weight";
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UAStatistic } from "./ua_statistic";
+import type { UAWeightItem } from "./ua_weight_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAConfigurableObject } from "node-opcua-nodeset-di/dist/ua_configurable_object"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_base_state_machine"
-import { DTWeight } from "./dt_weight"
-import { UAWeightItem } from "./ua_weight_item"
-import { UAStatistic } from "./ua_statistic"
-import { UAProductionPreset } from "./ua_production_preset"
+
 export interface UAScaleDevice_machineryBuildingBlocks extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
       machineryOperationMode?: UAMachineryOperationModeStateMachine;
@@ -91,5 +94,4 @@ export interface UAScaleDevice_Base extends UAComponent_Base {
     state?: UAPackMLBaseStateMachine;
     subDevices?: UAConfigurableObject;
 }
-export interface UAScaleDevice extends Omit<UAComponent, "identification">, UAScaleDevice_Base {
-}
+export interface UAScaleDevice extends Omit<UAComponent, "identification">, UAScaleDevice_Base {}

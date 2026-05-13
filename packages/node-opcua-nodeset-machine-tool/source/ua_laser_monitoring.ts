@@ -1,8 +1,11 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumLaserState } from "./enum_laser_state";
+import type { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { EnumLaserState } from "./enum_laser_state"
-import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UALaserMonitoring_Base extends UAWorkingUnitMonitoring_Base {
     controllerIsOn: UABaseDataVariable<boolean, DataType.Boolean>;
     laserState: UABaseDataVariable<EnumLaserState, DataType.Int32>;
 }
-export interface UALaserMonitoring extends UAWorkingUnitMonitoring, UALaserMonitoring_Base {
-}
+export interface UALaserMonitoring extends UAWorkingUnitMonitoring, UALaserMonitoring_Base {}

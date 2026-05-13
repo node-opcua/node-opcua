@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProgramDiagnostic } from "./dt_program_diagnostic";
+import type { DTStatusResult } from "./dt_status_result";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { DTProgramDiagnostic } from "./dt_program_diagnostic"
-import { DTStatusResult } from "./dt_status_result"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -29,5 +32,4 @@ export interface UAProgramDiagnostic_Base<T extends DTProgramDiagnostic>  extend
     lastMethodCallTime: UAProperty<Date, DataType.DateTime>;
     lastMethodReturnStatus: UAProperty<DTStatusResult, DataType.ExtensionObject>;
 }
-export interface UAProgramDiagnostic<T extends DTProgramDiagnostic> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic_Base<T> {
-}
+export interface UAProgramDiagnostic<T extends DTProgramDiagnostic> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic_Base<T> {}

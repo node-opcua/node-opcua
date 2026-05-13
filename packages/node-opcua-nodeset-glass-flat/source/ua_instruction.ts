@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTFileFormat } from "./dt_file_format";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
-import { DTFileFormat } from "./dt_file_format"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAInstruction_Base {
     plan: UAFile;
     planFileFormat: UAProperty<DTFileFormat, DataType.ExtensionObject>;
 }
-export interface UAInstruction extends UAObject, UAInstruction_Base {
-}
+export interface UAInstruction extends UAObject, UAInstruction_Base {}

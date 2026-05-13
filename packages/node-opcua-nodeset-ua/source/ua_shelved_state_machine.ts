@@ -1,9 +1,12 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
+import type { UAState } from "./ua_state";
+import type { UATransition } from "./ua_transition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
-import { UAState } from "./ua_state"
-import { UATransition } from "./ua_transition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -30,5 +33,4 @@ export interface UAShelvedStateMachine_Base extends UAFiniteStateMachine_Base {
     oneShotShelve: UAMethod;
     oneShotShelve2?: UAMethod;
 }
-export interface UAShelvedStateMachine extends UAFiniteStateMachine, UAShelvedStateMachine_Base {
-}
+export interface UAShelvedStateMachine extends UAFiniteStateMachine, UAShelvedStateMachine_Base {}

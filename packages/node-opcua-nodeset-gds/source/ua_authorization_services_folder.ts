@@ -1,5 +1,6 @@
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
  * |isAbstract      |false                                                       |
  */
 export type UAAuthorizationServicesFolder_Base = UAFolder_Base;
-export interface UAAuthorizationServicesFolder extends UAFolder, UAAuthorizationServicesFolder_Base {
-}
+export interface UAAuthorizationServicesFolder extends UAFolder, UAAuthorizationServicesFolder_Base {}

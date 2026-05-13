@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product";
+import type { UAWeighingItem } from "./ua_weighing_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product"
-import { UAWeighingItem } from "./ua_weighing_item"
+
 export interface UAAutomaticWeightPriceLabelerProduct_unitPrice<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       currencyUnit: UAProperty<DTCurrencyUnit, DataType.ExtensionObject>;
 }
@@ -27,5 +30,4 @@ export interface UAAutomaticWeightPriceLabelerProduct_Base extends UACatchweighe
      */
     unitPrice?: UAAutomaticWeightPriceLabelerProduct_unitPrice<any, any>;
 }
-export interface UAAutomaticWeightPriceLabelerProduct extends Omit<UACatchweigherProduct, "lastItem">, UAAutomaticWeightPriceLabelerProduct_Base {
-}
+export interface UAAutomaticWeightPriceLabelerProduct extends Omit<UACatchweigherProduct, "lastItem">, UAAutomaticWeightPriceLabelerProduct_Base {}

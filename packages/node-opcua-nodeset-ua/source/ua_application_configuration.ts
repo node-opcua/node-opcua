@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumApplication } from "./enum_application";
+import type { UAAuthorizationServicesConfigurationFolder } from "./ua_authorization_services_configuration_folder";
+import type { UAKeyCredentialConfigurationFolder } from "./ua_key_credential_configuration_folder";
+import type { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration"
-import { EnumApplication } from "./enum_application"
-import { UAKeyCredentialConfigurationFolder } from "./ua_key_credential_configuration_folder"
-import { UAAuthorizationServicesConfigurationFolder } from "./ua_authorization_services_configuration_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -23,5 +26,4 @@ export interface UAApplicationConfiguration_Base extends UAServerConfiguration_B
     keyCredentials?: UAKeyCredentialConfigurationFolder;
     authorizationServices?: UAAuthorizationServicesConfigurationFolder;
 }
-export interface UAApplicationConfiguration extends Omit<UAServerConfiguration, "applicationUri"|"productUri"|"applicationType">, UAApplicationConfiguration_Base {
-}
+export interface UAApplicationConfiguration extends Omit<UAServerConfiguration, "applicationUri"|"productUri"|"applicationType">, UAApplicationConfiguration_Base {}

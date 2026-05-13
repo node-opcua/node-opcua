@@ -1,6 +1,9 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

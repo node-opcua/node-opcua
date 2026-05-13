@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +17,4 @@ export interface UAManualFolder_Base extends UAFolder_Base {
    // PlaceHolder for $LocalManuals$
     externalManuals?: UAProperty<UAString[], DataType.String>;
 }
-export interface UAManualFolder extends UAFolder, UAManualFolder_Base {
-}
+export interface UAManualFolder extends UAFolder, UAManualFolder_Base {}

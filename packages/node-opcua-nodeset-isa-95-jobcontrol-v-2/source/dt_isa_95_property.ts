@@ -1,10 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { Variant } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+
 /**
  * A subtype of OPC UA Structure that defines two
  * linked data items: an ID, which is a unique

@@ -1,6 +1,9 @@
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+
+import type { UAJoiningSystemEventContent } from "./ua_joining_system_event_content";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
-import { UAJoiningSystemEventContent } from "./ua_joining_system_event_content"
+
 /**
  * The JoiningSystemEventType is used to send any
  * type of events from a joining system. 
@@ -24,5 +27,4 @@ export interface UAJoiningSystemEvent_Base extends UABaseEvent_Base {
      */
     joiningSystemEventContent?: UAJoiningSystemEventContent<any, any>;
 }
-export interface UAJoiningSystemEvent extends UABaseEvent, UAJoiningSystemEvent_Base {
-}
+export interface UAJoiningSystemEvent extends UABaseEvent, UAJoiningSystemEvent_Base {}

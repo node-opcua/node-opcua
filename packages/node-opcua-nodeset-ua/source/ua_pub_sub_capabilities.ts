@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -28,5 +30,4 @@ export interface UAPubSubCapabilities_Base {
     supportSecurityKeyPush?: UAProperty<boolean, DataType.Boolean>;
     supportSecurityKeyServer?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAPubSubCapabilities extends UAObject, UAPubSubCapabilities_Base {
-}
+export interface UAPubSubCapabilities extends UAObject, UAPubSubCapabilities_Base {}

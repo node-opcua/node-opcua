@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_set_writer_message";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
-import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_set_writer_message"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAUadpDataSetWriterMessage_Base extends UADataSetWriterMessage_
     networkMessageNumber: UAProperty<UInt16, DataType.UInt16>;
     dataSetOffset: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAUadpDataSetWriterMessage extends UADataSetWriterMessage, UAUadpDataSetWriterMessage_Base {
-}
+export interface UAUadpDataSetWriterMessage extends UADataSetWriterMessage, UAUadpDataSetWriterMessage_Base {}

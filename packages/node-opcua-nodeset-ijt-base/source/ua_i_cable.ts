@@ -1,9 +1,12 @@
+import type { Byte } from "node-opcua-basic-types";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset";
+import type { UAJoiningDataVariable } from "./ua_joining_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { Byte } from "node-opcua-basic-types"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
-import { UAJoiningDataVariable } from "./ua_joining_data_variable"
+
 export interface UAICable_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * cableLength
@@ -33,5 +36,4 @@ export interface UAICable_Base extends UAIJoiningSystemAsset_Base {
      */
     parameters: UAICable_parameters;
 }
-export interface UAICable extends Omit<UAIJoiningSystemAsset, "parameters">, UAICable_Base {
-}
+export interface UAICable extends Omit<UAIJoiningSystemAsset, "parameters">, UAICable_Base {}

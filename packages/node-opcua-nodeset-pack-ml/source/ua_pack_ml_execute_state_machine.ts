@@ -1,11 +1,13 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -145,5 +147,4 @@ export interface UAPackMLExecuteStateMachine_Base extends UAFiniteStateMachine_B
     unsuspendingToExecute: UATransition;
     unsuspendingToHolding: UATransition;
 }
-export interface UAPackMLExecuteStateMachine extends Omit<UAFiniteStateMachine, "availableStates"|"availableTransitions">, UAPackMLExecuteStateMachine_Base {
-}
+export interface UAPackMLExecuteStateMachine extends Omit<UAFiniteStateMachine, "availableStates"|"availableTransitions">, UAPackMLExecuteStateMachine_Base {}

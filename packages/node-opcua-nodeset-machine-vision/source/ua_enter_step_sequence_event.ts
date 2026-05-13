@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_bas
 export interface UAEnterStepSequenceEvent_Base extends UABaseEvent_Base {
     steps: UAProperty<Int32, DataType.Int32>;
 }
-export interface UAEnterStepSequenceEvent extends UABaseEvent, UAEnterStepSequenceEvent_Base {
-}
+export interface UAEnterStepSequenceEvent extends UABaseEvent, UAEnterStepSequenceEvent_Base {}

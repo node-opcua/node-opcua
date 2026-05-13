@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import type { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/dist/ua_functional_group"
+
 /**
  * It provides identification parameters of the
  * joining system.
@@ -90,5 +92,4 @@ export interface UAJoiningSystemIdentification_Base extends UAFunctionalGroup_Ba
      */
     systemId?: UAProperty<UAString, DataType.String>;
 }
-export interface UAJoiningSystemIdentification extends UAFunctionalGroup, UAJoiningSystemIdentification_Base {
-}
+export interface UAJoiningSystemIdentification extends UAFunctionalGroup, UAJoiningSystemIdentification_Base {}

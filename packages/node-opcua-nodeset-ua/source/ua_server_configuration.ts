@@ -1,12 +1,15 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumApplication } from "./enum_application";
+import type { UAApplicationConfigurationFile } from "./ua_application_configuration_file";
+import type { UACertificateGroupFolder } from "./ua_certificate_group_folder";
+import type { UATransactionDiagnostics } from "./ua_transaction_diagnostics";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { EnumApplication } from "./enum_application"
-import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
-import { UATransactionDiagnostics } from "./ua_transaction_diagnostics"
-import { UAApplicationConfigurationFile } from "./ua_application_configuration_file"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -40,5 +43,4 @@ export interface UAServerConfiguration_Base {
     transactionDiagnostics?: UATransactionDiagnostics;
     configurationFile?: UAApplicationConfigurationFile;
 }
-export interface UAServerConfiguration extends UAObject, UAServerConfiguration_Base {
-}
+export interface UAServerConfiguration extends UAObject, UAServerConfiguration_Base {}

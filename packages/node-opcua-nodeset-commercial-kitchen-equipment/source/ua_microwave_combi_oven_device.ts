@@ -1,6 +1,8 @@
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+import type { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_parameter";
+
 // ----- this file has been automatically generated - do not edit
-import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
-import { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_parameter"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +14,4 @@ import { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_paramet
 export interface UAMicrowaveCombiOvenDevice_Base extends UACommercialKitchenDevice_Base {
     microwaveCombiOven: UAMicrowaveCombiOvenParameter;
 }
-export interface UAMicrowaveCombiOvenDevice extends UACommercialKitchenDevice, UAMicrowaveCombiOvenDevice_Base {
-}
+export interface UAMicrowaveCombiOvenDevice extends UACommercialKitchenDevice, UAMicrowaveCombiOvenDevice_Base {}

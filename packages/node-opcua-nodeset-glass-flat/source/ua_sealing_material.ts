@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
+
 export interface UASealingMaterial_hardener extends Omit<UABaseMaterial, "identifier"|"location"|"materialIdentifier"> { // Object
       identifier: UAProperty<UAString, DataType.String>;
       location: UAProperty<UAString, DataType.String>;
@@ -29,5 +32,4 @@ export interface UASealingMaterial_Base extends UABaseMaterial_Base {
     mixingRatio: UAAnalogUnit<number, DataType.Double>;
     resin?: UASealingMaterial_resin;
 }
-export interface UASealingMaterial extends UABaseMaterial, UASealingMaterial_Base {
-}
+export interface UASealingMaterial extends UABaseMaterial, UASealingMaterial_Base {}

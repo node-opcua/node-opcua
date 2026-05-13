@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumPerformUpdate } from "./enum_perform_update";
+import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { DataValue } from "node-opcua-data-value"
-import { EnumPerformUpdate } from "./enum_perform_update"
-import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UAAuditHistoryValueUpdateEvent_Base extends UAAuditHistoryUpdat
     newValues: UAProperty<DataValue[], DataType.DataValue>;
     oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
-export interface UAAuditHistoryValueUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryValueUpdateEvent_Base {
-}
+export interface UAAuditHistoryValueUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryValueUpdateEvent_Base {}

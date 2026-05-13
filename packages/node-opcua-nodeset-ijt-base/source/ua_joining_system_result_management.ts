@@ -1,7 +1,9 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management"
+
 /**
  * The JoiningSystemResultManagementType is a
  * subtype of ResultManagementType and provides
@@ -20,5 +22,4 @@ export interface UAJoiningSystemResultManagement_Base extends UAResultManagement
     requestUnacknowledgedResults?: UAMethod;
     results?: UAFolder;
 }
-export interface UAJoiningSystemResultManagement extends Omit<UAResultManagement, "results">, UAJoiningSystemResultManagement_Base {
-}
+export interface UAJoiningSystemResultManagement extends Omit<UAResultManagement, "results">, UAJoiningSystemResultManagement_Base {}

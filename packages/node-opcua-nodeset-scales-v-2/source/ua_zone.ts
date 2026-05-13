@@ -1,10 +1,13 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStatisticCounter } from "./ua_statistic_counter";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAStatisticCounter } from "./ua_statistic_counter"
+
 /**
  * Container for the weighing zones in a
  * Checkweigher.
@@ -40,5 +43,4 @@ export interface UAZone_Base {
      */
     zoneStatistic?: UAStatisticCounter;
 }
-export interface UAZone extends UAObject, UAZone_Base {
-}
+export interface UAZone extends UAObject, UAZone_Base {}

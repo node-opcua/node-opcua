@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -132,5 +135,4 @@ export interface UAMachineOperationModeStateMachine_Base extends UAMachineryOper
      */
     setup: UAState;
 }
-export interface UAMachineOperationModeStateMachine extends Omit<UAMachineryOperationModeStateMachine, "defaultInstanceBrowseName"|"fromMaintenanceToMaintenance"|"fromMaintenanceToNone"|"fromMaintenanceToProcessing"|"fromMaintenanceToSetup"|"fromNoneToMaintenance"|"fromNoneToNone"|"fromNoneToProcessing"|"fromNoneToSetup"|"fromProcessingToMaintenance"|"fromProcessingToNone"|"fromProcessingToProcessing"|"fromProcessingToSetup"|"fromSetupToMaintenance"|"fromSetupToNone"|"fromSetupToProcessing"|"fromSetupToSetup"|"maintenance"|"none"|"processing"|"setup">, UAMachineOperationModeStateMachine_Base {
-}
+export interface UAMachineOperationModeStateMachine extends Omit<UAMachineryOperationModeStateMachine, "defaultInstanceBrowseName"|"fromMaintenanceToMaintenance"|"fromMaintenanceToNone"|"fromMaintenanceToProcessing"|"fromMaintenanceToSetup"|"fromNoneToMaintenance"|"fromNoneToNone"|"fromNoneToProcessing"|"fromNoneToSetup"|"fromProcessingToMaintenance"|"fromProcessingToNone"|"fromProcessingToProcessing"|"fromProcessingToSetup"|"fromSetupToMaintenance"|"fromSetupToNone"|"fromSetupToProcessing"|"fromSetupToSetup"|"maintenance"|"none"|"processing"|"setup">, UAMachineOperationModeStateMachine_Base {}

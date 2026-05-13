@@ -1,17 +1,20 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { UAAnalogSignal, UAAnalogSignal_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal";
+import type { UAAnalogSignalVariable } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm";
+import type { UAExclusiveLimitAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_alarm";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProcessValueSetpointVariable } from "./ua_process_value_setpoint_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt16 } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
-import { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete"
-import { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm"
-import { UAExclusiveLimitAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_alarm"
-import { UAAnalogSignalVariable } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable"
-import { UAAnalogSignal, UAAnalogSignal_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal"
-import { UAProcessValueSetpointVariable } from "./ua_process_value_setpoint_variable"
+
 export interface UAProcessValue_analogSignal<T, DT extends DataType> extends Omit<UAAnalogSignalVariable<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -87,5 +90,4 @@ export interface UAProcessValue_Base extends UAAnalogSignal_Base {
     status?: UAMultiStateValueDiscrete<UInt16, DataType.UInt16>;
     zeroPointAdjustment?: UAMethod;
 }
-export interface UAProcessValue extends Omit<UAAnalogSignal, "analogSignal"|"zeroPointAdjustment">, UAProcessValue_Base {
-}
+export interface UAProcessValue extends Omit<UAAnalogSignal, "analogSignal"|"zeroPointAdjustment">, UAProcessValue_Base {}

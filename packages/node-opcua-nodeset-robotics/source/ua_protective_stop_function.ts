@@ -1,8 +1,10 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * According to ISO 10218-1:2011 Ch.5.5.3 the robot
  * shall have one or more protective stop functions
@@ -48,5 +50,4 @@ export interface UAProtectiveStopFunction_Base {
      */
     name: UAProperty<UAString, DataType.String>;
 }
-export interface UAProtectiveStopFunction extends UAObject, UAProtectiveStopFunction_Base {
-}
+export interface UAProtectiveStopFunction extends UAObject, UAProtectiveStopFunction_Base {}

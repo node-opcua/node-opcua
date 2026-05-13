@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_status_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { StatusCode } from "node-opcua-status-code"
-import { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_status_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_stat
 export interface UAPubSubCommunicationFailureEvent_Base extends UAPubSubStatusEvent_Base {
     error: UAProperty<StatusCode, DataType.StatusCode>;
 }
-export interface UAPubSubCommunicationFailureEvent extends UAPubSubStatusEvent, UAPubSubCommunicationFailureEvent_Base {
-}
+export interface UAPubSubCommunicationFailureEvent extends UAPubSubStatusEvent, UAPubSubCommunicationFailureEvent_Base {}

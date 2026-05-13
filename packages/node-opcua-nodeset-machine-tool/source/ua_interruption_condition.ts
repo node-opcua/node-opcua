@@ -1,7 +1,9 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +15,4 @@ import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_con
 export interface UAInterruptionCondition_Base extends UACondition_Base {
     isAutomated: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAInterruptionCondition extends UACondition, UAInterruptionCondition_Base {
-}
+export interface UAInterruptionCondition extends UACondition, UAInterruptionCondition_Base {}

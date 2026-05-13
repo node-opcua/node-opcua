@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UAProgressEvent_Base extends UABaseEvent_Base {
     context: UAProperty<any, any>;
     progress: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAProgressEvent extends UABaseEvent, UAProgressEvent_Base {
-}
+export interface UAProgressEvent extends UABaseEvent, UAProgressEvent_Base {}

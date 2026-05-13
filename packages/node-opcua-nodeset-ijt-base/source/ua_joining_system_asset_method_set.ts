@@ -1,7 +1,8 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
 
 /**
  * The JoiningSystemAssetMethodSetType provides a
@@ -38,5 +39,4 @@ export interface UAJoiningSystemAssetMethodSet_Base {
     setOfflineTimer?: UAMethod;
     setTime?: UAMethod;
 }
-export interface UAJoiningSystemAssetMethodSet extends UAObject, UAJoiningSystemAssetMethodSet_Base {
-}
+export interface UAJoiningSystemAssetMethodSet extends UAObject, UAJoiningSystemAssetMethodSet_Base {}

@@ -1,5 +1,6 @@
+import type { UAFormingProcessConditionClass, UAFormingProcessConditionClass_Base } from "./ua_forming_process_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFormingProcessConditionClass, UAFormingProcessConditionClass_Base } from "./ua_forming_process_condition_class"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAFormingProcessConditionClass, UAFormingProcessConditionClass_Base } f
  * |isAbstract      |true                                                        |
  */
 export type UAAllowableTiltingExceededConditionClass_Base = UAFormingProcessConditionClass_Base;
-export interface UAAllowableTiltingExceededConditionClass extends UAFormingProcessConditionClass, UAAllowableTiltingExceededConditionClass_Base {
-}
+export interface UAAllowableTiltingExceededConditionClass extends UAFormingProcessConditionClass, UAAllowableTiltingExceededConditionClass_Base {}

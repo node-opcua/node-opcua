@@ -1,5 +1,6 @@
+import type { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication"
 /**
  * Indicates counting the process steps the entity
  * has been used or can still be used for (for
@@ -13,5 +14,4 @@ import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_ba
  * |isAbstract      |true                                                        |
  */
 export type UANumberOfUsagesIndication_Base = UABaseLifetimeIndication_Base;
-export interface UANumberOfUsagesIndication extends UABaseLifetimeIndication, UANumberOfUsagesIndication_Base {
-}
+export interface UANumberOfUsagesIndication extends UABaseLifetimeIndication, UANumberOfUsagesIndication_Base {}

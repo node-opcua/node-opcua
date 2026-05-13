@@ -1,5 +1,6 @@
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
  * |isAbstract      |true                                                        |
  */
 export type UASystemEvent_Base = UABaseEvent_Base;
-export interface UASystemEvent extends UABaseEvent, UASystemEvent_Base {
-}
+export interface UASystemEvent extends UABaseEvent, UASystemEvent_Base {}

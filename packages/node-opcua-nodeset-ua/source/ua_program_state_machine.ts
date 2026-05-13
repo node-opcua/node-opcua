@@ -1,16 +1,19 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Int32, UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
+import type { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2";
+import type { UAState } from "./ua_state";
+import type { UAStateVariable } from "./ua_state_variable";
+import type { UATransition } from "./ua_transition";
+import type { UATransitionVariable } from "./ua_transition_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, Int32 } from "node-opcua-basic-types"
-import { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2"
-import { UAStateVariable } from "./ua_state_variable"
-import { UATransitionVariable } from "./ua_transition_variable"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
-import { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2"
-import { UAState } from "./ua_state"
-import { UATransition } from "./ua_transition"
+
 export interface UAProgramStateMachine_currentState<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
@@ -59,5 +62,4 @@ export interface UAProgramStateMachine_Base extends UAFiniteStateMachine_Base {
    // PlaceHolder for halt
    // PlaceHolder for reset
 }
-export interface UAProgramStateMachine extends Omit<UAFiniteStateMachine, "currentState"|"lastTransition">, UAProgramStateMachine_Base {
-}
+export interface UAProgramStateMachine extends Omit<UAFiniteStateMachine, "currentState"|"lastTransition">, UAProgramStateMachine_Base {}

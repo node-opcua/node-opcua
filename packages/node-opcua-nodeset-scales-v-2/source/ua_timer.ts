@@ -1,7 +1,10 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element"
+
 /**
  * TimerType represents a timer step in a recipe.
  * The recipe waits until at least Duration has
@@ -22,5 +25,4 @@ export interface UATimer_Base extends UARecipeElement_Base {
      */
     duration: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UATimer extends UARecipeElement, UATimer_Base {
-}
+export interface UATimer extends UARecipeElement, UATimer_Base {}

@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -67,5 +69,4 @@ export interface UAGeneralDeviceConditionSet_Base {
      */
     powerOnDuration?: UAProperty<number, DataType.Double>;
 }
-export interface UAGeneralDeviceConditionSet extends UAObject, UAGeneralDeviceConditionSet_Base {
-}
+export interface UAGeneralDeviceConditionSet extends UAObject, UAGeneralDeviceConditionSet_Base {}

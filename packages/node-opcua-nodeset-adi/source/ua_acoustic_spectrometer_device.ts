@@ -1,5 +1,6 @@
+import type { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
  * |isAbstract      |false                                                       |
  */
 export type UAAcousticSpectrometerDevice_Base = UAAnalyserDevice_Base;
-export interface UAAcousticSpectrometerDevice extends UAAnalyserDevice, UAAcousticSpectrometerDevice_Base {
-}
+export interface UAAcousticSpectrometerDevice extends UAAnalyserDevice, UAAcousticSpectrometerDevice_Base {}

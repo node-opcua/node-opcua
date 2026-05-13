@@ -1,10 +1,13 @@
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+
+import type { UAISA95EndedStateMachine } from "./ua_isa_95_ended_state_machine";
+import type { UAISA95InterruptedStateMachine } from "./ua_isa_95_interrupted_state_machine";
+import type { UAISA95JobOrderReceiverObject, UAISA95JobOrderReceiverObject_Base } from "./ua_isa_95_job_order_receiver_object";
+import type { UAISA95PrepareStateMachine } from "./ua_isa_95_prepare_state_machine";
+
 // ----- this file has been automatically generated - do not edit
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAISA95JobOrderReceiverObject, UAISA95JobOrderReceiverObject_Base } from "./ua_isa_95_job_order_receiver_object"
-import { UAISA95PrepareStateMachine } from "./ua_isa_95_prepare_state_machine"
-import { UAISA95EndedStateMachine } from "./ua_isa_95_ended_state_machine"
-import { UAISA95InterruptedStateMachine } from "./ua_isa_95_interrupted_state_machine"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -146,5 +149,4 @@ export interface UAISA95JobOrderReceiverSubStates_Base extends UAISA95JobOrderRe
      */
     running: UAState;
 }
-export interface UAISA95JobOrderReceiverSubStates extends Omit<UAISA95JobOrderReceiverObject, "aborted"|"allowedToStart"|"ended"|"fromAllowedToStartToAborted"|"fromAllowedToStartToAllowedToStart"|"fromAllowedToStartToNotAllowedToStart"|"fromAllowedToStartToRunning"|"fromInterruptedToAborted"|"fromInterruptedToEnded"|"fromInterruptedToRunning"|"fromNotAllowedToStartToAborted"|"fromNotAllowedToStartToAllowedToStart"|"fromNotAllowedToStartToNotAllowedToStart"|"fromRunningToAborted"|"fromRunningToEnded"|"fromRunningToInterrupted"|"interrupted"|"notAllowedToStart"|"running">, UAISA95JobOrderReceiverSubStates_Base {
-}
+export interface UAISA95JobOrderReceiverSubStates extends Omit<UAISA95JobOrderReceiverObject, "aborted"|"allowedToStart"|"ended"|"fromAllowedToStartToAborted"|"fromAllowedToStartToAllowedToStart"|"fromAllowedToStartToNotAllowedToStart"|"fromAllowedToStartToRunning"|"fromInterruptedToAborted"|"fromInterruptedToEnded"|"fromInterruptedToRunning"|"fromNotAllowedToStartToAborted"|"fromNotAllowedToStartToAllowedToStart"|"fromNotAllowedToStartToNotAllowedToStart"|"fromRunningToAborted"|"fromRunningToEnded"|"fromRunningToInterrupted"|"interrupted"|"notAllowedToStart"|"running">, UAISA95JobOrderReceiverSubStates_Base {}

@@ -1,5 +1,6 @@
+import type { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group";
+
 // ----- this file has been automatically generated - do not edit
-import { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group"
  * |isAbstract      |false                                                       |
  */
 export type UAAlarmSuppressionGroup_Base = UAAlarmGroup_Base;
-export interface UAAlarmSuppressionGroup extends UAAlarmGroup, UAAlarmSuppressionGroup_Base {
-}
+export interface UAAlarmSuppressionGroup extends UAAlarmGroup, UAAlarmSuppressionGroup_Base {}

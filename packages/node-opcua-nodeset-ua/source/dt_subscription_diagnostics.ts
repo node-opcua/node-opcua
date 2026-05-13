@@ -1,8 +1,11 @@
+import type { Byte, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { NodeId } from "node-opcua-nodeid";
+
+import type { DTStructure } from "./dt_structure";
+
 // ----- this file has been automatically generated - do not edit
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, Byte } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

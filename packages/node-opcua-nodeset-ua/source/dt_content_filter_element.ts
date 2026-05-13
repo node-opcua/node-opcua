@@ -1,7 +1,10 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTStructure } from "./dt_structure";
+import type { EnumFilterOperator } from "./enum_filter_operator";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { EnumFilterOperator } from "./enum_filter_operator"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

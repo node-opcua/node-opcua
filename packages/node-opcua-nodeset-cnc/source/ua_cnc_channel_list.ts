@@ -1,5 +1,6 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
 
 /**
  * List of CNC channel objects.
@@ -11,8 +12,8 @@ import { UAObject } from "node-opcua-address-space-base"
  * |typedDefinition |CncChannelListType i=1010                                   |
  * |isAbstract      |false                                                       |
  */
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
 export interface UACncChannelList_Base {
    // PlaceHolder for $CncChannel$
 }
-export interface UACncChannelList extends UAObject, UACncChannelList_Base {
-}
+export interface UACncChannelList extends UAObject, UACncChannelList_Base {}

@@ -1,12 +1,15 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { NodeId } from "node-opcua-nodeid"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UACncComponent, UACncComponent_Base } from "./ua_cnc_component"
+
 export interface UACncDrive_actLoad<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -75,5 +78,4 @@ export interface UACncDrive_Base extends UACncComponent_Base {
      */
     isVirtual: UADataItem<boolean, DataType.Boolean>;
 }
-export interface UACncDrive extends UACncComponent, UACncDrive_Base {
-}
+export interface UACncDrive extends UACncComponent, UACncDrive_Base {}

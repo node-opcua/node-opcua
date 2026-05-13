@@ -1,7 +1,10 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+
+import type { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading";
+import type { UASoftwareVersion } from "./ua_software_version";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading"
-import { UASoftwareVersion } from "./ua_software_version"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +18,4 @@ export interface UACachedLoading_Base extends UAPackageLoading_Base {
     fallbackVersion?: UASoftwareVersion;
     getUpdateBehavior: UAMethod;
 }
-export interface UACachedLoading extends UAPackageLoading, UACachedLoading_Base {
-}
+export interface UACachedLoading extends UAPackageLoading, UACachedLoading_Base {}

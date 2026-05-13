@@ -1,10 +1,13 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UAPubSubDiagnostics, UAPubSubDiagnostics_Base, UAPubSubDiagnostics_counters } from "./ua_pub_sub_diagnostics";
+import type { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
-import { UAPubSubDiagnostics_counters, UAPubSubDiagnostics, UAPubSubDiagnostics_Base } from "./ua_pub_sub_diagnostics"
-import { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter"
-import { UABaseDataVariable } from "./ua_base_data_variable"
+
 export interface UAPubSubDiagnosticsReaderGroup_counters extends UAPubSubDiagnostics_counters { // Object
       receivedNetworkMessages: UAPubSubDiagnosticsCounter<UInt32>;
       receivedInvalidNetworkMessages?: UAPubSubDiagnosticsCounter<UInt32>;
@@ -26,5 +29,4 @@ export interface UAPubSubDiagnosticsReaderGroup_Base extends UAPubSubDiagnostics
     counters: UAPubSubDiagnosticsReaderGroup_counters;
     liveValues: UAPubSubDiagnosticsReaderGroup_liveValues;
 }
-export interface UAPubSubDiagnosticsReaderGroup extends Omit<UAPubSubDiagnostics, "counters"|"liveValues">, UAPubSubDiagnosticsReaderGroup_Base {
-}
+export interface UAPubSubDiagnosticsReaderGroup extends Omit<UAPubSubDiagnostics, "counters"|"liveValues">, UAPubSubDiagnosticsReaderGroup_Base {}

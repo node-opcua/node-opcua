@@ -1,7 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
 export interface UAAuditConditionShelvingEvent_Base extends UAAuditConditionEvent_Base {
     shelvingTime?: UAProperty<number, DataType.Double>;
 }
-export interface UAAuditConditionShelvingEvent extends UAAuditConditionEvent, UAAuditConditionShelvingEvent_Base {
-}
+export interface UAAuditConditionShelvingEvent extends UAAuditConditionEvent, UAAuditConditionShelvingEvent_Base {}

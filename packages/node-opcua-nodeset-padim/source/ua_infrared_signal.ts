@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAInfraredSignal_signalConditionSet extends UAObject { // Object
       sensingElementTemperature?: UAAnalogUnit<number, DataType.Float>;
       sourceResidualLife?: UAProperty<number, DataType.Float>;
@@ -25,5 +28,4 @@ export interface UAInfraredSignal_signalConditionSet extends UAObject { // Objec
 export interface UAInfraredSignal_Base extends UAAnalyticalSignal_Base {
     signalConditionSet?: UAInfraredSignal_signalConditionSet;
 }
-export interface UAInfraredSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UAInfraredSignal_Base {
-}
+export interface UAInfraredSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UAInfraredSignal_Base {}

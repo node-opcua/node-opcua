@@ -1,8 +1,11 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UASamplingIntervalDiagnostics_Base<T extends DTSamplingInterval
     maxSampledMonitoredItemsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
     disabledMonitoredItemsSamplingCount: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UASamplingIntervalDiagnostics<T extends DTSamplingIntervalDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnostics_Base<T> {
-}
+export interface UASamplingIntervalDiagnostics<T extends DTSamplingIntervalDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnostics_Base<T> {}

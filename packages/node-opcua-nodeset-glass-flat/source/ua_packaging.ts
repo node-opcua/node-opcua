@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAPackaging_Base extends UABaseMaterial_Base {
     perimeterProtection: UABaseDataVariable<UAString, DataType.String>;
     spacer: UABaseDataVariable<UAString, DataType.String>;
 }
-export interface UAPackaging extends UABaseMaterial, UAPackaging_Base {
-}
+export interface UAPackaging extends UABaseMaterial, UAPackaging_Base {}

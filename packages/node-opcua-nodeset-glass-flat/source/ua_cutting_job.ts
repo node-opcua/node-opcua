@@ -1,15 +1,18 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumCoatingClass } from "./enum_coating_class";
+import type { EnumSignificantSide } from "./enum_significant_side";
+import type { EnumStructureAlignment } from "./enum_structure_alignment";
+import type { UABaseMaterial } from "./ua_base_material";
+import type { UAGlass } from "./ua_glass";
+import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { EnumCoatingClass } from "./enum_coating_class"
-import { EnumSignificantSide } from "./enum_significant_side"
-import { EnumStructureAlignment } from "./enum_structure_alignment"
-import { UABaseMaterial } from "./ua_base_material"
-import { UAGlass } from "./ua_glass"
-import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
+
 export interface UACuttingJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
       "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
       identifier: UAProperty<UAString, DataType.String>;
@@ -49,5 +52,4 @@ export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption
  * |isAbstract      |false                                                       |
  */
 export type UACuttingJob_Base = UAProductionJob_Base;
-export interface UACuttingJob extends UAProductionJob, UACuttingJob_Base {
-}
+export interface UACuttingJob extends UAProductionJob, UACuttingJob_Base {}

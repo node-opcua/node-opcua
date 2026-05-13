@@ -1,6 +1,8 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+
 /**
  * Base class for elements in a stacklight.
  *
@@ -33,5 +35,4 @@ export interface UAStackElement_Base {
      */
     signalOn?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAStackElement extends UAObject, UAStackElement_Base {
-}
+export interface UAStackElement extends UAObject, UAStackElement_Base {}

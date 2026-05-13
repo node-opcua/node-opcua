@@ -1,7 +1,10 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
+import type { UAPubSubKeyPushTargetFolder } from "./ua_pub_sub_key_push_target_folder";
+import type { UASecurityGroupFolder } from "./ua_security_group_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { UASecurityGroupFolder } from "./ua_security_group_folder"
-import { UAPubSubKeyPushTargetFolder } from "./ua_pub_sub_key_push_target_folder"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAPubSubKeyService_Base {
     securityGroups?: UASecurityGroupFolder;
     keyPushTargets?: UAPubSubKeyPushTargetFolder;
 }
-export interface UAPubSubKeyService extends UAObject, UAPubSubKeyService_Base {
-}
+export interface UAPubSubKeyService extends UAObject, UAPubSubKeyService_Base {}

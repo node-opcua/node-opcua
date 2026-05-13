@@ -1,16 +1,19 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { EUInformation } from "node-opcua-data-access";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTWeight } from "./dt_weight";
+import type { EnumTareMode } from "./enum_tare_mode";
+import type { UAMaterial } from "./ua_material";
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UAWeightItem } from "./ua_weight_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { EnumTareMode } from "./enum_tare_mode"
-import { DTWeight } from "./dt_weight"
-import { UAWeightItem } from "./ua_weight_item"
-import { UAProduct, UAProduct_Base } from "./ua_product"
-import { UAMaterial } from "./ua_material"
+
 export interface UAVehicleProduct_deltaWeight<T extends DTWeight> extends Omit<UAWeightItem<T>, "engineeringUnits"|"euRange"|"insideZero"|"overload"|"tareMode"|"underload"|"weightStable"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
@@ -58,5 +61,4 @@ export interface UAVehicleProduct_Base extends UAProduct_Base {
     totalWeightResetDate?: UAProperty<Date, DataType.DateTime>;
     vehicleId: UAProperty<UAString, DataType.String>;
 }
-export interface UAVehicleProduct extends UAProduct, UAVehicleProduct_Base {
-}
+export interface UAVehicleProduct extends UAProduct, UAVehicleProduct_Base {}

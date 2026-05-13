@@ -1,7 +1,9 @@
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |isAbstract      |false                                                       |
  */
 export type UAGuardVariable_Base<T extends LocalizedText> = UABaseDataVariable_Base<T, DataType.LocalizedText>;
-export interface UAGuardVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAGuardVariable_Base<T> {
-}
+export interface UAGuardVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAGuardVariable_Base<T> {}

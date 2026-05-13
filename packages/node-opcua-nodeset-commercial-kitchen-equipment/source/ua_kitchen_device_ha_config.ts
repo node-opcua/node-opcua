@@ -1,7 +1,9 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAHistoricalDataConfiguration, UAHistoricalDataConfiguration_Base } from "node-opcua-nodeset-ua/dist/ua_historical_data_configuration";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAHistoricalDataConfiguration, UAHistoricalDataConfiguration_Base } from "node-opcua-nodeset-ua/dist/ua_historical_data_configuration"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ export interface UAKitchenDeviceHAConfig_Base extends UAHistoricalDataConfigurat
     historyDuration: UAProperty<number, DataType.Double>;
     samplingInterval: UAProperty<number, DataType.Double>;
 }
-export interface UAKitchenDeviceHAConfig extends UAHistoricalDataConfiguration, UAKitchenDeviceHAConfig_Base {
-}
+export interface UAKitchenDeviceHAConfig extends UAHistoricalDataConfiguration, UAKitchenDeviceHAConfig_Base {}

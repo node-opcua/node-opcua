@@ -1,10 +1,13 @@
+import type { Int64 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTEntity } from "./dt_entity";
+import type { DTReportedValue } from "./dt_reported_value";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int64 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTEntity } from "./dt_entity"
-import { DTReportedValue } from "./dt_reported_value"
+
 /**
  * The JoiningSystemEventContentType is a subtype of
  * 0:BaseVariableType. It is used
@@ -60,5 +63,4 @@ export interface UAJoiningSystemEventContent_Base<T, DT extends DataType>  exten
      */
     reportedValues?: UABaseDataVariable<DTReportedValue[], DataType.ExtensionObject>;
 }
-export interface UAJoiningSystemEventContent<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAJoiningSystemEventContent_Base<T, DT> {
-}
+export interface UAJoiningSystemEventContent<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAJoiningSystemEventContent_Base<T, DT> {}

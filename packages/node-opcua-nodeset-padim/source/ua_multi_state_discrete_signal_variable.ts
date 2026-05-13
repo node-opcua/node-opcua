@@ -1,8 +1,10 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAMultiStateDictionaryEntryDiscreteBase, UAMultiStateDictionaryEntryDiscreteBase_Base } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete_base";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAMultiStateDictionaryEntryDiscreteBase, UAMultiStateDictionaryEntryDiscreteBase_Base } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete_base"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +21,4 @@ export interface UAMultiStateDiscreteSignalVariable_Base<T extends UInt32>  exte
     simulationValue?: UABaseDataVariable<UInt32, DataType.UInt32>;
     simulationState?: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UAMultiStateDiscreteSignalVariable<T extends UInt32> extends UAMultiStateDictionaryEntryDiscreteBase<T, DataType.UInt32>, UAMultiStateDiscreteSignalVariable_Base<T> {
-}
+export interface UAMultiStateDiscreteSignalVariable<T extends UInt32> extends UAMultiStateDictionaryEntryDiscreteBase<T, DataType.UInt32>, UAMultiStateDiscreteSignalVariable_Base<T> {}

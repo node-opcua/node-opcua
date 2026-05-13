@@ -1,5 +1,7 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -8,8 +10,8 @@ import { UAObject } from "node-opcua-address-space-base"
  * |typedDefinition |DictionaryEntryType i=17589                                 |
  * |isAbstract      |true                                                        |
  */
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
 export interface UADictionaryEntry_Base {
    // PlaceHolder for $DictionaryEntryName$
 }
-export interface UADictionaryEntry extends UAObject, UADictionaryEntry_Base {
-}
+export interface UADictionaryEntry extends UAObject, UADictionaryEntry_Base {}

@@ -1,11 +1,14 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { Int32 } from "node-opcua-basic-types";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UAYArrayItem } from "node-opcua-nodeset-ua/dist/ua_y_array_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStream, UAStream_acquisitionData, UAStream_acquisitionSettings, UAStream_acquisitionStatus, UAStream_Base, UAStream_configuration, UAStream_parameterSet } from "./ua_stream";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
-import { UAYArrayItem } from "node-opcua-nodeset-ua/dist/ua_y_array_item"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAStream_parameterSet, UAStream_configuration, UAStream_acquisitionSettings, UAStream_acquisitionStatus, UAStream_acquisitionData, UAStream, UAStream_Base } from "./ua_stream"
+
 export interface UASpectrometerDeviceStream_parameterSet extends UAStream_parameterSet { // Object
       activeBackground: UAYArrayItem<number, DataType.Float>;
       activeBackground1?: UAYArrayItem<number, DataType.Float>;
@@ -62,5 +65,4 @@ export interface UASpectrometerDeviceStream_Base extends UAStream_Base {
     acquisitionData: UASpectrometerDeviceStream_acquisitionData;
     factorySettings: UAObject;
 }
-export interface UASpectrometerDeviceStream extends Omit<UAStream, "parameterSet"|"configuration"|"acquisitionSettings"|"acquisitionStatus"|"acquisitionData">, UASpectrometerDeviceStream_Base {
-}
+export interface UASpectrometerDeviceStream extends Omit<UAStream, "parameterSet"|"configuration"|"acquisitionSettings"|"acquisitionStatus"|"acquisitionData">, UASpectrometerDeviceStream_Base {}

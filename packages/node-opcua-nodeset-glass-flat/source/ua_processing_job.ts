@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseMaterial } from "./ua_base_material";
+import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseMaterial } from "./ua_base_material"
-import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
+
 export interface UAProcessingJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
       "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
       identifier: UAProperty<UAString, DataType.String>;
@@ -35,5 +38,4 @@ export interface UAProcessingJob_$OutputMaterial$ extends Omit<UABaseMaterial, "
  * |isAbstract      |false                                                       |
  */
 export type UAProcessingJob_Base = UAProductionJob_Base;
-export interface UAProcessingJob extends UAProductionJob, UAProcessingJob_Base {
-}
+export interface UAProcessingJob extends UAProductionJob, UAProcessingJob_Base {}

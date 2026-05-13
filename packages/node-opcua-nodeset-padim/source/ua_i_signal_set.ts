@@ -1,6 +1,9 @@
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+
+import type { UASignalSet } from "./ua_signal_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UASignalSet } from "./ua_signal_set"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +15,4 @@ import { UASignalSet } from "./ua_signal_set"
 export interface UAISignalSet_Base extends UABaseInterface_Base {
     signalSet?: UASignalSet;
 }
-export interface UAISignalSet extends UABaseInterface, UAISignalSet_Base {
-}
+export interface UAISignalSet extends UABaseInterface, UAISignalSet_Base {}

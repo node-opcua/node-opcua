@@ -1,6 +1,8 @@
+import type { UACertificateGroup } from "./ua_certificate_group";
+import type { UAFolder, UAFolder_Base } from "./ua_folder";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFolder, UAFolder_Base } from "./ua_folder"
-import { UACertificateGroup } from "./ua_certificate_group"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +17,4 @@ export interface UACertificateGroupFolder_Base extends UAFolder_Base {
     defaultUserTokenGroup?: UACertificateGroup;
    // PlaceHolder for $AdditionalGroup$
 }
-export interface UACertificateGroupFolder extends UAFolder, UACertificateGroupFolder_Base {
-}
+export interface UACertificateGroupFolder extends UAFolder, UACertificateGroupFolder_Base {}

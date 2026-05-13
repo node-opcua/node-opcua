@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTChemicalSubstance } from "./dt_chemical_substance";
+import type { UAAnalyticalMeasurementVariable, UAAnalyticalMeasurementVariable_Base } from "./ua_analytical_measurement_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalyticalMeasurementVariable, UAAnalyticalMeasurementVariable_Base } from "./ua_analytical_measurement_variable"
-import { DTChemicalSubstance } from "./dt_chemical_substance"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UAPatMeasurementVariable_Base<T extends number>  extends UAAnal
     patMatrixDescription?: UAProperty<DTChemicalSubstance[], DataType.ExtensionObject>;
     patMeasurandDescription?: UAProperty<DTChemicalSubstance, DataType.ExtensionObject>;
 }
-export interface UAPatMeasurementVariable<T extends number> extends UAAnalyticalMeasurementVariable<T>, UAPatMeasurementVariable_Base<T> {
-}
+export interface UAPatMeasurementVariable<T extends number> extends UAAnalyticalMeasurementVariable<T>, UAPatMeasurementVariable_Base<T> {}

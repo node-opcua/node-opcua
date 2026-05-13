@@ -1,11 +1,14 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal";
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
-import { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAPhSignal_$SignalCalibrationIdentifier$ extends UAAnalogSignal_$SignalCalibrationIdentifier$ { // Object
       sensorAsymmetryPotential?: UAAnalogUnit<number, DataType.Float>;
       sensorSlope?: UAAnalogUnit<number, DataType.Float>;
@@ -32,5 +35,4 @@ export interface UAPhSignal_Base extends UAAnalyticalSignal_Base {
    // PlaceHolder for $SignalCalibrationIdentifier$
     signalConditionSet?: UAPhSignal_signalConditionSet;
 }
-export interface UAPhSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAPhSignal_Base {
-}
+export interface UAPhSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAPhSignal_Base {}

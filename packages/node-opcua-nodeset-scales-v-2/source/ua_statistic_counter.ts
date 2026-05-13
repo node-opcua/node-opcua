@@ -1,8 +1,10 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * Container for the different statisticvalues
  * needed in a Checkweigher.
@@ -48,5 +50,4 @@ export interface UAStatisticCounter_Base {
      */
     weighed: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAStatisticCounter extends UAObject, UAStatisticCounter_Base {
-}
+export interface UAStatisticCounter extends UAObject, UAStatisticCounter_Base {}

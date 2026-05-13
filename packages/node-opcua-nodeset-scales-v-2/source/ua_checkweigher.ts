@@ -1,7 +1,10 @@
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+
+import type { UACatchweigher, UACatchweigher_Base } from "./ua_catchweigher";
+import type { UAProductionPreset } from "./ua_production_preset";
+
 // ----- this file has been automatically generated - do not edit
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UACatchweigher, UACatchweigher_Base } from "./ua_catchweigher"
-import { UAProductionPreset } from "./ua_production_preset"
+
 /**
  * Represents a Checkweigher.
  *
@@ -25,5 +28,4 @@ export interface UACheckweigher_Base extends UACatchweigher_Base {
      */
     tU1Percent?: UADataItem<any, any>;
 }
-export interface UACheckweigher extends Omit<UACatchweigher, "productionPreset">, UACheckweigher_Base {
-}
+export interface UACheckweigher extends Omit<UACatchweigher, "productionPreset">, UACheckweigher_Base {}

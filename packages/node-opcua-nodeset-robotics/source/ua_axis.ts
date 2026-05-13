@@ -1,11 +1,14 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumAxisMotionProfile } from "./enum_axis_motion_profile";
+import type { UALoad } from "./ua_load";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { EnumAxisMotionProfile } from "./enum_axis_motion_profile"
-import { UALoad } from "./ua_load"
+
 export interface UAAxis_parameterSet extends UAObject { // Object
       /**
        * actualAcceleration
@@ -59,5 +62,4 @@ export interface UAAxis_Base extends UAComponent_Base {
      */
     parameterSet: UAAxis_parameterSet;
 }
-export interface UAAxis extends Omit<UAComponent, "assetId"|"parameterSet">, UAAxis_Base {
-}
+export interface UAAxis extends Omit<UAComponent, "assetId"|"parameterSet">, UAAxis_Base {}

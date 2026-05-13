@@ -1,17 +1,20 @@
+import type { Int32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { Variant } from "node-opcua-variant";
+
+import type { DTConfigurationId } from "./dt_configuration_id";
+import type { DTJobId } from "./dt_job_id";
+import type { DTMeasId } from "./dt_meas_id";
+import type { DTPartId } from "./dt_part_id";
+import type { DTProcessingTimes } from "./dt_processing_times";
+import type { DTProductId } from "./dt_product_id";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+import type { DTResultId } from "./dt_result_id";
+
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
-import { Int32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTResultId } from "./dt_result_id"
-import { DTMeasId } from "./dt_meas_id"
-import { DTPartId } from "./dt_part_id"
-import { DTRecipeIdExternal } from "./dt_recipe_id_external"
-import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
-import { DTProductId } from "./dt_product_id"
-import { DTConfigurationId } from "./dt_configuration_id"
-import { DTJobId } from "./dt_job_id"
-import { DTProcessingTimes } from "./dt_processing_times"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

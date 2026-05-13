@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UAProduct, UAProduct_Base } from "./ua_product"
-import { UATargetItem } from "./ua_target_item"
+
 /**
  * Represents a product of an automatic filling
  * scale.
@@ -72,5 +75,4 @@ export interface UAAutomaticFillingProduct_Base extends UAProduct_Base {
      */
     targetWeight: UATargetItem<any, any>;
 }
-export interface UAAutomaticFillingProduct extends UAProduct, UAAutomaticFillingProduct_Base {
-}
+export interface UAAutomaticFillingProduct extends UAProduct, UAAutomaticFillingProduct_Base {}

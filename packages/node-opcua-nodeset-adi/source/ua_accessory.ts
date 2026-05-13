@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -27,5 +29,4 @@ export interface UAAccessory_Base extends UATopologyElement_Base {
      */
     isReady: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAAccessory extends UATopologyElement, UAAccessory_Base {
-}
+export interface UAAccessory extends UATopologyElement, UAAccessory_Base {}

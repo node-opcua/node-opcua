@@ -1,10 +1,13 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAPackMLAdminObject } from "./ua_pack_ml_admin_object";
+import type { UAPackMLBaseStateMachine } from "./ua_pack_ml_base_state_machine";
+import type { UAPackMLStatusObject } from "./ua_pack_ml_status_object";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAPackMLAdminObject } from "./ua_pack_ml_admin_object"
-import { UAPackMLBaseStateMachine } from "./ua_pack_ml_base_state_machine"
-import { UAPackMLStatusObject } from "./ua_pack_ml_status_object"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -26,5 +29,4 @@ export interface UAPackMLBaseObject_Base {
     status: UAPackMLStatusObject;
     tagID?: UAProperty<UAString, DataType.String>;
 }
-export interface UAPackMLBaseObject extends UAObject, UAPackMLBaseObject_Base {
-}
+export interface UAPackMLBaseObject extends UAObject, UAPackMLBaseObject_Base {}

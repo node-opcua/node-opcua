@@ -1,7 +1,9 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +21,4 @@ export interface UASecurityGroup_Base {
     invalidateKeys?: UAMethod;
     forceKeyRotation?: UAMethod;
 }
-export interface UASecurityGroup extends UAObject, UASecurityGroup_Base {
-}
+export interface UASecurityGroup extends UAObject, UASecurityGroup_Base {}

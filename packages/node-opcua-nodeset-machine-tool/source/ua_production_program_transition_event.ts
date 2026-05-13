@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,5 +17,4 @@ export interface UAProductionProgramTransitionEvent_Base extends UATransitionEve
     jobIdentifier: UAProperty<UAString, DataType.String>;
     name: UAProperty<UAString, DataType.String>;
 }
-export interface UAProductionProgramTransitionEvent extends UATransitionEvent, UAProductionProgramTransitionEvent_Base {
-}
+export interface UAProductionProgramTransitionEvent extends UATransitionEvent, UAProductionProgramTransitionEvent_Base {}

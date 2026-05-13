@@ -1,10 +1,13 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal";
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UAOpticalFluorescenseQuenchingSignal_$SignalCalibrationIdentifier$ extends UAAnalogSignal_$SignalCalibrationIdentifier$ { // Object
       absoluteAirPressure?: UAAnalogUnit<number, DataType.Float>;
       opticalFluorescenseQuenchingSensorSlope?: UAAnalogUnit<number, DataType.Float>;
@@ -29,5 +32,4 @@ export interface UAOpticalFluorescenseQuenchingSignal_Base extends UAAnalyticalS
    // PlaceHolder for $SignalCalibrationIdentifier$
     signalConditionSet?: UAOpticalFluorescenseQuenchingSignal_signalConditionSet;
 }
-export interface UAOpticalFluorescenseQuenchingSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAOpticalFluorescenseQuenchingSignal_Base {
-}
+export interface UAOpticalFluorescenseQuenchingSignal extends Omit<UAAnalyticalSignal, "$SignalCalibrationIdentifier$"|"signalConditionSet">, UAOpticalFluorescenseQuenchingSignal_Base {}

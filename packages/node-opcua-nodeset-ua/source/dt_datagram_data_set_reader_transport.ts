@@ -1,9 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport";
+import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTReceiveQos } from "./dt_receive_qos";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTDataSetReaderTransport } from "./dt_data_set_reader_transport"
-import { DTNetworkAddress } from "./dt_network_address"
-import { DTReceiveQos } from "./dt_receive_qos"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

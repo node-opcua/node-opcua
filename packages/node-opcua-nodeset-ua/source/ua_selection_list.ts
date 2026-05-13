@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -19,5 +22,4 @@ export interface UASelectionList_Base<T, DT extends DataType>  extends UABaseDat
     selectionDescriptions?: UAProperty<LocalizedText[], DataType.LocalizedText>;
     restrictToList?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UASelectionList<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UASelectionList_Base<T, DT> {
-}
+export interface UASelectionList<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UASelectionList_Base<T, DT> {}

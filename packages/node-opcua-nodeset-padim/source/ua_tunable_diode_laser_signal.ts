@@ -1,9 +1,12 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
+
 export interface UATunableDiodeLaserSignal_signalConditionSet extends UAObject { // Object
       absoluteSampleGasPressure?: UAAnalogUnit<number, DataType.Float>;
       laserTemperature?: UAAnalogUnit<number, DataType.Float>;
@@ -23,5 +26,4 @@ export interface UATunableDiodeLaserSignal_signalConditionSet extends UAObject {
 export interface UATunableDiodeLaserSignal_Base extends UAAnalyticalSignal_Base {
     signalConditionSet?: UATunableDiodeLaserSignal_signalConditionSet;
 }
-export interface UATunableDiodeLaserSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UATunableDiodeLaserSignal_Base {
-}
+export interface UATunableDiodeLaserSignal extends Omit<UAAnalyticalSignal, "signalConditionSet">, UATunableDiodeLaserSignal_Base {}

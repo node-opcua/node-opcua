@@ -1,6 +1,8 @@
+import type { UAAutomaticFillingProduct } from "./ua_automatic_filling_product";
+import type { UAMaterial, UAMaterial_Base } from "./ua_material";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMaterial, UAMaterial_Base } from "./ua_material"
-import { UAAutomaticFillingProduct } from "./ua_automatic_filling_product"
+
 /**
  * Represents a material in a recipe that will be
  * filled automatically.
@@ -20,5 +22,4 @@ export interface UAMaterialAutomatic_Base extends UAMaterial_Base {
      */
     fillingProductInformation: UAAutomaticFillingProduct;
 }
-export interface UAMaterialAutomatic extends UAMaterial, UAMaterialAutomatic_Base {
-}
+export interface UAMaterialAutomatic extends UAMaterial, UAMaterialAutomatic_Base {}

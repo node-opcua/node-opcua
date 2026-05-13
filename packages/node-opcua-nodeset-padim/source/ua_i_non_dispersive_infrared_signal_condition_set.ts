@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +20,4 @@ export interface UAINonDispersiveInfraredSignalConditionSet_Base extends UABaseI
     sampleCellTemperature?: UAAnalogUnit<number, DataType.Float>;
     sourceResidualLife?: UAProperty<number, DataType.Float>;
 }
-export interface UAINonDispersiveInfraredSignalConditionSet extends UABaseInterface, UAINonDispersiveInfraredSignalConditionSet_Base {
-}
+export interface UAINonDispersiveInfraredSignalConditionSet extends UABaseInterface, UAINonDispersiveInfraredSignalConditionSet_Base {}

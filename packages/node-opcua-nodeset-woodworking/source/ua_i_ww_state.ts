@@ -1,6 +1,8 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+
 export interface UAIWwState_machine extends UAObject { // Object
       /**
        * flags
@@ -46,5 +48,4 @@ export interface UAIWwState_Base extends UABaseInterface_Base {
      */
     subUnits?: UAObject;
 }
-export interface UAIWwState extends UABaseInterface, UAIWwState_Base {
-}
+export interface UAIWwState extends UABaseInterface, UAIWwState_Base {}

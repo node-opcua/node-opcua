@@ -1,5 +1,6 @@
+import type { UAMaintenanceConditionClass, UAMaintenanceConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_maintenance_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMaintenanceConditionClass, UAMaintenanceConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_maintenance_condition_class"
 /**
  * An external check maintenance activity
  *
@@ -11,5 +12,4 @@ import { UAMaintenanceConditionClass, UAMaintenanceConditionClass_Base } from "n
  * |isAbstract      |true                                                        |
  */
 export type UAExternalCheckConditionClass_Base = UAMaintenanceConditionClass_Base;
-export interface UAExternalCheckConditionClass extends UAMaintenanceConditionClass, UAExternalCheckConditionClass_Base {
-}
+export interface UAExternalCheckConditionClass extends UAMaintenanceConditionClass, UAExternalCheckConditionClass_Base {}

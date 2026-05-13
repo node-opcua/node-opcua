@@ -1,9 +1,11 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { UAProcessValue } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAProcessValue } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +19,4 @@ export interface UACyclicEvent_Base extends UABaseEvent_Base {
     cycleCount: UABaseDataVariable<UInt32, DataType.UInt32>;
     partId?: UABaseDataVariable<UAString, DataType.String>;
 }
-export interface UACyclicEvent extends UABaseEvent, UACyclicEvent_Base {
-}
+export interface UACyclicEvent extends UABaseEvent, UACyclicEvent_Base {}

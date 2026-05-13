@@ -1,7 +1,10 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale"
+
 /**
  * Represents a laboratory scale.
  *
@@ -52,5 +55,4 @@ export interface UALaboratoryScale_Base extends UASimpleScale_Base {
     startLeveling?: UAMethod;
     stopIonisator?: UAMethod;
 }
-export interface UALaboratoryScale extends UASimpleScale, UALaboratoryScale_Base {
-}
+export interface UALaboratoryScale extends UASimpleScale, UALaboratoryScale_Base {}

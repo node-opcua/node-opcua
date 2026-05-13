@@ -1,14 +1,17 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRecipeTargetValue } from "./dt_recipe_target_value";
+import type { DTRecipeThreshold } from "./dt_recipe_threshold";
+import type { UAMaterial } from "./ua_material";
+import type { UAProductionPreset } from "./ua_production_preset";
+import type { UARecipeManagement } from "./ua_recipe_management";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { DTRecipeTargetValue } from "./dt_recipe_target_value"
-import { DTRecipeThreshold } from "./dt_recipe_threshold"
-import { UARecipeManagement } from "./ua_recipe_management"
-import { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device"
-import { UAProductionPreset } from "./ua_production_preset"
-import { UAMaterial } from "./ua_material"
+
 export interface UARecipeScale_recipes extends Omit<UARecipeManagement, "addRecipe"|"$Recipe_no$"|"removeRecipe"> { // Object
       addRecipe?: UAMethod;
    // PlaceHolder for $Recipe_no$
@@ -56,5 +59,4 @@ export interface UARecipeScale_Base extends UAScaleDevice_Base {
      */
     supportedThresholdValues?: UABaseDataVariable<DTRecipeThreshold[], DataType.ExtensionObject>;
 }
-export interface UARecipeScale extends Omit<UAScaleDevice, "productionPreset">, UARecipeScale_Base {
-}
+export interface UARecipeScale extends Omit<UAScaleDevice, "productionPreset">, UARecipeScale_Base {}

@@ -1,15 +1,17 @@
+import type { UAMethod } from "node-opcua-address-space-base";
+import type { Int16 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DTEnumValue } from "node-opcua-nodeset-ua/dist/dt_enum_value";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int16 } from "node-opcua-basic-types"
-import { DTEnumValue } from "node-opcua-nodeset-ua/dist/dt_enum_value"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable"
-import { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -71,5 +73,4 @@ export interface UAOperationStateMachine_Base extends UAFiniteStateMachine_Base 
     start?: UAMethod;
     stop?: UAMethod;
 }
-export interface UAOperationStateMachine extends Omit<UAFiniteStateMachine, "lastTransition">, UAOperationStateMachine_Base {
-}
+export interface UAOperationStateMachine extends Omit<UAFiniteStateMachine, "lastTransition">, UAOperationStateMachine_Base {}

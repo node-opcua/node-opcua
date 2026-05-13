@@ -1,11 +1,14 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { EUInformation } from "node-opcua-data-access";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRange } from "./dt_range";
+import type { EnumAxisScale } from "./enum_axis_scale";
+import type { UADataItem, UADataItem_Base } from "./ua_data_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { DTRange } from "./dt_range"
-import { EnumAxisScale } from "./enum_axis_scale"
-import { UADataItem, UADataItem_Base } from "./ua_data_item"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -24,5 +27,4 @@ export interface UAArrayItem_Base<T, DT extends DataType>  extends UADataItem_Ba
     title: UAProperty<LocalizedText, DataType.LocalizedText>;
     axisScaleType: UAProperty<EnumAxisScale, DataType.Int32>;
 }
-export interface UAArrayItem<T, DT extends DataType> extends UADataItem<T, DT>, UAArrayItem_Base<T, DT> {
-}
+export interface UAArrayItem<T, DT extends DataType> extends UADataItem<T, DT>, UAArrayItem_Base<T, DT> {}

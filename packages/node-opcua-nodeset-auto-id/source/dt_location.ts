@@ -1,8 +1,11 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union";
+
+import type { DTLocalCoordinate } from "./dt_local_coordinate";
+import type { DTWGS84Coordinate } from "./dt_wgs_84_coordinate";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union"
-import { DTLocalCoordinate } from "./dt_local_coordinate"
-import { DTWGS84Coordinate } from "./dt_wgs_84_coordinate"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

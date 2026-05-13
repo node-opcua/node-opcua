@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event"
+
 /**
  * Current presence of AutoID Identifier.
  *
@@ -20,5 +23,4 @@ export interface UAAutoIdPresenceEvent_Base extends UAAutoIdDiagnosticsEvent_Bas
      */
     presence: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAAutoIdPresenceEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdPresenceEvent_Base {
-}
+export interface UAAutoIdPresenceEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdPresenceEvent_Base {}

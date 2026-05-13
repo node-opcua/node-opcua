@@ -1,5 +1,6 @@
+import type { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } from "./ua_device_health_diagnostic_alarm";
+
 // ----- this file has been automatically generated - do not edit
-import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } from "./ua_device_health_diagnostic_alarm"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } fro
  * |isAbstract      |false                                                       |
  */
 export type UAOffSpecAlarm_Base = UADeviceHealthDiagnosticAlarm_Base;
-export interface UAOffSpecAlarm extends UADeviceHealthDiagnosticAlarm, UAOffSpecAlarm_Base {
-}
+export interface UAOffSpecAlarm extends UADeviceHealthDiagnosticAlarm, UAOffSpecAlarm_Base {}

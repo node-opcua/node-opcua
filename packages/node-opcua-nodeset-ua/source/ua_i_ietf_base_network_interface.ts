@@ -1,11 +1,14 @@
+import type { UAString, UInt64 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumInterfaceAdminStatus } from "./enum_interface_admin_status";
+import type { EnumInterfaceOperStatus } from "./enum_interface_oper_status";
+import type { UAAnalogUnit } from "./ua_analog_unit";
+import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt64, UAString } from "node-opcua-basic-types"
-import { EnumInterfaceAdminStatus } from "./enum_interface_admin_status"
-import { EnumInterfaceOperStatus } from "./enum_interface_oper_status"
-import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
-import { UABaseDataVariable } from "./ua_base_data_variable"
-import { UAAnalogUnit } from "./ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UAIIetfBaseNetworkInterface_Base extends UABaseInterface_Base {
     physAddress?: UABaseDataVariable<UAString, DataType.String>;
     speed: UAAnalogUnit<UInt64, DataType.UInt64>;
 }
-export interface UAIIetfBaseNetworkInterface extends UABaseInterface, UAIIetfBaseNetworkInterface_Base {
-}
+export interface UAIIetfBaseNetworkInterface extends UABaseInterface, UAIIetfBaseNetworkInterface_Base {}

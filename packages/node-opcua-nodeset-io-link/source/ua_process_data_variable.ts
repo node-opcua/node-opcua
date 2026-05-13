@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { Byte } from "node-opcua-basic-types";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { Byte } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +20,4 @@ export interface UAProcessDataVariable_Base<T, DT extends DataType>  extends UAB
     pdDescriptor?: UAProperty<Byte[], DataType.Byte>;
     processDataLength: UAProperty<Byte, DataType.Byte>;
 }
-export interface UAProcessDataVariable<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAProcessDataVariable_Base<T, DT> {
-}
+export interface UAProcessDataVariable<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAProcessDataVariable_Base<T, DT> {}

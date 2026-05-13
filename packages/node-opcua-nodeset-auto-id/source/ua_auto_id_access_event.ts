@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTAccessResult } from "./dt_access_result";
+import type { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTAccessResult } from "./dt_access_result"
-import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event"
+
 /**
  * Data of the access on one or more AutoID
  * Identifier.
@@ -32,5 +35,4 @@ export interface UAAutoIdAccessEvent_Base extends UAAutoIdDiagnosticsEvent_Base 
      */
     command?: UAProperty<UAString, DataType.String>;
 }
-export interface UAAutoIdAccessEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdAccessEvent_Base {
-}
+export interface UAAutoIdAccessEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdAccessEvent_Base {}

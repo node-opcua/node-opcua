@@ -1,7 +1,10 @@
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -13,5 +16,4 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 export interface UAFoil_Base extends UABaseMaterial_Base {
     z: UAAnalogUnit<number, DataType.Double>;
 }
-export interface UAFoil extends Omit<UABaseMaterial, "z">, UAFoil_Base {
-}
+export interface UAFoil extends Omit<UABaseMaterial, "z">, UAFoil_Base {}

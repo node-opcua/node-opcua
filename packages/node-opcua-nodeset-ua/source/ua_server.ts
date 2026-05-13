@@ -1,15 +1,18 @@
+import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTServerStatus } from "./dt_server_status";
+import type { DTTimeZone } from "./dt_time_zone";
+import type { UANamespaces } from "./ua_namespaces";
+import type { UAServerCapabilities } from "./ua_server_capabilities";
+import type { UAServerDiagnostics } from "./ua_server_diagnostics";
+import type { UAServerRedundancy } from "./ua_server_redundancy";
+import type { UAServerStatus } from "./ua_server_status";
+import type { UAVendorServerInfo } from "./ua_vendor_server_info";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, Byte, UAString } from "node-opcua-basic-types"
-import { DTServerStatus } from "./dt_server_status"
-import { DTTimeZone } from "./dt_time_zone"
-import { UAServerStatus } from "./ua_server_status"
-import { UAServerCapabilities } from "./ua_server_capabilities"
-import { UAServerDiagnostics } from "./ua_server_diagnostics"
-import { UAVendorServerInfo } from "./ua_vendor_server_info"
-import { UAServerRedundancy } from "./ua_server_redundancy"
-import { UANamespaces } from "./ua_namespaces"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -37,5 +40,4 @@ export interface UAServer_Base {
     setSubscriptionDurable?: UAMethod;
     requestServerStateChange?: UAMethod;
 }
-export interface UAServer extends UAObject, UAServer_Base {
-}
+export interface UAServer extends UAObject, UAServer_Base {}

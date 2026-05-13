@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -29,5 +32,4 @@ export interface UALimitAlarm_Base extends UAAlarmCondition_Base {
     lowDeadband?: UAProperty<number, DataType.Double>;
     lowLowDeadband?: UAProperty<number, DataType.Double>;
 }
-export interface UALimitAlarm extends UAAlarmCondition, UALimitAlarm_Base {
-}
+export interface UALimitAlarm extends UAAlarmCondition, UALimitAlarm_Base {}

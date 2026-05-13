@@ -1,7 +1,9 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * Represents an acoustic signal.
  *
@@ -27,5 +29,4 @@ export interface UAAcousticSignal_Base {
      */
     numberInList: UAProperty<any, any>;
 }
-export interface UAAcousticSignal extends UAObject, UAAcousticSignal_Base {
-}
+export interface UAAcousticSignal extends UAObject, UAAcousticSignal_Base {}

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UATwoStateDiscrete_Base<T extends (boolean | boolean[])>  exten
     falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
     trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UATwoStateDiscrete<T extends (boolean | boolean[])> extends UADiscreteItem<T, DataType.Boolean>, UATwoStateDiscrete_Base<T> {
-}
+export interface UATwoStateDiscrete<T extends (boolean | boolean[])> extends UADiscreteItem<T, DataType.Boolean>, UATwoStateDiscrete_Base<T> {}

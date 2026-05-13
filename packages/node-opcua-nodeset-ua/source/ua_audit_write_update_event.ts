@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAAuditWriteUpdateEvent_Base extends UAAuditUpdateEvent_Base {
     oldValue: UAProperty<any, any>;
     newValue: UAProperty<any, any>;
 }
-export interface UAAuditWriteUpdateEvent extends UAAuditUpdateEvent, UAAuditWriteUpdateEvent_Base {
-}
+export interface UAAuditWriteUpdateEvent extends UAAuditUpdateEvent, UAAuditWriteUpdateEvent_Base {}

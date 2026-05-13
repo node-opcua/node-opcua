@@ -1,5 +1,6 @@
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset";
+
 // ----- this file has been automatically generated - do not edit
-import { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joinin
  * |isAbstract      |true                                                        |
  */
 export type UAIVirtualStation_Base = UAIJoiningSystemAsset_Base;
-export interface UAIVirtualStation extends UAIJoiningSystemAsset, UAIVirtualStation_Base {
-}
+export interface UAIVirtualStation extends UAIJoiningSystemAsset, UAIVirtualStation_Base {}

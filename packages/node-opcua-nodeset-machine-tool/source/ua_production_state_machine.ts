@@ -1,15 +1,17 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable"
-import { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
+
 export interface UAProductionStateMachine_currentState<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
@@ -45,5 +47,4 @@ export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base
     runningToInterrupted: UATransition;
     runningToRunning: UATransition;
 }
-export interface UAProductionStateMachine extends Omit<UAFiniteStateMachine, "currentState"|"lastTransition">, UAProductionStateMachine_Base {
-}
+export interface UAProductionStateMachine extends Omit<UAFiniteStateMachine, "currentState"|"lastTransition">, UAProductionStateMachine_Base {}

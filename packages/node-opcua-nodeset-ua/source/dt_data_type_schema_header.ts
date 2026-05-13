@@ -1,10 +1,13 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTEnumDescription } from "./dt_enum_description";
+import type { DTSimpleTypeDescription } from "./dt_simple_type_description";
+import type { DTStructure } from "./dt_structure";
+import type { DTStructureDescription } from "./dt_structure_description";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { DTStructureDescription } from "./dt_structure_description"
-import { DTEnumDescription } from "./dt_enum_description"
-import { DTSimpleTypeDescription } from "./dt_simple_type_description"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -21,5 +24,4 @@ export interface UATwoStateVariable_Base<T extends LocalizedText>  extends UASta
     trueState?: UAProperty<LocalizedText, DataType.LocalizedText>;
     falseState?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UATwoStateVariable<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id">, UATwoStateVariable_Base<T> {
-}
+export interface UATwoStateVariable<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id">, UATwoStateVariable_Base<T> {}

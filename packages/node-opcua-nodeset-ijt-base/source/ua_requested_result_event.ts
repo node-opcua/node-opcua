@@ -1,5 +1,6 @@
+import type { UAJoiningSystemResultReadyEvent, UAJoiningSystemResultReadyEvent_Base } from "./ua_joining_system_result_ready_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAJoiningSystemResultReadyEvent, UAJoiningSystemResultReadyEvent_Base } from "./ua_joining_system_result_ready_event"
 /**
  * This EventType provides the requested results
  * from the Server using RequestResults method or
@@ -13,5 +14,4 @@ import { UAJoiningSystemResultReadyEvent, UAJoiningSystemResultReadyEvent_Base }
  * |isAbstract      |true                                                        |
  */
 export type UARequestedResultEvent_Base = UAJoiningSystemResultReadyEvent_Base;
-export interface UARequestedResultEvent extends UAJoiningSystemResultReadyEvent, UARequestedResultEvent_Base {
-}
+export interface UARequestedResultEvent extends UAJoiningSystemResultReadyEvent, UARequestedResultEvent_Base {}

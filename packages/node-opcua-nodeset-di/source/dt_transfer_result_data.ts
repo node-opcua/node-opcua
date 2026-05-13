@@ -1,8 +1,11 @@
+import type { Int32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTFetchResult } from "./dt_fetch_result";
+import type { DTParameterResult } from "./dt_parameter_result";
+
 // ----- this file has been automatically generated - do not edit
-import { Int32 } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTFetchResult } from "./dt_fetch_result"
-import { DTParameterResult } from "./dt_parameter_result"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

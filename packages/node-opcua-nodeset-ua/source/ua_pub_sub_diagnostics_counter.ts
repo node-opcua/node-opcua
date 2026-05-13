@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { EnumDiagnosticsLevel } from "./enum_diagnostics_level";
+import type { EnumPubSubDiagnosticsCounterClassification } from "./enum_pub_sub_diagnostics_counter_classification";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
-import { EnumPubSubDiagnosticsCounterClassification } from "./enum_pub_sub_diagnostics_counter_classification"
-import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -22,5 +25,4 @@ export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32>  extends UABa
     diagnosticsLevel: UAProperty<EnumDiagnosticsLevel, DataType.Int32>;
     timeFirstChange?: UAProperty<Date, DataType.DateTime>;
 }
-export interface UAPubSubDiagnosticsCounter<T extends UInt32> extends UABaseDataVariable<T, DataType.UInt32>, UAPubSubDiagnosticsCounter_Base<T> {
-}
+export interface UAPubSubDiagnosticsCounter<T extends UInt32> extends UABaseDataVariable<T, DataType.UInt32>, UAPubSubDiagnosticsCounter_Base<T> {}

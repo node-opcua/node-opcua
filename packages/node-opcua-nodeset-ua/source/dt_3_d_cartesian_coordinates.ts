@@ -1,6 +1,9 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTCartesianCoordinates } from "./dt_cartesian_coordinates"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTUserProfile } from "./dt_user_profile";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification"
-import { DTUserProfile } from "./dt_user_profile"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { DTUserProfile } from "./dt_user_profile"
 export interface UAGlassMachineIdentification_Base extends UAMachineIdentification_Base {
     loggedInProfiles?: UAProperty<DTUserProfile[], DataType.ExtensionObject>;
 }
-export interface UAGlassMachineIdentification extends UAMachineIdentification, UAGlassMachineIdentification_Base {
-}
+export interface UAGlassMachineIdentification extends UAMachineIdentification, UAGlassMachineIdentification_Base {}

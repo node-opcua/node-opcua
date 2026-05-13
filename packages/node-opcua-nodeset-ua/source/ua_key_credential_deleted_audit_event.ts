@@ -1,8 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_key_credential_audit_event";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_key_credential_audit_event"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +17,4 @@ import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "./ua_
 export interface UAKeyCredentialDeletedAuditEvent_Base extends UAKeyCredentialAuditEvent_Base {
     resourceUri: UAProperty<UAString, DataType.String>;
 }
-export interface UAKeyCredentialDeletedAuditEvent extends Omit<UAKeyCredentialAuditEvent, "resourceUri">, UAKeyCredentialDeletedAuditEvent_Base {
-}
+export interface UAKeyCredentialDeletedAuditEvent extends Omit<UAKeyCredentialAuditEvent, "resourceUri">, UAKeyCredentialDeletedAuditEvent_Base {}

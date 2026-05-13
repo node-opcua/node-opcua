@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +22,4 @@ export interface UAIFtnirOrFtirSignalConditionSet_Base extends UABaseInterface_B
     electronicsReadNoise?: UAProperty<number, DataType.Float>;
     laserResidualLife?: UAProperty<number, DataType.Float>;
 }
-export interface UAIFtnirOrFtirSignalConditionSet extends UABaseInterface, UAIFtnirOrFtirSignalConditionSet_Base {
-}
+export interface UAIFtnirOrFtirSignalConditionSet extends UABaseInterface, UAIFtnirOrFtirSignalConditionSet_Base {}

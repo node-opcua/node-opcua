@@ -1,14 +1,17 @@
+import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAMeasuredItem } from "./ua_measured_item";
+import type { UATargetItem } from "./ua_target_item";
+
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
-import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAMeasuredItem } from "./ua_measured_item"
-import { UATargetItem } from "./ua_target_item"
+
 export interface UAFeederModule_machineryBuildingBlocks extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
       machineryOperationMode?: UAMachineryOperationModeStateMachine;
@@ -65,5 +68,4 @@ export interface UAFeederModule_Base extends UAComponent_Base {
     minimalFeederSpeed?: UAAnalogUnit<any, any>;
     setFeederSpeed?: UAMethod;
 }
-export interface UAFeederModule extends Omit<UAComponent, "identification">, UAFeederModule_Base {
-}
+export interface UAFeederModule extends Omit<UAComponent, "identification">, UAFeederModule_Base {}

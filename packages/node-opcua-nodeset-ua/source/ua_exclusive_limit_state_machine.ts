@@ -1,7 +1,9 @@
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
+import type { UAState } from "./ua_state";
+import type { UATransition } from "./ua_transition";
+
 // ----- this file has been automatically generated - do not edit
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
-import { UAState } from "./ua_state"
-import { UATransition } from "./ua_transition"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +22,4 @@ export interface UAExclusiveLimitStateMachine_Base extends UAFiniteStateMachine_
     highHighToHigh: UATransition;
     highToHighHigh: UATransition;
 }
-export interface UAExclusiveLimitStateMachine extends UAFiniteStateMachine, UAExclusiveLimitStateMachine_Base {
-}
+export interface UAExclusiveLimitStateMachine extends UAFiniteStateMachine, UAExclusiveLimitStateMachine_Base {}

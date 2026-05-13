@@ -1,10 +1,13 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTProductId } from "./dt_product_id";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
-import { DTRecipeIdExternal } from "./dt_recipe_id_external"
-import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
-import { DTProductId } from "./dt_product_id"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UARecipePreparedEvent_Base extends UABaseEvent_Base {
     internalId: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
     productId?: UAProperty<DTProductId, DataType.ExtensionObject>;
 }
-export interface UARecipePreparedEvent extends UABaseEvent, UARecipePreparedEvent_Base {
-}
+export interface UARecipePreparedEvent extends UABaseEvent, UARecipePreparedEvent_Base {}

@@ -1,13 +1,16 @@
+import type { Byte, Int32, Int64, UAString, UInt64 } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTProcessingTimes } from "node-opcua-nodeset-machinery-result/dist/dt_processing_times";
+import type { DTResultMeta } from "node-opcua-nodeset-machinery-result/dist/dt_result_meta";
+import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum";
+
+import type { DTEntity } from "./dt_entity";
+import type { DTKeyValue } from "./dt_key_value";
+import type { DTResultCounter } from "./dt_result_counter";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { Int64, UInt64, Int32, Byte, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTResultMeta } from "node-opcua-nodeset-machinery-result/dist/dt_result_meta"
-import { DTProcessingTimes } from "node-opcua-nodeset-machinery-result/dist/dt_processing_times"
-import { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum"
-import { DTEntity } from "./dt_entity"
-import { DTResultCounter } from "./dt_result_counter"
-import { DTKeyValue } from "./dt_key_value"
+
 /**
  * This structure is a subtype of
  * ResultMetaDataType. It is used to define

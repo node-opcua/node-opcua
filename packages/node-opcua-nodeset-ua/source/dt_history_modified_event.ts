@@ -1,8 +1,11 @@
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTHistoryEvent } from "./dt_history_event";
+import type { DTHistoryEventFieldList } from "./dt_history_event_field_list";
+import type { DTModificationInfo } from "./dt_modification_info";
+
 // ----- this file has been automatically generated - do not edit
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTHistoryEvent } from "./dt_history_event"
-import { DTHistoryEventFieldList } from "./dt_history_event_field_list"
-import { DTModificationInfo } from "./dt_modification_info"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

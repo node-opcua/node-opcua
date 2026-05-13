@@ -1,5 +1,6 @@
+import type { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_process_condition_class";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_process_condition_class"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -9,5 +10,4 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |isAbstract      |true                                                        |
  */
 export type UAManualProcessStepConditionClass_Base = UAProcessConditionClass_Base;
-export interface UAManualProcessStepConditionClass extends UAProcessConditionClass, UAManualProcessStepConditionClass_Base {
-}
+export interface UAManualProcessStepConditionClass extends UAProcessConditionClass, UAManualProcessStepConditionClass_Base {}

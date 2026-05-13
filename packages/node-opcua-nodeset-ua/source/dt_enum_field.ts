@@ -1,8 +1,11 @@
+import type { Int64, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { ExtensionObject } from "node-opcua-extension-object";
+
+import type { DTEnumValue } from "./dt_enum_value";
+
 // ----- this file has been automatically generated - do not edit
-import { LocalizedText } from "node-opcua-data-model"
-import { Int64, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTEnumValue } from "./dt_enum_value"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

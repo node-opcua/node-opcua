@@ -1,11 +1,14 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { Byte, Int32, UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { DataType } from "node-opcua-variant";
+
+import type { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { Int32, Byte, UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
-import { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category"
+
 export interface UACalibrationTarget_identification extends UAFunctionalGroup { // Object
       assetId?: UAProperty<UAString, DataType.String>;
       componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
@@ -103,5 +106,4 @@ export interface UACalibrationTarget_Base {
      */
     quality?: UAProperty<Byte, DataType.Byte>;
 }
-export interface UACalibrationTarget extends UAObject, UACalibrationTarget_Base {
-}
+export interface UACalibrationTarget extends UAObject, UACalibrationTarget_Base {}

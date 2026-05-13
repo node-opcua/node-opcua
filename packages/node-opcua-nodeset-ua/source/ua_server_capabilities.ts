@@ -1,12 +1,15 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate";
+import type { UAFolder } from "./ua_folder";
+import type { UAOperationLimits } from "./ua_operation_limits";
+import type { UARoleSet } from "./ua_role_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { QualifiedName } from "node-opcua-data-model"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate"
-import { UAOperationLimits } from "./ua_operation_limits"
-import { UAFolder } from "./ua_folder"
-import { UARoleSet } from "./ua_role_set"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -42,5 +45,4 @@ export interface UAServerCapabilities_Base {
     maxMonitoredItemsQueueSize?: UAProperty<UInt32, DataType.UInt32>;
     conformanceUnits?: UAProperty<QualifiedName[], DataType.QualifiedName>;
 }
-export interface UAServerCapabilities extends UAObject, UAServerCapabilities_Base {
-}
+export interface UAServerCapabilities extends UAObject, UAServerCapabilities_Base {}

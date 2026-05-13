@@ -1,6 +1,9 @@
+import type { UAObject } from "node-opcua-address-space-base";
+
+import type { UAToolList } from "./ua_tool_list";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { UAToolList } from "./ua_tool_list"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -12,5 +15,4 @@ import { UAToolList } from "./ua_tool_list"
 export interface UAEquipment_Base {
     tools?: UAToolList;
 }
-export interface UAEquipment extends UAObject, UAEquipment_Base {
-}
+export interface UAEquipment extends UAObject, UAEquipment_Base {}

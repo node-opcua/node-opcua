@@ -1,7 +1,9 @@
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * The IWwUnitFlagsType represents the flags of a
  * unit
@@ -179,5 +181,4 @@ export interface UAIWwUnitFlags_Base extends UABaseInterface_Base {
      */
     workpiecePresent?: UABaseDataVariable<boolean, DataType.Boolean>;
 }
-export interface UAIWwUnitFlags extends UABaseInterface, UAIWwUnitFlags_Base {
-}
+export interface UAIWwUnitFlags extends UABaseInterface, UAIWwUnitFlags_Base {}

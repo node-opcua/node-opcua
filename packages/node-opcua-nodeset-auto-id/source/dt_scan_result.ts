@@ -1,9 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTLocation } from "./dt_location";
+import type { DTScanData } from "./dt_scan_data";
+
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTScanData } from "./dt_scan_data"
-import { DTLocation } from "./dt_location"
+
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

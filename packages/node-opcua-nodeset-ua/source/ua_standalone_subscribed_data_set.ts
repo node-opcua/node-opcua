@@ -1,8 +1,11 @@
+import type { UAObject, UAProperty } from "node-opcua-address-space-base";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTDataSetMeta } from "./dt_data_set_meta";
+import type { UASubscribedDataSet } from "./ua_subscribed_data_set";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UASubscribedDataSet } from "./ua_subscribed_data_set"
-import { DTDataSetMeta } from "./dt_data_set_meta"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -16,5 +19,4 @@ export interface UAStandaloneSubscribedDataSet_Base {
     dataSetMetaData: UAProperty<DTDataSetMeta, DataType.ExtensionObject>;
     isConnected: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAStandaloneSubscribedDataSet extends UAObject, UAStandaloneSubscribedDataSet_Base {
-}
+export interface UAStandaloneSubscribedDataSet extends UAObject, UAStandaloneSubscribedDataSet_Base {}

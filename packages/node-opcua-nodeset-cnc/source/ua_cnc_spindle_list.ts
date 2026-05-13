@@ -1,17 +1,20 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTCncPosition } from "./dt_cnc_position";
+import type { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status";
+import type { EnumCncOperationMode } from "./enum_cnc_operation_mode";
+import type { EnumCncSpindleStatus } from "./enum_cnc_spindle_status";
+import type { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction";
+import type { UACncPositionVariable } from "./ua_cnc_position_variable";
+import type { UACncSpindle, UACncSpindle_actSpeed, UACncSpindle_cmdSpeed } from "./ua_cnc_spindle";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
-import { UACncSpindle, UACncSpindle_actSpeed, UACncSpindle_cmdSpeed } from "./ua_cnc_spindle"
-import { EnumCncOperationMode } from "./enum_cnc_operation_mode"
-import { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status"
-import { EnumCncSpindleStatus } from "./enum_cnc_spindle_status"
-import { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction"
-import { DTCncPosition } from "./dt_cnc_position"
-import { UACncPositionVariable } from "./ua_cnc_position_variable"
+
 export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actChannel"|"actGear"|"actLoad"|"actOverride"|"actPower"|"actSpeed"|"actStatus"|"actTorque"|"actTurnDirection"|"anglePos"|"cmdGear"|"cmdOverride"|"cmdSpeed"|"cmdTorque"|"isInactive"|"isVirtual"> { // Object
       /**
        * actChannel
@@ -216,8 +219,8 @@ export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actCh
  * |typedDefinition |CncSpindleListType i=1009                                   |
  * |isAbstract      |false                                                       |
  */
+// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types
 export interface UACncSpindleList_Base {
    // PlaceHolder for $CncSpindle$
 }
-export interface UACncSpindleList extends UAObject, UACncSpindleList_Base {
-}
+export interface UACncSpindleList extends UAObject, UACncSpindleList_Base {}

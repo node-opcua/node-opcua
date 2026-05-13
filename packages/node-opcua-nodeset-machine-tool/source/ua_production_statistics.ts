@@ -1,8 +1,10 @@
+import type { UAObject } from "node-opcua-address-space-base";
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_vari
 export interface UAProductionStatistics_Base {
     partsProducedInLifetime?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UAProductionStatistics extends UAObject, UAProductionStatistics_Base {
-}
+export interface UAProductionStatistics extends UAObject, UAProductionStatistics_Base {}

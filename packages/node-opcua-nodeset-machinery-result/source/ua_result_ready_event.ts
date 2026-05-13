@@ -1,7 +1,10 @@
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+
+import type { DTResult } from "./dt_result";
+import type { UAResult } from "./ua_result";
+
 // ----- this file has been automatically generated - do not edit
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
-import { DTResult } from "./dt_result"
-import { UAResult } from "./ua_result"
+
 /**
  * Provides information of a complete or partial
  * result.
@@ -16,5 +19,4 @@ import { UAResult } from "./ua_result"
 export interface UAResultReadyEvent_Base extends UABaseEvent_Base {
     result: UAResult<DTResult>;
 }
-export interface UAResultReadyEvent extends UABaseEvent, UAResultReadyEvent_Base {
-}
+export interface UAResultReadyEvent extends UABaseEvent, UAResultReadyEvent_Base {}

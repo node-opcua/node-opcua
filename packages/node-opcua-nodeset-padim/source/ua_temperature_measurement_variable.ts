@@ -1,8 +1,11 @@
+import type { UInt32 } from "node-opcua-basic-types";
+import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
-import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,5 +23,4 @@ export interface UATemperatureMeasurementVariable_Base<T extends (number | numbe
     sensorReference?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
     sensorClass?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
 }
-export interface UATemperatureMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UATemperatureMeasurementVariable_Base<T> {
-}
+export interface UATemperatureMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UATemperatureMeasurementVariable_Base<T> {}

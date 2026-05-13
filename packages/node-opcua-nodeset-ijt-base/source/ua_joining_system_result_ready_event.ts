@@ -1,7 +1,8 @@
+import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result";
+import type { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result";
+import type { UAResultReadyEvent, UAResultReadyEvent_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_ready_event";
+
 // ----- this file has been automatically generated - do not edit
-import { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result"
-import { UAResultReadyEvent, UAResultReadyEvent_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_ready_event"
-import { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result"
 
 /**
  * This EventType provides information of a complete
@@ -17,5 +18,4 @@ import { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result"
 export interface UAJoiningSystemResultReadyEvent_Base extends UAResultReadyEvent_Base {
     result: UAResult<DTResult>;
 }
-export interface UAJoiningSystemResultReadyEvent extends Omit<UAResultReadyEvent, "result">, UAJoiningSystemResultReadyEvent_Base {
-}
+export interface UAJoiningSystemResultReadyEvent extends Omit<UAResultReadyEvent, "result">, UAJoiningSystemResultReadyEvent_Base {}

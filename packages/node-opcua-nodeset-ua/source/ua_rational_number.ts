@@ -1,8 +1,11 @@
+import type { Int32, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTRationalNumber } from "./dt_rational_number";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32, Int32 } from "node-opcua-basic-types"
-import { DTRationalNumber } from "./dt_rational_number"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -18,5 +21,4 @@ export interface UARationalNumber_Base<T extends DTRationalNumber>  extends UABa
     numerator: UABaseDataVariable<Int32, DataType.Int32>;
     denominator: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UARationalNumber<T extends DTRationalNumber> extends UABaseDataVariable<T, DataType.ExtensionObject>, UARationalNumber_Base<T> {
-}
+export interface UARationalNumber<T extends DTRationalNumber> extends UABaseDataVariable<T, DataType.ExtensionObject>, UARationalNumber_Base<T> {}

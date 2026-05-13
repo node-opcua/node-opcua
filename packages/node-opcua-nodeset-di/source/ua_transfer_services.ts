@@ -1,5 +1,6 @@
+import type { UAMethod, UAObject } from "node-opcua-address-space-base";
+
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAMethod } from "node-opcua-address-space-base"
 
 /**
  * |                |                                                            |
@@ -14,5 +15,4 @@ export interface UATransferServices_Base {
     transferFromDevice: UAMethod;
     fetchTransferResultData: UAMethod;
 }
-export interface UATransferServices extends UAObject, UATransferServices_Base {
-}
+export interface UATransferServices extends UAObject, UATransferServices_Base {}

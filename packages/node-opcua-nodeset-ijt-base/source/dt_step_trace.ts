@@ -1,8 +1,11 @@
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+
+import type { DTTraceContent } from "./dt_trace_content";
+
 // ----- this file has been automatically generated - do not edit
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
-import { DTTraceContent } from "./dt_trace_content"
+
 /**
  * It is to describe of the trace for a given
  * program step. It is used in JoiningTraceDataType.

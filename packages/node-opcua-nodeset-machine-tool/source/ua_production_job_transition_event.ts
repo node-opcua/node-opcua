@@ -1,9 +1,11 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UAString, UInt32 } from "node-opcua-basic-types";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event"
+
 export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       isValid: UAProperty<boolean, DataType.Boolean>;
 }
@@ -22,5 +24,4 @@ export interface UAProductionJobTransitionEvent_Base extends UATransitionEvent_B
     runsCompleted: UABaseDataVariable<UInt32, DataType.UInt32>;
     runsPlanned: UAProductionJobTransitionEvent_runsPlanned<UInt32, DataType.UInt32>;
 }
-export interface UAProductionJobTransitionEvent extends UATransitionEvent, UAProductionJobTransitionEvent_Base {
-}
+export interface UAProductionJobTransitionEvent extends UATransitionEvent, UAProductionJobTransitionEvent_Base {}

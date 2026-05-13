@@ -1,8 +1,10 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16 } from "node-opcua-basic-types";
+import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_off_normal_alarm";
+import type { DataType } from "node-opcua-variant";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt16 } from "node-opcua-basic-types"
-import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_off_normal_alarm"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -14,5 +16,4 @@ import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/d
 export interface UAIOLinkAlarm_Base extends UAOffNormalAlarm_Base {
     ioLinkEventCode: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAIOLinkAlarm extends UAOffNormalAlarm, UAIOLinkAlarm_Base {
-}
+export interface UAIOLinkAlarm extends UAOffNormalAlarm, UAIOLinkAlarm_Base {}

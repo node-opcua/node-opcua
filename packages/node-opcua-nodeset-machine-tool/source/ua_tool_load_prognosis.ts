@@ -1,9 +1,12 @@
+import type { UAString } from "node-opcua-basic-types";
+import type { LocalizedText } from "node-opcua-data-model";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DataType } from "node-opcua-variant";
+
+import type { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis";
+
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,5 +20,4 @@ export interface UAToolLoadPrognosis_Base extends UAPrognosis_Base {
     toolIdentifier?: UABaseDataVariable<UAString, DataType.String>;
     toolName?: UABaseDataVariable<UAString, DataType.String>;
 }
-export interface UAToolLoadPrognosis extends UAPrognosis, UAToolLoadPrognosis_Base {
-}
+export interface UAToolLoadPrognosis extends UAPrognosis, UAToolLoadPrognosis_Base {}

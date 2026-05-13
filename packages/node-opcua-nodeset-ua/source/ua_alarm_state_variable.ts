@@ -1,9 +1,12 @@
+import type { UAProperty } from "node-opcua-address-space-base";
+import type { UInt16, UInt32 } from "node-opcua-basic-types";
+import type { DataType } from "node-opcua-variant";
+
+import type { DTContentFilter } from "./dt_content_filter";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+
 // ----- this file has been automatically generated - do not edit
-import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
-import { DTContentFilter } from "./dt_content_filter"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -23,5 +26,4 @@ export interface UAAlarmStateVariable_Base<T extends UInt16>  extends UABaseData
     unconfirmedCount: UAProperty<UInt32, DataType.UInt32>;
     filter: UAProperty<DTContentFilter, DataType.ExtensionObject>;
 }
-export interface UAAlarmStateVariable<T extends UInt16> extends UABaseDataVariable<T, DataType.UInt16>, UAAlarmStateVariable_Base<T> {
-}
+export interface UAAlarmStateVariable<T extends UInt16> extends UABaseDataVariable<T, DataType.UInt16>, UAAlarmStateVariable_Base<T> {}
