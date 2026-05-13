@@ -38,6 +38,5 @@
         "opc ua",
         "internet of things"
     ],
-    "homepage": "http://node-opcua.github.io/",
-    "gitHead": "064029878247adf2fa5d14a8124e1930431e2428"
+    "homepage": "http://node-opcua.github.io/"
 }

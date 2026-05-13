@@ -7,3 +7,5 @@ packages:
   - tools/*
   # all packages in subdirs of components/
   # - 'packages_extra/*'
+allowBuilds:
+  esbuild: set this to true or false
