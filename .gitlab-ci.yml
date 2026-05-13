@@ -37,22 +37,28 @@ cache:
 
 ## https://nodejs.org/en/about/previous-releases
 
-build_and_test_node_18:
-  <<: *build_template
-  variables: 
-    SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
-  image: node:18
+# build_and_test_node_18:
+#   <<: *build_template
+#   variables: 
+#     SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
+#   image: node:18
 
-build_and_test_node_20:
-  <<: *build_template
-  variables: 
-    SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
-  image: node:20
+# build_and_test_node_20:
+#   <<: *build_template
+#   variables: 
+#     SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
+#   image: node:20
 
 
 build_and_test_node_22:
   <<: *build_template
   image: node:22
+
+build_and_test_node_24:
+  <<: *build_template
+  image: node:24
+
+
 # build_and_test_node_21:
 #   <<: *build_template
 #   variables: 

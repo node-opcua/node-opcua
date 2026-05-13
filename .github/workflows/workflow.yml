@@ -18,7 +18,10 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
+        # Keep this comment so we can re-enable older lines if we ever downgrade pnpm.
+        # node-version: [20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -32,12 +35,12 @@ jobs:
       - run: pnpm recursive install --no-frozen-lockfile
       - run: pnpm run build
       - run: pnpm run pretest
-      - name: Run tests (Node 20 with security revert)
-        if: matrix.node-version == '20.x'
-        shell: bash
-        run: cd packages && node --expose-gc --security-revert=CVE-2023-46809 --max-old-space-size=2048 run_all_mocha_tests.js
-      - name: Run tests (Node 22+)
-        if: matrix.node-version != '20.x'
+      # Node 20 needed --security-revert=CVE-2023-46809; kept here for reference only.
+      # - name: Run tests (Node 20 with security revert)
+      #   if: matrix.node-version == '20.x'
+      #   shell: bash
+      #   run: cd packages && node --expose-gc --security-revert=CVE-2023-46809 --max-old-space-size=2048 run_all_mocha_tests.js
+      - name: Run tests
         shell: bash
         run: cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
 
@@ -45,10 +48,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
-        include:
-          - node-version: 20.x
-            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+        # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
+        # node-version: [20.x, 22.x, 24.x]
+        # include:
+        #   - node-version: 20.x
+        #     SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+        node-version: [22.x, 24.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -64,8 +69,7 @@ jobs:
       - run: openssl version
       - run: pnpm run pretest
       - run: pnpm run test
-        env:
-          SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
+        # Node 20 needed: env SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
 
   # legacy:
   #   runs-on: ubuntu-latest
@@ -96,10 +100,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
-        include:
-          - node-version: 20.x
-            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+        # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
+        # node-version: [20.x]
+        # include:
+        #   - node-version: 20.x
+        #     SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+        node-version: [22.x]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -115,11 +121,7 @@ jobs:
       - run: hostname
       - run: openssl version
       - run: pnpm run pretest
-        env:
-          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}
       - run: make test-cov
-        env:
-          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
