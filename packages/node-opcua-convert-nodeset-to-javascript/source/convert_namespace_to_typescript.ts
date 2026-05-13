@@ -9,6 +9,25 @@ import { convertTypeToTypescript } from "./convert_to_typescript";
 import { constructCache } from "./private/cache";
 import { Options } from "./options";
 
+// Robust write: on Windows, transient locks from antivirus, OneDrive, or the
+// TS language server (when files are open in an IDE) surface as ERROR_SHARING_VIOLATION
+// (errno -4094 / code UNKNOWN/EBUSY/EPERM). Retry with backoff.
+function writeFileSyncRetry(filePath: string, content: string, attempts = 6): void {
+    for (let i = 0; i < attempts; i++) {
+        try {
+            fs.writeFileSync(filePath, content);
+            return;
+        } catch (err) {
+            const code = (err as NodeJS.ErrnoException).code;
+            const transient = code === "UNKNOWN" || code === "EBUSY" || code === "EPERM";
+            if (!transient || i === attempts - 1) throw err;
+            // Synchronous backoff (tight loop is fine for ~ms-scale retries).
+            const until = Date.now() + 50 * (i + 1);
+            while (Date.now() < until) { /* spin */ }
+        }
+    }
+}
+
 function getPackageFolder(dependency: string, options: Options) {
     const l = [...(options.lookupFolders || [])];
     l.push(path.join(__dirname, "../../"));
@@ -98,7 +117,7 @@ export async function convertNamespaceTypeToTypescript(
             if (!fs.existsSync(sourceFolder)) {
                 fs.mkdirSync(sourceFolder);
             }
-            fs.writeFileSync(path.join(sourceFolder, filename + ".ts"), content);
+            writeFileSyncRetry(path.join(sourceFolder, filename + ".ts"), content);
             infos[module] = infos[module] || { folder, dependencies: [], module, files: [] };
             infos[module].files.push(filename + ".ts");
             infos[module].dependencies = [...new Set([...infos[module].dependencies, ...dependencies])];
@@ -262,10 +281,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 }
-import { cleanUpTypescriptModule } from "./remove_unused";
-function _tidyUpImports(folder: string) {
-    cleanUpTypescriptModule(folder);
-}
 async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     const values = Object.values(infos) as Info[];
     if (values.length < 1) {
@@ -273,16 +288,12 @@ async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     }
     console.log("generating files for ", options.nsName);
     for (const info of values) {
-        // create indexes
         await _output_index_ts_file(info);
-
         await _output_package_json(info, options);
-
         await _output_tsconfig_json(info, options);
-
         await _output_licence(info, options);
-
-
-        await _tidyUpImports(info.folder);
     }
+    // Import cleanup is deferred to a second, parallel phase in main.ts —
+    // each namespace's cleanup uses an isolated ts-morph Project, so the
+    // expensive AST work can run across many cores without contention.
 }

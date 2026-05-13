@@ -86,6 +86,11 @@
         "pnpm": ">=11.0.0"
     },
     "packageManager": "pnpm@11.1.1",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "esbuild"
+        ]
+    },
     "dependenciesMeta": {
         "*": {
             "injected": true
