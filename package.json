@@ -17,7 +17,7 @@
         "postinstall": "pnpm build",
         "_x_preinstall": "npm i browserify -g",
         "build": "npm run generate && tsc -b packages",
-        "generate": "pnpm recursive run generate",
+        "generate": "pnpm --filter node-opcua-types run generate && pnpm --filter \"!node-opcua-types\" recursive run generate",
         "pretest": "pnpm recursive run pretest",
         "test": "cd packages && node --expose-gc ${SECURITY_REVERT_CVE_2023_46809} --max-old-space-size=2048 run_all_mocha_tests.js",
         "test:parallel": "cd packages && node parallel_test.js",
