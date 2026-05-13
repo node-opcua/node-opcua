@@ -83,8 +83,9 @@
     "typings": "./packages/node-opcua/node-opcua.d.ts",
     "engines": {
         "node": ">=18.0.0",
-        "pnpm": ">=9.0.0"
+        "pnpm": ">=11.0.0"
     },
+    "packageManager": "pnpm@11.1.1",
     "dependenciesMeta": {
         "*": {
             "injected": true

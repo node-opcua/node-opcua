@@ -17,7 +17,9 @@ cache:
         KUBERNETES_MEMORY_LIMIT: 4Gi
     stage: build
     before_script:
-        - npm install -g pnpm@9
+        - corepack enable
+        - corepack prepare --activate
+        - pnpm --version
         - pnpm config set store-dir `pwd`/.pnpm-store
         - pnpm recursive install --frozen-lockfile=false
     script:
