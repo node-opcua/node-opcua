@@ -16,17 +16,24 @@ on:
           - alpha
           - 0.0.0-hack
 
+# Serialize publishes: never run two at once, and never cancel an in-flight
+# one (partial publishes are hard to recover from).
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 permissions:
-  id-token: write  # Required for OIDC token generation
-  contents: read   # Required for actions/checkout
+  id-token: write  # OIDC token for provenance + npm trusted publishing
+  contents: read   # actions/checkout
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # lerna inspects history to decide what's publishable
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -38,23 +45,24 @@ jobs:
           cache: 'pnpm'
 
       - name: check pnpm version
-        run:  pnpm --version
-        
+        run: pnpm --version
+
       - name: Install dependencies
-        run: pnpm recursive install --no-frozen-lockfile
+        # --ignore-scripts: skip esbuild's transitive postinstall so pnpm 11
+        # doesn't fail with ERR_PNPM_IGNORED_BUILDS. Build runs explicitly below.
+        run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
 
       - name: Build
-        run: pnpm run build
+        # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+        # is gitignored; the lean `build` (tsc only) doesn't produce it.
+        run: pnpm run build:all
 
       - name: Publish
-        # 1. Added --concurrency 1 to prevent OIDC token request collisions
-        # 2. Added --access public to ensure scoped packages don't 404
-        # 3. Removed --no-verify-access (deprecated)
+        # --concurrency 1: avoids OIDC token request collisions with provenance.
         run: |
           npx lerna publish from-package \
             --yes \
             --dist-tag ${{ github.event.inputs.dist-tag }} \
             --concurrency 1
         env:
-          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

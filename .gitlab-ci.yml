@@ -21,10 +21,15 @@ cache:
         - corepack prepare --activate
         - pnpm --version
         - pnpm config set store-dir `pwd`/.pnpm-store
-        - pnpm recursive install --frozen-lockfile=false
+        # --ignore-scripts: skip postinstall so pnpm 11 doesn't error on
+        # ERR_PNPM_IGNORED_BUILDS for esbuild. The `pnpm run build` below
+        # explicitly runs what postinstall would have done.
+        - pnpm recursive install --frozen-lockfile=false --ignore-scripts
     script:
         - pnpm run consistency
-        - pnpm run build
+        # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+        # is gitignored; the lean `build` (tsc only) doesn't produce it.
+        - pnpm run build:all
         - pnpm run pretest
         - node ${SECURITY_OPTIONS} packages/parallel_test.js
         # - node packages/run_all_mocha_tests.js DISCO3

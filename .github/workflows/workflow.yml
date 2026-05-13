@@ -1,11 +1,4 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node.js CI
-
-env:
-  COVERALLS_REPO_TOKEN: "${{ secrets.COVERALLS_REPO_TOKEN }}"
-  COVERALLS_GIT_BRANCH: "${{ github.ref }}"
 
 on:
   push:
@@ -13,13 +6,58 @@ on:
   pull_request:
     branches: [master]
 
+# Cancel in-progress runs of this workflow when a new commit lands on the
+# same ref. Saves CI minutes and gets fresh feedback faster.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege defaults; the coverage job's coverallsapp action elevates
+# what it needs via its own action permissions.
+permissions:
+  contents: read
+
+env:
+  COVERALLS_REPO_TOKEN: "${{ secrets.COVERALLS_REPO_TOKEN }}"
+  COVERALLS_GIT_BRANCH: "${{ github.ref }}"
+
 jobs:
+  # Verifies that the committed generated nodeset files are in sync with the
+  # XML sources and the current convert tool. Also runs the workspace
+  # version-consistency check — both are pure read/verify jobs.
+  generated-drift-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+      - run: pnpm install --no-frozen-lockfile --ignore-scripts
+      - run: pnpm run consistency
+      - run: pnpm run generate
+      - name: Check for drift in generated files
+        run: |
+          if ! git diff --quiet; then
+            echo "::error::Generated files are out of sync with their sources or with the convert tool."
+            echo "Re-run 'pnpm run generate' locally and commit the result."
+            echo ""
+            echo "--- changed files ---"
+            git diff --stat | head -40
+            exit 1
+          fi
+          echo "Generated files are in sync."
+
   build_on_windows:
     runs-on: windows-latest
+    timeout-minutes: 45
     strategy:
+      # Don't cancel the whole matrix when one Node version fails.
+      fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # Keep this comment so we can re-enable older lines if we ever downgrade pnpm.
         # node-version: [20.x, 22.x, 24.x]
         node-version: [22.x, 24.x]
 
@@ -31,28 +69,25 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: pnpm run consistency
-      - run: pnpm recursive install --no-frozen-lockfile
-      - run: pnpm run build
+      # --ignore-scripts: skip transitive postinstalls (esbuild) so pnpm 11
+      # doesn't fail with ERR_PNPM_IGNORED_BUILDS. The explicit `pnpm run
+      # build` step that follows does the compile that's actually needed.
+      - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      - run: pnpm run build:all
       - run: pnpm run pretest
-      # Node 20 needed --security-revert=CVE-2023-46809; kept here for reference only.
-      # - name: Run tests (Node 20 with security revert)
-      #   if: matrix.node-version == '20.x'
-      #   shell: bash
-      #   run: cd packages && node --expose-gc --security-revert=CVE-2023-46809 --max-old-space-size=2048 run_all_mocha_tests.js
       - name: Run tests
         shell: bash
         run: cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
+      fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # node-version: [20.x, 22.x, 24.x]
-        # include:
-        #   - node-version: 20.x
-        #     SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
         node-version: [22.x, 24.x]
 
     steps:
@@ -63,48 +98,18 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: pnpm recursive install --no-frozen-lockfile
-      - run: pnpm run build
-      - run: hostname
-      - run: openssl version
+      - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      - run: pnpm run build:all
       - run: pnpm run pretest
       - run: pnpm run test
-        # Node 20 needed: env SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
-
-  # legacy:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [ 16.x ]
-
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #   - name: Use Node.js ${{ matrix.node-version }}
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: ${{ matrix.node-version }}
-  #   - run: npm install -g pnpm@7
-  #   # remove pnpm-lock.yaml to avoid conflicts
-  #   - run: rm pnpm-lock.yaml
-  #   # also change the required version in package.json
-  #   - run: "sed -i 's/\"pnpm\": \".*\"/\"pnpm\": \">=7.0.0\"/' package.json"
-  #   - run: grep pnpm package.json
-  #   - run: pnpm recursive install --no-frozen-lockfile
-  #   - run: pnpm run build
-  #   - run: hostname
-  #   - run: openssl version
-  #   - run: pnpm run pretest
-  #   - run: pnpm test
 
   coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       matrix:
-        # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # node-version: [20.x]
-        # include:
-        #   - node-version: 20.x
-        #     SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
         node-version: [22.x]
     steps:
       - uses: actions/checkout@v4
@@ -115,11 +120,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - run: npm install -g c8 coveralls codecov
-      # - run: npm install -g codeclimate-test-reporter
-      - run: pnpm recursive install --no-frozen-lockfile
-      - run: pnpm run build
-      - run: hostname
-      - run: openssl version
+      - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      - run: pnpm run build:all
       - run: pnpm run pretest
       - run: make test-cov
       - name: Coveralls
