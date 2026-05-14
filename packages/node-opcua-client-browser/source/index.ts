@@ -22,10 +22,12 @@
 /**
  * @module node-opcua-client-browser
  *
- * Browser entry point for `node-opcua-client`. Currently exposes the OPC UA
- * WebSocket transport (`ClientWS_transport`, `browserWsTransportFactory`,
- * `parseWsEndpointUrl`). Later PRs add a `createBrowserClient()` helper and a
- * prebuilt standalone browser bundle.
+ * Browser entry point for `node-opcua-client`. Exposes the OPC UA WebSocket
+ * transport (`ClientWS_transport`, `browserWsTransportFactory`,
+ * `parseWsEndpointUrl`) and a `createBrowserClient()` helper that
+ * pre-wires an `OPCUAClient` with browser-appropriate defaults
+ * (in-memory credentials, in-memory trust store, WebSocket transport).
+ * A later PR adds a prebuilt standalone browser bundle.
  *
  * Target environments: modern evergreen browsers (Chromium, Firefox, WebKit).
  * The transport uses the OPC UA WebSocket mapping per Part 6 §7.5
@@ -33,7 +35,8 @@
  */
 
 export * from "./client_ws_transport";
+export * from "./create_browser_client";
 export * as uacp from "./uacp";
 export { WsSocketAdapter, type WebSocketLike } from "./ws_socket_adapter";
 
-export const VERSION = "2.171.0";
+export const VERSION = "2.172.0";

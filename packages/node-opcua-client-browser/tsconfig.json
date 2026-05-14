@@ -12,6 +12,8 @@
     ],
     "references": [
         { "path": "../node-opcua-assert" },
+        { "path": "../node-opcua-client" },
+        { "path": "../node-opcua-common" },
         { "path": "../node-opcua-debug" },
         { "path": "../node-opcua-status-code" },
         { "path": "../node-opcua-transport" }

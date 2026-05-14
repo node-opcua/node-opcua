@@ -27,6 +27,9 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.164.0",
+        "node-opcua-client": "2.172.0",
+        "node-opcua-common": "2.172.0",
+        "node-opcua-crypto": "5.3.6",
         "node-opcua-debug": "2.172.0",
         "node-opcua-status-code": "2.172.0",
         "node-opcua-transport": "2.172.0"
