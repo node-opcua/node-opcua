@@ -35,7 +35,10 @@ jobs:
         with:
           node-version: 24.x
           cache: 'pnpm'
-      - run: pnpm install --no-frozen-lockfile --ignore-scripts
+      # --frozen-lockfile: trust pnpm-lock.yaml's workspace link resolution
+      # (--no-frozen-lockfile in non-recursive mode falls through to the
+      # registry for workspace deps like @sterfive/fix-tsconfigs).
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run consistency
       - run: pnpm run generate
       - name: Check for drift in generated files

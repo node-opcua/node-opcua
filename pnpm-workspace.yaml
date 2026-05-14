@@ -12,3 +12,10 @@ packages:
 # this list explicitly allow-lists those we trust to run.
 onlyBuiltDependencies:
   - esbuild
+
+# Match cross-workspace dependencies (plain "2.171.0"-style specifiers)
+# against local workspace packages instead of the registry. Without this,
+# pnpm 11 falls through to npmjs.org and 404s on private/unpublished
+# packages like @sterfive/fix-tsconfigs or unpublished version bumps.
+# (The same setting was in .npmrc but pnpm 11 doesn't honor it from there.)
+linkWorkspacePackages: true
