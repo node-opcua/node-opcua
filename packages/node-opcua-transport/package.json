@@ -4,6 +4,15 @@
     "description": "pure nodejs OPCUA SDK - module transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/source/index.d.ts",
+            "browser": "./dist/source/index.browser.js",
+            "import": "./dist/source/index.js",
+            "require": "./dist/source/index.js",
+            "default": "./dist/source/index.js"
+        }
+    },
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
