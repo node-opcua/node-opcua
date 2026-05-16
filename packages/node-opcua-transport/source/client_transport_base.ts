@@ -25,9 +25,11 @@ import { TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
+// Use a string category instead of `__filename` so the module loads in
+// browsers without a Node-style filename global.
+const doDebug = checkDebugFlag("ClientTransportBase");
+const debugLog = make_debugLog("ClientTransportBase");
+const warningLog = make_warningLog("ClientTransportBase");
 
 export interface ClientTransportBase {
     on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;

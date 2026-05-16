@@ -6,8 +6,11 @@
     "types": "./dist/source/index.d.ts",
     "exports": {
         ".": {
+            "browser": {
+                "types": "./dist/source/index.browser.d.ts",
+                "default": "./dist/source/index.browser.js"
+            },
             "types": "./dist/source/index.d.ts",
-            "browser": "./dist/source/index.browser.js",
             "import": "./dist/source/index.js",
             "require": "./dist/source/index.js",
             "default": "./dist/source/index.js"
