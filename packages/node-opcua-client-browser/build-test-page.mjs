@@ -52,8 +52,10 @@ export async function buildTestPage(opts = {}) {
         define: {
             // some node-opcua code reads `typeof global === "object"` at module load
             global: "globalThis",
-            // CJS-emitted dist files reference `__filename`/`__dirname` (e.g. via
-            // `make_debugLog(__filename)`); stub with empty strings.
+            // `node-opcua-factory` (and other upstream packages) still pass
+            // `__filename` to logger factories at module load. Until those
+            // migrate to string categories, stub the Node globals with empty
+            // strings so the browser bundle doesn't ReferenceError.
             __filename: '""',
             __dirname: '""'
         },
