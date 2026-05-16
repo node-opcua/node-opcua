@@ -16,12 +16,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const pageDir = resolve(__dirname, "test", "page");
 const outDir = resolve(pageDir, "dist");
 
-// `fs` is unreachable from any browser code path but is still pulled into the
-// bundle via the `node-opcua-utils` CJS barrel re-export (transitively imported
-// by `node-opcua-factory` and `node-opcua-date-time`, which aren't tree-shakeable
-// in CJS). Stub to an empty module so esbuild can resolve it.
-const fsStub = resolve(pageDir, "node-stub.cjs");
-
 export async function buildTestPage(opts = {}) {
     mkdirSync(outDir, { recursive: true });
 
@@ -53,14 +47,7 @@ export async function buildTestPage(opts = {}) {
             "node:events": "events",
             "node:util": "util",
             "node:buffer": "buffer",
-            "node:process": "process",
-            // `fs` is reachable via `node-opcua-utils/check_file_exists` (pulled
-            // transitively through the utils CJS barrel) but never executed at
-            // runtime in the browser. Stub it.
-            fs: fsStub,
-            "node:fs": fsStub,
-            "fs/promises": fsStub,
-            "node:fs/promises": fsStub
+            "node:process": "process"
         },
         define: {
             // some node-opcua code reads `typeof global === "object"` at module load
