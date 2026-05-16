@@ -25,7 +25,7 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ErrorCallback } from "node-opcua-status-code";
 import {
-    ClientTCP_transport,
+    ClientTransportBase,
     type IClientTransport,
     type IClientTransportFactory,
     type ISocketLike,
@@ -96,20 +96,11 @@ export function parseWsEndpointUrl(endpointUrl: string): ParsedWsEndpoint {
 }
 
 /**
- * WebSocket-backed client transport. Instances satisfy {@link IClientTransport}
- * by inheritance from {@link ClientTCP_transport}; the only overridden method
- * is `connect`, which constructs a WebSocket and adapts it to `ISocketLike`.
+ * WebSocket-backed client transport. A sibling of `ClientTCP_transport`: both extend
+ * {@link ClientTransportBase} and reuse its UACP HEL/ACK machinery; the only
+ * difference is the socket flavour (`WebSocket` here, `net.Socket` in TCP).
  */
-// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: typed EventEmitter mirror of ClientTCP_transport
-export interface ClientWS_transport {
-    on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
-    on(eventName: "close", eventHandler: (err: Error | null) => void): this;
-    on(eventName: "connection_break", eventHandler: (err: Error | null) => void): this;
-    on(eventName: "connect", eventHandler: () => void): this;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class ClientWS_transport extends ClientTCP_transport {
+export class ClientWS_transport extends ClientTransportBase {
     private readonly _webSocketCtor: WebSocketConstructor;
     private readonly _strictSubprotocol: boolean;
 
@@ -131,7 +122,7 @@ export class ClientWS_transport extends ClientTCP_transport {
 
     /**
      * Opens a WebSocket to `endpointUrl`, adapts it to `ISocketLike`, and
-     * defers to `ClientTCP_transport`'s HEL/ACK transaction.
+     * drives the inherited HEL/ACK transaction from `ClientTransportBase`.
      */
     public override connect(endpointUrl: string, callback: ErrorCallback): void {
         this.endpointUrl = endpointUrl;
@@ -189,38 +180,17 @@ export class ClientWS_transport extends ClientTCP_transport {
                     );
             }
 
-            // Defer to TCP_transport's install path + ClientTCP_transport's
-            // HEL/ACK handshake by installing the socket directly.
+            // Install the WebSocket-backed socket adapter into the inherited TCP_transport machinery.
             assert(!this._socket, "transport should not have a socket yet");
-            // _install_socket is protected; subclassing grants access.
-            (this as unknown as { _install_socket(s: ISocketLike): void })._install_socket(socket);
+            this._install_socket(socket);
 
-            // Kick off HEL/ACK. _perform_HEL_ACK_transaction is private on the
-            // parent, so we reuse the public behaviour by invoking the parent
-            // `connect` again — but that would loop. Instead, the parent's
-            // `_on_socket_connect` handler is wired to perform HEL/ACK and then
-            // emit "connect" on `this`. We trigger it by emitting "connect" on
-            // the freshly-installed socket; but the parent attached its
-            // `once("connect", _on_socket_connect)` via its own `connect()`,
-            // which we're overriding. So we call the HEL/ACK sequence directly.
-            const parentAny = this as unknown as {
-                _perform_HEL_ACK_transaction(cb: ErrorCallback): void;
-            };
-            parentAny._perform_HEL_ACK_transaction((err) => {
+            this._perform_HEL_ACK_transaction((err) => {
                 if (!err) {
                     /* c8 ignore next */
                     if (!this._socket) {
                         return callback(new Error("Abandoned"));
                     }
-                    // Install the connection-break detector that ClientTCP_transport's
-                    // success path installs.
-                    this._socket.on("error", (e: Error) => {
-                        if (e.message.match(/ECONNRESET|EPIPE|premature socket termination/)) {
-                            /* c8 ignore next */
-                            doDebug && debugLog("connection_break after reconnection", endpointUrl);
-                            this.emit("connection_break", e);
-                        }
-                    });
+                    this._install_post_connect_error_handler(endpointUrl);
                     this.emit("connect");
                 } else {
                     debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
@@ -228,6 +198,12 @@ export class ClientWS_transport extends ClientTCP_transport {
                 callback(err);
             });
         });
+    }
+    public override dispose(): void {
+        /* c8 ignore next */
+        doDebug && debugLog(" ClientWS_transport disposed");
+
+        super.dispose();
     }
 }
 

@@ -4,9 +4,9 @@
  * with specs that drive a real OPC UA session over `opc.ws://` / `opc.wss://`.
  */
 
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { startHarness, type HarnessContext } from "./harness";
+import { type HarnessContext, startHarness } from "./harness";
 
 let harness: HarnessContext;
 

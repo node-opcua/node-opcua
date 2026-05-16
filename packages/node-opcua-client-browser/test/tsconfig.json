@@ -1,14 +1,18 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
+        // package-root rootDir so `test/page/main.ts` can import `../../source/index`
+        // for the browser-bundle entry without tripping "not under rootDir".
+        "rootDir": "..",
         "noEmit": true,
         "composite": false,
         "lib": ["es2022", "dom"],
         "types": ["node"]
     },
     "include": [
-        "e2e/**/*.ts",
-        "page/**/*.ts",
-        "unit/**/*.ts"
+        "e2e/*.ts",
+        "page/*.ts",
+        "unit/*.ts",
+        "../source/**/*.ts"
     ]
 }

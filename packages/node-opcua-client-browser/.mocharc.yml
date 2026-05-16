@@ -6,3 +6,5 @@ exit: true
 extension:
   - .ts
   - .js
+spec:
+  - test/unit/**/*.ts
