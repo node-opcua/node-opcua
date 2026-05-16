@@ -53,6 +53,9 @@ dist/
 dist-browser-bundle/
 dist-esm/
 dist-test/
+# Playwright e2e harness output (per-package)
+test-results/
+playwright-report/
 distHelpers/
 distNodeJS/
 doc1/
