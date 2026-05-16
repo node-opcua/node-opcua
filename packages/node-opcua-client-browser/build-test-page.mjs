@@ -16,9 +16,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const pageDir = resolve(__dirname, "test", "page");
 const outDir = resolve(pageDir, "dist");
 
-// Stub used in place of Node-only modules (fs, net, os) that are statically
-// imported by code paths the browser bundle never executes.
-const nodeStub = resolve(pageDir, "node-stub.cjs");
+// `fs` is unreachable from any browser code path but is still pulled into the
+// bundle via the `node-opcua-utils` CJS barrel re-export (transitively imported
+// by `node-opcua-factory` and `node-opcua-date-time`, which aren't tree-shakeable
+// in CJS). Stub to an empty module so esbuild can resolve it.
+const fsStub = resolve(pageDir, "node-stub.cjs");
 
 export async function buildTestPage(opts = {}) {
     mkdirSync(outDir, { recursive: true });
@@ -36,39 +38,35 @@ export async function buildTestPage(opts = {}) {
         minify: false,
         sourcemap: opts.sourcemap ?? true,
         logLevel: opts.logLevel ?? "warning",
+        // The `"browser"` condition in `node-opcua-transport`'s `exports` map
+        // routes us to its browser-safe entry, which omits `client_tcp_transport`
+        // and its `node:net`/`os`/`util` imports. esbuild honours `conditions`.
+        conditions: ["browser"],
         // Standalone polyfill packages (events, util, buffer, process) are devDeps
-        // of this package; let any file in the bundle (including transitive ones
-        // under other packages) resolve bare imports to them.
+        // of this package; let transitively-bundled files in other packages
+        // resolve bare imports to them.
         nodePaths: [resolve(__dirname, "node_modules")],
-        // The transport-package CJS barrel re-exports `client_tcp_transport.js`,
-        // whose top-level `require("node:net"|"node:os"|"node:util")` is evaluated
-        // by esbuild even though the WS path never instantiates it. We alias the
-        // unreachable Node-only modules to an empty stub, and route the polyfillable
-        // ones to standalone browser implementations.
+        // Map `node:`-prefixed built-ins to their standalone npm polyfill
+        // packages. Bare `events`/`util`/`buffer`/`process` already resolve via
+        // each polyfill's `"browser"` package.json field under `platform: "browser"`.
         alias: {
-            // node: prefix variants — esbuild's `platform: "browser"` already
-            // resolves bare `events`/`util`/`buffer`/`process` to their npm
-            // package polyfills via the "browser" field, so only the prefixed
-            // forms need explicit aliases.
             "node:events": "events",
             "node:util": "util",
             "node:buffer": "buffer",
             "node:process": "process",
-            // truly Node-only, never executed in the browser bundle — empty stub
-            fs: nodeStub,
-            "node:fs": nodeStub,
-            "fs/promises": nodeStub,
-            "node:fs/promises": nodeStub,
-            "node:net": nodeStub,
-            "node:os": nodeStub
+            // `fs` is reachable via `node-opcua-utils/check_file_exists` (pulled
+            // transitively through the utils CJS barrel) but never executed at
+            // runtime in the browser. Stub it.
+            fs: fsStub,
+            "node:fs": fsStub,
+            "fs/promises": fsStub,
+            "node:fs/promises": fsStub
         },
         define: {
-            // make `global` resolve to `globalThis` in browser; some node-opcua code
-            // checks `typeof global === "object"` at module load.
+            // some node-opcua code reads `typeof global === "object"` at module load
             global: "globalThis",
             // CJS-emitted dist files reference `__filename`/`__dirname` (e.g. via
-            // `make_debugLog(__filename)`); stub them with the source file path
-            // strings esbuild already tracks per-module.
+            // `make_debugLog(__filename)`); stub with empty strings.
             __filename: '""',
             __dirname: '""'
         },
