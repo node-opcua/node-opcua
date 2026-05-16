@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, it } from "mocha";
-// import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { IClientTransport, IClientTransportFactory } from "node-opcua-transport";
 import should from "should";
 import { WebSocket, WebSocketServer } from "ws";
