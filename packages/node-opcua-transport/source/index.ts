@@ -25,6 +25,7 @@
  */
 export * from "./AcknowledgeMessage";
 export * from "./client_tcp_transport";
+export * from "./client_transport_base";
 export * from "./default_client_transport_factory";
 export * from "./HelloMessage";
 export * from "./i_client_transport";

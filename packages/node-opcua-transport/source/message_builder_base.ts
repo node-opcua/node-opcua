@@ -11,7 +11,9 @@ import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
 import { hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type MessageHeader, PacketAssembler, type PacketInfo } from "node-opcua-packet-assembler";
 import type { StatusCode } from "node-opcua-status-code";
-import { get_clock_tick } from "node-opcua-utils";
+// Deep import (not barrel) to keep the browser bundle from pulling in
+// `node-opcua-utils/check_file_exists` which imports `fs`.
+import { get_clock_tick } from "node-opcua-utils/dist/get_clock_tick";
 import { StatusCodes2 } from "./status_codes";
 
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;

@@ -3,7 +3,17 @@
  */
 
 import type { AcknowledgeMessage } from "./AcknowledgeMessage";
-import type { TransportSettingsOptions } from "./client_tcp_transport";
+
+/**
+ * Options used to construct a client transport. Passed through {@link IClientTransportFactory.create}
+ * and applied to the UACP HEL message during the handshake.
+ */
+export interface TransportSettingsOptions {
+    maxChunkCount?: number;
+    maxMessageSize?: number;
+    receiveBufferSize?: number;
+    sendBufferSize?: number;
+}
 
 /**
  * The minimal surface that {@link ClientSecureChannelLayer} (and anything else acting as
