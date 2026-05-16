@@ -11,6 +11,14 @@
             "import": "./dist/source/index.js",
             "require": "./dist/source/index.js",
             "default": "./dist/source/index.js"
+        },
+        "./dist/test_helpers": {
+            "types": "./dist/test_helpers/index.d.ts",
+            "default": "./dist/test_helpers/index.js"
+        },
+        "./dist/test-fixtures": {
+            "types": "./dist/test-fixtures/index.d.ts",
+            "default": "./dist/test-fixtures/index.js"
         }
     },
     "scripts": {
