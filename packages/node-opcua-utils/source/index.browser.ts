@@ -7,6 +7,19 @@
  *
  * Excludes `check_file_exists`, which does `import fs from "fs"` at
  * module load. Nothing else in the barrel is Node-only.
+ *
+ * ## Bundler configuration required
+ *
+ * `watchdog.ts` (still exported here) imports `node:events`. Browser
+ * bundlers do not auto-polyfill `node:`-prefixed built-ins; consumers
+ * must alias it to a polyfill package such as `events`. Example
+ * (esbuild):
+ *
+ *   alias: { "node:events": "events" }
+ *
+ * (We deliberately do not declare `events` as a dependency of this
+ * package — Node consumers would pay the install cost for no benefit,
+ * and Node would prefer the npm port over its own built-in.)
  */
 // tslint:disable:no-bitwise
 import { assert } from "node-opcua-assert";
