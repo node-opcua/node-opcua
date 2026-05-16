@@ -30,6 +30,24 @@
  * `node-opcua-client-browser`) extend `ClientTransportBase` from this entry,
  * implement their own `connect()`, and inherit the inherited HEL/ACK,
  * packet-assembly, and lifecycle machinery.
+ *
+ * ## Bundler configuration required
+ *
+ * Several files still re-exported here import `node:events` (e.g.
+ * `tcp_transport.ts`, `message_builder_base.ts`). Browser bundlers do not
+ * auto-polyfill `node:`-prefixed built-ins; consumers must alias them to
+ * polyfill packages. Example (esbuild):
+ *
+ *   alias: {
+ *     "node:events": "events",
+ *     "node:util":   "util",
+ *     "node:buffer": "buffer"
+ *   }
+ *
+ * Transitively, `node-opcua-debug` and `node-opcua-utils` also need these
+ * aliases. We deliberately do not declare the polyfills as dependencies of
+ * the transport package — Node consumers would pay the install cost for no
+ * benefit, and Node would prefer the npm port over its own built-in.
  */
 export * from "./AcknowledgeMessage";
 export * from "./client_transport_base";
