@@ -46,3 +46,4 @@ export * from "./line_file";
 export * from "./match_uri";
 export { hrtime } from "./hrtime";
 export { checkFileExistsAndIsNotEmpty } from "./check_file_exists";
+export { randomBytes } from "./random_bytes";
