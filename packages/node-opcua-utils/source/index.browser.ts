@@ -57,6 +57,7 @@ export { hrtime } from "./hrtime";
 export * from "./line_file";
 export * from "./match_uri";
 export { getObjectClassName } from "./object_classname";
+export { randomBytes } from "./random_bytes.browser";
 export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump";
 export { setDeprecated } from "./set_deprecated";
 export { capitalizeFirstLetter, lowerFirstLetter } from "./string_utils";
