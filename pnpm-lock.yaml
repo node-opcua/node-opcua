@@ -946,6 +946,15 @@ importers:
       node-opcua-assert:
         specifier: 2.164.0
         version: link:../node-opcua-assert
+      node-opcua-client:
+        specifier: 2.172.1
+        version: link:../node-opcua-client
+      node-opcua-common:
+        specifier: 2.172.0
+        version: link:../node-opcua-common
+      node-opcua-crypto:
+        specifier: 5.3.6
+        version: 5.3.6
       node-opcua-debug:
         specifier: 2.172.0
         version: link:../node-opcua-debug
