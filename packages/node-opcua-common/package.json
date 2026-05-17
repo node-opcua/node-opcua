@@ -11,6 +11,18 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "browser": {
+                "types": "./dist/index.browser.d.ts",
+                "default": "./dist/index.browser.js"
+            },
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
     "dependencies": {
         "node-opcua-assert": "2.164.0",
         "node-opcua-crypto": "5.3.6",

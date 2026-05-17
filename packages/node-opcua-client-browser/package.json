@@ -27,7 +27,7 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.164.0",
-        "node-opcua-client": "2.172.0",
+        "node-opcua-client": "2.172.1",
         "node-opcua-common": "2.172.0",
         "node-opcua-crypto": "5.3.6",
         "node-opcua-debug": "2.172.0",

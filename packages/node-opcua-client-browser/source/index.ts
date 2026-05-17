@@ -24,19 +24,26 @@
  *
  * Browser entry point for `node-opcua-client`. Exposes the OPC UA WebSocket
  * transport (`ClientWS_transport`, `browserWsTransportFactory`,
- * `parseWsEndpointUrl`) and a `createBrowserClient()` helper that
- * pre-wires an `OPCUAClient` with browser-appropriate defaults
- * (in-memory credentials, in-memory trust store, WebSocket transport).
- * A later PR adds a prebuilt standalone browser bundle.
+ * `parseWsEndpointUrl`).
  *
  * Target environments: modern evergreen browsers (Chromium, Firefox, WebKit).
  * The transport uses the OPC UA WebSocket mapping per Part 6 §7.5
  * (`opcua+uacp` subprotocol, one UACP chunk per binary frame).
+ *
+ * NOTE: `createBrowserClient` is temporarily NOT re-exported from this
+ * barrel. Its `OPCUAClient` import drags in `node-opcua-client`, which
+ * still transitively pulls Node-only modules (`node:crypto`, `node:fs`,
+ * `node:dns`, `@ster5/global-mutex`, `multicast-dns`, …) at bundle
+ * time. The full plan to make those packages browser-safe lives at
+ * `C:\Users\etien\.claude\plans\run-pnpm-filter-node-opcua-client-browse-vivid-sparkle.md`.
+ * The Node-side helper itself is still built and unit-tested — its 8
+ * mocha cases in `test/unit/test_create_browser_client.ts` import it
+ * directly from `../../dist`. Re-export will be restored in Step 5 of
+ * the plan once Steps 1–4 land.
  */
 
 export * from "./client_ws_transport";
-export * from "./create_browser_client";
 export * as uacp from "./uacp";
-export { WsSocketAdapter, type WebSocketLike } from "./ws_socket_adapter";
+export { type WebSocketLike, WsSocketAdapter } from "./ws_socket_adapter";
 
 export const VERSION = "2.172.0";

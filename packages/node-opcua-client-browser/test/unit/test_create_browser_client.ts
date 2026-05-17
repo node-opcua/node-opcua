@@ -4,7 +4,12 @@ import { OPCUAClient } from "node-opcua-client";
 import { InMemoryCertificateStore } from "node-opcua-common";
 import type { IClientTransportFactory } from "node-opcua-transport";
 
-import { browserWsTransportFactory, createBrowserClient } from "../../dist";
+import { browserWsTransportFactory } from "../../dist";
+// `createBrowserClient` is not re-exported from the package barrel today
+// (the browser bundle would drag in Node-only modules — see plan
+// `run-pnpm-filter-node-opcua-client-browse-vivid-sparkle.md`). The helper
+// itself still works on Node and is exercised here via its deep path.
+import { createBrowserClient } from "../../dist/create_browser_client";
 
 describe("createBrowserClient", () => {
     it("returns a constructed OPCUAClient (no throw)", () => {
