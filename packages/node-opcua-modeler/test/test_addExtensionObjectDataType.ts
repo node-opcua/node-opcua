@@ -307,7 +307,7 @@ describe("addVariableTypeForDataType", function (this: any) {
         const ns = addressSpace.getOwnNamespace();
         setSymbols(ns, []);
 
-        addExtensionObjectDataType(ns, {
+        await addExtensionObjectDataType(ns, {
             browseName: "MyDataType",
             isAbstract: false,
             structureDefinition: {

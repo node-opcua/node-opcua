@@ -232,7 +232,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                         timestampsToReturn: TimestampsToReturn.Both
                     });
                     request1.requestHeader.authenticationToken = session1.authenticationToken as import("node-opcua").NodeId;
-                    should(perform(client2, request1))
+                    await should(perform(client1, request1))
                         .be.rejected()
                         .then((err) => {
                             should.exist(err.response);
