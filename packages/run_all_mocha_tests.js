@@ -19,6 +19,34 @@ Error.stackTraceLimit = 20;
 
 const doDebug = !!process.env.DEBUG;
 
+// Capture unhandled rejections and uncaught exceptions at the runner level
+// so future TCC2-style regressions (tests that schedule async assertions
+// without awaiting them) surface as a clear [FATAL] message with the
+// offending test's name and the rejection stack — instead of a confusing
+// exit code (e.g. 127) and a noisy "Unhandled Rejection" cascade.
+//
+// Exit codes the runner can emit (see the IIFE at the bottom):
+//   0 — all tests passed
+//   1 — one or more tests failed (any count, clamped to 1)
+//   2 — unhandled rejection or uncaught exception during the run
+//  -1 — outer try/catch in the IIFE caught an error
+let fatalError = null;
+let currentTestTitle = "<runner setup>";
+
+process.on("unhandledRejection", (reason) => {
+    if (!fatalError) fatalError = reason;
+    console.error("\n[FATAL] Unhandled Rejection");
+    console.error("[FATAL] during test: " + currentTestTitle);
+    console.error(reason && reason.stack ? reason.stack : reason);
+});
+
+process.on("uncaughtException", (err) => {
+    if (!fatalError) fatalError = err;
+    console.error("\n[FATAL] Uncaught Exception");
+    console.error("[FATAL] during test: " + currentTestTitle);
+    console.error(err && err.stack ? err.stack : err);
+});
+
 async function collect_files(testFiles, testFolder) {
 
     const files = await fs.promises.readdir(testFolder);
@@ -330,8 +358,13 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
     await mocha.loadFilesAsync();
 
     return await new Promise((resolve) => {
-        mocha.run((failures) => {
+        const runner = mocha.run((failures) => {
             resolve(failures);
+        });
+        // Track the currently-running test so the unhandledRejection /
+        // uncaughtException handlers above can name it in their [FATAL] output.
+        runner.on(Mocha.Runner.constants.EVENT_TEST_BEGIN, (test) => {
+            currentTestTitle = test.fullTitle();
         });
     });
     // Run the tests.
@@ -360,7 +393,16 @@ if (require.main === module) {
         try {
             const selectedTests = await extractTestFiles({ page, pageSize, pageCount });
             const failures = await runtests({ selectedTests, reporter, skipped, filterOpts });
-            process.exit(failures);
+            if (fatalError) {
+                console.error("[FATAL] Exiting with code 2 due to unhandled error during run");
+                process.exit(2);
+            }
+            // Clamp to 0/1 so CI gets a clean signal regardless of how many
+            // tests failed. process.exit(N) silently truncates to 8 bits on
+            // Unix, so e.g. process.exit(383) yields exit code 127 — the
+            // same as one shell convention for "command not found", which
+            // would be misleading.
+            process.exit(failures > 0 ? 1 : 0);
         } catch (err) {
             console.log("---------------------------------- mocha run error");
             console.log(err);
