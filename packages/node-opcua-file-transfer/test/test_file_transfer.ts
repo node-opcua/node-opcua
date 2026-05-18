@@ -4,7 +4,7 @@ import fsOrigin from "fs";
 import os from "os";
 import path from "path";
 import { promisify } from "util";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node-opcua-utils";
 import sinon from "sinon";
 
 import { fs as fsMemory } from "memfs";

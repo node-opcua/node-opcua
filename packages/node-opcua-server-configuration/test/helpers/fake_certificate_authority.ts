@@ -1,8 +1,8 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { CertificateManager } from "node-opcua-certificate-manager";
+import { randomBytes } from "node-opcua-utils";
 import {
     type Certificate,
     type CertificateRevocationList,
@@ -26,7 +26,7 @@ let sharedCAInitPromise: Promise<void> | null = null;
 
 export async function getSharedCertificateAuthority(): Promise<CertificateAuthority> {
     if (!sharedCA) {
-        const caFolder = path.join(os.tmpdir(), `node-opcua2-shared-ca-${crypto.randomBytes(4).toString("hex")}`);
+        const caFolder = path.join(os.tmpdir(), `node-opcua2-shared-ca-${randomBytes(4).toString("hex")}`);
         await fs.promises.rm(caFolder, { recursive: true, force: true }).catch(() => { });
         sharedCA = new CertificateAuthority({
             keySize: 2048,
@@ -72,7 +72,7 @@ export async function produceCertificateAndPrivateKey(
     // Use a unique directory per invocation so CertificateManager
     // always generates a fresh key pair rather than reusing an
     // existing private key from a previous test.
-    const uniqueId = crypto.randomBytes(8).toString("hex");
+    const uniqueId = randomBytes(8).toString("hex");
     const certificateManager = new CertificateManager({
         keySize: 2048,
         location: path.join(subfolder, `tmpPKI_${uniqueId}`)
@@ -130,7 +130,7 @@ async function _produceCertificate(
     const certificateAuthority = await getSharedCertificateAuthority();
 
     // --- now write the certificate signing request to the disc
-    const uniqueId = crypto.randomBytes(8).toString("hex");
+    const uniqueId = randomBytes(8).toString("hex");
     const csrFilename = `signing_request_${uniqueId}.csr`;
     const csrFile = path.join(certificateAuthority.rootDir, csrFilename);
 
@@ -274,7 +274,7 @@ export async function produceNotYetValidCertificate(subfolder: string, certifica
 export async function produceSignedCertificateChain(
     subfolder: string
 ): Promise<Certificate[]> {
-    const uniqueId = crypto.randomBytes(8).toString("hex");
+    const uniqueId = randomBytes(8).toString("hex");
     const certificateManager = new CertificateManager({
         keySize: 2048,
         location: path.join(subfolder, `tmpPKI_signed_${uniqueId}`)

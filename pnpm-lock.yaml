@@ -699,6 +699,9 @@ importers:
       node-opcua-debug:
         specifier: 2.172.0
         version: link:../node-opcua-debug
+      node-opcua-utils:
+        specifier: 2.172.0
+        version: link:../node-opcua-utils
 
   packages/node-opcua-benchmarker:
     dependencies:
@@ -1435,6 +1438,9 @@ importers:
       node-opcua-service-session:
         specifier: 2.172.0
         version: link:../node-opcua-service-session
+      node-opcua-utils:
+        specifier: 2.172.0
+        version: link:../node-opcua-utils
       sterfive-bonjour-service:
         specifier: 1.1.4
         version: 1.1.4
@@ -1574,6 +1580,9 @@ importers:
       node-opcua-nodesets:
         specifier: 2.163.1
         version: link:../node-opcua-nodesets
+      node-opcua-utils:
+        specifier: 2.172.0
+        version: link:../node-opcua-utils
 
   packages/node-opcua-generator:
     dependencies:
@@ -3116,6 +3125,9 @@ importers:
       node-opcua-types:
         specifier: 2.172.0
         version: link:../node-opcua-types
+      node-opcua-utils:
+        specifier: 2.172.0
+        version: link:../node-opcua-utils
       node-opcua-variant:
         specifier: 2.172.0
         version: link:../node-opcua-variant

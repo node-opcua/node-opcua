@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "node-opcua-utils";
 import fs from "node:fs";
 import os, { hostname } from "node:os";
 import path from "node:path";

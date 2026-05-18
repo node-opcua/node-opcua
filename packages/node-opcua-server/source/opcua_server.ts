@@ -2,7 +2,6 @@
 /**
  * @module node-opcua-server
  */
-import { randomBytes } from "node:crypto";
 import { callbackify, types } from "node:util";
 
 import chalk from "chalk";
@@ -144,7 +143,7 @@ import {
     type UserIdentityToken,
     type UserTokenPolicy
 } from "node-opcua-types";
-import { isNullOrUndefined, matchUri } from "node-opcua-utils";
+import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import { withCallback } from "thenify-ex";
 

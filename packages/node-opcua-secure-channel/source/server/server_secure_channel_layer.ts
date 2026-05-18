@@ -3,7 +3,7 @@
  * @module node-opcua-secure-channel
  */
 
-import { createPublicKey, randomBytes } from "node:crypto";
+import { createPublicKey } from "node:crypto";
 import { EventEmitter } from "node:events";
 import type { Socket } from "node:net";
 import chalk from "chalk";
@@ -42,7 +42,7 @@ import {
     ServerTCP_transport,
     StatusCodes2
 } from "node-opcua-transport";
-import { get_clock_tick } from "node-opcua-utils";
+import { get_clock_tick, randomBytes } from "node-opcua-utils";
 import { getThumbprint, type ICertificateKeyPairProvider, type Request, type Response } from "../common";
 import { invalidPrivateKey, MessageBuilder, type ObjectFactory } from "../message_builder";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";

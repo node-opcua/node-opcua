@@ -22,7 +22,8 @@
     },
     "devDependencies": {
         "node-opcua-benchmarker": "2.172.0",
-        "node-opcua-debug": "2.172.0"
+        "node-opcua-debug": "2.172.0",
+        "node-opcua-utils": "2.172.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

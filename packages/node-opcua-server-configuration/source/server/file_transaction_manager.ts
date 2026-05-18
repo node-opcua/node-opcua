@@ -2,11 +2,11 @@
  * @module node-opcua-server-configuration-server
  */
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { randomBytes } from "node-opcua-utils";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -81,7 +81,7 @@ export class FileTransactionManager {
         // ensure tmpdir exists
         const tmpDir = await this.getTmpDir();
 
-        const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}.tmp`;
+        const uniqueFileName = `${randomBytes(16).toString("hex")}.tmp`;
         const tempFilePath = path.join(tmpDir, uniqueFileName);
 
         if (encoding) {
@@ -109,7 +109,7 @@ export class FileTransactionManager {
             }
             // Create a backup before deleting so rollback can restore it
             const tmpDir = await this.getTmpDir();
-            const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}_backup.tmp`;
+            const uniqueFileName = `${randomBytes(16).toString("hex")}_backup.tmp`;
             const backupPath = path.join(tmpDir, uniqueFileName);
             this.#backupFiles.set(filePath, backupPath);
 
@@ -147,7 +147,7 @@ export class FileTransactionManager {
      */
     async #moveFileWithBackupTracked(source: string, dest: string): Promise<void> {
         const tmpDir = await this.getTmpDir();
-        const uniqueFileName = `${crypto.randomBytes(16).toString("hex")}_backup.tmp`;
+        const uniqueFileName = `${randomBytes(16).toString("hex")}_backup.tmp`;
         const backupPath = path.join(tmpDir, uniqueFileName);
 
         // Track the backup before creating it

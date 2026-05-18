@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { randomBytes } from "node-opcua-utils";
 import { _getNonceStore, _setNonceCacheParameters, isEmptyNonce, nonceAlreadyBeenUsed } from "../source/server/nonce_cache";
 
 describe("NonceCache – replay detection with TTL eviction", () => {
@@ -11,12 +11,12 @@ describe("NonceCache – replay detection with TTL eviction", () => {
     // -- basic behaviour -----------------------------------------------------
 
     it("should return false for a never-seen nonce", () => {
-        const nonce = crypto.randomBytes(32);
+        const nonce = randomBytes(32);
         nonceAlreadyBeenUsed(nonce).should.equal(false);
     });
 
     it("should return true when the same nonce is submitted twice", () => {
-        const nonce = crypto.randomBytes(32);
+        const nonce = randomBytes(32);
         nonceAlreadyBeenUsed(nonce).should.equal(false);
         nonceAlreadyBeenUsed(nonce).should.equal(true);
     });
@@ -46,7 +46,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         store.size.should.equal(0, "store should start empty");
 
         for (let i = 0; i < N; i++) {
-            nonceAlreadyBeenUsed(crypto.randomBytes(32));
+            nonceAlreadyBeenUsed(randomBytes(32));
         }
 
         store.size.should.equal(N, `after ${N} unique nonces the store should contain exactly ${N} entries`);
@@ -58,7 +58,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         }
 
         // Insert one more nonce – this should trigger eviction of old entries
-        nonceAlreadyBeenUsed(crypto.randomBytes(32));
+        nonceAlreadyBeenUsed(randomBytes(32));
 
         // Old entries should have been evicted, only the fresh one remains
         store.size.should.equal(1, "expired nonce entries should be evicted");
@@ -68,7 +68,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         _setNonceCacheParameters(1000, undefined); // 1 second TTL for test
         const store = _getNonceStore();
 
-        const nonce = crypto.randomBytes(32);
+        const nonce = randomBytes(32);
         nonceAlreadyBeenUsed(nonce).should.equal(false, "first use accepted");
         nonceAlreadyBeenUsed(nonce).should.equal(true, "replay within TTL rejected");
 
@@ -89,7 +89,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         const store = _getNonceStore();
 
         for (let i = 0; i < maxSize + 50; i++) {
-            nonceAlreadyBeenUsed(crypto.randomBytes(32));
+            nonceAlreadyBeenUsed(randomBytes(32));
         }
 
         store.size.should.be.belowOrEqual(maxSize, `store size should never exceed maxSize (${maxSize})`);
@@ -104,7 +104,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
 
         // Insert maxSize + 2 nonces
         for (let i = 0; i < maxSize + 2; i++) {
-            const n = crypto.randomBytes(32);
+            const n = randomBytes(32);
             nonces.push(n);
             nonceAlreadyBeenUsed(n);
         }
@@ -127,7 +127,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
     it("replaying a nonce within the TTL window should still be detected", () => {
         _setNonceCacheParameters(60_000, undefined); // 60s TTL
 
-        const nonce = crypto.randomBytes(32);
+        const nonce = randomBytes(32);
         nonceAlreadyBeenUsed(nonce).should.equal(false, "first use");
         nonceAlreadyBeenUsed(nonce).should.equal(true, "replay within TTL");
     });
@@ -141,12 +141,12 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         const store = _getNonceStore();
 
         // Insert one nonce first
-        const firstNonce = crypto.randomBytes(32);
+        const firstNonce = randomBytes(32);
         nonceAlreadyBeenUsed(firstNonce).should.equal(false);
 
         // Insert many more nonces to push out older ones
         for (let i = 0; i < maxSize; i++) {
-            nonceAlreadyBeenUsed(crypto.randomBytes(32));
+            nonceAlreadyBeenUsed(randomBytes(32));
         }
 
         store.size.should.be.belowOrEqual(maxSize, "cache must remain bounded");
@@ -162,7 +162,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         const store = _getNonceStore();
 
         for (let i = 0; i < 10; i++) {
-            nonceAlreadyBeenUsed(crypto.randomBytes(32));
+            nonceAlreadyBeenUsed(randomBytes(32));
         }
         store.size.should.equal(10);
 

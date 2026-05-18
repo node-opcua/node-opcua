@@ -1,7 +1,7 @@
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
 
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "node-opcua-utils";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

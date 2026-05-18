@@ -3,7 +3,6 @@
  */
 // tslint:disable:no-console
 
-import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import {
     type AddressSpace,
@@ -42,7 +41,7 @@ import type {
     EndpointDescription,
     UserIdentityToken
 } from "node-opcua-types";
-import { type ISubscriber, type IWatchdogData2, lowerFirstLetter, WatchDog } from "node-opcua-utils";
+import { type ISubscriber, type IWatchdogData2, lowerFirstLetter, randomBytes, WatchDog } from "node-opcua-utils";
 import type { ServerEngine } from "./server_engine";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { type Subscription, SubscriptionState } from "./server_subscription";

@@ -36,6 +36,7 @@
         "node-opcua-service-translate-browse-path": "2.172.0",
         "node-opcua-status-code": "2.172.0",
         "node-opcua-types": "2.172.0",
+        "node-opcua-utils": "2.172.0",
         "node-opcua-variant": "2.172.0"
     },
     "devDependencies": {

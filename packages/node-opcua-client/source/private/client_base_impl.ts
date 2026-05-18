@@ -1519,7 +1519,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         const c = chain[i];
                         const thumbprint = makeSHA1Thumbprint(c).toString("hex");
                         try {
-                            const { exploreCertificate } = require("node-opcua-crypto");
+                            const { exploreCertificate } = require("node-opcua-crypto/web");
                             const info = exploreCertificate(c);
                             const tbs = info.tbsCertificate;
                             const cn = tbs.subject?.commonName ?? "unknown";
