@@ -40,6 +40,7 @@
         "node-opcua-service-filter": "2.172.0",
         "node-opcua-service-secure-channel": "2.172.0",
         "node-opcua-service-session": "2.172.0",
+        "node-opcua-utils": "2.172.0",
         "sterfive-bonjour-service": "1.1.4",
         "yargs": "15.4.1"
     },

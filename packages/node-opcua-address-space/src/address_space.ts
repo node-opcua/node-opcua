@@ -2,7 +2,6 @@
  * @module node-opcua-address-space
  */
 
-import { randomBytes } from "node:crypto";
 import chalk from "chalk";
 import type {
     AddReferenceOpts,
@@ -52,7 +51,7 @@ import type {
     RelativePathElement
 } from "node-opcua-types";
 import { BrowsePath, BrowsePathResult } from "node-opcua-types";
-import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
+import { isNullOrUndefined, lowerFirstLetter, randomBytes } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions, type VariantT } from "node-opcua-variant";
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";

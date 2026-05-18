@@ -2,7 +2,7 @@
 /**
  * @module node-opcua-secure-channel
  */
-import { createPublicKey, randomBytes } from "node:crypto";
+import { createPublicKey } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
 
@@ -40,7 +40,7 @@ import {
     type IClientTransportFactory,
     type TransportSettingsOptions
 } from "node-opcua-transport";
-import { get_clock_tick, timestamp } from "node-opcua-utils";
+import { get_clock_tick, randomBytes, timestamp } from "node-opcua-utils";
 import {
     extractFirstCertificateInChain,
     getThumbprint,

@@ -1,5 +1,5 @@
 import "should";
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "node-opcua-utils";
 import {
     CreateSessionRequest,
     get_empty_nodeset_filename,

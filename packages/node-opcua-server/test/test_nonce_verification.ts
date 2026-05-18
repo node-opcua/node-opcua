@@ -1,5 +1,5 @@
 import "should";
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "node-opcua-utils";
 
 import { extractPasswordFromDecryptedBlob } from "../dist/extract_password_from_blob";
 

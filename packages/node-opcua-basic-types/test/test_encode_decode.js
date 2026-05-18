@@ -1,5 +1,5 @@
 "use strict";
-const { randomBytes } = require("crypto");
+const { randomBytes } = require("node-opcua-utils");
 const should = require("should");
 
 const { hexDump } = require("node-opcua-debug");

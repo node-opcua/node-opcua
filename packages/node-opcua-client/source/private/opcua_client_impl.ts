@@ -2,7 +2,7 @@
  * @module node-opcua-client-private
  */
 
-import { createPublicKey, randomBytes } from "node:crypto";
+import { createPublicKey } from "node:crypto";
 import { callbackify } from "node:util";
 import chalk from "chalk";
 
@@ -47,7 +47,7 @@ import {
 } from "node-opcua-service-session";
 import { type Callback, type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
-import { isNullOrUndefined, matchUri } from "node-opcua-utils";
+import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
 import type { NodeId } from "node-opcua-nodeid";
 import type { OPCUAClientBaseEvents } from "../client_base";
 import type { ClientSession } from "../client_session";
