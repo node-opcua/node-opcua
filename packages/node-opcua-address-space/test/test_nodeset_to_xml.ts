@@ -1007,3 +1007,88 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance
     });
 });
+
+describe("toNodeset2XML - cross-namespace references with types and instances", function (this: any) {
+    this.timeout(Math.max(40000, this.timeout()));
+
+    let addressSpace: AddressSpace;
+    let namespace: Namespace;
+
+    beforeEach(async () => {
+        addressSpace = AddressSpace.create();
+
+        const xml_files = [nodesets.standard, nodesets.di];
+        fs.existsSync(xml_files[0]).should.be.eql(true);
+        fs.existsSync(xml_files[1]).should.be.eql(true);
+
+        addressSpace.registerNamespace("http://my-namespace/UA/test/");
+        addressSpace.getNamespaceArray().length.should.eql(2);
+
+        await generateAddressSpace(addressSpace, xml_files);
+
+        namespace = addressSpace.getOwnNamespace();
+    });
+    afterEach(async () => {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
+    });
+
+    it("NSXML-PRIO-1 should preserve HasInterface and Organizes refs when namespace has both types and instances", () => {
+        // Step 1: Add an ObjectType to our namespace — this makes nbTypes > 0,
+        // which causes our namespace to be sorted BEFORE the DI namespace
+        // in the priority table.
+        const myObjectType = namespace.addObjectType({
+            browseName: "MyCustomObjectType",
+            subtypeOf: "BaseObjectType",
+        });
+
+        // Step 2: Find the DI interface and folder
+        const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
+        should.exist(diNamespace);
+
+        const iVendorNameplateType = diNamespace.findObjectType("IVendorNameplateType");
+        should.exist(iVendorNameplateType);
+
+        const deviceSet = diNamespace.findNode(`ns=${diNamespace.index};i=5001`);
+        should.exist(deviceSet);
+
+        // Step 3: Create an instance that is:
+        //   - organized by di:DeviceSet  (Organizes inverse ref to DI namespace)
+        //   - implements di:IVendorNameplateType (HasInterface forward ref to DI namespace)
+        const myInstance = namespace.addObject({
+            browseName: "MyMachine",
+            organizedBy: deviceSet,
+        });
+
+        myInstance.addReference({
+            referenceType: "HasInterface",
+            nodeId: iVendorNameplateType!.nodeId,
+        });
+
+        // Step 4: Generate XML
+        const xml = namespace.toNodeset2XML();
+
+        // Step 5: Verify that the DI namespace is included as a dependency
+        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
+            "DI namespace URI must be in NamespaceUris");
+
+        // Step 6: Verify HasInterface reference is present in the XML
+        xml.should.match(/HasInterface/,
+            "HasInterface reference must be serialized");
+
+        // Step 7: Verify Organizes inverse reference is present in the XML
+        xml.should.match(/Organizes/,
+            "Organizes inverse reference must be serialized");
+
+        // Extract the MyMachine section and verify both references are on it
+        const machineSection = xml.substring(
+            xml.indexOf("MyMachine {{{{"),
+            xml.indexOf("MyMachine }}}}")
+        );
+        machineSection.should.match(/HasInterface/,
+            "MyMachine must have HasInterface reference");
+        machineSection.should.match(/Organizes.*IsForward="false"/,
+            "MyMachine must have Organizes inverse reference to DeviceSet");
+    });
+});
