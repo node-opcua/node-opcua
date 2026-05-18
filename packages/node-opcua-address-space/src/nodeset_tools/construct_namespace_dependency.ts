@@ -209,12 +209,13 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
         }
     };
 
+    const addressSpace = namespace.addressSpace;
+    const nonHierarchicalReferencesType = addressSpace.findReferenceType("NonHierarchicalReferences");
+
     //const maxIndex = Math.max(...requiredNamespaceIndexes);
     for (const node of namespace_.nodeIterator()) {
         const references = (<BaseNodeImpl>node).allReferences();
         for (const reference of references) {
-            // if (reference.isForward) continue;
-            // only look at backward reference
             // check referenceId
             const namespaceIndexOfReferenceType = getReferenceType(reference)?.nodeId.namespace;
             if (namespaceIndexOfReferenceType !== 0 && namespaceIndexOfReferenceType !== namespace.index) {
@@ -228,6 +229,18 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
                 const refPriority = priorityList[namespaceIndexOfTargetNode];
                 if (refPriority <= thisPriority) {
                     consider(namespaceIndexOfTargetNode);
+                } else {
+                    // For forward NonHierarchicalReferences (e.g. HasInterface),
+                    // always include the target namespace as a dependency
+                    // regardless of priority, since the current node owns
+                    // this relationship.
+                    const referenceType = getReferenceType(reference);
+                    if (reference.isForward
+                        && referenceType
+                        && nonHierarchicalReferencesType
+                        && referenceType.isSubtypeOf(nonHierarchicalReferencesType)) {
+                        consider(namespaceIndexOfTargetNode);
+                    }
                 }
             }
         }

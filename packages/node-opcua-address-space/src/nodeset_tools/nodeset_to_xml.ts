@@ -133,11 +133,6 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     function referenceToKeep(reference: UAReference): boolean {
         const referenceType = (reference as ReferenceImpl)._referenceType!;
         const targetedNamespaceIndex = reference.nodeId.namespace;
-        if (_hasHigherPriorityThan(xw, targetedNamespaceIndex, node.nodeId.namespace)) {
-            // this reference has nothing to do here ! drop it
-            // because the target namespace is higher in the hierarchy
-            return false;
-        }
 
         // get the direct backward reference to a external namespace
         if (referenceType.isSubtypeOf(aggregateReferenceType) && !reference.isForward) {
@@ -152,14 +147,19 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
         }
         // only keep
         if (referenceType.isSubtypeOf(aggregateReferenceType) && reference.isForward) {
+            if (_hasHigherPriorityThan(xw, targetedNamespaceIndex, node.nodeId.namespace)) {
+                return false;
+            }
             return true;
         } else if (referenceType.isSubtypeOf(hasSubtypeReferenceType) && !reference.isForward) {
             return true;
         } else if (referenceType.isSubtypeOf(hasTypeDefinitionReferenceType) && reference.isForward) {
             return true;
         } else if (referenceType.isSubtypeOf(nonHierarchicalReferencesType) && reference.isForward) {
+            // e.g. HasInterface — always keep, the current node owns this reference
             return true;
         } else if (referenceType.isSubtypeOf(organizesReferencesType) && !reference.isForward) {
+            // Organizes inverse — the current node is organized by an external folder
             return true;
         } else if (connectsToReferenceType && referenceType.isSubtypeOf(connectsToReferenceType) && reference.isForward) {
             return true;
