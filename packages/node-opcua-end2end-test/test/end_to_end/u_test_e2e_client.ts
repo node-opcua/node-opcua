@@ -28,15 +28,23 @@ export function t(test: any) {
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
 
-            async function test() {
-                try {
-                    await client.connect("invalid-proto://test-host");
-                } catch (err) {
-                    console.log((err as Error).message);
-                    throw err;
-                }
+            // Match TCC1's pattern: await the rejection ourselves and assert
+            // on the stable inner cause (the transport-layer error from
+            // `client_tcp_transport.ts`). Previously this test used
+            // `should.be.rejectedWith(...)` without `await`, which let mocha
+            // see the test as passed before the assertion's promise
+            // rejected — surfacing later as an unhandled rejection. The
+            // expected message was also stale; `client_base_impl.ts` wraps
+            // the underlying error as "The connection MAY have been rejected
+            // by server, Err = (…)" but the inner cause text is stable.
+            let _err: Error | null = null;
+            try {
+                await client.connect("invalid-proto://test-host");
+            } catch (err) {
+                _err = err as Error;
             }
-            test().should.be.rejectedWith(/The connection has been rejected/);
+            should.exist(_err, "expecting an error here");
+            _err?.message.should.match(/this transport protocol is not supported/);
             closeSpy.callCount.should.eql(0);
         });
 
