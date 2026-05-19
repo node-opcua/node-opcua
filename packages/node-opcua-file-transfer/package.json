@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-file-transfer",
-    "version": "2.173.0",
+    "version": "2.173.1",
     "description": "pure nodejs OPCUA SDK - module file-transfer",
     "scripts": {
         "build": "tsc -b",
@@ -16,7 +16,7 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.173.0",
+        "node-opcua-address-space": "2.173.1",
         "node-opcua-address-space-base": "2.173.0",
         "node-opcua-assert": "2.164.0",
         "node-opcua-basic-types": "2.173.0",
@@ -35,8 +35,8 @@
     },
     "devDependencies": {
         "memfs": "^4.57.2",
-        "node-opcua": "2.173.0",
-        "node-opcua-client": "2.173.0",
+        "node-opcua": "2.173.1",
+        "node-opcua-client": "2.173.1",
         "node-opcua-leak-detector": "2.172.0",
         "node-opcua-nodesets": "2.163.1",
         "node-opcua-utils": "2.173.0"

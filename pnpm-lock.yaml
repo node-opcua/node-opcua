@@ -199,13 +199,13 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-aggregates:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-aggregates
       node-opcua-assert:
         specifier: 2.164.0
@@ -220,7 +220,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-client-proxy:
         specifier: 2.173.0
@@ -271,10 +271,10 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-server-discovery:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server-discovery
       node-opcua-service-browse:
         specifier: 2.173.0
@@ -337,7 +337,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-variant
       node-opcua-vendor-diagnostic:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-vendor-diagnostic
       semver:
         specifier: ^7.8.0
@@ -530,7 +530,7 @@ importers:
   packages/node-opcua-address-space-for-conformance-testing:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.164.0
@@ -566,7 +566,7 @@ importers:
   packages/node-opcua-aggregates:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.164.0
@@ -587,7 +587,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-numeric-range
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-service-history:
         specifier: 2.173.0
@@ -929,7 +929,7 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-binary-stream:
         specifier: 2.173.0
@@ -950,7 +950,7 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-assert
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-common:
         specifier: 2.173.0
@@ -1008,7 +1008,7 @@ importers:
         specifier: 2.164.0
         version: link:../node-opcua-assert
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-data-model:
         specifier: 2.173.0
@@ -1033,7 +1033,7 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-constants:
         specifier: 2.157.0
@@ -1167,7 +1167,7 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.173.0
@@ -1358,25 +1358,25 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-aggregates:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-aggregates
       node-opcua-assert:
         specifier: 2.164.0
         version: link:../node-opcua-assert
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-client-crawler:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client-crawler
       node-opcua-client-proxy:
         specifier: 2.173.0
@@ -1421,10 +1421,10 @@ importers:
         specifier: 6.17.0
         version: 6.17.0
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-server-discovery:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server-discovery
       node-opcua-service-browse:
         specifier: 2.173.0
@@ -1517,7 +1517,7 @@ importers:
   packages/node-opcua-file-transfer:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.173.0
@@ -1569,10 +1569,10 @@ importers:
         specifier: ^4.57.2
         version: 4.57.2(tslib@2.8.1)
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-leak-detector:
         specifier: 2.172.0
@@ -1676,7 +1676,7 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua
       node-opcua-debug:
         specifier: 2.172.0
@@ -1695,7 +1695,7 @@ importers:
         version: link:../node-opcua-pseudo-session
     devDependencies:
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.164.0
@@ -1716,7 +1716,7 @@ importers:
         specifier: 6.2.1
         version: 6.2.1
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.164.0
@@ -2724,13 +2724,13 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-assert:
         specifier: 2.164.0
@@ -2748,13 +2748,13 @@ importers:
         specifier: 6.17.0
         version: 6.17.0
       node-opcua-server-configuration:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server-configuration
       node-opcua-utils:
         specifier: 2.173.0
         version: link:../node-opcua-utils
       node-opcua-vendor-diagnostic:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-vendor-diagnostic
       sprintf-js:
         specifier: ^1.1.3
@@ -2906,7 +2906,7 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.173.0
@@ -2924,7 +2924,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-common:
         specifier: 2.173.0
@@ -3063,7 +3063,7 @@ importers:
         specifier: ^4.57.2
         version: 4.57.2(tslib@2.8.1)
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.173.0
@@ -3096,7 +3096,7 @@ importers:
         specifier: 2.172.0
         version: link:../node-opcua-debug
       node-opcua-file-transfer:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-file-transfer
       node-opcua-hostname:
         specifier: 2.167.0
@@ -3114,7 +3114,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-service-translate-browse-path:
         specifier: 2.173.0
@@ -3136,7 +3136,7 @@ importers:
         specifier: 3.0.3
         version: 3.0.3
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-data-value:
         specifier: 2.173.0
@@ -3178,7 +3178,7 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-service-discovery:
         specifier: 2.173.0
@@ -3684,7 +3684,7 @@ importers:
         specifier: 0.0.9
         version: 0.0.9
       node-opcua-address-space:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.164.0
@@ -3696,7 +3696,7 @@ importers:
         specifier: 2.172.0
         version: link:../node-opcua-debug
       node-opcua-server:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-server
       node-opcua-status-code:
         specifier: 2.173.0
@@ -3730,16 +3730,16 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua
       node-opcua-client:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-client
       node-opcua-debug:
         specifier: 2.172.0
         version: link:../node-opcua-debug
       node-opcua-modeler:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../node-opcua-modeler
       readline:
         specifier: '*'
@@ -3751,7 +3751,7 @@ importers:
   packages_extra/node-opcua-example:
     dependencies:
       node-opcua:
-        specifier: 2.173.0
+        specifier: 2.173.1
         version: link:../../packages/node-opcua
 
   tools/fix-tsconfigs:

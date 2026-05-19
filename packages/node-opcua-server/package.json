@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server",
-    "version": "2.173.0",
+    "version": "2.173.1",
     "description": "pure nodejs OPCUA SDK - module server",
     "scripts": {
         "build": "tsc -b",
@@ -18,13 +18,13 @@
         "dequeue": "^1.0.5",
         "lodash.partition": "^4.6.0",
         "lodash.sortby": "^4.7.0",
-        "node-opcua-address-space": "2.173.0",
+        "node-opcua-address-space": "2.173.1",
         "node-opcua-address-space-base": "2.173.0",
         "node-opcua-assert": "2.164.0",
         "node-opcua-basic-types": "2.173.0",
         "node-opcua-binary-stream": "2.173.0",
         "node-opcua-certificate-manager": "2.173.0",
-        "node-opcua-client": "2.173.0",
+        "node-opcua-client": "2.173.1",
         "node-opcua-common": "2.173.0",
         "node-opcua-constants": "2.157.0",
         "node-opcua-crypto": "5.3.6",
