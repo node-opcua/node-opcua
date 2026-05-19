@@ -133,3 +133,59 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Playwright end-to-end tests for `node-opcua-client-browser`.
+  # Runs the package's specs in a real headless Chromium so the browser-side
+  # bundle is exercised end-to-end. Kept in a separate job (rather than
+  # folded into `build`) so:
+  #   - a Playwright failure surfaces independently from Mocha unit tests,
+  #   - the matrix stays small (single Node version, Chromium only),
+  #   - the Chromium binary cache is scoped to this job's cache key.
+  e2e_browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      - run: pnpm run build:all
+      - run: pnpm run pretest
+      # Cache the Chromium binary that `playwright install` downloads (~150 MB).
+      # Key includes the resolved Playwright version so a Playwright bump
+      # automatically invalidates the cache.
+      - name: Read Playwright version
+        id: playwright-version
+        run: |
+          version=$(node -p "require('./packages/node-opcua-client-browser/node_modules/@playwright/test/package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+      - name: Install Playwright Chromium (with system deps)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter node-opcua-client-browser exec playwright install --with-deps chromium
+      - name: Install Playwright system deps only (cached binary)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter node-opcua-client-browser exec playwright install-deps chromium
+      - name: Run Playwright E2E
+        run: pnpm --filter node-opcua-client-browser run test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/node-opcua-client-browser/playwright-report/
+          retention-days: 7
