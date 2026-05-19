@@ -1034,28 +1034,129 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         }
     });
 
-    it("NSXML-PRIO-1 should preserve HasInterface and Organizes refs when namespace has both types and instances", () => {
-        // Step 1: Add an ObjectType to our namespace — this makes nbTypes > 0,
-        // which causes our namespace to be sorted BEFORE the DI namespace
-        // in the priority table.
-        const myObjectType = namespace.addObjectType({
-            browseName: "MyCustomObjectType",
-            subtypeOf: "BaseObjectType",
+    it("NSXML-PRIO-1 should include DI namespace as dependency when instance has HasInterface ref to DI", () => {
+        // Adding a DataType makes nbTypes > 0 in our namespace, which
+        // causes our namespace to be sorted BEFORE the DI namespace in the
+        // priority table. This triggers the priority filtering bug.
+        namespace.createDataType({
+            browseName: "MyCustomDataType",
+            subtypeOf: "Structure",
+            isAbstract: false,
         });
 
-        // Step 2: Find the DI interface and folder
         const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
         should.exist(diNamespace);
 
         const iVendorNameplateType = diNamespace.findObjectType("IVendorNameplateType");
         should.exist(iVendorNameplateType);
 
+        // Create an instance with a HasInterface forward reference to DI namespace.
+        // HasInterface is a NonHierarchicalReference — without the fix, the DI
+        // namespace would be dropped from the dependency list because its priority
+        // is higher than ours.
+        const myInstance = namespace.addObject({
+            browseName: "MyMachine",
+            organizedBy: addressSpace.rootFolder.objects,
+        });
+
+        myInstance.addReference({
+            referenceType: "HasInterface",
+            nodeId: iVendorNameplateType!.nodeId,
+        });
+
+        const xml = namespace.toNodeset2XML();
+
+        // DI namespace must appear in NamespaceUris
+        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
+            "DI namespace URI must be in NamespaceUris");
+
+        // HasInterface reference must be serialized with a valid namespace-qualified NodeId
+        xml.should.match(/HasInterface/,
+            "HasInterface reference must be serialized");
+
+        // The HasInterface target must NOT be ns=0 (would mean DI was dropped)
+        const machineSection = xml.substring(
+            xml.indexOf("MyMachine {{{{"),
+            xml.indexOf("MyMachine }}}}")
+        );
+        machineSection.should.match(/HasInterface/,
+            "MyMachine must have HasInterface reference");
+        // Verify the target uses ns=2 (DI), not i= (bare, which would imply ns=0)
+        machineSection.should.match(/HasInterface.*>ns=\d+;i=\d+</,
+            "HasInterface target must have an explicit namespace prefix");
+    });
+
+    it("NSXML-PRIO-2 should include DI namespace as dependency when instance is organizedBy a DI folder", () => {
+        // Adding a DataType makes nbTypes > 0 => our namespace gets
+        // higher priority than DI, causing the priority inversion
+        // that exposes the bug.
+        namespace.createDataType({
+            browseName: "MyCustomDataType",
+            subtypeOf: "Structure",
+            isAbstract: false,
+        });
+
+        const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
+        should.exist(diNamespace);
+
         const deviceSet = diNamespace.findNode(`ns=${diNamespace.index};i=5001`);
         should.exist(deviceSet);
+        if (!deviceSet) throw new Error("DeviceSet not found");
 
-        // Step 3: Create an instance that is:
-        //   - organized by di:DeviceSet  (Organizes inverse ref to DI namespace)
-        //   - implements di:IVendorNameplateType (HasInterface forward ref to DI namespace)
+        // Create an instance organized by di:DeviceSet.
+        // This creates an inverse Organizes reference (HierarchicalReference)
+        // pointing to the DI namespace. Without the fix, the DI namespace
+        // would be excluded and the reference serialized as bare "i=5001"
+        // (namespace 0), which doesn't exist.
+        const myInstance = namespace.addObject({
+            browseName: "MyMachine",
+            organizedBy: deviceSet,
+        });
+
+        const xml = namespace.toNodeset2XML();
+
+        // DI namespace must appear in NamespaceUris
+        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
+            "DI namespace URI must be in NamespaceUris");
+
+        // Organizes inverse reference must be serialized
+        xml.should.match(/Organizes/,
+            "Organizes reference must be serialized");
+
+        // The Organizes target must reference the DI namespace (ns=2),
+        // NOT bare i=5001 which would mean namespace 0
+        const machineSection = xml.substring(
+            xml.indexOf("MyMachine {{{{"),
+            xml.indexOf("MyMachine }}}}")
+        );
+        machineSection.should.match(/Organizes.*IsForward="false".*>ns=\d+;i=5001</,
+            "Organizes inverse reference must use namespace-qualified NodeId for DeviceSet");
+    });
+
+    it("NSXML-PRIO-3 should produce XML that can be reloaded when instance is organizedBy a cross-namespace folder", async () => {
+        // This is the end-to-end roundtrip test: export to XML then reload.
+        // Before the fix, reloading would fail with "Cannot find node ns=0;i=5001"
+        // because the DI namespace was not included as a dependency.
+
+        namespace.createDataType({
+            browseName: "MyCustomDataType",
+            subtypeOf: "Structure",
+            isAbstract: false,
+        });
+
+        const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
+        should.exist(diNamespace);
+
+        const deviceSet = diNamespace.findNode(`ns=${diNamespace.index};i=5001`);
+        should.exist(deviceSet);
+        if (!deviceSet) throw new Error("DeviceSet not found");
+
+        const iVendorNameplateType = diNamespace.findObjectType("IVendorNameplateType");
+        should.exist(iVendorNameplateType);
+
+        // Instance with both:
+        //   - inverse Organizes to di:DeviceSet  (HierarchicalReference)
+        //   - forward HasInterface to di:IVendorNameplateType (NonHierarchicalReference)
         const myInstance = namespace.addObject({
             browseName: "MyMachine",
             organizedBy: deviceSet,
@@ -1066,29 +1167,27 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
             nodeId: iVendorNameplateType!.nodeId,
         });
 
-        // Step 4: Generate XML
+        // Export the namespace to XML
         const xml = namespace.toNodeset2XML();
 
-        // Step 5: Verify that the DI namespace is included as a dependency
-        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
-            "DI namespace URI must be in NamespaceUris");
+        // Write to a temp file
+        const tmpFilename = getTempFilename("__generated_cross_ns_prio.xml");
+        fs.writeFileSync(tmpFilename, xml);
 
-        // Step 6: Verify HasInterface reference is present in the XML
-        xml.should.match(/HasInterface/,
-            "HasInterface reference must be serialized");
+        // Reload into a fresh AddressSpace — this is where the bug manifested
+        // as "Cannot find node ns=0;i=5001"
+        const reloadedAddressSpace = AddressSpace.create();
+        await generateAddressSpace(reloadedAddressSpace, [nodesets.standard, nodesets.di, tmpFilename]);
 
-        // Step 7: Verify Organizes inverse reference is present in the XML
-        xml.should.match(/Organizes/,
-            "Organizes inverse reference must be serialized");
+        // Verify the reloaded namespace matches
+        const reloadedNs = reloadedAddressSpace.getNamespace("http://my-namespace/UA/test/");
+        should.exist(reloadedNs);
 
-        // Extract the MyMachine section and verify both references are on it
-        const machineSection = xml.substring(
-            xml.indexOf("MyMachine {{{{"),
-            xml.indexOf("MyMachine }}}}")
-        );
-        machineSection.should.match(/HasInterface/,
-            "MyMachine must have HasInterface reference");
-        machineSection.should.match(/Organizes.*IsForward="false"/,
-            "MyMachine must have Organizes inverse reference to DeviceSet");
+        // Re-export from the reloaded address space — should be identical
+        const reloadedXml = reloadedNs.toNodeset2XML();
+        const normalize = (s: string) => s.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        normalize(reloadedXml).split("\n").should.eql(normalize(xml).split("\n"));
+
+        reloadedAddressSpace.dispose();
     });
 });

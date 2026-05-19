@@ -230,16 +230,27 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
                 if (refPriority <= thisPriority) {
                     consider(namespaceIndexOfTargetNode);
                 } else {
-                    // For forward NonHierarchicalReferences (e.g. HasInterface),
-                    // always include the target namespace as a dependency
-                    // regardless of priority, since the current node owns
-                    // this relationship.
                     const referenceType = getReferenceType(reference);
-                    if (reference.isForward
-                        && referenceType
-                        && nonHierarchicalReferencesType
-                        && referenceType.isSubtypeOf(nonHierarchicalReferencesType)) {
-                        consider(namespaceIndexOfTargetNode);
+                    if (referenceType) {
+                        // For forward NonHierarchicalReferences (e.g. HasInterface),
+                        // always include the target namespace as a dependency
+                        // regardless of priority, since the current node owns
+                        // this relationship.
+                        if (reference.isForward
+                            && nonHierarchicalReferencesType
+                            && referenceType.isSubtypeOf(nonHierarchicalReferencesType)) {
+                            consider(namespaceIndexOfTargetNode);
+                        }
+                        // For inverse HierarchicalReferences (e.g. Organizes),
+                        // always include the target namespace as a dependency
+                        // regardless of priority, since the reference is
+                        // stored on this node (organizedBy pattern).
+                        const hierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
+                        if (!reference.isForward
+                            && hierarchicalReferencesType
+                            && referenceType.isSubtypeOf(hierarchicalReferencesType)) {
+                            consider(namespaceIndexOfTargetNode);
+                        }
                     }
                 }
             }
