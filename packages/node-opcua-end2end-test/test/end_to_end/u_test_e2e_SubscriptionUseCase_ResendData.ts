@@ -243,7 +243,15 @@ export function t(test: TestHarness) {
                         MonitoringMode.Reporting
                     );
 
-                    await sleep(publishingInterval + 10);
+                    // wait for the initial-value notification — poll up to 3 publish cycles to
+                    // avoid flakes on slow runners. samplingInterval is publishingInterval*10,
+                    // so a second sample cannot arrive inside this window.
+                    {
+                        const deadline = Date.now() + publishingInterval * 3;
+                        while (messages.length < 1 && Date.now() < deadline) {
+                            await sleep(50);
+                        }
+                    }
 
                     let ref;
                     {
