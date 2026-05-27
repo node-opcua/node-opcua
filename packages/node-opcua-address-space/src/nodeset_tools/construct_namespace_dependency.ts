@@ -14,17 +14,18 @@ import type { UAVariableImpl } from "../ua_variable_impl";
 const warningLog = make_warningLog(__filename);
 const _debugLog = make_debugLog(__filename);
 
+interface RequiredModel {
+    requiredNamespaceIndexes: number[];
+    nbTypes: number;
+}
 // eslint-disable-next-line max-statements, complexity
-export function _recomputeRequiredModelsFromTypes(
-    namespace: INamespace,
-    cache?: Map<number, { requiredNamespaceIndexes: number[]; nbTypes: number }>
-): { requiredNamespaceIndexes: number[]; nbTypes: number } {
+export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?: Map<number, RequiredModel>): RequiredModel {
     if (namespace.index === 0) {
         return { requiredNamespaceIndexes: [], nbTypes: 1 };
     }
     if (cache) {
         if (cache.has(namespace.index)) {
-            return cache.get(namespace.index)!;
+            return cache.get(namespace.index) as RequiredModel;
         }
     }
     const requiredNamespaceIndexes = [0];
@@ -155,17 +156,14 @@ export function _recomputeRequiredModelsFromTypes(
         }
     }
 
-    const result = { requiredNamespaceIndexes: requiredNamespaceIndexes, nbTypes: nbTypes };
+    const result: RequiredModel = { requiredNamespaceIndexes: requiredNamespaceIndexes, nbTypes: nbTypes };
     if (cache) {
         cache.set(namespace.index, result);
     }
     return result;
 }
 
-export function _recomputeRequiredModelsFromTypes2(
-    namespace: INamespace,
-    cache?: Map<number, { requiredNamespaceIndexes: number[]; nbTypes: number }>
-): { requiredNamespaceIndexes: number[] } {
+export function _recomputeRequiredModelsFromTypes2(namespace: INamespace, cache?: Map<number, RequiredModel>): RequiredModel {
     const addressSpace = namespace.addressSpace;
 
     const { requiredNamespaceIndexes } = _recomputeRequiredModelsFromTypes(namespace, cache);
@@ -187,13 +185,13 @@ export function _recomputeRequiredModelsFromTypes2(
         pass2.push(r);
     }
 
-    return { requiredNamespaceIndexes: pass2 };
+    return { requiredNamespaceIndexes: pass2, nbTypes: 0 };
 }
 
 export function _getCompleteRequiredModelsFromValuesAndReferences(
     namespace: INamespace,
     priorityList: number[],
-    cache?: Map<number, { requiredNamespaceIndexes: number[]; nbTypes: number }>
+    cache?: Map<number, RequiredModel>
 ): number[] {
     const namespace_ = namespace as NamespacePrivate;
 
