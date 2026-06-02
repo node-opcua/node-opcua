@@ -18,6 +18,27 @@
  */
 export let defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
+/**
+ * Set the default organisation / location portion appended to every
+ * auto-generated certificate subject.
+ *
+ * Use this function instead of directly assigning to `defaultCertificateSubject`
+ * when consuming the library as an ESM module, because ESM namespace bindings
+ * are read-only from the outside and can only be mutated from within the module
+ * that declared them.
+ *
+ * @param value - e.g. "/O=MyOrg/L=MyCity/C=US"
+ *
+ * @example
+ * ```ts
+ * import { setDefaultCertificateSubject } from "node-opcua-common";
+ * setDefaultCertificateSubject("/O=MyOrg/L=MyCity/C=US");
+ * ```
+ */
+export function setDefaultCertificateSubject(value: string): void {
+    defaultCertificateSubject = value;
+}
+
 export function makeSubject(applicationName: string, hostname: string): string {
     const commonName = `${applicationName}@${hostname}`.substring(0, 63);
     const dc = `${hostname}`.substring(63);
