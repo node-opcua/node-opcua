@@ -39,6 +39,13 @@ export let defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
  * ```
  */
 export function setDefaultCertificateSubject(value: string): void {
+    // 0. Guard against non-string values from plain-JS callers.
+    if (typeof value !== "string") {
+        throw new TypeError(
+            'Example: "/O=MyOrg/L=MyCity/C=US".'
+        );
+    }
+
     // 1. Remove surrounding whitespace that would silently corrupt the subject string.
     const trimmed = value.trim();
 
@@ -56,9 +63,10 @@ export function setDefaultCertificateSubject(value: string): void {
     try {
         Subject.parse(normalised);
     } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
         throw new Error(
-            `setDefaultCertificateSubject: "${value}" is not a valid subject string. ` +
-            (err as Error).message
+            `setDefaultCertificateSubject: "${value}" is not a valid subject string. ${reason}`,
+            { cause: err }
         );
     }
 
