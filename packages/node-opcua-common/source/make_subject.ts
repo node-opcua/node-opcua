@@ -9,6 +9,7 @@
  *
  * @module node-opcua-common
  */
+import { Subject } from "node-opcua-crypto";
 
 /**
  * The default organisation / location portion appended to every
@@ -51,14 +52,13 @@ export function setDefaultCertificateSubject(value: string): void {
     // 2. Ensure there is a leading slash.
     const normalised = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 
-    // 3. Validate the overall shape: one or more /KEY=VALUE segments.
-    //    Keys are one or more word characters; values may be anything except a raw slash
-    //    (nested values would need quoting, which is out of scope here).
-    const subjectPattern = /^(?:\/[A-Za-z][A-Za-z0-9]*=[^/]+)+$/;
-    if (!subjectPattern.test(normalised)) {
+    // 3. Delegate validation to existing Subject.parse() method
+    try {
+        Subject.parse(normalised);
+    } catch (err) {
         throw new Error(
-            `setDefaultCertificateSubject: "${value}" does not match the expected ` +
-            '"/KEY=VALUE/KEY=VALUE/…" pattern (e.g. "/O=MyOrg/L=MyCity/C=US").'
+            `setDefaultCertificateSubject: "${value}" is not a valid subject string. ` +
+            (err as Error).message
         );
     }
 
