@@ -157,6 +157,20 @@ Those are the items we would like to achieve in the next version of the API.
   * reversed connection
   * more tutorials
 
+## Ecosystem
+
+### AI-Powered Modeling with MCP
+
+**[node-opcua-modeler-mcp-server](https://www.npmjs.com/package/node-opcua-modeler-mcp-server)** — An [MCP server](https://modelcontextprotocol.io) that gives AI agents access to the OPC UA companion specification type system. Discover types, resolve namespace dependencies, and look up engineering units — all from your AI coding assistant.
+
+```bash
+npx node-opcua-modeler-mcp-server
+```
+
+### OPC UA Modeler
+
+**[OPC UA Modeler](https://opcua-modeler.sterfive.com)** — Create, validate, and generate OPC UA information models using a YAML-first workflow with full companion spec support.
+
 ## Advanced topics
 
 ### installing node-opcua from source

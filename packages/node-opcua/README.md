@@ -55,6 +55,21 @@ Contact Sterfive SAS (mailto:contact@sterfive.com) for additional companion modu
  - node-opcua-modeler-ex: a powerful NO-GUI OPC UA modeler
 
 
+# Ecosystem
+
+## AI-Powered Modeling with MCP
+
+**[node-opcua-modeler-mcp-server](https://www.npmjs.com/package/node-opcua-modeler-mcp-server)** — An [MCP server](https://modelcontextprotocol.io) that gives AI agents access to the OPC UA companion specification type system. Discover 589 types across 22 industrial namespaces, resolve dependencies, and look up 1,533 engineering units.
+
+```bash
+npx node-opcua-modeler-mcp-server
+```
+
+## OPC UA Modeler
+
+**[OPC UA Modeler](https://opcua-modeler.sterfive.com)** — Create, validate, and generate OPC UA information models using a YAML-first workflow with full companion spec support.
+
+
 # Copyright
 
 Copyright (c) 2022-2024 Sterfive SAS - https://www.sterfive.com
