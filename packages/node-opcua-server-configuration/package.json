@@ -14,7 +14,7 @@
     "type": "module",
     "dependencies": {
         "chalk": "4.1.2",
-        "memfs": "^4.57.2",
+        "memfs": "^4.57.8",
         "node-opcua-address-space": "2.173.1",
         "node-opcua-address-space-base": "2.173.0",
         "node-opcua-assert": "2.164.0",
@@ -29,7 +29,7 @@
         "node-opcua-file-transfer": "2.173.1",
         "node-opcua-hostname": "2.167.0",
         "node-opcua-nodeid": "2.173.0",
-        "node-opcua-pki": "6.17.0",
+        "node-opcua-pki": "6.18.0",
         "node-opcua-pseudo-session": "2.173.0",
         "node-opcua-secure-channel": "2.173.0",
         "node-opcua-server": "2.173.1",

@@ -35,10 +35,10 @@
         "node-opcua-transport": "2.173.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.60.0",
+        "@playwright/test": "^1.61.1",
         "@types/ws": "^8.18.1",
         "buffer": "^6.0.3",
-        "esbuild": "^0.28.0",
+        "esbuild": "^0.28.1",
         "events": "^3.3.0",
         "node-opcua-leak-detector": "2.172.0",
         "process": "^0.11.10",
