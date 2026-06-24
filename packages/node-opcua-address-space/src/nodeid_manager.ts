@@ -180,7 +180,25 @@ export class NodeIdManager {
             }
             return nodeId;
         }
-        return this._constructNodeId(options);
+        const nodeId = this._constructNodeId(options);
+        // When registerSymbolicNames is true and a nodeId was already
+        // provided (e.g. loaded from XML during reverse engineering),
+        // also record the BrowseName → NodeId mapping in the symbol
+        // cache so that getSymbols() returns the original NodeIds.
+        if (options.registerSymbolicNames && nodeId.identifierType === NodeIdType.NUMERIC) {
+            const parentInfo = this.findParentNodeId(options);
+            let fullParentName = "";
+            if (parentInfo) {
+                const [parentNodeId, suffix] = parentInfo;
+                fullParentName = buildUpName2(parentNodeId, suffix);
+            }
+            const fullName = compose(fullParentName, prepareName(options.browseName!));
+            if (!this._cacheSymbolicName[fullName]) {
+                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass!];
+                this._cacheSymbolicNameRev.add(nodeId.value as number);
+            }
+        }
+        return nodeId;
     }
 
     private _constructNodeId(options: ConstructNodeIdOptions): NodeId {

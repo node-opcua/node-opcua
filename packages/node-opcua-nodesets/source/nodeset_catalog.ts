@@ -115,7 +115,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'robotics',
         uri: 'http://opcfoundation.org/UA/Robotics/',
         xmlFile: 'Opc.Ua.Robotics.NodeSet2.xml',
-        dependencies: ['di'],
+        dependencies: ['di', 'ia'],
         licence: "MIT"
 
     },
@@ -150,7 +150,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'machinery',
         uri: 'http://opcfoundation.org/UA/Machinery/',
         xmlFile: 'Opc.Ua.Machinery.NodeSet2.xml',
-        dependencies: ['machineryJobs', 'isa95JobControl'],
+        dependencies: ['di', 'ia'],
         licence: "DUAL"
     },
     {
@@ -167,7 +167,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'machine-tool',
         uri: 'http://opcfoundation.org/UA/MachineTool/',
         xmlFile: 'Opc.Ua.MachineTool.NodeSet2.xml',
-        dependencies: ['di', 'machinery', 'ia'],
+        dependencies: ['di', 'machinery', 'ia', 'isa95JobControl', 'machineryJobs'],
         licence: "DUAL"
     },
     {
@@ -183,7 +183,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'woodworking',
         uri: 'http://opcfoundation.org/UA/Woodworking/',
         xmlFile: 'Opc.Ua.Woodworking.NodeSet2.xml',
-        dependencies: ['di', 'machinery'],
+        dependencies: ['di', 'machinery', 'isa95JobControl', 'machineryJobs'],
         licence: "DUAL"
     },
     {
@@ -199,7 +199,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'ijt-base',
         uri: 'http://opcfoundation.org/UA/IJT/Base/',
         xmlFile: 'Opc.Ua.Ijt.Base.NodeSet2.xml',
-        dependencies: ['machineryResult', 'di', 'machinery', 'amb'],
+        dependencies: ['di', 'amb', 'ia', 'machinery', 'machineryResult'],
         licence: "DUAL"
     },
     {
@@ -207,7 +207,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         packageName: 'ijt-tightening',
         uri: 'http://opcfoundation.org/UA/IJT/Tightening/',
         xmlFile: 'Opc.Ua.Ijt.Tightening.NodeSet2.xml',
-        dependencies: ['machineryResult', 'di', 'machinery', 'ijtBase', 'amb'],
+        dependencies: ['di', 'amb', 'ia', 'machinery', 'machineryResult', 'ijtBase'],
         licence: "DUAL"
 
     },
