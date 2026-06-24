@@ -11,7 +11,7 @@
     "scripts": {
         "build": "tsc -b",
         "pretest": "npm run certificate",
-        "certificate": "npx pki demo --dev --silent",
+        "certificate": "npx pki demo --dev",
         "test": "echo no test",
         "clean": "npx rimraf -g certificates"
     },

@@ -41,12 +41,17 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 100000));
 
     const demo = path.join(__dirname, "../../../node-opcua-samples/certificates");
-    const _not_active_yet = readCertificateChain(path.join(demo, "client_cert_1024_not_active_yet.pem"))[0];
-    const out_of_date = readCertificateChain(path.join(demo, "client_cert_1024_outofdate.pem"))[0];
-    const _revoked = readCertificateChain(path.join(demo, "client_cert_1024_revoked.pem"))[0];
-    const ok = readCertificateChain(path.join(demo, "client_cert_1024.pem"))[0];
+    let _not_active_yet: Buffer;
+    let out_of_date: Buffer;
+    let _revoked: Buffer;
+    let ok: Buffer;
 
     before(async () => {
+        _not_active_yet = readCertificateChain(path.join(demo, "client_cert_1024_not_active_yet.pem"))[0];
+        out_of_date = readCertificateChain(path.join(demo, "client_cert_1024_outofdate.pem"))[0];
+        _revoked = readCertificateChain(path.join(demo, "client_cert_1024_revoked.pem"))[0];
+        ok = readCertificateChain(path.join(demo, "client_cert_1024.pem"))[0];
+
         addressSpace = AddressSpace.create();
         const ownNamespace = addressSpace.registerNamespace("PRIVATE_NAMESPACE");
         ownNamespace.index.should.eql(1);
