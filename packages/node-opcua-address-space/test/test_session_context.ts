@@ -13,7 +13,6 @@ import { type AddressSpace, makeRoles, SessionContext } from "..";
 import { getMiniAddressSpace, MockContinuationPointManager } from "../testHelpers";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
-fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 describe("SessionContext", () => {
     let addressSpace: AddressSpace;
@@ -96,20 +95,30 @@ describe("SessionContext - with  dedicated SessionContext and certificate ", () 
         userManager: mockUserManager
     };
 
-    const certificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
-
-    const certificate = readCertificateChain(certificateFilename);
-    const mockSession = {
-        userIdentityToken: new X509IdentityToken({
-            certificateData: Array.isArray(certificate) ? certificate[0] : certificate
-        }),
-        continuationPointManager: new MockContinuationPointManager(),
-        getSessionId() {
-            return new NodeId();
-        }
-    };
-
     before(async () => {
+        fs.existsSync(certificateFolder).should.eql(
+            true,
+            `expecting certificate store at ${certificateFolder}`
+        );
+
+        const certificateFilename = path.join(
+            certificateFolder,
+            "client_cert_2048.pem"
+        );
+        const certificate = readCertificateChain(certificateFilename);
+        const mockSession = {
+            userIdentityToken: new X509IdentityToken({
+                certificateData: Array.isArray(certificate)
+                    ? certificate[0]
+                    : certificate
+            }),
+            continuationPointManager:
+                new MockContinuationPointManager(),
+            getSessionId() {
+                return new NodeId();
+            }
+        };
+
         sessionContext = new SessionContext({
             server: mockServer,
             session: mockSession
