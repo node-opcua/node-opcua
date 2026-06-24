@@ -33,3 +33,4 @@ minimumReleaseAgeExclude:
   - '@biomejs/cli-linux-x64@2.4.16'
   - '@biomejs/cli-win32-arm64@2.4.16'
   - '@biomejs/cli-win32-x64@2.4.16'
+  - node-opcua-pki@6.18.0
