@@ -110,6 +110,12 @@ jobs:
           walk(latestDir);
           console.log('Canonical links injected into docs-output/latest/');
           "
+      - name: Setup deploy key for clone
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOCS_DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
       - name: Inject deprecation banners into old versions
         run: |
           NEW_VERSION="${{ steps.version.outputs.version }}"
@@ -173,11 +179,6 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
 
-      - name: Setup deploy key for clone
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DOCS_DEPLOY_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
