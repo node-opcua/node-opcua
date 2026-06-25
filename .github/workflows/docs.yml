@@ -82,6 +82,35 @@ jobs:
           </html>
           INDEXEOF
 
+      - name: Inject canonical links into latest
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const MARKER = '<!-- NODEOPCUA-CANONICAL -->';
+          const latestDir = 'docs-output/latest';
+          function walk(dir) {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full);
+              else if (entry.name.endsWith('.html')) {
+                let html = fs.readFileSync(full, 'utf-8');
+                if (html.includes(MARKER)) continue;
+                const rel = path.relative(latestDir, full).split(path.sep).join('/');
+                const tag = MARKER + '<link rel=\"canonical\" href=\"https://node-opcua.github.io/api_doc/latest/' + rel + '\">\n';
+                const m = html.match(/<head[^>]*>/i);
+                if (m) {
+                  const pos = m.index + m[0].length;
+                  html = html.slice(0, pos) + '\n' + tag + html.slice(pos);
+                  fs.writeFileSync(full, html, 'utf-8');
+                }
+              }
+            }
+          }
+          walk(latestDir);
+          console.log('Canonical links injected into docs-output/latest/');
+          "
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
