@@ -89,5 +89,6 @@ tmptmp/
 Vagrantfile
 yarn.lock
 generated_doc/
+docs-output/
 commit_message.txt
 .nx/

@@ -1,0 +1,92 @@
+name: Generate API Documentation
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >
+          Version label for the docs folder (e.g. 2.173.1).
+          Leave blank to read from lerna.json.
+        required: false
+        type: string
+
+concurrency:
+  group: docs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout node-opcua
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            VERSION=$(node -p "require('./lerna.json').version")
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Using version: $(cat "$GITHUB_OUTPUT" | grep version | cut -d= -f2)"
+
+      - name: Generate TypeDoc
+        run: |
+          pnpx typedoc --options typedoc.json \
+            --out "docs-output/${{ steps.version.outputs.version }}"
+
+      - name: Copy to latest
+        run: cp -r "docs-output/${{ steps.version.outputs.version }}" docs-output/latest
+
+      - name: Create version index page
+        run: |
+          cat > docs-output/index.html << 'INDEXEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0;URL='latest/'">
+            <title>NodeOPCUA API Documentation</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="latest/">latest documentation</a>…</p>
+          </body>
+          </html>
+          INDEXEOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
+          external_repository: node-opcua/node-opcua.github.io
+          publish_branch: main
+          publish_dir: ./docs-output
+          destination_dir: api_doc
+          keep_files: true
+          commit_message: "docs: update API docs to v${{ steps.version.outputs.version }}"

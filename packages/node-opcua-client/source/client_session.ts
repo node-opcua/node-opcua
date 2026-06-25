@@ -122,6 +122,14 @@ export interface ClientSessionBase {
      */
     name: string;
 
+    /**
+     * Close the session.
+     *
+     * @param deleteSubscription - if `true` (the default), all
+     *   subscriptions created on this session are deleted on
+     *   the server. Set to `false` to preserve subscriptions
+     *   for later transfer to a new session.
+     */
     close(callback: ErrorCallback): void;
 
     close(deleteSubscription: boolean, callback: ErrorCallback): void;
@@ -129,6 +137,40 @@ export interface ClientSessionBase {
     close(deleteSubscription?: boolean): Promise<void>;
 }
 
+/**
+ * An active session to an OPC UA server.
+ *
+ * `ClientSession` provides access to all OPC UA services:
+ * reading and writing node values, browsing the address space,
+ * calling methods, and creating subscriptions for data change
+ * or event notifications.
+ *
+ * Sessions are created via {@link OPCUAClient.createSession} or
+ * {@link OPCUAClient.create} followed by `client.createSession()`.
+ *
+ * @example
+ * ```typescript
+ * const session = await client.createSession();
+ *
+ * // Read a value
+ * const dataValue = await session.read({
+ *     nodeId: "ns=0;i=2258",
+ *     attributeId: AttributeIds.Value,
+ * });
+ *
+ * // Browse the root folder
+ * const browseResult = await session.browse("RootFolder");
+ *
+ * // Write a value
+ * await session.write({
+ *     nodeId: "ns=1;s=MyVariable",
+ *     attributeId: AttributeIds.Value,
+ *     value: { value: { dataType: DataType.Double, value: 42.0 } },
+ * });
+ *
+ * await session.close();
+ * ```
+ */
 export interface ClientSession extends ClientSessionBase {
     /* */
     serverEndpoints: EndpointDescription[];
@@ -152,11 +194,17 @@ export interface ClientSession extends EventEmitter {
 }
 
 // browse services
+/**
+ * Browse service — navigate the OPC UA address space.
+ *
+ * The `browse()` and `browseNext()` methods are inherited from
+ * {@link node-opcua-pseudo-session!IBasicSessionBrowse}.
+ */
 export interface ClientSessionBrowseService extends IBasicSessionBrowse, IBasicSessionBrowseNext {
     /**
-     * the maximum number of reference that the server should return per browseResult
-     * Continuous points will be return by server to allow retrieving remaining references
-     * with browseNext
+     * The maximum number of references the server should return
+     * per browse result. If the server has more, it returns a
+     * continuation point to retrieve the rest with `browseNext()`.
      */
     requestedMaxReferencesPerNode: number;
 }
@@ -172,7 +220,19 @@ export interface ClientSessionQueryService {
 }
 
 // call services
+/**
+ * Call service — invoke methods on server objects.
+ *
+ * The `call()` method is inherited from
+ * {@link node-opcua-pseudo-session!IBasicSessionCall}.
+ */
 export interface ClientSessionCallService extends IBasicSessionCall {
+    /**
+     * Retrieve the input and output argument definitions of a method.
+     *
+     * @param methodId - the NodeId of the method
+     * @returns the argument definitions (input and output)
+     */
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 }
@@ -222,6 +282,12 @@ export interface ClientSessionWriteService extends IBasicSessionWrite {
 }
 
 // raw subscription services
+/**
+ * Raw subscription service — low-level OPC UA subscription management.
+ *
+ * For a higher-level API, use {@link ClientSubscription} via
+ * `ClientSession.createSubscription2()`.
+ */
 export interface ClientSessionRawSubscriptionService {
     /**
      *

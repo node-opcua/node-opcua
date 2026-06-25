@@ -1014,6 +1014,39 @@ export interface OPCUAServerEvents {
     openSecureChannelFailure: [socketData: ISocketData, channelData: IChannelData, endpoint: OPCUAServerEndPoint];
 }
 
+/**
+ * The OPC UA server.
+ *
+ * `OPCUAServer` creates an OPC UA server that exposes an address space
+ * to connected clients. It handles secure channel management, session
+ * lifecycle, subscriptions, and the full OPC UA service set.
+ *
+ * @example
+ * ```typescript
+ * import { OPCUAServer, DataType, Variant } from "node-opcua";
+ *
+ * const server = new OPCUAServer({ port: 26543 });
+ * await server.initialize();
+ *
+ * const addressSpace = server.engine.addressSpace!;
+ * const namespace = addressSpace.getOwnNamespace();
+ * const myVariable = namespace.addVariable({
+ *     browseName: "Temperature",
+ *     componentOf: addressSpace.rootFolder.objects,
+ *     dataType: DataType.Double,
+ * });
+ * myVariable.setValueFromSource(
+ *     new Variant({ dataType: DataType.Double, value: 22.5 })
+ * );
+ *
+ * await server.start();
+ * console.log("Server listening on",
+ *     server.getEndpointUrl());
+ *
+ * // ... later ...
+ * await server.shutdown();
+ * ```
+ */
 export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     public engine!: ServerEngine;
     public registerServerMethod: RegisterServerMethod;
