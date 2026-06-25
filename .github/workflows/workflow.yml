@@ -62,7 +62,9 @@ jobs:
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
         # node-version: [20.x, 22.x, 24.x]
-        node-version: [22.x, 24.x]
+        # 24.15.0 pinned: libuv regression in 24.16.0+ crashes on
+        # Windows fs-event (nodejs/node#63638, libuv/libuv#5010).
+        node-version: [22.x, 24.15.0]
 
     steps:
       - uses: actions/checkout@v4
