@@ -22,15 +22,14 @@
         "test": "cd packages && node --expose-gc ${SECURITY_REVERT_CVE_2023_46809} --max-old-space-size=2048 run_all_mocha_tests.js",
         "test:parallel": "cd packages && node parallel_test.js",
         "test:win": "cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js",
-        "generate_doc": "make doc",
-        "generate_autodoc": "npx autodoc -o _tmp_generated_doc bin/binaryStream.js",
+
         "ncu": "ncu -u -x yargs,env-paths,long,@types/long,cli-truncate,chalk,case-anything,@types/node,typescript --target=latest && ncu --deep -u --timeout 400000  -x yargs,env-paths,cli-truncate,chalk,case-anything,long,@types/long,@types/node,typescript --target=latest ",
         "ncu:minor": "npx npm-check-updates  -u  --deep --target=minor",
         "prettier-watch": "onchange \"packages/*/(src|test|source)/**/*.(js|ts)\" -v -p -- prettier --write {{changed}}",
         "alex": "npx alex documentation/*.md",
         "cost-of-modules": "npx cost-of-modules",
         "typedoc": "npx typedoc --tsconfig tsconfig-for-doc.json --options typedoc.json",
-        "typedoc:all": "npx typedoc --mode library --options typedoc.json",
+
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler",
         "legal3": " npx license-checker --production --summary",
