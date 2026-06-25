@@ -1,39 +1,66 @@
 {
     "$schema": "https://typedoc.org/schema.json",
-    "out": "../node-opcua.github.io/api_doc/2.132.0",
-    "exclude": [
-        "./**/node_modules/**",
-        "./**/*.spec.ts",
-        "./**/tests/**.ts",
-        "./packages_extra/**/*.ts",
-        "**/**/*.d.ts",
-        "./packages_extra/**/**/*.ts",
-        "./**/dist/**"
-    ],
-
-    "name": "NodeOPCUA reference documentation - public API",
+    "out": "docs-output",
+    "name": "NodeOPCUA API Documentation",
     "entryPointStrategy": "packages",
-    "excludePrivate": false,
+    "excludePrivate": true,
     "excludeProtected": false,
     "excludeExternals": true,
-    "excludeInternal": false,
+    "excludeInternal": true,
     "excludeReferences": true,
-    "tsconfig": "tsconfig-for-doc.json",
     "readme": "documentation/readme_for_doc.md",
     "theme": "default",
+    "packageOptions": {
+        "entryPoints": ["./source/index.ts"],
+        "excludePrivate": true,
+        "excludeInternal": true
+    },
     "entryPoints": [
-        "packages/node-opcua-nodeid",
-        "packages/node-opcua-types",
-        "packages/node-opcua-variant",
-        "packages/node-opcua-basic-types",
-        "packages/node-opcua-data-value",
-        "packages/node-opcua-numeric-range",
-        "packages/node-opcua-status-code",
-        "packages/node-opcua-units",
-        "packages/node-opcua-guid",
-        "packages/node-opcua-server",
+        "packages/node-opcua",
         "packages/node-opcua-client",
-        "packages/node-opcua"
-    ]
-    
+        "packages/node-opcua-server",
+        "packages/node-opcua-address-space",
+        "packages/node-opcua-address-space-base",
+        "packages/node-opcua-pseudo-session",
+        "packages/node-opcua-file-transfer",
+
+        "packages/node-opcua-data-model",
+        "packages/node-opcua-data-value",
+        "packages/node-opcua-variant",
+        "packages/node-opcua-nodeid",
+        "packages/node-opcua-status-code",
+        "packages/node-opcua-extension-object",
+
+        "packages/node-opcua-certificate-manager",
+        "packages/node-opcua-basic-types",
+        "packages/node-opcua-constants",
+        "packages/node-opcua-types",
+
+        "packages/node-opcua-service-read",
+        "packages/node-opcua-service-write",
+        "packages/node-opcua-service-browse",
+        "packages/node-opcua-service-call",
+        "packages/node-opcua-service-subscription",
+        "packages/node-opcua-service-translate-browse-path",
+        "packages/node-opcua-service-history",
+
+        "packages/node-opcua-numeric-range",
+        "packages/node-opcua-data-access",
+        "packages/node-opcua-common",
+        "packages/node-opcua-aggregates",
+        "packages/node-opcua-units",
+        "packages/node-opcua-modeler"
+    ],
+    "exclude": [
+        "**/node_modules/**",
+        "**/*.spec.ts",
+        "**/tests/**",
+        "**/*.d.ts",
+        "**/dist/**"
+    ],
+    "navigationLinks": {
+        "Book": "https://leanpub.com/node-opcuabyexample-edition2024",
+        "GitHub": "https://github.com/node-opcua/node-opcua",
+        "Support": "https://support.sterfive.com"
+    }
 }
