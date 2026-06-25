@@ -110,6 +110,74 @@ jobs:
           walk(latestDir);
           console.log('Canonical links injected into docs-output/latest/');
           "
+      - name: Inject deprecation banners into old versions
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+          # Clone the live site to find existing version folders
+          git clone --depth 1 \
+            git@github.com:node-opcua/node-opcua.github.io.git \
+            _ghpages_clone
+          # Walk all version dirs, inject banners for old ones
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const NOINDEX = '<!-- NODEOPCUA-NOINDEX -->';
+          const BSTART = '<!-- NODEOPCUA-DEPRECATION-BANNER -->';
+          const BEND = '<!-- /NODEOPCUA-DEPRECATION-BANNER -->';
+          const newVer = process.env.NEW_VERSION;
+          const apiDir = '_ghpages_clone/api_doc';
+          function walk(dir) {
+            const r = [];
+            for (const e of fs.readdirSync(dir, {withFileTypes:true})) {
+              const f = path.join(dir, e.name);
+              if (e.isDirectory()) r.push(...walk(f));
+              else if (e.name.endsWith('.html')) r.push(f);
+            }
+            return r;
+          }
+          function banner(v) {
+            return BSTART + '\n<div style=\"background:#fff3cd;border-bottom:2px solid #ffc107;padding:12px;text-align:center;font-family:sans-serif;font-size:14px\">\n⚠️ You are reading documentation for an OLD version (v' + v + '). The current released version is v' + newVer + '.\n<a href=\"/api_doc/latest/\" style=\"font-weight:bold;color:#856404\">View latest documentation →</a>\n</div>\n' + BEND;
+          }
+          if (!fs.existsSync(apiDir)) { console.log('No api_doc dir found'); process.exit(0); }
+          const dirs = fs.readdirSync(apiDir, {withFileTypes:true})
+            .filter(e => e.isDirectory() && e.name !== 'latest' && e.name !== newVer && /^\d+\./.test(e.name))
+            .map(e => e.name);
+          console.log('Old versions to process:', dirs.join(', ') || '(none)');
+          for (const ver of dirs) {
+            const vdir = path.join(apiDir, ver);
+            const files = walk(vdir);
+            let mod = 0;
+            for (const f of files) {
+              let html = fs.readFileSync(f, 'utf-8');
+              if (html.includes(NOINDEX) && html.includes(BSTART)) continue;
+              let changed = false;
+              if (!html.includes(NOINDEX)) {
+                const m = html.match(/<head[^>]*>/i);
+                if (m) { const p=m.index+m[0].length; html=html.slice(0,p)+'\n'+NOINDEX+'<meta name=\"robots\" content=\"noindex,follow\">\n'+html.slice(p); changed=true; }
+              }
+              if (!html.includes(BSTART)) {
+                const m = html.match(/<body[^>]*>/i);
+                if (m) { const p=m.index+m[0].length; html=html.slice(0,p)+'\n'+banner(ver)+'\n'+html.slice(p); changed=true; }
+              }
+              if (changed) { fs.writeFileSync(f, html, 'utf-8'); mod++; }
+            }
+            if (mod > 0) {
+              // Copy bannerized folder into docs-output so it gets deployed
+              const dest = path.join('docs-output', ver);
+              fs.cpSync(vdir, dest, { recursive: true });
+            }
+            console.log('  ' + ver + ': ' + mod + '/' + files.length + ' files modified');
+          }
+          "
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.version }}
+          GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+
+      - name: Setup deploy key for clone
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOCS_DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -120,4 +188,5 @@ jobs:
           publish_dir: ./docs-output
           destination_dir: api_doc
           keep_files: true
+          enable_jekyll: true
           commit_message: "docs: update API docs to v${{ steps.version.outputs.version }}"
