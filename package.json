@@ -66,13 +66,13 @@
         "@types/mocha": "^10.0.10",
         "@types/node": "24.12.2",
         "app-module-path": "^2.2.0",
-        "benchmark": "^2.1.4",
+
         "bignumber.js": "^11.1.4",
         "csv": "^6.6.0",
         "enum": "3.0.4",
         "ersatz-node-expat": "^0.1.6",
         "json5": "^2.2.3",
-        "mocha": "12.0.0-beta-9.2",
+        "mocha": "12.0.0-rc.1",
         "mocha-lcov-reporter": "^1.3.0",
         "prettier": "^3.8.4",
         "should": "^13.2.3",
@@ -86,11 +86,6 @@
         "pnpm": ">=11.0.0"
     },
     "packageManager": "pnpm@11.9.0",
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "esbuild"
-        ]
-    },
     "dependenciesMeta": {
         "*": {
             "injected": true
