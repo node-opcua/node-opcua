@@ -17,7 +17,7 @@ require("should");
 
 const chalk = require("chalk");
 
-const Mocha = require("mocha");
+const { Mocha } = require("mocha");
 const yargs = require("yargs");
 const { Argv } = require("yargs");
 

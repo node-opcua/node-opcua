@@ -1,7 +1,7 @@
 const { isMainThread, parentPort, workerData } = require("node:worker_threads");
 const util = require("node:util");
 const chalk = require("chalk");
-const Mocha = require("mocha");
+const { Mocha } = require("mocha");
 
 const { runtests } = require("./run_all_mocha_tests.js");
 
