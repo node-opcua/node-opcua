@@ -2,7 +2,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const chalk = require("chalk");
-const Mocha = require("mocha");
+const { Mocha } = require("mocha");
 require("mocha-clean");
 
 const tsx = require("tsx/cjs/api");
