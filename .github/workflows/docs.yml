@@ -43,7 +43,9 @@ jobs:
         run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
 
       - name: Build
-        run: pnpm run build
+        # build:all = generate + tsc. Needed because
+        # _generated_opcua_types.ts is gitignored.
+        run: pnpm run build:all
 
       - name: Determine version
         id: version
