@@ -116,7 +116,7 @@ jobs:
         with:
           deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
           external_repository: node-opcua/node-opcua.github.io
-          publish_branch: main
+          publish_branch: master
           publish_dir: ./docs-output
           destination_dir: api_doc
           keep_files: true
