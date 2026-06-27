@@ -1,0 +1,46 @@
+{
+    "name": "node-opcua-role-set-test",
+    "version": "2.173.0",
+    "private": true,
+    "description": "pure nodejs OPCUA SDK - integration tests for role-set management (OPC 10000-18)",
+    "scripts": {
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
+    },
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "devDependencies": {
+        "node-opcua-address-space": "2.173.1",
+        "node-opcua-data-model": "2.173.0",
+        "node-opcua-leak-detector": "2.172.0",
+        "node-opcua-nodeid": "2.173.0",
+        "node-opcua-nodesets": "2.163.1",
+        "node-opcua-role-set-client": "2.173.0",
+        "node-opcua-role-set-common": "2.173.0",
+        "node-opcua-role-set-server": "2.173.0",
+        "node-opcua-status-code": "2.173.0",
+        "node-opcua-types": "2.173.0",
+        "node-opcua-variant": "2.173.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
+}

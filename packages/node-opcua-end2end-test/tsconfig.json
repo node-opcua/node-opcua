@@ -12,6 +12,12 @@
         },
         {
             "path": "../node-opcua"
+        },
+        {
+            "path": "../node-opcua-nodeset-ijt-base"
+        },
+        {
+            "path": "../node-opcua-nodeset-machinery-result"
         }
     ],
     "exclude": [

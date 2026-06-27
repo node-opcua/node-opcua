@@ -1,0 +1,52 @@
+{
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true,
+        "types": [
+            "node",
+            "mocha"
+        ]
+    },
+    "include": [
+        "source/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-address-space-base"
+        },
+        {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-role-set-common"
+        },
+        {
+            "path": "../node-opcua-service-call"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-variant"
+        }
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

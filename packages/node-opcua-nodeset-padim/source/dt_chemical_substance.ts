@@ -15,7 +15,7 @@ import type { EnumPatDictionaryEnum } from "./enum_pat_dictionary_enum";
  * | isAbstract|false                                                       |
  */
 export interface DTChemicalSubstance extends DTStructure {
-  patDictionary?: EnumPatDictionaryEnum; // Int32 ns=24;i=1276
+  patDictionary?: EnumPatDictionaryEnum; // Int32 ns=25;i=1276
   label: LocalizedText; // LocalizedText ns=0;i=21
   id: LocalizedText; // LocalizedText ns=0;i=21
 }

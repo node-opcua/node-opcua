@@ -6,7 +6,7 @@ import {
     BinaryStream,
     type ClientSession,
     coerceInt64,
-    coerceLocalizedText,
+    coerceLocalizedTextStrict,
     coerceUInt64,
     DataType,
     DataTypeExtractStrategy,
@@ -130,7 +130,7 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
         classification: 1,
         description: new LocalizedText({ text: "AAA" }),
         sequenceNumber: coerceInt64(32),
-        joiningTechnology: coerceLocalizedText({ locale: "en", text: "Tightening" })!,
+        joiningTechnology: coerceLocalizedTextStrict({ locale: "en", text: "Tightening" }),
         operationMode: 1,
         name: "AAA",
         resultEvaluationCode: coerceInt64(12),
@@ -169,7 +169,7 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
             {
                 errorType: 1,
                 errorId: "1",
-                errorMessage: coerceLocalizedText("message")!
+                errorMessage: coerceLocalizedTextStrict("message")
             }
         ],
         failureReason: 1,
@@ -308,7 +308,10 @@ async function buildServer() {
 
     await server.initialize();
 
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("AddressSpace not initialized");
+    }
 
     await buildAddressSpace(addressSpace);
     await server.start();

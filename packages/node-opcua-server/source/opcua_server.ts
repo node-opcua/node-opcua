@@ -30,6 +30,7 @@ import {
     type UAObject,
     type UAObjectType,
     type UAVariable,
+    type IRoleResolver,
     type UAView
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
@@ -1334,6 +1335,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
      * the user manager
      */
     public userManager: UAUserManagerBase;
+
+    /**
+     * Additional role resolvers (OPC 10000-18 §4.4).
+     * Packages like node-opcua-role-set-server push resolvers here.
+     */
+    public roleResolvers: IRoleResolver[] = [];
 
     public readonly options: OPCUAServerOptions;
 
