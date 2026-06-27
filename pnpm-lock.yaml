@@ -2165,6 +2165,45 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-variant
 
+  packages/node-opcua-nodeset-lads:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.173.0
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.173.0
+        version: link:../node-opcua-data-access
+      node-opcua-data-model:
+        specifier: 2.173.0
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.173.0
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-amb:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeset-amb
+      node-opcua-nodeset-di:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-machinery:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-ua:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.173.0
+        version: link:../node-opcua-variant
+
   packages/node-opcua-nodeset-machine-tool:
     dependencies:
       node-opcua-address-space-base:
@@ -2705,6 +2744,141 @@ importers:
       node-opcua-utils:
         specifier: 2.173.0
         version: link:../node-opcua-utils
+      node-opcua-variant:
+        specifier: 2.173.0
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-role-set-client:
+    dependencies:
+      node-opcua-constants:
+        specifier: 2.157.0
+        version: link:../node-opcua-constants
+      node-opcua-data-model:
+        specifier: 2.173.0
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeid
+      node-opcua-pseudo-session:
+        specifier: 2.173.0
+        version: link:../node-opcua-pseudo-session
+      node-opcua-service-call:
+        specifier: 2.173.0
+        version: link:../node-opcua-service-call
+      node-opcua-service-translate-browse-path:
+        specifier: 2.173.0
+        version: link:../node-opcua-service-translate-browse-path
+      node-opcua-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-types
+      node-opcua-variant:
+        specifier: 2.173.0
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-leak-detector:
+        specifier: 2.172.0
+        version: link:../node-opcua-leak-detector
+
+  packages/node-opcua-role-set-common:
+    dependencies:
+      node-opcua-basic-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-basic-types
+      node-opcua-binary-stream:
+        specifier: 2.173.0
+        version: link:../node-opcua-binary-stream
+      node-opcua-constants:
+        specifier: 2.157.0
+        version: link:../node-opcua-constants
+      node-opcua-crypto:
+        specifier: 5.3.6
+        version: 5.3.6
+      node-opcua-nodeid:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeid
+      node-opcua-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-types
+      node-opcua-variant:
+        specifier: 2.173.0
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-leak-detector:
+        specifier: 2.172.0
+        version: link:../node-opcua-leak-detector
+
+  packages/node-opcua-role-set-server:
+    dependencies:
+      node-opcua-address-space:
+        specifier: 2.173.1
+        version: link:../node-opcua-address-space
+      node-opcua-address-space-base:
+        specifier: 2.173.0
+        version: link:../node-opcua-address-space-base
+      node-opcua-constants:
+        specifier: 2.157.0
+        version: link:../node-opcua-constants
+      node-opcua-data-model:
+        specifier: 2.173.0
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeid
+      node-opcua-role-set-common:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-common
+      node-opcua-service-call:
+        specifier: 2.173.0
+        version: link:../node-opcua-service-call
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-types
+      node-opcua-variant:
+        specifier: 2.173.0
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-leak-detector:
+        specifier: 2.172.0
+        version: link:../node-opcua-leak-detector
+      node-opcua-nodesets:
+        specifier: 2.163.1
+        version: link:../node-opcua-nodesets
+
+  packages/node-opcua-role-set-test:
+    devDependencies:
+      node-opcua-address-space:
+        specifier: 2.173.1
+        version: link:../node-opcua-address-space
+      node-opcua-data-model:
+        specifier: 2.173.0
+        version: link:../node-opcua-data-model
+      node-opcua-leak-detector:
+        specifier: 2.172.0
+        version: link:../node-opcua-leak-detector
+      node-opcua-nodeid:
+        specifier: 2.173.0
+        version: link:../node-opcua-nodeid
+      node-opcua-nodesets:
+        specifier: 2.163.1
+        version: link:../node-opcua-nodesets
+      node-opcua-role-set-client:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-client
+      node-opcua-role-set-common:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-common
+      node-opcua-role-set-server:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-server
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-types
       node-opcua-variant:
         specifier: 2.173.0
         version: link:../node-opcua-variant

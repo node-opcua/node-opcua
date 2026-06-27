@@ -22,6 +22,6 @@ export interface DTPackMLRemoteInterface extends DTStructure {
   /** This is the command value associated with the ControlCmdNumber above.*/
   cmdValue: Int32; // Int32 ns=0;i=6
   /** The parameter tags associated to commanded remote interface are typically used for command parameters that are given to the unit machine from remote machines.*/
-  parameter: DTPackMLDescriptor[]; // ExtensionObject ns=20;i=16
+  parameter: DTPackMLDescriptor[]; // ExtensionObject ns=21;i=16
 }
 export interface UDTPackMLRemoteInterface extends ExtensionObject, DTPackMLRemoteInterface {};
