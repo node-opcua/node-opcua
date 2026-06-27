@@ -26,6 +26,7 @@ export type NodesetName =
     | "robotics"
     | "scales"
     | "tightening"
+    | "lads"
     | "woodWorking";
 
 export type NodesetMeta = {
@@ -210,6 +211,14 @@ export const nodesetCatalog: NodesetMeta[] = [
         dependencies: ['di', 'amb', 'ia', 'machinery', 'machineryResult', 'ijtBase'],
         licence: "DUAL"
 
+    },
+    {
+        name: 'lads',
+        packageName: 'lads',
+        uri: 'http://opcfoundation.org/UA/LADS/',
+        xmlFile: 'Opc.Ua.LADS.NodeSet2.xml',
+        dependencies: ['di', 'amb', 'ia', 'machinery'],
+        licence: "MIT"
     },
     {
         name: 'packML',
