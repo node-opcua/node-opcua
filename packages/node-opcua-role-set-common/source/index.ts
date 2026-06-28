@@ -4,6 +4,7 @@
 
 export {
     type ArchiveIO,
+    ArchiveStore,
     identitiesFromBase64,
     identitiesToBase64,
     type PersistedCustomRole,
@@ -40,6 +41,7 @@ export {
     type IUserManagementStore,
     type ModifyUserOptions,
     type PasswordPolicy,
+    type SerializedUserRecord,
     type UserRecord
 } from "./user_management_store.js";
 export { WellKnownRoleIds, WellKnownRoles } from "./well_known_role_ids.js";

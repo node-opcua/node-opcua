@@ -11,7 +11,12 @@
  */
 import type { IAddressSpace, UAMethod, UAObject, UAVariable } from "node-opcua-address-space";
 import { MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
-import { InMemoryUserManagementStore, type IUserManagementStore, type PasswordPolicy } from "node-opcua-role-set-common";
+import {
+    ArchiveStore,
+    InMemoryUserManagementStore,
+    type IUserManagementStore,
+    type PasswordPolicy
+} from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { Range, UserManagementDataType } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
@@ -42,6 +47,18 @@ export interface InstallUserManagementOptions {
      * (see `createUserManagementUserManager`).
      */
     store?: IUserManagementStore;
+    /**
+     * A shared {@link ArchiveStore} coordinating one consolidated file across
+     * `installRoleSet` and `installUserManagement`. Pass the **same** instance to
+     * both so users (salted scrypt hashes) live in the same archive as the role
+     * config. Install role set **first**, then user management, before serving
+     * requests. When omitted, an internal one is created from `persistencePath`.
+     */
+    persistence?: ArchiveStore;
+    /** Path to a users-only archive (used when no shared {@link persistence} is given). */
+    persistencePath?: string;
+    /** Encrypt the users-only archive at rest (see `installRoleSet`'s `persistenceSecret`). */
+    persistenceSecret?: string;
 }
 
 export interface InstallUserManagementResult {
@@ -88,6 +105,21 @@ export async function installUserManagement(
     const policy = options?.policy ?? {};
     const store = options?.store ?? new InMemoryUserManagementStore(policy);
 
+    // Consolidated-archive coordination: hydrate persisted users (salted hashes)
+    // and register the `users` section so a shared coordinator persists them
+    // alongside the role configuration.
+    const persistence =
+        options?.persistence ??
+        (options?.persistencePath ? new ArchiveStore(options.persistencePath, { secret: options.persistenceSecret }) : undefined);
+    if (persistence && store.importUsers) {
+        const archive = await persistence.load();
+        if (archive?.users) store.importUsers(archive.users);
+    }
+    const exportUsers = store.exportUsers?.bind(store);
+    if (persistence && exportUsers) {
+        persistence.setUsersProvider(() => exportUsers());
+    }
+
     const usersVar = addressSpace.findNode(VariableIds.UserManagement_Users) as UAVariable | null;
     function refreshUsers(): void {
         usersVar?.setValueFromSource({
@@ -111,6 +143,7 @@ export async function installUserManagement(
         store,
         onMutation: async () => {
             refreshUsers();
+            await persistence?.save();
         },
         onAudit: (audit) => {
             raiseAuditMethodEvent(serverObject, "AuditUpdateMethodEventType", {

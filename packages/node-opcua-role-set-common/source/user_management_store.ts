@@ -33,6 +33,18 @@ export interface UserRecord {
     description: string;
 }
 
+/**
+ * Persisted user record — includes the salted scrypt hash (base64), never the
+ * clear password. Suitable for storing in the consolidated archive.
+ */
+export interface SerializedUserRecord {
+    userName: string;
+    salt: string; // base64
+    hash: string; // base64
+    userConfiguration: UserConfigurationMask;
+    description: string;
+}
+
 /** Result of authenticating a user at ActivateSession time. */
 export interface AuthenticationResult {
     /** `Good`, `GoodPasswordChangeRequired`, or a `Bad_` code on failure. */
@@ -58,6 +70,10 @@ export interface IUserManagementStore {
     authenticate(userName: string, password: string): AuthenticationResult;
     getUsers(): UserRecord[];
     hasUser(userName: string): boolean;
+    /** Export every user (with salted hash) for persistence. Optional: only stores that support persistence. */
+    exportUsers?(): SerializedUserRecord[];
+    /** Load persisted users (with salted hash), replacing any existing entry of the same name. */
+    importUsers?(records: SerializedUserRecord[]): void;
 }
 
 interface InternalUser {
@@ -97,6 +113,28 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
             userConfiguration: u.userConfiguration,
             description: u.description
         }));
+    }
+
+    public exportUsers(): SerializedUserRecord[] {
+        return [...this._users.values()].map((u) => ({
+            userName: u.userName,
+            salt: u.salt.toString("base64"),
+            hash: u.hash.toString("base64"),
+            userConfiguration: u.userConfiguration,
+            description: u.description
+        }));
+    }
+
+    public importUsers(records: SerializedUserRecord[]): void {
+        for (const r of records) {
+            this._users.set(r.userName, {
+                userName: r.userName,
+                salt: Buffer.from(r.salt, "base64"),
+                hash: Buffer.from(r.hash, "base64"),
+                userConfiguration: r.userConfiguration,
+                description: r.description
+            });
+        }
     }
 
     public addUser(userName: string, password: string, userConfiguration: UserConfigurationMask, description: string): StatusCode {

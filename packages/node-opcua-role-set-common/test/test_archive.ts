@@ -1,10 +1,13 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NodeId } from "node-opcua-nodeid";
-import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
+import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 import "should";
 import {
+    ArchiveStore,
     InMemoryIdentityMappingStore,
+    InMemoryUserManagementStore,
     identitiesFromBase64,
     identitiesToBase64,
     ROLE_SET_ARCHIVE_VERSION,
@@ -97,5 +100,43 @@ describe("RoleSet consolidated archive", () => {
         await fs.mkdir(tmpDir, { recursive: true });
         await fs.writeFile(filePath, JSON.stringify({ hello: "world" }), "utf8");
         await readArchive(filePath).should.be.rejectedWith(/no version field/);
+    });
+
+    describe("ArchiveStore coordinator", () => {
+        it("gathers sections from several providers into one file and reloads them", async () => {
+            const ids = new InMemoryIdentityMappingStore();
+            ids.addIdentity(
+                new NodeId(NodeId.NodeIdType.NUMERIC, 15704, 0),
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: "joe" })
+            );
+            const users = new InMemoryUserManagementStore();
+            users.addUser("alice", "Sekret123!", UserConfigurationMask.None, "");
+
+            const store = new ArchiveStore(filePath);
+            store.setIdentitiesProvider(() => identitiesToBase64(ids));
+            store.setUsersProvider(() => users.exportUsers());
+            await store.save();
+
+            // a fresh coordinator (simulating a restart) reloads BOTH sections
+            const back = await new ArchiveStore(filePath).load();
+            back?.users?.map((u) => u.userName).should.eql(["alice"]);
+            (typeof back?.identities).should.equal("string");
+
+            // the salted scrypt hash round-trips: the password still verifies
+            const users2 = new InMemoryUserManagementStore();
+            users2.importUsers(back?.users ?? []);
+            users2.authenticate("alice", "Sekret123!").statusCode.should.equal(StatusCodes.Good);
+        });
+
+        it("persists encrypted when a secret is configured", async () => {
+            const users = new InMemoryUserManagementStore();
+            users.addUser("bob", "Sekret123!", UserConfigurationMask.None, "");
+            const store = new ArchiveStore(filePath, { secret: "k" });
+            store.setUsersProvider(() => users.exportUsers());
+            await store.save();
+
+            (await fs.readFile(filePath, "utf8")).should.containEql('"encrypted": true');
+            (await new ArchiveStore(filePath, { secret: "k" }).load())?.users?.map((u) => u.userName).should.eql(["bob"]);
+        });
     });
 });
