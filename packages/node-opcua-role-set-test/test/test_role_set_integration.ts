@@ -20,7 +20,7 @@ import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { ClientRoleSet } from "node-opcua-role-set-client";
+import { browseRoles, ClientRole, ClientRoleSet, readAllRoleIdentities } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, type IRoleRestrictionStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
@@ -404,6 +404,69 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             } finally {
                 emitter.removeListener("event", listener);
             }
+        });
+    });
+
+    describe("client surface: ClientRole / module helpers", () => {
+        it("ClientRole.getBrowseName() reads the BrowseName from the server when not preset", async () => {
+            // construct a ClientRole WITHOUT a known name → forces the read path
+            const { roleNodeId } = (await browseRoles(adminRoleSet().session)).find((r) => r.roleName === "Operator") ?? {};
+            if (!roleNodeId) throw new Error("Operator role not found");
+            const role = new ClientRole(adminRoleSet().session, roleNodeId);
+            (await role.getBrowseName()).should.equal("Operator");
+        });
+
+        it("module-level browseRoles + readAllRoleIdentities work standalone", async () => {
+            const session = adminRoleSet().session;
+            (await browseRoles(session)).map((r) => r.roleName).should.containEql("SecurityAdmin");
+            const all = await readAllRoleIdentities(session);
+            all.find((r) => r.roleName === "SecurityAdmin")?.identities.should.have.length(1);
+        });
+
+        it("readIdentities returns [] for a Role that has no identities", async () => {
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            (await operator.readIdentities()).should.eql([]);
+        });
+
+        it("returns BadNotSupported when a Method is absent on a Role (immutable Anonymous)", async () => {
+            const anon = await getClientRole(adminRoleSet(), "Anonymous");
+            // the well-known Anonymous Role exposes none of the config Methods
+            (await anon.removeIdentity(makeRule(IdentityCriteriaType.Anonymous, "*"))).statusCode.should.equal(
+                StatusCodes.BadNotSupported
+            );
+            (await anon.addApplication("urn:x")).statusCode.should.equal(StatusCodes.BadNotSupported);
+            (await anon.removeApplication("urn:x")).statusCode.should.equal(StatusCodes.BadNotSupported);
+            (await anon.addEndpoint(new EndpointType({}))).statusCode.should.equal(StatusCodes.BadNotSupported);
+            (await anon.removeEndpoint(new EndpointType({}))).statusCode.should.equal(StatusCodes.BadNotSupported);
+        });
+
+        it("AddApplication/RemoveApplication and AddEndpoint/RemoveEndpoint round-trip on a custom Role", async () => {
+            const admin = adminRoleSet();
+            const { roleNodeId } = await admin.addRole("CoverageRole");
+            if (!roleNodeId) throw new Error("expected a RoleNodeId");
+            const role = await admin.getRoleByNodeId(roleNodeId);
+            if (!role) throw new Error("custom role not found");
+
+            (await role.addApplication("urn:cov:app")).statusCode.should.equal(StatusCodes.Good);
+            (await role.removeApplication("urn:cov:app")).statusCode.should.equal(StatusCodes.Good);
+
+            const ep = new EndpointType({ endpointUrl: "opc.tcp://host:4840" });
+            (await role.addEndpoint(ep)).statusCode.should.equal(StatusCodes.Good);
+            (await role.removeEndpoint(ep)).statusCode.should.equal(StatusCodes.Good);
+
+            // cleanup
+            await admin.removeRole(roleNodeId);
+        });
+
+        it("AddRole honors a custom namespaceUri for the BrowseName", async () => {
+            const admin = adminRoleSet();
+            const { statusCode, roleNodeId } = await admin.addRole("VendorRole", "http://acme.example/Roles");
+            statusCode.should.equal(StatusCodes.Good);
+            if (!roleNodeId) throw new Error("expected a RoleNodeId");
+            // the Server still assigns the NodeId in its own namespace (ns=1, GUID)
+            roleNodeId.namespace.should.equal(1);
+            (await admin.getRoles()).map((r) => r.roleName).should.containEql("VendorRole");
+            await admin.removeRole(roleNodeId);
         });
     });
 });
