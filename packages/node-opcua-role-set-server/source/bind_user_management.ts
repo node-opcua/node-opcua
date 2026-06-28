@@ -1,0 +1,160 @@
+/**
+ * @module node-opcua-role-set-server
+ *
+ * Method handlers for the UserManagementType Methods (OPC 10000-18 §5.2):
+ * AddUser, ModifyUser, RemoveUser and ChangePassword, backed by an
+ * {@link IUserManagementStore}.
+ *
+ * AddUser / ModifyUser / RemoveUser require the SecurityAdmin Role and an
+ * encrypted channel. ChangePassword is callable by the Session user itself but
+ * still requires an encrypted channel and a USERNAME user token (§5.2.8).
+ */
+import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
+import type { IUserManagementStore } from "node-opcua-role-set-common";
+import type { CallMethodResultOptions } from "node-opcua-service-call";
+import { StatusCodes } from "node-opcua-status-code";
+import { type UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
+import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
+
+export interface BindUserManagementOptions {
+    store: IUserManagementStore;
+    /** Called after every successful mutation so the caller can persist / refresh. */
+    onMutation?: () => Promise<void>;
+}
+
+function asString(v: Variant | undefined): string | null {
+    return v && typeof v.value === "string" ? v.value : null;
+}
+function asBoolean(v: Variant | undefined): boolean {
+    return !!v && v.value === true;
+}
+function asMask(v: Variant | undefined): UserConfigurationMask {
+    return (v && typeof v.value === "number" ? v.value : 0) as UserConfigurationMask;
+}
+
+/** Create an AddUser Method handler (§5.2.5). */
+export function makeAddUserHandler(options: BindUserManagementOptions) {
+    const { store, onMutation } = options;
+    return async function _addUser(
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+        const denied = checkSecurityAdminAccess(context);
+        if (denied) return denied;
+
+        const userName = asString(inputArguments[0]);
+        const password = asString(inputArguments[1]);
+        if (userName === null || password === null) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        const userConfiguration = asMask(inputArguments[2]);
+        const description = asString(inputArguments[3]) ?? "";
+
+        const statusCode = store.addUser(userName, password, userConfiguration, description);
+        if (statusCode === StatusCodes.Good && onMutation) {
+            await onMutation();
+        }
+        return { statusCode };
+    };
+}
+
+/** Create a ModifyUser Method handler (§5.2.6). */
+export function makeModifyUserHandler(options: BindUserManagementOptions) {
+    const { store, onMutation } = options;
+    return async function _modifyUser(
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+        const denied = checkSecurityAdminAccess(context);
+        if (denied) return denied;
+
+        const userName = asString(inputArguments[0]);
+        if (userName === null) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        const statusCode = store.modifyUser(
+            userName,
+            {
+                modifyPassword: asBoolean(inputArguments[1]),
+                password: asString(inputArguments[2]) ?? "",
+                modifyUserConfiguration: asBoolean(inputArguments[3]),
+                userConfiguration: asMask(inputArguments[4]),
+                modifyDescription: asBoolean(inputArguments[5]),
+                description: asString(inputArguments[6]) ?? ""
+            },
+            context.getUserName()
+        );
+        if (statusCode === StatusCodes.Good && onMutation) {
+            await onMutation();
+        }
+        return { statusCode };
+    };
+}
+
+/** Create a RemoveUser Method handler (§5.2.7). */
+export function makeRemoveUserHandler(options: BindUserManagementOptions) {
+    const { store, onMutation } = options;
+    return async function _removeUser(
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+        const denied = checkSecurityAdminAccess(context);
+        if (denied) return denied;
+
+        const userName = asString(inputArguments[0]);
+        if (userName === null) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        const statusCode = store.removeUser(userName, context.getUserName());
+        if (statusCode === StatusCodes.Good && onMutation) {
+            await onMutation();
+        }
+        return { statusCode };
+    };
+}
+
+/**
+ * Create a ChangePassword Method handler (§5.2.8).
+ *
+ * Operates on the Session user, requires an encrypted channel and a USERNAME
+ * user token (`Bad_InvalidState` otherwise). Does **not** require SecurityAdmin.
+ */
+export function makeChangePasswordHandler(options: BindUserManagementOptions) {
+    const { store, onMutation } = options;
+    return async function _changePassword(
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+
+        const token = context.session?.userIdentityToken;
+        if (!(token instanceof UserNameIdentityToken)) {
+            return { statusCode: StatusCodes.BadInvalidState };
+        }
+        const userName = token.userName ?? "";
+
+        const oldPassword = asString(inputArguments[0]);
+        const newPassword = asString(inputArguments[1]);
+        if (oldPassword === null || newPassword === null) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+
+        const statusCode = store.changePassword(userName, oldPassword, newPassword);
+        if (statusCode === StatusCodes.Good && onMutation) {
+            await onMutation();
+        }
+        return { statusCode };
+    };
+}

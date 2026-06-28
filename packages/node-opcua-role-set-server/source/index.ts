@@ -10,9 +10,17 @@ export {
     removeRoleNotImplemented
 } from "./bind_role_methods.js";
 export {
+    type BindUserManagementOptions,
+    makeAddUserHandler,
+    makeChangePasswordHandler,
+    makeModifyUserHandler,
+    makeRemoveUserHandler
+} from "./bind_user_management.js";
+export {
     type InstallRoleSetOptions,
     type InstallRoleSetResult,
     type IServerForRoleSet,
     installRoleSet
 } from "./install_role_set.js";
 export { RoleSetResolver } from "./role_set_resolver.js";
+export { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
