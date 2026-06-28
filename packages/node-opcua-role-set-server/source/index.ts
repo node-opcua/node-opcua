@@ -4,6 +4,13 @@
 
 export { type AuditMethodEventFields, raiseAuditMethodEvent } from "./audit.js";
 export {
+    type BindRestrictionMethodsOptions,
+    makeAddApplicationHandler,
+    makeAddEndpointHandler,
+    makeRemoveApplicationHandler,
+    makeRemoveEndpointHandler
+} from "./bind_restriction_methods.js";
+export {
     type BindRoleMethodsOptions,
     makeAddIdentityHandler,
     makeRemoveIdentityHandler,

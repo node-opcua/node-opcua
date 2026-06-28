@@ -40,15 +40,14 @@ describe("E2E backlog: Custom Role management — AddRole / RemoveRole (§4.2)",
     it("adds the optional Applications/Endpoints restriction Methods to a custom role (not yet)");
 });
 
-describe("E2E backlog: Application restrictions — Applications/AddApplication (§4.4.7-8)", () => {
-    it("include list grants the role only to listed applications");
-    it("exclude list blocks the role for listed applications");
-    it("requires a signed channel when Applications is non-empty");
-});
-
-describe("E2E backlog: Endpoint restrictions — Endpoints/AddEndpoint (§4.4.9-10)", () => {
-    it("limits a role to a specific endpoint");
-    it("ignores default-valued EndpointType fields during comparison");
+// Application restrictions (§4.4.1, §4.4.7-8) — ✅ covered:
+//   - role-set-common/test/test_role_restriction_store.ts (matching: include/exclude, signed channel)
+//   - role-set-test/test/test_role_set_integration.ts (AddApplication via client → store →
+//     resolver enforcement; duplicate/unknown; granted only for complying app over a signed channel)
+// Endpoint restrictions (§4.4.9-10) — matching unit-tested; live enforcement pending an
+// endpoint URL on the SessionContext.
+describe("E2E backlog: Endpoint restriction live enforcement (§4.4.9-10)", () => {
+    it("limits a role to a specific endpoint once SessionContext exposes the endpoint URL");
 });
 
 describe("E2E backlog: Additional identity criteria types (§4.4.4)", () => {

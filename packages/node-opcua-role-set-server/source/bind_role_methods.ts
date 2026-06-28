@@ -65,7 +65,7 @@ function extractIdentityRule(inputArguments: Variant[]): IdentityMappingRuleType
  * (e.g. immutable Role, duplicate) — with the resulting `statusCode`.
  */
 export interface RoleMappingRuleChangedAudit {
-    method: "AddIdentity" | "RemoveIdentity";
+    method: "AddIdentity" | "RemoveIdentity" | "AddApplication" | "RemoveApplication" | "AddEndpoint" | "RemoveEndpoint";
     roleNodeId: NodeId;
     methodNodeId: NodeId;
     userName: string;

@@ -308,6 +308,33 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "kayla"));
         });
 
+        it("configures the restriction via the client AddApplication Method (§4.4.7)", async () => {
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            (await operator.addIdentity(makeRule(IdentityCriteriaType.UserName, "liam"))).statusCode.should.equal(StatusCodes.Good);
+
+            // configure the application restriction through the client Method
+            (await operator.addApplication("urn:acme:scada")).statusCode.should.equal(StatusCodes.Good);
+            // the restriction reached the store and is enforced by the resolver
+            restrictionStore.getApplications(operator.roleNodeId).should.containEql("urn:acme:scada");
+
+            const liam = new UserNameIdentityToken({ userName: "liam" });
+            resolver
+                .resolveRoles(liam, { applicationUri: "urn:acme:scada", securityMode: MessageSecurityMode.SignAndEncrypt })
+                .some((r) => sameNodeId(r, operator.roleNodeId))
+                .should.be.true();
+            resolver
+                .resolveRoles(liam, { applicationUri: "urn:rogue", securityMode: MessageSecurityMode.SignAndEncrypt })
+                .some((r) => sameNodeId(r, operator.roleNodeId))
+                .should.be.false();
+
+            // duplicate AddApplication → BadAlreadyExists; RemoveApplication round-trips
+            (await operator.addApplication("urn:acme:scada")).statusCode.should.equal(StatusCodes.BadAlreadyExists);
+            (await operator.removeApplication("urn:acme:scada")).statusCode.should.equal(StatusCodes.Good);
+            (await operator.removeApplication("urn:acme:scada")).statusCode.should.equal(StatusCodes.BadNotFound);
+
+            await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "liam"));
+        });
+
         it("does not affect roles with no application restriction", async () => {
             const operator = await getClientRole(adminRoleSet(), "Operator");
             (await operator.addIdentity(makeRule(IdentityCriteriaType.UserName, "nora"))).statusCode.should.equal(StatusCodes.Good);

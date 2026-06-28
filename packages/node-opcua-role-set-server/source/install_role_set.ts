@@ -31,9 +31,17 @@ import {
 } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
+import { EndpointType } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import { raiseAuditMethodEvent } from "./audit.js";
+import {
+    type BindRestrictionMethodsOptions,
+    makeAddApplicationHandler,
+    makeAddEndpointHandler,
+    makeRemoveApplicationHandler,
+    makeRemoveEndpointHandler
+} from "./bind_restriction_methods.js";
 import {
     type BindRoleMethodsOptions,
     makeAddIdentityHandler,
@@ -135,6 +143,28 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         });
     }
 
+    /** Refresh a Role's Applications/Endpoints restriction variables from the store. */
+    function refreshRestrictions(role: UARole): void {
+        role.applications?.setValueFromSource({
+            dataType: DataType.String,
+            arrayType: VariantArrayType.Array,
+            value: restrictionStore.getApplications(role.nodeId)
+        });
+        role.applicationsExclude?.setValueFromSource({
+            dataType: DataType.Boolean,
+            value: restrictionStore.getApplicationsExclude(role.nodeId)
+        });
+        role.endpoints?.setValueFromSource({
+            dataType: DataType.ExtensionObject,
+            arrayType: VariantArrayType.Array,
+            value: restrictionStore.getEndpoints(role.nodeId).map((e) => new EndpointType(e))
+        });
+        role.endpointsExclude?.setValueFromSource({
+            dataType: DataType.Boolean,
+            value: restrictionStore.getEndpointsExclude(role.nodeId)
+        });
+    }
+
     const customRoles: CustomRoleDef[] = [];
 
     async function persistCustomRoles(): Promise<void> {
@@ -143,9 +173,12 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         }
     }
 
-    /** Refresh every Role's Identities variable and persist the mappings. */
+    /** Refresh every Role's variables and persist the identity mappings. */
     const afterMutation = async () => {
-        forEachRole(roleSet, refreshIdentities);
+        forEachRole(roleSet, (role) => {
+            refreshIdentities(role);
+            refreshRestrictions(role);
+        });
         if (persistencePath) {
             await saveToBinaryFile(store, persistencePath);
         }
@@ -170,7 +203,29 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     const addIdentityHandler = makeAddIdentityHandler(methodOptions);
     const removeIdentityHandler = makeRemoveIdentityHandler(methodOptions);
 
-    /** Create a RoleType instance (with AddIdentity/RemoveIdentity) and bind it. */
+    const restrictionMethodOptions: BindRestrictionMethodsOptions = {
+        restrictionStore,
+        onMutation: afterMutation,
+        onAudit: raiseRoleMappingAudit
+    };
+    const addApplicationHandler = makeAddApplicationHandler(restrictionMethodOptions);
+    const removeApplicationHandler = makeRemoveApplicationHandler(restrictionMethodOptions);
+    const addEndpointHandler = makeAddEndpointHandler(restrictionMethodOptions);
+    const removeEndpointHandler = makeRemoveEndpointHandler(restrictionMethodOptions);
+
+    /** Bind the identity + restriction Methods on a Role and seed its variables. */
+    function bindRoleMethods(role: UARole): void {
+        refreshIdentities(role);
+        refreshRestrictions(role);
+        role.addIdentity?.bindMethod(addIdentityHandler);
+        role.removeIdentity?.bindMethod(removeIdentityHandler);
+        role.addApplication?.bindMethod(addApplicationHandler);
+        role.removeApplication?.bindMethod(removeApplicationHandler);
+        role.addEndpoint?.bindMethod(addEndpointHandler);
+        role.removeEndpoint?.bindMethod(removeEndpointHandler);
+    }
+
+    /** Create a RoleType instance (with the configuration Methods) and bind it. */
     const createRoleNode = (roleName: string, browseNameNamespace: number, nodeId: NodeId): UARole => {
         const roleType = addressSpace.findObjectType("RoleType");
         if (!roleType) {
@@ -180,11 +235,20 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
             browseName: { name: roleName, namespaceIndex: browseNameNamespace },
             componentOf: roleSet,
             nodeId,
-            optionals: ["AddIdentity", "RemoveIdentity"]
+            optionals: [
+                "AddIdentity",
+                "RemoveIdentity",
+                "AddApplication",
+                "RemoveApplication",
+                "AddEndpoint",
+                "RemoveEndpoint",
+                "Applications",
+                "ApplicationsExclude",
+                "Endpoints",
+                "EndpointsExclude"
+            ]
         }) as UARole;
-        role.addIdentity?.bindMethod(addIdentityHandler);
-        role.removeIdentity?.bindMethod(removeIdentityHandler);
-        refreshIdentities(role);
+        bindRoleMethods(role);
         return role;
     };
 
@@ -207,12 +271,8 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         }
     }
 
-    // Bind AddIdentity/RemoveIdentity on every current Role and seed the variable.
-    forEachRole(roleSet, (role) => {
-        refreshIdentities(role);
-        role.addIdentity?.bindMethod(addIdentityHandler);
-        role.removeIdentity?.bindMethod(removeIdentityHandler);
-    });
+    // Bind the configuration Methods on every current Role and seed its variables.
+    forEachRole(roleSet, bindRoleMethods);
 
     // AddRole (§4.2.2)
     const addRoleHandler = async function (
