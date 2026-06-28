@@ -26,6 +26,8 @@ import {
     InMemoryRoleRestrictionStore,
     type IRoleRestrictionStore,
     loadFromBinaryFile,
+    loadRestrictionsFromFile,
+    saveRestrictionsToFile,
     saveToBinaryFile,
     WellKnownRoles
 } from "node-opcua-role-set-common";
@@ -125,12 +127,16 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
 
     const persistencePath = options?.persistencePath;
     const rolesSidecar = persistencePath ? `${persistencePath}.roles.json` : undefined;
+    const restrictionsSidecar = persistencePath ? `${persistencePath}.restrictions.json` : undefined;
 
     const store = new InMemoryIdentityMappingStore();
     if (persistencePath) {
         await loadFromBinaryFile(store, persistencePath);
     }
     const restrictionStore = new InMemoryRoleRestrictionStore();
+    if (restrictionsSidecar) {
+        await loadRestrictionsFromFile(restrictionStore, restrictionsSidecar);
+    }
 
     const resolver = new RoleSetResolver(store, restrictionStore);
     server.roleResolvers ??= [];
@@ -173,7 +179,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         }
     }
 
-    /** Refresh every Role's variables and persist the identity mappings. */
+    /** Refresh every Role's variables and persist the identity mappings + restrictions. */
     const afterMutation = async () => {
         forEachRole(roleSet, (role) => {
             refreshIdentities(role);
@@ -181,6 +187,9 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         });
         if (persistencePath) {
             await saveToBinaryFile(store, persistencePath);
+        }
+        if (restrictionsSidecar) {
+            await saveRestrictionsToFile(restrictionStore, restrictionsSidecar);
         }
     };
 

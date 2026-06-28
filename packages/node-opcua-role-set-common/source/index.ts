@@ -13,11 +13,16 @@ export type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_map
 export { InMemoryIdentityMappingStore } from "./in_memory_store.js";
 export {
     applicationComplies,
+    deserializeRestrictions,
     type EndpointCriteria,
     endpointComplies,
     InMemoryRoleRestrictionStore,
     type IRoleRestrictionStore,
-    type ResolutionContext
+    loadRestrictionsFromFile,
+    type ResolutionContext,
+    type SerializedRoleRestriction,
+    saveRestrictionsToFile,
+    serializeRestrictions
 } from "./role_restriction_store.js";
 export {
     type AuthenticationResult,
