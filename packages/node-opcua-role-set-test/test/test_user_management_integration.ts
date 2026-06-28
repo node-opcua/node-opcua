@@ -170,4 +170,38 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
             );
         });
     });
+
+    describe("audit events (AuditUpdateMethodEventType)", () => {
+        interface AuditFields {
+            clientUserId: { value: string };
+            sourceName: { value: string };
+            status: { value: boolean };
+            message: { value: { text?: string } };
+        }
+
+        it("raises an audit event for AddUser without leaking the password", async () => {
+            const serverObject = addressSpace.rootFolder.objects.server;
+            const events: AuditFields[] = [];
+            const emitter = serverObject as unknown as {
+                on(event: string, cb: (data: unknown) => void): void;
+                removeListener(event: string, cb: (data: unknown) => void): void;
+            };
+            const listener = (data: unknown) => events.push(data as AuditFields);
+            emitter.on("event", listener);
+            try {
+                (await adminClient().addUser("audited", "T0pSecret!", UserConfigurationMask.None, "")).statusCode.should.equal(
+                    StatusCodes.Good
+                );
+
+                events.length.should.be.greaterThan(0);
+                const audit = events[events.length - 1];
+                audit.clientUserId.value.should.equal("admin");
+                audit.sourceName.value.should.equal("Method/AddUser");
+                audit.status.value.should.equal(true);
+                (audit.message.value.text ?? "").should.not.containEql("T0pSecret!");
+            } finally {
+                emitter.removeListener("event", listener);
+            }
+        });
+    });
 });

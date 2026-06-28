@@ -8,7 +8,8 @@ import {
     makeAddUserHandler,
     makeChangePasswordHandler,
     makeModifyUserHandler,
-    makeRemoveUserHandler
+    makeRemoveUserHandler,
+    type UserManagementAudit
 } from "../source/bind_user_management.js";
 
 interface ContextOptions {
@@ -173,5 +174,52 @@ describe("bind_user_management — ModifyUser / RemoveUser (§5.2.6-7)", () => {
         const handler = makeRemoveUserHandler({ store });
         const result = await handler.call(method, [str("admin")], makeContext({ userName: "admin" }));
         result.statusCode?.should.equal(StatusCodes.BadInvalidSelfReference);
+    });
+});
+
+describe("bind_user_management — audit (AuditUpdateMethodEventType)", () => {
+    it("AddUser audits caller/target/status and NEVER carries the password", async () => {
+        const store = new InMemoryUserManagementStore();
+        const audits: UserManagementAudit[] = [];
+        const handler = makeAddUserHandler({ store, onAudit: (a) => audits.push(a) });
+        const args = [str("joe"), str("hunter2"), mask(UserConfigurationMask.None), str("")];
+
+        await handler.call(method, args, makeContext({ userName: "admin" }));
+
+        audits.should.have.length(1);
+        audits[0].method.should.equal("AddUser");
+        audits[0].targetUserName.should.equal("joe");
+        audits[0].callerUserName.should.equal("admin");
+        audits[0].statusCode.should.equal(StatusCodes.Good);
+        // the audit payload must not contain the password anywhere
+        JSON.stringify(audits[0]).should.not.containEql("hunter2");
+    });
+
+    it("ChangePassword audits the session user without either password", async () => {
+        const store = new InMemoryUserManagementStore();
+        store.addUser("kim", "OldPass1", UserConfigurationMask.None, "");
+        const audits: UserManagementAudit[] = [];
+        const handler = makeChangePasswordHandler({ store, onAudit: (a) => audits.push(a) });
+        const ctx = makeContext({ token: new UserNameIdentityToken({ userName: "kim" }) });
+
+        await handler.call(method, [str("OldPass1"), str("NewPass2")], ctx);
+
+        audits.should.have.length(1);
+        audits[0].method.should.equal("ChangePassword");
+        audits[0].targetUserName.should.equal("kim");
+        audits[0].callerUserName.should.equal("kim");
+        audits[0].statusCode.should.equal(StatusCodes.Good);
+        const serialized = JSON.stringify(audits[0]);
+        serialized.should.not.containEql("OldPass1");
+        serialized.should.not.containEql("NewPass2");
+    });
+
+    it("does NOT audit a call rejected before authorization (unencrypted AddUser)", async () => {
+        const store = new InMemoryUserManagementStore();
+        const audits: UserManagementAudit[] = [];
+        const handler = makeAddUserHandler({ store, onAudit: (a) => audits.push(a) });
+        const ctx = makeContext({ securityMode: MessageSecurityMode.None });
+        await handler.call(method, [str("joe"), str("pw"), mask(UserConfigurationMask.None), str("")], ctx);
+        audits.should.have.length(0);
     });
 });

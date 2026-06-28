@@ -30,7 +30,8 @@ import {
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { DataType } from "node-opcua-variant";
+import { raiseAuditMethodEvent } from "./audit.js";
 import {
     type BindRoleMethodsOptions,
     makeAddIdentityHandler,
@@ -146,23 +147,17 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     };
 
     // Raise a RoleMappingRuleChangedAuditEventType on the Server object (§4.5).
+    // The IdentityMappingRule carries no secret, so it is included.
     const serverObject = addressSpace.rootFolder?.objects?.server;
     const raiseRoleMappingAudit = (audit: RoleMappingRuleChangedAudit): void => {
-        serverObject?.raiseEvent("RoleMappingRuleChangedAuditEventType", {
-            actionTimeStamp: { dataType: "DateTime", value: new Date() },
-            status: { dataType: "Boolean", value: audit.statusCode === StatusCodes.Good },
-            serverId: { dataType: "String", value: "" },
-            clientAuditEntryId: { dataType: "String", value: "" },
-            clientUserId: { dataType: "String", value: audit.userName },
-            sourceNode: { dataType: "NodeId", value: audit.roleNodeId },
-            sourceName: { dataType: "String", value: `Method/${audit.method}` },
-            methodId: { dataType: "NodeId", value: audit.methodNodeId },
-            inputArguments: { dataType: "Variant", arrayType: VariantArrayType.Array, value: audit.inputArguments },
-            severity: { dataType: "UInt16", value: 10 },
-            message: {
-                dataType: "LocalizedText",
-                value: `${audit.method} on role ${audit.roleNodeId.toString()} by '${audit.userName}' → ${audit.statusCode.name}`
-            }
+        raiseAuditMethodEvent(serverObject, "RoleMappingRuleChangedAuditEventType", {
+            sourceNode: audit.roleNodeId,
+            sourceName: `Method/${audit.method}`,
+            methodId: audit.methodNodeId,
+            clientUserId: audit.userName,
+            status: audit.statusCode === StatusCodes.Good,
+            message: `${audit.method} on role ${audit.roleNodeId.toString()} by '${audit.userName}' → ${audit.statusCode.name}`,
+            inputArguments: audit.inputArguments
         });
     };
 
