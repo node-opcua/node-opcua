@@ -121,6 +121,12 @@ export interface ClientSessionBase {
      * the session name
      */
     name: string;
+    /**
+     * the StatusCode returned by the last ActivateSession — usually `Good`, but
+     * e.g. `Good_PasswordChangeRequired` when the user must change the password
+     * (OPC 10000-18 §5.2.8). Lets a Client react without server-side access.
+     */
+    lastActivateSessionStatusCode: StatusCode;
 
     /**
      * Close the session.

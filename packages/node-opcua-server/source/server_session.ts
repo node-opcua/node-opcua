@@ -113,6 +113,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public channel?: ServerSecureChannelLayer;
     public nonce?: Buffer;
     public userIdentityToken?: UserIdentityToken;
+    /**
+     * Set by a `userManager` during authentication to indicate that the user
+     * must change the password (OPC 10000-18 §5.2.8). When true, ActivateSession
+     * returns `Good_PasswordChangeRequired` so the Client can react.
+     */
+    public passwordChangeRequired?: boolean;
     public clientDescription?: ApplicationDescription;
     public channelId?: number | null;
     public continuationPointManager: ContinuationPointManager;
