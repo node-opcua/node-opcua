@@ -17,8 +17,8 @@ import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { CallMethodResult } from "node-opcua-service-call";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { IdentityMappingRuleType } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { type EndpointType, IdentityMappingRuleType } from "node-opcua-types";
+import { DataType, type VariantOptions } from "node-opcua-variant";
 import { resolveChildNodeIds } from "./resolve_child_node_ids.js";
 
 /**
@@ -28,6 +28,10 @@ interface RoleMethodIds {
     addIdentityMethodId: NodeId | null;
     removeIdentityMethodId: NodeId | null;
     identitiesNodeId: NodeId | null;
+    addApplicationMethodId: NodeId | null;
+    removeApplicationMethodId: NodeId | null;
+    addEndpointMethodId: NodeId | null;
+    removeEndpointMethodId: NodeId | null;
 }
 
 /**
@@ -182,7 +186,11 @@ export class ClientRole {
         this._methodIds = await resolveChildNodeIds(this.session, this.roleNodeId, {
             addIdentityMethodId: "/AddIdentity",
             removeIdentityMethodId: "/RemoveIdentity",
-            identitiesNodeId: "/Identities"
+            identitiesNodeId: "/Identities",
+            addApplicationMethodId: "/AddApplication",
+            removeApplicationMethodId: "/RemoveApplication",
+            addEndpointMethodId: "/AddEndpoint",
+            removeEndpointMethodId: "/RemoveEndpoint"
         });
         return this._methodIds;
     }
@@ -247,6 +255,37 @@ export class ClientRole {
             methodId: ids.removeIdentityMethodId,
             inputArguments: [{ dataType: DataType.ExtensionObject, value: rule }]
         });
+    }
+
+    private async callRoleMethod(methodId: NodeId | null, inputArguments: VariantOptions[]): Promise<CallMethodResult> {
+        if (!methodId) {
+            return new CallMethodResult({ statusCode: StatusCodes.BadNotSupported });
+        }
+        return this.session.call({ objectId: this.roleNodeId, methodId, inputArguments });
+    }
+
+    /** Call AddApplication on this Role (OPC 10000-18 §4.4.7). */
+    public async addApplication(applicationUri: string): Promise<CallMethodResult> {
+        const ids = await this.ensureInitialized();
+        return this.callRoleMethod(ids.addApplicationMethodId, [{ dataType: DataType.String, value: applicationUri }]);
+    }
+
+    /** Call RemoveApplication on this Role (§4.4.8). */
+    public async removeApplication(applicationUri: string): Promise<CallMethodResult> {
+        const ids = await this.ensureInitialized();
+        return this.callRoleMethod(ids.removeApplicationMethodId, [{ dataType: DataType.String, value: applicationUri }]);
+    }
+
+    /** Call AddEndpoint on this Role (§4.4.9). */
+    public async addEndpoint(endpoint: EndpointType): Promise<CallMethodResult> {
+        const ids = await this.ensureInitialized();
+        return this.callRoleMethod(ids.addEndpointMethodId, [{ dataType: DataType.ExtensionObject, value: endpoint }]);
+    }
+
+    /** Call RemoveEndpoint on this Role (§4.4.10). */
+    public async removeEndpoint(endpoint: EndpointType): Promise<CallMethodResult> {
+        const ids = await this.ensureInitialized();
+        return this.callRoleMethod(ids.removeEndpointMethodId, [{ dataType: DataType.ExtensionObject, value: endpoint }]);
     }
 }
 

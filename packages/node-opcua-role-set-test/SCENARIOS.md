@@ -50,8 +50,8 @@ It serves two purposes:
 | Re-evaluate roles on **active** sessions after change | §4.4.1 | ✅ | roles are recomputed per request (not cached), so a mapping change takes effect on an already-active session without reconnecting; integration-tested |
 | Well-known role immutability (Anonymous/Auth/TrustedApp) | §4.3 | ⚠️ | Anonymous/AuthenticatedUser enforced; TrustedApplication absent from build |
 | AddRole / RemoveRole | §4.2.2 / §4.2.3 | ✅ | custom Roles created as `ns=1;g=<uuid>` (persisted), RoleName unique across all namespaces (rejects well-known/custom name clashes), well-known Roles cannot be removed; driven via `ClientRoleSet.addRole`/`removeRole`/`getRoleByNodeId`, client-integration-tested. (Spec's "reuse well-known NodeId" path is intentionally replaced by impersonation rejection.) |
-| Applications / ApplicationsExclude + Add/RemoveApplication | §4.4.1, §4.4.7-8 | ❌ | |
-| Endpoints / EndpointsExclude + Add/RemoveEndpoint | §4.4.1, §4.4.9-10 | ❌ | |
+| Applications / ApplicationsExclude + Add/RemoveApplication | §4.4.1, §4.4.7-8 | ✅ | restriction store + matching (incl. signed-channel requirement, include/exclude), AddApplication/RemoveApplication Methods bound + client + audited, and **enforced at role resolution** (resolver filters by application); fully tested |
+| Endpoints / EndpointsExclude + Add/RemoveEndpoint | §4.4.1, §4.4.9-10 | ⚠️ | restriction store + endpoint matching (default-field rules) + AddEndpoint/RemoveEndpoint Methods bound + client + audited; **live enforcement limited** — SessionContext does not yet expose the endpoint URL, so endpoint matching is unit-tested but not yet applied at session resolution |
 | CustomConfiguration | §4.4.1 | ❌ | |
 | Browse/read of sensitive role data restricted to admins | §4.4.1 | ❌ | |
 | RoleMappingRuleChangedAuditEventType | §4.5 | ✅ | raised on the Server object for every authorized AddIdentity/RemoveIdentity attempt (success **and** refusal, with the resulting Status); unit-tested (`onAudit`) + observed in-process in the integration test |
