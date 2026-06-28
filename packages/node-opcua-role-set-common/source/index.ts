@@ -3,6 +3,16 @@
  */
 
 export {
+    type ArchiveIO,
+    identitiesFromBase64,
+    identitiesToBase64,
+    type PersistedCustomRole,
+    ROLE_SET_ARCHIVE_VERSION,
+    type RoleSetArchive,
+    readArchive,
+    writeArchive
+} from "./archive.js";
+export {
     decodeIdentityStore,
     encodeIdentityStore,
     identityStoreBinaryStoreSize,

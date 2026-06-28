@@ -21,12 +21,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
-import {
-    InMemoryIdentityMappingStore,
-    type IRoleRestrictionStore,
-    saveToBinaryFile,
-    WellKnownRoleIds
-} from "node-opcua-role-set-common";
+import { InMemoryIdentityMappingStore, type IRoleRestrictionStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -37,7 +32,7 @@ import {
     UserNameIdentityToken
 } from "node-opcua-types";
 import should from "should";
-import { anonymousSession, makeSessionContext, userSession } from "./helpers.js";
+import { anonymousSession, bootstrapArchive, makeSessionContext, userSession } from "./helpers.js";
 
 /** The server-like object understood by both installRoleSet and SessionContext. */
 type TestServer = IServerForRoleSet & IServerBase;
@@ -78,7 +73,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         // so installRoleSet loads it and the admin session resolves to SecurityAdmin.
         const bootstrap = new InMemoryIdentityMappingStore();
         bootstrap.addIdentity(WellKnownRoleIds.SecurityAdmin, makeRule(IdentityCriteriaType.UserName, "admin"));
-        await saveToBinaryFile(bootstrap, persistencePath);
+        await bootstrapArchive(persistencePath, bootstrap);
 
         server = {
             roleResolvers: [],
