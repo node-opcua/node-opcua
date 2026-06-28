@@ -55,12 +55,12 @@ It serves two purposes:
 | CustomConfiguration | §4.4.1 | ❌ | |
 | Browse/read of sensitive role data restricted to admins | §4.4.1 | ❌ | |
 | RoleMappingRuleChangedAuditEventType | §4.5 | ❌ | no audit event raised |
-| Persistence across restart | — (impl) | ⚠️ | binary persist exists; no restart e2e test |
+| Persistence across restart | — (impl) | ✅ | `installRoleSet` loads persisted identities on startup; tested in `test_install_role_set.ts` and used to bootstrap the integration tests |
 | **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ✅ | `installUserManagement` binds the UA `UserManagement` Methods; driven via `ClientUserManagement` and integration-tested over a PseudoSession |
 | **ChangePassword** | §5.2.8 | ✅ | bound to the UA Method; client integration test proves old-fails/new-works, USERNAME-token & encrypted-channel gating |
 | MustChangePassword / Good_PasswordChangeRequired flow | §5.2.8 | ✅ | proven over a **real OPCUAServer**: ActivateSession returns `Good_PasswordChangeRequired`, the **client detects it** via `sessionRequiresPasswordChange(session)` (no server/userManager access), restricted to Anonymous, password rotated in-session, old rejected, new accepted |
 | Password policy (length / options mask) | §5.2.1-2 | ⚠️ | `PasswordPolicy` validated in store + published via `PasswordLength`/`PasswordOptions`; unit-tested |
-| User disable / NoDelete / NoChangeByUser | §5.2.3 | ⚠️ | enforced in store + unit-tested; session-close on disable pending |
+| User disable / NoDelete / NoChangeByUser | §5.2.3 | ✅ | enforced in store + unit-tested; a disabled user can no longer activate a session (real-server e2e); proactive session-close on disable still pending |
 | Bad_InvalidSelfReference (disable/remove self) | §5.2.6-7 | ✅ | enforced in store + handlers; client integration-tested (RemoveUser self) |
 
 ---

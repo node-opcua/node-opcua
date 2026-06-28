@@ -137,6 +137,23 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
             const bossClient = new ClientUserManagement(sessionAs(new UserNameIdentityToken({ userName: "boss" })));
             (await bossClient.removeUser("boss")).statusCode.should.equal(StatusCodes.BadInvalidSelfReference);
         });
+
+        it("admin can modify a user's description via ModifyUser", async () => {
+            const um = adminClient();
+            (await um.addUser("desc-user", "pass1", UserConfigurationMask.None, "old description")).statusCode.should.equal(
+                StatusCodes.Good
+            );
+
+            (await um.modifyUser("desc-user", { description: "new description" })).statusCode.should.equal(StatusCodes.Good);
+
+            const users = await um.readUsers();
+            users.find((u) => u.userName === "desc-user")?.description.should.equal("new description");
+        });
+
+        it("should return BadNotFound when modifying an unknown user", async () => {
+            const um = adminClient();
+            (await um.modifyUser("ghost", { description: "x" })).statusCode.should.equal(StatusCodes.BadNotFound);
+        });
     });
 
     describe("ChangePassword through the client (§5.2.8)", () => {
