@@ -9,6 +9,16 @@ It serves two purposes:
 1. **Gap analysis** — what the current `node-opcua-role-set-*` packages do and do not cover.
 2. **Test backlog** — an exhaustive set of e2e scenarios to drive the implementation.
 
+> **Testing approach.** The integration tests
+> ([test_role_set_integration.ts](./test/test_role_set_integration.ts)) drive the
+> **role-set client** against the **server aggregator** (`installRoleSet` + a
+> store-backed role resolver) over an in-process `PseudoSession`. The
+> `SessionContext` simulates the calling user and the SecureChannel security mode,
+> so authorization and the encrypted-channel requirement are exercised for real —
+> the same client code path works against a remote `ClientSession`. This is the
+> single, unified way to interact with both a live server and an in-process
+> address space.
+
 ## Legend
 
 | Mark | Meaning |
@@ -26,7 +36,7 @@ It serves two purposes:
 | Browse RoleSet, read Identities (client) | §4.3 / §4.4 | ✅ | `browseRoles`, `ClientRole.readIdentities` |
 | AddIdentity / RemoveIdentity (happy path) | §4.4.5 / §4.4.6 | ✅ | store-backed handlers |
 | SecurityAdmin authorization | §4.4.5 | ✅ | `checkSecurityAdminAccess` |
-| **Encrypted-channel enforcement** | §4.4.1, all methods | ⚠️ | `Bad_SecurityModeInsufficient` enforced in AddIdentity/RemoveIdentity handlers (unit-tested); skipped for channel-less in-process sessions; not yet on read/browse |
+| **Encrypted-channel enforcement** | §4.4.1, all methods | ✅ | `Bad_SecurityModeInsufficient` enforced in AddIdentity/RemoveIdentity; unit-tested **and** integration-tested client→server over a PseudoSession whose context simulates the channel security mode; not yet on read/browse |
 | Identity criteria: Anonymous / AuthenticatedUser / UserName | §4.4.4 | ✅ | |
 | Identity criteria: Thumbprint | §4.4.4 | ⚠️ | SHA-1 thumbprint matched; not e2e tested |
 | Identity criteria: X509Subject | §4.4.4 | ✅ | full ordered DN format (Table 10) + legacy CN; unit-tested |
