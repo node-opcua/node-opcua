@@ -1,19 +1,24 @@
 import "should";
 
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
-import type { NodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId, sameNodeId } from "node-opcua-nodeid";
 
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { makeAddIdentityHandler, makeRemoveIdentityHandler } from "../source/bind_role_methods.js";
+import {
+    makeAddIdentityHandler,
+    makeRemoveIdentityHandler,
+    type RoleMappingRuleChangedAudit
+} from "../source/bind_role_methods.js";
 
 // --- Helpers ---
 
-function makeContext(roleNodeIds: NodeId[]): ISessionContext {
+function makeContext(roleNodeIds: NodeId[], userName = "admin"): ISessionContext {
     return {
-        getCurrentUserRoles: () => roleNodeIds
+        getCurrentUserRoles: () => roleNodeIds,
+        getUserName: () => userName
     } as unknown as ISessionContext;
 }
 
@@ -27,6 +32,7 @@ function makeContextWithChannel(roleNodeIds: NodeId[], securityMode: MessageSecu
 
 function makeMockMethod(parentNodeId: NodeId | null): UAMethod {
     return {
+        nodeId: makeNodeId(1234),
         parent: parentNodeId ? { nodeId: parentNodeId } : null
     } as unknown as UAMethod;
 }
@@ -407,5 +413,64 @@ describe("bind_role_methods — duplicate identity (OPC 10000-18 §4.4.5)", () =
         await handler.call(mockMethod, inputArgs, context);
         await handler.call(mockMethod, inputArgs, context);
         mutationCount.should.equal(1);
+    });
+});
+
+describe("bind_role_methods — audit (OPC 10000-18 §4.5)", () => {
+    it("calls onAudit with the user, method, role and Good status on a successful AddIdentity", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const audits: RoleMappingRuleChangedAudit[] = [];
+        const handler = makeAddIdentityHandler({ store, onAudit: (a) => audits.push(a) });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin], "alice");
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+
+        await handler.call(mockMethod, makeRuleVariant(IdentityCriteriaType.UserName, "joe"), context);
+
+        audits.should.have.length(1);
+        audits[0].method.should.equal("AddIdentity");
+        audits[0].userName.should.equal("alice");
+        audits[0].statusCode.should.equal(StatusCodes.Good);
+        sameNodeId(audits[0].roleNodeId, WellKnownRoleIds.Operator).should.be.true();
+    });
+
+    it("audits a refused change with its Bad status (immutable role)", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const audits: RoleMappingRuleChangedAudit[] = [];
+        const handler = makeAddIdentityHandler({ store, onAudit: (a) => audits.push(a) });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Anonymous);
+
+        await handler.call(mockMethod, makeRuleVariant(IdentityCriteriaType.UserName, "x"), context);
+
+        audits.should.have.length(1);
+        audits[0].statusCode.should.equal(StatusCodes.BadRequestNotAllowed);
+    });
+
+    it("does NOT audit a call rejected before authorization (unencrypted channel)", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const audits: RoleMappingRuleChangedAudit[] = [];
+        const handler = makeAddIdentityHandler({ store, onAudit: (a) => audits.push(a) });
+        const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.None);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+
+        await handler.call(mockMethod, makeRuleVariant(IdentityCriteriaType.UserName, "joe"), context);
+        audits.should.have.length(0);
+    });
+
+    it("audits a RemoveIdentity", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        store.addIdentity(
+            WellKnownRoleIds.Operator,
+            new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: "joe" })
+        );
+        const audits: RoleMappingRuleChangedAudit[] = [];
+        const handler = makeRemoveIdentityHandler({ store, onAudit: (a) => audits.push(a) });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+
+        await handler.call(mockMethod, makeRuleVariant(IdentityCriteriaType.UserName, "joe"), context);
+        audits.should.have.length(1);
+        audits[0].method.should.equal("RemoveIdentity");
+        audits[0].statusCode.should.equal(StatusCodes.Good);
     });
 });

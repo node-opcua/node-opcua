@@ -30,8 +30,13 @@ import {
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
-import { DataType } from "node-opcua-variant";
-import { type BindRoleMethodsOptions, makeAddIdentityHandler, makeRemoveIdentityHandler } from "./bind_role_methods.js";
+import { DataType, VariantArrayType } from "node-opcua-variant";
+import {
+    type BindRoleMethodsOptions,
+    makeAddIdentityHandler,
+    makeRemoveIdentityHandler,
+    type RoleMappingRuleChangedAudit
+} from "./bind_role_methods.js";
 import { RoleSetResolver } from "./role_set_resolver.js";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 import { asString } from "./variant_args.js";
@@ -140,7 +145,28 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         }
     };
 
-    const methodOptions: BindRoleMethodsOptions = { store, onMutation: afterMutation };
+    // Raise a RoleMappingRuleChangedAuditEventType on the Server object (§4.5).
+    const serverObject = addressSpace.rootFolder?.objects?.server;
+    const raiseRoleMappingAudit = (audit: RoleMappingRuleChangedAudit): void => {
+        serverObject?.raiseEvent("RoleMappingRuleChangedAuditEventType", {
+            actionTimeStamp: { dataType: "DateTime", value: new Date() },
+            status: { dataType: "Boolean", value: audit.statusCode === StatusCodes.Good },
+            serverId: { dataType: "String", value: "" },
+            clientAuditEntryId: { dataType: "String", value: "" },
+            clientUserId: { dataType: "String", value: audit.userName },
+            sourceNode: { dataType: "NodeId", value: audit.roleNodeId },
+            sourceName: { dataType: "String", value: `Method/${audit.method}` },
+            methodId: { dataType: "NodeId", value: audit.methodNodeId },
+            inputArguments: { dataType: "Variant", arrayType: VariantArrayType.Array, value: audit.inputArguments },
+            severity: { dataType: "UInt16", value: 10 },
+            message: {
+                dataType: "LocalizedText",
+                value: `${audit.method} on role ${audit.roleNodeId.toString()} by '${audit.userName}' → ${audit.statusCode.name}`
+            }
+        });
+    };
+
+    const methodOptions: BindRoleMethodsOptions = { store, onMutation: afterMutation, onAudit: raiseRoleMappingAudit };
     const addIdentityHandler = makeAddIdentityHandler(methodOptions);
     const removeIdentityHandler = makeRemoveIdentityHandler(methodOptions);
 

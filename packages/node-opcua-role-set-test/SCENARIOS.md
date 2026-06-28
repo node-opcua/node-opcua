@@ -54,7 +54,7 @@ It serves two purposes:
 | Endpoints / EndpointsExclude + Add/RemoveEndpoint | §4.4.1, §4.4.9-10 | ❌ | |
 | CustomConfiguration | §4.4.1 | ❌ | |
 | Browse/read of sensitive role data restricted to admins | §4.4.1 | ❌ | |
-| RoleMappingRuleChangedAuditEventType | §4.5 | ❌ | no audit event raised |
+| RoleMappingRuleChangedAuditEventType | §4.5 | ✅ | raised on the Server object for every authorized AddIdentity/RemoveIdentity attempt (success **and** refusal, with the resulting Status); unit-tested (`onAudit`) + observed in-process in the integration test |
 | Persistence across restart | — (impl) | ✅ | identities + **custom Role definitions** (GUID sidecar) survive a restart with the same NodeId (`test_persistence_restart.ts`); a corrupt/truncated file is reported with a clear error (`test_binary_persistence.ts`) |
 | **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ✅ | `installUserManagement` binds the UA `UserManagement` Methods; driven via `ClientUserManagement` and integration-tested over a PseudoSession |
 | **ChangePassword** | §5.2.8 | ✅ | bound to the UA Method; client integration test proves old-fails/new-works, USERNAME-token & encrypted-channel gating |

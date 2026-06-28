@@ -15,7 +15,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { type IIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
@@ -58,10 +58,27 @@ function extractIdentityRule(inputArguments: Variant[]): IdentityMappingRuleType
     return null;
 }
 
+/**
+ * Details of an identity-mapping change, passed to {@link BindRoleMethodsOptions.onAudit}
+ * so the caller can raise a `RoleMappingRuleChangedAuditEventType` (OPC 10000-18 §4.5).
+ * Raised for every authorized attempt — both successful updates and refusals
+ * (e.g. immutable Role, duplicate) — with the resulting `statusCode`.
+ */
+export interface RoleMappingRuleChangedAudit {
+    method: "AddIdentity" | "RemoveIdentity";
+    roleNodeId: NodeId;
+    methodNodeId: NodeId;
+    userName: string;
+    inputArguments: Variant[];
+    statusCode: StatusCode;
+}
+
 export interface BindRoleMethodsOptions {
     store: IIdentityMappingStore;
     /** Called after every mutation (add/remove) so the caller can persist. */
     onMutation?: () => Promise<void>;
+    /** Called after an authorized AddIdentity/RemoveIdentity attempt to raise an audit event. */
+    onAudit?: (audit: RoleMappingRuleChangedAudit) => void;
 }
 
 /**
@@ -69,7 +86,7 @@ export interface BindRoleMethodsOptions {
  * The handler extracts the role NodeId from its parent Role object.
  */
 export function makeAddIdentityHandler(options: BindRoleMethodsOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
 
     return async function _addIdentity(
         this: UAMethod,
@@ -96,28 +113,31 @@ export function makeAddIdentityHandler(options: BindRoleMethodsOptions) {
             return { statusCode: StatusCodes.BadInternalError };
         }
 
-        // 5. Well-known immutable Roles cannot be changed
+        // 5-7. Compute the outcome of the authorized rule-change attempt
+        let statusCode: StatusCode;
         if (isImmutableRole(roleNode.nodeId)) {
-            return { statusCode: StatusCodes.BadRequestNotAllowed };
+            // well-known immutable Roles cannot be changed (§4.3)
+            statusCode = StatusCodes.BadRequestNotAllowed;
+        } else if (isWeakCriteria(rule.criteriaType) && isPrivilegedRole(roleNode.nodeId)) {
+            // refuse weak (Anonymous/AuthenticatedUser) rules on administrative Roles (§4.4.5)
+            statusCode = StatusCodes.BadRequestNotAllowed;
+        } else {
+            // duplicate rule is reported as Bad_AlreadyExists
+            statusCode = store.addIdentity(roleNode.nodeId, rule) ? StatusCodes.Good : StatusCodes.BadAlreadyExists;
         }
 
-        // 6. Refuse weak (Anonymous/AuthenticatedUser) rules on administrative Roles
-        if (isWeakCriteria(rule.criteriaType) && isPrivilegedRole(roleNode.nodeId)) {
-            return { statusCode: StatusCodes.BadRequestNotAllowed };
-        }
-
-        // 7. Add to store — duplicate rule is reported as Bad_AlreadyExists
-        const added = store.addIdentity(roleNode.nodeId, rule);
-        if (!added) {
-            return { statusCode: StatusCodes.BadAlreadyExists };
-        }
-
-        // 8. Persist
-        if (onMutation) {
+        if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
-
-        return { statusCode: StatusCodes.Good };
+        onAudit?.({
+            method: "AddIdentity",
+            roleNodeId: roleNode.nodeId,
+            methodNodeId: this.nodeId,
+            userName: context.getUserName(),
+            inputArguments,
+            statusCode
+        });
+        return { statusCode };
     };
 }
 
@@ -125,7 +145,7 @@ export function makeAddIdentityHandler(options: BindRoleMethodsOptions) {
  * Create a RemoveIdentity method handler bound to the given store.
  */
 export function makeRemoveIdentityHandler(options: BindRoleMethodsOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
 
     return async function _removeIdentity(
         this: UAMethod,
@@ -152,22 +172,25 @@ export function makeRemoveIdentityHandler(options: BindRoleMethodsOptions) {
             return { statusCode: StatusCodes.BadInternalError };
         }
 
-        // 5. Well-known immutable Roles cannot be changed
+        // 5-6. Compute the outcome of the authorized rule-change attempt
+        let statusCode: StatusCode;
         if (isImmutableRole(roleNode.nodeId)) {
-            return { statusCode: StatusCodes.BadRequestNotAllowed };
+            statusCode = StatusCodes.BadRequestNotAllowed;
+        } else {
+            statusCode = store.removeIdentity(roleNode.nodeId, rule) ? StatusCodes.Good : StatusCodes.BadNoMatch;
         }
 
-        // 6. Remove from store
-        const removed = store.removeIdentity(roleNode.nodeId, rule);
-        if (!removed) {
-            return { statusCode: StatusCodes.BadNoMatch };
-        }
-
-        // 7. Persist
-        if (onMutation) {
+        if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
-
-        return { statusCode: StatusCodes.Good };
+        onAudit?.({
+            method: "RemoveIdentity",
+            roleNodeId: roleNode.nodeId,
+            methodNodeId: this.nodeId,
+            userName: context.getUserName(),
+            inputArguments,
+            statusCode
+        });
+        return { statusCode };
     };
 }
