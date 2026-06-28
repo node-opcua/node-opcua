@@ -12,7 +12,12 @@ import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
-import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
+import {
+    InMemoryIdentityMappingStore,
+    type IRoleRestrictionStore,
+    saveToBinaryFile,
+    WellKnownRoleIds
+} from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
@@ -32,7 +37,7 @@ describe("RoleSet persistence across restart", function () {
     const persistencePath = path.join(tmpDir, "roles.bin");
 
     /** Stand up a fresh server bound to the same persistence path (a "boot"). */
-    async function boot(): Promise<{ addressSpace: AddressSpace; server: TestServer }> {
+    async function boot(): Promise<{ addressSpace: AddressSpace; server: TestServer; restrictionStore: IRoleRestrictionStore }> {
         const addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("http://restart-test");
         await generateAddressSpace(addressSpace, [nodesets.standard]);
@@ -41,8 +46,8 @@ describe("RoleSet persistence across restart", function () {
             engine: { addressSpace },
             userManager: { getUserRoles: () => [] }
         } as TestServer;
-        await installRoleSet(server, { persistencePath });
-        return { addressSpace, server };
+        const { restrictionStore } = await installRoleSet(server, { persistencePath });
+        return { addressSpace, server, restrictionStore };
     }
 
     before(async () => {
@@ -69,6 +74,8 @@ describe("RoleSet persistence across restart", function () {
         const role1 = await admin1.getRoleByNodeId(roleNodeId);
         if (!role1) throw new Error("custom role not found after AddRole");
         (await role1.addIdentity(userRule("mech"))).statusCode.should.equal(StatusCodes.Good);
+        // also configure an application restriction (must persist too)
+        (await role1.addApplication("urn:acme:hmi")).statusCode.should.equal(StatusCodes.Good);
 
         b1.addressSpace.dispose();
 
@@ -84,6 +91,9 @@ describe("RoleSet persistence across restart", function () {
 
         // ... and its identity mapping was restored too
         (await restored.readIdentities()).map((i) => i.criteria).should.containEql("mech");
+
+        // ... and so was its application restriction
+        b2.restrictionStore.getApplications(roleNodeId).should.containEql("urn:acme:hmi");
 
         b2.addressSpace.dispose();
     });

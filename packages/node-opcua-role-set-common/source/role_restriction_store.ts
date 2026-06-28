@@ -8,7 +8,9 @@
  * application complies with the `Applications` restriction **and** the Endpoint
  * used complies with the `Endpoints` restriction.
  */
-import type { NodeId } from "node-opcua-nodeid";
+import { promises as fs } from "node:fs";
+import { dirname } from "node:path";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MessageSecurityMode } from "node-opcua-types";
 
 /** An endpoint restriction entry (mirrors the EndpointType DataType, §4.4.2). */
@@ -49,6 +51,9 @@ export interface IRoleRestrictionStore {
     getEndpoints(roleId: NodeId): EndpointCriteria[];
     setEndpointsExclude(roleId: NodeId, exclude: boolean): void;
     getEndpointsExclude(roleId: NodeId): boolean;
+
+    /** NodeIds of the Roles that have any restriction configured. */
+    getRestrictedRoleIds(): NodeId[];
 
     /** True when the Session complies with the Role's application & endpoint restrictions. */
     complies(roleId: NodeId, context: ResolutionContext): boolean;
@@ -124,7 +129,8 @@ interface RoleRestriction {
 export class InMemoryRoleRestrictionStore implements IRoleRestrictionStore {
     private readonly _map = new Map<string, RoleRestriction>();
 
-    private get(roleId: NodeId): RoleRestriction {
+    /** Get-or-create the entry — for mutations only. */
+    private getOrCreate(roleId: NodeId): RoleRestriction {
         const key = roleId.toString();
         let r = this._map.get(key);
         if (!r) {
@@ -134,60 +140,131 @@ export class InMemoryRoleRestrictionStore implements IRoleRestrictionStore {
         return r;
     }
 
+    /** Read the entry without creating one. */
+    private peek(roleId: NodeId): RoleRestriction | undefined {
+        return this._map.get(roleId.toString());
+    }
+
+    public getRestrictedRoleIds(): NodeId[] {
+        return [...this._map.keys()].map((k) => resolveNodeId(k));
+    }
+
     public addApplication(roleId: NodeId, applicationUri: string): boolean {
-        const r = this.get(roleId);
+        const r = this.getOrCreate(roleId);
         if (r.applications.includes(applicationUri)) return false;
         r.applications.push(applicationUri);
         return true;
     }
     public removeApplication(roleId: NodeId, applicationUri: string): boolean {
-        const r = this.get(roleId);
-        const i = r.applications.indexOf(applicationUri);
-        if (i < 0) return false;
+        const r = this.peek(roleId);
+        const i = r ? r.applications.indexOf(applicationUri) : -1;
+        if (!r || i < 0) return false;
         r.applications.splice(i, 1);
         return true;
     }
     public getApplications(roleId: NodeId): string[] {
-        return [...this.get(roleId).applications];
+        return [...(this.peek(roleId)?.applications ?? [])];
     }
     public setApplicationsExclude(roleId: NodeId, exclude: boolean): void {
-        this.get(roleId).applicationsExclude = exclude;
+        this.getOrCreate(roleId).applicationsExclude = exclude;
     }
     public getApplicationsExclude(roleId: NodeId): boolean {
-        const r = this.get(roleId);
+        const r = this.peek(roleId);
         // default TRUE when the list is empty (§4.4.1), otherwise FALSE (include list)
-        return r.applicationsExclude ?? r.applications.length === 0;
+        return r?.applicationsExclude ?? (r?.applications.length ?? 0) === 0;
     }
 
     public addEndpoint(roleId: NodeId, endpoint: EndpointCriteria): boolean {
-        const r = this.get(roleId);
+        const r = this.getOrCreate(roleId);
         if (r.endpoints.some((e) => sameEndpoint(e, endpoint))) return false;
         r.endpoints.push({ ...endpoint });
         return true;
     }
     public removeEndpoint(roleId: NodeId, endpoint: EndpointCriteria): boolean {
-        const r = this.get(roleId);
-        const i = r.endpoints.findIndex((e) => sameEndpoint(e, endpoint));
-        if (i < 0) return false;
+        const r = this.peek(roleId);
+        const i = r ? r.endpoints.findIndex((e) => sameEndpoint(e, endpoint)) : -1;
+        if (!r || i < 0) return false;
         r.endpoints.splice(i, 1);
         return true;
     }
     public getEndpoints(roleId: NodeId): EndpointCriteria[] {
-        return this.get(roleId).endpoints.map((e) => ({ ...e }));
+        return (this.peek(roleId)?.endpoints ?? []).map((e) => ({ ...e }));
     }
     public setEndpointsExclude(roleId: NodeId, exclude: boolean): void {
-        this.get(roleId).endpointsExclude = exclude;
+        this.getOrCreate(roleId).endpointsExclude = exclude;
     }
     public getEndpointsExclude(roleId: NodeId): boolean {
-        const r = this.get(roleId);
-        return r.endpointsExclude ?? r.endpoints.length === 0;
+        const r = this.peek(roleId);
+        return r?.endpointsExclude ?? (r?.endpoints.length ?? 0) === 0;
     }
 
     public complies(roleId: NodeId, context: ResolutionContext): boolean {
-        const r = this.get(roleId);
+        const r = this.peek(roleId);
+        if (!r) {
+            return true; // no restriction configured
+        }
         return (
             applicationComplies(r.applications, this.getApplicationsExclude(roleId), context) &&
             endpointComplies(r.endpoints, this.getEndpointsExclude(roleId), context)
         );
+    }
+}
+
+/** Serializable form of a Role's restrictions (for persistence). */
+export interface SerializedRoleRestriction {
+    nodeId: string;
+    applications: string[];
+    applicationsExclude: boolean;
+    endpoints: EndpointCriteria[];
+    endpointsExclude: boolean;
+}
+
+/** Snapshot the restriction store to a JSON-serializable array. */
+export function serializeRestrictions(store: IRoleRestrictionStore): SerializedRoleRestriction[] {
+    return store.getRestrictedRoleIds().map((roleId) => ({
+        nodeId: roleId.toString(),
+        applications: store.getApplications(roleId),
+        applicationsExclude: store.getApplicationsExclude(roleId),
+        endpoints: store.getEndpoints(roleId),
+        endpointsExclude: store.getEndpointsExclude(roleId)
+    }));
+}
+
+/** Load a serialized snapshot into the restriction store (merges). */
+export function deserializeRestrictions(store: IRoleRestrictionStore, data: SerializedRoleRestriction[]): void {
+    for (const r of data) {
+        const roleId = resolveNodeId(r.nodeId);
+        for (const app of r.applications) {
+            store.addApplication(roleId, app);
+        }
+        store.setApplicationsExclude(roleId, r.applicationsExclude);
+        for (const ep of r.endpoints) {
+            store.addEndpoint(roleId, ep);
+        }
+        store.setEndpointsExclude(roleId, r.endpointsExclude);
+    }
+}
+
+/** Persist the restriction store to a JSON file. */
+export async function saveRestrictionsToFile(store: IRoleRestrictionStore, filePath: string): Promise<void> {
+    await fs.mkdir(dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(serializeRestrictions(store), null, 2), "utf8");
+}
+
+/** Load the restriction store from a JSON file (missing file → no-op). */
+export async function loadRestrictionsFromFile(store: IRoleRestrictionStore, filePath: string): Promise<void> {
+    let text: string;
+    try {
+        text = await fs.readFile(filePath, "utf8");
+    } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+            return;
+        }
+        throw err;
+    }
+    try {
+        deserializeRestrictions(store, JSON.parse(text) as SerializedRoleRestriction[]);
+    } catch (err) {
+        throw new Error(`loadRestrictionsFromFile: '${filePath}' appears to be corrupt: ${(err as Error).message}`);
     }
 }
