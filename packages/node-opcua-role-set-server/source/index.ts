@@ -22,5 +22,11 @@ export {
     type IServerForRoleSet,
     installRoleSet
 } from "./install_role_set.js";
+export {
+    type InstallUserManagementOptions,
+    type InstallUserManagementResult,
+    type IServerForUserManagement,
+    installUserManagement
+} from "./install_user_management.js";
 export { RoleSetResolver } from "./role_set_resolver.js";
 export { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";

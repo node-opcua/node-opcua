@@ -8,3 +8,4 @@ export {
     type RoleIdentitiesResult,
     readAllRoleIdentities
 } from "./client_role_set.js";
+export { ClientUserManagement, type ModifyUserArgs } from "./client_user_management.js";
