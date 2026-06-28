@@ -109,15 +109,30 @@ export interface IRolePolicyOverride {
 }
 
 /**
+ * Session attributes a resolver may use to evaluate application/endpoint
+ * restrictions on a Role (OPC 10000-18 §4.4.1).
+ */
+export interface IRoleResolutionContext {
+    /** ApplicationUri from the Client certificate, if any. */
+    applicationUri?: string | null;
+    /** SecureChannel security mode. */
+    securityMode?: MessageSecurityMode;
+    /** SecureChannel security policy URI. */
+    securityPolicyUri?: string;
+    /** Endpoint URL used by the Session, if known. */
+    endpointUrl?: string;
+}
+
+/**
  * Pluggable role resolver (OPC 10000-18 §4.4).
  *
- * Receives the full UserIdentityToken so implementations can
- * match by Thumbprint, X509Subject, UserName, etc.
- * Registered on IServerBase.roleResolvers by packages like
- * node-opcua-role-set-server.
+ * Receives the full UserIdentityToken so implementations can match by
+ * Thumbprint, X509Subject, UserName, etc., plus an optional resolution context
+ * to enforce application/endpoint restrictions. Registered on
+ * IServerBase.roleResolvers by packages like node-opcua-role-set-server.
  */
 export interface IRoleResolver {
-    resolveRoles(userIdentityToken: AnyUserIdentityToken): NodeId[];
+    resolveRoles(userIdentityToken: AnyUserIdentityToken, context?: IRoleResolutionContext): NodeId[];
 }
 
 export interface IServerBase {
@@ -337,8 +352,13 @@ export class SessionContext implements ISessionContext {
 
         // OPC 10000-18 §4.4: check registered role resolvers
         if (this.server.roleResolvers && this.session?.userIdentityToken) {
+            const resolutionContext: IRoleResolutionContext = {
+                applicationUri: this.clientApplicationUri,
+                securityMode: this.session.channel?.securityMode,
+                securityPolicyUri: this.session.channel?.securityPolicy
+            };
             for (const resolver of this.server.roleResolvers) {
-                const extra = resolver.resolveRoles(this.session.userIdentityToken);
+                const extra = resolver.resolveRoles(this.session.userIdentityToken, resolutionContext);
                 for (const r of extra) {
                     if (!rolesNodeId.find((e) => sameNodeId(e, r))) {
                         rolesNodeId.push(r);
