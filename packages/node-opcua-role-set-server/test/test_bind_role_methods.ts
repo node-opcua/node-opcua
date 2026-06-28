@@ -1,7 +1,7 @@
 import "should";
 
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
-import { makeNodeId, type NodeId, sameNodeId } from "node-opcua-nodeid";
+import { type NodeId, sameNodeId } from "node-opcua-nodeid";
 
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
@@ -32,7 +32,6 @@ function makeContextWithChannel(roleNodeIds: NodeId[], securityMode: MessageSecu
 
 function makeMockMethod(parentNodeId: NodeId | null): UAMethod {
     return {
-        nodeId: makeNodeId(1234),
         parent: parentNodeId ? { nodeId: parentNodeId } : null
     } as unknown as UAMethod;
 }

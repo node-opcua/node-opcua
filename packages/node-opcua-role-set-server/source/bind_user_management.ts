@@ -10,23 +10,41 @@
  * still requires an encrypted channel and a USERNAME user token (§5.2.8).
  */
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
 import type { IUserManagementStore } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { UserNameIdentityToken } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 import { asBoolean, asMask, asString } from "./variant_args.js";
 
+/**
+ * Details of a user-management change for {@link BindUserManagementOptions.onAudit}.
+ * Deliberately carries **no password** — only who did what to whom and the result —
+ * so an AuditUpdateMethodEventType can be raised without leaking secrets.
+ */
+export interface UserManagementAudit {
+    method: "AddUser" | "ModifyUser" | "RemoveUser" | "ChangePassword";
+    /** The user the operation targets (the Session user for ChangePassword). */
+    targetUserName: string;
+    /** The Session user who invoked the Method. */
+    callerUserName: string;
+    methodNodeId: NodeId;
+    statusCode: StatusCode;
+}
+
 export interface BindUserManagementOptions {
     store: IUserManagementStore;
     /** Called after every successful mutation so the caller can persist / refresh. */
     onMutation?: () => Promise<void>;
+    /** Called after an authorized Method attempt to raise an audit event (no secrets). */
+    onAudit?: (audit: UserManagementAudit) => void;
 }
 
 /** Create an AddUser Method handler (§5.2.5). */
 export function makeAddUserHandler(options: BindUserManagementOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
     return async function _addUser(
         this: UAMethod,
         inputArguments: Variant[],
@@ -49,13 +67,20 @@ export function makeAddUserHandler(options: BindUserManagementOptions) {
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
+        onAudit?.({
+            method: "AddUser",
+            targetUserName: userName,
+            callerUserName: context.getUserName(),
+            methodNodeId: this.nodeId,
+            statusCode
+        });
         return { statusCode };
     };
 }
 
 /** Create a ModifyUser Method handler (§5.2.6). */
 export function makeModifyUserHandler(options: BindUserManagementOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
     return async function _modifyUser(
         this: UAMethod,
         inputArguments: Variant[],
@@ -85,13 +110,20 @@ export function makeModifyUserHandler(options: BindUserManagementOptions) {
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
+        onAudit?.({
+            method: "ModifyUser",
+            targetUserName: userName,
+            callerUserName: context.getUserName(),
+            methodNodeId: this.nodeId,
+            statusCode
+        });
         return { statusCode };
     };
 }
 
 /** Create a RemoveUser Method handler (§5.2.7). */
 export function makeRemoveUserHandler(options: BindUserManagementOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
     return async function _removeUser(
         this: UAMethod,
         inputArguments: Variant[],
@@ -110,6 +142,13 @@ export function makeRemoveUserHandler(options: BindUserManagementOptions) {
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
+        onAudit?.({
+            method: "RemoveUser",
+            targetUserName: userName,
+            callerUserName: context.getUserName(),
+            methodNodeId: this.nodeId,
+            statusCode
+        });
         return { statusCode };
     };
 }
@@ -121,7 +160,7 @@ export function makeRemoveUserHandler(options: BindUserManagementOptions) {
  * user token (`Bad_InvalidState` otherwise). Does **not** require SecurityAdmin.
  */
 export function makeChangePasswordHandler(options: BindUserManagementOptions) {
-    const { store, onMutation } = options;
+    const { store, onMutation, onAudit } = options;
     return async function _changePassword(
         this: UAMethod,
         inputArguments: Variant[],
@@ -146,6 +185,13 @@ export function makeChangePasswordHandler(options: BindUserManagementOptions) {
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
+        onAudit?.({
+            method: "ChangePassword",
+            targetUserName: userName,
+            callerUserName: userName,
+            methodNodeId: this.nodeId,
+            statusCode
+        });
         return { statusCode };
     };
 }

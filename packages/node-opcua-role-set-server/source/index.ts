@@ -2,6 +2,7 @@
  * @module node-opcua-role-set-server
  */
 
+export { type AuditMethodEventFields, raiseAuditMethodEvent } from "./audit.js";
 export {
     type BindRoleMethodsOptions,
     makeAddIdentityHandler,
@@ -13,7 +14,8 @@ export {
     makeAddUserHandler,
     makeChangePasswordHandler,
     makeModifyUserHandler,
-    makeRemoveUserHandler
+    makeRemoveUserHandler,
+    type UserManagementAudit
 } from "./bind_user_management.js";
 export {
     type InstallRoleSetOptions,

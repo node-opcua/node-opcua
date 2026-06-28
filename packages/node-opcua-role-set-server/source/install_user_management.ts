@@ -12,8 +12,10 @@
 import type { IAddressSpace, UAMethod, UAObject, UAVariable } from "node-opcua-address-space";
 import { MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { InMemoryUserManagementStore, type IUserManagementStore, type PasswordPolicy } from "node-opcua-role-set-common";
+import { StatusCodes } from "node-opcua-status-code";
 import { Range, UserManagementDataType } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
+import { raiseAuditMethodEvent } from "./audit.js";
 import {
     type BindUserManagementOptions,
     makeAddUserHandler,
@@ -102,10 +104,24 @@ export async function installUserManagement(
         });
     }
 
+    // Raise an AuditUpdateMethodEventType on the Server object for each managed
+    // user-management call — WITHOUT any password (only who/what/whom/result).
+    const serverObject = addressSpace.rootFolder?.objects?.server;
     const methodOptions: BindUserManagementOptions = {
         store,
         onMutation: async () => {
             refreshUsers();
+        },
+        onAudit: (audit) => {
+            raiseAuditMethodEvent(serverObject, "AuditUpdateMethodEventType", {
+                sourceNode: userManagement.nodeId,
+                sourceName: `Method/${audit.method}`,
+                methodId: audit.methodNodeId,
+                clientUserId: audit.callerUserName,
+                status: audit.statusCode === StatusCodes.Good,
+                message: `${audit.method}('${audit.targetUserName}') by '${audit.callerUserName}' → ${audit.statusCode.name}`
+                // NOTE: inputArguments deliberately omitted — they contain passwords
+            });
         }
     };
 
