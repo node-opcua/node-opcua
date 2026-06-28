@@ -36,11 +36,16 @@ import { DataType } from "node-opcua-variant";
 /** Default TCP port for the sample server. */
 export const SAMPLE_SERVER_PORT = 48555;
 
-/** Built-in demo credentials (userName → password) and their resolved Role. */
+/**
+ * Built-in demo credentials (userName → password) and the well-known Roles each
+ * one holds. `admin` is a full administrator (both administrative Roles);
+ * `operator` can observe and operate. (AuthenticatedUser is granted automatically
+ * to every signed-in user on top of these.)
+ */
 export const SAMPLE_USERS = {
-    admin: { userName: "admin", password: "admin-pw1", role: "SecurityAdmin" },
-    operator: { userName: "operator", password: "operator-pw1", role: "Operator" }
-} as const;
+    admin: { userName: "admin", password: "admin-pw1", roles: ["SecurityAdmin", "ConfigureAdmin"] },
+    operator: { userName: "operator", password: "operator-pw1", roles: ["Operator", "Observer"] }
+} as const satisfies Record<string, { userName: string; password: string; roles: (keyof typeof WellKnownRoleIds)[] }>;
 
 export interface SampleServerOptions {
     port?: number;
@@ -89,8 +94,11 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
     userStore.addUser(SAMPLE_USERS.operator.userName, SAMPLE_USERS.operator.password, UserConfigurationMask.None, "Plant operator");
 
     const identityStore = new InMemoryIdentityMappingStore();
-    identityStore.addIdentity(WellKnownRoleIds.SecurityAdmin, userRule(SAMPLE_USERS.admin.userName));
-    identityStore.addIdentity(WellKnownRoleIds.Operator, userRule(SAMPLE_USERS.operator.userName));
+    for (const user of Object.values(SAMPLE_USERS)) {
+        for (const roleName of user.roles) {
+            identityStore.addIdentity(WellKnownRoleIds[roleName], userRule(user.userName));
+        }
+    }
 
     const userManager = createUserManagementUserManager(userStore, identityStore);
 
@@ -206,7 +214,7 @@ if (require.main === module) {
             console.log(
                 "Users:",
                 Object.values(SAMPLE_USERS)
-                    .map((u) => `${u.userName}/${u.password} (${u.role})`)
+                    .map((u) => `${u.userName}/${u.password} (${u.roles.join(", ")})`)
                     .join(", ")
             );
             const stop = () => handle.shutdown().then(() => process.exit(0));
