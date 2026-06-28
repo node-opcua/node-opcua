@@ -23,52 +23,51 @@ $ npm install node-opcua-role-set-client
 
 | Export | Description |
 |--------|-------------|
-| `browseRoles(session)` | Browse the server `RoleSet` and return the NodeId + name of every Role. |
-| `readAllRoleIdentities(session)` | Read the identities mapped to every Role in the RoleSet. |
+| `ClientRoleSet` | **Recommended entry point** — wraps a session and exposes the `RoleSet` as cached `ClientRole` objects. |
 | `ClientRole` | Wrapper around a single Role node (read / add / remove identities). |
-| `RoleIdentitiesResult` | `{ roleNodeId, roleName, identities }` returned by `readAllRoleIdentities`. |
+| `RoleIdentitiesResult` | `{ roleNodeId, roleName, identities }`. |
+| `browseRoles(session)` | Low-level: browse the `RoleSet`, return NodeId + name of every Role. |
+| `readAllRoleIdentities(session)` | Low-level: read the identities of every Role. |
 
-## Browsing the available roles
+The same code works against a remote `ClientSession` **and** an in-process
+`PseudoSession` — `ClientRoleSet` is the single, recommended way to interact with a
+RoleSet whether in-process or out-of-process.
+
+## ClientRoleSet — the recommended entry point
 
 ```ts
 import { OPCUAClient } from "node-opcua-client";
-import { browseRoles } from "node-opcua-role-set-client";
+import { ClientRoleSet } from "node-opcua-role-set-client";
 
 const client = OPCUAClient.create({});
 await client.withSessionAsync("opc.tcp://localhost:4840", async (session) => {
-    const roles = await browseRoles(session);
-    for (const { roleNodeId, roleName } of roles) {
-        console.log(roleName, roleNodeId.toString());
+    const roleSet = new ClientRoleSet(session);
+
+    // discover the roles
+    const roles = await roleSet.getRoles();
+    console.log(roles.map((r) => r.roleName));
+    // -> ["Anonymous", "AuthenticatedUser", "Observer", "Operator", ...]
+
+    // read the identities of every role
+    const all = await roleSet.readAllRoleIdentities();
+    for (const { roleName, identities } of all) {
+        console.log(roleName, "->", identities.map((i) => i.criteria));
     }
-    // -> Anonymous, AuthenticatedUser, Observer, Operator,
-    //    Engineer, Supervisor, ConfigureAdmin, SecurityAdmin, ...
 });
-```
-
-## Reading identities of all roles
-
-```ts
-import { readAllRoleIdentities } from "node-opcua-role-set-client";
-
-const results = await readAllRoleIdentities(session);
-for (const { roleName, identities } of results) {
-    console.log(roleName, "->", identities.map((i) => i.criteria));
-}
 ```
 
 ## Working with a single role
 
-`ClientRole` resolves the `AddIdentity`, `RemoveIdentity` and `Identities`
-NodeIds on first use, then caches them.
+Obtain a `ClientRole` from the `ClientRoleSet` by name; it resolves the
+`AddIdentity`, `RemoveIdentity` and `Identities` NodeIds on first use, then caches them.
 
 ```ts
-import { ClientRole } from "node-opcua-role-set-client";
+import { ClientRoleSet } from "node-opcua-role-set-client";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 
-const roles = await browseRoles(session);
-const secAdmin = roles.find((r) => r.roleName === "SecurityAdmin")!;
-
-const role = new ClientRole(session, secAdmin.roleNodeId);
+const roleSet = new ClientRoleSet(session);
+const role = await roleSet.getRole("SecurityAdmin");
+if (!role) throw new Error("SecurityAdmin role not found");
 
 // read the current identities
 const current = await role.readIdentities();

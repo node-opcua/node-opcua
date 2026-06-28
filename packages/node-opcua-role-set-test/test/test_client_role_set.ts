@@ -1,10 +1,17 @@
+/**
+ * Client API tests for node-opcua-role-set-client.
+ *
+ * All interaction with the RoleSet goes through the `ClientRoleSet` client over
+ * a PseudoSession — never through the address space, UAObject or UAVariable
+ * directly. The address space is only stood up as the (in-process) server.
+ */
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import { browseRoles, ClientRole, readAllRoleIdentities } from "node-opcua-role-set-client";
+import { ClientRoleSet } from "node-opcua-role-set-client";
 import should from "should";
 
-describe("node-opcua-role-set-client", () => {
+describe("node-opcua-role-set-client: ClientRoleSet", () => {
     let addressSpace: AddressSpace;
     let session: PseudoSession;
 
@@ -20,12 +27,10 @@ describe("node-opcua-role-set-client", () => {
         addressSpace.dispose();
     });
 
-    describe("browseRoles", () => {
+    describe("getRoles", () => {
         it("should return all well-known roles", async () => {
-            const roles = await browseRoles(session);
-            roles.length.should.be.greaterThan(0);
-
-            // Should contain well-known names
+            const roleSet = new ClientRoleSet(session);
+            const roles = await roleSet.getRoles();
             const names = roles.map((r) => r.roleName);
             names.should.containEql("Anonymous");
             names.should.containEql("AuthenticatedUser");
@@ -36,36 +41,43 @@ describe("node-opcua-role-set-client", () => {
             names.should.containEql("ConfigureAdmin");
             names.should.containEql("Supervisor");
         });
+
+        it("should cache the roles between calls", async () => {
+            const roleSet = new ClientRoleSet(session);
+            const first = await roleSet.getRoles();
+            const second = await roleSet.getRoles();
+            second.should.equal(first); // same cached array instance
+        });
     });
 
-    describe("ClientRole", () => {
-        it("should resolve method NodeIds via translateBrowsePath", async () => {
-            const roles = await browseRoles(session);
-            const secAdmin = roles.find((r) => r.roleName === "SecurityAdmin");
-            should(secAdmin).not.be.undefined();
-
-            const clientRole = new ClientRole(session, secAdmin.roleNodeId);
-
-            // readIdentities should work (returns empty initially)
-            const identities = await clientRole.readIdentities();
-            identities.should.be.an.Array();
+    describe("getRole", () => {
+        it("should resolve a role by name and read its (empty) identities", async () => {
+            const roleSet = new ClientRoleSet(session);
+            const secAdmin = await roleSet.getRole("SecurityAdmin");
+            should.exist(secAdmin);
+            const identities = await secAdmin?.readIdentities();
+            identities?.should.be.an.Array();
         });
 
-        it("should read empty identities initially", async () => {
-            const roles = await browseRoles(session);
-            const observer = roles.find((r) => r.roleName === "Observer");
+        it("should return undefined for an unknown role", async () => {
+            const roleSet = new ClientRoleSet(session);
+            const unknown = await roleSet.getRole("NoSuchRole");
+            should.not.exist(unknown);
+        });
 
-            const clientRole = new ClientRole(session, observer?.roleNodeId);
-            const identities = await clientRole.readIdentities();
-            identities.should.have.length(0);
+        it("should read empty identities for the Observer role initially", async () => {
+            const roleSet = new ClientRoleSet(session);
+            const observer = await roleSet.getRole("Observer");
+            should.exist(observer);
+            (await observer?.readIdentities())?.should.have.length(0);
         });
     });
 
     describe("readAllRoleIdentities", () => {
         it("should return identities for all roles", async () => {
-            const results = await readAllRoleIdentities(session);
+            const roleSet = new ClientRoleSet(session);
+            const results = await roleSet.readAllRoleIdentities();
             results.length.should.be.greaterThan(0);
-
             for (const r of results) {
                 r.roleName.should.be.a.String();
                 r.identities.should.be.an.Array();

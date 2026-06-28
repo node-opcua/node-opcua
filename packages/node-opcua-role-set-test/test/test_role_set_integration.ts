@@ -19,9 +19,9 @@ import path from "node:path";
 import { AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
-import { type NodeId, sameNodeId } from "node-opcua-nodeid";
+import { sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { browseRoles, ClientRole, readAllRoleIdentities } from "node-opcua-role-set-client";
+import { ClientRoleSet } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
@@ -75,10 +75,16 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         return new PseudoSession(addressSpace, makeContext(new AnonymousIdentityToken(), MessageSecurityMode.SignAndEncrypt));
     }
 
-    function findRole(roles: Array<{ roleNodeId: NodeId; roleName: string }>, name: string): NodeId {
-        const r = roles.find((x) => x.roleName === name);
-        if (!r) throw new Error(`role ${name} not found`);
-        return r.roleNodeId;
+    /** A ClientRoleSet bound to an admin session (SignAndEncrypt by default). */
+    function adminRoleSet(securityMode = MessageSecurityMode.SignAndEncrypt): ClientRoleSet {
+        return new ClientRoleSet(adminSession(securityMode));
+    }
+
+    /** Resolve a Role through the client, asserting it exists. */
+    async function getClientRole(roleSet: ClientRoleSet, name: string) {
+        const role = await roleSet.getRole(name);
+        if (!role) throw new Error(`role ${name} not found`);
+        return role;
     }
 
     before(async () => {
@@ -114,7 +120,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
     describe("role discovery via the client", () => {
         it("should discover all well-known roles", async () => {
-            const roles = await browseRoles(adminSession());
+            const roles = await adminRoleSet().getRoles();
             const names = roles.map((r) => r.roleName);
             names.should.containEql("Anonymous");
             names.should.containEql("AuthenticatedUser");
@@ -123,7 +129,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         });
 
         it("should expose the bootstrapped SecurityAdmin identity", async () => {
-            const results = await readAllRoleIdentities(adminSession());
+            const results = await adminRoleSet().readAllRoleIdentities();
             const secAdmin = results.find((r) => r.roleName === "SecurityAdmin");
             should.exist(secAdmin);
             secAdmin?.identities.should.have.length(1);
@@ -140,9 +146,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
     describe("AddIdentity / RemoveIdentity round-trip through the client", () => {
         it("admin can add an identity to Operator and read it back via the client", async () => {
-            const session = adminSession();
-            const operatorId = findRole(await browseRoles(session), "Operator");
-            const role = new ClientRole(session, operatorId);
+            const role = await getClientRole(adminRoleSet(), "Operator");
 
             const addResult = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
             addResult.statusCode.should.equal(StatusCodes.Good);
@@ -153,13 +157,11 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
             // the resolver now grants Operator to joe — proving the round-trip
             const joeRoles = resolver.resolveRoles(new UserNameIdentityToken({ userName: "joe" }));
-            joeRoles.some((r) => sameNodeId(r, operatorId)).should.be.true();
+            joeRoles.some((r) => sameNodeId(r, role.roleNodeId)).should.be.true();
         });
 
         it("admin can remove the identity again", async () => {
-            const session = adminSession();
-            const operatorId = findRole(await browseRoles(session), "Operator");
-            const role = new ClientRole(session, operatorId);
+            const role = await getClientRole(adminRoleSet(), "Operator");
 
             const removeResult = await role.removeIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
             removeResult.statusCode.should.equal(StatusCodes.Good);
@@ -167,9 +169,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         });
 
         it("should reject a duplicate identity with BadAlreadyExists", async () => {
-            const session = adminSession();
-            const operatorId = findRole(await browseRoles(session), "Operator");
-            const role = new ClientRole(session, operatorId);
+            const role = await getClientRole(adminRoleSet(), "Operator");
 
             (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "kate"))).statusCode.should.equal(StatusCodes.Good);
             (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "kate"))).statusCode.should.equal(
@@ -182,17 +182,13 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
     describe("security enforcement through the client", () => {
         it("should deny a non-admin (anonymous) session with BadUserAccessDenied", async () => {
-            const session = anonymousSession();
-            const operatorId = findRole(await browseRoles(adminSession()), "Operator");
-            const role = new ClientRole(session, operatorId);
+            const role = await getClientRole(new ClientRoleSet(anonymousSession()), "Operator");
             const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "mallory"));
             result.statusCode.should.equal(StatusCodes.BadUserAccessDenied);
         });
 
         it("should deny an unencrypted admin channel with BadSecurityModeInsufficient", async () => {
-            const session = adminSession(MessageSecurityMode.None);
-            const operatorId = findRole(await browseRoles(adminSession()), "Operator");
-            const role = new ClientRole(session, operatorId);
+            const role = await getClientRole(adminRoleSet(MessageSecurityMode.None), "Operator");
             const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
             result.statusCode.should.equal(StatusCodes.BadSecurityModeInsufficient);
         });
@@ -201,9 +197,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             // The standard nodeset enforces immutability (§4.3) by NOT exposing an
             // AddIdentity Method on the Anonymous role; the client surfaces this as
             // BadNotSupported rather than throwing.
-            const session = adminSession();
-            const anonymousRoleId = findRole(await browseRoles(session), "Anonymous");
-            const role = new ClientRole(session, anonymousRoleId);
+            const role = await getClientRole(adminRoleSet(), "Anonymous");
             const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "x"));
             result.statusCode.should.equal(StatusCodes.BadNotSupported);
         });
