@@ -5,13 +5,15 @@
     "description": "pure nodejs OPCUA SDK - integration tests for role-set management (OPC 10000-18)",
     "scripts": {
         "test": "mocha",
-        "test:check": "tsc --noEmit -p test/tsconfig.json"
+        "test:check": "tsc --noEmit -p test/tsconfig.json",
+        "sample-server": "tsx bin/sample_server_with_role_set.ts"
     },
     "devEngines": {
         "node": ">=18.x",
         "npm": ">=10.x"
     },
     "devDependencies": {
+        "commander": "^12.1.0",
         "node-opcua-address-space": "2.173.1",
         "node-opcua-certificate-manager": "2.173.0",
         "node-opcua-client": "2.173.1",
@@ -25,7 +27,8 @@
         "node-opcua-server": "2.173.1",
         "node-opcua-status-code": "2.173.0",
         "node-opcua-types": "2.173.0",
-        "node-opcua-variant": "2.173.0"
+        "node-opcua-variant": "2.173.0",
+        "tsx": "^4.22.4"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
