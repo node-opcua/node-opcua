@@ -58,7 +58,7 @@ It serves two purposes:
 | Persistence across restart | — (impl) | ⚠️ | binary persist exists; no restart e2e test |
 | **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ✅ | `installUserManagement` binds the UA `UserManagement` Methods; driven via `ClientUserManagement` and integration-tested over a PseudoSession |
 | **ChangePassword** | §5.2.8 | ✅ | bound to the UA Method; client integration test proves old-fails/new-works, USERNAME-token & encrypted-channel gating |
-| MustChangePassword / Good_PasswordChangeRequired flow | §5.2.8 | ⚠️ | store returns `GoodPasswordChangeRequired` + clears flag; ActivateSession wiring pending |
+| MustChangePassword / Good_PasswordChangeRequired flow | §5.2.8 | ✅ | proven over a **real OPCUAServer** (CreateSession/ActivateSession): first login flagged `Good_PasswordChangeRequired` (recorded by the userManager adapter), restricted to Anonymous, password rotated in-session, old rejected, new accepted |
 | Password policy (length / options mask) | §5.2.1-2 | ⚠️ | `PasswordPolicy` validated in store + published via `PasswordLength`/`PasswordOptions`; unit-tested |
 | User disable / NoDelete / NoChangeByUser | §5.2.3 | ⚠️ | enforced in store + unit-tested; session-close on disable pending |
 | Bad_InvalidSelfReference (disable/remove self) | §5.2.6-7 | ✅ | enforced in store + handlers; client integration-tested (RemoveUser self) |

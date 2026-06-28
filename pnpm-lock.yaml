@@ -2858,6 +2858,9 @@ importers:
       node-opcua-address-space:
         specifier: 2.173.1
         version: link:../node-opcua-address-space
+      node-opcua-client:
+        specifier: 2.173.1
+        version: link:../node-opcua-client
       node-opcua-data-model:
         specifier: 2.173.0
         version: link:../node-opcua-data-model
@@ -2879,6 +2882,9 @@ importers:
       node-opcua-role-set-server:
         specifier: 2.173.0
         version: link:../node-opcua-role-set-server
+      node-opcua-server:
+        specifier: 2.173.1
+        version: link:../node-opcua-server
       node-opcua-status-code:
         specifier: 2.173.0
         version: link:../node-opcua-status-code

@@ -100,9 +100,12 @@ describe("E2E backlog: ChangePassword (§5.2.8)", () => {
 });
 
 describe("E2E backlog: MustChangePassword flow (§5.2.8)", () => {
-    it("returns Good_PasswordChangeRequired and only the Anonymous role on first login");
-    it("clears the flag and grants roles after a successful ChangePassword + re-activate");
-    it("returns Bad_ConfigurationError when MustChangePassword and NoChangeByUser are both set");
+    // ✅ covered by test_user_management_server_e2e.ts (real OPCUAServer):
+    //    - first login flagged Good_PasswordChangeRequired (via userManager adapter)
+    //    - ChangePassword clears the flag; old password rejected, new accepted on re-activate
+    // ✅ Bad_ConfigurationError (MustChangePassword + NoChangeByUser) covered by
+    //    test_user_management_store.ts
+    it("closes the restricted session's elevated access until the password is changed");
 });
 
 describe("E2E backlog: User disable (§5.2.3 / §5.2.6)", () => {
