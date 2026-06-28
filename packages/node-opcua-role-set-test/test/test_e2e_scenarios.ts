@@ -57,10 +57,10 @@ describe("E2E backlog: Additional identity criteria types (§4.4.4)", () => {
     it("grants a role via JWT Role / GroupId criteria");
 });
 
-describe("E2E backlog: Audit events — RoleMappingRuleChangedAuditEventType (§4.5)", () => {
-    it("raises an audit event after a successful AddIdentity");
-    it("raises an audit event with a failure status when a config call is denied");
-});
+// Audit events (§4.5) — ✅ covered:
+//   - role-set-server/test/test_bind_role_methods.ts (onAudit: success, refusal, no-audit-before-auth)
+//   - role-set-test/test/test_role_set_integration.ts (RoleMappingRuleChangedAuditEventType
+//     raised on the Server object, observed in-process)
 
 describe("E2E backlog: Session lifecycle on user change (§5.2.6-7)", () => {
     it("closes the user's sessions when the user is removed");

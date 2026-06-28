@@ -266,4 +266,39 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             (await adminRoleSet().removeRole(unknown)).statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         });
     });
+
+    describe("audit events (§4.5)", () => {
+        interface AuditFields {
+            clientUserId: { value: string };
+            sourceName: { value: string };
+            status: { value: boolean };
+        }
+
+        it("raises a RoleMappingRuleChangedAuditEventType on AddIdentity (user, source, status)", async () => {
+            const serverObject = addressSpace.rootFolder.objects.server;
+            const events: AuditFields[] = [];
+            const emitter = serverObject as unknown as {
+                on(event: string, cb: (data: unknown) => void): void;
+                removeListener(event: string, cb: (data: unknown) => void): void;
+            };
+            const listener = (data: unknown) => events.push(data as AuditFields);
+            emitter.on("event", listener);
+            try {
+                const role = await getClientRole(adminRoleSet(), "Operator");
+                (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "auditee"))).statusCode.should.equal(
+                    StatusCodes.Good
+                );
+
+                events.length.should.be.greaterThan(0);
+                const audit = events[events.length - 1];
+                audit.clientUserId.value.should.equal("admin");
+                audit.sourceName.value.should.equal("Method/AddIdentity");
+                audit.status.value.should.equal(true);
+
+                await role.removeIdentity(makeRule(IdentityCriteriaType.UserName, "auditee"));
+            } finally {
+                emitter.removeListener("event", listener);
+            }
+        });
+    });
 });
