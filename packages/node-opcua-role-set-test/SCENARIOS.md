@@ -47,7 +47,7 @@ It serves two purposes:
 | Identity criteria: Role (3) / GroupId (4) — JWT | §4.4.4 | ❌ | |
 | `Bad_AlreadyExists` on duplicate identity | §4.4.5 | ✅ | handler returns Bad_AlreadyExists; unit-tested |
 | `Bad_RequestNotAllowed` (e.g. Anonymous on admin role) | §4.4.5 | ✅ | weak rules refused on SecurityAdmin/ConfigureAdmin; unit-tested |
-| Re-evaluate roles on **active** sessions after change | §4.4.1 | ❌ | only refreshes the Identities variable |
+| Re-evaluate roles on **active** sessions after change | §4.4.1 | ✅ | roles are recomputed per request (not cached), so a mapping change takes effect on an already-active session without reconnecting; integration-tested |
 | Well-known role immutability (Anonymous/Auth/TrustedApp) | §4.3 | ⚠️ | Anonymous/AuthenticatedUser enforced; TrustedApplication absent from build |
 | AddRole / RemoveRole | §4.2.2 / §4.2.3 | ❌ | bound as `Bad_NotImplemented` stubs |
 | Applications / ApplicationsExclude + Add/RemoveApplication | §4.4.1, §4.4.7-8 | ❌ | |
@@ -197,18 +197,17 @@ It serves two purposes:
 **Background:**
 - Given an encrypted admin session and a separate operator session
 
-### Scenario: Granting a role takes effect on an active session ❌
-- Given user `"joe"` has an active session holding only `AuthenticatedUser`
-- And `"joe"` is currently denied writing to node `X`
-- When `"admin"` adds a `UserName="joe"` rule to the `Operator` role
-- Then `"joe"`'s existing session is re-evaluated and now holds `Operator`
-- And `"joe"` can now write to node `X` **without reconnecting**
+### Scenario: Granting a role takes effect on an active session ✅ *(integration-tested)*
+- Given user `"ivan"` has an active session that is denied configuring roles
+- When `"admin"` adds a `UserName="ivan"` rule to the `SecurityAdmin` role
+- Then `"ivan"`'s existing session is re-evaluated and now holds `SecurityAdmin`
+- And `"ivan"` can now configure roles **without reconnecting**
 
-### Scenario: Revoking a role takes effect on an active session ❌
-- Given `"joe"`'s active session holds `Operator` and can write node `X`
-- When `"admin"` removes the `UserName="joe"` rule from `Operator`
-- Then `"joe"`'s session no longer holds `Operator`
-- And a subsequent write to node `X` returns `Bad_UserAccessDenied`
+### Scenario: Revoking a role takes effect on an active session ✅ *(integration-tested)*
+- Given `"ivan"`'s active session holds `SecurityAdmin`
+- When `"admin"` removes the `UserName="ivan"` rule
+- Then `"ivan"`'s session no longer holds `SecurityAdmin`
+- And a subsequent configuration call returns `Bad_UserAccessDenied`
 
 ---
 
