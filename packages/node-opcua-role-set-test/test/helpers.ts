@@ -7,16 +7,18 @@ import { MockContinuationPointManager } from "node-opcua-address-space/testHelpe
 import { NodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, MessageSecurityMode, type UserIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
-/** A SessionContext for the given user identity + channel security mode. */
+/** A SessionContext for the given user identity + channel security mode (+ optional endpoint URL). */
 export function makeSessionContext(
     server: IServerBase,
     userIdentityToken: UserIdentityToken,
-    securityMode: MessageSecurityMode
+    securityMode: MessageSecurityMode,
+    endpointUrl?: string
 ): SessionContext {
     const session: ISessionBase = {
         getSessionId: () => NodeId.nullNodeId,
         continuationPointManager: new MockContinuationPointManager(),
         userIdentityToken,
+        getEndpointUrl: () => endpointUrl,
         channel: {
             securityMode,
             securityPolicy: "",

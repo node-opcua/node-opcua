@@ -29,9 +29,15 @@ import {
 } from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
-import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
+import {
+    EndpointType,
+    IdentityCriteriaType,
+    IdentityMappingRuleType,
+    MessageSecurityMode,
+    UserNameIdentityToken
+} from "node-opcua-types";
 import should from "should";
-import { anonymousSession, userSession } from "./helpers.js";
+import { anonymousSession, makeSessionContext, userSession } from "./helpers.js";
 
 /** The server-like object understood by both installRoleSet and SessionContext. */
 type TestServer = IServerForRoleSet & IServerBase;
@@ -344,6 +350,30 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
                 .some((r) => sameNodeId(r, operator.roleNodeId))
                 .should.be.true();
             await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "nora"));
+        });
+    });
+
+    describe("endpoint restrictions enforced through getCurrentUserRoles (§4.4.9)", () => {
+        it("grants the role only on the configured endpoint (URL surfaced on the SessionContext)", async () => {
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            (await operator.addIdentity(makeRule(IdentityCriteriaType.UserName, "emma"))).statusCode.should.equal(StatusCodes.Good);
+            // restrict Operator to endpoint A via the client AddEndpoint Method
+            (await operator.addEndpoint(new EndpointType({ endpointUrl: "opc.tcp://A:4840" }))).statusCode.should.equal(
+                StatusCodes.Good
+            );
+
+            const emma = new UserNameIdentityToken({ userName: "emma" });
+            const hasOperatorOnEndpoint = (endpointUrl: string) =>
+                makeSessionContext(server, emma, MessageSecurityMode.SignAndEncrypt, endpointUrl)
+                    .getCurrentUserRoles()
+                    .some((r) => sameNodeId(r, operator.roleNodeId));
+
+            // the full wiring: SessionContext.endpointUrl → getCurrentUserRoles → resolver → restriction
+            hasOperatorOnEndpoint("opc.tcp://A:4840").should.be.true();
+            hasOperatorOnEndpoint("opc.tcp://B:4840").should.be.false();
+
+            await operator.removeEndpoint(new EndpointType({ endpointUrl: "opc.tcp://A:4840" }));
+            await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "emma"));
         });
     });
 
