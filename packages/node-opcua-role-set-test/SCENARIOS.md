@@ -49,7 +49,7 @@ It serves two purposes:
 | `Bad_RequestNotAllowed` (e.g. Anonymous on admin role) | §4.4.5 | ✅ | weak rules refused on SecurityAdmin/ConfigureAdmin; unit-tested |
 | Re-evaluate roles on **active** sessions after change | §4.4.1 | ✅ | roles are recomputed per request (not cached), so a mapping change takes effect on an already-active session without reconnecting; integration-tested |
 | Well-known role immutability (Anonymous/Auth/TrustedApp) | §4.3 | ⚠️ | Anonymous/AuthenticatedUser enforced; TrustedApplication absent from build |
-| AddRole / RemoveRole | §4.2.2 / §4.2.3 | ❌ | bound as `Bad_NotImplemented` stubs |
+| AddRole / RemoveRole | §4.2.2 / §4.2.3 | ✅ | custom Roles created as `ns=1;g=<uuid>` (persisted), RoleName unique across all namespaces (rejects well-known/custom name clashes), well-known Roles cannot be removed; driven via `ClientRoleSet.addRole`/`removeRole`/`getRoleByNodeId`, client-integration-tested. (Spec's "reuse well-known NodeId" path is intentionally replaced by impersonation rejection.) |
 | Applications / ApplicationsExclude + Add/RemoveApplication | §4.4.1, §4.4.7-8 | ❌ | |
 | Endpoints / EndpointsExclude + Add/RemoveEndpoint | §4.4.1, §4.4.9-10 | ❌ | |
 | CustomConfiguration | §4.4.1 | ❌ | |

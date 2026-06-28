@@ -13,12 +13,12 @@
 
 import { ObjectIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model";
-import type { NodeId } from "node-opcua-nodeid";
+import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { CallMethodResult } from "node-opcua-service-call";
 import type { BrowsePath } from "node-opcua-service-translate-browse-path";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { IdentityMappingRuleType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
@@ -55,10 +55,58 @@ export interface RoleIdentitiesResult {
  */
 export class ClientRoleSet {
     public readonly session: IBasicSessionAsync;
+    public readonly roleSetNodeId: NodeId = resolveNodeId(ObjectIds.Server_ServerCapabilities_RoleSet);
     private _roles?: ClientRole[];
+    private _roleSetMethods?: { addRole: NodeId | null; removeRole: NodeId | null };
 
     constructor(session: IBasicSessionAsync) {
         this.session = session;
+    }
+
+    private async ensureRoleSetMethods(): Promise<{ addRole: NodeId | null; removeRole: NodeId | null }> {
+        if (this._roleSetMethods) return this._roleSetMethods;
+        const r = await this.session.translateBrowsePath([
+            makeBrowsePath(this.roleSetNodeId, "/AddRole"),
+            makeBrowsePath(this.roleSetNodeId, "/RemoveRole")
+        ]);
+        this._roleSetMethods = {
+            addRole: r[0].statusCode.isGood() && r[0].targets ? r[0].targets[0].targetId : null,
+            removeRole: r[1].statusCode.isGood() && r[1].targets ? r[1].targets[0].targetId : null
+        };
+        return this._roleSetMethods;
+    }
+
+    /**
+     * Add a custom Role (OPC 10000-18 §4.2.2). The Server assigns the NodeId
+     * (a `ns=1;g=<uuid>`). `namespaceUri` qualifies the BrowseName; empty → the
+     * Server's own namespace.
+     */
+    public async addRole(roleName: string, namespaceUri = ""): Promise<{ statusCode: StatusCode; roleNodeId?: NodeId }> {
+        const ids = await this.ensureRoleSetMethods();
+        if (!ids.addRole) return { statusCode: StatusCodes.BadNotSupported };
+        const result = await this.session.call({
+            objectId: this.roleSetNodeId,
+            methodId: ids.addRole,
+            inputArguments: [
+                { dataType: DataType.String, value: roleName },
+                { dataType: DataType.String, value: namespaceUri }
+            ]
+        });
+        this.invalidate();
+        return { statusCode: result.statusCode, roleNodeId: result.outputArguments?.[0]?.value as NodeId | undefined };
+    }
+
+    /** Remove a custom Role (OPC 10000-18 §4.2.3). Well-known Roles cannot be removed. */
+    public async removeRole(roleNodeId: NodeId): Promise<CallMethodResult> {
+        const ids = await this.ensureRoleSetMethods();
+        if (!ids.removeRole) return new CallMethodResult({ statusCode: StatusCodes.BadNotSupported });
+        const result = await this.session.call({
+            objectId: this.roleSetNodeId,
+            methodId: ids.removeRole,
+            inputArguments: [{ dataType: DataType.NodeId, value: roleNodeId }]
+        });
+        this.invalidate();
+        return result;
     }
 
     /** Browse the RoleSet and return a {@link ClientRole} per Role (cached). */
@@ -71,10 +119,16 @@ export class ClientRoleSet {
         return this._roles;
     }
 
-    /** Find a Role by its BrowseName (e.g. "Operator"), or `undefined`. */
+    /** Find a Role by its BrowseName (e.g. "Operator"), or `undefined`. The common case. */
     public async getRole(roleName: string): Promise<ClientRole | undefined> {
         const roles = await this.getRoles();
         return roles.find((r) => r.roleName === roleName);
+    }
+
+    /** Find a Role by its NodeId (e.g. a custom Role's `ns=1;g=…`), or `undefined`. */
+    public async getRoleByNodeId(roleNodeId: NodeId): Promise<ClientRole | undefined> {
+        const roles = await this.getRoles();
+        return roles.find((r) => sameNodeId(r.roleNodeId, roleNodeId));
     }
 
     /** Read the identities of every Role in the RoleSet. */
