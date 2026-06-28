@@ -6,13 +6,15 @@
     "scripts": {
         "test": "mocha",
         "test:check": "tsc --noEmit -p test/tsconfig.json",
-        "sample-server": "tsx bin/sample_server_with_role_set.ts"
+        "sample-server": "tsx bin/sample_server_with_role_set.ts",
+        "role-set-admin": "tsx bin/role_set_admin.ts"
     },
     "devEngines": {
         "node": ">=18.x",
         "npm": ">=10.x"
     },
     "devDependencies": {
+        "@inquirer/prompts": "^8.5.2",
         "commander": "^12.1.0",
         "node-opcua-address-space": "2.173.1",
         "node-opcua-certificate-manager": "2.173.0",
