@@ -56,12 +56,12 @@ It serves two purposes:
 | Browse/read of sensitive role data restricted to admins | §4.4.1 | ❌ | |
 | RoleMappingRuleChangedAuditEventType | §4.5 | ❌ | no audit event raised |
 | Persistence across restart | — (impl) | ⚠️ | binary persist exists; no restart e2e test |
-| **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ⚠️ | store logic implemented + unit-tested (`InMemoryUserManagementStore`); no UA `UserManagement` object/method binding yet |
-| **ChangePassword** | §5.2.8 | ⚠️ | store logic implemented + unit-tested (old fails / new works); not yet bound to a UA Method/session |
+| **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ✅ | `installUserManagement` binds the UA `UserManagement` Methods; driven via `ClientUserManagement` and integration-tested over a PseudoSession |
+| **ChangePassword** | §5.2.8 | ✅ | bound to the UA Method; client integration test proves old-fails/new-works, USERNAME-token & encrypted-channel gating |
 | MustChangePassword / Good_PasswordChangeRequired flow | §5.2.8 | ⚠️ | store returns `GoodPasswordChangeRequired` + clears flag; ActivateSession wiring pending |
-| Password policy (length / options mask) | §5.2.1-2 | ⚠️ | `PasswordPolicy` validation implemented + unit-tested |
+| Password policy (length / options mask) | §5.2.1-2 | ⚠️ | `PasswordPolicy` validated in store + published via `PasswordLength`/`PasswordOptions`; unit-tested |
 | User disable / NoDelete / NoChangeByUser | §5.2.3 | ⚠️ | enforced in store + unit-tested; session-close on disable pending |
-| Bad_InvalidSelfReference (disable/remove self) | §5.2.6-7 | ⚠️ | enforced in store (caller param) + unit-tested |
+| Bad_InvalidSelfReference (disable/remove self) | §5.2.6-7 | ✅ | enforced in store + handlers; client integration-tested (RemoveUser self) |
 
 ---
 
@@ -480,18 +480,20 @@ It serves two purposes:
 
 > §5.2.8 — change the password of the Session user; requires USERNAME token + encryption.
 
-> **Progress:** the password lifecycle (old-fails/new-works, wrong-old, new==old,
-> policy, NoChangeByUser, MustChangePassword clearing) is implemented and unit-tested
-> in `InMemoryUserManagementStore`
-> ([test_user_management_store.ts](../node-opcua-role-set-common/test/test_user_management_store.ts)).
-> The remaining ❌ items below are the UA-Method/session wiring (USERNAME-token check,
-> encryption, well-known NodeId callable) which need a full client/server round-trip.
+> **Progress:** the password lifecycle is implemented in `InMemoryUserManagementStore`
+> ([test_user_management_store.ts](../node-opcua-role-set-common/test/test_user_management_store.ts))
+> **and** wired to the UA `ChangePassword` Method via `installUserManagement`, driven
+> through `ClientUserManagement` over a PseudoSession
+> ([test_user_management_integration.ts](./test/test_user_management_integration.ts)).
+> old-fails/new-works, wrong-old, USERNAME-token and encrypted-channel gating are
+> covered. The remaining ❌ items (well-known-NodeId-callable, MustChangePassword
+> ActivateSession handshake) need a full ActivateSession round-trip.
 
 **Background:**
-- Given `"joe"` exists with password `"OldPass123!"`
-- And `"joe"` is connected over an encrypted channel with a USERNAME token
+- Given `"kim"` exists with password `"OldPass1"`
+- And `"kim"` is connected over an encrypted channel with a USERNAME token
 
-### Scenario: User changes password; old fails and new works ⚠️ *(store unit-tested; session wiring pending)*
+### Scenario: User changes password; old fails and new works ✅ *(client integration-tested)*
 - When `"joe"` calls `ChangePassword("OldPass123!", "NewPass456!")`
 - Then the call returns `Good`
 - And a new session activation with `"OldPass123!"` is rejected (`Bad_UserAccessDenied`/identity invalid)
