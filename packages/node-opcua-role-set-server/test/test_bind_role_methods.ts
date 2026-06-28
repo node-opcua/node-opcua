@@ -5,7 +5,7 @@ import type { NodeId } from "node-opcua-nodeid";
 
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
-import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
+import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { makeAddIdentityHandler, makeRemoveIdentityHandler } from "../source/bind_role_methods.js";
 
@@ -14,6 +14,14 @@ import { makeAddIdentityHandler, makeRemoveIdentityHandler } from "../source/bin
 function makeContext(roleNodeIds: NodeId[]): ISessionContext {
     return {
         getCurrentUserRoles: () => roleNodeIds
+    } as unknown as ISessionContext;
+}
+
+/** Context with a SecureChannel exposing a given security mode. */
+function makeContextWithChannel(roleNodeIds: NodeId[], securityMode: MessageSecurityMode): ISessionContext {
+    return {
+        getCurrentUserRoles: () => roleNodeIds,
+        session: { channel: { securityMode } }
     } as unknown as ISessionContext;
 }
 
@@ -262,5 +270,142 @@ describe("bind_role_methods — makeRemoveIdentityHandler", () => {
             await handler.call(mockMethod, inputArgs, context);
             mutationCalled.should.be.false();
         });
+    });
+});
+
+describe("bind_role_methods — encrypted channel enforcement (OPC 10000-18 §4.4)", () => {
+    function addOnOperator(context: ISessionContext) {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
+        return handler.call(mockMethod, inputArgs, context);
+    }
+
+    it("should reject AddIdentity over a None channel with BadSecurityModeInsufficient", async () => {
+        const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.None);
+        const result = await addOnOperator(context);
+        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+    });
+
+    it("should reject AddIdentity over a Sign-only channel", async () => {
+        const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.Sign);
+        const result = await addOnOperator(context);
+        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+    });
+
+    it("should accept AddIdentity over a SignAndEncrypt channel", async () => {
+        const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.SignAndEncrypt);
+        const result = await addOnOperator(context);
+        result.statusCode?.should.equal(StatusCodes.Good);
+    });
+
+    it("should enforce encryption before the access check", async () => {
+        // even a non-admin must first be rejected for the insecure channel
+        const context = makeContextWithChannel([], MessageSecurityMode.None);
+        const result = await addOnOperator(context);
+        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+    });
+
+    it("should reject RemoveIdentity over a None channel", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeRemoveIdentityHandler({ store });
+        const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.None);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+    });
+});
+
+describe("bind_role_methods — well-known role immutability (OPC 10000-18 §4.3)", () => {
+    for (const role of ["Anonymous", "AuthenticatedUser"] as const) {
+        it(`should reject AddIdentity on the ${role} role with BadRequestNotAllowed`, async () => {
+            const store = new InMemoryIdentityMappingStore();
+            const handler = makeAddIdentityHandler({ store });
+            const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+            const mockMethod = makeMockMethod(WellKnownRoleIds[role]);
+            const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
+            const result = await handler.call(mockMethod, inputArgs, context);
+            result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+        });
+
+        it(`should reject RemoveIdentity on the ${role} role`, async () => {
+            const store = new InMemoryIdentityMappingStore();
+            const handler = makeRemoveIdentityHandler({ store });
+            const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+            const mockMethod = makeMockMethod(WellKnownRoleIds[role]);
+            const inputArgs = makeRuleVariant(IdentityCriteriaType.AuthenticatedUser, "");
+            const result = await handler.call(mockMethod, inputArgs, context);
+            result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+        });
+    }
+});
+
+describe("bind_role_methods — weak criteria on administrative roles (OPC 10000-18 §4.4.5)", () => {
+    it("should reject an Anonymous rule on the SecurityAdmin role", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.Anonymous, "");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+    });
+
+    it("should reject an AuthenticatedUser rule on the ConfigureAdmin role", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.ConfigureAdmin);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.AuthenticatedUser, "");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+    });
+
+    it("should allow a UserName rule on the SecurityAdmin role", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        result.statusCode?.should.equal(StatusCodes.Good);
+    });
+});
+
+describe("bind_role_methods — duplicate identity (OPC 10000-18 §4.4.5)", () => {
+    it("should return BadAlreadyExists when the same rule is added twice", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
+
+        const first = await handler.call(mockMethod, inputArgs, context);
+        first.statusCode?.should.equal(StatusCodes.Good);
+
+        const second = await handler.call(mockMethod, inputArgs, context);
+        second.statusCode?.should.equal(StatusCodes.BadAlreadyExists);
+
+        store.getIdentitiesForRole(WellKnownRoleIds.Operator).should.have.length(1);
+    });
+
+    it("should NOT call onMutation when the add is a duplicate", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        let mutationCount = 0;
+        const handler = makeAddIdentityHandler({
+            store,
+            onMutation: async () => {
+                mutationCount++;
+            }
+        });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
+
+        await handler.call(mockMethod, inputArgs, context);
+        await handler.call(mockMethod, inputArgs, context);
+        mutationCount.should.equal(1);
     });
 });

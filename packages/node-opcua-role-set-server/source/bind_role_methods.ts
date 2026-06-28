@@ -11,11 +11,12 @@
  *   - returns Promise<CallMethodResultOptions>
  */
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { type IIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
-import { IdentityMappingRuleType } from "node-opcua-types";
+import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 
 /**
@@ -29,6 +30,53 @@ function checkSecurityAdminAccess(context: ISessionContext): CallMethodResultOpt
         return { statusCode: StatusCodes.BadUserAccessDenied };
     }
     return null; // authorized
+}
+
+/**
+ * Verify the call arrives over an encrypted (SignAndEncrypt) SecureChannel.
+ *
+ * OPC 10000-18 §4.4 requires all Role configuration Methods to be callable
+ * only through an encrypted channel (`Bad_SecurityModeInsufficient`).
+ *
+ * When the channel security mode cannot be determined (e.g. an in-process
+ * `PseudoSession` with no channel), the check is skipped — such sessions are
+ * inherently local/trusted. Remote sessions always expose a channel mode.
+ *
+ * @returns a denial result, or `null` if the channel is acceptable.
+ */
+function checkEncryptedChannel(context: ISessionContext): CallMethodResultOptions | null {
+    const securityMode = context.session?.channel?.securityMode;
+    if (securityMode === undefined) {
+        return null; // mode unknown (in-process) → cannot enforce
+    }
+    if (securityMode !== MessageSecurityMode.SignAndEncrypt) {
+        return { statusCode: StatusCodes.BadSecurityModeInsufficient };
+    }
+    return null;
+}
+
+/**
+ * Well-known Roles whose mapping rules a Server shall not allow to be
+ * changed (OPC 10000-18 §4.3): Anonymous, AuthenticatedUser and
+ * TrustedApplication. (TrustedApplication has no constant in this build and
+ * is matched by NodeId when present.)
+ */
+function isImmutableRole(roleId: NodeId): boolean {
+    return sameNodeId(roleId, WellKnownRoleIds.Anonymous) || sameNodeId(roleId, WellKnownRoleIds.AuthenticatedUser);
+}
+
+/**
+ * Administrative Roles to which weak (Anonymous / AuthenticatedUser) identity
+ * rules must not be added (OPC 10000-18 §4.4.5: a Server should refuse to add
+ * an ANONYMOUS_5 rule to Roles with administrator privileges).
+ */
+function isPrivilegedRole(roleId: NodeId): boolean {
+    return sameNodeId(roleId, WellKnownRoleIds.SecurityAdmin) || sameNodeId(roleId, WellKnownRoleIds.ConfigureAdmin);
+}
+
+/** True for weak criteria that must not be granted to administrative Roles. */
+function isWeakCriteria(criteriaType: IdentityCriteriaType): boolean {
+    return criteriaType === IdentityCriteriaType.Anonymous || criteriaType === IdentityCriteriaType.AuthenticatedUser;
 }
 
 /**
@@ -63,26 +111,43 @@ export function makeAddIdentityHandler(options: BindRoleMethodsOptions) {
         inputArguments: Variant[],
         context: ISessionContext
     ): Promise<CallMethodResultOptions> {
-        // 1. Security check
+        // 1. The SecureChannel must be encrypted
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+
+        // 2. Security check
         const denied = checkSecurityAdminAccess(context);
         if (denied) return denied;
 
-        // 2. Extract the rule from input
+        // 3. Extract the rule from input
         const rule = extractIdentityRule(inputArguments);
         if (!rule) {
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
 
-        // 3. The parent of this method is the Role object
+        // 4. The parent of this method is the Role object
         const roleNode = this.parent;
         if (!roleNode) {
             return { statusCode: StatusCodes.BadInternalError };
         }
 
-        // 4. Add to store
-        store.addIdentity(roleNode.nodeId, rule);
+        // 5. Well-known immutable Roles cannot be changed
+        if (isImmutableRole(roleNode.nodeId)) {
+            return { statusCode: StatusCodes.BadRequestNotAllowed };
+        }
 
-        // 5. Persist
+        // 6. Refuse weak (Anonymous/AuthenticatedUser) rules on administrative Roles
+        if (isWeakCriteria(rule.criteriaType) && isPrivilegedRole(roleNode.nodeId)) {
+            return { statusCode: StatusCodes.BadRequestNotAllowed };
+        }
+
+        // 7. Add to store — duplicate rule is reported as Bad_AlreadyExists
+        const added = store.addIdentity(roleNode.nodeId, rule);
+        if (!added) {
+            return { statusCode: StatusCodes.BadAlreadyExists };
+        }
+
+        // 8. Persist
         if (onMutation) {
             await onMutation();
         }
@@ -102,29 +167,38 @@ export function makeRemoveIdentityHandler(options: BindRoleMethodsOptions) {
         inputArguments: Variant[],
         context: ISessionContext
     ): Promise<CallMethodResultOptions> {
-        // 1. Security check
+        // 1. The SecureChannel must be encrypted
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+
+        // 2. Security check
         const denied = checkSecurityAdminAccess(context);
         if (denied) return denied;
 
-        // 2. Extract the rule from input
+        // 3. Extract the rule from input
         const rule = extractIdentityRule(inputArguments);
         if (!rule) {
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
 
-        // 3. The parent of this method is the Role object
+        // 4. The parent of this method is the Role object
         const roleNode = this.parent;
         if (!roleNode) {
             return { statusCode: StatusCodes.BadInternalError };
         }
 
-        // 4. Remove from store
+        // 5. Well-known immutable Roles cannot be changed
+        if (isImmutableRole(roleNode.nodeId)) {
+            return { statusCode: StatusCodes.BadRequestNotAllowed };
+        }
+
+        // 6. Remove from store
         const removed = store.removeIdentity(roleNode.nodeId, rule);
         if (!removed) {
             return { statusCode: StatusCodes.BadNoMatch };
         }
 
-        // 5. Persist
+        // 7. Persist
         if (onMutation) {
             await onMutation();
         }
