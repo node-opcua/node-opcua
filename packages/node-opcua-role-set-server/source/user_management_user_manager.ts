@@ -5,26 +5,41 @@
  * {@link IIdentityMappingStore}) to the OPC UA server `userManager` interface so
  * that CreateSession / ActivateSession authenticate against the managed users.
  *
- * It also records the StatusCode of the **last authentication** per user — in
- * particular `Good_PasswordChangeRequired` for a user that must change the
- * password (OPC 10000-18 §5.2.8). This is exposed, non-breakingly, through
- * {@link IUserManagementUserManager.lastAuthStatus} so a real-server test (or an
- * application) can observe the activation outcome that the OPC UA stack itself
- * does not surface.
+ * It records the StatusCode of the **last authentication** — in particular
+ * `Good_PasswordChangeRequired` for a user that must change the password
+ * (OPC 10000-18 §5.2.8). Because the OPC UA stack does not propagate that code
+ * into the ActivateSession response, the status is recorded here:
+ *  - per **session** ({@link IUserManagementUserManager.getSessionAuthStatus}),
+ *    keyed by the SessionId the client also holds, so it can be observed in the
+ *    context of the very session that activated;
+ *  - per **user** ({@link IUserManagementUserManager.lastAuthStatus}) for convenience.
+ *
+ * The server `userManager` invokes `isValidUser` with `this` bound to the
+ * ServerSession, which is how the SessionId is captured (non-breaking).
  */
-
 import { WellKnownRoles } from "node-opcua-constants";
-import { makeNodeId, type NodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import type { AnyUserIdentityToken, IIdentityMappingStore, IUserManagementStore } from "node-opcua-role-set-common";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 
+/** The subset of the ServerSession that `isValidUser` is bound to (`this`). */
+interface SessionThis {
+    getSessionId?(): NodeId;
+}
+
 export interface IUserManagementUserManager {
     /** Validate credentials (sync). Returns true for Good and Good_PasswordChangeRequired. */
-    isValidUser(this: unknown, userName: string, password: string): boolean;
+    isValidUser(this: SessionThis, userName: string, password: string): boolean;
     /** Resolve the Roles granted to a user (only Anonymous while a change is required). */
     getUserRoles(userName: string): NodeId[];
-    /** StatusCode of the last authentication for each user (e.g. Good_PasswordChangeRequired). */
+    /**
+     * StatusCode recorded at activation for the given session — `Good`,
+     * `Good_PasswordChangeRequired`, or a `Bad_*` code. Pass the SessionId the
+     * client holds (`clientSession.sessionId`). `undefined` if never activated.
+     */
+    getSessionAuthStatus(sessionId: NodeIdLike): StatusCode | undefined;
+    /** StatusCode of the last authentication for each user (convenience). */
     readonly lastAuthStatus: ReadonlyMap<string, StatusCode>;
 }
 
@@ -40,14 +55,25 @@ export function createUserManagementUserManager(
     identityStore: IIdentityMappingStore
 ): IUserManagementUserManager {
     const lastAuthStatus = new Map<string, StatusCode>();
+    const statusBySession = new Map<string, StatusCode>();
     const anonymousOnly = (): NodeId[] => [makeNodeId(WellKnownRoles.Anonymous)];
 
     return {
         lastAuthStatus,
 
-        isValidUser(_userName: string, _password: string): boolean {
-            const result = userStore.authenticate(_userName, _password);
-            lastAuthStatus.set(_userName, result.statusCode);
+        getSessionAuthStatus(sessionId: NodeIdLike): StatusCode | undefined {
+            return statusBySession.get(sessionId.toString());
+        },
+
+        isValidUser(this: SessionThis, userName: string, password: string): boolean {
+            const result = userStore.authenticate(userName, password);
+            lastAuthStatus.set(userName, result.statusCode);
+            // `this` is the ServerSession; key the status by the SessionId the
+            // client also holds, so the outcome can be observed per session.
+            const sessionId = this?.getSessionId?.();
+            if (sessionId) {
+                statusBySession.set(sessionId.toString(), result.statusCode);
+            }
             return result.statusCode === StatusCodes.Good || result.statusCode === StatusCodes.GoodPasswordChangeRequired;
         },
 
