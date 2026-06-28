@@ -2768,6 +2768,9 @@ importers:
       node-opcua-service-translate-browse-path:
         specifier: 2.173.0
         version: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
       node-opcua-types:
         specifier: 2.173.0
         version: link:../node-opcua-types
@@ -2796,6 +2799,9 @@ importers:
       node-opcua-nodeid:
         specifier: 2.173.0
         version: link:../node-opcua-nodeid
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
       node-opcua-types:
         specifier: 2.173.0
         version: link:../node-opcua-types

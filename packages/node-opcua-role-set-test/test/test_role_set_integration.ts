@@ -1,49 +1,106 @@
 /**
  * Integration tests for node-opcua-role-set.
  *
- * Uses PseudoSession (in-process) so we can exercise the full
- * server installRoleSet + client ClientRole round-trip without a
- * real TCP server.
+ * These tests wire the **server side** (`installRoleSet`, which aggregates the
+ * Roles and registers a store-backed role resolver) to the **role-set client**
+ * (`browseRoles` / `ClientRole` / `readAllRoleIdentities`) over an in-process
+ * `PseudoSession`. The `SessionContext` simulates the calling user and the
+ * SecureChannel security mode, so authorization (SecurityAdmin) and the
+ * encrypted-channel requirement flow through exactly as they would on a real
+ * server — without a TCP stack.
+ *
+ * Every mutation goes through the client API and the bound server Methods
+ * (client → AddIdentity/RemoveIdentity → store → Identities variable refresh →
+ * client read-back), so the client is exercised the way an application uses it.
  */
-import "should";
+
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { AddressSpace, PseudoSession, type UAObject } from "node-opcua-address-space";
+import { AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { sameNodeId } from "node-opcua-nodeid";
+import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
+import { type NodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { browseRoles, ClientRole, readAllRoleIdentities } from "node-opcua-role-set-client";
-import { type InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
-import { type IServerForRoleSet, installRoleSet } from "node-opcua-role-set-server";
-import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType, UserNameIdentityToken } from "node-opcua-types";
+import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
+import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
+import { StatusCodes } from "node-opcua-status-code";
+import {
+    AnonymousIdentityToken,
+    IdentityCriteriaType,
+    IdentityMappingRuleType,
+    MessageSecurityMode,
+    type UserIdentityToken,
+    UserNameIdentityToken
+} from "node-opcua-types";
+import should from "should";
 
-// --- Integration Tests ---
+/** The server-like object understood by both installRoleSet and SessionContext. */
+type TestServer = IServerForRoleSet & IServerBase;
 
-describe("RoleSet Integration: server + client round-trip", function () {
+function makeRule(criteriaType: IdentityCriteriaType, criteria: string): IdentityMappingRuleType {
+    return new IdentityMappingRuleType({ criteriaType, criteria });
+}
+
+describe("RoleSet Integration: server aggregator + role-set client over PseudoSession", function () {
     this.timeout(30000);
-
-    let addressSpace: AddressSpace;
-    let session: PseudoSession;
-    let server: IServerForRoleSet;
-    let store: InMemoryIdentityMappingStore;
 
     const tmpDir = path.join(__dirname, "..", "_tmp_integration");
     const persistencePath = path.join(tmpDir, "roles.bin");
+
+    let addressSpace: AddressSpace;
+    let server: TestServer;
+    let resolver: RoleSetResolver;
+
+    /** Build a SessionContext for a given user identity + channel security mode. */
+    function makeContext(userIdentityToken: UserIdentityToken, securityMode: MessageSecurityMode): SessionContext {
+        const session: ISessionBase = {
+            getSessionId: () => WellKnownRoleIds.Anonymous, // any NodeId — unused by these tests
+            continuationPointManager: new MockContinuationPointManager(),
+            userIdentityToken,
+            channel: {
+                securityMode,
+                securityPolicy: "",
+                clientCertificate: null,
+                getTransportSettings: () => ({ maxMessageSize: 0 })
+            }
+        };
+        return new SessionContext({ server, session });
+    }
+
+    function adminSession(securityMode = MessageSecurityMode.SignAndEncrypt): PseudoSession {
+        return new PseudoSession(addressSpace, makeContext(new UserNameIdentityToken({ userName: "admin" }), securityMode));
+    }
+    function anonymousSession(): PseudoSession {
+        return new PseudoSession(addressSpace, makeContext(new AnonymousIdentityToken(), MessageSecurityMode.SignAndEncrypt));
+    }
+
+    function findRole(roles: Array<{ roleNodeId: NodeId; roleName: string }>, name: string): NodeId {
+        const r = roles.find((x) => x.roleName === name);
+        if (!r) throw new Error(`role ${name} not found`);
+        return r.roleNodeId;
+    }
 
     before(async () => {
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("http://integration-test");
         await generateAddressSpace(addressSpace, [nodesets.standard]);
 
+        // Bootstrap admin: persist a store mapping UserName "admin" -> SecurityAdmin
+        // so installRoleSet loads it and the admin session resolves to SecurityAdmin.
+        const bootstrap = new InMemoryIdentityMappingStore();
+        bootstrap.addIdentity(WellKnownRoleIds.SecurityAdmin, makeRule(IdentityCriteriaType.UserName, "admin"));
+        await saveToBinaryFile(bootstrap, persistencePath);
+
         server = {
             roleResolvers: [],
-            engine: { addressSpace }
-        };
+            engine: { addressSpace },
+            // userManager must expose getUserRoles for SessionContext role resolution;
+            // the store-backed resolver (added by installRoleSet) provides the real roles.
+            userManager: { getUserRoles: () => [] }
+        } as TestServer;
 
-        const result = await installRoleSet(server, { persistencePath });
-        store = result.store as InMemoryIdentityMappingStore;
-
-        session = new PseudoSession(addressSpace);
+        resolver = (await installRoleSet(server, { persistencePath })).resolver;
     });
 
     after(async () => {
@@ -55,138 +112,100 @@ describe("RoleSet Integration: server + client round-trip", function () {
         }
     });
 
-    describe("browseRoles via client", () => {
+    describe("role discovery via the client", () => {
         it("should discover all well-known roles", async () => {
-            const roles = await browseRoles(session);
-            roles.length.should.be.greaterThan(5);
-
+            const roles = await browseRoles(adminSession());
             const names = roles.map((r) => r.roleName);
             names.should.containEql("Anonymous");
             names.should.containEql("AuthenticatedUser");
             names.should.containEql("SecurityAdmin");
+            names.should.containEql("Operator");
+        });
+
+        it("should expose the bootstrapped SecurityAdmin identity", async () => {
+            const results = await readAllRoleIdentities(adminSession());
+            const secAdmin = results.find((r) => r.roleName === "SecurityAdmin");
+            should.exist(secAdmin);
+            secAdmin?.identities.should.have.length(1);
+            should(secAdmin?.identities[0].criteria).equal("admin");
         });
     });
 
-    describe("readAllRoleIdentities via client", () => {
-        it("should return empty identities initially", async () => {
-            const results = await readAllRoleIdentities(session);
-            results.length.should.be.greaterThan(0);
-            for (const r of results) {
-                r.identities.should.have.length(0);
-            }
+    describe("authorization flows through the role resolver", () => {
+        it("should resolve the admin user to SecurityAdmin via the registered resolver", () => {
+            const roles = resolver.resolveRoles(new UserNameIdentityToken({ userName: "admin" }));
+            roles.some((r) => sameNodeId(r, WellKnownRoleIds.SecurityAdmin)).should.be.true();
         });
     });
 
-    describe("addIdentity / removeIdentity round-trip", () => {
-        it("should add an identity via server store and read it back via client", async () => {
-            // Server-side: add identity to the store
-            const rule = new IdentityMappingRuleType({
-                criteriaType: IdentityCriteriaType.UserName,
-                criteria: "admin"
-            });
-            store.addIdentity(WellKnownRoleIds.SecurityAdmin, rule);
+    describe("AddIdentity / RemoveIdentity round-trip through the client", () => {
+        it("admin can add an identity to Operator and read it back via the client", async () => {
+            const session = adminSession();
+            const operatorId = findRole(await browseRoles(session), "Operator");
+            const role = new ClientRole(session, operatorId);
 
-            // Refresh the variable (simulating what afterMutation does)
-            // In a real server this happens in the method handler
-            const { DataType } = await import("node-opcua-variant");
-            const roleSet = addressSpace.findNode("i=15606") as UAObject;
-            // We need to trigger a variable refresh — reinstall is simplest
-            // but for test we just use setValueFromSource directly
-            const { NodeClass } = await import("node-opcua-data-model");
-            const components = roleSet.getComponents();
-            for (const c of components) {
-                if (c.nodeClass !== NodeClass.Object) continue;
-                if (sameNodeId(c.nodeId, WellKnownRoleIds.SecurityAdmin)) {
-                    c.identities.setValueFromSource({
-                        dataType: DataType.ExtensionObject,
-                        value: store.getIdentitiesForRole(WellKnownRoleIds.SecurityAdmin)
-                    });
-                }
-            }
+            const addResult = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
+            addResult.statusCode.should.equal(StatusCodes.Good);
 
-            // Client-side: read it back
-            const roles = await browseRoles(session);
-            const secAdmin = roles.find((r) => r.roleName === "SecurityAdmin");
-            if (!secAdmin) {
-                throw new Error("SecurityAdmin role not found");
-            }
-            const clientRole = new ClientRole(session, secAdmin.roleNodeId);
-            const identities = await clientRole.readIdentities();
-
+            const identities = await role.readIdentities();
             identities.should.have.length(1);
-            identities[0].criteriaType.should.equal(IdentityCriteriaType.UserName);
-            identities[0].criteria.should.equal("admin");
+            should(identities[0].criteria).equal("joe");
+
+            // the resolver now grants Operator to joe — proving the round-trip
+            const joeRoles = resolver.resolveRoles(new UserNameIdentityToken({ userName: "joe" }));
+            joeRoles.some((r) => sameNodeId(r, operatorId)).should.be.true();
         });
 
-        it("should remove the identity and verify it's gone", async () => {
-            const rule = new IdentityMappingRuleType({
-                criteriaType: IdentityCriteriaType.UserName,
-                criteria: "admin"
-            });
-            const removed = store.removeIdentity(WellKnownRoleIds.SecurityAdmin, rule);
-            removed.should.be.true();
+        it("admin can remove the identity again", async () => {
+            const session = adminSession();
+            const operatorId = findRole(await browseRoles(session), "Operator");
+            const role = new ClientRole(session, operatorId);
 
-            // Refresh variable
-            const { DataType } = await import("node-opcua-variant");
-            const { NodeClass } = await import("node-opcua-data-model");
-            const roleSet = addressSpace.findNode("i=15606") as UAObject;
-            const components = roleSet.getComponents();
-            for (const c of components) {
-                if (c.nodeClass !== NodeClass.Object) continue;
-                if (sameNodeId(c.nodeId, WellKnownRoleIds.SecurityAdmin)) {
-                    c.identities.setValueFromSource({
-                        dataType: DataType.ExtensionObject,
-                        value: store.getIdentitiesForRole(WellKnownRoleIds.SecurityAdmin)
-                    });
-                }
-            }
+            const removeResult = await role.removeIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
+            removeResult.statusCode.should.equal(StatusCodes.Good);
+            (await role.readIdentities()).should.have.length(0);
+        });
 
-            // Client reads empty
-            const roles = await browseRoles(session);
-            const secAdmin = roles.find((r) => r.roleName === "SecurityAdmin");
-            if (!secAdmin) {
-                throw new Error("SecurityAdmin role not found");
-            }
-            const clientRole = new ClientRole(session, secAdmin.roleNodeId);
-            const identities = await clientRole.readIdentities();
-            identities.should.have.length(0);
+        it("should reject a duplicate identity with BadAlreadyExists", async () => {
+            const session = adminSession();
+            const operatorId = findRole(await browseRoles(session), "Operator");
+            const role = new ClientRole(session, operatorId);
+
+            (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "kate"))).statusCode.should.equal(StatusCodes.Good);
+            (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "kate"))).statusCode.should.equal(
+                StatusCodes.BadAlreadyExists
+            );
+            // cleanup
+            await role.removeIdentity(makeRule(IdentityCriteriaType.UserName, "kate"));
         });
     });
 
-    describe("RoleSetResolver integration", () => {
-        it("should resolve roles for matching token after addIdentity", () => {
-            store.addIdentity(
-                WellKnownRoleIds.Observer,
-                new IdentityMappingRuleType({
-                    criteriaType: IdentityCriteriaType.Anonymous,
-                    criteria: "*"
-                })
-            );
-            store.addIdentity(
-                WellKnownRoleIds.SecurityAdmin,
-                new IdentityMappingRuleType({
-                    criteriaType: IdentityCriteriaType.UserName,
-                    criteria: "admin"
-                })
-            );
+    describe("security enforcement through the client", () => {
+        it("should deny a non-admin (anonymous) session with BadUserAccessDenied", async () => {
+            const session = anonymousSession();
+            const operatorId = findRole(await browseRoles(adminSession()), "Operator");
+            const role = new ClientRole(session, operatorId);
+            const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "mallory"));
+            result.statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+        });
 
-            // The resolver is registered on server.roleResolvers
-            server.roleResolvers.should.have.length(1);
-            const resolver = server.roleResolvers[0];
+        it("should deny an unencrypted admin channel with BadSecurityModeInsufficient", async () => {
+            const session = adminSession(MessageSecurityMode.None);
+            const operatorId = findRole(await browseRoles(adminSession()), "Operator");
+            const role = new ClientRole(session, operatorId);
+            const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "joe"));
+            result.statusCode.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        });
 
-            // Anonymous → Observer
-            const anonRoles = resolver.resolveRoles(new AnonymousIdentityToken());
-            anonRoles.length.should.equal(1);
-            sameNodeId(anonRoles[0], WellKnownRoleIds.Observer).should.be.true();
-
-            // UserName "admin" → SecurityAdmin
-            const adminRoles = resolver.resolveRoles(new UserNameIdentityToken({ userName: "admin" }));
-            adminRoles.length.should.equal(1);
-            sameNodeId(adminRoles[0], WellKnownRoleIds.SecurityAdmin).should.be.true();
-
-            // UserName "bob" → nothing
-            const bobRoles = resolver.resolveRoles(new UserNameIdentityToken({ userName: "bob" }));
-            bobRoles.length.should.equal(0);
+        it("should report BadNotSupported when modifying the immutable Anonymous role", async () => {
+            // The standard nodeset enforces immutability (§4.3) by NOT exposing an
+            // AddIdentity Method on the Anonymous role; the client surfaces this as
+            // BadNotSupported rather than throwing.
+            const session = adminSession();
+            const anonymousRoleId = findRole(await browseRoles(session), "Anonymous");
+            const role = new ClientRole(session, anonymousRoleId);
+            const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "x"));
+            result.statusCode.should.equal(StatusCodes.BadNotSupported);
         });
     });
 });
