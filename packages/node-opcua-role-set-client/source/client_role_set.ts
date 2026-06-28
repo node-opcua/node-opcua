@@ -16,11 +16,10 @@ import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model"
 import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { CallMethodResult } from "node-opcua-service-call";
-import type { BrowsePath } from "node-opcua-service-translate-browse-path";
-import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { IdentityMappingRuleType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import { resolveChildNodeIds } from "./resolve_child_node_ids.js";
 
 /**
  * Cached method NodeIds for a Role node, resolved via translateBrowsePath.
@@ -65,14 +64,10 @@ export class ClientRoleSet {
 
     private async ensureRoleSetMethods(): Promise<{ addRole: NodeId | null; removeRole: NodeId | null }> {
         if (this._roleSetMethods) return this._roleSetMethods;
-        const r = await this.session.translateBrowsePath([
-            makeBrowsePath(this.roleSetNodeId, "/AddRole"),
-            makeBrowsePath(this.roleSetNodeId, "/RemoveRole")
-        ]);
-        this._roleSetMethods = {
-            addRole: r[0].statusCode.isGood() && r[0].targets ? r[0].targets[0].targetId : null,
-            removeRole: r[1].statusCode.isGood() && r[1].targets ? r[1].targets[0].targetId : null
-        };
+        this._roleSetMethods = await resolveChildNodeIds(this.session, this.roleSetNodeId, {
+            addRole: "/AddRole",
+            removeRole: "/RemoveRole"
+        });
         return this._roleSetMethods;
     }
 
@@ -184,21 +179,11 @@ export class ClientRole {
      */
     private async ensureInitialized(): Promise<RoleMethodIds> {
         if (this._methodIds) return this._methodIds;
-
-        const browsePaths: BrowsePath[] = [
-            makeBrowsePath(this.roleNodeId, "/AddIdentity"),
-            makeBrowsePath(this.roleNodeId, "/RemoveIdentity"),
-            makeBrowsePath(this.roleNodeId, "/Identities")
-        ];
-
-        const results = await this.session.translateBrowsePath(browsePaths);
-
-        this._methodIds = {
-            addIdentityMethodId: results[0].statusCode.isGood() && results[0].targets ? results[0].targets[0].targetId : null,
-            removeIdentityMethodId: results[1].statusCode.isGood() && results[1].targets ? results[1].targets[0].targetId : null,
-            identitiesNodeId: results[2].statusCode.isGood() && results[2].targets ? results[2].targets[0].targetId : null
-        };
-
+        this._methodIds = await resolveChildNodeIds(this.session, this.roleNodeId, {
+            addIdentityMethodId: "/AddIdentity",
+            removeIdentityMethodId: "/RemoveIdentity",
+            identitiesNodeId: "/Identities"
+        });
         return this._methodIds;
     }
 

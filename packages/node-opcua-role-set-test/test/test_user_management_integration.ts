@@ -7,9 +7,10 @@
  * mode. No test touches the address space, a UAObject or a UAVariable directly —
  * all interaction goes through the client.
  */
-import { AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { AddressSpace, type IServerBase, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientUserManagement } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -30,8 +31,7 @@ import {
     UserNameIdentityToken
 } from "node-opcua-types";
 import "should";
-import { promises as fs } from "node:fs";
-import path from "node:path";
+import { makeSessionContext } from "./helpers.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
@@ -44,23 +44,8 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
     let addressSpace: AddressSpace;
     let server: TestServer;
 
-    function makeContext(token: UserIdentityToken, securityMode: MessageSecurityMode): SessionContext {
-        const session: ISessionBase = {
-            getSessionId: () => WellKnownRoleIds.Anonymous,
-            continuationPointManager: new MockContinuationPointManager(),
-            userIdentityToken: token,
-            channel: {
-                securityMode,
-                securityPolicy: "",
-                clientCertificate: null,
-                getTransportSettings: () => ({ maxMessageSize: 0 })
-            }
-        };
-        return new SessionContext({ server, session });
-    }
-
     function sessionAs(token: UserIdentityToken, securityMode = MessageSecurityMode.SignAndEncrypt): PseudoSession {
-        return new PseudoSession(addressSpace, makeContext(token, securityMode));
+        return new PseudoSession(addressSpace, makeSessionContext(server, token, securityMode));
     }
     const adminClient = (securityMode = MessageSecurityMode.SignAndEncrypt) =>
         new ClientUserManagement(sessionAs(new UserNameIdentityToken({ userName: "admin" }), securityMode));

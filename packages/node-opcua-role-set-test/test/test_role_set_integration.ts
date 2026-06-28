@@ -16,24 +16,17 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
+import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    AnonymousIdentityToken,
-    IdentityCriteriaType,
-    IdentityMappingRuleType,
-    MessageSecurityMode,
-    type UserIdentityToken,
-    UserNameIdentityToken
-} from "node-opcua-types";
+import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
 import should from "should";
+import { anonymousSession, userSession } from "./helpers.js";
 
 /** The server-like object understood by both installRoleSet and SessionContext. */
 type TestServer = IServerForRoleSet & IServerBase;
@@ -52,32 +45,9 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
     let server: TestServer;
     let resolver: RoleSetResolver;
 
-    /** Build a SessionContext for a given user identity + channel security mode. */
-    function makeContext(userIdentityToken: UserIdentityToken, securityMode: MessageSecurityMode): SessionContext {
-        const session: ISessionBase = {
-            getSessionId: () => WellKnownRoleIds.Anonymous, // any NodeId — unused by these tests
-            continuationPointManager: new MockContinuationPointManager(),
-            userIdentityToken,
-            channel: {
-                securityMode,
-                securityPolicy: "",
-                clientCertificate: null,
-                getTransportSettings: () => ({ maxMessageSize: 0 })
-            }
-        };
-        return new SessionContext({ server, session });
-    }
-
-    function adminSession(securityMode = MessageSecurityMode.SignAndEncrypt): PseudoSession {
-        return new PseudoSession(addressSpace, makeContext(new UserNameIdentityToken({ userName: "admin" }), securityMode));
-    }
-    function anonymousSession(): PseudoSession {
-        return new PseudoSession(addressSpace, makeContext(new AnonymousIdentityToken(), MessageSecurityMode.SignAndEncrypt));
-    }
-
     /** A ClientRoleSet bound to an admin session (SignAndEncrypt by default). */
     function adminRoleSet(securityMode = MessageSecurityMode.SignAndEncrypt): ClientRoleSet {
-        return new ClientRoleSet(adminSession(securityMode));
+        return new ClientRoleSet(userSession(addressSpace, server, "admin", securityMode));
     }
 
     /** Resolve a Role through the client, asserting it exists. */
@@ -180,7 +150,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
     describe("security enforcement through the client", () => {
         it("should deny a non-admin (anonymous) session with BadUserAccessDenied", async () => {
-            const role = await getClientRole(new ClientRoleSet(anonymousSession()), "Operator");
+            const role = await getClientRole(new ClientRoleSet(anonymousSession(addressSpace, server)), "Operator");
             const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "mallory"));
             result.statusCode.should.equal(StatusCodes.BadUserAccessDenied);
         });
@@ -204,12 +174,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
     describe("live re-evaluation of an active session (§4.4.1)", () => {
         it("re-evaluates roles on an already-active session after its mapping changes", async () => {
             // "ivan" is connected throughout; his SecurityAdmin grant changes mid-session.
-            const ivanRoleSet = new ClientRoleSet(
-                new PseudoSession(
-                    addressSpace,
-                    makeContext(new UserNameIdentityToken({ userName: "ivan" }), MessageSecurityMode.SignAndEncrypt)
-                )
-            );
+            const ivanRoleSet = new ClientRoleSet(userSession(addressSpace, server, "ivan"));
             const operatorAsIvan = await getClientRole(ivanRoleSet, "Operator");
 
             // initially ivan is not SecurityAdmin → cannot configure roles
@@ -283,7 +248,9 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         });
 
         it("denies AddRole to a non-admin and over an unencrypted channel", async () => {
-            (await new ClientRoleSet(anonymousSession()).addRole("Nope")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+            (await new ClientRoleSet(anonymousSession(addressSpace, server)).addRole("Nope")).statusCode.should.equal(
+                StatusCodes.BadUserAccessDenied
+            );
             (await adminRoleSet(MessageSecurityMode.None).addRole("Nope")).statusCode.should.equal(
                 StatusCodes.BadSecurityModeInsufficient
             );

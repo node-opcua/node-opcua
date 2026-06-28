@@ -34,6 +34,7 @@ import { DataType } from "node-opcua-variant";
 import { type BindRoleMethodsOptions, makeAddIdentityHandler, makeRemoveIdentityHandler } from "./bind_role_methods.js";
 import { RoleSetResolver } from "./role_set_resolver.js";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
+import { asString } from "./variant_args.js";
 
 const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 
@@ -65,10 +66,6 @@ function isWellKnownRoleNodeId(nodeId: NodeId): boolean {
 
 /** The BrowseNames of the standard well-known Roles (OPC 10000-3). */
 const WELL_KNOWN_ROLE_NAMES = new Set(Object.keys(WellKnownRoles).filter((k) => Number.isNaN(Number(k))));
-
-function asString(v: Variant | undefined): string | null {
-    return v && typeof v.value === "string" ? v.value : null;
-}
 
 export interface InstallRoleSetOptions {
     /** Path to persist role-identity mappings (binary file). Custom Role definitions are stored alongside as `<path>.roles.json`. */
@@ -260,7 +257,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
             return { statusCode: StatusCodes.BadRequestNotAllowed };
         }
         const node = addressSpace.findNode(roleNodeId) as UARole | null;
-        if (!node || node.typeDefinitionObj?.browseName.name !== "RoleType") {
+        if (node?.typeDefinitionObj?.browseName.name !== "RoleType") {
             return { statusCode: StatusCodes.BadNodeIdUnknown };
         }
 

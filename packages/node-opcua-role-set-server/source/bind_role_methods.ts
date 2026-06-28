@@ -171,25 +171,3 @@ export function makeRemoveIdentityHandler(options: BindRoleMethodsOptions) {
         return { statusCode: StatusCodes.Good };
     };
 }
-
-/**
- * Handler for RoleSetType.AddRole — not implemented (custom roles).
- */
-export async function addRoleNotImplemented(
-    this: UAMethod,
-    _inputArguments: Variant[],
-    _context: ISessionContext
-): Promise<CallMethodResultOptions> {
-    return { statusCode: StatusCodes.BadNotImplemented };
-}
-
-/**
- * Handler for RoleSetType.RemoveRole — not implemented (custom roles).
- */
-export async function removeRoleNotImplemented(
-    this: UAMethod,
-    _inputArguments: Variant[],
-    _context: ISessionContext
-): Promise<CallMethodResultOptions> {
-    return { statusCode: StatusCodes.BadNotImplemented };
-}

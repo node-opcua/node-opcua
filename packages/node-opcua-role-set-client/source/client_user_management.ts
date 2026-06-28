@@ -12,10 +12,10 @@ import { AttributeIds } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { CallMethodResult } from "node-opcua-service-call";
-import { type BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { type UserConfigurationMask, UserManagementDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import { resolveChildNodeIds } from "./resolve_child_node_ids.js";
 
 /** Options for {@link ClientUserManagement.modifyUser}. */
 export interface ModifyUserArgs {
@@ -55,22 +55,13 @@ export class ClientUserManagement {
 
     private async ensureInitialized(): Promise<UserManagementMethodIds> {
         if (this._ids) return this._ids;
-        const paths: BrowsePath[] = [
-            makeBrowsePath(this.userManagementNodeId, "/AddUser"),
-            makeBrowsePath(this.userManagementNodeId, "/ModifyUser"),
-            makeBrowsePath(this.userManagementNodeId, "/RemoveUser"),
-            makeBrowsePath(this.userManagementNodeId, "/ChangePassword"),
-            makeBrowsePath(this.userManagementNodeId, "/Users")
-        ];
-        const r = await this.session.translateBrowsePath(paths);
-        const target = (i: number): NodeId | null => (r[i].statusCode.isGood() && r[i].targets ? r[i].targets[0].targetId : null);
-        this._ids = {
-            addUser: target(0),
-            modifyUser: target(1),
-            removeUser: target(2),
-            changePassword: target(3),
-            users: target(4)
-        };
+        this._ids = await resolveChildNodeIds(this.session, this.userManagementNodeId, {
+            addUser: "/AddUser",
+            modifyUser: "/ModifyUser",
+            removeUser: "/RemoveUser",
+            changePassword: "/ChangePassword",
+            users: "/Users"
+        });
         return this._ids;
     }
 
