@@ -200,4 +200,45 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             result.statusCode.should.equal(StatusCodes.BadNotSupported);
         });
     });
+
+    describe("live re-evaluation of an active session (§4.4.1)", () => {
+        it("re-evaluates roles on an already-active session after its mapping changes", async () => {
+            // "ivan" is connected throughout; his SecurityAdmin grant changes mid-session.
+            const ivanRoleSet = new ClientRoleSet(
+                new PseudoSession(
+                    addressSpace,
+                    makeContext(new UserNameIdentityToken({ userName: "ivan" }), MessageSecurityMode.SignAndEncrypt)
+                )
+            );
+            const operatorAsIvan = await getClientRole(ivanRoleSet, "Operator");
+
+            // initially ivan is not SecurityAdmin → cannot configure roles
+            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x1"))).statusCode.should.equal(
+                StatusCodes.BadUserAccessDenied
+            );
+
+            // admin grants ivan the SecurityAdmin role
+            const secAdmin = await getClientRole(adminRoleSet(), "SecurityAdmin");
+            (await secAdmin.addIdentity(makeRule(IdentityCriteriaType.UserName, "ivan"))).statusCode.should.equal(StatusCodes.Good);
+
+            // ivan's SAME session is re-evaluated (roles are recomputed per request)
+            // and he is now allowed to configure roles — no reconnection required
+            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x2"))).statusCode.should.equal(
+                StatusCodes.Good
+            );
+
+            // revoking the grant takes effect on the same active session too
+            (await secAdmin.removeIdentity(makeRule(IdentityCriteriaType.UserName, "ivan"))).statusCode.should.equal(
+                StatusCodes.Good
+            );
+            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x3"))).statusCode.should.equal(
+                StatusCodes.BadUserAccessDenied
+            );
+
+            // cleanup the identity ivan managed to add
+            await secAdmin.removeIdentity(makeRule(IdentityCriteriaType.UserName, "ivan")); // no-op if already gone
+            const cleanup = await getClientRole(adminRoleSet(), "Operator");
+            await cleanup.removeIdentity(makeRule(IdentityCriteriaType.UserName, "x2"));
+        });
+    });
 });

@@ -23,8 +23,10 @@ describe("E2E backlog: Secure channel enforcement (OPC 10000-18 §4.4)", () => {
 });
 
 describe("E2E backlog: Live re-evaluation of Role assignment (§4.4.1)", () => {
-    it("grants a role to an already-active session when a matching rule is added");
-    it("revokes a role from an already-active session when its rule is removed");
+    // ✅ covered by test_role_set_integration.ts ("live re-evaluation of an active session"):
+    //    granting and revoking a role both take effect on an already-active session
+    //    (roles are recomputed per request, not cached).
+    it("re-evaluates subscriptions/monitored items on role change (not yet covered)");
 });
 
 describe("E2E backlog: Custom Role management — AddRole / RemoveRole (§4.2)", () => {
