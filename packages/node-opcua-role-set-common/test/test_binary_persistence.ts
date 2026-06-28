@@ -98,11 +98,9 @@ describe("Binary Persistence", () => {
         const filePath = path.join(tmpDir, "test_roles.bin");
 
         afterEach(async () => {
-            try {
-                await fs.rm(tmpDir, { recursive: true, force: true });
-            } catch {
-                // ignore
-            }
+            await fs.rm(tmpDir, { recursive: true, force: true }).catch((err: Error) => {
+                console.warn(`could not remove temp dir ${tmpDir}: ${err.message}`);
+            });
         });
 
         it("should save and load round-trip", async () => {
@@ -149,6 +147,21 @@ describe("Binary Persistence", () => {
             const loaded = new InMemoryIdentityMappingStore();
             await loadFromBinaryFile(loaded, filePath);
             loaded.getRoleIds().should.have.length(0);
+        });
+
+        it("should report a corrupt / truncated file with a clear error (not a cryptic crash)", async () => {
+            await fs.mkdir(tmpDir, { recursive: true });
+            // a non-zero UInt32 role count followed by garbage → decoding overruns
+            await fs.writeFile(filePath, Buffer.from([0x05, 0x00, 0x00, 0x00, 0xde, 0xad]));
+
+            const loaded = new InMemoryIdentityMappingStore();
+            const error = await loadFromBinaryFile(loaded, filePath).then(
+                () => null,
+                (err: Error) => err
+            );
+            if (!error) throw new Error("expected loadFromBinaryFile to reject");
+            error.message.should.match(/corrupt or truncated/);
+            error.message.should.containEql(filePath);
         });
 
         it("should create parent directories", async () => {

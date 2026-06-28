@@ -55,7 +55,7 @@ It serves two purposes:
 | CustomConfiguration | §4.4.1 | ❌ | |
 | Browse/read of sensitive role data restricted to admins | §4.4.1 | ❌ | |
 | RoleMappingRuleChangedAuditEventType | §4.5 | ❌ | no audit event raised |
-| Persistence across restart | — (impl) | ✅ | `installRoleSet` loads persisted identities on startup; tested in `test_install_role_set.ts` and used to bootstrap the integration tests |
+| Persistence across restart | — (impl) | ✅ | identities + **custom Role definitions** (GUID sidecar) survive a restart with the same NodeId (`test_persistence_restart.ts`); a corrupt/truncated file is reported with a clear error (`test_binary_persistence.ts`) |
 | **User Management (AddUser/ModifyUser/RemoveUser)** | §5.2 | ✅ | `installUserManagement` binds the UA `UserManagement` Methods; driven via `ClientUserManagement` and integration-tested over a PseudoSession |
 | **ChangePassword** | §5.2.8 | ✅ | bound to the UA Method; client integration test proves old-fails/new-works, USERNAME-token & encrypted-channel gating |
 | MustChangePassword / Good_PasswordChangeRequired flow | §5.2.8 | ✅ | proven over a **real OPCUAServer**: ActivateSession returns `Good_PasswordChangeRequired`, the **client detects it** via `sessionRequiresPasswordChange(session)` (no server/userManager access), restricted to Anonymous, password rotated in-session, old rejected, new accepted |

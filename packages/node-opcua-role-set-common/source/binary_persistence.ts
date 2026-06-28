@@ -92,7 +92,10 @@ export async function saveToBinaryFile(store: IIdentityMappingStore, filePath: s
 /**
  * Load identity store from a binary file.
  *
- * If the file does not exist, the store is left unchanged (no error).
+ * If the file does not exist, the store is left unchanged (no error). A
+ * corrupt/truncated file is reported as a clear `Error` (naming the path)
+ * rather than a cryptic decoding failure, so the operator can react instead
+ * of the Server silently losing the role configuration.
  */
 export async function loadFromBinaryFile(store: IIdentityMappingStore, filePath: string): Promise<void> {
     let buffer: Buffer;
@@ -108,5 +111,9 @@ export async function loadFromBinaryFile(store: IIdentityMappingStore, filePath:
         return; // empty file → no-op
     }
     const stream = new BinaryStream(buffer);
-    decodeIdentityStore(store, stream);
+    try {
+        decodeIdentityStore(store, stream);
+    } catch (err) {
+        throw new Error(`loadFromBinaryFile: '${filePath}' appears to be corrupt or truncated: ${(err as Error).message}`);
+    }
 }

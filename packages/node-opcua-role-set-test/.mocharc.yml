@@ -6,5 +6,5 @@ timeout: 20000
 extension:
   - js
   - ts
-spec: test/**/*.ts
+spec: test/**/test_*.ts
 bail: true

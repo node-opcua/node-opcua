@@ -1,18 +1,16 @@
 import { promises as fs } from "node:fs";
 import "mocha";
 import path from "node:path";
-import { AddressSpace, SessionContext, type UAMethod, type UARole, type UARoleSet } from "node-opcua-address-space";
+import { AddressSpace, type UARole, type UARoleSet } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { InMemoryIdentityMappingStore, loadFromBinaryFile, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
-import { StatusCodes } from "node-opcua-status-code";
 import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { addRoleNotImplemented, removeRoleNotImplemented } from "../source/bind_role_methods.js";
 import { type IServerForRoleSet, installRoleSet } from "../source/install_role_set.js";
 import { RoleSetResolver } from "../source/role_set_resolver.js";
 
@@ -112,9 +110,8 @@ describe("installRoleSet", () => {
         should(value.value[0].criteria).equal("admin");
 
         // Cleanup
-        const fsp = await import("node:fs");
         try {
-            fsp.promises.rm(path.join(__dirname, "..", "_tmp_test_identities"), { recursive: true, force: true });
+            fs.rm(path.join(__dirname, "..", "_tmp_test_identities"), { recursive: true, force: true });
         } catch {
             /* */
         }
@@ -178,22 +175,6 @@ describe("installRoleSet", () => {
             // Now install with the same persistence path
             const { store } = await installRoleSet(server, { persistencePath: filePath });
             store.getIdentitiesForRole(WellKnownRoleIds.Observer).should.have.length(1);
-        });
-    });
-});
-
-describe("Method handlers", () => {
-    describe("addRoleNotImplemented", () => {
-        it("should return BadNotImplemented", async () => {
-            const result = await addRoleNotImplemented.call({} as UAMethod, [], SessionContext.defaultContext);
-            result.statusCode?.should.equal(StatusCodes.BadNotImplemented);
-        });
-    });
-
-    describe("removeRoleNotImplemented", () => {
-        it("should return BadNotImplemented", async () => {
-            const result = await removeRoleNotImplemented.call({} as UAMethod, [], SessionContext.defaultContext);
-            result.statusCode?.should.equal(StatusCodes.BadNotImplemented);
         });
     });
 });

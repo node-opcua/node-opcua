@@ -2,13 +2,7 @@
  * @module node-opcua-role-set-server
  */
 
-export {
-    addRoleNotImplemented,
-    type BindRoleMethodsOptions,
-    makeAddIdentityHandler,
-    makeRemoveIdentityHandler,
-    removeRoleNotImplemented
-} from "./bind_role_methods.js";
+export { type BindRoleMethodsOptions, makeAddIdentityHandler, makeRemoveIdentityHandler } from "./bind_role_methods.js";
 export {
     type BindUserManagementOptions,
     makeAddUserHandler,

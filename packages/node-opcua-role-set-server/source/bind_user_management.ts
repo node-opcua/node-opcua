@@ -13,24 +13,15 @@ import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
 import type { IUserManagementStore } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
-import { type UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
+import { UserNameIdentityToken } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
+import { asBoolean, asMask, asString } from "./variant_args.js";
 
 export interface BindUserManagementOptions {
     store: IUserManagementStore;
     /** Called after every successful mutation so the caller can persist / refresh. */
     onMutation?: () => Promise<void>;
-}
-
-function asString(v: Variant | undefined): string | null {
-    return v && typeof v.value === "string" ? v.value : null;
-}
-function asBoolean(v: Variant | undefined): boolean {
-    return !!v && v.value === true;
-}
-function asMask(v: Variant | undefined): UserConfigurationMask {
-    return (v && typeof v.value === "number" ? v.value : 0) as UserConfigurationMask;
 }
 
 /** Create an AddUser Method handler (§5.2.5). */
