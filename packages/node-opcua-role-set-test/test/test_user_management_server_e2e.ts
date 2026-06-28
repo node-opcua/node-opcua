@@ -148,4 +148,27 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
             userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.Good);
         });
     });
+
+    it("a disabled user can no longer activate a session (§5.2.3)", async () => {
+        // admin provisions then disables 'temp'
+        await withUserSession("admin", "admin-pw1", async (session) => {
+            const um = new ClientUserManagement(session);
+            (await um.addUser("temp", "Temp-pw1", UserConfigurationMask.None, "")).statusCode.should.equal(StatusCodes.Good);
+
+            // 'temp' can log in while enabled
+            await withUserSession("temp", "Temp-pw1", async () => undefined);
+
+            (await um.modifyUser("temp", { userConfiguration: UserConfigurationMask.Disabled })).statusCode.should.equal(
+                StatusCodes.Good
+            );
+        });
+
+        // once disabled, ActivateSession is refused (a disabled user behaves like a
+        // user that does not exist)
+        const disabledLoginError = await withUserSession("temp", "Temp-pw1", async () => undefined).then(
+            () => null,
+            (err: Error) => err
+        );
+        (disabledLoginError !== null).should.be.true("a disabled user should not be able to activate a session");
+    });
 });
