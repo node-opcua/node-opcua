@@ -11,8 +11,10 @@ It serves two purposes:
 
 > **Testing approach.** The integration tests
 > ([test_role_set_integration.ts](./test/test_role_set_integration.ts)) drive the
-> **role-set client** against the **server aggregator** (`installRoleSet` + a
-> store-backed role resolver) over an in-process `PseudoSession`. The
+> **`ClientRoleSet`** client against the **server aggregator** (`installRoleSet` + a
+> store-backed role resolver) over an in-process `PseudoSession`. No test touches the
+> address space, a `UAObject` or a `UAVariable` directly — all role interaction goes
+> through the client, exactly as an application would. The
 > `SessionContext` simulates the calling user and the SecureChannel security mode,
 > so authorization and the encrypted-channel requirement are exercised for real —
 > the same client code path works against a remote `ClientSession`. This is the

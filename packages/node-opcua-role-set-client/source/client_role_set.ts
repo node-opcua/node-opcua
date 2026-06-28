@@ -1,13 +1,14 @@
 /**
  * @module node-opcua-role-set-client
  *
- * Client-side helpers for managing OPC UA Roles (OPC 10000-18).
+ * Client-side API for OPC UA Role management (OPC 10000-18).
  *
- * Uses {@link IBasicSessionAsync} to remain agnostic — works with
- * `ClientSession`, `PseudoSession`, or any compatible session.
- *
- * Method NodeIds are resolved via `translateBrowsePath` (same technique
- * as node-opcua-file-transfer).
+ * The recommended entry point is {@link ClientRoleSet}, which wraps a session
+ * and exposes the server `RoleSet` as cached {@link ClientRole} objects. All
+ * navigation goes through {@link IBasicSessionAsync} (browse / read / call /
+ * translateBrowsePath), so the **exact same code** drives a remote
+ * `ClientSession` and an in-process `PseudoSession` — the single, recommended
+ * way to interact with a RoleSet whether in-process or out-of-process.
  */
 
 import { ObjectIds } from "node-opcua-constants";
@@ -40,20 +41,87 @@ export interface RoleIdentitiesResult {
 }
 
 /**
+ * Client-side entry point for the server `RoleSet` (OPC 10000-18 §4.3).
+ *
+ * Wraps an {@link IBasicSessionAsync} and exposes the Roles as cached
+ * {@link ClientRole} objects, mirroring the way `PublishSubscribe` wraps a
+ * session for PubSub. Construct one per session:
+ *
+ * ```ts
+ * const roleSet = new ClientRoleSet(session);
+ * const operator = await roleSet.getRole("Operator");
+ * await operator?.addIdentity(rule);
+ * ```
+ */
+export class ClientRoleSet {
+    public readonly session: IBasicSessionAsync;
+    private _roles?: ClientRole[];
+
+    constructor(session: IBasicSessionAsync) {
+        this.session = session;
+    }
+
+    /** Browse the RoleSet and return a {@link ClientRole} per Role (cached). */
+    public async getRoles(): Promise<ClientRole[]> {
+        if (this._roles) {
+            return this._roles;
+        }
+        const refs = await browseRoles(this.session);
+        this._roles = refs.map((r) => new ClientRole(this.session, r.roleNodeId, r.roleName));
+        return this._roles;
+    }
+
+    /** Find a Role by its BrowseName (e.g. "Operator"), or `undefined`. */
+    public async getRole(roleName: string): Promise<ClientRole | undefined> {
+        const roles = await this.getRoles();
+        return roles.find((r) => r.roleName === roleName);
+    }
+
+    /** Read the identities of every Role in the RoleSet. */
+    public async readAllRoleIdentities(): Promise<RoleIdentitiesResult[]> {
+        const roles = await this.getRoles();
+        const results: RoleIdentitiesResult[] = [];
+        for (const role of roles) {
+            const identities = await role.readIdentities();
+            results.push({ roleNodeId: role.roleNodeId, roleName: role.roleName, identities });
+        }
+        return results;
+    }
+
+    /** Discard the cached Roles (e.g. after AddRole/RemoveRole). */
+    public invalidate(): void {
+        this._roles = undefined;
+    }
+}
+
+/**
  * Client-side wrapper for a single OPC UA Role node.
  *
  * Resolves method/property NodeIds via `translateBrowsePath` on first
- * use, then caches them for subsequent calls.
+ * use, then caches them for subsequent calls. Usually obtained from
+ * {@link ClientRoleSet.getRole}.
  */
 export class ClientRole {
     public readonly roleNodeId: NodeId;
     public readonly session: IBasicSessionAsync;
+    /** The Role BrowseName, when known (set when created via {@link ClientRoleSet}). */
+    public readonly roleName: string;
 
     private _methodIds?: RoleMethodIds;
 
-    constructor(session: IBasicSessionAsync, roleNodeId: NodeId) {
+    constructor(session: IBasicSessionAsync, roleNodeId: NodeId, roleName = "") {
         this.session = session;
         this.roleNodeId = roleNodeId;
+        this.roleName = roleName;
+    }
+
+    /** Read this Role's BrowseName from the server. */
+    public async getBrowseName(): Promise<string> {
+        if (this.roleName) {
+            return this.roleName;
+        }
+        const dataValue = await this.session.read({ nodeId: this.roleNodeId, attributeId: AttributeIds.BrowseName });
+        return dataValue.value?.value?.name ?? "";
     }
 
     /**
