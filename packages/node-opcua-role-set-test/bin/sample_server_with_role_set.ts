@@ -27,10 +27,9 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
-import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
-import { createUserManager, installRoleSet, installUserManagement } from "node-opcua-role-set-server";
+import { WellKnownRoleIds } from "node-opcua-role-set-common";
+import { createRoleBasedSecurity } from "node-opcua-role-set-server";
 import { OPCUAServer } from "node-opcua-server";
-import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 /** Default TCP port for the sample server. */
@@ -63,10 +62,6 @@ export interface SampleServerHandle {
     shutdown(): Promise<void>;
 }
 
-function userRule(userName: string): IdentityMappingRuleType {
-    return new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: userName });
-}
-
 /**
  * Start the sample server. Resolves once it is listening; call
  * {@link SampleServerHandle.shutdown} to stop it and clean up the temp PKI.
@@ -82,25 +77,17 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
     });
     await serverCertificateManager.initialize();
 
-    // Passwords live in the user store; Roles are resolved from the identity
-    // store (a UserName rule per user) that backs the server `userManager`.
-    const userStore = new InMemoryUserManagementStore();
-    userStore.addUser(
-        SAMPLE_USERS.admin.userName,
-        SAMPLE_USERS.admin.password,
-        UserConfigurationMask.None,
-        "Security administrator"
-    );
-    userStore.addUser(SAMPLE_USERS.operator.userName, SAMPLE_USERS.operator.password, UserConfigurationMask.None, "Plant operator");
-
-    const identityStore = new InMemoryIdentityMappingStore();
-    for (const user of Object.values(SAMPLE_USERS)) {
-        for (const roleName of user.roles) {
-            identityStore.addIdentity(WellKnownRoleIds[roleName], userRule(user.userName));
-        }
-    }
-
-    const userManager = createUserManager(userStore, identityStore);
+    // One-call role-based security: a single user store + identity store reached
+    // through the userManager bridge, so role resolution, the `Identities`
+    // Property and the management Methods all share one source of truth.
+    const security = createRoleBasedSecurity({
+        users: Object.values(SAMPLE_USERS).map((u) => ({
+            userName: u.userName,
+            password: u.password,
+            roles: u.roles.map((r) => WellKnownRoleIds[r]),
+            description: u.description
+        }))
+    });
 
     const server = new OPCUAServer({
         port,
@@ -108,17 +95,13 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
         securityModes: [MessageSecurityMode.SignAndEncrypt],
         securityPolicies: [SecurityPolicy.Basic256Sha256],
         serverCertificateManager,
-        userManager
+        userManager: security.userManager
     });
     await server.initialize();
     await server.start();
     const endpointUrl = server.getEndpointUrl();
 
-    // Install the RoleSet on the SAME identity store the userManager resolves
-    // against — one source of truth, so the seeded mappings also show up in each
-    // Role's `Identities` Property and the RoleSet Methods mutate the live store.
-    await installRoleSet(server, { store: identityStore });
-    await installUserManagement({ engine: { addressSpace: server.engine.addressSpace } }, { store: userStore });
+    await security.install(server);
 
     const nodeIds = addDemoVariables(server);
 
