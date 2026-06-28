@@ -38,4 +38,4 @@ export {
 } from "./install_user_management.js";
 export { RoleSetResolver } from "./role_set_resolver.js";
 export { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
-export { createUserManagementUserManager, type IUserManagementUserManager } from "./user_management_user_manager.js";
+export { createUserManager, type IManagedUserManager } from "./user_management_user_manager.js";
