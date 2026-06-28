@@ -33,6 +33,13 @@ const PasswordOptions = {
 export interface InstallUserManagementOptions {
     /** Password policy published via PasswordLength / PasswordOptions and enforced by the store. */
     policy?: PasswordPolicy;
+    /**
+     * Existing user store to bind the Methods to. When omitted a new
+     * {@link InMemoryUserManagementStore} is created. Inject a shared store when
+     * the same store also backs the server `userManager`
+     * (see `createUserManagementUserManager`).
+     */
+    store?: IUserManagementStore;
 }
 
 export interface InstallUserManagementResult {
@@ -77,7 +84,7 @@ export async function installUserManagement(
     }
 
     const policy = options?.policy ?? {};
-    const store = new InMemoryUserManagementStore(policy);
+    const store = options?.store ?? new InMemoryUserManagementStore(policy);
 
     const usersVar = addressSpace.findNode(VariableIds.UserManagement_Users) as UAVariable | null;
     function refreshUsers(): void {
