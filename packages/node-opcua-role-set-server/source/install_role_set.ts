@@ -20,6 +20,7 @@ import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
+    ArchiveStore,
     deserializeRestrictions,
     type IIdentityMappingStore,
     InMemoryIdentityMappingStore,
@@ -28,11 +29,8 @@ import {
     identitiesFromBase64,
     identitiesToBase64,
     type PersistedCustomRole,
-    ROLE_SET_ARCHIVE_VERSION,
-    readArchive,
     serializeRestrictions,
-    WellKnownRoles,
-    writeArchive
+    WellKnownRoles
 } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
@@ -98,6 +96,13 @@ export interface InstallRoleSetOptions {
      * hashes either way.
      */
     persistenceSecret?: string;
+    /**
+     * A shared {@link ArchiveStore} coordinating one consolidated file across
+     * `installRoleSet` and `installUserManagement`. Pass the **same** instance to
+     * both so users and roles live in one archive. When omitted, an internal one
+     * is created from `persistencePath`/`persistenceSecret` (role config only).
+     */
+    persistence?: ArchiveStore;
 }
 
 export interface InstallRoleSetResult {
@@ -135,11 +140,14 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         throw new Error("installRoleSet: RoleSet node (i=15606) not found in address space.");
     }
 
-    const persistencePath = options?.persistencePath;
-    const persistenceSecret = options?.persistenceSecret;
+    // The consolidated archive is owned either by a shared coordinator (when also
+    // installing user management into the same file) or created from the path here.
+    const persistence =
+        options?.persistence ??
+        (options?.persistencePath ? new ArchiveStore(options.persistencePath, { secret: options.persistenceSecret }) : undefined);
 
     // Load the whole configuration from the single consolidated archive (if any).
-    const archive = persistencePath ? await readArchive(persistencePath, { secret: persistenceSecret }) : undefined;
+    const archive = persistence ? await persistence.load() : undefined;
 
     const store = new InMemoryIdentityMappingStore();
     identitiesFromBase64(store, archive?.identities);
@@ -184,19 +192,15 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
 
     const customRoles: CustomRoleDef[] = [];
 
+    // Register the sections we own; the coordinator gathers these (plus any users
+    // registered by installUserManagement) and rewrites the one file atomically.
+    persistence?.setIdentitiesProvider(() => identitiesToBase64(store));
+    persistence?.setRolesProvider(() => customRoles);
+    persistence?.setRestrictionsProvider(() => serializeRestrictions(restrictionStore));
+
     /** Snapshot every store into the single consolidated archive (atomic write). */
     async function persist(): Promise<void> {
-        if (!persistencePath) return;
-        await writeArchive(
-            persistencePath,
-            {
-                version: ROLE_SET_ARCHIVE_VERSION,
-                identities: identitiesToBase64(store),
-                roles: customRoles,
-                restrictions: serializeRestrictions(restrictionStore)
-            },
-            { secret: persistenceSecret }
-        );
+        await persistence?.save();
     }
 
     /** Refresh every Role's variables and persist the whole configuration. */

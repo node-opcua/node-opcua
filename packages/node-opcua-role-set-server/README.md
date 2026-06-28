@@ -107,6 +107,26 @@ application/endpoint restrictions):
 The archive format (`readArchive` / `writeArchive`, version-checked) is defined in
 [`node-opcua-role-set-common`](../node-opcua-role-set-common).
 
+### Sharing the archive with User Management
+
+To keep **users** (salted scrypt hashes, never clear passwords) in the *same* file as the
+role configuration, create one `ArchiveStore` and pass it to both installers — role set
+**first**, then user management, before serving requests:
+
+```ts
+import { ArchiveStore } from "node-opcua-role-set-common";
+
+const persistence = new ArchiveStore("./config/role-set.json", {
+    secret: process.env.ROLE_SET_SECRET // optional encryption
+});
+await installRoleSet(server, { persistence });
+await installUserManagement(server, { persistence });
+```
+
+The coordinator gathers every registered section (identities / roles / restrictions / users)
+and rewrites the one file atomically on each mutation, so neither installer clobbers the
+other. Pass only `persistencePath` instead for a role-config-only (or users-only) file.
+
 ## Related packages
 
 - [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared types, identity stores and persistence.

@@ -22,6 +22,13 @@
  *   - MustChangePassword over a real OPCUAServer; client-side detection via
  *     sessionRequiresPasswordChange; disabled user cannot activate, §5.2.8/§5.2.3
  *       → role-set-test/test/test_user_management_server_e2e.ts
+ *   - persistence: a single consolidated archive (identities + custom roles +
+ *     restrictions + users) shared by installRoleSet & installUserManagement,
+ *     optionally AES-256-GCM encrypted; users keep salted scrypt hashes and the
+ *     password still verifies after a restart
+ *       → role-set-common/test/test_archive.ts (ArchiveStore coordinator)
+ *       → role-set-test/test/test_persistence_restart.ts (roles, encrypted)
+ *       → role-set-test/test/test_user_persistence_restart.ts (users)
  */
 import "mocha";
 

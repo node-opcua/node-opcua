@@ -25,6 +25,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { decodeIdentityStore, encodeIdentityStore, identityStoreBinaryStoreSize } from "./binary_persistence.js";
 import type { IIdentityMappingStore } from "./identity_mapping_store.js";
 import type { SerializedRoleRestriction } from "./role_restriction_store.js";
+import type { SerializedUserRecord } from "./user_management_store.js";
 
 export const ROLE_SET_ARCHIVE_VERSION = 1;
 
@@ -42,6 +43,8 @@ export interface RoleSetArchive {
     identities?: string;
     roles?: PersistedCustomRole[];
     restrictions?: SerializedRoleRestriction[];
+    /** UserManagement users with salted scrypt hashes (never clear passwords). */
+    users?: SerializedUserRecord[];
 }
 
 /** Encode the identity store as a base64 string (reuses the binary encoder). */
@@ -155,4 +158,64 @@ export async function readArchive(filePath: string, io?: ArchiveIO): Promise<Rol
         );
     }
     return result;
+}
+
+/** A snapshot provider for one archive section (returns the current state, or undefined to omit). */
+type SectionProvider<T> = () => T | undefined;
+
+/**
+ * Coordinates a single consolidated archive shared by several stores.
+ *
+ * `installRoleSet` and `installUserManagement` each register the section(s) they
+ * own (identities/roles/restrictions vs. users) and call {@link save} after a
+ * mutation; the coordinator gathers **all** registered sections and rewrites the
+ * one file atomically — so neither installer clobbers the other's data. Pass the
+ * same `ArchiveStore` instance to both to keep everything in one file.
+ */
+export class ArchiveStore {
+    private readonly _io: ArchiveIO;
+    private _identities?: SectionProvider<string>;
+    private _roles?: SectionProvider<PersistedCustomRole[]>;
+    private _restrictions?: SectionProvider<SerializedRoleRestriction[]>;
+    private _users?: SectionProvider<SerializedUserRecord[]>;
+
+    constructor(
+        public readonly filePath: string,
+        io?: ArchiveIO
+    ) {
+        this._io = io ?? {};
+    }
+
+    public setIdentitiesProvider(fn: SectionProvider<string>): void {
+        this._identities = fn;
+    }
+    public setRolesProvider(fn: SectionProvider<PersistedCustomRole[]>): void {
+        this._roles = fn;
+    }
+    public setRestrictionsProvider(fn: SectionProvider<SerializedRoleRestriction[]>): void {
+        this._restrictions = fn;
+    }
+    public setUsersProvider(fn: SectionProvider<SerializedUserRecord[]>): void {
+        this._users = fn;
+    }
+
+    /** Read the persisted archive (missing file → undefined). */
+    public load(): Promise<RoleSetArchive | undefined> {
+        return readArchive(this.filePath, this._io);
+    }
+
+    /** Atomically rewrite the archive from every registered section provider. */
+    public save(): Promise<void> {
+        return writeArchive(
+            this.filePath,
+            {
+                version: ROLE_SET_ARCHIVE_VERSION,
+                identities: this._identities?.(),
+                roles: this._roles?.(),
+                restrictions: this._restrictions?.(),
+                users: this._users?.()
+            },
+            this._io
+        );
+    }
 }
