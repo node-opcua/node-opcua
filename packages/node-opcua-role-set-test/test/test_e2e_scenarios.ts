@@ -31,12 +31,13 @@ describe("E2E backlog: Secure channel / browse visibility (§4.4.1)", () => {
 });
 
 describe("E2E backlog: Custom Role management — AddRole / RemoveRole (§4.2)", () => {
-    it("adds a new custom role and exposes it in the RoleSet");
-    it("returns Bad_AlreadyExists when adding a duplicate role");
-    it("reuses the well-known NodeId when adding a well-known role by name/namespace");
-    it("returns Bad_SecurityModeInsufficient for AddRole over an unencrypted channel");
-    it("removes a custom role and drops its permissions");
-    it("returns Bad_NodeIdUnknown when removing an unknown role");
+    // ✅ covered by test_role_set_integration.ts ("AddRole / RemoveRole through the client"):
+    //    add (ns=1;g=<uuid>) + configure, duplicate-name (any namespace) rejection,
+    //    well-known-name impersonation rejection, non-admin & unencrypted denial,
+    //    well-known removal forbidden, BadNodeIdUnknown for unknown role, getRoleByNodeId.
+    // Deviation: the spec's "reuse the well-known NodeId when adding a well-known role
+    // by name + UA namespace URI" is intentionally replaced by impersonation rejection.
+    it("adds the optional Applications/Endpoints restriction Methods to a custom role (not yet)");
 });
 
 describe("E2E backlog: Application restrictions — Applications/AddApplication (§4.4.7-8)", () => {

@@ -19,7 +19,7 @@ import path from "node:path";
 import { AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
-import { sameNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -239,6 +239,64 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             await secAdmin.removeIdentity(makeRule(IdentityCriteriaType.UserName, "ivan")); // no-op if already gone
             const cleanup = await getClientRole(adminRoleSet(), "Operator");
             await cleanup.removeIdentity(makeRule(IdentityCriteriaType.UserName, "x2"));
+        });
+    });
+
+    describe("AddRole / RemoveRole through the client (§4.2)", () => {
+        it("admin adds a custom role as ns=1;g=<uuid> and can configure it", async () => {
+            const roleSet = adminRoleSet();
+            const { statusCode, roleNodeId } = await roleSet.addRole("Maintenance");
+            statusCode.should.equal(StatusCodes.Good);
+            if (!roleNodeId) throw new Error("expected a RoleNodeId");
+            roleNodeId.namespace.should.equal(1);
+            roleNodeId.identifierType.should.equal(NodeIdType.GUID);
+
+            // it appears in the RoleSet for a fresh client — found by name and by NodeId
+            (await adminRoleSet().getRoles()).map((r) => r.roleName).should.containEql("Maintenance");
+            const byId = await adminRoleSet().getRoleByNodeId(roleNodeId);
+            should.exist(byId);
+            byId?.roleName.should.equal("Maintenance");
+
+            // its AddIdentity is bound → the role is configurable
+            const role = await getClientRole(adminRoleSet(), "Maintenance");
+            (await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "mech"))).statusCode.should.equal(StatusCodes.Good);
+            (await role.readIdentities()).should.have.length(1);
+
+            // RemoveRole drops it from the RoleSet
+            (await roleSet.removeRole(roleNodeId)).statusCode.should.equal(StatusCodes.Good);
+            (await adminRoleSet().getRoles()).map((r) => r.roleName).should.not.containEql("Maintenance");
+        });
+
+        it("returns BadAlreadyExists for a duplicate role name", async () => {
+            const roleSet = adminRoleSet();
+            const { roleNodeId } = await roleSet.addRole("Dup");
+            if (!roleNodeId) throw new Error("expected a RoleNodeId");
+            // duplicate by name (any namespace) is rejected
+            (await adminRoleSet().addRole("Dup")).statusCode.should.equal(StatusCodes.BadAlreadyExists);
+            (await adminRoleSet().addRole("Dup", "urn:other")).statusCode.should.equal(StatusCodes.BadAlreadyExists);
+            await roleSet.removeRole(roleNodeId);
+        });
+
+        it("rejects a custom role that impersonates a well-known role name", async () => {
+            (await adminRoleSet().addRole("Operator")).statusCode.should.equal(StatusCodes.BadAlreadyExists);
+            (await adminRoleSet().addRole("SecurityAdmin")).statusCode.should.equal(StatusCodes.BadAlreadyExists);
+        });
+
+        it("denies AddRole to a non-admin and over an unencrypted channel", async () => {
+            (await new ClientRoleSet(anonymousSession()).addRole("Nope")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+            (await adminRoleSet(MessageSecurityMode.None).addRole("Nope")).statusCode.should.equal(
+                StatusCodes.BadSecurityModeInsufficient
+            );
+        });
+
+        it("forbids removing a well-known role with BadRequestNotAllowed", async () => {
+            const operatorId = (await getClientRole(adminRoleSet(), "Operator")).roleNodeId;
+            (await adminRoleSet().removeRole(operatorId)).statusCode.should.equal(StatusCodes.BadRequestNotAllowed);
+        });
+
+        it("returns BadNodeIdUnknown when removing an unknown role", async () => {
+            const unknown = new NodeId(NodeIdType.NUMERIC, 987654, 1);
+            (await adminRoleSet().removeRole(unknown)).statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         });
     });
 });

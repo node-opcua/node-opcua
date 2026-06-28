@@ -4,40 +4,49 @@
  * Install RoleSet management on an OPC UA server.
  *
  * This function is designed to be called **after** the server has started
- * (when the address space is available). It layers on top of the existing
- * `bindRoleSet()` by:
- *   - Creating an InMemoryIdentityMappingStore
- *   - Optionally loading persisted state from a binary file
- *   - Registering a RoleSetResolver on server.roleResolvers
- *   - Binding AddIdentity / RemoveIdentity method handlers on each Role
- *   - Overriding the identities variable getter with the store-backed one
- *   - Binding AddRole / RemoveRole as BadNotImplemented stubs
+ * (when the address space is available). It:
+ *   - Creates an InMemoryIdentityMappingStore (optionally loaded from disk)
+ *   - Registers a RoleSetResolver on server.roleResolvers
+ *   - Binds AddIdentity / RemoveIdentity on each Role and keeps the Identities
+ *     Property in sync with the store
+ *   - Binds AddRole / RemoveRole (OPC 10000-18 §4.2): custom Roles are created
+ *     as `ns=1;g=<uuid>` instances of RoleType (collision-proof, stable when
+ *     persisted); well-known Roles cannot be removed.
  */
-import type { BaseNode, IAddressSpace, UAMethod, UAObject, UARole, UARoleSet } from "node-opcua-address-space";
+
+import { randomUUID } from "node:crypto";
+import { promises as fs } from "node:fs";
+import type { IAddressSpace, ISessionContext, UAMethod, UAObject, UARole, UARoleSet } from "node-opcua-address-space";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
+import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
     type IIdentityMappingStore,
     InMemoryIdentityMappingStore,
     loadFromBinaryFile,
-    saveToBinaryFile
+    saveToBinaryFile,
+    WellKnownRoles
 } from "node-opcua-role-set-common";
+import type { CallMethodResultOptions } from "node-opcua-service-call";
+import { StatusCodes } from "node-opcua-status-code";
+import type { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
-import {
-    addRoleNotImplemented,
-    type BindRoleMethodsOptions,
-    makeAddIdentityHandler,
-    makeRemoveIdentityHandler,
-    removeRoleNotImplemented
-} from "./bind_role_methods.js";
+import { type BindRoleMethodsOptions, makeAddIdentityHandler, makeRemoveIdentityHandler } from "./bind_role_methods.js";
 import { RoleSetResolver } from "./role_set_resolver.js";
+import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 
-/**
- * Iterate the components of a RoleSet, calling `fn` for each
- * Role (i.e. each UAObject whose typeDefinition is RoleType).
- */
-function forEachRole(components: BaseNode[], fn: (role: UARole) => void): void {
-    for (const c of components) {
+const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
+
+/** Persisted definition of a custom Role (so its GUID NodeId survives a restart). */
+interface CustomRoleDef {
+    nodeId: string;
+    roleName: string;
+    namespaceUri: string;
+}
+
+/** Iterate the Role components of a RoleSet (UAObjects of type RoleType). */
+function forEachRole(roleSet: UARoleSet, fn: (role: UARole) => void): void {
+    for (const c of roleSet.getComponents()) {
         if (c.nodeClass !== NodeClass.Object) continue;
         const obj = c as UAObject;
         if (obj.typeDefinitionObj.browseName.name !== "RoleType") continue;
@@ -45,8 +54,24 @@ function forEachRole(components: BaseNode[], fn: (role: UARole) => void): void {
     }
 }
 
+/** True for the standard well-known Roles (ns=0 numeric NodeIds, OPC 10000-3). */
+function isWellKnownRoleNodeId(nodeId: NodeId): boolean {
+    if (nodeId.namespace !== 0 || nodeId.identifierType !== NodeIdType.NUMERIC) {
+        return false;
+    }
+    const values = Object.values(WellKnownRoles).filter((v): v is number => typeof v === "number");
+    return values.includes(nodeId.value as number);
+}
+
+/** The BrowseNames of the standard well-known Roles (OPC 10000-3). */
+const WELL_KNOWN_ROLE_NAMES = new Set(Object.keys(WellKnownRoles).filter((k) => Number.isNaN(Number(k))));
+
+function asString(v: Variant | undefined): string | null {
+    return v && typeof v.value === "string" ? v.value : null;
+}
+
 export interface InstallRoleSetOptions {
-    /** Path to persist role-identity mappings (binary file). */
+    /** Path to persist role-identity mappings (binary file). Custom Role definitions are stored alongside as `<path>.roles.json`. */
     persistencePath?: string;
 }
 
@@ -59,8 +84,7 @@ export interface InstallRoleSetResult {
 
 /**
  * The server-like object we need — just needs `roleResolvers` and
- * access to the address space. We avoid importing OPCUAServer directly
- * to keep the dependency lightweight.
+ * access to the address space.
  */
 export interface IServerForRoleSet {
     roleResolvers: Array<{ resolveRoles(token: unknown): unknown[] }>;
@@ -70,19 +94,8 @@ export interface IServerForRoleSet {
 }
 
 /**
- * Install RoleSet management on an OPC UA server.
- *
- * Call this **after** the server has started and the address space is
- * available (e.g., in the `post_initialize` event or after `server.start()`).
- *
- * @example
- * ```typescript
- * const server = new OPCUAServer({ ... });
- * await server.start();
- * const { store, resolver } = await installRoleSet(server, {
- *     persistencePath: "./role-identities.bin"
- * });
- * ```
+ * Install RoleSet management on an OPC UA server. Call this **after**
+ * `server.start()` so the address space is available.
  */
 export async function installRoleSet(server: IServerForRoleSet, options?: InstallRoleSetOptions): Promise<InstallRoleSetResult> {
     const addressSpace = server.engine.addressSpace;
@@ -90,80 +103,194 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         throw new Error("installRoleSet: address space is not available. Call this after server.start().");
     }
 
-    // 1. Find the RoleSet node
     const roleSet = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_RoleSet) as UARoleSet | null;
     if (!roleSet) {
         throw new Error("installRoleSet: RoleSet node (i=15606) not found in address space.");
     }
 
-    // 2. Create store and optionally load persisted state
+    const persistencePath = options?.persistencePath;
+    const rolesSidecar = persistencePath ? `${persistencePath}.roles.json` : undefined;
+
     const store = new InMemoryIdentityMappingStore();
-    if (options?.persistencePath) {
-        await loadFromBinaryFile(store, options.persistencePath);
+    if (persistencePath) {
+        await loadFromBinaryFile(store, persistencePath);
     }
 
-    // 3. Register resolver
     const resolver = new RoleSetResolver(store);
-    if (!server.roleResolvers) {
-        server.roleResolvers = [];
-    }
+    server.roleResolvers ??= [];
     server.roleResolvers.push(resolver);
 
-    // 4. Iterate Role components and bind methods + variable
-    const components = roleSet.getComponents();
-
-    /** Refresh the identities variable on a Role from the store. */
     function refreshIdentities(role: UARole): void {
-        const identities = store.getIdentitiesForRole(role.nodeId);
         role.identities.setValueFromSource({
             dataType: DataType.ExtensionObject,
-            value: identities
+            value: store.getIdentitiesForRole(role.nodeId)
         });
     }
 
-    /**
-     * Called after every store mutation.
-     *
-     * Refreshes **all** role identity variables (not just the one that
-     * was mutated) for simplicity — the cost is negligible given the
-     * small number of well-known roles.
-     */
+    const customRoles: CustomRoleDef[] = [];
+
+    async function persistCustomRoles(): Promise<void> {
+        if (rolesSidecar) {
+            await fs.writeFile(rolesSidecar, JSON.stringify(customRoles, null, 2), "utf8");
+        }
+    }
+
+    /** Refresh every Role's Identities variable and persist the mappings. */
     const afterMutation = async () => {
-        forEachRole(components, refreshIdentities);
-        if (options?.persistencePath) {
-            await saveToBinaryFile(store, options.persistencePath);
+        forEachRole(roleSet, refreshIdentities);
+        if (persistencePath) {
+            await saveToBinaryFile(store, persistencePath);
         }
     };
 
-    const methodOptions: BindRoleMethodsOptions = {
-        store,
-        onMutation: afterMutation
-    };
+    const methodOptions: BindRoleMethodsOptions = { store, onMutation: afterMutation };
     const addIdentityHandler = makeAddIdentityHandler(methodOptions);
     const removeIdentityHandler = makeRemoveIdentityHandler(methodOptions);
 
-    forEachRole(components, (role: UARole) => {
-        // Set initial value from store
+    /** Create a RoleType instance (with AddIdentity/RemoveIdentity) and bind it. */
+    const createRoleNode = (roleName: string, browseNameNamespace: number, nodeId: NodeId): UARole => {
+        const roleType = addressSpace.findObjectType("RoleType");
+        if (!roleType) {
+            throw new Error("installRoleSet: RoleType ObjectType not found");
+        }
+        const role = roleType.instantiate({
+            browseName: { name: roleName, namespaceIndex: browseNameNamespace },
+            componentOf: roleSet,
+            nodeId,
+            optionals: ["AddIdentity", "RemoveIdentity"]
+        }) as UARole;
+        role.addIdentity?.bindMethod(addIdentityHandler);
+        role.removeIdentity?.bindMethod(removeIdentityHandler);
         refreshIdentities(role);
+        return role;
+    };
 
-        // Bind AddIdentity method (if present — optional in spec)
-        if (role.addIdentity) {
-            role.addIdentity.bindMethod(addIdentityHandler);
+    // Recreate persisted custom Roles before binding the standard ones.
+    if (rolesSidecar) {
+        try {
+            const defs: CustomRoleDef[] = JSON.parse(await fs.readFile(rolesSidecar, "utf8"));
+            for (const def of defs) {
+                const nodeId = resolveNodeId(def.nodeId);
+                const nsIndex = def.namespaceUri
+                    ? ensureNamespace(addressSpace, def.namespaceUri)
+                    : addressSpace.getOwnNamespace().index;
+                if (!addressSpace.findNode(nodeId)) {
+                    createRoleNode(def.roleName, nsIndex, nodeId);
+                }
+                customRoles.push(def);
+            }
+        } catch {
+            // missing/invalid sidecar → start with no custom roles
         }
+    }
 
-        // Bind RemoveIdentity method (if present — optional in spec)
-        if (role.removeIdentity) {
-            role.removeIdentity.bindMethod(removeIdentityHandler);
-        }
+    // Bind AddIdentity/RemoveIdentity on every current Role and seed the variable.
+    forEachRole(roleSet, (role) => {
+        refreshIdentities(role);
+        role.addIdentity?.bindMethod(addIdentityHandler);
+        role.removeIdentity?.bindMethod(removeIdentityHandler);
     });
 
-    // 6. Bind AddRole / RemoveRole stubs
+    // AddRole (§4.2.2)
+    const addRoleHandler = async function (
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+        const denied = checkSecurityAdminAccess(context);
+        if (denied) return denied;
+
+        const roleName = asString(inputArguments[0]);
+        if (!roleName) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        // A custom Role must not impersonate a well-known Role (which already
+        // exists in ns=0); reject the name in any namespace (§4.2.2).
+        if (WELL_KNOWN_ROLE_NAMES.has(roleName)) {
+            return { statusCode: StatusCodes.BadAlreadyExists };
+        }
+        const namespaceUri = asString(inputArguments[1]) ?? "";
+        const browseNameNamespace =
+            namespaceUri && namespaceUri !== UA_NAMESPACE_URI
+                ? ensureNamespace(addressSpace, namespaceUri)
+                : namespaceUri === UA_NAMESPACE_URI
+                  ? 0
+                  : addressSpace.getOwnNamespace().index;
+
+        // The RoleName must be unique within the RoleSet (§4.2.2). We check by
+        // name across *all* namespaces (not just name+namespace) so a custom Role
+        // can never duplicate the name of any existing Role — well-known or custom.
+        const exists = roleSet.getComponents().some((c) => c.browseName.name === roleName);
+        if (exists) {
+            return { statusCode: StatusCodes.BadAlreadyExists };
+        }
+
+        // GUID NodeId in the server's own namespace (collision-proof, persisted)
+        const nodeId = new NodeId(NodeIdType.GUID, randomUUID().toUpperCase(), addressSpace.getOwnNamespace().index);
+        createRoleNode(roleName, browseNameNamespace, nodeId);
+
+        customRoles.push({ nodeId: nodeId.toString(), roleName, namespaceUri });
+        await persistCustomRoles();
+
+        return {
+            statusCode: StatusCodes.Good,
+            outputArguments: [{ dataType: DataType.NodeId, value: nodeId }]
+        };
+    };
+
+    // RemoveRole (§4.2.3)
+    const removeRoleHandler = async function (
+        this: UAMethod,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> {
+        const insecure = checkEncryptedChannel(context);
+        if (insecure) return insecure;
+        const denied = checkSecurityAdminAccess(context);
+        if (denied) return denied;
+
+        const roleNodeId = inputArguments[0]?.value;
+        if (!(roleNodeId instanceof NodeId)) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        // Well-known Roles are required by the Server and cannot be removed (§4.3)
+        if (isWellKnownRoleNodeId(roleNodeId)) {
+            return { statusCode: StatusCodes.BadRequestNotAllowed };
+        }
+        const node = addressSpace.findNode(roleNodeId) as UARole | null;
+        if (!node || node.typeDefinitionObj?.browseName.name !== "RoleType") {
+            return { statusCode: StatusCodes.BadNodeIdUnknown };
+        }
+
+        // remove the node, its identity mappings and the persisted definition
+        for (const rule of store.getIdentitiesForRole(roleNodeId)) {
+            store.removeIdentity(roleNodeId, rule);
+        }
+        addressSpace.deleteNode(roleNodeId);
+        const idx = customRoles.findIndex((r) => sameNodeId(resolveNodeId(r.nodeId), roleNodeId));
+        if (idx >= 0) customRoles.splice(idx, 1);
+
+        await persistCustomRoles();
+        if (persistencePath) {
+            await saveToBinaryFile(store, persistencePath);
+        }
+        return { statusCode: StatusCodes.Good };
+    };
+
     if (roleSet.addRole) {
-        (roleSet.addRole as UAMethod).bindMethod(addRoleNotImplemented);
+        (roleSet.addRole as UAMethod).bindMethod(addRoleHandler);
     }
     if (roleSet.removeRole) {
-        (roleSet.removeRole as UAMethod).bindMethod(removeRoleNotImplemented);
+        (roleSet.removeRole as UAMethod).bindMethod(removeRoleHandler);
     }
 
     return { store, resolver };
+}
+
+/** Resolve a namespace URI to its index, registering it if necessary. */
+function ensureNamespace(addressSpace: IAddressSpace, namespaceUri: string): number {
+    const idx = addressSpace.getNamespaceIndex(namespaceUri);
+    return idx >= 0 ? idx : addressSpace.registerNamespace(namespaceUri).index;
 }
