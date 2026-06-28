@@ -7,7 +7,15 @@ import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { InMemoryIdentityMappingStore, loadFromBinaryFile, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
+import {
+    InMemoryIdentityMappingStore,
+    identitiesToBase64,
+    loadFromBinaryFile,
+    ROLE_SET_ARCHIVE_VERSION,
+    saveToBinaryFile,
+    WellKnownRoleIds,
+    writeArchive
+} from "node-opcua-role-set-common";
 import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
@@ -83,7 +91,7 @@ describe("installRoleSet", () => {
                 criteria: "admin"
             })
         );
-        await saveToBinaryFile(preStore, tmpPath);
+        await writeArchive(tmpPath, { version: ROLE_SET_ARCHIVE_VERSION, identities: identitiesToBase64(preStore) });
 
         // Install with persistence → store is loaded with the identity
         const { store: _ } = await installRoleSet(server, { persistencePath: tmpPath });
@@ -170,7 +178,7 @@ describe("installRoleSet", () => {
                     criteria: "*"
                 })
             );
-            await saveToBinaryFile(store1, filePath);
+            await writeArchive(filePath, { version: ROLE_SET_ARCHIVE_VERSION, identities: identitiesToBase64(store1) });
 
             // Now install with the same persistence path
             const { store } = await installRoleSet(server, { persistencePath: filePath });

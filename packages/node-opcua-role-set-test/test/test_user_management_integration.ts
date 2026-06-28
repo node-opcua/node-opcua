@@ -13,7 +13,7 @@ import { AddressSpace, type IServerBase, PseudoSession } from "node-opcua-addres
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientUserManagement } from "node-opcua-role-set-client";
-import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
+import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import {
     type IServerForRoleSet,
     type IServerForUserManagement,
@@ -31,7 +31,7 @@ import {
     UserNameIdentityToken
 } from "node-opcua-types";
 import "should";
-import { makeSessionContext } from "./helpers.js";
+import { bootstrapArchive, makeSessionContext } from "./helpers.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
@@ -64,7 +64,7 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
                 new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: userName })
             );
         }
-        await saveToBinaryFile(bootstrap, persistencePath);
+        await bootstrapArchive(persistencePath, bootstrap);
 
         server = {
             roleResolvers: [],

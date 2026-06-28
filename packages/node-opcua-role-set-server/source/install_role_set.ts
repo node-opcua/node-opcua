@@ -15,21 +15,24 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { promises as fs } from "node:fs";
 import type { IAddressSpace, ISessionContext, UAMethod, UAObject, UARole, UARoleSet } from "node-opcua-address-space";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
+    deserializeRestrictions,
     type IIdentityMappingStore,
     InMemoryIdentityMappingStore,
     InMemoryRoleRestrictionStore,
     type IRoleRestrictionStore,
-    loadFromBinaryFile,
-    loadRestrictionsFromFile,
-    saveRestrictionsToFile,
-    saveToBinaryFile,
-    WellKnownRoles
+    identitiesFromBase64,
+    identitiesToBase64,
+    type PersistedCustomRole,
+    ROLE_SET_ARCHIVE_VERSION,
+    readArchive,
+    serializeRestrictions,
+    WellKnownRoles,
+    writeArchive
 } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
@@ -57,11 +60,7 @@ import { asString } from "./variant_args.js";
 const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 
 /** Persisted definition of a custom Role (so its GUID NodeId survives a restart). */
-interface CustomRoleDef {
-    nodeId: string;
-    roleName: string;
-    namespaceUri: string;
-}
+type CustomRoleDef = PersistedCustomRole;
 
 /** Iterate the Role components of a RoleSet (UAObjects of type RoleType). */
 function forEachRole(roleSet: UARoleSet, fn: (role: UARole) => void): void {
@@ -86,8 +85,19 @@ function isWellKnownRoleNodeId(nodeId: NodeId): boolean {
 const WELL_KNOWN_ROLE_NAMES = new Set(Object.keys(WellKnownRoles).filter((k) => Number.isNaN(Number(k))));
 
 export interface InstallRoleSetOptions {
-    /** Path to persist role-identity mappings (binary file). Custom Role definitions are stored alongside as `<path>.roles.json`. */
+    /**
+     * Path to a single consolidated archive file holding the whole RoleSet
+     * configuration (identity mappings, custom Role definitions and
+     * application/endpoint restrictions). Written atomically on every change.
+     */
     persistencePath?: string;
+    /**
+     * When set, the archive is encrypted at rest (AES-256-GCM, key derived from
+     * this operator-supplied secret). Omit to store plain JSON (relying on
+     * filesystem permissions); the stored password material is salted scrypt
+     * hashes either way.
+     */
+    persistenceSecret?: string;
 }
 
 export interface InstallRoleSetResult {
@@ -126,16 +136,17 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     }
 
     const persistencePath = options?.persistencePath;
-    const rolesSidecar = persistencePath ? `${persistencePath}.roles.json` : undefined;
-    const restrictionsSidecar = persistencePath ? `${persistencePath}.restrictions.json` : undefined;
+    const persistenceSecret = options?.persistenceSecret;
+
+    // Load the whole configuration from the single consolidated archive (if any).
+    const archive = persistencePath ? await readArchive(persistencePath, { secret: persistenceSecret }) : undefined;
 
     const store = new InMemoryIdentityMappingStore();
-    if (persistencePath) {
-        await loadFromBinaryFile(store, persistencePath);
-    }
+    identitiesFromBase64(store, archive?.identities);
+
     const restrictionStore = new InMemoryRoleRestrictionStore();
-    if (restrictionsSidecar) {
-        await loadRestrictionsFromFile(restrictionStore, restrictionsSidecar);
+    if (archive?.restrictions) {
+        deserializeRestrictions(restrictionStore, archive.restrictions);
     }
 
     const resolver = new RoleSetResolver(store, restrictionStore);
@@ -173,24 +184,28 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
 
     const customRoles: CustomRoleDef[] = [];
 
-    async function persistCustomRoles(): Promise<void> {
-        if (rolesSidecar) {
-            await fs.writeFile(rolesSidecar, JSON.stringify(customRoles, null, 2), "utf8");
-        }
+    /** Snapshot every store into the single consolidated archive (atomic write). */
+    async function persist(): Promise<void> {
+        if (!persistencePath) return;
+        await writeArchive(
+            persistencePath,
+            {
+                version: ROLE_SET_ARCHIVE_VERSION,
+                identities: identitiesToBase64(store),
+                roles: customRoles,
+                restrictions: serializeRestrictions(restrictionStore)
+            },
+            { secret: persistenceSecret }
+        );
     }
 
-    /** Refresh every Role's variables and persist the identity mappings + restrictions. */
+    /** Refresh every Role's variables and persist the whole configuration. */
     const afterMutation = async () => {
         forEachRole(roleSet, (role) => {
             refreshIdentities(role);
             refreshRestrictions(role);
         });
-        if (persistencePath) {
-            await saveToBinaryFile(store, persistencePath);
-        }
-        if (restrictionsSidecar) {
-            await saveRestrictionsToFile(restrictionStore, restrictionsSidecar);
-        }
+        await persist();
     };
 
     // Raise a RoleMappingRuleChangedAuditEventType on the Server object (§4.5).
@@ -262,22 +277,13 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     };
 
     // Recreate persisted custom Roles before binding the standard ones.
-    if (rolesSidecar) {
-        try {
-            const defs: CustomRoleDef[] = JSON.parse(await fs.readFile(rolesSidecar, "utf8"));
-            for (const def of defs) {
-                const nodeId = resolveNodeId(def.nodeId);
-                const nsIndex = def.namespaceUri
-                    ? ensureNamespace(addressSpace, def.namespaceUri)
-                    : addressSpace.getOwnNamespace().index;
-                if (!addressSpace.findNode(nodeId)) {
-                    createRoleNode(def.roleName, nsIndex, nodeId);
-                }
-                customRoles.push(def);
-            }
-        } catch {
-            // missing/invalid sidecar → start with no custom roles
+    for (const def of archive?.roles ?? []) {
+        const nodeId = resolveNodeId(def.nodeId);
+        const nsIndex = def.namespaceUri ? ensureNamespace(addressSpace, def.namespaceUri) : addressSpace.getOwnNamespace().index;
+        if (!addressSpace.findNode(nodeId)) {
+            createRoleNode(def.roleName, nsIndex, nodeId);
         }
+        customRoles.push(def);
     }
 
     // Bind the configuration Methods on every current Role and seed its variables.
@@ -324,7 +330,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         createRoleNode(roleName, browseNameNamespace, nodeId);
 
         customRoles.push({ nodeId: nodeId.toString(), roleName, namespaceUri });
-        await persistCustomRoles();
+        await persist();
 
         return {
             statusCode: StatusCodes.Good,
@@ -364,10 +370,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         const idx = customRoles.findIndex((r) => sameNodeId(resolveNodeId(r.nodeId), roleNodeId));
         if (idx >= 0) customRoles.splice(idx, 1);
 
-        await persistCustomRoles();
-        if (persistencePath) {
-            await saveToBinaryFile(store, persistencePath);
-        }
+        await persist();
         return { statusCode: StatusCodes.Good };
     };
 

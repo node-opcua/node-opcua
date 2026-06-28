@@ -31,40 +31,45 @@ import { installRoleSet } from "node-opcua-role-set-server";
 const server = new OPCUAServer({ /* ... */ });
 await server.start();
 
-const { store, resolver } = await installRoleSet(server, {
-    persistencePath: "./config/role-identities.bin"
+const { store, restrictionStore, resolver } = await installRoleSet(server, {
+    persistencePath: "./config/role-set.json",
+    persistenceSecret: process.env.ROLE_SET_SECRET // optional: encrypt at rest
 });
 ```
 
 What `installRoleSet` does:
 
 1. Finds the `RoleSet` node (`i=15606`) in the address space.
-2. Creates an `InMemoryIdentityMappingStore`, optionally loading persisted state from `persistencePath`.
+2. Loads the whole configuration from the consolidated archive at `persistencePath` (if any):
+   identity mappings, custom Role definitions and application/endpoint restrictions.
 3. Registers a `RoleSetResolver` on `server.roleResolvers` so sessions are mapped to roles at login.
 4. For each Role in the RoleSet:
-   - sets the initial `Identities` property value from the store;
-   - binds the `AddIdentity` / `RemoveIdentity` methods (when present).
-5. Binds `RoleSet.AddRole` / `RoleSet.RemoveRole` as `BadNotImplemented` stubs (custom roles are not supported).
-6. After every mutation, refreshes the Role identity variables and (if configured) saves the store to disk.
+   - sets the initial `Identities` (and restriction) property values from the stores;
+   - binds the `AddIdentity` / `RemoveIdentity` and the application/endpoint restriction methods.
+5. Binds `RoleSet.AddRole` / `RoleSet.RemoveRole` (§4.2): custom Roles are created as
+   `ns=1;g=<uuid>` instances of `RoleType` (collision-proof, stable across restarts);
+   well-known Roles cannot be removed.
+6. After every mutation, refreshes the Role variables and atomically rewrites the archive.
 
 ### Returned values
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `store` | `IIdentityMappingStore` | The identity-mapping store backing the RoleSet. |
+| `restrictionStore` | `IRoleRestrictionStore` | The per-Role application/endpoint restriction store. |
 | `resolver` | `RoleSetResolver` | The resolver registered on `server.roleResolvers`. |
 
 You can mutate `store` directly (e.g. to seed default mappings); call sites that go
-through the bound methods automatically persist, but direct store changes need a manual
-`saveToBinaryFile` if you want them persisted.
+through the bound methods automatically persist, but direct store changes are not
+written to the archive until the next method-driven mutation.
 
 ## Exports
 
 | Export | Description |
 |--------|-------------|
 | `installRoleSet(server, options?)` | One-call setup of RoleSet management on a server. |
-| `InstallRoleSetOptions` | `{ persistencePath?: string }`. |
-| `InstallRoleSetResult` | `{ store, resolver }`. |
+| `InstallRoleSetOptions` | `{ persistencePath?: string, persistenceSecret?: string }`. |
+| `InstallRoleSetResult` | `{ store, restrictionStore, resolver }`. |
 | `IServerForRoleSet` | Minimal server shape required (`roleResolvers` + `engine.addressSpace`). |
 | `RoleSetResolver` | Adapts an `IIdentityMappingStore` to the server's `IRoleResolver` contract. |
 | `makeAddIdentityHandler(options)` / `makeRemoveIdentityHandler(options)` | Build the method handlers (used internally; exposed for custom binding). |
@@ -83,16 +88,24 @@ status codes returned by the handlers:
 | `BadUserAccessDenied` | The session does not hold the `SecurityAdmin` role. |
 | `BadInvalidArgument` | The input argument is not an `IdentityMappingRuleType`. |
 | `BadNoMatch` | `RemoveIdentity` — no matching rule was found. |
-| `BadNotImplemented` | `AddRole` / `RemoveRole` — adding/removing custom roles is not supported. |
+| `BadAlreadyExists` | `AddRole` — the RoleName duplicates an existing (well-known or custom) Role. |
+| `BadRequestNotAllowed` | `RemoveRole` — well-known Roles cannot be removed. |
 
 ## Persistence
 
-When `persistencePath` is supplied:
+When `persistencePath` is supplied, the **entire** RoleSet configuration is kept in a
+single consolidated archive (identity mappings, custom Role definitions and
+application/endpoint restrictions):
 
-- existing mappings are loaded from the binary file on install (a missing file is a no-op);
-- the store is re-saved after every successful `AddIdentity` / `RemoveIdentity` call.
+- the archive is loaded on install (a missing file is a no-op);
+- it is **atomically** rewritten (temp file + rename) after every successful mutation, so
+  a crash can never leave a half-written file;
+- when `persistenceSecret` is set the whole payload is encrypted at rest with AES-256-GCM
+  (key derived from the secret via scrypt); otherwise it is plain, human-readable JSON
+  with the identity mappings embedded as a base64 binary blob.
 
-The binary format is defined in [`node-opcua-role-set-common`](../node-opcua-role-set-common).
+The archive format (`readArchive` / `writeArchive`, version-checked) is defined in
+[`node-opcua-role-set-common`](../node-opcua-role-set-common).
 
 ## Related packages
 

@@ -5,7 +5,16 @@
 import { type AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 import { NodeId } from "node-opcua-nodeid";
+import { type IIdentityMappingStore, identitiesToBase64, ROLE_SET_ARCHIVE_VERSION, writeArchive } from "node-opcua-role-set-common";
 import { AnonymousIdentityToken, MessageSecurityMode, type UserIdentityToken, UserNameIdentityToken } from "node-opcua-types";
+
+/**
+ * Seed a consolidated archive with the given identity store, so `installRoleSet`
+ * loads it on startup (e.g. to bootstrap an admin -> SecurityAdmin mapping).
+ */
+export async function bootstrapArchive(persistencePath: string, store: IIdentityMappingStore, secret?: string): Promise<void> {
+    await writeArchive(persistencePath, { version: ROLE_SET_ARCHIVE_VERSION, identities: identitiesToBase64(store) }, { secret });
+}
 
 /** A SessionContext for the given user identity + channel security mode (+ optional endpoint URL). */
 export function makeSessionContext(
