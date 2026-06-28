@@ -51,8 +51,8 @@ export interface InstallUserManagementOptions {
      * A shared {@link ArchiveStore} coordinating one consolidated file across
      * `installRoleSet` and `installUserManagement`. Pass the **same** instance to
      * both so users (salted scrypt hashes) live in the same archive as the role
-     * config. Install role set **first**, then user management, before serving
-     * requests. When omitted, an internal one is created from `persistencePath`.
+     * config; install order does not matter (unregistered sections are preserved).
+     * When omitted, an internal one is created from `persistencePath`.
      */
     persistence?: ArchiveStore;
     /** Path to a users-only archive (used when no shared {@link persistence} is given). */

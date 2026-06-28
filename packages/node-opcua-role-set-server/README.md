@@ -110,8 +110,7 @@ The archive format (`readArchive` / `writeArchive`, version-checked) is defined 
 ### Sharing the archive with User Management
 
 To keep **users** (salted scrypt hashes, never clear passwords) in the *same* file as the
-role configuration, create one `ArchiveStore` and pass it to both installers — role set
-**first**, then user management, before serving requests:
+role configuration, create one `ArchiveStore` and pass it to both installers:
 
 ```ts
 import { ArchiveStore } from "node-opcua-role-set-common";
@@ -125,7 +124,9 @@ await installUserManagement(server, { persistence });
 
 The coordinator gathers every registered section (identities / roles / restrictions / users)
 and rewrites the one file atomically on each mutation, so neither installer clobbers the
-other. Pass only `persistencePath` instead for a role-config-only (or users-only) file.
+other — a section with no provider yet keeps its last loaded value, so the result is
+independent of install order. Pass only `persistencePath` instead for a role-config-only
+(or users-only) file.
 
 ## Related packages
 

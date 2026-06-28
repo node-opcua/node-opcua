@@ -128,6 +128,27 @@ describe("RoleSet consolidated archive", () => {
             users2.authenticate("alice", "Sekret123!").statusCode.should.equal(StatusCodes.Good);
         });
 
+        it("preserves a section that has no provider yet (install-order independence)", async () => {
+            // seed a file that already has roles on disk (as installRoleSet would write)
+            await writeArchive(filePath, {
+                version: ROLE_SET_ARCHIVE_VERSION,
+                roles: [{ nodeId: "ns=1;g=AAAAAAAA-1111-2222-3333-444444444444", roleName: "Maintenance" }]
+            });
+
+            // a coordinator that ONLY knows about users (e.g. user mgmt installed first)
+            const users = new InMemoryUserManagementStore();
+            users.addUser("carol", "Sekret123!", UserConfigurationMask.None, "");
+            const store = new ArchiveStore(filePath);
+            await store.load(); // remembers the on-disk roles
+            store.setUsersProvider(() => users.exportUsers());
+            await store.save(); // writes users WITHOUT a roles provider
+
+            // the roles written by the other installer must NOT be clobbered
+            const back = await readArchive(filePath);
+            back?.roles?.map((r) => r.roleName).should.eql(["Maintenance"]);
+            back?.users?.map((u) => u.userName).should.eql(["carol"]);
+        });
+
         it("persists encrypted when a secret is configured", async () => {
             const users = new InMemoryUserManagementStore();
             users.addUser("bob", "Sekret123!", UserConfigurationMask.None, "");

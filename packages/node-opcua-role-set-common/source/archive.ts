@@ -171,6 +171,10 @@ type SectionProvider<T> = () => T | undefined;
  * mutation; the coordinator gathers **all** registered sections and rewrites the
  * one file atomically — so neither installer clobbers the other's data. Pass the
  * same `ArchiveStore` instance to both to keep everything in one file.
+ *
+ * A section with **no** registered provider is not dropped: its last loaded value
+ * is preserved on save. This makes the result independent of install order — even
+ * a mutation between the two installs cannot lose the not-yet-registered sections.
  */
 export class ArchiveStore {
     private readonly _io: ArchiveIO;
@@ -178,6 +182,8 @@ export class ArchiveStore {
     private _roles?: SectionProvider<PersistedCustomRole[]>;
     private _restrictions?: SectionProvider<SerializedRoleRestriction[]>;
     private _users?: SectionProvider<SerializedUserRecord[]>;
+    /** Last archive read from disk — used to preserve sections that have no provider yet. */
+    private _loaded?: RoleSetArchive;
 
     constructor(
         public readonly filePath: string,
@@ -199,23 +205,27 @@ export class ArchiveStore {
         this._users = fn;
     }
 
-    /** Read the persisted archive (missing file → undefined). */
-    public load(): Promise<RoleSetArchive | undefined> {
-        return readArchive(this.filePath, this._io);
+    /** Read the persisted archive (missing file → undefined) and remember it for {@link save}. */
+    public async load(): Promise<RoleSetArchive | undefined> {
+        this._loaded = await readArchive(this.filePath, this._io);
+        return this._loaded;
     }
 
-    /** Atomically rewrite the archive from every registered section provider. */
-    public save(): Promise<void> {
-        return writeArchive(
-            this.filePath,
-            {
-                version: ROLE_SET_ARCHIVE_VERSION,
-                identities: this._identities?.(),
-                roles: this._roles?.(),
-                restrictions: this._restrictions?.(),
-                users: this._users?.()
-            },
-            this._io
-        );
+    /**
+     * Atomically rewrite the archive. A registered provider is authoritative for
+     * its section; a section with no provider falls back to the last loaded value
+     * so it is never clobbered (install-order independence).
+     */
+    public async save(): Promise<void> {
+        const archive: RoleSetArchive = {
+            version: ROLE_SET_ARCHIVE_VERSION,
+            identities: this._identities ? this._identities() : this._loaded?.identities,
+            roles: this._roles ? this._roles() : this._loaded?.roles,
+            restrictions: this._restrictions ? this._restrictions() : this._loaded?.restrictions,
+            users: this._users ? this._users() : this._loaded?.users
+        };
+        await writeArchive(this.filePath, archive, this._io);
+        // keep the fallback snapshot in sync with what is now on disk
+        this._loaded = archive;
     }
 }
