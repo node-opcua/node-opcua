@@ -12,3 +12,11 @@ export {
 export type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
 export { InMemoryIdentityMappingStore } from "./in_memory_store.js";
 export { WellKnownRoleIds, WellKnownRoles } from "./well_known_role_ids.js";
+export {
+    canonicalizeX509Subject,
+    certificateSubjectPairs,
+    matchX509Subject,
+    parseX509SubjectCriteria,
+    X509_SUBJECT_ORDER,
+    type X509SubjectName
+} from "./x509_subject.js";

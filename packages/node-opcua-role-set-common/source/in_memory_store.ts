@@ -13,6 +13,7 @@ import {
 } from "node-opcua-types";
 
 import type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
+import { matchX509Subject } from "./x509_subject.js";
 
 /**
  * In-memory implementation of {@link IIdentityMappingStore}.
@@ -23,7 +24,7 @@ import type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_map
 export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
     private readonly _map = new Map<string, IdentityMappingRuleType[]>();
 
-    public addIdentity(roleId: NodeId, rule: IdentityMappingRuleType): void {
+    public addIdentity(roleId: NodeId, rule: IdentityMappingRuleType): boolean {
         const key = roleId.toString();
         let arr = this._map.get(key);
         if (!arr) {
@@ -32,7 +33,7 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
         }
         // Idempotent: skip if already present
         if (arr.some((r) => r.criteriaType === rule.criteriaType && r.criteria === rule.criteria)) {
-            return;
+            return false;
         }
         arr.push(
             new IdentityMappingRuleType({
@@ -40,6 +41,7 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
                 criteria: rule.criteria
             })
         );
+        return true;
     }
 
     public removeIdentity(roleId: NodeId, rule: IdentityMappingRuleType): boolean {
@@ -101,10 +103,8 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
 /**
  * Check if a single identity mapping rule matches a user identity token.
  *
- * **Note:** For `X509Subject` criteria, this implementation only compares
- * against the certificate's `commonName` (CN) field, **not** the full
- * Distinguished Name (DN). This is a simplification — a production
- * implementation may need full DN matching.
+ * For `X509Subject` criteria, see {@link matchX509Subject}: both the full
+ * ordered DN format (OPC 10000-18 §4.4.3) and a plain Common Name are accepted.
  *
  * @see OPC 10000-18 §4.4 IdentityMappingRuleType
  */
@@ -137,8 +137,8 @@ function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken)
                 const certBuffer =
                     token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
                 const info = exploreCertificate(certBuffer);
-                const dn = info.tbsCertificate.subject?.commonName ?? "";
-                return dn === rule.criteria;
+                const subject = info.tbsCertificate.subject ?? {};
+                return matchX509Subject(rule.criteria ?? "", subject);
             } catch {
                 return false;
             }
