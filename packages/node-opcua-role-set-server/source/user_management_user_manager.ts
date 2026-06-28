@@ -26,6 +26,8 @@ import { UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 /** The subset of the ServerSession that `isValidUser` is bound to (`this`). */
 interface SessionThis {
     getSessionId?(): NodeId;
+    /** Set so ActivateSession returns Good_PasswordChangeRequired (node-opcua-server). */
+    passwordChangeRequired?: boolean;
 }
 
 export interface IUserManagementUserManager {
@@ -73,6 +75,10 @@ export function createUserManagementUserManager(
             const sessionId = this?.getSessionId?.();
             if (sessionId) {
                 statusBySession.set(sessionId.toString(), result.statusCode);
+            }
+            // flag the session so ActivateSession returns Good_PasswordChangeRequired
+            if (this) {
+                this.passwordChangeRequired = result.statusCode === StatusCodes.GoodPasswordChangeRequired;
             }
             return result.statusCode === StatusCodes.Good || result.statusCode === StatusCodes.GoodPasswordChangeRequired;
         },

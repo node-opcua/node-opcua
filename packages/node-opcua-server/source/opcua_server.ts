@@ -9,6 +9,7 @@ import {
     type AddressSpace,
     type EventTypeLike,
     type IRolePolicyOverride,
+    type IRoleResolver,
     type IServerBase,
     type ISessionContext,
     innerBrowse,
@@ -30,7 +31,6 @@ import {
     type UAObject,
     type UAObjectType,
     type UAVariable,
-    type IRoleResolver,
     type UAView
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
@@ -1063,14 +1063,14 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             serverInfo: this.serverInfo,
             buildInfo: this.buildInfo,
             state: this.engine ? this.getServerState() : "uninitialized",
-            endpoints: this.endpoints.map(e => e.toJSON()),
+            endpoints: this.endpoints.map((e) => e.toJSON()),
             currentSessionCount: this.currentSessionCount,
             initialized: this.initialized
         };
     }
 
     public toString(): string {
-        return `OPCUAServer(endpoints=${this.endpoints.map(e => e.toString()).join(",")})`;
+        return `OPCUAServer(endpoints=${this.endpoints.map((e) => e.toString()).join(",")})`;
     }
 
     public [Symbol.for("nodejs.util.inspect.custom")](): string {
@@ -2519,7 +2519,14 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
                             session.status = "active";
 
+                            // OPC 10000-18 §5.2.8: a userManager may flag that the
+                            // user must change the password; surface it to the Client.
+                            const activationStatus = session.passwordChangeRequired
+                                ? StatusCodes.GoodPasswordChangeRequired
+                                : StatusCodes.Good;
+
                             const response = new ActivateSessionResponse({
+                                responseHeader: { serviceResult: activationStatus },
                                 serverNonce: session.nonce
                             });
                             channel.send_response("MSG", response, message);
@@ -3957,7 +3964,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
     }
-
 }
 
 const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken): UserIdentityToken => {
@@ -4090,7 +4096,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData { }
+export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
@@ -4120,7 +4126,7 @@ export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCe
      */
     invalidUri: PseudoVariantString;
 }
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4132,7 +4138,7 @@ export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCerti
  * There are no additional Properties defined for this EventType.
  *
  */
-export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4142,7 +4148,7 @@ export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4152,7 +4158,7 @@ export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertifi
  * If a trust chain is involved then the certificate that failed in the trust chain should be described.
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -4175,7 +4181,7 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType
  */
-export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
 
 const opts = { multiArgs: false };
 OPCUAServer.prototype.initialize = withCallback(OPCUAServer.prototype.initialize, opts);

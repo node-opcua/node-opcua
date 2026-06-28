@@ -17,7 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
-import { ClientUserManagement } from "node-opcua-role-set-client";
+import { ClientUserManagement, sessionRequiresPasswordChange } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import {
     createUserManagementUserManager,
@@ -123,10 +123,12 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
             r.statusCode.should.equal(StatusCodes.Good);
         });
 
-        // 2) newhire's first login SUCCEEDS but is flagged Good_PasswordChangeRequired,
-        //    observed in the context of *this* session (keyed by the SessionId the
-        //    client itself holds), and (still restricted) changes the password.
+        // 2) newhire's first login SUCCEEDS but ActivateSession returns
+        //    Good_PasswordChangeRequired — the CLIENT detects this with no access
+        //    to the server or userManager, then (still restricted) changes the password.
         await withUserSession("newhire", "init-pw1", async (session) => {
+            sessionRequiresPasswordChange(session).should.be.true("client should see a required password change");
+            // (cross-check the server-side record keyed by this session)
             userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.GoodPasswordChangeRequired);
 
             const um = new ClientUserManagement(session);
@@ -140,8 +142,9 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
         );
         (oldLoginError !== null).should.be.true("activating with the old password should fail");
 
-        // 4) the NEW password works and is no longer flagged for the new session
+        // 4) the NEW password works and the client no longer sees a required change
         await withUserSession("newhire", "New-pw-2", async (session) => {
+            sessionRequiresPasswordChange(session).should.be.false("client should no longer require a password change");
             userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.Good);
         });
     });

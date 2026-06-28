@@ -205,6 +205,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public serverNonce?: Nonce;
     public serverSignature?: SignatureData; // todo : remove ?
     public serverEndpoints: EndpointDescription[] = [];
+    public lastActivateSessionStatusCode: StatusCode = StatusCodes.Good;
     public _client: IClientBase | null;
     public _closed: boolean;
 
@@ -277,7 +278,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             isReconnecting: this.isReconnecting ? "true" : "false"
         };
     }
-
 
     public [Symbol.for("nodejs.util.inspect.custom")](): string {
         return this.toString();
@@ -420,8 +420,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
-                            " BrowseResponse : the server didn't take into" +
-                            " account our requestedMaxReferencesPerNode "
+                                " BrowseResponse : the server didn't take into" +
+                                " account our requestedMaxReferencesPerNode "
                         );
                         warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
                         warningLog("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
@@ -430,7 +430,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* c8 ignore next */[];
+                r.references = r.references || /* c8 ignore next */ [];
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);
@@ -725,7 +725,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             // perform ExtensionObject resolution
             const promises = response.results.map(async (result) => {
@@ -870,7 +870,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             assert(nodesToRead.length === response.results.length);
 
@@ -1009,7 +1009,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1204,7 +1204,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 warningLog(
                     chalk.yellow(
                         "please make sure to refactor your code and check that " +
-                        "the second argument of your callback function is named"
+                            "the second argument of your callback function is named"
                     ),
                     chalk.cyan("dataValue" + (isArray ? "s" : ""))
                 );
@@ -1238,7 +1238,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             // perform ExtensionObject resolution
             promoteOpaqueStructure(this, response.results!)
                 .then(() => {
-                    response.results = response.results || /* c8 ignore next */[];
+                    response.results = response.results || /* c8 ignore next */ [];
                     callback(null, isArray ? response.results : response.results[0]);
                 })
                 .catch((err) => {
@@ -1416,7 +1416,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 if (!response) {
                     return callback(new Error("Internal Error"));
                 }
-                response.results = response.results || /* c8 ignore next */[];
+                response.results = response.results || /* c8 ignore next */ [];
                 callback(err, isArray ? response.results : response.results[0]);
             }
         );
@@ -1452,7 +1452,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || /* c8 ignore next */[];
+            response.results = response.results || /* c8 ignore next */ [];
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1601,9 +1601,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 err = new Error(
                     " ServiceResult is " +
-                    response.responseHeader.serviceResult.toString() +
-                    " request was " +
-                    request.constructor.name
+                        response.responseHeader.serviceResult.toString() +
+                        " request was " +
+                        request.constructor.name
                 );
 
                 if (response && response.responseHeader.serviceDiagnostics) {
@@ -1852,7 +1852,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* c8 ignore next */[];
+            response.registeredNodeIds = response.registeredNodeIds || /* c8 ignore next */ [];
 
             callback(null, response.registeredNodeIds);
         });
