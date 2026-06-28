@@ -44,7 +44,7 @@ export interface InstallUserManagementOptions {
      * Existing user store to bind the Methods to. When omitted a new
      * {@link InMemoryUserManagementStore} is created. Inject a shared store when
      * the same store also backs the server `userManager`
-     * (see `createUserManagementUserManager`).
+     * (see `createUserManager`).
      */
     store?: IUserManagementStore;
     /**

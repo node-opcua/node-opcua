@@ -20,6 +20,8 @@ export interface IUserManagerEx extends IUserManager {
     isValidUser?: ValidUserFunc;
     /** asynchronous function to check if the credentials - overrules isValidUser */
     isValidUserAsync?: ValidUserAsyncFunc;
+    /** optional: the IdentityMappingRules for a Role (binds each Role's `Identities` Property) */
+    getIdentitiesForRole?: (role: NodeId) => IdentityMappingRuleType[];
 }
 
 export type UserManagerOptions = IUserManagerEx | UAUserManagerBase;
@@ -89,7 +91,18 @@ export class UAUserManager1 extends UAUserManagerBase {
         }
     }
     getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[] {
-        return [];
+        if (!this.options.getIdentitiesForRole) return [];
+        try {
+            return this.options.getIdentitiesForRole(role);
+        } catch (err) {
+            if (types.isNativeError(err)) {
+                errorLog(
+                    "[NODE-OPCUA-E29] userManager provided getIdentitiesForRole method has thrown an exception, please fix your code!"
+                );
+                errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0, 2).join("\n"));
+            }
+            return [];
+        }
     }
 }
 

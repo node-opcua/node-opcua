@@ -11,6 +11,7 @@ import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
 import { AttributeIds } from "node-opcua-data-model";
+import { ClientRoleSet } from "node-opcua-role-set-client";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { SAMPLE_USERS, type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
@@ -106,6 +107,20 @@ describe("Sample server: Variables gated by per-Role RolePermissions (§4)", fun
                 value: { value: { dataType: DataType.String, value: "rotated" } }
             });
             sc.should.equal(StatusCodes.Good);
+        });
+    });
+
+    it("the SecurityAdmin Role's Identities Property lists admin (single source of truth)", async () => {
+        // this is exactly what a client's "Users and identities included in the role"
+        // panel reads — it must reflect the seeded admin -> SecurityAdmin mapping.
+        await withSession(SAMPLE_USERS.admin, async (s) => {
+            const roleSet = new ClientRoleSet(s);
+            const securityAdmin = await roleSet.getRole("SecurityAdmin");
+            const identities = (await securityAdmin?.readIdentities()) ?? [];
+            identities.map((i) => i.criteria).should.containEql("admin");
+
+            const operatorRole = await roleSet.getRole("Operator");
+            ((await operatorRole?.readIdentities()) ?? []).map((i) => i.criteria).should.containEql("operator");
         });
     });
 });

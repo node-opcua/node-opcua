@@ -4,7 +4,7 @@ import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
-import { createUserManagementUserManager } from "../source/user_management_user_manager.js";
+import { createUserManager } from "../source/user_management_user_manager.js";
 
 function setup() {
     const userStore = new InMemoryUserManagementStore();
@@ -13,11 +13,11 @@ function setup() {
         WellKnownRoleIds.Operator,
         new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: "joe" })
     );
-    const um = createUserManagementUserManager(userStore, identityStore);
+    const um = createUserManager(userStore, identityStore);
     return { userStore, identityStore, um };
 }
 
-describe("createUserManagementUserManager", () => {
+describe("createUserManager", () => {
     it("should validate a correct password and record Good", () => {
         const { userStore, um } = setup();
         userStore.addUser("joe", "pass1", UserConfigurationMask.None, "");

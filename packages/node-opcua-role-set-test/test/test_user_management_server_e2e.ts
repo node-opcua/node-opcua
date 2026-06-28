@@ -19,11 +19,7 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
 import { ClientUserManagement, sessionRequiresPasswordChange } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
-import {
-    createUserManagementUserManager,
-    type IUserManagementUserManager,
-    installUserManagement
-} from "node-opcua-role-set-server";
+import { createUserManager, type IManagedUserManager, installUserManagement } from "node-opcua-role-set-server";
 import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
@@ -40,7 +36,7 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
 
     let server: OPCUAServer;
     let userStore: InMemoryUserManagementStore;
-    let userManager: IUserManagementUserManager;
+    let userManager: IManagedUserManager;
     let endpointUrl: string;
     let clientCertificateManager: OPCUACertificateManager;
     let serverCertificateManager: OPCUACertificateManager;
@@ -67,7 +63,7 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
         identityStore.addIdentity(WellKnownRoleIds.SecurityAdmin, userRule("admin"));
         identityStore.addIdentity(WellKnownRoleIds.Operator, userRule("newhire"));
 
-        userManager = createUserManagementUserManager(userStore, identityStore);
+        userManager = createUserManager(userStore, identityStore);
 
         server = new OPCUAServer({
             port,

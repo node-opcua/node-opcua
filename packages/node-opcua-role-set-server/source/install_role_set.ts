@@ -103,6 +103,14 @@ export interface InstallRoleSetOptions {
      * is created from `persistencePath`/`persistenceSecret` (role config only).
      */
     persistence?: ArchiveStore;
+    /**
+     * Identity-mapping store to bind the RoleSet to. When omitted a new
+     * {@link InMemoryIdentityMappingStore} is created. Inject a shared store so the
+     * **same** mappings drive role resolution (e.g. via the server `userManager`),
+     * the `Identities` Property shown in clients, and the RoleSet Methods —
+     * keeping a single source of truth. Persisted mappings (if any) are merged in.
+     */
+    store?: IIdentityMappingStore;
 }
 
 export interface InstallRoleSetResult {
@@ -149,7 +157,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     // Load the whole configuration from the single consolidated archive (if any).
     const archive = persistence ? await persistence.load() : undefined;
 
-    const store = new InMemoryIdentityMappingStore();
+    const store = options?.store ?? new InMemoryIdentityMappingStore();
     identitiesFromBase64(store, archive?.identities);
 
     const restrictionStore = new InMemoryRoleRestrictionStore();

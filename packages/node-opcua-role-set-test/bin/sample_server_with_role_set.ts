@@ -28,7 +28,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
-import { createUserManagementUserManager, installRoleSet, installUserManagement } from "node-opcua-role-set-server";
+import { createUserManager, installRoleSet, installUserManagement } from "node-opcua-role-set-server";
 import { OPCUAServer } from "node-opcua-server";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
@@ -100,7 +100,7 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
         }
     }
 
-    const userManager = createUserManagementUserManager(userStore, identityStore);
+    const userManager = createUserManager(userStore, identityStore);
 
     const server = new OPCUAServer({
         port,
@@ -114,10 +114,10 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
     await server.start();
     const endpointUrl = server.getEndpointUrl();
 
-    // Install the RoleSet management Methods (AddRole/AddIdentity/…) and User
-    // Management (§5). Role *resolution* is driven by the userManager's identity
-    // store seeded above; these expose the management surface on the address space.
-    await installRoleSet(server);
+    // Install the RoleSet on the SAME identity store the userManager resolves
+    // against — one source of truth, so the seeded mappings also show up in each
+    // Role's `Identities` Property and the RoleSet Methods mutate the live store.
+    await installRoleSet(server, { store: identityStore });
     await installUserManagement({ engine: { addressSpace: server.engine.addressSpace } }, { store: userStore });
 
     const nodeIds = addDemoVariables(server);
