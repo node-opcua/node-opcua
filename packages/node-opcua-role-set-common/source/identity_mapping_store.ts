@@ -18,8 +18,15 @@ export type AnyUserIdentityToken = AnonymousIdentityToken | UserNameIdentityToke
  * The store resolves which roles a given user identity token grants.
  */
 export interface IIdentityMappingStore {
-    /** Add an identity mapping rule for a role. Idempotent. */
-    addIdentity(roleId: NodeId, rule: IdentityMappingRuleType): void;
+    /**
+     * Add an identity mapping rule for a role.
+     *
+     * @returns `true` if the rule was added, `false` if an equivalent rule
+     * already existed (the store is idempotent — duplicates are never stored).
+     * Callers binding the OPC UA `AddIdentity` Method use this to return
+     * `Bad_AlreadyExists` (OPC 10000-18 §4.4.5).
+     */
+    addIdentity(roleId: NodeId, rule: IdentityMappingRuleType): boolean;
 
     /** Remove an identity mapping rule. Returns true if found and removed. */
     removeIdentity(roleId: NodeId, rule: IdentityMappingRuleType): boolean;
