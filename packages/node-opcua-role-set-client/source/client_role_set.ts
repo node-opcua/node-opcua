@@ -14,9 +14,10 @@ import { ObjectIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, NodeClass } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
-import type { CallMethodResult } from "node-opcua-service-call";
+import { CallMethodResult } from "node-opcua-service-call";
 import type { BrowsePath } from "node-opcua-service-translate-browse-path";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { StatusCodes } from "node-opcua-status-code";
 import { IdentityMappingRuleType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
@@ -110,7 +111,11 @@ export class ClientRole {
     public async addIdentity(rule: IdentityMappingRuleType): Promise<CallMethodResult> {
         const ids = await this.ensureInitialized();
         if (!ids.addIdentityMethodId) {
-            throw new Error(`AddIdentity method not found on role ${this.roleNodeId}`);
+            // The Role does not expose AddIdentity — per OPC 10000-18 §4.4.5 the
+            // Method is omitted when the Server does not allow changes (e.g. the
+            // immutable well-known Roles). Report it as a normal Bad status so the
+            // client API behaves uniformly instead of throwing.
+            return new CallMethodResult({ statusCode: StatusCodes.BadNotSupported });
         }
 
         return this.session.call({
@@ -126,7 +131,8 @@ export class ClientRole {
     public async removeIdentity(rule: IdentityMappingRuleType): Promise<CallMethodResult> {
         const ids = await this.ensureInitialized();
         if (!ids.removeIdentityMethodId) {
-            throw new Error(`RemoveIdentity method not found on role ${this.roleNodeId}`);
+            // See addIdentity: the Method is omitted when changes are not allowed.
+            return new CallMethodResult({ statusCode: StatusCodes.BadNotSupported });
         }
 
         return this.session.call({

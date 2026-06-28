@@ -22,6 +22,7 @@
         "node-opcua-pseudo-session": "2.173.0",
         "node-opcua-service-call": "2.173.0",
         "node-opcua-service-translate-browse-path": "2.173.0",
+        "node-opcua-status-code": "2.173.0",
         "node-opcua-types": "2.173.0",
         "node-opcua-variant": "2.173.0"
     },
