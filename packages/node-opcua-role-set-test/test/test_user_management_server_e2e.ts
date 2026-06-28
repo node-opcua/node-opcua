@@ -12,6 +12,10 @@
  * authentication StatusCode (non-breaking) and the test asserts against it.
  */
 import "should";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
 import { ClientUserManagement } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -25,6 +29,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 
 const port = 48499;
+const pkiRoot = path.join(os.tmpdir(), `role-set-um-e2e-${port}`);
 
 function userRule(criteria: string): IdentityMappingRuleType {
     return new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria });
@@ -37,8 +42,22 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
     let userStore: InMemoryUserManagementStore;
     let userManager: IUserManagementUserManager;
     let endpointUrl: string;
+    let clientCertificateManager: OPCUACertificateManager;
+    let serverCertificateManager: OPCUACertificateManager;
 
     before(async () => {
+        // dedicated PKI per side, in a temp folder, auto-accepting unknown certs
+        clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: path.join(pkiRoot, "client"),
+            automaticallyAcceptUnknownCertificate: true
+        });
+        serverCertificateManager = new OPCUACertificateManager({
+            rootFolder: path.join(pkiRoot, "server"),
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await clientCertificateManager.initialize();
+        await serverCertificateManager.initialize();
+
         userStore = new InMemoryUserManagementStore();
         const identityStore = new InMemoryIdentityMappingStore();
 
@@ -55,9 +74,9 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
             allowAnonymous: false,
             securityModes: [MessageSecurityMode.SignAndEncrypt],
             securityPolicies: [SecurityPolicy.Basic256Sha256],
+            serverCertificateManager,
             userManager
         });
-        server.serverCertificateManager.automaticallyAcceptUnknownCertificate = true;
 
         await server.initialize();
         await server.start();
@@ -68,15 +87,21 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
 
     after(async () => {
         await server?.shutdown();
+        // stop the PKI file-watchers before removing the folder (avoids EPERM on Windows)
+        await clientCertificateManager?.dispose();
+        await serverCertificateManager?.dispose();
+        await fs.rm(pkiRoot, { recursive: true, force: true }).catch((err: Error) => {
+            console.warn(`could not remove temp PKI folder ${pkiRoot}: ${err.message}`);
+        });
     });
 
     async function withUserSession<T>(userName: string, password: string, fn: (session: ClientSession) => Promise<T>): Promise<T> {
         const client = OPCUAClient.create({
             endpointMustExist: false,
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            clientCertificateManager
         });
-        client.clientCertificateManager.automaticallyAcceptUnknownCertificate = true;
         await client.connect(endpointUrl);
         try {
             const session = await client.createSession({ type: UserTokenType.UserName, userName, password });
@@ -99,26 +124,25 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
         });
 
         // 2) newhire's first login SUCCEEDS but is flagged Good_PasswordChangeRequired,
-        //    and (still restricted) changes the password in the same session
+        //    observed in the context of *this* session (keyed by the SessionId the
+        //    client itself holds), and (still restricted) changes the password.
         await withUserSession("newhire", "init-pw1", async (session) => {
-            userManager.lastAuthStatus.get("newhire")?.should.equal(StatusCodes.GoodPasswordChangeRequired);
+            userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.GoodPasswordChangeRequired);
 
             const um = new ClientUserManagement(session);
             (await um.changePassword("init-pw1", "New-pw-2")).statusCode.should.equal(StatusCodes.Good);
         });
 
         // 3) the OLD password is now rejected at ActivateSession
-        let oldRejected = false;
-        try {
-            await withUserSession("newhire", "init-pw1", async () => undefined);
-        } catch {
-            oldRejected = true;
-        }
-        oldRejected.should.be.true();
+        const oldLoginError = await withUserSession("newhire", "init-pw1", async () => undefined).then(
+            () => null,
+            (err: Error) => err
+        );
+        (oldLoginError !== null).should.be.true("activating with the old password should fail");
 
-        // 4) the NEW password works and is no longer flagged
-        await withUserSession("newhire", "New-pw-2", async () => {
-            userManager.lastAuthStatus.get("newhire")?.should.equal(StatusCodes.Good);
+        // 4) the NEW password works and is no longer flagged for the new session
+        await withUserSession("newhire", "New-pw-2", async (session) => {
+            userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.Good);
         });
     });
 });

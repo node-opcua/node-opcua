@@ -111,11 +111,9 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
 
     after(async () => {
         addressSpace.dispose();
-        try {
-            await fs.rm(tmpDir, { recursive: true, force: true });
-        } catch {
-            /* ignore */
-        }
+        await fs.rm(tmpDir, { recursive: true, force: true }).catch((err: Error) => {
+            console.warn(`could not remove temp dir ${tmpDir}: ${err.message}`);
+        });
     });
 
     describe("role discovery via the client", () => {
