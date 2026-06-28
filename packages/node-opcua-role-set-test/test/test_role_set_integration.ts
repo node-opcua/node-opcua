@@ -21,7 +21,12 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
-import { InMemoryIdentityMappingStore, saveToBinaryFile, WellKnownRoleIds } from "node-opcua-role-set-common";
+import {
+    InMemoryIdentityMappingStore,
+    type IRoleRestrictionStore,
+    saveToBinaryFile,
+    WellKnownRoleIds
+} from "node-opcua-role-set-common";
 import { type IServerForRoleSet, installRoleSet, type RoleSetResolver } from "node-opcua-role-set-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
@@ -44,6 +49,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
     let addressSpace: AddressSpace;
     let server: TestServer;
     let resolver: RoleSetResolver;
+    let restrictionStore: IRoleRestrictionStore;
 
     /** A ClientRoleSet bound to an admin session (SignAndEncrypt by default). */
     function adminRoleSet(securityMode = MessageSecurityMode.SignAndEncrypt): ClientRoleSet {
@@ -76,7 +82,9 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             userManager: { getUserRoles: () => [] }
         } as TestServer;
 
-        resolver = (await installRoleSet(server, { persistencePath })).resolver;
+        const installed = await installRoleSet(server, { persistencePath });
+        resolver = installed.resolver;
+        restrictionStore = installed.restrictionStore;
     });
 
     after(async () => {
@@ -264,6 +272,51 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         it("returns BadNodeIdUnknown when removing an unknown role", async () => {
             const unknown = new NodeId(NodeIdType.NUMERIC, 987654, 1);
             (await adminRoleSet().removeRole(unknown)).statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
+        });
+    });
+
+    describe("application restrictions enforced by the resolver (§4.4.1)", () => {
+        it("grants the role only to a complying application over a signed channel", async () => {
+            // map "kayla" -> Operator, then restrict Operator to urn:acme:hmi
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            (await operator.addIdentity(makeRule(IdentityCriteriaType.UserName, "kayla"))).statusCode.should.equal(
+                StatusCodes.Good
+            );
+            restrictionStore.addApplication(operator.roleNodeId, "urn:acme:hmi"); // include-list
+
+            const kayla = new UserNameIdentityToken({ userName: "kayla" });
+            const hasOperator = (roles: ReturnType<typeof resolver.resolveRoles>) =>
+                roles.some((r) => sameNodeId(r, operator.roleNodeId));
+
+            // complying application + signed channel → granted
+            hasOperator(
+                resolver.resolveRoles(kayla, { applicationUri: "urn:acme:hmi", securityMode: MessageSecurityMode.SignAndEncrypt })
+            ).should.be.true();
+            // wrong application → denied
+            hasOperator(
+                resolver.resolveRoles(kayla, { applicationUri: "urn:other:app", securityMode: MessageSecurityMode.SignAndEncrypt })
+            ).should.be.false();
+            // right application but unsigned channel → denied (Applications non-empty requires signing)
+            hasOperator(
+                resolver.resolveRoles(kayla, { applicationUri: "urn:acme:hmi", securityMode: MessageSecurityMode.None })
+            ).should.be.false();
+            // no resolution context → no enforcement (granted)
+            hasOperator(resolver.resolveRoles(kayla)).should.be.true();
+
+            // cleanup
+            restrictionStore.removeApplication(operator.roleNodeId, "urn:acme:hmi");
+            await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "kayla"));
+        });
+
+        it("does not affect roles with no application restriction", async () => {
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            (await operator.addIdentity(makeRule(IdentityCriteriaType.UserName, "nora"))).statusCode.should.equal(StatusCodes.Good);
+            const nora = new UserNameIdentityToken({ userName: "nora" });
+            resolver
+                .resolveRoles(nora, { applicationUri: null, securityMode: MessageSecurityMode.None })
+                .some((r) => sameNodeId(r, operator.roleNodeId))
+                .should.be.true();
+            await operator.removeIdentity(makeRule(IdentityCriteriaType.UserName, "nora"));
         });
     });
 

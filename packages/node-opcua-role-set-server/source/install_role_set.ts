@@ -23,6 +23,8 @@ import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid
 import {
     type IIdentityMappingStore,
     InMemoryIdentityMappingStore,
+    InMemoryRoleRestrictionStore,
+    type IRoleRestrictionStore,
     loadFromBinaryFile,
     saveToBinaryFile,
     WellKnownRoles
@@ -81,6 +83,8 @@ export interface InstallRoleSetOptions {
 export interface InstallRoleSetResult {
     /** The identity mapping store backing the role set. */
     store: IIdentityMappingStore;
+    /** The per-Role application/endpoint restriction store (§4.4.1). */
+    restrictionStore: IRoleRestrictionStore;
     /** The resolver registered on server.roleResolvers. */
     resolver: RoleSetResolver;
 }
@@ -118,8 +122,9 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     if (persistencePath) {
         await loadFromBinaryFile(store, persistencePath);
     }
+    const restrictionStore = new InMemoryRoleRestrictionStore();
 
-    const resolver = new RoleSetResolver(store);
+    const resolver = new RoleSetResolver(store, restrictionStore);
     server.roleResolvers ??= [];
     server.roleResolvers.push(resolver);
 
@@ -304,7 +309,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         (roleSet.removeRole as UAMethod).bindMethod(removeRoleHandler);
     }
 
-    return { store, resolver };
+    return { store, restrictionStore, resolver };
 }
 
 /** Resolve a namespace URI to its index, registering it if necessary. */
