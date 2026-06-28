@@ -25,6 +25,13 @@ export {
     type UserManagementAudit
 } from "./bind_user_management.js";
 export {
+    type CreateRoleBasedSecurityOptions,
+    createRoleBasedSecurity,
+    type InstallRoleBasedSecurityOptions,
+    type RoleBasedSecurity,
+    type RoleBasedUser
+} from "./install_role_based_security.js";
+export {
     type InstallRoleSetOptions,
     type InstallRoleSetResult,
     type IServerForRoleSet,
