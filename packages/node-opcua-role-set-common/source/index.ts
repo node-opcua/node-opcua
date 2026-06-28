@@ -12,6 +12,14 @@ export {
 export type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
 export { InMemoryIdentityMappingStore } from "./in_memory_store.js";
 export {
+    applicationComplies,
+    type EndpointCriteria,
+    endpointComplies,
+    InMemoryRoleRestrictionStore,
+    type IRoleRestrictionStore,
+    type ResolutionContext
+} from "./role_restriction_store.js";
+export {
     type AuthenticationResult,
     InMemoryUserManagementStore,
     type IUserManagementStore,
