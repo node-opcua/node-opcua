@@ -44,11 +44,9 @@ describe("E2E backlog: Custom Role management — AddRole / RemoveRole (§4.2)",
 //   - role-set-common/test/test_role_restriction_store.ts (matching: include/exclude, signed channel)
 //   - role-set-test/test/test_role_set_integration.ts (AddApplication via client → store →
 //     resolver enforcement; duplicate/unknown; granted only for complying app over a signed channel)
-// Endpoint restrictions (§4.4.9-10) — matching unit-tested; live enforcement pending an
-// endpoint URL on the SessionContext.
-describe("E2E backlog: Endpoint restriction live enforcement (§4.4.9-10)", () => {
-    it("limits a role to a specific endpoint once SessionContext exposes the endpoint URL");
-});
+// Endpoint restrictions (§4.4.9-10) — ✅ covered: matching unit-tested
+// (role-set-common) and enforced end-to-end via getCurrentUserRoles now that the
+// SessionContext surfaces the endpoint URL (role-set-test/test_role_set_integration.ts).
 
 describe("E2E backlog: Additional identity criteria types (§4.4.4)", () => {
     it("grants a role via TrustedApplication criteria over a signed channel");

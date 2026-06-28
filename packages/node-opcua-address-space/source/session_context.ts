@@ -275,6 +275,11 @@ export class SessionContext implements ISessionContext {
         }
     }
 
+    /** The URL of the Endpoint the Session was created on, or `null` if unknown. */
+    public get endpointUrl(): string | null {
+        return this.session?.getEndpointUrl?.() ?? null;
+    }
+
     public toJSON(): Record<string, string | null> {
         return {
             userName: this.getUserName(),
@@ -355,7 +360,8 @@ export class SessionContext implements ISessionContext {
             const resolutionContext: IRoleResolutionContext = {
                 applicationUri: this.clientApplicationUri,
                 securityMode: this.session.channel?.securityMode,
-                securityPolicyUri: this.session.channel?.securityPolicy
+                securityPolicyUri: this.session.channel?.securityPolicy,
+                endpointUrl: this.endpointUrl ?? undefined
             };
             for (const resolver of this.server.roleResolvers) {
                 const extra = resolver.resolveRoles(this.session.userIdentityToken, resolutionContext);

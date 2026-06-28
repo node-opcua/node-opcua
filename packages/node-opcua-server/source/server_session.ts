@@ -220,6 +220,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public getEndpointDescription(): EndpointDescription {
         return this.endpoint!;
     }
+    public getEndpointUrl(): string | undefined {
+        return this.endpoint?.endpointUrl ?? undefined;
+    }
 
     public dispose(): void {
         debugLog("ServerSession#dispose()");

@@ -58,6 +58,8 @@ export interface ISessionBase {
     channel?: IChannelBase;
     getSessionId(): NodeId; // session NodeID
     continuationPointManager: IContinuationPointManager;
+    /** The URL of the Endpoint the Session was created on, if known. */
+    getEndpointUrl?(): string | undefined;
 }
 export interface ContinuationPointData {
     dataValues: DataValue[];
@@ -102,6 +104,9 @@ export interface ISessionContext {
      * unavailable.
      */
     readonly clientApplicationUri: string | null;
+
+    /** The URL of the Endpoint the Session was created on, or `null` if unknown. */
+    readonly endpointUrl: string | null;
 
     /**
      * Returns a JSON representation of the context
