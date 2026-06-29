@@ -12,6 +12,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { make_warningLog } from "node-opcua-debug";
 //
 import { FilterContext } from "./filter_context";
@@ -346,96 +347,126 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
     }
 }
 
-/**
- * Collect the indices an element links to through its ElementOperands, validating bounds.
- *
- * Returns the list of referenced element indices, or `null` if any ElementOperand references an
- * index outside the bounds of the elements array (a malformed reference).
- */
-function elementOperandTargets(elements: ContentFilterElement[], elementIndex: number): number[] | null {
-    const element = elements[elementIndex];
-    // an element of the array may be null/undefined (e.g. a null ExtensionObject); see checkFilterAtIndex
-    if (!element) {
-        return [];
-    }
-    const operands = (element.filterOperands as FilterOperand[] | null) || [];
-    const targets: number[] = [];
-    for (const operand of operands) {
-        if (operand instanceof ElementOperand) {
-            const index = operand.index;
-            if (index < 0 || index >= elements.length) {
-                warningLog(
-                    `checkFilter: ElementOperand of element #${elementIndex} references out-of-bounds element #${index} ` +
-                        `(elements.length = ${elements.length})`
-                );
-                return null;
-            }
-            targets.push(index);
-        }
-    }
-    return targets;
-}
+// Number of operands each FilterOperator expects, as per OPC UA Part 4 - Table 118 / Table 119.
+// `max = Infinity` is used for the variadic InList operator (2..n). Operators not listed here are
+// not subject to an operand-count check.
+const operandCountByOperator: { [operator: number]: { min: number; max: number } } = {
+    [FilterOperator.Equals]: { min: 2, max: 2 },
+    [FilterOperator.IsNull]: { min: 1, max: 1 },
+    [FilterOperator.GreaterThan]: { min: 2, max: 2 },
+    [FilterOperator.LessThan]: { min: 2, max: 2 },
+    [FilterOperator.GreaterThanOrEqual]: { min: 2, max: 2 },
+    [FilterOperator.LessThanOrEqual]: { min: 2, max: 2 },
+    [FilterOperator.Like]: { min: 2, max: 2 },
+    [FilterOperator.Not]: { min: 1, max: 1 },
+    [FilterOperator.Between]: { min: 3, max: 3 },
+    [FilterOperator.InList]: { min: 2, max: Number.POSITIVE_INFINITY },
+    [FilterOperator.And]: { min: 2, max: 2 },
+    [FilterOperator.Or]: { min: 2, max: 2 },
+    [FilterOperator.Cast]: { min: 2, max: 2 },
+    [FilterOperator.BitwiseAnd]: { min: 2, max: 2 },
+    [FilterOperator.BitwiseOr]: { min: 2, max: 2 },
+    [FilterOperator.InView]: { min: 1, max: 1 },
+    [FilterOperator.OfType]: { min: 1, max: 1 },
+    [FilterOperator.RelatedTo]: { min: 6, max: 6 }
+};
 
 /**
- * Verify that the ElementOperand references of a ContentFilter form an acyclic graph and stay
- * within bounds.
+ * Validate the structure of a ContentFilter, returning a precise StatusCode (Good when valid).
  *
- * Each ContentFilterElement may reference other elements through ElementOperands; evaluation
- * (checkFilterAtIndex <-> evaluateOperand) follows those links recursively. A self-referential or
- * cyclic reference (e.g. `0 -> 0` or `0 -> 1 -> 0`) would make that evaluation recurse forever, so
- * such filters are rejected. Out-of-bounds references are rejected as well.
+ * The following OPC UA Part 4 - 7.7 rules are enforced over the elements that are reachable from the
+ * starting element (index 0); elements that cannot be traced back to the starting element are
+ * ignored (7.7.1):
+ *  - each operator carries the number of operands defined by Table 118 / Table 119, otherwise
+ *    `BadFilterOperandCountMismatch` ("Extra operands for any operator shall result in an error");
+ *  - each ElementOperand references an existing element (in-bounds), otherwise
+ *    `BadFilterElementInvalid`;
+ *  - the reference graph is acyclic, otherwise `BadFilterElementInvalid` ("The evaluation shall not
+ *    introduce loops").
  *
- * Note: OPC UA Part 4 - 7.4.4.4 specifies that an ElementOperand should only link to a *later*
- * sub-element. We do not enforce that ordering strictly; any acyclic, in-bounds reference graph is
- * accepted (a depth-first search detects back edges). The check is iterative so that validating a
- * deeply-nested filter cannot itself exhaust the stack.
+ * The traversal is iterative so that validating a deeply-nested filter cannot itself exhaust the
+ * stack.
  */
-export function hasValidElementOperandReferences(filter: ContentFilter): boolean {
+export function validateContentFilter(filter: ContentFilter): StatusCode {
     const elements = (filter.elements as ContentFilterElement[] | null) || [];
     const n = elements.length;
+    if (n === 0) {
+        return StatusCodes.Good;
+    }
+
+    // inspect a single element: validate its operand count and collect the in-bounds indices it
+    // references through ElementOperands. `status` is non-Good when the element is malformed.
+    const inspect = (elementIndex: number): { targets: number[]; status: StatusCode } => {
+        const element = elements[elementIndex];
+        // an element of the array may be null/undefined (e.g. a null ExtensionObject); see checkFilterAtIndex
+        if (!element) {
+            return { targets: [], status: StatusCodes.Good };
+        }
+        const operands = (element.filterOperands as FilterOperand[] | null) || [];
+        const expected = operandCountByOperator[element.filterOperator];
+        if (expected && (operands.length < expected.min || operands.length > expected.max)) {
+            warningLog(
+                `checkFilter: operator ${FilterOperator[element.filterOperator]} of element #${elementIndex} ` +
+                    `has ${operands.length} operand(s), expected ${expected.min}${
+                        expected.max === expected.min ? "" : `..${expected.max === Number.POSITIVE_INFINITY ? "n" : expected.max}`
+                    }`
+            );
+            return { targets: [], status: StatusCodes.BadFilterOperandCountMismatch };
+        }
+        const targets: number[] = [];
+        for (const operand of operands) {
+            if (operand instanceof ElementOperand) {
+                const index = operand.index;
+                if (index < 0 || index >= n) {
+                    warningLog(
+                        `checkFilter: ElementOperand of element #${elementIndex} references out-of-bounds element #${index} ` +
+                            `(elements.length = ${n})`
+                    );
+                    return { targets: [], status: StatusCodes.BadFilterElementInvalid };
+                }
+                targets.push(index);
+            }
+        }
+        return { targets, status: StatusCodes.Good };
+    };
 
     // 0 = unvisited, 1 = on the current DFS path, 2 = fully explored
     const color = new Array<number>(n).fill(0);
 
-    for (let start = 0; start < n; start++) {
-        if (color[start] !== 0) {
+    const root = inspect(0);
+    if (root.status.isNot(StatusCodes.Good)) {
+        return root.status;
+    }
+    color[0] = 1;
+    const stack: Array<{ node: number; targets: number[]; pos: number }> = [{ node: 0, targets: root.targets, pos: 0 }];
+
+    while (stack.length > 0) {
+        const frame = stack[stack.length - 1];
+        if (frame.pos >= frame.targets.length) {
+            color[frame.node] = 2;
+            stack.pop();
             continue;
         }
-        const startTargets = elementOperandTargets(elements, start);
-        if (startTargets === null) {
-            return false;
+        const next = frame.targets[frame.pos++];
+        if (color[next] === 1) {
+            // a back edge to an element still on the current path -> cycle
+            warningLog(`checkFilter: cyclic ElementOperand reference detected involving element #${next}`);
+            return StatusCodes.BadFilterElementInvalid;
         }
-        color[start] = 1;
-        const stack: Array<{ node: number; targets: number[]; pos: number }> = [{ node: start, targets: startTargets, pos: 0 }];
-
-        while (stack.length > 0) {
-            const frame = stack[stack.length - 1];
-            if (frame.pos >= frame.targets.length) {
-                color[frame.node] = 2;
-                stack.pop();
-                continue;
+        if (color[next] === 0) {
+            const r = inspect(next);
+            if (r.status.isNot(StatusCodes.Good)) {
+                return r.status;
             }
-            const next = frame.targets[frame.pos++];
-            if (color[next] === 1) {
-                // a back edge to an element still on the current path -> cycle
-                warningLog(`checkFilter: cyclic ElementOperand reference detected involving element #${next}`);
-                return false;
-            }
-            if (color[next] === 0) {
-                const nextTargets = elementOperandTargets(elements, next);
-                if (nextTargets === null) {
-                    return false;
-                }
-                color[next] = 1;
-                stack.push({ node: next, targets: nextTargets, pos: 0 });
-            }
+            color[next] = 1;
+            stack.push({ node: next, targets: r.targets, pos: 0 });
         }
     }
-    return true;
+    return StatusCodes.Good;
 }
 
 export function checkFilter(filterContext: FilterContext, contentFilter: ContentFilter): boolean {
-    if (!hasValidElementOperandReferences(contentFilter)) {
+    if (validateContentFilter(contentFilter).isNot(StatusCodes.Good)) {
         return false;
     }
     return checkFilterAtIndex(filterContext, contentFilter, 0);

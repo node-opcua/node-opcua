@@ -9,7 +9,7 @@ import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
-import { DataChangeFilter, EventFilter, hasValidElementOperandReferences } from "node-opcua-service-filter";
+import { type ContentFilter, DataChangeFilter, EventFilter, validateContentFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
@@ -68,17 +68,52 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
     return StatusCodes.Good;
 }
 
-function __validateEventFilter(filter: EventFilter): StatusCode {
-    // The ElementOperand references of the whereClause ContentFilter must form an acyclic, in-bounds
-    // graph (see OPC UA Part 4 - 7.4.4.4). A cyclic or out-of-bounds reference is rejected here rather
-    // than being accepted and only resolving to false when an event is evaluated.
-    if (filter.whereClause && !hasValidElementOperandReferences(filter.whereClause)) {
+export interface ValidateFilterOptions {
+    // ServerCapabilities.MaxWhereClauseParameters: maximum number of whereClause operands (OPC UA Part 5)
+    maxWhereClauseParameters?: number;
+    // ServerCapabilities.MaxSelectClauseParameters: maximum number of selectClauses (OPC UA Part 5)
+    maxSelectClauseParameters?: number;
+}
+
+function __countWhereClauseParameters(whereClause: ContentFilter): number {
+    let count = 0;
+    for (const element of whereClause.elements || []) {
+        count += element?.filterOperands?.length || 0;
+    }
+    return count;
+}
+
+function __validateEventFilter(filter: EventFilter, options?: ValidateFilterOptions): StatusCode {
+    // Enforce the ServerCapabilities limits on the size of the filter (OPC UA Part 5). This bounds the
+    // amount of work the filter can require and the depth of the whereClause evaluation.
+    const maxSelectClauseParameters = options?.maxSelectClauseParameters;
+    if (maxSelectClauseParameters !== undefined && (filter.selectClauses?.length || 0) > maxSelectClauseParameters) {
         return StatusCodes.BadEventFilterInvalid;
+    }
+    const maxWhereClauseParameters = options?.maxWhereClauseParameters;
+    if (
+        maxWhereClauseParameters !== undefined &&
+        filter.whereClause &&
+        __countWhereClauseParameters(filter.whereClause) > maxWhereClauseParameters
+    ) {
+        return StatusCodes.BadEventFilterInvalid;
+    }
+
+    // Validate the structure of the whereClause ContentFilter (operand counts, in-bounds and acyclic
+    // ElementOperand references) up front, instead of accepting it and only resolving it to false
+    // when an event is evaluated. See OPC UA Part 4 - 7.7.
+    if (filter.whereClause) {
+        return validateContentFilter(filter.whereClause);
     }
     return StatusCodes.Good;
 }
 
-export function validateFilter(filter: ExtensionObject | null, itemToMonitor: ReadValueIdOptions, node: BaseNode): StatusCode {
+export function validateFilter(
+    filter: ExtensionObject | null,
+    itemToMonitor: ReadValueIdOptions,
+    node: BaseNode,
+    options?: ValidateFilterOptions
+): StatusCode {
     // handle filter information
     if (filter && filter instanceof EventFilter && itemToMonitor.attributeId !== AttributeIds.EventNotifier) {
         // invalid filter on Event
@@ -99,7 +134,7 @@ export function validateFilter(filter: ExtensionObject | null, itemToMonitor: Re
     }
 
     if (filter instanceof EventFilter) {
-        return __validateEventFilter(filter);
+        return __validateEventFilter(filter, options);
     }
 
     return StatusCodes.Good;
