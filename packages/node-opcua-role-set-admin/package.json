@@ -17,7 +17,7 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "@inquirer/prompts": "^8.5.2",
+        "@inquirer/prompts": "8.5.2",
         "commander": "^12.1.0",
         "node-opcua-certificate-manager": "2.173.0",
         "node-opcua-client": "2.173.1",

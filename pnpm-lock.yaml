@@ -2751,7 +2751,7 @@ importers:
   packages/node-opcua-role-set-admin:
     dependencies:
       '@inquirer/prompts':
-        specifier: ^8.5.2
+        specifier: 8.5.2
         version: 8.5.2(@types/node@24.12.2)
       commander:
         specifier: ^12.1.0
