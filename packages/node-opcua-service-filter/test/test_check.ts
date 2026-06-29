@@ -787,6 +787,49 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
+    it("EV33 - checkFilter tolerates a reachable null sub-element (treated as a TRUE leaf)", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : Not(ElementOperand(1)) ; element 1 : null (a null ExtensionObject)
+        // a null sub-element evaluates as TRUE (see checkFilterAtIndex) => Not(true) => false
+        const contentFilter = new ContentFilter({
+            elements: [{ filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }]
+        });
+        (contentFilter.elements as unknown[]).push(null);
+
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV34 - checkFilter rejects a malformed operator reached below the root element", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : Not(ElementOperand(1)) ; element 1 : Between with a single operand (expects 3)
+        const contentFilter = new ContentFilter({
+            elements: [
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] },
+                { filterOperator: FilterOperator.Between, filterOperands: [new ElementOperand({ index: 0 })] }
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV35 - checkFilter rejects a variadic InList carrying fewer than the minimum operands", () => {
+        filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditCertificateExpiredEvent");
+
+        // InList expects 2..n operands; provide only 1
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.InList,
+                    filterOperands: [
+                        new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })
+                    ]
+                }
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
     it("EV32 - checkFilter ignores an unreachable element, even a cyclic one (Part 4 7.7.1)", () => {
         // element 0 : OfType(SystemEventType)   (the only reachable element)
         // element 1 : Not(ElementOperand(2))    unreachable
