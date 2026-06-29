@@ -214,7 +214,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                 err.message.should.match(/malformed or truncated/);
                 spyOnConnect.callCount.should.eql(0);
                 // the failed handshake must not leave a half-open socket behind
-                should.not.exist((clientTransport as any)._socket);
+                should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket);
                 done();
             } else {
                 done(new Error("transport.connect should have raised a connection error"));
@@ -239,7 +239,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                 err.message.should.match(/malformed or truncated/);
                 spyOnConnect.callCount.should.eql(0);
                 // the failed handshake must not leave a half-open socket behind
-                should.not.exist((clientTransport as any)._socket);
+                should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket);
                 done();
             } else {
                 done(new Error("transport.connect should have raised a connection error"));
@@ -512,7 +512,7 @@ describe("testing ClientTCP_transport", function (this: any) {
                 try {
                     should.exist(err);
                     err!.message.should.containEql("Timeout");
-                    should.not.exist((clientTransport as any)._socket, "_socket reference must be cleared after failure");
+                    should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket, "_socket reference must be cleared after failure");
                     endCalled.should.eql(false, "socket.end() must not be called");
                     destroyCalled.should.eql(true, "socket.destroy() must be called");
                     spyOnConnect.callCount.should.eql(0);
