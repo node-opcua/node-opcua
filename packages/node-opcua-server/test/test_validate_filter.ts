@@ -37,6 +37,21 @@ describe("validateFilter - EventFilter whereClause conformance (OPC UA Part 4 - 
         validateFilter(filter, onEventNotifier, dummyNode).should.eql(StatusCodes.Good);
     });
 
+    it("VF03b - accepts an acyclic whereClause whose references are not strictly forward-ordered", () => {
+        // element 0 : Not(ElementOperand(2)) ; element 1 : leaf ; element 2 : Not(ElementOperand(1)) (backward but acyclic)
+        const filter = new EventFilter({
+            selectClauses: [],
+            whereClause: new ContentFilter({
+                elements: [
+                    { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 2 })] },
+                    { filterOperator: FilterOperator.OfType, filterOperands: [] },
+                    { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }
+                ]
+            })
+        });
+        validateFilter(filter, onEventNotifier, dummyNode).should.eql(StatusCodes.Good);
+    });
+
     it("VF04 - rejects an EventFilter with a self-referential whereClause", () => {
         const filter = new EventFilter({
             selectClauses: [],
