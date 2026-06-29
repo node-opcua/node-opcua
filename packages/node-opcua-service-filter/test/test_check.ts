@@ -534,8 +534,9 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
     });
 
     // see https://reference.opcfoundation.org/v105/Core/docs/Part4/7.4.4/ (ElementOperand)
-    // An ElementOperand shall only link to a *later* sub-element of the ContentFilter; a
-    // whereClause that does not conform to this rule must be rejected.
+    // ElementOperand references between ContentFilterElements must form an acyclic, in-bounds graph;
+    // self-referential, cyclic or out-of-bounds references are rejected (an acyclic graph is accepted
+    // even when references are not strictly forward-ordered).
     it("EV19 - checkFilter rejects a self-referential whereClause", () => {
         filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
 
@@ -721,6 +722,52 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         (contentFilter.elements as unknown[]).push(null);
 
         // must not throw; element #0 (OfType(SystemEventType)) still drives the result.
+        checkFilter(filterContext, contentFilter).should.eql(true);
+    });
+
+    it("EV29 - checkFilter accepts an acyclic graph whose references are not strictly forward-ordered", () => {
+        // element 0 : Not(ElementOperand(2))
+        // element 1 : OfType(SystemEventType)              (leaf)
+        // element 2 : Not(ElementOperand(1))               -> backward reference (1 < 2), but acyclic
+        // => result == Not(Not(OfType(SystemEventType))) == OfType(SystemEventType)
+        const contentFilter = new ContentFilter({
+            elements: [
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 2 })] },
+                ofType("SystemEventType"),
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }
+            ]
+        });
+        {
+            // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
+            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+            checkFilter(filterContext, contentFilter).should.eql(true);
+        }
+        {
+            // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
+            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+            checkFilter(filterContext, contentFilter).should.eql(false);
+        }
+    });
+
+    it("EV30 - checkFilter accepts a diamond (shared sub-element) reference graph", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : And(ElementOperand(1), ElementOperand(2))
+        // element 1 : Not(ElementOperand(3))
+        // element 2 : Not(ElementOperand(3))   -> element 3 is reached twice; this must NOT be flagged as a cycle
+        // element 3 : OfType(AuditEventType)    (false for DeviceFailureEventType)
+        // => And(Not(false), Not(false)) == And(true, true) == true
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 2 })]
+                },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 3 })] },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 3 })] },
+                ofType("AuditEventType")
+            ]
+        });
         checkFilter(filterContext, contentFilter).should.eql(true);
     });
 });

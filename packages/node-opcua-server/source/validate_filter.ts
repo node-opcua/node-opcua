@@ -69,9 +69,9 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
 }
 
 function __validateEventFilter(filter: EventFilter): StatusCode {
-    // As per OPC UA Part 4 - 7.4.4.4, an ElementOperand of the whereClause ContentFilter shall only
-    // link to a *later* sub-element (its index must be strictly greater than the index of the element
-    // that contains it, and within the bounds of the elements array).
+    // The ElementOperand references of the whereClause ContentFilter must form an acyclic, in-bounds
+    // graph (see OPC UA Part 4 - 7.4.4.4). A cyclic or out-of-bounds reference is rejected here rather
+    // than being accepted and only resolving to false when an event is evaluated.
     if (filter.whereClause && !hasValidElementOperandReferences(filter.whereClause)) {
         return StatusCodes.BadEventFilterInvalid;
     }

@@ -1,5 +1,6 @@
 import {
     ContentFilter,
+    ContentFilterElement,
     FilterOperator,
     LiteralOperand,
     SimpleAttributeOperand,
@@ -346,34 +347,87 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
 }
 
 /**
- * Verify that every ElementOperand of the ContentFilter references a valid element.
+ * Collect the indices an element links to through its ElementOperands, validating bounds.
  *
- * As per OPC UA Part 4 - 7.4.4.4 (ElementOperand), an ElementOperand shall only link to a
- * *later* sub-element of the ContentFilter: its index must be strictly greater than the index
- * of the element that contains it, and within the bounds of the elements array.
+ * Returns the list of referenced element indices, or `null` if any ElementOperand references an
+ * index outside the bounds of the elements array (a malformed reference).
+ */
+function elementOperandTargets(elements: ContentFilterElement[], elementIndex: number): number[] | null {
+    const element = elements[elementIndex];
+    // an element of the array may be null/undefined (e.g. a null ExtensionObject); see checkFilterAtIndex
+    if (!element) {
+        return [];
+    }
+    const operands = (element.filterOperands as FilterOperand[] | null) || [];
+    const targets: number[] = [];
+    for (const operand of operands) {
+        if (operand instanceof ElementOperand) {
+            const index = operand.index;
+            if (index < 0 || index >= elements.length) {
+                warningLog(
+                    `checkFilter: ElementOperand of element #${elementIndex} references out-of-bounds element #${index} ` +
+                        `(elements.length = ${elements.length})`
+                );
+                return null;
+            }
+            targets.push(index);
+        }
+    }
+    return targets;
+}
+
+/**
+ * Verify that the ElementOperand references of a ContentFilter form an acyclic graph and stay
+ * within bounds.
  *
- * A ContentFilter that does not conform to this rule is rejected.
+ * Each ContentFilterElement may reference other elements through ElementOperands; evaluation
+ * (checkFilterAtIndex <-> evaluateOperand) follows those links recursively. A self-referential or
+ * cyclic reference (e.g. `0 -> 0` or `0 -> 1 -> 0`) would make that evaluation recurse forever, so
+ * such filters are rejected. Out-of-bounds references are rejected as well.
+ *
+ * Note: OPC UA Part 4 - 7.4.4.4 specifies that an ElementOperand should only link to a *later*
+ * sub-element. We do not enforce that ordering strictly; any acyclic, in-bounds reference graph is
+ * accepted (a depth-first search detects back edges). The check is iterative so that validating a
+ * deeply-nested filter cannot itself exhaust the stack.
  */
 export function hasValidElementOperandReferences(filter: ContentFilter): boolean {
-    const elements = filter.elements || [];
-    for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
-        const element = elements[elementIndex];
-        // an element of the array may be null/undefined (e.g. a null ExtensionObject); see checkFilterAtIndex
-        if (!element) {
+    const elements = (filter.elements as ContentFilterElement[] | null) || [];
+    const n = elements.length;
+
+    // 0 = unvisited, 1 = on the current DFS path, 2 = fully explored
+    const color = new Array<number>(n).fill(0);
+
+    for (let start = 0; start < n; start++) {
+        if (color[start] !== 0) {
             continue;
         }
-        const operands = (element.filterOperands as FilterOperand[] | null) || [];
-        for (const operand of operands) {
-            if (operand instanceof ElementOperand) {
-                const index = operand.index;
-                if (index <= elementIndex || index >= elements.length) {
-                    warningLog(
-                        `checkFilter: non-conformant ElementOperand: element #${elementIndex} references element #${index} ` +
-                            `(index must be greater than ${elementIndex} and lower than ${elements.length}); ` +
-                            `see OPC UA Part 4 - 7.4.4.4`
-                    );
+        const startTargets = elementOperandTargets(elements, start);
+        if (startTargets === null) {
+            return false;
+        }
+        color[start] = 1;
+        const stack: Array<{ node: number; targets: number[]; pos: number }> = [{ node: start, targets: startTargets, pos: 0 }];
+
+        while (stack.length > 0) {
+            const frame = stack[stack.length - 1];
+            if (frame.pos >= frame.targets.length) {
+                color[frame.node] = 2;
+                stack.pop();
+                continue;
+            }
+            const next = frame.targets[frame.pos++];
+            if (color[next] === 1) {
+                // a back edge to an element still on the current path -> cycle
+                warningLog(`checkFilter: cyclic ElementOperand reference detected involving element #${next}`);
+                return false;
+            }
+            if (color[next] === 0) {
+                const nextTargets = elementOperandTargets(elements, next);
+                if (nextTargets === null) {
                     return false;
                 }
+                color[next] = 1;
+                stack.push({ node: next, targets: nextTargets, pos: 0 });
             }
         }
     }
