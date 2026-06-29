@@ -72,3 +72,15 @@ await addIdentity({ endpoint, username: "admin", password: "***" }, "Operator", 
 - [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side RoleSet/UserManagement API.
 - [`node-opcua-role-set-server`](../node-opcua-role-set-server) — server-side install & enforcement.
 - [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared stores, persistence, matching.
+
+# License
+
+Node-OPCUA is made available to you under the MIT open source license.
+
+See [LICENSE](./LICENSE) for details.
+
+# Copyright
+
+Copyright (c) 2022-2026 Sterfive SAS - https://www.sterfive.com
+
+Copyright (c) 2014-2022 Etienne Rossignon
