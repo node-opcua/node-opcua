@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { RepublishRequest, type RepublishResponse } from "node-opcua-types";
 import type { ClientSidePublishEngine } from "../client_publish_engine";
 import type { ClientSessionImpl } from "../client_session_impl";
@@ -11,6 +11,33 @@ import { _shouldNotContinue2 } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");
+
+/**
+ * Recover the StatusCode carried by a Republish reply, whether it came back as a regular
+ * RepublishResponse (operation-level serviceResult) or as a ServiceFault.
+ *
+ * Precedence:
+ *   1. the explicit `response` argument, when the server answered with a regular RepublishResponse
+ *      (the operation-level serviceResult, e.g. CoDeSys);
+ *   2. otherwise `err.response` — the secure channel layer turns a ServiceFault into an Error and
+ *      attaches the original response there;
+ *   3. otherwise fall back to parsing the error message.
+ */
+function extractStatusCode(err: Error | null | undefined, response?: RepublishResponse): StatusCode {
+    if (response) {
+        return response.responseHeader.serviceResult;
+    }
+    if (err) {
+        const faultResponse = (err as { response?: { responseHeader?: { serviceResult?: StatusCode } } }).response;
+        if (faultResponse?.responseHeader?.serviceResult) {
+            return faultResponse.responseHeader.serviceResult;
+        }
+        if (/BadMessageNotAvailable/.test(err.message)) {
+            return StatusCodes.BadMessageNotAvailable;
+        }
+    }
+    return StatusCodes.Bad;
+}
 
 function _sendRepublish(
     session: ClientSessionImpl,
@@ -41,16 +68,22 @@ function _sendRepublish(
         }
 
         session.republish(request, (err: Error | null, response?: RepublishResponse) => {
+            // BadMessageNotAvailable signals the end of the republish loop: there are no more
+            // queued NotificationMessages to replay and the client must now resume normal Publish
+            // handling (OPC UA Part 4 §6.5/§6.7). A server may report it either as a ServiceFault
+            // (err set, no response) or as the serviceResult of a regular RepublishResponse
+            // (operation-level result, e.g. CoDeSys). Both cases must terminate the loop.
+            const statusCode = extractStatusCode(err, response);
+            if (statusCode.equals(StatusCodes.BadMessageNotAvailable)) {
+                return resolve({ isDone: true });
+            }
             if (!response) {
                 reject(err);
                 return;
             }
-            const statusCode = err ? StatusCodes.Bad : response.responseHeader.serviceResult;
-            if (!err && (statusCode.equals(StatusCodes.Good) || statusCode.equals(StatusCodes.BadMessageNotAvailable))) {
+            if (!err && statusCode.equals(StatusCodes.Good)) {
                 // reprocess notification message and keep going
-                if (statusCode.equals(StatusCodes.Good)) {
-                    subscription.onNotificationMessage(response.notificationMessage);
-                }
+                subscription.onNotificationMessage(response.notificationMessage);
                 return resolve({ isDone: false });
             }
             if (!err) {
@@ -120,8 +153,10 @@ async function __askSubscriptionRepublish(
             await recreateSubscriptionAndMonitoredItem(subscription);
             return;
         }
-        if (error.message.match(/|MessageNotAvailable/)) {
-            // start engine and start monitoring
+        if (error.message.match(/BadMessageNotAvailable/)) {
+            // End of the republish loop: no more queued messages to replay.
+            // Nothing else to do here, the caller will resume normal Publish handling.
+            return;
         }
     }
     // check after successful republish too
