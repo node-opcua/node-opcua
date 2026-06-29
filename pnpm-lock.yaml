@@ -2748,6 +2748,34 @@ importers:
         specifier: 2.173.0
         version: link:../node-opcua-variant
 
+  packages/node-opcua-role-set-admin:
+    dependencies:
+      '@inquirer/prompts':
+        specifier: ^8.5.2
+        version: 8.5.2(@types/node@24.12.2)
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
+      node-opcua-certificate-manager:
+        specifier: 2.173.0
+        version: link:../node-opcua-certificate-manager
+      node-opcua-client:
+        specifier: 2.173.1
+        version: link:../node-opcua-client
+      node-opcua-role-set-client:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-client
+      node-opcua-status-code:
+        specifier: 2.173.0
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.173.0
+        version: link:../node-opcua-types
+    devDependencies:
+      tsx:
+        specifier: ^4.22.4
+        version: 4.22.4
+
   packages/node-opcua-role-set-client:
     dependencies:
       node-opcua-constants:
@@ -2855,9 +2883,6 @@ importers:
 
   packages/node-opcua-role-set-test:
     devDependencies:
-      '@inquirer/prompts':
-        specifier: ^8.5.2
-        version: 8.5.2(@types/node@24.12.2)
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -2882,6 +2907,9 @@ importers:
       node-opcua-nodesets:
         specifier: 2.163.1
         version: link:../node-opcua-nodesets
+      node-opcua-role-set-admin:
+        specifier: 2.173.0
+        version: link:../node-opcua-role-set-admin
       node-opcua-role-set-client:
         specifier: 2.173.0
         version: link:../node-opcua-role-set-client

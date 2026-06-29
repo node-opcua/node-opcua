@@ -1,0 +1,33 @@
+{
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
+    },
+    "include": [
+        "source/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "../node-opcua-certificate-manager"
+        },
+        {
+            "path": "../node-opcua-client"
+        },
+        {
+            "path": "../node-opcua-role-set-client"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        }
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

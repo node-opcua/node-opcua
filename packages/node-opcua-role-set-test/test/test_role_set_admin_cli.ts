@@ -9,7 +9,8 @@ import "should";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
 
 const execFileAsync = promisify(execFile);
-const CLI = path.join(__dirname, "..", "bin", "role_set_admin.ts");
+// the shipped CLI now lives in its own package; drive its source via tsx
+const CLI = path.join(__dirname, "..", "..", "node-opcua-role-set-admin", "source", "cli.ts");
 
 describe("role-set-admin CLI (e2e against the sample server)", function () {
     this.timeout(120000);
