@@ -201,9 +201,9 @@ describe("testing ClientTCP_transport", function (this: any) {
     it("TCS-4b should report an error (and not crash) on a truncated ACK response", (done) => {
         const spyOnServerWrite = sinon.spy((socket, _data) => {
             // ACK/F chunk whose advertised length (8) carries no payload at all, instead
-            // of the mandatory 20 bytes of Acknowledge fields.
+            // of the mandatory 20 bytes of Acknowledge fields. Note: the server deliberately
+            // keeps the connection open so that the client is responsible for closing it.
             socket.write(makeRawChunk("ACK", Buffer.alloc(0)));
-            setImmediate(() => socket.end());
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
@@ -213,6 +213,8 @@ describe("testing ClientTCP_transport", function (this: any) {
             if (err) {
                 err.message.should.match(/malformed or truncated/);
                 spyOnConnect.callCount.should.eql(0);
+                // the failed handshake must not leave a half-open socket behind
+                should.not.exist((clientTransport as any)._socket);
                 done();
             } else {
                 done(new Error("transport.connect should have raised a connection error"));
@@ -222,11 +224,11 @@ describe("testing ClientTCP_transport", function (this: any) {
 
     it("TCS-4c should report an error (and not crash) on a truncated ERR response", (done) => {
         const spyOnServerWrite = sinon.spy((socket, _data) => {
-            // ERR/F chunk carrying a StatusCode but no Reason string.
+            // ERR/F chunk carrying a StatusCode but no Reason string. The server keeps the
+            // connection open so that the client is responsible for closing it.
             const payload = Buffer.alloc(4);
-            payload.writeUInt32LE(0x80000000, 0);
+            payload.writeUInt32LE(StatusCodes.BadCommunicationError.value, 0);
             socket.write(makeRawChunk("ERR", payload));
-            setImmediate(() => socket.end());
         });
         fakeServer.pushResponse(spyOnServerWrite);
 
@@ -236,6 +238,8 @@ describe("testing ClientTCP_transport", function (this: any) {
             if (err) {
                 err.message.should.match(/malformed or truncated/);
                 spyOnConnect.callCount.should.eql(0);
+                // the failed handshake must not leave a half-open socket behind
+                should.not.exist((clientTransport as any)._socket);
                 done();
             } else {
                 done(new Error("transport.connect should have raised a connection error"));

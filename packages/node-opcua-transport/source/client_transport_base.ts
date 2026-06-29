@@ -184,14 +184,20 @@ export abstract class ClientTransportBase extends TCP_transport {
         this._counter += 1;
 
         if (err || !data) {
-            if (this._socket) {
-                const s = this._socket;
-                this._socket = null;
-                s.destroy();
-            }
+            this._destroySocket();
             externalCallback(err || new Error("no data"));
         } else {
             this._handle_ACK_response(data, externalCallback);
+        }
+    }
+
+    // tear down the underlying socket so that a failed handshake does not leave a
+    // half-open, unusable connection alive if the peer does not close it promptly.
+    private _destroySocket(): void {
+        if (this._socket) {
+            const s = this._socket;
+            this._socket = null;
+            s.destroy();
         }
     }
 
@@ -218,6 +224,7 @@ export abstract class ClientTransportBase extends TCP_transport {
                 // the chunk advertised a self-consistent length but does not carry a
                 // complete TCPErrorMessage payload (StatusCode + Reason). Treat it as a
                 // protocol violation rather than letting the decoder read past the buffer.
+                this._destroySocket();
                 callback(new Error("ACK: failed to decode ERR response (malformed or truncated)"));
                 return;
             }
@@ -238,6 +245,7 @@ export abstract class ClientTransportBase extends TCP_transport {
                 // the chunk advertised a self-consistent length but is too short to hold a
                 // complete AcknowledgeMessage payload. Report it instead of letting the
                 // decoder read past the end of the buffer.
+                this._destroySocket();
                 callback(new Error("ACK: failed to decode Acknowledge response (malformed or truncated)"));
                 return;
             }
