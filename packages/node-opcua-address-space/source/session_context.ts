@@ -353,7 +353,7 @@ export class SessionContext implements ISessionContext {
             return anonymous;
         }
 
-        const rolesNodeId = this.server.userManager.getUserRoles(username);
+        const rolesNodeId = this.server.userManager.getUserRoles(username) || [];
 
         // OPC 10000-18 §4.4: check registered role resolvers
         if (this.server.roleResolvers && this.session?.userIdentityToken) {
