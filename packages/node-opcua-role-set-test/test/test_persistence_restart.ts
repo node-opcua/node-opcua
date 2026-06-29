@@ -11,6 +11,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, type IRoleRestrictionStore, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -26,7 +27,7 @@ function userRule(criteria: string): IdentityMappingRuleType {
     return new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria });
 }
 
-describe("RoleSet persistence across restart", function () {
+describe("RoleSet persistence across restart", function (this: Mocha.Suite) {
     this.timeout(30000);
 
     const tmpDir = path.join(__dirname, "..", "_tmp_restart");
@@ -104,7 +105,14 @@ describe("RoleSet persistence across restart", function () {
             addressSpace.registerNamespace("http://restart-enc-test");
             await generateAddressSpace(addressSpace, [nodesets.standard]);
             const server = { roleResolvers: [], engine: { addressSpace }, userManager: { getUserRoles: () => [] } } as TestServer;
-            await installRoleSet(server, { persistencePath: secPath, persistenceSecret: passphrase });
+            try {
+                await installRoleSet(server, { persistencePath: secPath, persistenceSecret: passphrase });
+            } catch (err) {
+                // on the failure path (e.g. encrypted archive, missing secret) the
+                // AddressSpace would otherwise leak — dispose it before rethrowing.
+                addressSpace.dispose();
+                throw err;
+            }
             return { addressSpace, server };
         }
 

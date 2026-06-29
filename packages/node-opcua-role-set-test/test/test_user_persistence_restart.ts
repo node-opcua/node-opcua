@@ -11,6 +11,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientUserManagement } from "node-opcua-role-set-client";
 import {
@@ -32,7 +33,7 @@ import { bootstrapArchive, userSession } from "./helpers.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
-describe("User Management persistence across restart (shared archive, §5)", function () {
+describe("User Management persistence across restart (shared archive, §5)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
     const tmpDir = path.join(__dirname, "..", "_tmp_user_restart");
