@@ -357,7 +357,12 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
 export function hasValidElementOperandReferences(filter: ContentFilter): boolean {
     const elements = filter.elements || [];
     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
-        const operands = (elements[elementIndex].filterOperands as FilterOperand[] | null) || [];
+        const element = elements[elementIndex];
+        // an element of the array may be null/undefined (e.g. a null ExtensionObject); see checkFilterAtIndex
+        if (!element) {
+            continue;
+        }
+        const operands = (element.filterOperands as FilterOperand[] | null) || [];
         for (const operand of operands) {
             if (operand instanceof ElementOperand) {
                 const index = operand.index;

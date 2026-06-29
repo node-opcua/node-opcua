@@ -709,4 +709,18 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
         checkFilter(filterContext, oneFalse).should.eql(false);
     });
+
+    it("EV28 - checkFilter tolerates a null element in the elements array", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // a null ExtensionObject decodes to a null element; the reference check must skip it
+        // (just like checkFilterAtIndex) rather than dereferencing it.
+        const contentFilter = new ContentFilter({
+            elements: [ofType("SystemEventType")]
+        });
+        (contentFilter.elements as unknown[]).push(null);
+
+        // must not throw; element #0 (OfType(SystemEventType)) still drives the result.
+        checkFilter(filterContext, contentFilter).should.eql(true);
+    });
 });
