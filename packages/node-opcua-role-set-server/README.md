@@ -63,29 +63,69 @@ You can mutate `store` directly (e.g. to seed default mappings); call sites that
 through the bound methods automatically persist, but direct store changes are not
 written to the archive until the next method-driven mutation.
 
+## User Management & one-call setup
+
+This package also installs **User Management** (§5) and offers a one-call helper
+that wires roles and users to a *single source of truth*. The complete
+end-to-end walkthrough lives in the
+[Role-Based Security & User Management guide](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md);
+in short:
+
+```ts
+import { createRoleBasedSecurity } from "node-opcua-role-set-server";
+import { WellKnownRoleIds } from "node-opcua-role-set-common";
+
+const security = createRoleBasedSecurity({
+    users: [{ userName: "admin", password: "admin-pw1", roles: [WellKnownRoleIds.SecurityAdmin] }]
+});
+const server = new OPCUAServer({ /* … */ userManager: security.userManager });
+await server.start();
+await security.install(server, { persistencePath: "./config/role-set.json" });
+```
+
 ## Exports
 
 | Export | Description |
 |--------|-------------|
-| `installRoleSet(server, options?)` | One-call setup of RoleSet management on a server. |
-| `InstallRoleSetOptions` | `{ persistencePath?: string, persistenceSecret?: string }`. |
+| `createRoleBasedSecurity(options?)` | **Recommended** — one user store + one identity store behind the `userManager` bridge, with a two-phase `install(server, …)`. |
+| `installRoleSet(server, options?)` | Install RoleSet management (Roles, identities, restrictions, AddRole/RemoveRole). |
+| `installUserManagement(server, options?)` | Install User Management (§5): AddUser / ModifyUser / RemoveUser / ChangePassword. |
+| `createUserManager(userStore, identityStore)` | Build the server `userManager` bridge from a shared user + identity store. |
+| `InstallRoleSetOptions` | `{ store?, persistence?, persistencePath?, persistenceSecret? }`. |
 | `InstallRoleSetResult` | `{ store, restrictionStore, resolver }`. |
-| `IServerForRoleSet` | Minimal server shape required (`roleResolvers` + `engine.addressSpace`). |
+| `InstallUserManagementOptions` / `InstallUserManagementResult` | User Management install options / result. |
+| `IServerForRoleSet` / `IServerForUserManagement` | Minimal server shapes required. |
 | `RoleSetResolver` | Adapts an `IIdentityMappingStore` to the server's `IRoleResolver` contract. |
-| `makeAddIdentityHandler(options)` / `makeRemoveIdentityHandler(options)` | Build the method handlers (used internally; exposed for custom binding). |
-| `addRoleNotImplemented` / `removeRoleNotImplemented` | `BadNotImplemented` stubs for `AddRole` / `RemoveRole`. |
-| `BindRoleMethodsOptions` | `{ store, onMutation? }` passed to the handler factories. |
+| `make…Handler` factories | Build the Method handlers (used internally; exposed for custom binding). |
+| `checkSecurityAdminAccess` / `checkEncryptedChannel` | Authorization helpers (SecurityAdmin Role / encrypted channel). |
+| `raiseAuditMethodEvent` | Raise an `AuditUpdateMethodEventType` (no secrets). |
 
-## Security
+## Security model
 
-The `AddIdentity` and `RemoveIdentity` method handlers require the calling session to
-hold the **`SecurityAdmin`** role; otherwise they return `BadUserAccessDenied`. Other
-status codes returned by the handlers:
+The sensitive RoleSet & User Management nodes are protected with the address
+space's own enforcement, so the checks run in the core *before* any bound
+handler (the per-Method guards are defense-in-depth):
+
+- **Administrative Methods require `SecurityAdmin` over an encrypted channel** —
+  AddRole/RemoveRole, AddIdentity/RemoveIdentity, the restriction Methods and
+  AddUser/ModifyUser/RemoveUser. `ChangePassword` stays callable by any
+  authenticated user (still encrypted).
+- **Non-admins cannot Browse them** (§4.4.1): each Role's `Identities` /
+  `Applications` / `Endpoints` Properties and config Methods, plus the `Users`
+  list, carry SecurityAdmin-only RolePermissions, so they are hidden and
+  unreadable. Role nodes themselves stay browsable.
+- **`EncryptionRequired`** on those nodes → reads over a None/Sign channel return
+  `Bad_SecurityModeInsufficient`.
+- **Disabling (ModifyUser) or removing (RemoveUser) a user terminates their live
+  sessions** (§5.2.6-7), not just their ability to re-authenticate.
+
+Status codes returned by the identity Method handlers:
 
 | Status | Condition |
 |--------|-----------|
 | `Good` | The identity was added / removed. |
 | `BadUserAccessDenied` | The session does not hold the `SecurityAdmin` role. |
+| `BadSecurityModeInsufficient` | The channel is not `SignAndEncrypt`. |
 | `BadInvalidArgument` | The input argument is not an `IdentityMappingRuleType`. |
 | `BadNoMatch` | `RemoveIdentity` — no matching rule was found. |
 | `BadAlreadyExists` | `AddRole` — the RoleName duplicates an existing (well-known or custom) Role. |
@@ -130,8 +170,10 @@ independent of install order. Pass only `persistencePath` instead for a role-con
 
 ## Related packages
 
-- [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared types, identity stores and persistence.
-- [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side role browsing and identity management.
+- [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared types, identity/user stores and persistence.
+- [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side role browsing, identity & user management.
+- [`node-opcua-role-set-admin`](../node-opcua-role-set-admin) — the `role-set-admin` command-line tool.
+- [Role-Based Security & User Management guide](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md) — cross-package overview & getting started.
 
 # License
 

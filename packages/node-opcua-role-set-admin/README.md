@@ -72,6 +72,7 @@ await addIdentity({ endpoint, username: "admin", password: "***" }, "Operator", 
 - [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side RoleSet/UserManagement API.
 - [`node-opcua-role-set-server`](../node-opcua-role-set-server) — server-side install & enforcement.
 - [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared stores, persistence, matching.
+- [Role-Based Security & User Management guide](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md) — cross-package overview & getting started.
 
 # License
 

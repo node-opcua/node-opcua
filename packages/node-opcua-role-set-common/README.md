@@ -124,8 +124,10 @@ repeat for each role:
 
 ## Related packages
 
-- [`node-opcua-role-set-server`](../node-opcua-role-set-server) — installs the RoleSet object and binds the AddIdentity / RemoveIdentity methods on a server.
-- [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side helpers to browse roles and read / change their identities.
+- [`node-opcua-role-set-server`](../node-opcua-role-set-server) — installs the RoleSet & User Management Methods on a server.
+- [`node-opcua-role-set-client`](../node-opcua-role-set-client) — client-side helpers to browse roles, read/change identities and manage users.
+- [`node-opcua-role-set-admin`](../node-opcua-role-set-admin) — the `role-set-admin` command-line tool.
+- [Role-Based Security & User Management guide](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md) — cross-package overview & getting started.
 
 # License
 
