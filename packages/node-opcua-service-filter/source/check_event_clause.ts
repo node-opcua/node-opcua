@@ -24,17 +24,15 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     if (selectClause.typeDefinitionId.isEmpty()) {
         return StatusCodes.Good;
     }
-    const eventTypeNode = addressSpace.findEventType(selectClause.typeDefinitionId)!;
+    const eventTypeNode = addressSpace.findEventType(selectClause.typeDefinitionId);
 
-    if (!eventTypeNode || !(eventTypeNode.nodeClass === NodeClass.ObjectType)) {
-        // c8 ignore next
-        if (eventTypeNode) {
-            debugLog(" checkSelectClause", eventTypeNode.toString());
-        }
+    // the typeDefinitionId must reference an existing node ...
+    if (!eventTypeNode) {
+        return StatusCodes.BadNodeIdUnknown;
     }
-
-    // c8 ignore next
+    // ... and that node must be an ObjectType (an EventType)
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
+        debugLog(" checkSelectClause", eventTypeNode.toString());
         return StatusCodes.BadTypeMismatch;
     }
 

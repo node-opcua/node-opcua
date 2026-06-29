@@ -8,9 +8,11 @@ import {
     DataChangeFilter,
     DataType,
     ElementOperand,
+    EventFilter,
     EventFilterResult,
     FilterOperator,
     LiteralOperand,
+    makeNodeId,
     ModifyMonitoredItemsRequest,
     MonitoredItemModifyRequest,
     MonitoringMode,
@@ -271,6 +273,28 @@ export function t(test: TestHarness): void {
                 const modifyRes = await (session as any).modifyMonitoredItems(modifyReq);
                 modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 modifyRes.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+            });
+        });
+
+        it("ZZ2F server should report BadNodeIdUnknown (and not crash) when a selectClause typeDefinitionId does not resolve", async () => {
+            if (!client) throw new Error("client not initialized");
+            // a selectClause whose typeDefinitionId does not exist in the address space
+            const eventFilter = new EventFilter({
+                selectClauses: [
+                    {
+                        attributeId: AttributeIds.Value,
+                        browsePath: ["EventId"],
+                        typeDefinitionId: makeNodeId(123456, 9999)
+                    }
+                ]
+            });
+            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                // the monitored item is still created; the faulty select clause is reported per-clause
+                res.results[0].statusCode.should.eql(StatusCodes.Good);
+                const filterResult = res.results[0].filterResult as EventFilterResult;
+                filterResult.selectClauseResults?.[0].should.eql(StatusCodes.BadNodeIdUnknown);
             });
         });
 

@@ -18,8 +18,9 @@ import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
 import { AttributeIds, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { NodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { checkSelectClauses, EventFilter, extractEventFields, SimpleAttributeOperand } from "node-opcua-service-filter";
+import { StatusCodes } from "node-opcua-status-code";
 import { EventFieldList } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
@@ -130,6 +131,26 @@ describe("testing Events  ", () => {
             eventFields
         });
         // xx debugLog("xxxx ",eventField.toString());
+    });
+
+    it("should report BadNodeIdUnknown for a select clause whose typeDefinitionId does not resolve to an event type", () => {
+        const baseEventType = addressSpace.findEventType("BaseEventType")!;
+
+        const eventFilter = new EventFilter({
+            selectClauses: [
+                {
+                    attributeId: AttributeIds.Value,
+                    browsePath: [coerceQualifiedName("EventId")],
+                    typeDefinitionId: makeNodeId(123456, 9999) // a NodeId that does not exist in the address space
+                }
+            ],
+            whereClause: { elements: [] }
+        });
+
+        // must return a regular StatusCode rather than throwing on the unresolved typeDefinitionId
+        const selectClauseResults = checkSelectClauses(baseEventType, eventFilter.selectClauses!);
+        selectClauseResults.length.should.eql(1);
+        selectClauseResults[0].should.eql(StatusCodes.BadNodeIdUnknown);
     });
 
     it("should filter an event", (done: () => void) => {
