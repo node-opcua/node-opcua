@@ -162,6 +162,19 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
             return repair_client_session_by_recreating_a_new_session(session._client!, session, callback);
         }
 
+        // Republish has completed: resume normal Publish handling. During the connection break the
+        // in-flight PublishRequests have failed and the publish-request queue has drained, so we must
+        // replenish it now, otherwise the client would stop sending PublishRequests and never receive
+        // live notifications again. (https://github.com/node-opcua/node-opcua/issues/1524)
+        // Note: on the new-session repair path the engine is still suspended here, so this is a no-op
+        // there and the queue is replenished later by suspend(false).
+        // Guard on subscriptionCount: with no subscription, send_publish_request() would still emit
+        // spurious PublishRequests (it does not check the subscription count itself), adding useless
+        // round-trips on every reconnection of a subscription-less session.
+        if (engine.subscriptionCount > 0) {
+            engine.replenish_publish_request_queue();
+        }
+
         callback(err);
     });
 }
