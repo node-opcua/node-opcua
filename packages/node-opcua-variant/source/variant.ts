@@ -260,11 +260,23 @@ export function encodeVariant(variant: Variant | undefined | null, stream: Outpu
     }
     let encodingByte = variant.dataType;
 
+    let dimensions = variant.dimensions;
+    if (variant.arrayType === VariantArrayType.Matrix && dimensions && dimensions.length > 0) {
+        // Defensive guard: an empty Matrix value (value.length === 0) combined with non-zero declared
+        // dimensions would encode as a spec-violating wire form (ArraySize 0 followed by non-empty
+        // ArrayDimensions whose product !== 0), which strict clients - including node-opcua's own
+        // decoder - reject with "inconsistent matrix". Emit a self-consistent empty matrix instead.
+        const valueLength = (variant.value as ArrayLike<unknown> | null | undefined)?.length ?? 0;
+        if (valueLength === 0) {
+            dimensions = [];
+        }
+    }
+
     if (variant.arrayType === VariantArrayType.Array || variant.arrayType === VariantArrayType.Matrix) {
         encodingByte |= VARIANT_ARRAY_MASK;
     }
-    if (variant.dimensions && variant.arrayType === VariantArrayType.Matrix) {
-        assert(variant.dimensions.length >= 0);
+    if (dimensions && variant.arrayType === VariantArrayType.Matrix) {
+        assert(dimensions.length >= 0);
         encodingByte |= VARIANT_ARRAY_DIMENSIONS_MASK;
     }
     encodeUInt8(encodingByte, stream);
@@ -276,8 +288,8 @@ export function encodeVariant(variant: Variant | undefined | null, stream: Outpu
         encode(variant.value, stream);
     }
 
-    if ((encodingByte & VARIANT_ARRAY_DIMENSIONS_MASK) === VARIANT_ARRAY_DIMENSIONS_MASK && variant.dimensions) {
-        encodeDimension(variant.dimensions, stream);
+    if ((encodingByte & VARIANT_ARRAY_DIMENSIONS_MASK) === VARIANT_ARRAY_DIMENSIONS_MASK && dimensions) {
+        encodeDimension(dimensions, stream);
     }
 }
 
