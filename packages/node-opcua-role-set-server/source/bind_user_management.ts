@@ -14,7 +14,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { IUserManagementStore } from "node-opcua-role-set-common";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { UserNameIdentityToken } from "node-opcua-types";
+import { UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 import { asBoolean, asMask, asString } from "./variant_args.js";
@@ -40,7 +40,17 @@ export interface BindUserManagementOptions {
     onMutation?: () => Promise<void>;
     /** Called after an authorized Method attempt to raise an audit event (no secrets). */
     onAudit?: (audit: UserManagementAudit) => void;
+    /**
+     * Called after a user is effectively deactivated — disabled via ModifyUser
+     * (§5.2.6) or deleted via RemoveUser (§5.2.7) — so the caller can terminate
+     * that user's still-active sessions (a disabled user must lose access, not
+     * merely be barred from re-authenticating).
+     */
+    onUserDeactivated?: (userName: string) => void | Promise<void>;
 }
+
+const isDisabled = (mask: UserConfigurationMask): boolean =>
+    (mask & UserConfigurationMask.Disabled) === UserConfigurationMask.Disabled;
 
 /** Create an AddUser Method handler (§5.2.5). */
 export function makeAddUserHandler(options: BindUserManagementOptions) {
@@ -80,7 +90,7 @@ export function makeAddUserHandler(options: BindUserManagementOptions) {
 
 /** Create a ModifyUser Method handler (§5.2.6). */
 export function makeModifyUserHandler(options: BindUserManagementOptions) {
-    const { store, onMutation, onAudit } = options;
+    const { store, onMutation, onAudit, onUserDeactivated } = options;
     return async function _modifyUser(
         this: UAMethod,
         inputArguments: Variant[],
@@ -95,20 +105,26 @@ export function makeModifyUserHandler(options: BindUserManagementOptions) {
         if (userName === null) {
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
+        const modifyUserConfiguration = asBoolean(inputArguments[3]);
+        const userConfiguration = asMask(inputArguments[4]);
         const statusCode = store.modifyUser(
             userName,
             {
                 modifyPassword: asBoolean(inputArguments[1]),
                 password: asString(inputArguments[2]) ?? "",
-                modifyUserConfiguration: asBoolean(inputArguments[3]),
-                userConfiguration: asMask(inputArguments[4]),
+                modifyUserConfiguration,
+                userConfiguration,
                 modifyDescription: asBoolean(inputArguments[5]),
                 description: asString(inputArguments[6]) ?? ""
             },
             context.getUserName()
         );
-        if (statusCode === StatusCodes.Good && onMutation) {
-            await onMutation();
+        if (statusCode === StatusCodes.Good) {
+            if (onMutation) await onMutation();
+            // a freshly disabled user must lose any live session, not just be barred from re-login
+            if (modifyUserConfiguration && isDisabled(userConfiguration) && onUserDeactivated) {
+                await onUserDeactivated(userName);
+            }
         }
         onAudit?.({
             method: "ModifyUser",
@@ -123,7 +139,7 @@ export function makeModifyUserHandler(options: BindUserManagementOptions) {
 
 /** Create a RemoveUser Method handler (§5.2.7). */
 export function makeRemoveUserHandler(options: BindUserManagementOptions) {
-    const { store, onMutation, onAudit } = options;
+    const { store, onMutation, onAudit, onUserDeactivated } = options;
     return async function _removeUser(
         this: UAMethod,
         inputArguments: Variant[],
@@ -139,8 +155,10 @@ export function makeRemoveUserHandler(options: BindUserManagementOptions) {
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
         const statusCode = store.removeUser(userName, context.getUserName());
-        if (statusCode === StatusCodes.Good && onMutation) {
-            await onMutation();
+        if (statusCode === StatusCodes.Good) {
+            if (onMutation) await onMutation();
+            // a removed user must lose any live session as well (§5.2.7)
+            if (onUserDeactivated) await onUserDeactivated(userName);
         }
         onAudit?.({
             method: "RemoveUser",

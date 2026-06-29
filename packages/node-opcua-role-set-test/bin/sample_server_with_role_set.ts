@@ -84,8 +84,7 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
         users: Object.values(SAMPLE_USERS).map((u) => ({
             userName: u.userName,
             password: u.password,
-            roles: u.roles.map((r) => WellKnownRoleIds[r]),
-            description: u.description
+            roles: u.roles.map((r) => WellKnownRoleIds[r])
         }))
     });
 

@@ -1837,6 +1837,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param activeOnly
      * @return {ServerSession}
      */
+    /** A snapshot of all sessions currently tracked by the engine (active and pending). */
+    public getSessions(): ServerSession[] {
+        return Object.values(this._sessions);
+    }
+
     public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
         if (
             !authenticationToken ||

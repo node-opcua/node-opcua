@@ -11,6 +11,7 @@
  */
 import type { IAddressSpace, UAMethod, UAObject, UAVariable } from "node-opcua-address-space";
 import { MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
+import type { NodeId } from "node-opcua-nodeid";
 import {
     ArchiveStore,
     InMemoryUserManagementStore,
@@ -18,7 +19,7 @@ import {
     type PasswordPolicy
 } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
-import { Range, UserManagementDataType } from "node-opcua-types";
+import { Range, UserManagementDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { raiseAuditMethodEvent } from "./audit.js";
 import {
@@ -65,10 +66,47 @@ export interface InstallUserManagementResult {
     store: IUserManagementStore;
 }
 
-/** Minimal server shape: access to the address space. */
+/** A live session as seen by {@link IServerForUserManagement} — enough to identify and close it. */
+export interface IActiveSession {
+    readonly authenticationToken: NodeId;
+    /** The activated user-identity token (a {@link UserNameIdentityToken} for username logins). */
+    readonly userIdentityToken?: unknown;
+}
+
+/**
+ * Minimal server shape: access to the address space, and — optionally — to the
+ * live sessions so a disabled/removed user's sessions can be terminated
+ * (§5.2.6-7). When `getSessions`/`closeSession` are absent (e.g. a bare test
+ * double) the feature is silently skipped. The real `OPCUAServer`'s engine
+ * provides both.
+ */
 export interface IServerForUserManagement {
     engine: {
         addressSpace: IAddressSpace | null;
+        getSessions?(): IActiveSession[];
+        closeSession?(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: string): void;
+    };
+}
+
+/**
+ * Build a "close every active session of this user" function from the server's
+ * engine, or `undefined` if the engine does not expose session control. Closing
+ * deletes the user's subscriptions too — a deactivated user keeps nothing live.
+ */
+function makeSessionCloser(engine: IServerForUserManagement["engine"]): ((userName: string) => number) | undefined {
+    const { getSessions, closeSession } = engine;
+    if (!getSessions || !closeSession) return undefined;
+    return (userName: string): number => {
+        let closed = 0;
+        // snapshot first: closeSession mutates the engine's session map
+        for (const session of getSessions.call(engine)) {
+            const token = session.userIdentityToken;
+            if (token instanceof UserNameIdentityToken && token.userName === userName) {
+                closeSession.call(engine, session.authenticationToken, /* deleteSubscriptions */ true, "Terminated");
+                closed += 1;
+            }
+        }
+        return closed;
     };
 }
 
@@ -139,12 +177,27 @@ export async function installUserManagement(
     // Raise an AuditUpdateMethodEventType on the Server object for each managed
     // user-management call — WITHOUT any password (only who/what/whom/result).
     const serverObject = addressSpace.rootFolder?.objects?.server;
+    const closeSessionsForUser = makeSessionCloser(server.engine);
     const methodOptions: BindUserManagementOptions = {
         store,
         onMutation: async () => {
             refreshUsers();
             await persistence?.save();
         },
+        onUserDeactivated: closeSessionsForUser
+            ? (userName) => {
+                  const closed = closeSessionsForUser(userName);
+                  if (closed > 0) {
+                      raiseAuditMethodEvent(serverObject, "AuditUpdateMethodEventType", {
+                          sourceNode: userManagement.nodeId,
+                          sourceName: "Method/UserDeactivated",
+                          clientUserId: userName,
+                          status: true,
+                          message: `terminated ${closed} active session(s) of deactivated user '${userName}'`
+                      });
+                  }
+              }
+            : undefined,
         onAudit: (audit) => {
             raiseAuditMethodEvent(serverObject, "AuditUpdateMethodEventType", {
                 sourceNode: userManagement.nodeId,

@@ -132,7 +132,8 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
             (await um.modifyUser("desc-user", { description: "new description" })).statusCode.should.equal(StatusCodes.Good);
 
             const users = await um.readUsers();
-            users.find((u) => u.userName === "desc-user")?.description.should.equal("new description");
+            const found = users.find((u) => u.userName === "desc-user");
+            (found?.description ?? "").should.equal("new description");
         });
 
         it("should return BadNotFound when modifying an unknown user", async () => {
