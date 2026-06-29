@@ -11,6 +11,7 @@ import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
 import { AttributeIds } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
 import { ClientRoleSet } from "node-opcua-role-set-client";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
@@ -65,9 +66,9 @@ describe("Sample server: Variables gated by per-Role RolePermissions (§4)", fun
         }
     }
 
-    const readStatus = (session: ClientSession, nodeId: typeof handle.nodeIds.adminSecret) =>
+    const readStatus = (session: ClientSession, nodeId: NodeId) =>
         session.read({ nodeId, attributeId: AttributeIds.Value }).then((dv) => dv.statusCode);
-    const writeDouble = (session: ClientSession, nodeId: typeof handle.nodeIds.adminSecret, value: number) =>
+    const writeDouble = (session: ClientSession, nodeId: NodeId, value: number) =>
         session.write({ nodeId, attributeId: AttributeIds.Value, value: { value: { dataType: DataType.Double, value } } });
 
     it("PublicTemperature: anyone reads; only Operator/SecurityAdmin write", async () => {
