@@ -1,22 +1,27 @@
 import chalk from "chalk";
 import {
     AttributeIds,
+    ContentFilter,
     ContentFilterResult,
     CreateMonitoredItemsRequest,
     constructEventFilter,
     DataChangeFilter,
     DataType,
+    ElementOperand,
     EventFilterResult,
+    FilterOperator,
+    LiteralOperand,
     ModifyMonitoredItemsRequest,
     MonitoredItemModifyRequest,
     MonitoringMode,
     OPCUAClient,
     ReadValueId,
     resolveNodeId,
+    SimpleAttributeOperand,
     StatusCodes,
     TimestampsToReturn,
-    VariableIds,
-    type Variant
+    Variant,
+    VariableIds
 } from "node-opcua";
 import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
 import { assertThrow } from "../../test_helpers/assert_throw";
@@ -189,6 +194,83 @@ export function t(test: TestHarness): void {
                 });
                 const modifyRes = await (session as any).modifyMonitoredItems(modifyReq);
                 modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            });
+        });
+
+        // A whereClause ContentFilter that exceeds the server's MaxWhereClauseParameters (default 100).
+        // Built as an InList carrying one SimpleAttributeOperand + 101 literal operands (102 operands).
+        function makeOversizedWhereClause(): ContentFilter {
+            const operands: any[] = [new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })];
+            for (let i = 0; i < 101; i++) {
+                operands.push(new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) }));
+            }
+            return new ContentFilter({ elements: [{ filterOperator: FilterOperator.InList, filterOperands: operands }] });
+        }
+
+        function makeCreateRequest(subscriptionId: number, filter: any): CreateMonitoredItemsRequest {
+            return new CreateMonitoredItemsRequest({
+                subscriptionId,
+                timestampsToReturn: TimestampsToReturn.Neither,
+                itemsToCreate: [
+                    {
+                        itemToMonitor: new ReadValueId({ nodeId: resolveNodeId("Server"), attributeId: AttributeIds.EventNotifier }),
+                        requestedParameters: { samplingInterval: 0, discardOldest: false, queueSize: 1, filter },
+                        monitoringMode: MonitoringMode.Reporting
+                    }
+                ]
+            });
+        }
+
+        it("ZZ2C server should reject creation of an event monitored item with a cyclic whereClause", async () => {
+            if (!client) throw new Error("client not initialized");
+            // element 0 : Not(ElementOperand(0)) -> references itself (a cycle, see OPC UA Part 4 - 7.7.1)
+            const eventFilter = constructEventFilter(["SourceName", "EventId"]);
+            eventFilter.whereClause = new ContentFilter({
+                elements: [{ filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 0 })] }]
+            });
+            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                res.results[0].statusCode.should.eql(StatusCodes.BadFilterElementInvalid);
+            });
+        });
+
+        it("ZZ2D server should reject creation of an event monitored item whose whereClause exceeds MaxWhereClauseParameters", async () => {
+            if (!client) throw new Error("client not initialized");
+            const eventFilter = constructEventFilter(["SourceName", "EventId"]);
+            eventFilter.whereClause = makeOversizedWhereClause();
+            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                res.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+            });
+        });
+
+        it("ZZ2E server should reject modifying an event monitored item to a whereClause exceeding MaxWhereClauseParameters", async () => {
+            if (!client) throw new Error("client not initialized");
+            // create a valid event monitored item first ...
+            const eventFilter = constructEventFilter(["SourceName", "EventId"]);
+            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                res.results[0].statusCode.should.eql(StatusCodes.Good);
+                const monitoredItemId = res.results[0].monitoredItemId;
+
+                // ... then attempt to modify it to an oversized whereClause -> must be rejected (modify path)
+                const oversized = constructEventFilter(["SourceName", "EventId"]);
+                oversized.whereClause = makeOversizedWhereClause();
+                const modifyReq = new ModifyMonitoredItemsRequest({
+                    subscriptionId: subscription.subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Neither,
+                    itemsToModify: [
+                        new MonitoredItemModifyRequest({
+                            monitoredItemId,
+                            requestedParameters: { samplingInterval: 0, discardOldest: false, queueSize: 1, filter: oversized }
+                        })
+                    ]
+                });
+                const modifyRes = await (session as any).modifyMonitoredItems(modifyReq);
+                modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                modifyRes.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
             });
         });
 
