@@ -15,6 +15,7 @@ import "should";
 import { AddressSpace, type IServerBase, PseudoSession, type UARole } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -38,7 +39,7 @@ import { bootstrapArchive, makeSessionContext } from "./helpers.js";
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 const { SignAndEncrypt, None } = MessageSecurityMode;
 
-describe("Browse / channel hardening of RoleSet & UserManagement (§4.4.1)", function () {
+describe("Browse / channel hardening of RoleSet & UserManagement (§4.4.1)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
     const tmpDir = path.join(__dirname, "..", "_tmp_hardening");

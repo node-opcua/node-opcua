@@ -11,6 +11,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { AddressSpace, type IServerBase, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientUserManagement } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
@@ -35,7 +36,7 @@ import { bootstrapArchive, makeSessionContext } from "./helpers.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
-describe("User Management Integration: client over PseudoSession (§5)", function () {
+describe("User Management Integration: client over PseudoSession (§5)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
     const tmpDir = path.join(__dirname, "..", "_tmp_user_mgmt");

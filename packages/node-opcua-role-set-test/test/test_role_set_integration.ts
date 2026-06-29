@@ -18,6 +18,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { browseRoles, ClientRole, ClientRoleSet, readAllRoleIdentities } from "node-opcua-role-set-client";
@@ -41,7 +42,7 @@ function makeRule(criteriaType: IdentityCriteriaType, criteria: string): Identit
     return new IdentityMappingRuleType({ criteriaType, criteria });
 }
 
-describe("RoleSet Integration: server aggregator + role-set client over PseudoSession", function () {
+describe("RoleSet Integration: server aggregator + role-set client over PseudoSession", function (this: Mocha.Suite) {
     this.timeout(30000);
 
     const tmpDir = path.join(__dirname, "..", "_tmp_integration");
