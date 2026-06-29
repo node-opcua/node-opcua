@@ -62,6 +62,7 @@
         { "path": "node-opcua-nodeset-woodworking" },
         { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-pseudo-session" },
+        { "path": "node-opcua-role-set-admin" },
         { "path": "node-opcua-role-set-client" },
         { "path": "node-opcua-role-set-common" },
         { "path": "node-opcua-role-set-server" },

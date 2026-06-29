@@ -1,0 +1,53 @@
+{
+    "name": "node-opcua-role-set-admin",
+    "version": "2.173.0",
+    "description": "pure nodejs OPCUA SDK - role-set-admin CLI to administer RoleSet & User Management (OPC 10000-18)",
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "role-set-admin": "tsx source/cli.ts"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "role-set-admin": "./dist/cli.js"
+    },
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "dependencies": {
+        "@inquirer/prompts": "^8.5.2",
+        "commander": "^12.1.0",
+        "node-opcua-certificate-manager": "2.173.0",
+        "node-opcua-client": "2.173.1",
+        "node-opcua-role-set-client": "2.173.0",
+        "node-opcua-status-code": "2.173.0",
+        "node-opcua-types": "2.173.0"
+    },
+    "devDependencies": {
+        "tsx": "^4.22.4"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things",
+        "role",
+        "rbac",
+        "cli"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
+}
