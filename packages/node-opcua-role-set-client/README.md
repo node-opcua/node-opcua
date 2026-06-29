@@ -28,6 +28,9 @@ $ npm install node-opcua-role-set-client
 | `RoleIdentitiesResult` | `{ roleNodeId, roleName, identities }`. |
 | `browseRoles(session)` | Low-level: browse the `RoleSet`, return NodeId + name of every Role. |
 | `readAllRoleIdentities(session)` | Low-level: read the identities of every Role. |
+| `ClientUserManagement` | Drive the `UserManagement` Methods: `addUser` / `modifyUser` / `removeUser` / `changePassword` / `readUsers` (§5). |
+| `ModifyUserArgs` | Options for `ClientUserManagement.modifyUser` (`password?`, `userConfiguration?`, `description?`). |
+| `sessionRequiresPasswordChange(session)` | True when the activated session must change its password first (§5.2.8). |
 
 The same code works against a remote `ClientSession` **and** an in-process
 `PseudoSession` — `ClientRoleSet` is the single, recommended way to interact with a
@@ -100,8 +103,10 @@ await role.removeIdentity(rule);
 
 ## Related packages
 
-- [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared types, identity stores and persistence.
-- [`node-opcua-role-set-server`](../node-opcua-role-set-server) — server-side RoleSet installation and method binding.
+- [`node-opcua-role-set-common`](../node-opcua-role-set-common) — shared types, identity/user stores and persistence.
+- [`node-opcua-role-set-server`](../node-opcua-role-set-server) — server-side RoleSet & User Management installation.
+- [`node-opcua-role-set-admin`](../node-opcua-role-set-admin) — the `role-set-admin` command-line tool, built on this package.
+- [Role-Based Security & User Management guide](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md) — cross-package overview & getting started.
 
 # License
 
