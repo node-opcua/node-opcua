@@ -345,6 +345,39 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
     }
 }
 
+/**
+ * Verify that every ElementOperand of the ContentFilter references a valid element.
+ *
+ * As per OPC UA Part 4 - 7.4.4.4 (ElementOperand), an ElementOperand shall only link to a
+ * *later* sub-element of the ContentFilter: its index must be strictly greater than the index
+ * of the element that contains it, and within the bounds of the elements array.
+ *
+ * A ContentFilter that does not conform to this rule is rejected.
+ */
+function hasValidElementOperandReferences(filter: ContentFilter): boolean {
+    const elements = filter.elements || [];
+    for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
+        const operands = (elements[elementIndex].filterOperands as FilterOperand[] | null) || [];
+        for (const operand of operands) {
+            if (operand instanceof ElementOperand) {
+                const index = operand.index;
+                if (index <= elementIndex || index >= elements.length) {
+                    warningLog(
+                        `checkFilter: invalid ElementOperand: element #${elementIndex} references element #${index} ` +
+                            `(index must be greater than ${elementIndex} and lower than ${elements.length}); ` +
+                            `rejecting filter to prevent cyclic evaluation`
+                    );
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 export function checkFilter(filterContext: FilterContext, contentFilter: ContentFilter): boolean {
+    if (!hasValidElementOperandReferences(contentFilter)) {
+        return false;
+    }
     return checkFilterAtIndex(filterContext, contentFilter, 0);
 }

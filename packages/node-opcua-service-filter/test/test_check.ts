@@ -532,4 +532,181 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         filterContext.eventSource = filterContext.findNodeByName("GetMonitoredItems")!;
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
+
+    // see https://reference.opcfoundation.org/v105/Core/docs/Part4/7.4.4/ (ElementOperand)
+    // An ElementOperand shall only link to a *later* sub-element of the ContentFilter; a
+    // whereClause that does not conform to this rule must be rejected.
+    it("EV19 - checkFilter rejects a self-referential whereClause", () => {
+        filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
+
+        // element 0 : Not(ElementOperand(index = 0))  -> references itself
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.Not,
+                    filterOperands: [new ElementOperand({ index: 0 })]
+                }
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV20 - checkFilter rejects a cyclic whereClause (0 -> 1 -> 0)", () => {
+        filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
+
+        // element 0 : Not(ElementOperand(index = 1))
+        // element 1 : Not(ElementOperand(index = 0))  -> closes the cycle
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.Not,
+                    filterOperands: [new ElementOperand({ index: 1 })]
+                },
+                {
+                    filterOperator: FilterOperator.Not,
+                    filterOperands: [new ElementOperand({ index: 0 })]
+                }
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV21 - checkFilter rejects an out-of-bounds ElementOperand reference", () => {
+        // DeviceFailureEventType is NOT a subtype of AuditEventType, so element #1 resolves to false.
+        // An out-of-bounds reference (index 99) must NOT be silently treated as `true`: without the
+        // guard, `elements[99]` is undefined, checkFilterAtIndex returns true, and the Or would
+        // spuriously evaluate to true. The guard rejects the whole filter instead.
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.Or,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 99 })]
+                },
+                ofType("AuditEventType")
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV22 - checkFilter rejects a negative ElementOperand index", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.Or,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: -1 })]
+                },
+                ofType("AuditEventType")
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV23 - checkFilter rejects a longer cycle (0 -> 1 -> 2 -> 0)", () => {
+        filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
+
+        const contentFilter = new ContentFilter({
+            elements: [
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 2 })] },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 0 })] } // closes cycle
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV24 - checkFilter rejects a cycle introduced through a binary operator (And)", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : And(ElementOperand(1), ElementOperand(2))
+        // element 1 : OfType(SystemEventType)         (valid leaf)
+        // element 2 : Not(ElementOperand(0))          -> references back to 0 (cycle)
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 2 })]
+                },
+                ofType("SystemEventType"),
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 0 })] }
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV25 - checkFilter rejects a self-reference hidden in the second operand of And", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : And(ElementOperand(1), ElementOperand(0))  -> second operand points to itself
+        // element 1 : OfType(SystemEventType)
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 0 })]
+                },
+                ofType("SystemEventType")
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV26 - checkFilter still accepts and correctly evaluates a deep VALID forward-reference chain", () => {
+        // element 0 : Not(ElementOperand(1))
+        // element 1 : Not(ElementOperand(2))
+        // element 2 : OfType(SystemEventType)
+        // => result == OfType(SystemEventType)  (double negation)
+        const contentFilter = new ContentFilter({
+            elements: [
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 2 })] },
+                ofType("SystemEventType")
+            ]
+        });
+        {
+            // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
+            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+            checkFilter(filterContext, contentFilter).should.eql(true);
+        }
+        {
+            // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
+            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+            checkFilter(filterContext, contentFilter).should.eql(false);
+        }
+    });
+
+    it("EV27 - checkFilter accepts a valid And-tree referencing forward leaves and evaluates it", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // element 0 : And(ElementOperand(1), ElementOperand(2))
+        // element 1 : OfType(SystemEventType)   (true for DeviceFailureEventType)
+        // element 2 : OfType(BaseEventType)     (true for DeviceFailureEventType)
+        const allTrue = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 2 })]
+                },
+                ofType("SystemEventType"),
+                ofType("BaseEventType")
+            ]
+        });
+        checkFilter(filterContext, allTrue).should.eql(true);
+
+        // now make the second leaf false: OfType(AuditEventType) is not satisfied by DeviceFailureEventType
+        const oneFalse = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 2 })]
+                },
+                ofType("SystemEventType"),
+                ofType("AuditEventType")
+            ]
+        });
+        checkFilter(filterContext, oneFalse).should.eql(false);
+    });
 });
