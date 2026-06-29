@@ -354,7 +354,7 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
  *
  * A ContentFilter that does not conform to this rule is rejected.
  */
-function hasValidElementOperandReferences(filter: ContentFilter): boolean {
+export function hasValidElementOperandReferences(filter: ContentFilter): boolean {
     const elements = filter.elements || [];
     for (let elementIndex = 0; elementIndex < elements.length; elementIndex++) {
         const operands = (elements[elementIndex].filterOperands as FilterOperand[] | null) || [];
@@ -363,9 +363,9 @@ function hasValidElementOperandReferences(filter: ContentFilter): boolean {
                 const index = operand.index;
                 if (index <= elementIndex || index >= elements.length) {
                     warningLog(
-                        `checkFilter: invalid ElementOperand: element #${elementIndex} references element #${index} ` +
+                        `checkFilter: non-conformant ElementOperand: element #${elementIndex} references element #${index} ` +
                             `(index must be greater than ${elementIndex} and lower than ${elements.length}); ` +
-                            `rejecting filter to prevent cyclic evaluation`
+                            `see OPC UA Part 4 - 7.4.4.4`
                     );
                     return false;
                 }

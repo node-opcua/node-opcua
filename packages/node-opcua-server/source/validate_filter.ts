@@ -9,7 +9,7 @@ import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
-import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
+import { DataChangeFilter, EventFilter, hasValidElementOperandReferences } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
@@ -68,6 +68,16 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
     return StatusCodes.Good;
 }
 
+function __validateEventFilter(filter: EventFilter): StatusCode {
+    // As per OPC UA Part 4 - 7.4.4.4, an ElementOperand of the whereClause ContentFilter shall only
+    // link to a *later* sub-element (its index must be strictly greater than the index of the element
+    // that contains it, and within the bounds of the elements array).
+    if (filter.whereClause && !hasValidElementOperandReferences(filter.whereClause)) {
+        return StatusCodes.BadEventFilterInvalid;
+    }
+    return StatusCodes.Good;
+}
+
 export function validateFilter(filter: ExtensionObject | null, itemToMonitor: ReadValueIdOptions, node: BaseNode): StatusCode {
     // handle filter information
     if (filter && filter instanceof EventFilter && itemToMonitor.attributeId !== AttributeIds.EventNotifier) {
@@ -86,6 +96,10 @@ export function validateFilter(filter: ExtensionObject | null, itemToMonitor: Re
 
     if (filter instanceof DataChangeFilter) {
         return __validateDataChangeFilter(filter, itemToMonitor, node as UAVariable);
+    }
+
+    if (filter instanceof EventFilter) {
+        return __validateEventFilter(filter);
     }
 
     return StatusCodes.Good;
