@@ -212,7 +212,15 @@ export abstract class ClientTransportBase extends TCP_transport {
         if (messageHeader.msgType === "ERR") {
             responseClass = TCPErrorMessage;
             _stream.rewind();
-            response = decodeMessage(_stream, responseClass) as TCPErrorMessage;
+            try {
+                response = decodeMessage(_stream, responseClass) as TCPErrorMessage;
+            } catch {
+                // the chunk advertised a self-consistent length but does not carry a
+                // complete TCPErrorMessage payload (StatusCode + Reason). Treat it as a
+                // protocol violation rather than letting the decoder read past the buffer.
+                callback(new Error("ACK: failed to decode ERR response (malformed or truncated)"));
+                return;
+            }
 
             err = new Error(`ACK: ERR received ${response.statusCode.toString()} : ${response.reason}`);
             // biome-ignore lint/suspicious/noExplicitAny: legacy diagnostic field tacked onto Error
@@ -224,7 +232,15 @@ export abstract class ClientTransportBase extends TCP_transport {
         } else {
             responseClass = AcknowledgeMessage;
             _stream.rewind();
-            response = decodeMessage(_stream, responseClass) as AcknowledgeMessage;
+            try {
+                response = decodeMessage(_stream, responseClass) as AcknowledgeMessage;
+            } catch {
+                // the chunk advertised a self-consistent length but is too short to hold a
+                // complete AcknowledgeMessage payload. Report it instead of letting the
+                // decoder read past the end of the buffer.
+                callback(new Error("ACK: failed to decode Acknowledge response (malformed or truncated)"));
+                return;
+            }
 
             this.parameters = response;
             this.setLimits(response);

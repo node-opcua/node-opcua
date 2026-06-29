@@ -187,6 +187,62 @@ describe("testing ClientTCP_transport", function (this: any) {
         });
     });
 
+    // build a TCP message header (msgType + chunkType 'F' + total length) followed by
+    // `payload`, but force the advertised total length so that the chunk is self-consistent
+    // for the packet assembler yet shorter than what the message decoder expects.
+    function makeRawChunk(msgType: "ACK" | "ERR", payload: Buffer) {
+        const buffer = Buffer.alloc(8 + payload.length);
+        const stream = new BinaryStream(buffer);
+        writeTCPMessageHeader(msgType, "F", buffer.length, stream);
+        payload.copy(buffer, 8);
+        return buffer;
+    }
+
+    it("TCS-4b should report an error (and not crash) on a truncated ACK response", (done) => {
+        const spyOnServerWrite = sinon.spy((socket, _data) => {
+            // ACK/F chunk whose advertised length (8) carries no payload at all, instead
+            // of the mandatory 20 bytes of Acknowledge fields.
+            socket.write(makeRawChunk("ACK", Buffer.alloc(0)));
+            setImmediate(() => socket.end());
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.connect(endpointUrl, (err) => {
+            if (err) {
+                err.message.should.match(/malformed or truncated/);
+                spyOnConnect.callCount.should.eql(0);
+                done();
+            } else {
+                done(new Error("transport.connect should have raised a connection error"));
+            }
+        });
+    });
+
+    it("TCS-4c should report an error (and not crash) on a truncated ERR response", (done) => {
+        const spyOnServerWrite = sinon.spy((socket, _data) => {
+            // ERR/F chunk carrying a StatusCode but no Reason string.
+            const payload = Buffer.alloc(4);
+            payload.writeUInt32LE(0x80000000, 0);
+            socket.write(makeRawChunk("ERR", payload));
+            setImmediate(() => socket.end());
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.connect(endpointUrl, (err) => {
+            if (err) {
+                err.message.should.match(/malformed or truncated/);
+                spyOnConnect.callCount.should.eql(0);
+                done();
+            } else {
+                done(new Error("transport.connect should have raised a connection error"));
+            }
+        });
+    });
+
     it("TCS-5 should connect and forward subsequent message chunks after a valid HEL/ACK transaction", (done) => {
         // lets build the subsequent message
         const message1 = Buffer.alloc(10);
