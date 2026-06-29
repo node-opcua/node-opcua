@@ -5,7 +5,7 @@
  * AuditUpdateMethodEventType) on the Server Object.
  */
 import type { UAObject } from "node-opcua-address-space";
-import type { NodeId } from "node-opcua-nodeid";
+import { NodeId } from "node-opcua-nodeid";
 import type { Variant } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 
@@ -14,8 +14,8 @@ export interface AuditMethodEventFields {
     sourceNode: NodeId;
     /** A short label, e.g. "Method/AddIdentity". */
     sourceName: string;
-    /** The audited Method NodeId. */
-    methodId: NodeId;
+    /** The audited Method NodeId (omit for events not raised from a single Method call). */
+    methodId?: NodeId;
     /** The Session user who invoked the Method. */
     clientUserId: string;
     /** TRUE when the operation succeeded. */
@@ -45,7 +45,7 @@ export function raiseAuditMethodEvent(serverObject: UAObject | undefined, eventT
         clientUserId: { dataType: "String", value: fields.clientUserId },
         sourceNode: { dataType: "NodeId", value: fields.sourceNode },
         sourceName: { dataType: "String", value: fields.sourceName },
-        methodId: { dataType: "NodeId", value: fields.methodId },
+        methodId: { dataType: "NodeId", value: fields.methodId ?? NodeId.nullNodeId },
         severity: { dataType: "UInt16", value: 10 },
         message: { dataType: "LocalizedText", value: fields.message },
         inputArguments: { dataType: "Variant", arrayType: VariantArrayType.Array, value: fields.inputArguments ?? [] }
