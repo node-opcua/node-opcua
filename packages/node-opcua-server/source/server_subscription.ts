@@ -563,6 +563,14 @@ export class Subscription extends EventEmitter {
         return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
     }
 
+    // ServerCapabilities filter limits (OPC UA Part 5), exposed for EventFilter validation (e.g. on modify)
+    public get maxWhereClauseParameters(): UInt32 | undefined {
+        return this.serverCapabilities.maxWhereClauseParameters;
+    }
+    public get maxSelectClauseParameters(): UInt32 | undefined {
+        return this.serverCapabilities.maxSelectClauseParameters;
+    }
+
     public get currentLifetimeCount(): number {
         return this._life_time_counter;
     }

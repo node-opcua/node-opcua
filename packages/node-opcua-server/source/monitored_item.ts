@@ -353,6 +353,9 @@ export interface ISubscription {
     $session?: IServerSession2;
     subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
     getMonitoredItem(monitoredItemId: number): MonitoredItem | null;
+    // ServerCapabilities filter limits (OPC UA Part 5), used to validate EventFilters on modify
+    readonly maxWhereClauseParameters?: number;
+    readonly maxSelectClauseParameters?: number;
 }
 
 function isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
@@ -839,7 +842,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._adjustSampling(old_samplingInterval);
 
         if (monitoringParameters.filter) {
-            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node!);
+            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node!, {
+                maxWhereClauseParameters: this.$subscription?.maxWhereClauseParameters,
+                maxSelectClauseParameters: this.$subscription?.maxSelectClauseParameters
+            });
             if (statusCodeFilter.isNot(StatusCodes.Good)) {
                 return new MonitoredItemModifyResult({
                     statusCode: statusCodeFilter
