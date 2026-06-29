@@ -84,7 +84,25 @@ jobs:
       - run: pnpm run pretest
       - name: Run tests
         shell: bash
-        run: cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
+        run: |
+          cd packages
+          # Run the suite without letting a non-zero exit abort the step yet,
+          # so we can surface the *raw* exit code. GitHub's "exit code 127"
+          # message is misleading: bash reports codes mod 256, and a native
+          # crash / loader-thread fault exits before run_all_mocha_tests.js's
+          # own clamped process.exit() ever runs.
+          set +e
+          node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
+          code=$?
+          set -e
+          echo "::notice::run_all_mocha_tests.js exited with code ${code}"
+          case "${code}" in
+            0) ;;
+            1) echo "::error::test runner reported a test failure (exit 1)" ;;
+            2) echo "::error::unhandled rejection / uncaught exception during run (exit 2) — look for the [FATAL] line above" ;;
+            *) echo "::error::abnormal exit ${code}: node died before the runner's clean exit path. No [FATAL] line above => native/loader-thread crash (not a counted test failure)." ;;
+          esac
+          exit ${code}
 
   build:
     runs-on: ubuntu-latest
