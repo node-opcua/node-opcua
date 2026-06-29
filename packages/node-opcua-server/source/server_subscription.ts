@@ -460,6 +460,8 @@ export type DeleteMonitoredItemHook = (subscription: Subscription, monitoredItem
 export interface ServerCapabilitiesPartial {
     maxMonitoredItems: UInt32;
     maxMonitoredItemsPerSubscription: UInt32;
+    maxWhereClauseParameters?: UInt32;
+    maxSelectClauseParameters?: UInt32;
 }
 
 export interface IReadAttributeCapable {
@@ -1070,7 +1072,10 @@ export class Subscription extends EventEmitter {
         // filter
         const requestedParameters = monitoredItemCreateRequest.requestedParameters;
         const filter = requestedParameters.filter;
-        const statusCodeFilter = validateFilter(filter, itemToMonitor, node);
+        const statusCodeFilter = validateFilter(filter, itemToMonitor, node, {
+            maxWhereClauseParameters: this.serverCapabilities.maxWhereClauseParameters,
+            maxSelectClauseParameters: this.serverCapabilities.maxSelectClauseParameters
+        });
         if (statusCodeFilter !== StatusCodes.Good) {
             return handle_error(statusCodeFilter);
         }

@@ -770,4 +770,41 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         });
         checkFilter(filterContext, contentFilter).should.eql(true);
     });
+
+    it("EV31 - checkFilter rejects an operator carrying the wrong number of operands (Part 4 Table 118)", () => {
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+
+        // Not expects exactly one operand; two are provided -> rejected (returns false)
+        const contentFilter = new ContentFilter({
+            elements: [
+                {
+                    filterOperator: FilterOperator.Not,
+                    filterOperands: [new ElementOperand({ index: 1 }), new ElementOperand({ index: 1 })]
+                },
+                ofType("SystemEventType")
+            ]
+        });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV32 - checkFilter ignores an unreachable element, even a cyclic one (Part 4 7.7.1)", () => {
+        // element 0 : OfType(SystemEventType)   (the only reachable element)
+        // element 1 : Not(ElementOperand(2))    unreachable
+        // element 2 : Not(ElementOperand(1))    unreachable cycle 1 -> 2 -> 1, must be ignored
+        const contentFilter = new ContentFilter({
+            elements: [
+                ofType("SystemEventType"),
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 2 })] },
+                { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }
+            ]
+        });
+        {
+            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+            checkFilter(filterContext, contentFilter).should.eql(true);
+        }
+        {
+            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+            checkFilter(filterContext, contentFilter).should.eql(false);
+        }
+    });
 });
