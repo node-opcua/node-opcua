@@ -51,6 +51,7 @@ import {
     makeRemoveIdentityHandler,
     type RoleMappingRuleChangedAudit
 } from "./bind_role_methods.js";
+import { hardenAdminOnly } from "./harden.js";
 import { RoleSetResolver } from "./role_set_resolver.js";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 import { asString } from "./variant_args.js";
@@ -259,6 +260,26 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         role.removeApplication?.bindMethod(removeApplicationHandler);
         role.addEndpoint?.bindMethod(addEndpointHandler);
         role.removeEndpoint?.bindMethod(removeEndpointHandler);
+        hardenRole(role);
+    }
+
+    /**
+     * Hide a Role's sensitive Properties and configuration Methods from
+     * non-admin Browse and require an encrypted channel (§4.4.1). The Role node
+     * itself stays browsable so the RoleSet hierarchy remains visible.
+     */
+    function hardenRole(role: UARole): void {
+        hardenAdminOnly(role.identities);
+        hardenAdminOnly(role.applications);
+        hardenAdminOnly(role.applicationsExclude);
+        hardenAdminOnly(role.endpoints);
+        hardenAdminOnly(role.endpointsExclude);
+        hardenAdminOnly(role.addIdentity);
+        hardenAdminOnly(role.removeIdentity);
+        hardenAdminOnly(role.addApplication);
+        hardenAdminOnly(role.removeApplication);
+        hardenAdminOnly(role.addEndpoint);
+        hardenAdminOnly(role.removeEndpoint);
     }
 
     /** Create a RoleType instance (with the configuration Methods) and bind it. */
@@ -388,9 +409,11 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
 
     if (roleSet.addRole) {
         (roleSet.addRole as UAMethod).bindMethod(addRoleHandler);
+        hardenAdminOnly(roleSet.addRole);
     }
     if (roleSet.removeRole) {
         (roleSet.removeRole as UAMethod).bindMethod(removeRoleHandler);
+        hardenAdminOnly(roleSet.removeRole);
     }
 
     return { store, restrictionStore, resolver };

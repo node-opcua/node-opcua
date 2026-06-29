@@ -29,6 +29,7 @@ import {
     makeModifyUserHandler,
     makeRemoveUserHandler
 } from "./bind_user_management.js";
+import { hardenAdminOnly, hardenEncryptedOnly } from "./harden.js";
 
 /** PasswordOptionsMask bit values (OPC 10000-18 §5.2.2). */
 const PasswordOptions = {
@@ -211,10 +212,17 @@ export async function installUserManagement(
         }
     };
 
-    bindMethod(addressSpace, MethodIds.UserManagement_AddUser, makeAddUserHandler(methodOptions));
-    bindMethod(addressSpace, MethodIds.UserManagement_ModifyUser, makeModifyUserHandler(methodOptions));
-    bindMethod(addressSpace, MethodIds.UserManagement_RemoveUser, makeRemoveUserHandler(methodOptions));
-    bindMethod(addressSpace, MethodIds.UserManagement_ChangePassword, makeChangePasswordHandler(methodOptions));
+    // Bind and harden the Methods: the three administrative Methods (and the
+    // Users list, which reveals account names) are SecurityAdmin-only over an
+    // encrypted channel; ChangePassword stays callable by any authenticated user
+    // but still requires encryption (§4.4.1 / §5.2.8).
+    hardenAdminOnly(bindMethod(addressSpace, MethodIds.UserManagement_AddUser, makeAddUserHandler(methodOptions)));
+    hardenAdminOnly(bindMethod(addressSpace, MethodIds.UserManagement_ModifyUser, makeModifyUserHandler(methodOptions)));
+    hardenAdminOnly(bindMethod(addressSpace, MethodIds.UserManagement_RemoveUser, makeRemoveUserHandler(methodOptions)));
+    hardenEncryptedOnly(
+        bindMethod(addressSpace, MethodIds.UserManagement_ChangePassword, makeChangePasswordHandler(methodOptions))
+    );
+    hardenAdminOnly(usersVar);
 
     // Publish the password policy and the initial (empty) user list.
     const lengthVar = addressSpace.findNode(VariableIds.UserManagement_PasswordLength) as UAVariable | null;
@@ -231,7 +239,12 @@ export async function installUserManagement(
     return { store };
 }
 
-function bindMethod(addressSpace: IAddressSpace, methodNodeId: number, handler: Parameters<UAMethod["bindMethod"]>[0]): void {
+function bindMethod(
+    addressSpace: IAddressSpace,
+    methodNodeId: number,
+    handler: Parameters<UAMethod["bindMethod"]>[0]
+): UAMethod | null {
     const method = addressSpace.findNode(methodNodeId) as UAMethod | null;
     method?.bindMethod(handler);
+    return method;
 }
