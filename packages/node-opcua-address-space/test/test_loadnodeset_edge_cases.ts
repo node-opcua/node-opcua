@@ -1,7 +1,11 @@
 import path from "node:path";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
+import { encodeVariant, decodeVariant } from "node-opcua-variant";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace } from "..";
+import type { UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 describe("Testing loadNodeSet - edge cases", async function (this: any) {
@@ -72,6 +76,37 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
         const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_matrix_variable_and_missing_values.xml");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+    });
+
+    it("LNSEC-5b -  a Matrix variable loaded with no <Value> must encode to a spec-consistent (decodable) Variant", async () => {
+        // see customer report (Mika Karaila / AO21): a Matrix UAVariable declared with fixed
+        // ArrayDimensions but no <Value> in the nodeset is loaded with value=[] and the *declared*
+        // dimensions. When read and serialized on the wire, encodeVariant() emits
+        //   encodingByte 0xcc | ArraySize 0 | ArrayDimensions [11,1]
+        // which violates the OPC UA spec (ArrayLength must equal product(dimensions)). node-opcua's
+        // own decoder rejects it with "inconsistent matrix", and strict clients stall on it.
+        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_matrix_variable_and_missing_values.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+
+        const uaVariable = addressSpace.findNode("ns=1;i=1250") as UAVariable;
+        should.exist(uaVariable, "expected the matrix variable ns=1;i=1250 to be loaded");
+
+        const dataValue = uaVariable.readValue();
+        const variant = dataValue.value;
+
+        // loader fix: an uninitialized matrix (no <Value> for fixed dimensions) must not advertise Good
+        dataValue.statusCode.should.eql(StatusCodes.BadWaitingForInitialData);
+
+        // encoder fix: the value actually put on the wire must be self-consistent: re-decoding the
+        // encoded Variant must succeed. Before the fix this threw "inconsistent matrix".
+        const stream = new BinaryStream(4096);
+        encodeVariant(variant, stream);
+        const buffer = stream.buffer.subarray(0, stream.length);
+
+        (function roundTrip() {
+            const v2 = decodeVariant(new BinaryStream(buffer));
+            should.exist(v2);
+        }).should.not.throw();
     });
     it("LNSEC-6-  should load a nodeset2.xml  with recursive DataType", async () => {
         const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive.xml");

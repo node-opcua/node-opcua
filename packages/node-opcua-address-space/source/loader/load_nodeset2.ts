@@ -133,6 +133,28 @@ function makeDefaultVariant(
     }
     return variant;
 }
+
+/**
+ * a Matrix variant is "uninitialized" when it carries no element (value=[]) but declares
+ * non-zero dimensions (e.g. ArrayDimensions="256,128"). Such a variant is internally inconsistent
+ * (value.length !== product(dimensions)) and, if serialized, produces a spec-violating wire form.
+ */
+function isUninitializedMatrix(value: VariantOptions): boolean {
+    if (value.arrayType !== VariantArrayType.Matrix) {
+        return false;
+    }
+    const length = Array.isArray(value.value) ? value.value.length : 0;
+    if (length !== 0) {
+        return false;
+    }
+    const dimensions = value.dimensions;
+    if (!dimensions || dimensions.length === 0) {
+        return false;
+    }
+    const product = dimensions.reduce((n, p) => n * p, 1);
+    return product > 0;
+}
+
 export interface NodeSet2ParserEngine {
     addNodeSet: (xmlData: string) => Promise<void>;
     terminate: () => Promise<void>;
@@ -731,7 +753,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         if (false && doDebug) {
                             debugLog("2 setting value to ", cv.nodeId.toString(), value);
                         }
-                        if (value.dataType === DataType.Null) {
+                        // a Matrix variable declared with fixed ArrayDimensions but no <Value> is built with
+                        // an empty value (value=[]) yet non-zero declared dimensions. This is an *uninitialized*
+                        // and internally inconsistent matrix (value.length !== product(dimensions)). Advertising
+                        // it as Good would put a spec-violating matrix on the wire (ArraySize 0 + non-empty
+                        // ArrayDimensions), so flag it as BadWaitingForInitialData like any other missing value.
+                        if (value.dataType === DataType.Null || isUninitializedMatrix(value)) {
                             cv.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
                         } else {
                             cv.setValueFromSource(value, StatusCodes.Good);
