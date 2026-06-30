@@ -507,7 +507,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled = Object.hasOwn(options, "serverDiagnosticsEnable")
+        options.serverDiagnosticsEnabled = Object.hasOwn(options, "serverDiagnosticsEnabled")
             ? options.serverDiagnosticsEnabled
             : true;
 
