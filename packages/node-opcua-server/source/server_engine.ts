@@ -1580,7 +1580,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         let session = tmp[0];
         for (let i = 1; i < tmp.length; i++) {
             const c = tmp[i];
-            if (session.creationDate.getTime() < c.creationDate.getTime()) {
+            if (session.creationDate.getTime() > c.creationDate.getTime()) {
                 session = c;
             }
         }
