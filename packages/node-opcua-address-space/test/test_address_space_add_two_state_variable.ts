@@ -6,6 +6,7 @@ import should from "should";
 import sinon from "sinon";
 import { AddressSpace, type BaseNode, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { UATwoStateVariableImpl } from "../src/state_machine/ua_two_state_variable";
 
 let clock: any = null;
 
@@ -91,6 +92,43 @@ describe("testing add TwoStateVariable ", function (this: any) {
 
         node.setValue(false);
         node.readValue().value.value.text?.should.eql("Disabled");
+    });
+
+    it("should keep the fallback text for the missing state property", () => {
+        const trueStateNode = {
+            readValue() {
+                return {
+                    value: {
+                        value: { text: "Enabled" }
+                    }
+                };
+            },
+            setValueFromSource: sinon.spy()
+        };
+        const node = Object.create(UATwoStateVariableImpl.prototype) as UATwoStateVariableImpl & {
+            _falseState?: string;
+            _postInitialize: sinon.SinonSpy;
+            addReference: sinon.SinonSpy;
+            falseState?: undefined;
+            id: { setValueFromSource: sinon.SinonSpy };
+            trueState: typeof trueStateNode;
+        };
+        node.trueState = trueStateNode;
+        node.falseState = undefined;
+        node.addReference = sinon.spy();
+        node.id = { setValueFromSource: sinon.spy() };
+        node._postInitialize = sinon.spy();
+
+        node.initialize({
+            falseState: "Disabled",
+            trueState: "Enabled",
+            value: false
+        });
+
+        trueStateNode.setValueFromSource.calledOnce.should.eql(true);
+        node.getTrueState().text?.should.eql("Enabled");
+        node.getFalseState().text?.should.eql("Disabled");
+        node._falseState.should.eql("Disabled");
     });
 
     it("should add a TwoStateVariableType with transitionTime", function (this: any) {
