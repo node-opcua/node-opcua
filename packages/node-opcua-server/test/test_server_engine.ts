@@ -2139,6 +2139,23 @@ describe("ServerEngine advanced", () => {
         await engine.shutdown();
         // leaks will be detected if engine failed to dispose session
     });
+
+    it("ServerEngine should increment sessionTimeoutCount only once per timeout event", async () => {
+        const engine = new ServerEngine({
+            applicationUri: "application:uri"
+        });
+        const session = engine.createSession({ server: {} });
+
+        engine.sessionTimeoutCount.should.equal(0);
+        engine.currentSessionCount.should.equal(1);
+
+        session.emit("timeout");
+
+        engine.sessionTimeoutCount.should.equal(1);
+        engine.currentSessionCount.should.equal(0);
+
+        await engine.shutdown();
+    });
 });
 
 describe("ServerEngine ServerStatus & ServerCapabilities", function (this: Mocha.Suite) {
