@@ -1635,7 +1635,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         session.on("timeout", () => {
             // the session hasn't been active for a while , probably because the client has disconnected abruptly
             // it is now time to close the session completely
-            this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
             session.sessionName = session.sessionName || "";
 
             const channel = session.channel;
