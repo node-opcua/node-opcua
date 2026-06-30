@@ -183,7 +183,7 @@ function toDate(str) {
 function log() {
     rl.pause();
     rl.clearLine(process.stdout);
-    const str = _.map(arguments).join(" ");
+    const str = Array.from(arguments).join(" ");
     process.stdout.write(str);
     rl.resume();
 }
@@ -402,7 +402,7 @@ function open_session(callback) {
 }
 
 function close_session(outer_callback) {
-    apply_on_valid_session("closeSession", (session, inner_callback) {
+    apply_on_valid_session("closeSession", (session, inner_callback) => {
         session.close(function(err) {
             the_session = null;
             if (!outer_callback) {
