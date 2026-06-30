@@ -983,6 +983,44 @@ describe("Subscriptions", function (this: any) {
             // TODO
         });
 
+        it("should drop the oldest sent NotificationMessage when the retransmission queue overflows", () => {
+            const subscription = makeSubscription({
+                id: 1234,
+                publishingInterval: 1000,
+                lifeTimeCount: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+            });
+
+            (subscription as any)._sent_notification_messages = Array.from({ length: 100 }, (_, index) => ({
+                sequenceNumber: index + 1
+            }));
+
+            subscription.sentNotificationMessageCount.should.equal(100);
+            (subscription as any).discardOldSentNotifications();
+            subscription.sentNotificationMessageCount.should.equal(100);
+            ((subscription as any)._sent_notification_messages[0].sequenceNumber as number).should.equal(1);
+
+            (subscription as any)._sent_notification_messages.push({
+                sequenceNumber: 101
+            });
+
+            subscription.sentNotificationMessageCount.should.equal(101);
+            (subscription as any).discardOldSentNotifications();
+            subscription.sentNotificationMessageCount.should.equal(100);
+
+            const availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
+            availableSequenceNumbers[0].should.equal(2);
+            availableSequenceNumbers[availableSequenceNumbers.length - 1].should.equal(101);
+            should(subscription.getMessageForSequenceNumber(1)).eql(null);
+            should(subscription.getMessageForSequenceNumber(101)).not.eql(null);
+
+            subscription.terminate();
+            subscription.dispose();
+        });
+
         // xit("T12-4 - 1.01 a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.", function () {
         //     // this conforms to OPC UA specification 1.01 and is now obsolete as behavior has been changed in 1.02
 

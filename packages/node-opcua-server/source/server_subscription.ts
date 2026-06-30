@@ -1851,9 +1851,12 @@ export class Subscription extends EventEmitter {
         // case of a retransmission queue overflow, the oldest sent NotificationMessage gets deleted. If a
         // Subscription is transferred to another Session, the queued NotificationMessages for this
         // Subscription are moved from the old to the new Session.
-        if (maxNotificationMessagesInQueue <= this._sent_notification_messages.length) {
+        if (maxNotificationMessagesInQueue < this._sent_notification_messages.length) {
             doDebug && debugLog("discardOldSentNotifications = ", this._sent_notification_messages.length);
-            this._sent_notification_messages.splice(this._sent_notification_messages.length - maxNotificationMessagesInQueue);
+            this._sent_notification_messages.splice(
+                0,
+                this._sent_notification_messages.length - maxNotificationMessagesInQueue
+            );
         }
     }
 
