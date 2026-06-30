@@ -52,6 +52,11 @@ interface SubscriptionInternal extends Subscription {
     dispose: () => void;
 }
 
+interface ISubscriptionPrivate {
+    _sent_notification_messages: Array<{ sequenceNumber: number }>;
+    discardOldSentNotifications(): void;
+}
+
 function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
     const subscription1 = new Subscription(options);
     (subscription1 as any).$session = {
@@ -994,21 +999,27 @@ describe("Subscriptions", function (this: any) {
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
 
-            (subscription as any)._sent_notification_messages = Array.from({ length: 100 }, (_, index) => ({
+            const subscriptionInternal = subscription as unknown as ISubscriptionPrivate;
+
+            should(subscriptionInternal).have.property("_sent_notification_messages");
+            subscriptionInternal._sent_notification_messages.should.be.instanceOf(Array);
+            should(subscriptionInternal.discardOldSentNotifications).be.instanceOf(Function);
+
+            subscriptionInternal._sent_notification_messages = Array.from({ length: 100 }, (_, index) => ({
                 sequenceNumber: index + 1
             }));
 
             subscription.sentNotificationMessageCount.should.equal(100);
-            (subscription as any).discardOldSentNotifications();
+            subscriptionInternal.discardOldSentNotifications();
             subscription.sentNotificationMessageCount.should.equal(100);
-            ((subscription as any)._sent_notification_messages[0].sequenceNumber as number).should.equal(1);
+            subscriptionInternal._sent_notification_messages[0].sequenceNumber.should.equal(1);
 
-            (subscription as any)._sent_notification_messages.push({
+            subscriptionInternal._sent_notification_messages.push({
                 sequenceNumber: 101
             });
 
             subscription.sentNotificationMessageCount.should.equal(101);
-            (subscription as any).discardOldSentNotifications();
+            subscriptionInternal.discardOldSentNotifications();
             subscription.sentNotificationMessageCount.should.equal(100);
 
             const availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
