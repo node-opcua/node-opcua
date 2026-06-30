@@ -1,0 +1,104 @@
+/**
+ * @module node-opcua-role-set-server
+ *
+ * Bridges an {@link IUserManagementStore} (and an optional role
+ * {@link IIdentityMappingStore}) to the OPC UA server `userManager` interface so
+ * that CreateSession / ActivateSession authenticate against the managed users.
+ *
+ * It records the StatusCode of the **last authentication** — in particular
+ * `Good_PasswordChangeRequired` for a user that must change the password
+ * (OPC 10000-18 §5.2.8). Because the OPC UA stack does not propagate that code
+ * into the ActivateSession response, the status is recorded here:
+ *  - per **session** ({@link IManagedUserManager.getSessionAuthStatus}),
+ *    keyed by the SessionId the client also holds, so it can be observed in the
+ *    context of the very session that activated;
+ *  - per **user** ({@link IManagedUserManager.lastAuthStatus}) for convenience.
+ *
+ * The server `userManager` invokes `isValidUser` with `this` bound to the
+ * ServerSession, which is how the SessionId is captured (non-breaking).
+ */
+import { WellKnownRoles } from "node-opcua-constants";
+import { makeNodeId, type NodeId, type NodeIdLike } from "node-opcua-nodeid";
+import type { AnyUserIdentityToken, IIdentityMappingStore, IUserManagementStore } from "node-opcua-role-set-common";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type IdentityMappingRuleType, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
+
+/** The subset of the ServerSession that `isValidUser` is bound to (`this`). */
+interface SessionThis {
+    getSessionId?(): NodeId;
+    /** Set so ActivateSession returns Good_PasswordChangeRequired (node-opcua-server). */
+    passwordChangeRequired?: boolean;
+}
+
+export interface IManagedUserManager {
+    /** Validate credentials (sync). Returns true for Good and Good_PasswordChangeRequired. */
+    isValidUser(this: SessionThis, userName: string, password: string): boolean;
+    /** Resolve the Roles granted to a user (only Anonymous while a change is required). */
+    getUserRoles(userName: string): NodeId[];
+    /**
+     * The IdentityMappingRules configured for a Role. The server core binds each
+     * Role's `Identities` Property to this, so it stays in sync with the same
+     * identity store that drives {@link getUserRoles} — one source of truth.
+     */
+    getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[];
+    /**
+     * StatusCode recorded at activation for the given session — `Good`,
+     * `Good_PasswordChangeRequired`, or a `Bad_*` code. Pass the SessionId the
+     * client holds (`clientSession.sessionId`). `undefined` if never activated.
+     */
+    getSessionAuthStatus(sessionId: NodeIdLike): StatusCode | undefined;
+    /** StatusCode of the last authentication for each user (convenience). */
+    readonly lastAuthStatus: ReadonlyMap<string, StatusCode>;
+}
+
+const has = (mask: number, bit: number): boolean => (mask & bit) === bit;
+
+/**
+ * Create a server `userManager` backed by the given user store. Roles are
+ * resolved from `identityStore` (a UserName identity rule per user); while a
+ * user must change the password, only the Anonymous Role is granted.
+ */
+export function createUserManager(userStore: IUserManagementStore, identityStore: IIdentityMappingStore): IManagedUserManager {
+    const lastAuthStatus = new Map<string, StatusCode>();
+    const statusBySession = new Map<string, StatusCode>();
+    const anonymousOnly = (): NodeId[] => [makeNodeId(WellKnownRoles.Anonymous)];
+
+    return {
+        lastAuthStatus,
+
+        getSessionAuthStatus(sessionId: NodeIdLike): StatusCode | undefined {
+            return statusBySession.get(sessionId.toString());
+        },
+
+        isValidUser(this: SessionThis, userName: string, password: string): boolean {
+            const result = userStore.authenticate(userName, password);
+            lastAuthStatus.set(userName, result.statusCode);
+            // `this` is the ServerSession; key the status by the SessionId the
+            // client also holds, so the outcome can be observed per session.
+            const sessionId = this?.getSessionId?.();
+            if (sessionId) {
+                statusBySession.set(sessionId.toString(), result.statusCode);
+            }
+            // flag the session so ActivateSession returns Good_PasswordChangeRequired
+            if (this) {
+                this.passwordChangeRequired = result.statusCode === StatusCodes.GoodPasswordChangeRequired;
+            }
+            return result.statusCode === StatusCodes.Good || result.statusCode === StatusCodes.GoodPasswordChangeRequired;
+        },
+
+        getUserRoles(userName: string): NodeId[] {
+            const user = userStore.getUsers().find((u) => u.userName === userName);
+            if (user && has(user.userConfiguration, UserConfigurationMask.MustChangePassword)) {
+                return anonymousOnly();
+            }
+            const token: AnyUserIdentityToken = new UserNameIdentityToken({ userName });
+            return identityStore.resolveRoles(token);
+        },
+
+        getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[] {
+            // Backs each Role's `Identities` Property via the server core, from the
+            // same store as getUserRoles — so the two can never drift apart.
+            return identityStore.getIdentitiesForRole(role);
+        }
+    };
+}

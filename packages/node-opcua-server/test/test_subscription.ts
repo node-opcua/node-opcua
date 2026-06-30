@@ -52,6 +52,11 @@ interface SubscriptionInternal extends Subscription {
     dispose: () => void;
 }
 
+interface ISubscriptionPrivate {
+    _sent_notification_messages: Array<{ sequenceNumber: number }>;
+    discardOldSentNotifications(): void;
+}
+
 function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
     const subscription1 = new Subscription(options);
     (subscription1 as any).$session = {
@@ -981,6 +986,50 @@ describe("Subscriptions", function (this: any) {
 
         it("T12-3 - 1.02 the server shall retain a maximum number of un-acknowledged NotificationMessage until they are acknowledged", () => {
             // TODO
+        });
+
+        it("should drop the oldest sent NotificationMessage when the retransmission queue overflows", () => {
+            const subscription = makeSubscription({
+                id: 1234,
+                publishingInterval: 1000,
+                lifeTimeCount: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+            });
+
+            const subscriptionInternal = subscription as unknown as ISubscriptionPrivate;
+
+            should(subscriptionInternal).have.property("_sent_notification_messages");
+            subscriptionInternal._sent_notification_messages.should.be.instanceOf(Array);
+            should(subscriptionInternal.discardOldSentNotifications).be.instanceOf(Function);
+
+            subscriptionInternal._sent_notification_messages = Array.from({ length: 100 }, (_, index) => ({
+                sequenceNumber: index + 1
+            }));
+
+            subscription.sentNotificationMessageCount.should.equal(100);
+            subscriptionInternal.discardOldSentNotifications();
+            subscription.sentNotificationMessageCount.should.equal(100);
+            subscriptionInternal._sent_notification_messages[0].sequenceNumber.should.equal(1);
+
+            subscriptionInternal._sent_notification_messages.push({
+                sequenceNumber: 101
+            });
+
+            subscription.sentNotificationMessageCount.should.equal(101);
+            subscriptionInternal.discardOldSentNotifications();
+            subscription.sentNotificationMessageCount.should.equal(100);
+
+            const availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
+            availableSequenceNumbers[0].should.equal(2);
+            availableSequenceNumbers[availableSequenceNumbers.length - 1].should.equal(101);
+            should(subscription.getMessageForSequenceNumber(1)).eql(null);
+            should(subscription.getMessageForSequenceNumber(101)).not.eql(null);
+
+            subscription.terminate();
+            subscription.dispose();
         });
 
         // xit("T12-4 - 1.01 a NotificationMessage is retained until it has been in the queue for a minimum of one keep-alive interval.", function () {

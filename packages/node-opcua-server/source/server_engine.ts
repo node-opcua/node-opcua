@@ -1579,7 +1579,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         let session = tmp[0];
         for (let i = 1; i < tmp.length; i++) {
             const c = tmp[i];
-            if (session.creationDate.getTime() < c.creationDate.getTime()) {
+            if (session.creationDate.getTime() > c.creationDate.getTime()) {
                 session = c;
             }
         }
@@ -1634,7 +1634,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         session.on("timeout", () => {
             // the session hasn't been active for a while , probably because the client has disconnected abruptly
             // it is now time to close the session completely
-            this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
             session.sessionName = session.sessionName || "";
 
             const channel = session.channel;
@@ -1836,6 +1835,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param activeOnly
      * @return {ServerSession}
      */
+    /** A snapshot of all sessions currently tracked by the engine (active and pending). */
+    public getSessions(): ServerSession[] {
+        return Object.values(this._sessions);
+    }
+
     public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
         if (
             !authenticationToken ||

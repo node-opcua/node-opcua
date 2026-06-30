@@ -1,0 +1,10 @@
+recursive: false
+require:
+  - tsx
+  - ../../node_modules/should
+timeout: 20000
+extension:
+  - js
+  - ts
+spec: test/**/*.ts
+bail: true

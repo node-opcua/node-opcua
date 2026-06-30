@@ -295,7 +295,7 @@ function _getFileInfo(addressSpace: IAddressSpace, context: ISessionContext, fil
 
 function _close(addressSpace: IAddressSpace, context: ISessionContext, fileData: FileAccessData) {
     const _context = _prepare(addressSpace, context);
-    delete _context.$$files[fileData.fd];
+    delete _context.$$files[fileData.handle];
 }
 
 function toNodeJSMode(opcuaMode: OpenFileMode): string {

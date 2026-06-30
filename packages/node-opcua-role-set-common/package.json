@@ -1,0 +1,51 @@
+{
+    "name": "node-opcua-role-set-common",
+    "version": "2.174.0",
+    "description": "pure nodejs OPCUA SDK - role-set common types and identity stores (OPC 10000-18)",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "eslint source/**/*.ts",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "dependencies": {
+        "node-opcua-basic-types": "2.174.0",
+        "node-opcua-binary-stream": "2.173.0",
+        "node-opcua-constants": "2.174.0",
+        "node-opcua-crypto": "5.3.6",
+        "node-opcua-nodeid": "2.174.0",
+        "node-opcua-status-code": "2.173.0",
+        "node-opcua-types": "2.174.0",
+        "node-opcua-variant": "2.174.0"
+    },
+    "devDependencies": {
+        "node-opcua-leak-detector": "2.172.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "064029878247adf2fa5d14a8124e1930431e2428",
+    "files": [
+        "dist",
+        "source"
+    ]
+}

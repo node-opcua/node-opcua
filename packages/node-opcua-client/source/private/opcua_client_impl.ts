@@ -21,6 +21,7 @@ import {
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
+import type { NodeId } from "node-opcua-nodeid";
 import { readNamespaceArray } from "node-opcua-pseudo-session";
 import {
     type ClientSecureChannelLayer,
@@ -48,7 +49,6 @@ import {
 import { type Callback, type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
-import type { NodeId } from "node-opcua-nodeid";
 import type { OPCUAClientBaseEvents } from "../client_base";
 import type { ClientSession } from "../client_session";
 import type { ClientSubscriptionOptions } from "../client_subscription";
@@ -563,11 +563,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             clearTimeout(this._retryCreateSessionTimer);
             this._retryCreateSessionTimer = undefined;
         }
-        super.closeSession(
-            session as unknown as ClientSessionImpl,
-            deleteSubscriptions,
-            callback as (err?: Error) => void
-        );
+        super.closeSession(session as unknown as ClientSessionImpl, deleteSubscriptions, callback as (err?: Error) => void);
     }
 
     public toJSON(): Record<string, string | number | boolean | undefined> {
@@ -733,11 +729,11 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             return callback?.(
                 new Error(
                     " End point must exist " +
-                    this._secureChannel?.endpointUrl +
-                    "  securityMode = " +
-                    MessageSecurityMode[this.securityMode] +
-                    "  securityPolicy = " +
-                    this.securityPolicy
+                        this._secureChannel?.endpointUrl +
+                        "  securityMode = " +
+                        MessageSecurityMode[this.securityMode] +
+                        "  securityPolicy = " +
+                        this.securityPolicy
                 )
             );
         }
@@ -968,7 +964,9 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                 // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
                 // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
 
-                clientSignature: this.computeClientSignature(this._secureChannel as ClientSecureChannelLayer, serverCertificate, serverNonce) || undefined,
+                clientSignature:
+                    this.computeClientSignature(this._secureChannel as ClientSecureChannelLayer, serverCertificate, serverNonce) ||
+                    undefined,
 
                 // These are the SoftwareCertificates which have been issued to the Client application.
                 // The productUri contained in the SoftwareCertificates shall match the productUri in the
@@ -1013,7 +1011,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             session.lastRequestSentTime = new Date();
 
             this.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
-                if (!err1 && response && response.responseHeader.serviceResult === StatusCodes.Good) {
+                if (!err1 && response && response.responseHeader.serviceResult.isGoodish()) {
                     /* c8 ignore next */
                     if (!(response instanceof ActivateSessionResponse)) {
                         return callback(new Error("Internal Error"));
@@ -1023,6 +1021,9 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                         return callback(new Error("Invalid server Nonce"));
                     }
                     session._client = this;
+                    // capture the activation outcome (e.g. Good_PasswordChangeRequired,
+                    // OPC 10000-18 §5.2.8) so a Client can react without server access.
+                    session.lastActivateSessionStatusCode = response.responseHeader.serviceResult;
                     session.serverNonce = response.serverNonce;
                     session.lastResponseReceivedTime = new Date();
                     if (this.keepSessionAlive) {
@@ -1152,11 +1153,11 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             return callback(
                 new Error(
                     " End point must exist " +
-                    this._secureChannel?.endpointUrl +
-                    "  securityMode = " +
-                    MessageSecurityMode[this.securityMode] +
-                    "  securityPolicy = " +
-                    this.securityPolicy
+                        this._secureChannel?.endpointUrl +
+                        "  securityMode = " +
+                        MessageSecurityMode[this.securityMode] +
+                        "  securityPolicy = " +
+                        this.securityPolicy
                 )
             );
         }

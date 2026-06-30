@@ -22,7 +22,7 @@ import type { NamespacePrivate } from "../src/namespace_private";
 
 export { PermissionType, RolePermissionType, RolePermissionTypeOptions } from "node-opcua-types";
 
-type AnyUserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
+export type AnyUserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
 function getUserName(userIdentityToken: AnyUserIdentityToken): string {
     if (userIdentityToken instanceof AnonymousIdentityToken) {
@@ -48,29 +48,23 @@ function getUserName(userIdentityToken: AnyUserIdentityToken): string {
     throw new Error("Invalid user identity token");
 }
 
-/**
- *
- */
-export enum WellKnownRoles {
-    Anonymous = ObjectIds.WellKnownRole_Anonymous,
-    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
-    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
-    Engineer = ObjectIds.WellKnownRole_Engineer,
-    Observer = ObjectIds.WellKnownRole_Observer,
-    Operator = ObjectIds.WellKnownRole_Operator,
-    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
-    Supervisor = ObjectIds.WellKnownRole_Supervisor
-}
-export enum WellKnownRolesNodeId {
-    Anonymous = ObjectIds.WellKnownRole_Anonymous,
-    AuthenticatedUser = ObjectIds.WellKnownRole_AuthenticatedUser,
-    ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
-    Engineer = ObjectIds.WellKnownRole_Engineer,
-    Observer = ObjectIds.WellKnownRole_Observer,
-    Operator = ObjectIds.WellKnownRole_Operator,
-    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
-    Supervisor = ObjectIds.WellKnownRole_Supervisor
-}
+// Re-exported from node-opcua-constants for backward compatibility.
+// The canonical definition now lives in node-opcua-constants so that
+// client-side packages can use it without pulling in address-space.
+import { WellKnownRoles } from "node-opcua-constants";
+export { WellKnownRoles } from "node-opcua-constants";
+
+/** @deprecated Use WellKnownRoles instead */
+export const WellKnownRolesNodeId = {
+    Anonymous: ObjectIds.WellKnownRole_Anonymous,
+    AuthenticatedUser: ObjectIds.WellKnownRole_AuthenticatedUser,
+    ConfigureAdmin: ObjectIds.WellKnownRole_ConfigureAdmin,
+    Engineer: ObjectIds.WellKnownRole_Engineer,
+    Observer: ObjectIds.WellKnownRole_Observer,
+    Operator: ObjectIds.WellKnownRole_Operator,
+    SecurityAdmin: ObjectIds.WellKnownRole_SecurityAdmin,
+    Supervisor: ObjectIds.WellKnownRole_Supervisor
+} as const;
 /**
  * OPC Unified Architecture, Part 3 13 Release 1.04
  * 4.8.2 Well Known Roles
@@ -114,9 +108,38 @@ export interface IRolePolicyOverride {
     getUserRoles(username: string): NodeId[] | null;
 }
 
+/**
+ * Session attributes a resolver may use to evaluate application/endpoint
+ * restrictions on a Role (OPC 10000-18 §4.4.1).
+ */
+export interface IRoleResolutionContext {
+    /** ApplicationUri from the Client certificate, if any. */
+    applicationUri?: string | null;
+    /** SecureChannel security mode. */
+    securityMode?: MessageSecurityMode;
+    /** SecureChannel security policy URI. */
+    securityPolicyUri?: string;
+    /** Endpoint URL used by the Session, if known. */
+    endpointUrl?: string;
+}
+
+/**
+ * Pluggable role resolver (OPC 10000-18 §4.4).
+ *
+ * Receives the full UserIdentityToken so implementations can match by
+ * Thumbprint, X509Subject, UserName, etc., plus an optional resolution context
+ * to enforce application/endpoint restrictions. Registered on
+ * IServerBase.roleResolvers by packages like node-opcua-role-set-server.
+ */
+export interface IRoleResolver {
+    resolveRoles(userIdentityToken: AnyUserIdentityToken, context?: IRoleResolutionContext): NodeId[];
+}
+
 export interface IServerBase {
     userManager?: IUserManager;
     rolePolicyOverride?: IRolePolicyOverride | null;
+    /** Additional role resolvers (identity stores, LDAP, etc.) */
+    roleResolvers?: IRoleResolver[];
 }
 
 export interface SessionContextOptions {
@@ -252,6 +275,11 @@ export class SessionContext implements ISessionContext {
         }
     }
 
+    /** The URL of the Endpoint the Session was created on, or `null` if unknown. */
+    public get endpointUrl(): string | null {
+        return this.session?.getEndpointUrl?.() ?? null;
+    }
+
     public toJSON(): Record<string, string | null> {
         return {
             userName: this.getUserName(),
@@ -325,7 +353,25 @@ export class SessionContext implements ISessionContext {
             return anonymous;
         }
 
-        const rolesNodeId = this.server.userManager.getUserRoles(username);
+        const rolesNodeId = this.server.userManager.getUserRoles(username) || [];
+
+        // OPC 10000-18 §4.4: check registered role resolvers
+        if (this.server.roleResolvers && this.session?.userIdentityToken) {
+            const resolutionContext: IRoleResolutionContext = {
+                applicationUri: this.clientApplicationUri,
+                securityMode: this.session.channel?.securityMode,
+                securityPolicyUri: this.session.channel?.securityPolicy,
+                endpointUrl: this.endpointUrl ?? undefined
+            };
+            for (const resolver of this.server.roleResolvers) {
+                const extra = resolver.resolveRoles(this.session.userIdentityToken, resolutionContext);
+                for (const r of extra) {
+                    if (!rolesNodeId.find((e) => sameNodeId(e, r))) {
+                        rolesNodeId.push(r);
+                    }
+                }
+            }
+        }
 
         if (rolesNodeId.findIndex((r) => r.namespace === 0 && r.value === WellKnownRoles.AuthenticatedUser) < 0) {
             rolesNodeId.push(resolveNodeId(WellKnownRoles.AuthenticatedUser));

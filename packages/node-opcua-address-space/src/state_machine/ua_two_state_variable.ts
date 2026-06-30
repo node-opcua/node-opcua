@@ -216,18 +216,18 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
             assert(typeof options.trueState === "string");
             assert(typeof options.falseState === "string");
 
-            if (this.falseState) {
-                this.falseState.setValueFromSource({
-                    dataType: DataType.LocalizedText,
-                    value: coerceLocalizedText(options.falseState)
-                });
-            } else {
-                this._trueState = coerceLocalizedText(options.trueState)?.text!;
-            }
             if (this.trueState) {
                 this.trueState.setValueFromSource({
                     dataType: DataType.LocalizedText,
                     value: coerceLocalizedText(options.trueState)
+                });
+            } else {
+                this._trueState = coerceLocalizedText(options.trueState)?.text!;
+            }
+            if (this.falseState) {
+                this.falseState.setValueFromSource({
+                    dataType: DataType.LocalizedText,
+                    value: coerceLocalizedText(options.falseState)
                 });
             } else {
                 this._falseState = coerceLocalizedText(options.falseState)?.text!;
