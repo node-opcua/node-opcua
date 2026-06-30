@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-role-set-server",
-    "version": "2.173.0",
+    "version": "2.174.0",
     "description": "pure nodejs OPCUA SDK - server-side role-set management (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -16,20 +16,20 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.173.1",
-        "node-opcua-address-space-base": "2.173.0",
-        "node-opcua-constants": "2.157.0",
-        "node-opcua-data-model": "2.173.0",
-        "node-opcua-nodeid": "2.173.0",
-        "node-opcua-role-set-common": "2.173.0",
-        "node-opcua-service-call": "2.173.0",
+        "node-opcua-address-space": "2.174.0",
+        "node-opcua-address-space-base": "2.174.0",
+        "node-opcua-constants": "2.174.0",
+        "node-opcua-data-model": "2.174.0",
+        "node-opcua-nodeid": "2.174.0",
+        "node-opcua-role-set-common": "2.174.0",
+        "node-opcua-service-call": "2.174.0",
         "node-opcua-status-code": "2.173.0",
-        "node-opcua-types": "2.173.0",
-        "node-opcua-variant": "2.173.0"
+        "node-opcua-types": "2.174.0",
+        "node-opcua-variant": "2.174.0"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.172.0",
-        "node-opcua-nodesets": "2.163.1"
+        "node-opcua-nodesets": "2.174.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
@@ -52,4 +52,3 @@
         "source"
     ]
 }
-

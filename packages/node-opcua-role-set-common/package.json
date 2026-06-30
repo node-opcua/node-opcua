@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-role-set-common",
-    "version": "2.173.0",
+    "version": "2.174.0",
     "description": "pure nodejs OPCUA SDK - role-set common types and identity stores (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -16,14 +16,14 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-basic-types": "2.173.0",
+        "node-opcua-basic-types": "2.174.0",
         "node-opcua-binary-stream": "2.173.0",
-        "node-opcua-constants": "2.157.0",
+        "node-opcua-constants": "2.174.0",
         "node-opcua-crypto": "5.3.6",
-        "node-opcua-nodeid": "2.173.0",
+        "node-opcua-nodeid": "2.174.0",
         "node-opcua-status-code": "2.173.0",
-        "node-opcua-types": "2.173.0",
-        "node-opcua-variant": "2.173.0"
+        "node-opcua-types": "2.174.0",
+        "node-opcua-variant": "2.174.0"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.172.0"
@@ -49,4 +49,3 @@
         "source"
     ]
 }
-
