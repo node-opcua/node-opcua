@@ -507,11 +507,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled = Object.hasOwn(options, "serverDiagnosticsEnabled")
-            ? options.serverDiagnosticsEnabled
-            : true;
+        options.serverDiagnosticsEnabled =
+            options.serverDiagnosticsEnabled == undefined ? true : options.serverDiagnosticsEnabled;
 
-        this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled || false;
+        this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
     }
     public isStarted(): boolean {
         return !!this._serverStatus;
