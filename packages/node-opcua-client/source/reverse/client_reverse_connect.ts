@@ -13,8 +13,12 @@
  * denial-of-service surface the normal (client-initiated) connection does not have. The listener
  * therefore (a) validates every inbound RHE against the caller's {@link ReverseConnectExpectation},
  * (b) times out sockets that do not send a valid RHE quickly, and (c) caps the number of
- * un-validated pending sockets. Full OPC UA security (message security mode, certificate trust) is
- * still enforced afterwards on the SecureChannel.
+ * inbound sockets it is holding on to. Full OPC UA security (message security mode, certificate
+ * trust) is still enforced afterwards on the SecureChannel.
+ *
+ * Every accepted socket keeps a durable `error`/`close` guard for as long as the listener owns it,
+ * so a peer reset while a socket is being read or held can never surface as an unhandled `'error'`
+ * event (which Node would turn into a process-wide uncaught exception).
  */
 import { createServer, type Server, type Socket } from "node:net";
 
@@ -25,6 +29,7 @@ import {
     MAXIMUM_REVERSE_HELLO_FIELD_LENGTH,
     packTcpMessage,
     parseEndpointUrl,
+    readRawMessageHeader,
     StatusCodes2,
     TCPErrorMessage
 } from "node-opcua-transport";
@@ -54,7 +59,7 @@ export interface ClientReverseConnectOptions {
     connectionUrl: string;
     /** ms to wait for a valid RHE after a socket connects. @default 120000 */
     acceptTimeout?: number;
-    /** maximum number of simultaneous un-validated inbound sockets (DoS guard). @default 20 */
+    /** maximum number of inbound sockets the listener will hold on to at once (DoS guard). @default 20 */
     maxPendingSockets?: number;
     /** ms to hold a validated connection waiting for a matching client to register. @default 30000 */
     matchTimeout?: number;
@@ -74,7 +79,8 @@ interface Waiter {
 
 interface HeldConnection {
     accepted: IAcceptedReverseConnection;
-    timer: NodeJS.Timeout;
+    /** hand the socket to a waiter: marks it handed-off and stops the listener from touching it further */
+    handOff: () => void;
 }
 
 function matches(expectation: ReverseConnectExpectation | undefined, accepted: IAcceptedReverseConnection): boolean {
@@ -98,7 +104,8 @@ export class ClientReverseConnect {
 
     #server?: Server;
     #listeningPort = 0;
-    #pendingCount = 0;
+    /** every socket the listener currently owns (being read, or held) — NOT sockets already handed to a transport */
+    #sockets = new Set<Socket>();
     #waiters: Waiter[] = [];
     #held: HeldConnection[] = [];
 
@@ -129,11 +136,24 @@ export class ClientReverseConnect {
         const server = createServer((socket: Socket) => this.#handleIncomingSocket(socket));
         this.#server = server;
 
+        // Permanent server-level error handler: net.Server can emit "error" AFTER a successful
+        // listen() (e.g. EMFILE/ENFILE on accept). Without a listener Node throws an uncaught
+        // exception and crashes the process, so keep one attached for the server's whole life.
+        const onServerError = (err: Error) => {
+            // c8 ignore next
+            warningLog(`ClientReverseConnect server error: ${err.message}`);
+        };
+        server.on("error", onServerError);
+
         return new Promise<void>((resolve, reject) => {
-            const onError = (err: Error) => reject(err);
-            server.once("error", onError);
+            const onListenError = (err: Error) => {
+                server.removeListener("error", onServerError);
+                this.#server = undefined;
+                reject(err);
+            };
+            server.once("error", onListenError);
             server.listen(port, host, () => {
-                server.removeListener("error", onError);
+                server.removeListener("error", onListenError);
                 const addr = server.address();
                 this.#listeningPort = addr && typeof addr === "object" ? addr.port : port;
                 // c8 ignore next
@@ -144,17 +164,21 @@ export class ClientReverseConnect {
     }
 
     public stop(): Promise<void> {
-        // reject any pending waiters and drop held connections
+        // reject any pending waiters
         const waiters = this.#waiters;
         this.#waiters = [];
         for (const w of waiters) {
             w.callback(new Error("ClientReverseConnect has been stopped"));
         }
-        const held = this.#held;
         this.#held = [];
-        for (const h of held) {
-            clearTimeout(h.timer);
-            h.accepted.socket.destroy();
+        // destroy every socket the listener still owns (being read or held). Their durable
+        // error/close guards call forget(), which is a no-op once we clear the set below, so no
+        // dangling entries remain. This also unblocks server.close(), which otherwise waits for
+        // all live connections to end.
+        const sockets = [...this.#sockets];
+        this.#sockets.clear();
+        for (const socket of sockets) {
+            socket.destroy();
         }
 
         const server = this.#server;
@@ -175,7 +199,7 @@ export class ClientReverseConnect {
             const h = this.#held[i];
             if (matches(expectation, h.accepted)) {
                 this.#held.splice(i, 1);
-                clearTimeout(h.timer);
+                h.handOff();
                 callback(null, h.accepted);
                 return { cancel: () => undefined };
             }
@@ -204,94 +228,78 @@ export class ClientReverseConnect {
         });
     }
 
-    #dispatch(socket: Socket, serverUri: string, endpointUrl: string): void {
-        const accepted: IAcceptedReverseConnection = { socket, serverUri, endpointUrl };
-
-        for (let i = 0; i < this.#waiters.length; i++) {
-            if (matches(this.#waiters[i].expectation, accepted)) {
-                const [waiter] = this.#waiters.splice(i, 1);
-                waiter.callback(null, accepted);
-                return;
-            }
-        }
-
-        // no waiter yet: hold the validated connection briefly in case a client registers imminently
-        // c8 ignore next
-        doDebug && debugLog(`reverse connection from ${serverUri} held (no matching client yet)`);
-        const held: HeldConnection = {
-            accepted,
-            timer: setTimeout(() => {
-                const idx = this.#held.indexOf(held);
-                if (idx >= 0) {
-                    this.#held.splice(idx, 1);
-                }
-                this.#sendErrorAndDestroy(socket, StatusCodes2.BadTcpServerTooBusy, "no client is waiting for this reverse connection");
-            }, this.#matchTimeout)
-        };
-        this.#held.push(held);
-    }
-
     #handleIncomingSocket(socket: Socket): void {
-        if (this.#pendingCount >= this.#maxPendingSockets) {
-            warningLog("ClientReverseConnect: too many pending reverse connections, rejecting");
-            this.#sendErrorAndDestroy(socket, StatusCodes2.BadTcpServerTooBusy, "too many pending reverse connections");
-            return;
-        }
-        this.#pendingCount++;
+        // Track the socket and attach durable error/close guards FIRST, before any rejection path,
+        // so the socket is never without an "error" listener (an unhandled "error" would crash the
+        // whole process).
+        this.#sockets.add(socket);
 
-        socket.setNoDelay(true);
-
+        let handedOff = false;
+        let removed = false;
+        let timer: NodeJS.Timeout | undefined;
         let buffer: Buffer = Buffer.alloc(0);
-        let settled = false;
 
-        const cleanup = () => {
-            socket.removeListener("data", onData);
-            socket.removeListener("error", onError);
-            socket.removeListener("close", onClose);
-            clearTimeout(timer);
-        };
-        const settle = () => {
-            if (settled) {
+        const forget = () => {
+            if (removed) {
                 return;
             }
-            settled = true;
-            this.#pendingCount--;
-            cleanup();
+            removed = true;
+            if (timer) {
+                clearTimeout(timer);
+                timer = undefined;
+            }
+            this.#sockets.delete(socket);
+            const hi = this.#held.findIndex((h) => h.accepted.socket === socket);
+            if (hi >= 0) {
+                this.#held.splice(hi, 1);
+            }
         };
 
-        const timer = setTimeout(() => {
-            if (settled) {
-                return;
-            }
-            settle();
-            this.#sendErrorAndDestroy(socket, StatusCodes2.BadTimeout, "no ReverseHello received in time");
-        }, this.#acceptTimeout);
-
+        // durable guards: kept for the socket's whole life in the listener. After hand-off they
+        // become no-ops (the adopting transport installs its own handlers), but stay attached so
+        // there is never a window with zero "error" listeners.
         const onError = () => {
-            if (settled) {
+            if (handedOff || removed) {
                 return;
             }
-            settle();
+            forget();
             socket.destroy();
         };
         const onClose = () => {
-            if (settled) {
+            if (handedOff) {
                 return;
             }
-            settle();
+            forget();
         };
+        socket.on("error", onError);
+        socket.on("close", onClose);
+
+        // DoS guard: bound the number of sockets the listener holds (being read + held).
+        if (this.#sockets.size > this.#maxPendingSockets) {
+            warningLog("ClientReverseConnect: too many pending reverse connections, rejecting");
+            this.#rejectSocket(socket, forget, StatusCodes2.BadTcpServerTooBusy, "too many pending reverse connections");
+            return;
+        }
+
+        socket.setNoDelay(true);
+
+        timer = setTimeout(() => {
+            this.#rejectSocket(socket, forget, StatusCodes2.BadTimeout, "no ReverseHello received in time");
+        }, this.#acceptTimeout);
+        timer.unref?.();
+
         const onData = (chunk: Buffer) => {
-            if (settled) {
+            if (removed || handedOff) {
                 return;
             }
             buffer = buffer.length === 0 ? chunk : Buffer.concat([buffer, chunk]);
             if (buffer.length < 8) {
                 return;
             }
-            const declaredLength = buffer.readUInt32LE(4);
+            const declaredLength = readRawMessageHeader(buffer).length;
             if (declaredLength > MAX_RHE_FRAME_LENGTH) {
-                settle();
-                this.#sendErrorAndDestroy(socket, StatusCodes2.BadTcpMessageTooLarge, "ReverseHello message too large");
+                socket.removeListener("data", onData);
+                this.#rejectSocket(socket, forget, StatusCodes2.BadTcpMessageTooLarge, "ReverseHello message too large");
                 return;
             }
             if (buffer.length < declaredLength) {
@@ -300,7 +308,12 @@ export class ClientReverseConnect {
             const frame = buffer.subarray(0, declaredLength);
             const leftover = buffer.subarray(declaredLength);
 
-            settle();
+            // stop reading the RHE and the accept timer; keep the error/close guards attached.
+            socket.removeListener("data", onData);
+            if (timer) {
+                clearTimeout(timer);
+                timer = undefined;
+            }
             // pause before handing the socket over, then push back any bytes read past the RHE frame
             socket.pause();
             if (leftover.length > 0) {
@@ -315,20 +328,45 @@ export class ClientReverseConnect {
                 endpointUrl = rhe.endpointUrl || "";
             } catch (err) {
                 const statusCode = (err as { statusCode?: StatusCode }).statusCode || StatusCodes2.BadTcpEndpointUrlInvalid;
-                this.#sendErrorAndDestroy(socket, statusCode, err instanceof Error ? err.message : "invalid ReverseHello");
+                this.#rejectSocket(socket, forget, statusCode, err instanceof Error ? err.message : "invalid ReverseHello");
                 return;
             }
-            this.#dispatch(socket, serverUri, endpointUrl);
+
+            const accepted: IAcceptedReverseConnection = { socket, serverUri, endpointUrl };
+            const handOff = () => {
+                handedOff = true;
+                forget(); // release listener ownership; durable guards remain as no-ops
+            };
+
+            // immediate match?
+            for (let i = 0; i < this.#waiters.length; i++) {
+                if (matches(this.#waiters[i].expectation, accepted)) {
+                    const [waiter] = this.#waiters.splice(i, 1);
+                    handOff();
+                    waiter.callback(null, accepted);
+                    return;
+                }
+            }
+
+            // no waiter yet: hold the validated connection briefly in case a client registers imminently.
+            // c8 ignore next
+            doDebug && debugLog(`reverse connection from ${serverUri} held (no matching client yet)`);
+            timer = setTimeout(() => {
+                timer = undefined;
+                this.#rejectSocket(socket, forget, StatusCodes2.BadTcpServerTooBusy, "no client is waiting for this reverse connection");
+            }, this.#matchTimeout);
+            timer.unref?.();
+            this.#held.push({ accepted, handOff });
         };
 
         socket.on("data", onData);
-        socket.on("error", onError);
-        socket.on("close", onClose);
     }
 
-    #sendErrorAndDestroy(socket: Socket, statusCode: StatusCode, reason: string): void {
+    #rejectSocket(socket: Socket, forget: () => void, statusCode: StatusCode, reason: string): void {
+        forget();
         // destroy only AFTER the ERR has been flushed to the kernel, otherwise an immediate
         // destroy() would discard the buffered write and the peer would never see the reason.
+        // The socket's durable "error" guard is still attached, so a failed write cannot crash.
         let destroyed = false;
         const destroyOnce = () => {
             if (destroyed) {

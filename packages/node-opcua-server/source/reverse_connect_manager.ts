@@ -54,7 +54,9 @@ export interface ReverseConnectManagerContext {
 interface ReverseConnectionState {
     clientEndpointUrl: string;
     pendingSocket?: Socket;
-    channel?: { close(cb: () => void): void; removeAllListeners(event: string): void };
+    channel?: { close(cb: () => void): void; removeListener(event: string, listener: () => void): void };
+    /** the manager's own "abort" listener on `channel`, so stop() can remove ONLY it (not the endpoint's) */
+    onAbort?: () => void;
     retryTimer?: NodeJS.Timeout;
     currentDelay: number;
 }
@@ -108,11 +110,13 @@ export class ReverseConnectManager {
                 state.pendingSocket = undefined;
             }
             // established channels are torn down by the endpoint's own shutdown;
-            // just detach our re-dial listeners so a closing channel does not re-arm.
-            if (state.channel) {
-                state.channel.removeAllListeners("abort");
-                state.channel = undefined;
+            // just detach OUR OWN re-dial listener so a closing channel does not re-arm.
+            // (removeAllListeners("abort") would also strip the endpoint's _unregisterChannel handler.)
+            if (state.channel && state.onAbort) {
+                state.channel.removeListener("abort", state.onAbort);
             }
+            state.channel = undefined;
+            state.onAbort = undefined;
         }
     }
 
@@ -159,12 +163,14 @@ export class ReverseConnectManager {
                         return;
                     }
                     state.channel = undefined;
+                    state.onAbort = undefined;
                     if (this.#stopped) {
                         return;
                     }
                     // spec: recreate the socket and re-send a ReverseHello after a delay
                     this.#scheduleRetry(state);
                 };
+                state.onAbort = onAbort;
                 channel.once("abort", onAbort);
             }
         );

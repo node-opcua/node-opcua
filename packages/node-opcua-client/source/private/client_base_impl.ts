@@ -27,7 +27,7 @@ import {
     type Response as Response1,
     type SecurityPolicy
 } from "node-opcua-secure-channel";
-import { type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
+import { type IAcceptedReverseConnection, type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
 import {
     FindServersOnNetworkRequest,
     type FindServersOnNetworkRequestOptions,
@@ -60,7 +60,7 @@ import {
     type TransportSettings
 } from "../client_base";
 import type { Request, Response } from "../common";
-import type { ClientReverseConnect, ReverseConnectExpectation } from "../reverse/client_reverse_connect";
+import type { ClientReverseConnect, ICancelableRegistration, ReverseConnectExpectation } from "../reverse/client_reverse_connect";
 import type { UserIdentityInfo } from "../user_identity_info";
 import { performCertificateSanityCheck } from "../verify";
 import type { ClientSessionImpl } from "./client_session_impl";
@@ -390,6 +390,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     private _transportSettings: TransportSettings;
     private _transportTimeout?: number;
     private _transportFactory?: IClientTransportFactory;
+    /** true once connectReverse() has been used — suppresses outbound dials that would defeat reverse connect */
+    private _isReverseConnect = false;
+    /** the current reverse-connect waiter registration, cancelled on disconnect to avoid a leaked waiter */
+    private _reverseConnectRegistration?: ICancelableRegistration;
 
     public clientCertificateManager: ICertificateStore;
 
@@ -631,8 +635,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     }
 
                     if (
-                        err?.message.match("BadCertificateInvalid") ||
-                        err?.message.match(/socket has been disconnected by third party/)
+                        // In reverse-connect mode we must NOT fetchServerCertificate(): that dials the
+                        // server directly (via a temp client), which is impossible for a firewalled
+                        // reverse-connect server and would hang reconnection. Fall through to the plain
+                        // retry, which re-arms the reverse transport and waits for the server to re-dial.
+                        !this._isReverseConnect &&
+                        (err?.message.match("BadCertificateInvalid") ||
+                            err?.message.match(/socket has been disconnected by third party/))
                     ) {
                         // it is possible also that hte server has shutdown innapropriately the connection
                         warningLog(
@@ -1000,16 +1009,31 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             return;
         }
 
+        this._isReverseConnect = true;
+
         // Wire a reverse-connect transport factory. Because the SecureChannel layer may call
         // transport.connect() several times (backoff / reconnection), the provider is invoked on
-        // EACH attempt so every attempt waits for the server to (re-)dial in.
-        this._transportFactory = makeReverseClientTransportFactory(async () => {
-            const accepted = await reverseConnect.waitForConnectionAsync(expectation);
-            // reconcile our endpointUrl with the one advertised in the ReverseHello, so subsequent
-            // session creation uses the real URL rather than the placeholder below.
-            this.endpointUrl = accepted.endpointUrl || this.endpointUrl;
-            return accepted;
-        });
+        // EACH attempt so every attempt waits for the server to (re-)dial in. We keep the current
+        // waiter registration so it can be cancelled on disconnect — otherwise a leaked waiter would
+        // later hijack an incoming server socket on this (by-then disposed) transport.
+        this._transportFactory = makeReverseClientTransportFactory(
+            () =>
+                new Promise<IAcceptedReverseConnection>((resolve, reject) => {
+                    // drop any stale waiter from a previous attempt before registering a new one
+                    this._reverseConnectRegistration?.cancel();
+                    this._reverseConnectRegistration = reverseConnect.waitForConnection(expectation, (err, accepted) => {
+                        this._reverseConnectRegistration = undefined;
+                        if (err || !accepted) {
+                            reject(err || new Error("no accepted reverse connection"));
+                            return;
+                        }
+                        // reconcile our endpointUrl with the one advertised in the ReverseHello, so
+                        // subsequent session creation uses the real URL rather than the placeholder below.
+                        this.endpointUrl = accepted.endpointUrl || this.endpointUrl;
+                        resolve(accepted);
+                    });
+                })
+        );
 
         // Placeholder endpoint URL for the SecureChannel handshake; the reverse transport overrides
         // it from the RHE. Prefer an explicitly-expected URL when the caller provided one.
@@ -1346,6 +1370,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         const callback = args[0] as ErrorCallback;
         assert(typeof callback === "function", "expecting a callback function here");
         this._reconnectionIsCanceled = true;
+        // cancel any outstanding reverse-connect waiter so it cannot later hijack an incoming
+        // server socket on this (now disconnecting) client.
+        this._reverseConnectRegistration?.cancel();
+        this._reverseConnectRegistration = undefined;
         if (this._tmpClient) {
             warningLog("disconnecting client while tmpClient exists", this._tmpClient.clientName);
             this._tmpClient.disconnect((_err) => {

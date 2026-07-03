@@ -1115,22 +1115,34 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         const hostname = ep.hostname;
 
         let settled = false;
-        const socket = net.createConnection({ host: hostname, port }, () => {
+        // bound the TCP handshake: a client host that silently drops SYNs (firewall) would otherwise
+        // hang the dial for the OS default (~1-2 min) with no retry. Mirrors createClientSocket in
+        // client_tcp_transport.ts, which passes a timeout to createConnection for exactly this case.
+        const connectTimeout = options.connectionTimeout ?? this.timeout;
+        const socket = net.createConnection({ host: hostname, port, timeout: connectTimeout }, () => {
             /* connected - handled by the "connect" listener below */
         });
         socket.setNoDelay(true);
         socket.setKeepAlive(true);
 
+        const onTimeout = () => {
+            onConnectError(new Error(`reverse connect: TCP connection to ${clientEndpointUrl} timed out after ${connectTimeout} ms`));
+        };
+
         const onConnectError = (err: Error) => {
             if (settled) return;
             settled = true;
             socket.removeListener("connect", onConnect);
+            socket.removeListener("timeout", onTimeout);
             socket.destroy();
             callback(err);
         };
 
         const onConnect = () => {
             socket.removeListener("error", onConnectError);
+            socket.removeListener("timeout", onTimeout);
+            // clear the connect-phase timeout; the transport installs its own socket timeout in initReverse.
+            socket.setTimeout(0);
             if (settled) return;
 
             // reverse connections still consume a channel slot: honor maxConnections
@@ -1185,6 +1197,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         socket.once("error", onConnectError);
         socket.once("connect", onConnect);
+        socket.once("timeout", onTimeout);
 
         return socket;
     }
