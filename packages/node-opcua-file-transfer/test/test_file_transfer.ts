@@ -214,25 +214,50 @@ import {
             hasSucceeded.should.eql(false);
         });
 
-        it(m + "should be possible to write a file - in create mode", async () => {
+        it(m + "should preserve existing file contents when opened in ReadWrite mode", async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
-            await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            const originalContent = "!!! ORIGINAL CONTENT !!!";
+            const replacement = "#### REPLACE ####";
+            await promisify(fileSystem.writeFile)(fileData.filename, originalContent, "utf-8");
             await fileData.refresh();
 
             // Given a client that open the file (ReadWrite Mode)
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile2.nodeId);
-            const handle = await clientFile.open(OpenFileMode.ReadWrite);
+            await clientFile.open(OpenFileMode.ReadWrite);
             await clientFile.setPosition([0, 0]);
 
             // When I write "#### REPLACE ####" at position 0
-            await clientFile.write(Buffer.from("#### REPLACE ####"));
+            await clientFile.write(Buffer.from(replacement));
             await clientFile.close();
 
-            // Then I should verify that the file now contains "#### REPLACE ####"
+            // Then I should verify that the file now contains the replacement
+            // followed by the untouched tail of the original file
             const content = await promisify(fileSystem.readFile)(fileData.filename, "utf-8");
-            content.should.eql("#### REPLACE ####");
+            content.should.eql(replacement + originalContent.substring(replacement.length));
+        });
+
+        it(m + "should erase existing file contents when opened in ReadWriteEraseExisting mode", async () => {
+            // Given a file on server side with some original content
+            const fileData = getFileData(opcuaFile2);
+            const replacement = "#### REPLACE ####";
+            await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
+            await fileData.refresh();
+
+            // Given a client that opens the file with EraseExisting
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            await clientFile.open(OpenFileMode.ReadWriteEraseExisting);
+            await clientFile.setPosition([0, 0]);
+
+            // When I write replacement data
+            await clientFile.write(Buffer.from(replacement));
+            await clientFile.close();
+
+            // Then I should verify that the original contents have been truncated
+            const content = await promisify(fileSystem.readFile)(fileData.filename, "utf-8");
+            content.should.eql(replacement);
         });
 
         it(m + "should be possible to write to a file - in append mode", async () => {
