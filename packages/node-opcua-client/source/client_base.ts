@@ -20,6 +20,7 @@ import type { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-servi
 import type { ErrorCallback } from "node-opcua-status-code";
 import type { IClientTransportFactory } from "node-opcua-transport";
 import type { Request, Response } from "./common";
+import type { ClientReverseConnect, ReverseConnectExpectation } from "./reverse/client_reverse_connect";
 
 export type FindServersRequestLike = FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;
@@ -234,6 +235,20 @@ export interface OPCUAClientBase<Events extends OPCUAClientBaseEvents = OPCUACli
     connect(endpointUrl: string): Promise<void>;
 
     connect(endpointUrl: string, callback: ErrorCallback): void;
+
+    /***
+     * Wait for a Server to initiate a Reverse Connection (OPC UA Part 6 §7.1.3).
+     *
+     * Instead of dialing the server, the client waits for the server to dial into the
+     * (already started) `reverseConnect` listener and send a ReverseHello. The optional
+     * `expectation` restricts which server may connect (matched by ServerUri / EndpointUrl).
+     *
+     * For secured connections the server certificate must be supplied up front
+     * (`serverCertificate` option) since the client cannot dial the server to fetch it.
+     */
+    connectReverse(reverseConnect: ClientReverseConnect, expectation?: ReverseConnectExpectation): Promise<void>;
+    connectReverse(reverseConnect: ClientReverseConnect, callback: ErrorCallback): void;
+    connectReverse(reverseConnect: ClientReverseConnect, expectation: ReverseConnectExpectation, callback: ErrorCallback): void;
 
     /***
      * causes the client to close and disconnect the communication with server

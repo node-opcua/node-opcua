@@ -27,7 +27,7 @@ import {
     type Response as Response1,
     type SecurityPolicy
 } from "node-opcua-secure-channel";
-import type { IClientTransportFactory } from "node-opcua-transport";
+import { type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
 import {
     FindServersOnNetworkRequest,
     type FindServersOnNetworkRequestOptions,
@@ -60,6 +60,7 @@ import {
     type TransportSettings
 } from "../client_base";
 import type { Request, Response } from "../common";
+import type { ClientReverseConnect, ReverseConnectExpectation } from "../reverse/client_reverse_connect";
 import type { UserIdentityInfo } from "../user_identity_info";
 import { performCertificateSanityCheck } from "../verify";
 import type { ClientSessionImpl } from "./client_session_impl";
@@ -969,6 +970,62 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 } else {
                     this._connectStep2(endpointUrl, callback);
                 }
+            })
+            .catch((err) => {
+                return this._handleUnrecoverableConnectionFailure(err, callback);
+            });
+    }
+
+    public connectReverse(reverseConnect: ClientReverseConnect, expectation?: ReverseConnectExpectation): Promise<void>;
+    public connectReverse(reverseConnect: ClientReverseConnect, callback: ErrorCallback): void;
+    public connectReverse(reverseConnect: ClientReverseConnect, expectation: ReverseConnectExpectation, callback: ErrorCallback): void;
+    public connectReverse(...args: unknown[]): Promise<void> | void {
+        const reverseConnect = args[0] as ClientReverseConnect;
+        const callback = args[args.length - 1] as ErrorCallback;
+        const expectation = (args.length >= 3 ? args[1] : undefined) as ReverseConnectExpectation | undefined;
+        assert(typeof callback === "function", "expecting a callback");
+
+        if (!reverseConnect) {
+            callback(new Error("connectReverse expects a ClientReverseConnect instance"));
+            return;
+        }
+
+        // c8 ignore next
+        if (this._internalState !== "disconnected") {
+            callback(new Error(`client#connectReverse failed, as invalid internal state = ${this._internalState}`));
+            return;
+        }
+        if (this._secureChannel !== null) {
+            setImmediate(() => callback(new Error("connect already called")));
+            return;
+        }
+
+        // Wire a reverse-connect transport factory. Because the SecureChannel layer may call
+        // transport.connect() several times (backoff / reconnection), the provider is invoked on
+        // EACH attempt so every attempt waits for the server to (re-)dial in.
+        this._transportFactory = makeReverseClientTransportFactory(async () => {
+            const accepted = await reverseConnect.waitForConnectionAsync(expectation);
+            // reconcile our endpointUrl with the one advertised in the ReverseHello, so subsequent
+            // session creation uses the real URL rather than the placeholder below.
+            this.endpointUrl = accepted.endpointUrl || this.endpointUrl;
+            return accepted;
+        });
+
+        // Placeholder endpoint URL for the SecureChannel handshake; the reverse transport overrides
+        // it from the RHE. Prefer an explicitly-expected URL when the caller provided one.
+        const placeholderEndpointUrl = expectation?.endpointUrl || reverseConnect.connectionUrl || "opc.tcp://reverse-connect";
+
+        this._setInternalState("connecting");
+
+        this.initializeCM()
+            .then(() => {
+                debugLog("ClientBaseImpl#connectReverse ", placeholderEndpointUrl, this.clientName);
+                if (this._internalState === "disconnecting" || this._internalState === "disconnected") {
+                    return this._handleDisconnectionWhileConnecting(new Error("premature disconnection 1"), callback);
+                }
+                // NOTE: unlike connect(), we deliberately do NOT fetchServerCertificate() here — that
+                // would dial the server directly, defeating the purpose of reverse connect.
+                this._connectStep2(placeholderEndpointUrl, callback);
             })
             .catch((err) => {
                 return this._handleUnrecoverableConnectionFailure(err, callback);
@@ -1888,6 +1945,7 @@ class TmpClient extends ClientBaseImpl {
 import { withCallback } from "thenify-ex";
 
 ClientBaseImpl.prototype.connect = withCallback(ClientBaseImpl.prototype.connect);
+ClientBaseImpl.prototype.connectReverse = withCallback(ClientBaseImpl.prototype.connectReverse);
 ClientBaseImpl.prototype.disconnect = withCallback(ClientBaseImpl.prototype.disconnect);
 ClientBaseImpl.prototype.getEndpoints = withCallback(ClientBaseImpl.prototype.getEndpoints);
 ClientBaseImpl.prototype.findServers = withCallback(ClientBaseImpl.prototype.findServers);

@@ -25,7 +25,7 @@ import {
 } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import type { StatusCode } from "node-opcua-status-code";
-import type { IHelloAckLimits } from "node-opcua-transport";
+import { type IHelloAckLimits, parseEndpointUrl } from "node-opcua-transport";
 import type { UserTokenPolicyOptions } from "node-opcua-types";
 
 import type { IChannelData } from "./i_channel_data";
@@ -1078,6 +1078,117 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // SecureChannel that has no Session assigned before reaching the maximum number of supported SecureChannels.
         this._prevent_DDOS_Attack(establish_connection, deny_connection);
     }
+
+    /**
+     * Initiate a REVERSE connection (OPC UA Part 6 §7.1.3).
+     *
+     * The server dials an OUTBOUND socket to the Client's reverse-connect listener
+     * (`clientEndpointUrl`), sends a ReverseHello ("RHE") carrying `serverUri`/`endpointUrl`,
+     * and then feeds that socket through the very same SecureChannel bookkeeping used for
+     * inbound connections (`_preregisterChannel` / `_registerChannel` / `newChannel`).
+     *
+     * @param clientEndpointUrl the Client's reverse listener URL to dial, e.g. `opc.tcp://client-host:8888`
+     * @param options.serverUri    the server ApplicationUri to advertise in the ReverseHello
+     * @param options.endpointUrl  the SecureChannel EndpointUrl the Client should use
+     * @param options.connectionTimeout optional per-connection HEL timeout (ms)
+     * @param callback called with the established channel, or an error (so the caller may retry)
+     * @returns the outbound socket (so the caller can abort a pending dial), or undefined if not started
+     */
+    public createReverseConnection(
+        clientEndpointUrl: string,
+        options: { serverUri: string; endpointUrl: string; connectionTimeout?: number },
+        callback: (err: Error | null, channel?: ServerSecureChannelLayer) => void
+    ): Socket | undefined {
+        if (!this._started) {
+            callback(new Error("OPCUAServerEndPoint is not started - cannot create a reverse connection"));
+            return undefined;
+        }
+
+        let ep: ReturnType<typeof parseEndpointUrl>;
+        try {
+            ep = parseEndpointUrl(clientEndpointUrl);
+        } catch (err) {
+            callback(err instanceof Error ? err : new Error(String(err)));
+            return undefined;
+        }
+        const port = parseInt(ep.port || "4840", 10);
+        const hostname = ep.hostname;
+
+        let settled = false;
+        const socket = net.createConnection({ host: hostname, port }, () => {
+            /* connected - handled by the "connect" listener below */
+        });
+        socket.setNoDelay(true);
+        socket.setKeepAlive(true);
+
+        const onConnectError = (err: Error) => {
+            if (settled) return;
+            settled = true;
+            socket.removeListener("connect", onConnect);
+            socket.destroy();
+            callback(err);
+        };
+
+        const onConnect = () => {
+            socket.removeListener("error", onConnectError);
+            if (settled) return;
+
+            // reverse connections still consume a channel slot: honor maxConnections
+            const nbConnections = Object.keys(this._channels).length;
+            if (nbConnections >= this.maxConnections) {
+                settled = true;
+                socket.destroy();
+                callback(new Error(`maxConnections reached (${this.maxConnections})`));
+                return;
+            }
+
+            debugLog("OPCUAServerEndPoint#createReverseConnection successful => New Channel");
+
+            const channel = new ServerSecureChannelLayer({
+                defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
+                parent: this,
+                timeout: options.connectionTimeout ?? this.timeout,
+                adjustTransportLimits: this.transportSettings?.adjustTransportLimits
+            });
+
+            this._preregisterChannel(channel);
+
+            channel.initReverse(
+                socket,
+                { serverUri: options.serverUri, endpointUrl: options.endpointUrl },
+                (err?: Error) => {
+                    this._un_pre_registerChannel(channel);
+                    debugLog(chalk.yellow.bold("reverse Channel#initReverse done"), err);
+                    if (err) {
+                        if (settled) return;
+                        settled = true;
+                        const reason = `reverse connect openSecureChannel has Failed ${err.message}`;
+                        const socketData = extractSocketData(socket, reason);
+                        const channelData = extractChannelData(channel);
+                        this.emit("openSecureChannelFailure", socketData, channelData);
+                        socket.destroy();
+                        callback(err);
+                    } else {
+                        settled = true;
+                        debugLog("server established a reverse connection");
+                        this._registerChannel(channel);
+                        callback(null, channel);
+                    }
+                }
+            );
+
+            channel.on("message", (message: Message) => {
+                // forward
+                this.emit("message", message, channel, this);
+            });
+        };
+
+        socket.once("error", onConnectError);
+        socket.once("connect", onConnect);
+
+        return socket;
+    }
+
     private _preregisterChannel(channel: ServerSecureChannelLayer) {
         // _preregisterChannel is used to keep track of channel for which
         // that are in early stage of the hand shaking process.

@@ -156,6 +156,7 @@ import type { IRegisterServerManager } from "./i_register_server_manager";
 import type { ISocketData } from "./i_socket_data";
 import { MonitoredItem } from "./monitored_item";
 import { RegisterServerManager } from "./register_server_manager";
+import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import type { SamplingFunc } from "./sampling_func";
@@ -794,6 +795,18 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     endpoints?: OPCUAServerEndpointOptions[];
 
     /**
+     * Reverse Connect (OPC UA Part 6 §7.1.3).
+     *
+     * When set, the server dials OUTBOUND to each listed client reverse-connect listener and
+     * sends a ReverseHello ("RHE"), letting the client establish the SecureChannel over that
+     * socket. This is useful when the server sits behind a firewall with no open inbound ports.
+     *
+     * All fields are optional and, when omitted, the server behaves exactly as before (no
+     * outbound dialing).
+     */
+    reverseConnect?: ReverseConnectOptions;
+
+    /**
      * the server certificate full path filename
      *
      * the certificate should be in PEM format
@@ -1055,6 +1068,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     public registerServerManager?: IRegisterServerManager;
     public capabilitiesForMDNS: string[];
     public userCertificateManager: OPCUACertificateManager;
+    /** Reverse Connect driver, created only when `options.reverseConnect` is provided. @internal */
+    #reverseConnectManager?: ReverseConnectManager;
 
     static defaultShutdownTimeout = 100; // 250 ms
 
@@ -1573,6 +1588,19 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         this.registerServerManager?.start().catch(() => {
             /* empty */
         });
+
+        // start dialing out to any configured reverse-connect clients (OPC UA Part 6 §7.1.3)
+        if (this.options.reverseConnect && this.options.reverseConnect.connections?.length) {
+            this.#reverseConnectManager = new ReverseConnectManager(
+                {
+                    getDialEndpoint: () => this.endpoints[0],
+                    getServerUri: () => this.serverInfo.applicationUri || "",
+                    getEndpointUrl: () => this.getEndpointUrl()
+                },
+                this.options.reverseConnect
+            );
+            this.#reverseConnectManager.start();
+        }
     }
 
     /**
@@ -1618,6 +1646,11 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
             return callback(err);
         }
+
+        // stop dialing reverse-connect clients before endpoints are torn down, so no new
+        // channel is created mid-shutdown and pending outbound sockets are destroyed.
+        this.#reverseConnectManager?.stop();
+        this.#reverseConnectManager = undefined;
 
         this.userCertificateManager.dispose();
 

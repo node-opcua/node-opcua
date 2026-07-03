@@ -62,6 +62,7 @@ $ ./node_modules/.bin/simple_client -e "opc.tcp://opcuademo.sterfive.com:26543"
 - [Create a Server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
 - [Create a Client in TypeScript](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
 - [Role-Based Security & User Management (OPC 10000-18)](https://github.com/node-opcua/node-opcua/blob/master/documentation/role_based_security.md)
+- [Reverse Connect (OPC 10000-6 §7.1.3)](https://github.com/node-opcua/node-opcua/blob/master/documentation/reverse_connect.md)
 - More advanced examples and training material are available for [NodeOPCUA Subscription members](https://support.sterfive.com)
 
 ### API Reference

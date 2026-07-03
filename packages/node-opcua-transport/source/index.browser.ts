@@ -55,6 +55,7 @@ export * from "./HelloMessage";
 export * from "./i_client_transport";
 export * from "./i_hello_ack_limits";
 export * from "./message_builder_base";
+export * from "./ReverseHelloMessage";
 export * from "./status_codes";
 export * from "./TCPErrorMessage";
 export * from "./tcp_transport";
