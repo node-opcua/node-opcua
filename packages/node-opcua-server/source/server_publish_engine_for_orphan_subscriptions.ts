@@ -8,6 +8,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 
 import { ServerSidePublishEngine, type ServerSidePublishEngineOptions } from "./server_publish_engine";
+import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
 import type { Subscription } from "./server_subscription";
 
 const debugLog = make_debugLog(__filename);
@@ -29,6 +30,13 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
 
     public add_subscription(subscription: Subscription): Subscription {
         debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
+
+        // retain the identity of the owning session so that a later TransferSubscriptions request can
+        // still be validated against the original owner (OPC UA Part 4 §5.14.7), even though the
+        // session itself is about to be detached.
+        if (subscription.$session) {
+            subscription.$transferSessionIdentity = getTransferSessionIdentity(subscription.$session);
+        }
 
         // detach subscription from old session
         subscription.$session = undefined;

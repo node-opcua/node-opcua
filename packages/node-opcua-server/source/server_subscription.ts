@@ -54,6 +54,7 @@ import { type IServerSidePublishEngine, TransferredSubscription } from "./i_serv
 import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item";
 import { Queue } from "./queue";
 import type { ServerSession } from "./server_session";
+import type { ITransferSessionIdentity } from "./sessions_compatible_for_transfer";
 import { validateFilter } from "./validate_filter";
 
 const debugLog = make_debugLog(__filename);
@@ -558,6 +559,13 @@ export class Subscription extends EventEmitter {
 
     public messageSent: boolean;
     public $session?: ServerSession;
+    /**
+     * Snapshot of the identity of the Session that owns this Subscription. It is retained when the
+     * Subscription loses its Session (e.g. when it is moved to the orphan publish engine after a
+     * Session timeout) so that a later TransferSubscriptions request can still be validated against
+     * the original owner as required by OPC UA Part 4 §5.14.7.
+     */
+    public $transferSessionIdentity?: ITransferSessionIdentity;
 
     public get sessionId(): NodeId {
         return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
