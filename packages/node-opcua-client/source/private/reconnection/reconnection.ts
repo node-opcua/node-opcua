@@ -8,7 +8,6 @@ import { assert } from "node-opcua-assert";
 import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, type TransferSubscriptionsResponse } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
 import { CloseSessionRequest } from "node-opcua-types";
 import type { ClientSessionImpl, Reconnectable } from "../client_session_impl";
 import type { ClientSubscriptionImpl } from "../client_subscription_impl";
@@ -330,13 +329,19 @@ function attempt_subscription_transfer(
                 // those one need to be recreated and repaired ....
                 for (let i = 0; i < results.length; i++) {
                     const statusCode = results[i].statusCode;
-                    if (statusCode.equals(StatusCodes.BadSubscriptionIdInvalid)) {
-                        // repair subscription
+                    if (statusCode.isNotGood()) {
+                        // the subscription could not be transferred (BadSubscriptionIdInvalid when the
+                        // subscription no longer exists, BadUserAccessDenied when the server refuses the
+                        // transfer per OPC UA Part 4 §5.14.7, ...). Whatever the reason, recreate it here
+                        // directly on the new session instead of relying on the subsequent Republish step
+                        // to notice and repair it (which would otherwise cost an extra failed round-trip).
                         doDebug &&
                             debugLog(
                                 chalk.red("         WARNING SUBSCRIPTION  "),
                                 subscriptionsIds[i],
-                                chalk.red(" SHOULD BE RECREATED")
+                                chalk.red(" SHOULD BE RECREATED ("),
+                                statusCode.toString(),
+                                chalk.red(")")
                             );
 
                         subscriptionsToRecreate.push(subscriptionsIds[i]);
