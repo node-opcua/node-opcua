@@ -96,8 +96,8 @@ describe("User Management persistence across restart (shared archive, §5)", fun
         (await admin2.readUsers()).map((u) => u.userName).should.containEql("alice");
 
         // ... and the salted scrypt hash survived, so the password still verifies
-        b2.userStore.authenticate("alice", "Sekret123!").statusCode.should.equal(StatusCodes.Good);
-        b2.userStore.authenticate("alice", "wrong-password").statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+        (await b2.userStore.authenticate("alice", "Sekret123!")).statusCode.should.equal(StatusCodes.Good);
+        (await b2.userStore.authenticate("alice", "wrong-password")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
 
         b2.addressSpace.dispose();
     });

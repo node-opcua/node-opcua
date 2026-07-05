@@ -94,39 +94,39 @@ describe("bind_user_management — AddUser (§5.2.5)", () => {
 });
 
 describe("bind_user_management — ChangePassword (§5.2.8)", () => {
-    function seed(): InMemoryUserManagementStore {
+    async function seed(): Promise<InMemoryUserManagementStore> {
         const store = new InMemoryUserManagementStore();
-        store.addUser("joe", "OldPass123!", UserConfigurationMask.None, "");
+        await store.addUser("joe", "OldPass123!", UserConfigurationMask.None, "");
         return store;
     }
     const joeToken = () => new UserNameIdentityToken({ userName: "joe" });
 
     it("should change the password — old fails, new works", async () => {
-        const store = seed();
+        const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], makeContext({ token: joeToken() }));
         result.statusCode?.should.equal(StatusCodes.Good);
 
-        store.authenticate("joe", "OldPass123!").statusCode.should.equal(StatusCodes.BadUserAccessDenied);
-        store.authenticate("joe", "NewPass456!").statusCode.should.equal(StatusCodes.Good);
+        (await store.authenticate("joe", "OldPass123!")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+        (await store.authenticate("joe", "NewPass456!")).statusCode.should.equal(StatusCodes.Good);
     });
 
     it("should reject a wrong old password", async () => {
-        const store = seed();
+        const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("WRONG"), str("NewPass456!")], makeContext({ token: joeToken() }));
         result.statusCode?.should.equal(StatusCodes.BadIdentityTokenInvalid);
     });
 
     it("should require a USERNAME token (BadInvalidState)", async () => {
-        const store = seed();
+        const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], makeContext({ token: undefined }));
         result.statusCode?.should.equal(StatusCodes.BadInvalidState);
     });
 
     it("should require an encrypted channel", async () => {
-        const store = seed();
+        const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const ctx = makeContext({ token: joeToken(), securityMode: MessageSecurityMode.None });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], ctx);
@@ -134,7 +134,7 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
     });
 
     it("should not require SecurityAdmin (self-service)", async () => {
-        const store = seed();
+        const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         // caller has no roles, but is changing their own password
         const ctx = makeContext({ token: joeToken(), roles: [] });
@@ -144,15 +144,15 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
 });
 
 describe("bind_user_management — ModifyUser / RemoveUser (§5.2.6-7)", () => {
-    function seeded(): InMemoryUserManagementStore {
+    async function seeded(): Promise<InMemoryUserManagementStore> {
         const store = new InMemoryUserManagementStore();
-        store.addUser("joe", "secret", UserConfigurationMask.None, "old");
-        store.addUser("admin", "secret", UserConfigurationMask.None, "");
+        await store.addUser("joe", "secret", UserConfigurationMask.None, "old");
+        await store.addUser("admin", "secret", UserConfigurationMask.None, "");
         return store;
     }
 
     it("ModifyUser should change the description", async () => {
-        const store = seeded();
+        const store = await seeded();
         const handler = makeModifyUserHandler({ store });
         const args = [str("joe"), bool(false), str(""), bool(false), mask(UserConfigurationMask.None), bool(true), str("new")];
         (await handler.call(method, args, makeContext())).statusCode?.should.equal(StatusCodes.Good);
@@ -163,14 +163,14 @@ describe("bind_user_management — ModifyUser / RemoveUser (§5.2.6-7)", () => {
     });
 
     it("RemoveUser should remove another user", async () => {
-        const store = seeded();
+        const store = await seeded();
         const handler = makeRemoveUserHandler({ store });
         (await handler.call(method, [str("joe")], makeContext())).statusCode?.should.equal(StatusCodes.Good);
         store.hasUser("joe").should.be.false();
     });
 
     it("RemoveUser should refuse to remove the calling user", async () => {
-        const store = seeded();
+        const store = await seeded();
         const handler = makeRemoveUserHandler({ store });
         const result = await handler.call(method, [str("admin")], makeContext({ userName: "admin" }));
         result.statusCode?.should.equal(StatusCodes.BadInvalidSelfReference);
@@ -197,7 +197,7 @@ describe("bind_user_management — audit (AuditUpdateMethodEventType)", () => {
 
     it("ChangePassword audits the session user without either password", async () => {
         const store = new InMemoryUserManagementStore();
-        store.addUser("kim", "OldPass1", UserConfigurationMask.None, "");
+        await store.addUser("kim", "OldPass1", UserConfigurationMask.None, "");
         const audits: UserManagementAudit[] = [];
         const handler = makeChangePasswordHandler({ store, onAudit: (a) => audits.push(a) });
         const ctx = makeContext({ token: new UserNameIdentityToken({ userName: "kim" }) });

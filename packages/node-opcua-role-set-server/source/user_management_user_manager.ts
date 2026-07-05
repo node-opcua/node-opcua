@@ -23,16 +23,23 @@ import type { AnyUserIdentityToken, IIdentityMappingStore, IUserManagementStore 
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type IdentityMappingRuleType, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 
-/** The subset of the ServerSession that `isValidUser` is bound to (`this`). */
+/** The subset of the ServerSession that `isValidUserAsync` is bound to (`this`). */
 interface SessionThis {
     getSessionId?(): NodeId;
     /** Set so ActivateSession returns Good_PasswordChangeRequired (node-opcua-server). */
     passwordChangeRequired?: boolean;
 }
 
+/** node-opcua's callback-style credential check (`ValidUserAsyncFunc`). */
+type ValidUserCallback = (err: Error | null, isAuthorized?: boolean) => void;
+
 export interface IManagedUserManager {
-    /** Validate credentials (sync). Returns true for Good and Good_PasswordChangeRequired. */
-    isValidUser(this: SessionThis, userName: string, password: string): boolean;
+    /**
+     * Validate credentials (async, callback-style — the shape node-opcua's
+     * `isValidUserAsync` option expects, so an external verifier can be plugged
+     * in). Invokes the callback with `true` for Good and Good_PasswordChangeRequired.
+     */
+    isValidUserAsync(this: SessionThis, userName: string, password: string, callback: ValidUserCallback): void;
     /** Resolve the Roles granted to a user (only Anonymous while a change is required). */
     getUserRoles(userName: string): NodeId[];
     /**
@@ -70,20 +77,29 @@ export function createUserManager(userStore: IUserManagementStore, identityStore
             return statusBySession.get(sessionId.toString());
         },
 
-        isValidUser(this: SessionThis, userName: string, password: string): boolean {
-            const result = userStore.authenticate(userName, password);
-            lastAuthStatus.set(userName, result.statusCode);
-            // `this` is the ServerSession; key the status by the SessionId the
-            // client also holds, so the outcome can be observed per session.
-            const sessionId = this?.getSessionId?.();
-            if (sessionId) {
-                statusBySession.set(sessionId.toString(), result.statusCode);
-            }
-            // flag the session so ActivateSession returns Good_PasswordChangeRequired
-            if (this) {
-                this.passwordChangeRequired = result.statusCode === StatusCodes.GoodPasswordChangeRequired;
-            }
-            return result.statusCode === StatusCodes.Good || result.statusCode === StatusCodes.GoodPasswordChangeRequired;
+        isValidUserAsync(this: SessionThis, userName: string, password: string, callback: ValidUserCallback): void {
+            // `this` is the ServerSession; the arrow callbacks below preserve it
+            // across the async boundary.
+            userStore.authenticate(userName, password).then(
+                (result) => {
+                    lastAuthStatus.set(userName, result.statusCode);
+                    // key the status by the SessionId the client also holds, so the
+                    // outcome can be observed per session.
+                    const sessionId = this?.getSessionId?.();
+                    if (sessionId) {
+                        statusBySession.set(sessionId.toString(), result.statusCode);
+                    }
+                    // flag the session so ActivateSession returns Good_PasswordChangeRequired
+                    if (this) {
+                        this.passwordChangeRequired = result.statusCode === StatusCodes.GoodPasswordChangeRequired;
+                    }
+                    callback(
+                        null,
+                        result.statusCode === StatusCodes.Good || result.statusCode === StatusCodes.GoodPasswordChangeRequired
+                    );
+                },
+                (err: unknown) => callback(err instanceof Error ? err : new Error(String(err)))
+            );
         },
 
         getUserRoles(userName: string): NodeId[] {

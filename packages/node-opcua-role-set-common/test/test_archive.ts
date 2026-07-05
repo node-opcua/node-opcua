@@ -110,7 +110,7 @@ describe("RoleSet consolidated archive", () => {
                 new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: "joe" })
             );
             const users = new InMemoryUserManagementStore();
-            users.addUser("alice", "Sekret123!", UserConfigurationMask.None, "");
+            await users.addUser("alice", "Sekret123!", UserConfigurationMask.None, "");
 
             const store = new ArchiveStore(filePath);
             store.setIdentitiesProvider(() => identitiesToBase64(ids));
@@ -125,7 +125,7 @@ describe("RoleSet consolidated archive", () => {
             // the salted scrypt hash round-trips: the password still verifies
             const users2 = new InMemoryUserManagementStore();
             users2.importUsers(back?.users ?? []);
-            users2.authenticate("alice", "Sekret123!").statusCode.should.equal(StatusCodes.Good);
+            (await users2.authenticate("alice", "Sekret123!")).statusCode.should.equal(StatusCodes.Good);
         });
 
         it("preserves a section that has no provider yet (install-order independence)", async () => {
@@ -137,7 +137,7 @@ describe("RoleSet consolidated archive", () => {
 
             // a coordinator that ONLY knows about users (e.g. user mgmt installed first)
             const users = new InMemoryUserManagementStore();
-            users.addUser("carol", "Sekret123!", UserConfigurationMask.None, "");
+            await users.addUser("carol", "Sekret123!", UserConfigurationMask.None, "");
             const store = new ArchiveStore(filePath);
             await store.load(); // remembers the on-disk roles
             store.setUsersProvider(() => users.exportUsers());
@@ -151,7 +151,7 @@ describe("RoleSet consolidated archive", () => {
 
         it("persists encrypted when a secret is configured", async () => {
             const users = new InMemoryUserManagementStore();
-            users.addUser("bob", "Sekret123!", UserConfigurationMask.None, "");
+            await users.addUser("bob", "Sekret123!", UserConfigurationMask.None, "");
             const store = new ArchiveStore(filePath, { secret: "k" });
             store.setUsersProvider(() => users.exportUsers());
             await store.save();
