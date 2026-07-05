@@ -348,6 +348,20 @@ export interface ServerEngineOptions {
     serverCapabilities?: ServerCapabilitiesOptions;
     historyServerCapabilities?: HistoryServerCapabilitiesOptions;
     serverConfiguration?: ServerConfigurationOptions;
+    /**
+     * OPC UA Part 4 §5.14.7 defines a stricter rule for transferring a Subscription between anonymous
+     * sessions: the old and new session must share the same ApplicationUri and the channel
+     * MessageSecurityMode must be Sign or SignAndEncrypt. Over an unsecured channel that rule protects
+     * little (anonymous identities are indistinguishable and the ApplicationUri is unauthenticated), so
+     * it is opt-in: this flag defaults to `true` (anonymous transfer accepted on any channel). Set it to
+     * `false` to enforce the strict rule.
+     *
+     * Note: this only affects anonymous-to-anonymous transfers. The cross-user ownership check (a
+     * transfer is refused unless the destination session operates on behalf of the same user as the
+     * subscription owner) is always enforced.
+     * @default true
+     */
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
 }
 
 export interface CreateSessionOption {
@@ -367,6 +381,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public static readonly registry = new ObjectRegistry();
 
     public isAuditing: boolean;
+    public allowAnonymousSubscriptionTransferOnUnsecuredChannel: boolean;
     public serverDiagnosticsSummary: ServerDiagnosticsSummaryDataType;
     public serverDiagnosticsEnabled: boolean;
     public serverCapabilities: ServerCapabilities;
@@ -402,6 +417,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         this._orphanPublishEngine = undefined; // will be constructed on demand
 
         this.isAuditing = typeof options.isAuditing === "boolean" ? options.isAuditing : false;
+        // OPC UA Part 4 §5.14.7 defines a stricter rule for anonymous transfers (same ApplicationUri +
+        // Sign/SignAndEncrypt). Over an unsecured channel that rule protects little - anonymous identities
+        // are indistinguishable and the ApplicationUri is unauthenticated - and enforcing it would break
+        // the common anonymous reconnection/transfer flow, so it is OPT-IN. The cross-user ownership check
+        // (see transferSubscription) is always enforced regardless of this flag.
+        this.allowAnonymousSubscriptionTransferOnUnsecuredChannel =
+            options.allowAnonymousSubscriptionTransferOnUnsecuredChannel !== false;
 
         options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
         // ---------------------------------------------------- ServerStatusDataType
@@ -1781,7 +1803,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const sourceIdentity = subscription.$session
             ? getTransferSessionIdentity(subscription.$session)
             : subscription.$transferSessionIdentity;
-        if (!sessionsCompatibleForTransfer(sourceIdentity, session)) {
+        if (
+            !sessionsCompatibleForTransfer(sourceIdentity, session, {
+                allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+            })
+        ) {
             return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
         }
 
