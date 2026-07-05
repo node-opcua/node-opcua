@@ -2813,7 +2813,7 @@ importers:
   packages/node-opcua-role-set-common:
     dependencies:
       bcryptjs:
-        specifier: ^3.0.3
+        specifier: 3.0.3
         version: 3.0.3
       node-opcua-basic-types:
         specifier: 2.174.0

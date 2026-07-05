@@ -16,7 +16,7 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "bcryptjs": "^3.0.3",
+        "bcryptjs": "3.0.3",
         "node-opcua-basic-types": "2.174.0",
         "node-opcua-binary-stream": "2.173.0",
         "node-opcua-constants": "2.174.0",
