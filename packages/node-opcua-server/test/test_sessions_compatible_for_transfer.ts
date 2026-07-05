@@ -1,3 +1,4 @@
+import { MessageSecurityMode } from "node-opcua-secure-channel";
 import { AnonymousIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 import should from "should";
 
@@ -8,12 +9,17 @@ import {
     sessionsCompatibleForTransfer
 } from "../source/sessions_compatible_for_transfer";
 
-// The destination argument is only read for its `userIdentityToken`, so a minimal stand-in is enough.
-function fakeSession(userIdentityToken?: any): ServerSession {
-    return { userIdentityToken } as unknown as ServerSession;
+// The destination argument is read for its user identity token, its clientDescription.applicationUri
+// and its channel.securityMode, so a minimal stand-in providing those is enough.
+function fakeSession(userIdentityToken?: any, applicationUri?: string, securityMode?: MessageSecurityMode): ServerSession {
+    return {
+        userIdentityToken,
+        clientDescription: applicationUri !== undefined ? { applicationUri } : undefined,
+        channel: securityMode !== undefined ? { securityMode } : undefined
+    } as unknown as ServerSession;
 }
-function identity(userIdentityToken?: any): ITransferSessionIdentity {
-    return { userIdentityToken };
+function identity(userIdentityToken?: any, applicationUri?: string, securityMode?: MessageSecurityMode): ITransferSessionIdentity {
+    return { userIdentityToken, applicationUri, securityMode };
 }
 
 // OPC UA Part 4 §5.14.7: a Subscription may only be transferred to a Session that operates on
@@ -28,21 +34,6 @@ describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
 
     it("SCT-02 - allows the transfer when neither session carries a user identity token", () => {
         should(sessionsCompatibleForTransfer(identity(undefined), fakeSession(undefined))).eql(true);
-    });
-
-    it("SCT-03 - allows anonymous -> anonymous", () => {
-        should(
-            sessionsCompatibleForTransfer(identity(new AnonymousIdentityToken({})), fakeSession(new AnonymousIdentityToken({})))
-        ).eql(true);
-    });
-
-    it("SCT-04 - refuses anonymous -> username", () => {
-        should(
-            sessionsCompatibleForTransfer(
-                identity(new AnonymousIdentityToken({})),
-                fakeSession(new UserNameIdentityToken({ userName: "user1" }))
-            )
-        ).eql(false);
     });
 
     it("SCT-05 - allows username -> same username", () => {
@@ -106,11 +97,81 @@ describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
         should(snapshot.userIdentityToken).equal(userIdentityToken);
 
         // the snapshot must remain valid for a transfer decision even after the session is gone
+        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(
+            true
+        );
+        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user2" })))).eql(
+            false
+        );
+    });
+
+    // ---- anonymous user rule (§5.14.7): same ApplicationUri AND Sign/SignAndEncrypt channel ----
+
+    it("SCT-12 - refuses anonymous -> username", () => {
         should(
-            sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user1" })))
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.SignAndEncrypt),
+                fakeSession(new UserNameIdentityToken({ userName: "user1" }), "urn:app", MessageSecurityMode.SignAndEncrypt)
+            )
+        ).eql(false);
+    });
+
+    it("SCT-13 - allows anonymous -> anonymous with same ApplicationUri over a signed channel", () => {
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app:client", MessageSecurityMode.Sign),
+                fakeSession(new AnonymousIdentityToken({}), "urn:app:client", MessageSecurityMode.Sign)
+            )
         ).eql(true);
         should(
-            sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user2" })))
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app:client", MessageSecurityMode.SignAndEncrypt),
+                fakeSession(new AnonymousIdentityToken({}), "urn:app:client", MessageSecurityMode.SignAndEncrypt)
+            )
+        ).eql(true);
+    });
+
+    it("SCT-14 - refuses anonymous -> anonymous with a different ApplicationUri (even over a signed channel)", () => {
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app:victim", MessageSecurityMode.SignAndEncrypt),
+                fakeSession(new AnonymousIdentityToken({}), "urn:app:attacker", MessageSecurityMode.SignAndEncrypt)
+            )
         ).eql(false);
+    });
+
+    it("SCT-15 - refuses anonymous -> anonymous when the ApplicationUri is missing", () => {
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), undefined, MessageSecurityMode.SignAndEncrypt),
+                fakeSession(new AnonymousIdentityToken({}), undefined, MessageSecurityMode.SignAndEncrypt)
+            )
+        ).eql(false);
+    });
+
+    it("SCT-16 - refuses anonymous -> anonymous over an unsecured channel by default", () => {
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.None),
+                fakeSession(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.None)
+            )
+        ).eql(false);
+        // also refused if only one side is secured
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.SignAndEncrypt),
+                fakeSession(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.None)
+            )
+        ).eql(false);
+    });
+
+    it("SCT-17 - allows anonymous over an unsecured channel only when explicitly relaxed", () => {
+        should(
+            sessionsCompatibleForTransfer(
+                identity(new AnonymousIdentityToken({}), "urn:app", MessageSecurityMode.None),
+                fakeSession(new AnonymousIdentityToken({}), "urn:other", MessageSecurityMode.None),
+                { allowAnonymousTransferOnUnsecuredChannel: true }
+            )
+        ).eql(true);
     });
 });

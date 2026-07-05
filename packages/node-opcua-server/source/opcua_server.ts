@@ -901,6 +901,21 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     isAuditing?: boolean;
 
     /**
+     * OPC UA Part 4 §5.14.7 defines a stricter rule for transferring a Subscription between anonymous
+     * sessions: the old and new session must share the same ApplicationUri and the channel
+     * MessageSecurityMode must be Sign or SignAndEncrypt. Over an unsecured channel that rule protects
+     * little (anonymous identities are indistinguishable and the ApplicationUri is unauthenticated), so
+     * it is opt-in: this flag defaults to `true` (anonymous transfer accepted on any channel). Set it to
+     * `false` to enforce the strict rule.
+     *
+     * Note: this only affects anonymous-to-anonymous transfers. The cross-user ownership check (a
+     * transfer is refused unless the destination session operates on behalf of the same user as the
+     * subscription owner) is always enforced.
+     * @default true
+     */
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
+
+    /**
      * strategy used by the server to declare itself to a discovery server
      *
      * - HIDDEN: the server doesn't expose itself to the external world
@@ -1421,6 +1436,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 applicationUri: () => this.serverInfo.applicationUri || "",
                 buildInfo,
                 isAuditing: options.isAuditing,
+                allowAnonymousSubscriptionTransferOnUnsecuredChannel:
+                    options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
                 serverCapabilities: options.serverCapabilities,
 
                 serverConfiguration: {
