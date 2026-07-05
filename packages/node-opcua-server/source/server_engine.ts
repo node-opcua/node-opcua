@@ -87,7 +87,7 @@ import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
-import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
+import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -1775,8 +1775,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
 
-        // check that session have same userIdentity
-        if (!sessionsCompatibleForTransfer(subscription.$session, session)) {
+        // check that the destination session is operating on behalf of the same user as the session
+        // that owns the subscription (OPC UA Part 4 §5.14.7). When the subscription has been orphaned
+        // its owning session is gone, so we rely on the identity snapshot retained at orphaning time.
+        const sourceIdentity = subscription.$session
+            ? getTransferSessionIdentity(subscription.$session)
+            : subscription.$transferSessionIdentity;
+        if (!sessionsCompatibleForTransfer(sourceIdentity, session)) {
             return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
         }
 

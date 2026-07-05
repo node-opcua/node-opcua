@@ -7,6 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { PublishRequest } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
+import { UserNameIdentityToken } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
 
@@ -853,6 +854,49 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
                 console.log("closing session");
                 await engine.shutdown();
             }
+        });
+    });
+
+    // OPC UA Part 4 §5.14.7: TransferSubscriptions shall validate that the destination session is
+    // operating on behalf of the same user as the session that owns the subscription. This must remain
+    // enforced even once the owning session has timed out and the subscription has been orphaned.
+    it("ZDZ-ST11 - should NOT transfer an orphaned subscription to a session of a different user", async () => {
+        await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("internal error");
+
+            // session owned by user1
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
+            session1.userIdentityToken = new UserNameIdentityToken({ userName: "user1" });
+
+            const subscription = session1.createSubscription({
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 60,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 1
+            });
+            const subscriptionId = subscription.id;
+
+            // the session times out, but the subscription is kept alive (orphaned)
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ false, /* reason =*/ "Timeout");
+
+            // a different user (user2) tries to take over the orphaned subscription
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
+            session2.userIdentityToken = new UserNameIdentityToken({ userName: "user2" });
+
+            const deniedResult = await engine.transferSubscription(session2, subscriptionId, false);
+            deniedResult.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+
+            // the legitimate user (user1) is still able to reclaim the orphaned subscription
+            const session3 = engine.createSession({ sessionTimeout: 100000, server });
+            session3.userIdentityToken = new UserNameIdentityToken({ userName: "user1" });
+
+            const grantedResult = await engine.transferSubscription(session3, subscriptionId, false);
+            grantedResult.statusCode.should.eql(StatusCodes.Good);
+
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session3.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
         });
     });
 });
