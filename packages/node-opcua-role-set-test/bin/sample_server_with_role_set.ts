@@ -80,7 +80,7 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
     // One-call role-based security: a single user store + identity store reached
     // through the userManager bridge, so role resolution, the `Identities`
     // Property and the management Methods all share one source of truth.
-    const security = createRoleBasedSecurity({
+    const security = await createRoleBasedSecurity({
         users: Object.values(SAMPLE_USERS).map((u) => ({
             userName: u.userName,
             password: u.password,

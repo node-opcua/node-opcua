@@ -23,6 +23,14 @@ export {
 export type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
 export { InMemoryIdentityMappingStore } from "./in_memory_store.js";
 export {
+    BcryptHasher,
+    defaultHasherRegistry,
+    HasherRegistry,
+    type PasswordHasher,
+    ScryptHasher,
+    scryptPhc
+} from "./password_hasher.js";
+export {
     applicationComplies,
     deserializeRestrictions,
     type EndpointCriteria,
@@ -37,11 +45,14 @@ export {
 } from "./role_restriction_store.js";
 export {
     type AuthenticationResult,
+    credentialRecord,
     InMemoryUserManagementStore,
     type IUserManagementStore,
+    type LegacySerializedUserRecord,
     type ModifyUserOptions,
     type PasswordPolicy,
     type SerializedUserRecord,
+    serializeUser,
     type UserRecord
 } from "./user_management_store.js";
 export { WellKnownRoleIds, WellKnownRoles } from "./well_known_role_ids.js";

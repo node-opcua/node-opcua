@@ -1,14 +1,14 @@
 import "mocha";
 import { sameNodeId } from "node-opcua-nodeid";
-import { WellKnownRoleIds } from "node-opcua-role-set-common";
+import { serializeUser, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask } from "node-opcua-types";
 import should from "should";
 import { createRoleBasedSecurity } from "../source/install_role_based_security.js";
 
 describe("createRoleBasedSecurity — one store behind the userManager bridge", () => {
-    it("seeds users + roles and exposes them through getUserRoles AND getIdentitiesForRole", () => {
-        const security = createRoleBasedSecurity({
+    it("seeds users + roles and exposes them through getUserRoles AND getIdentitiesForRole", async () => {
+        const security = await createRoleBasedSecurity({
             users: [
                 {
                     userName: "admin",
@@ -39,12 +39,12 @@ describe("createRoleBasedSecurity — one store behind the userManager bridge", 
             .should.eql(["joe"]);
 
         // authentication goes through the same user store
-        security.userStore.authenticate("admin", "admin-pw1").statusCode.should.equal(StatusCodes.Good);
-        security.userStore.authenticate("admin", "nope").statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+        (await security.userStore.authenticate("admin", "admin-pw1")).statusCode.should.equal(StatusCodes.Good);
+        (await security.userStore.authenticate("admin", "nope")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
     });
 
-    it("grants only Anonymous while a user must change the password", () => {
-        const security = createRoleBasedSecurity({
+    it("grants only Anonymous while a user must change the password", async () => {
+        const security = await createRoleBasedSecurity({
             users: [
                 {
                     userName: "newhire",
@@ -58,5 +58,43 @@ describe("createRoleBasedSecurity — one store behind the userManager bridge", 
         roles.should.have.length(1);
         sameNodeId(roles[0], WellKnownRoleIds.Anonymous).should.be.true();
         should(roles.some((r) => sameNodeId(r, WellKnownRoleIds.Operator))).be.false();
+    });
+
+    it("seeds a user from a pre-hashed record (passwordHash) with no clear text", async () => {
+        // record generated offline (would be committed instead of a clear password)
+        const passwordHash = await serializeUser("admin", "s3cret-init", {
+            userConfiguration: UserConfigurationMask.MustChangePassword
+        });
+
+        const security = await createRoleBasedSecurity({
+            users: [
+                { userName: "admin", passwordHash, roles: [WellKnownRoleIds.SecurityAdmin] },
+                { userName: "joe", password: "joe-pw1", roles: [WellKnownRoleIds.Operator] }
+            ]
+        });
+
+        // the original clear-text password authenticates against the imported hash
+        (await security.userStore.authenticate("admin", "s3cret-init")).statusCode.should.equal(StatusCodes.GoodPasswordChangeRequired);
+        (await security.userStore.authenticate("admin", "nope")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
+
+        // roles are seeded exactly like the clear-text path
+        security.userManager
+            .getIdentitiesForRole(WellKnownRoleIds.SecurityAdmin)
+            .map((i) => i.criteria)
+            .should.eql(["admin"]);
+
+        // clear-text path still works alongside
+        (await security.userStore.authenticate("joe", "joe-pw1")).statusCode.should.equal(StatusCodes.Good);
+    });
+
+    it("rejects when a seed user has neither password nor passwordHash", async () => {
+        await createRoleBasedSecurity({ users: [{ userName: "x", roles: [WellKnownRoleIds.Operator] }] }).then(
+            () => {
+                throw new Error("expected rejection");
+            },
+            (err: Error) => {
+                err.message.should.match(/either "password".*"passwordHash"/);
+            }
+        );
     });
 });

@@ -73,7 +73,7 @@ export function makeAddUserHandler(options: BindUserManagementOptions) {
         const userConfiguration = asMask(inputArguments[2]);
         const description = asString(inputArguments[3]) ?? "";
 
-        const statusCode = store.addUser(userName, password, userConfiguration, description);
+        const statusCode = await store.addUser(userName, password, userConfiguration, description);
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }
@@ -107,7 +107,7 @@ export function makeModifyUserHandler(options: BindUserManagementOptions) {
         }
         const modifyUserConfiguration = asBoolean(inputArguments[3]);
         const userConfiguration = asMask(inputArguments[4]);
-        const statusCode = store.modifyUser(
+        const statusCode = await store.modifyUser(
             userName,
             {
                 modifyPassword: asBoolean(inputArguments[1]),
@@ -199,7 +199,7 @@ export function makeChangePasswordHandler(options: BindUserManagementOptions) {
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
 
-        const statusCode = store.changePassword(userName, oldPassword, newPassword);
+        const statusCode = await store.changePassword(userName, oldPassword, newPassword);
         if (statusCode === StatusCodes.Good && onMutation) {
             await onMutation();
         }

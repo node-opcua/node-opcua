@@ -59,7 +59,7 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
 
         // bootstrap: admin is a managed user mapped to SecurityAdmin;
         // newhire (created later) will be mapped to Operator
-        userStore.addUser("admin", "admin-pw1", UserConfigurationMask.None, "");
+        await userStore.addUser("admin", "admin-pw1", UserConfigurationMask.None, "");
         identityStore.addIdentity(WellKnownRoleIds.SecurityAdmin, userRule("admin"));
         identityStore.addIdentity(WellKnownRoleIds.Operator, userRule("newhire"));
 

@@ -25,9 +25,15 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { decodeIdentityStore, encodeIdentityStore, identityStoreBinaryStoreSize } from "./binary_persistence.js";
 import type { IIdentityMappingStore } from "./identity_mapping_store.js";
 import type { SerializedRoleRestriction } from "./role_restriction_store.js";
-import type { SerializedUserRecord } from "./user_management_store.js";
+import type { LegacySerializedUserRecord, SerializedUserRecord } from "./user_management_store.js";
 
-export const ROLE_SET_ARCHIVE_VERSION = 1;
+/**
+ * v1: users stored as raw scrypt `{salt, hash}`.
+ * v2: users stored as a self-describing PHC `credential` string (scrypt/bcrypt/…).
+ * v1 archives are still read (records are migrated on import); v2 archives are
+ * rejected by a v1 reader via the version check.
+ */
+export const ROLE_SET_ARCHIVE_VERSION = 2;
 
 /** Persisted definition of a custom Role (so its GUID NodeId survives a restart). */
 export interface PersistedCustomRole {
@@ -43,8 +49,12 @@ export interface RoleSetArchive {
     identities?: string;
     roles?: PersistedCustomRole[];
     restrictions?: SerializedRoleRestriction[];
-    /** UserManagement users with salted scrypt hashes (never clear passwords). */
-    users?: SerializedUserRecord[];
+    /**
+     * UserManagement users, credentials only (never clear passwords). v2 writes
+     * PHC {@link SerializedUserRecord}s; v1 archives are read as
+     * {@link LegacySerializedUserRecord}s and migrated on import.
+     */
+    users?: (SerializedUserRecord | LegacySerializedUserRecord)[];
 }
 
 /** Encode the identity store as a base64 string (reuses the binary encoder). */

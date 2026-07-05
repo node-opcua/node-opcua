@@ -6,12 +6,16 @@
  *
  * The store implements the behaviour of the AddUser / ModifyUser / RemoveUser
  * / ChangePassword Methods and the password policy (PasswordLength range and
- * the password-option requirements). Passwords are never stored in clear:
- * each is salted and hashed with scrypt.
+ * the password-option requirements). Passwords are never stored in clear: each
+ * is kept as a self-describing PHC credential string (scrypt by default; other
+ * schemes such as bcrypt coexist and are migrated on login — see
+ * {@link HasherRegistry}). Credential operations are **async** so an external
+ * verifier (LDAP/argon2) can be plugged in without another interface change.
  */
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask } from "node-opcua-types";
+
+import { defaultHasherRegistry, type HasherRegistry, ScryptHasher, scryptPhc } from "./password_hasher.js";
 
 /**
  * Password requirements (OPC 10000-18 §5.2.1-2: PasswordLength range and
@@ -34,10 +38,25 @@ export interface UserRecord {
 }
 
 /**
- * Persisted user record — includes the salted scrypt hash (base64), never the
- * clear password. Suitable for storing in the consolidated archive.
+ * Persisted user record (archive v2) — the credential is a self-describing PHC
+ * string (e.g. `$scrypt$…` / `$2b$…`), never a clear password. Suitable for
+ * storing in the consolidated archive.
  */
 export interface SerializedUserRecord {
+    userName: string;
+    /** PHC / modular-crypt credential string (scheme self-described by its prefix). */
+    credential: string;
+    userConfiguration: UserConfigurationMask;
+    description: string;
+}
+
+/**
+ * Legacy (archive v1) persisted record — raw scrypt `salt`+`hash` (base64).
+ * Accepted by {@link IUserManagementStore.importUsers} and read-migrated to a
+ * `$scrypt$…` {@link SerializedUserRecord} credential, so old archives keep
+ * working with **no forced password resets**.
+ */
+export interface LegacySerializedUserRecord {
     userName: string;
     salt: string; // base64
     hash: string; // base64
@@ -63,28 +82,84 @@ export interface ModifyUserOptions {
 }
 
 export interface IUserManagementStore {
-    addUser(userName: string, password: string, userConfiguration: UserConfigurationMask, description: string): StatusCode;
-    modifyUser(userName: string, options: ModifyUserOptions, callerUserName?: string): StatusCode;
+    addUser(userName: string, password: string, userConfiguration: UserConfigurationMask, description: string): Promise<StatusCode>;
+    modifyUser(userName: string, options: ModifyUserOptions, callerUserName?: string): Promise<StatusCode>;
     removeUser(userName: string, callerUserName?: string): StatusCode;
-    changePassword(userName: string, oldPassword: string, newPassword: string): StatusCode;
-    authenticate(userName: string, password: string): AuthenticationResult;
+    changePassword(userName: string, oldPassword: string, newPassword: string): Promise<StatusCode>;
+    authenticate(userName: string, password: string): Promise<AuthenticationResult>;
     getUsers(): UserRecord[];
     hasUser(userName: string): boolean;
-    /** Export every user (with salted hash) for persistence. Optional: only stores that support persistence. */
+    /** Export every user (with its PHC credential) for persistence. Optional: only stores that support persistence. */
     exportUsers?(): SerializedUserRecord[];
-    /** Load persisted users (with salted hash), replacing any existing entry of the same name. */
-    importUsers?(records: SerializedUserRecord[]): void;
+    /** Load persisted users (v2 credential or legacy v1 salt+hash), replacing any existing entry of the same name. */
+    importUsers?(records: readonly (SerializedUserRecord | LegacySerializedUserRecord)[]): void;
+    /**
+     * Optional: register a callback fired when a credential is transparently
+     * re-hashed during {@link authenticate} (upgrade-on-login), so a persistence
+     * layer can flush the new hash.
+     */
+    setOnCredentialUpgraded?(fn: (userName: string) => void): void;
 }
 
 interface InternalUser {
     userName: string;
-    salt: Buffer;
-    hash: Buffer;
+    /** PHC credential string. */
+    credential: string;
     userConfiguration: UserConfigurationMask;
     description: string;
 }
 
 const has = (mask: UserConfigurationMask, bit: UserConfigurationMask): boolean => (mask & bit) === bit;
+
+/** A record is legacy (v1) when it carries raw `salt`+`hash` instead of a `credential`. */
+function isLegacyRecord(r: SerializedUserRecord | LegacySerializedUserRecord): r is LegacySerializedUserRecord {
+    return typeof (r as SerializedUserRecord).credential !== "string";
+}
+
+/** Shared default scrypt hasher used by the offline {@link serializeUser} helper. */
+const offlineScrypt = new ScryptHasher();
+
+/**
+ * Produce a {@link SerializedUserRecord} (scrypt PHC credential) from a
+ * clear-text password — **offline**, without a store.
+ *
+ * Use this to keep clear-text passwords out of version control / config: run it
+ * once at deploy time and commit only the returned record, then seed it through
+ * `importUsers` (or `createRoleBasedSecurity`'s `passwordHash`). The record is
+ * interchangeable with what {@link InMemoryUserManagementStore.exportUsers}
+ * produces, so `authenticate` accepts the original clear-text password.
+ */
+export async function serializeUser(
+    userName: string,
+    password: string,
+    options?: { userConfiguration?: UserConfigurationMask; description?: string }
+): Promise<SerializedUserRecord> {
+    return {
+        userName,
+        credential: await offlineScrypt.hash(password),
+        userConfiguration: options?.userConfiguration ?? UserConfigurationMask.None,
+        description: options?.description ?? ""
+    };
+}
+
+/**
+ * Wrap an **already-hashed** PHC credential string (e.g. a legacy `$2b$…`
+ * bcrypt hash) into a {@link SerializedUserRecord} — no clear text, no
+ * re-hashing. The credential is verified by whichever registered scheme owns
+ * its prefix, and (for non-default schemes) upgraded on next login.
+ */
+export function credentialRecord(
+    userName: string,
+    credential: string,
+    options?: { userConfiguration?: UserConfigurationMask; description?: string }
+): SerializedUserRecord {
+    return {
+        userName,
+        credential,
+        userConfiguration: options?.userConfiguration ?? UserConfigurationMask.None,
+        description: options?.description ?? ""
+    };
+}
 
 /**
  * In-memory implementation of {@link IUserManagementStore}.
@@ -94,13 +169,20 @@ const has = (mask: UserConfigurationMask, bit: UserConfigurationMask): boolean =
 export class InMemoryUserManagementStore implements IUserManagementStore {
     private readonly _users = new Map<string, InternalUser>();
     private readonly _policy: PasswordPolicy;
+    private readonly _registry: HasherRegistry;
+    private _onCredentialUpgraded?: (userName: string) => void;
 
-    constructor(policy?: PasswordPolicy) {
+    constructor(policy?: PasswordPolicy, options?: { registry?: HasherRegistry }) {
         this._policy = policy ?? {};
+        this._registry = options?.registry ?? defaultHasherRegistry();
     }
 
     public get policy(): PasswordPolicy {
         return this._policy;
+    }
+
+    public setOnCredentialUpgraded(fn: (userName: string) => void): void {
+        this._onCredentialUpgraded = fn;
     }
 
     public hasUser(userName: string): boolean {
@@ -118,26 +200,32 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
     public exportUsers(): SerializedUserRecord[] {
         return [...this._users.values()].map((u) => ({
             userName: u.userName,
-            salt: u.salt.toString("base64"),
-            hash: u.hash.toString("base64"),
+            credential: u.credential,
             userConfiguration: u.userConfiguration,
             description: u.description
         }));
     }
 
-    public importUsers(records: SerializedUserRecord[]): void {
+    public importUsers(records: readonly (SerializedUserRecord | LegacySerializedUserRecord)[]): void {
         for (const r of records) {
+            // v1 archives stored raw scrypt salt+hash — migrate to a $scrypt$ PHC
+            // credential on read (lossless: same algorithm and parameters).
+            const credential = isLegacyRecord(r) ? scryptPhc(r.salt, r.hash) : r.credential;
             this._users.set(r.userName, {
                 userName: r.userName,
-                salt: Buffer.from(r.salt, "base64"),
-                hash: Buffer.from(r.hash, "base64"),
+                credential,
                 userConfiguration: r.userConfiguration,
                 description: r.description
             });
         }
     }
 
-    public addUser(userName: string, password: string, userConfiguration: UserConfigurationMask, description: string): StatusCode {
+    public async addUser(
+        userName: string,
+        password: string,
+        userConfiguration: UserConfigurationMask,
+        description: string
+    ): Promise<StatusCode> {
         if (this._users.has(userName)) {
             return StatusCodes.BadAlreadyExists;
         }
@@ -148,11 +236,12 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
         if (!this.isPasswordValid(password)) {
             return StatusCodes.BadOutOfRange;
         }
-        this._users.set(userName, { userName, ...this.hashPassword(password), userConfiguration, description });
+        const credential = await this._registry.hash(password);
+        this._users.set(userName, { userName, credential, userConfiguration, description });
         return StatusCodes.Good;
     }
 
-    public modifyUser(userName: string, options: ModifyUserOptions, callerUserName?: string): StatusCode {
+    public async modifyUser(userName: string, options: ModifyUserOptions, callerUserName?: string): Promise<StatusCode> {
         const user = this._users.get(userName);
         if (!user) {
             return StatusCodes.BadNotFound;
@@ -181,9 +270,7 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
 
         // All checks passed — apply the changes
         if (options.modifyPassword) {
-            const { salt, hash } = this.hashPassword(options.password ?? "");
-            user.salt = salt;
-            user.hash = hash;
+            user.credential = await this._registry.hash(options.password ?? "");
         }
         if (options.modifyUserConfiguration) {
             user.userConfiguration = nextConfig;
@@ -209,7 +296,7 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
         return StatusCodes.Good;
     }
 
-    public changePassword(userName: string, oldPassword: string, newPassword: string): StatusCode {
+    public async changePassword(userName: string, oldPassword: string, newPassword: string): Promise<StatusCode> {
         const user = this._users.get(userName);
         // Unknown user is treated as an invalid old password (§5.2.8)
         if (!user) {
@@ -218,7 +305,7 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
         if (has(user.userConfiguration, UserConfigurationMask.NoChangeByUser)) {
             return StatusCodes.BadNotSupported;
         }
-        if (!this.verify(user, oldPassword)) {
+        if (!(await this._registry.verify(oldPassword, user.credential))) {
             return StatusCodes.BadIdentityTokenInvalid;
         }
         if (oldPassword === newPassword) {
@@ -227,22 +314,26 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
         if (!this.isPasswordValid(newPassword)) {
             return StatusCodes.BadOutOfRange;
         }
-        const { salt, hash } = this.hashPassword(newPassword);
-        user.salt = salt;
-        user.hash = hash;
+        user.credential = await this._registry.hash(newPassword);
         // A successful change clears the MustChangePassword flag (§5.2.8)
         user.userConfiguration &= ~UserConfigurationMask.MustChangePassword;
         return StatusCodes.Good;
     }
 
-    public authenticate(userName: string, password: string): AuthenticationResult {
+    public async authenticate(userName: string, password: string): Promise<AuthenticationResult> {
         const user = this._users.get(userName);
         // A disabled user behaves like a user that does not exist (§5.2.3)
         if (!user || has(user.userConfiguration, UserConfigurationMask.Disabled)) {
             return { statusCode: StatusCodes.BadUserAccessDenied, mustChangePassword: false };
         }
-        if (!this.verify(user, password)) {
+        if (!(await this._registry.verify(password, user.credential))) {
             return { statusCode: StatusCodes.BadUserAccessDenied, mustChangePassword: false };
+        }
+        // Upgrade-on-login: transparently re-hash a legacy/drifted credential with
+        // the default scheme (e.g. bcrypt → scrypt) now that we hold the clear text.
+        if (this._registry.needsRehash(user.credential)) {
+            user.credential = await this._registry.hash(password);
+            this._onCredentialUpgraded?.(userName);
         }
         if (has(user.userConfiguration, UserConfigurationMask.MustChangePassword)) {
             return { statusCode: StatusCodes.GoodPasswordChangeRequired, mustChangePassword: true };
@@ -260,17 +351,6 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
         if (p.requireDigit && !/[0-9]/.test(password)) return false;
         if (p.requireSpecial && !/[^A-Za-z0-9]/.test(password)) return false;
         return true;
-    }
-
-    private hashPassword(password: string): { salt: Buffer; hash: Buffer } {
-        const salt = randomBytes(16);
-        const hash = scryptSync(password, salt, 64);
-        return { salt, hash };
-    }
-
-    private verify(user: InternalUser, password: string): boolean {
-        const candidate = scryptSync(password, user.salt, 64);
-        return candidate.length === user.hash.length && timingSafeEqual(candidate, user.hash);
     }
 }
 
