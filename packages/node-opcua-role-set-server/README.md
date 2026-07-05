@@ -75,13 +75,50 @@ in short:
 import { createRoleBasedSecurity } from "node-opcua-role-set-server";
 import { WellKnownRoleIds } from "node-opcua-role-set-common";
 
-const security = createRoleBasedSecurity({
+const security = await createRoleBasedSecurity({
     users: [{ userName: "admin", password: "admin-pw1", roles: [WellKnownRoleIds.SecurityAdmin] }]
 });
 const server = new OPCUAServer({ /* … */ userManager: security.userManager });
 await server.start();
 await security.install(server, { persistencePath: "./config/role-set.json" });
 ```
+
+`createRoleBasedSecurity` is **async** (it hashes any clear-text seed passwords)
+and returns the shared stores plus the `userManager` bridge.
+
+### Seeding without clear text, and password hashing
+
+Each seeded user provides **one** of:
+
+- `password` — clear text (hashed with scrypt on seed); or
+- `passwordHash` — a pre-hashed credential record, so **no clear text lives in
+  config / version control**.
+
+Build a record offline with the `node-opcua-role-set-common` helpers:
+
+```ts
+import { serializeUser, credentialRecord } from "node-opcua-role-set-common";
+
+// scrypt record from a clear password (run once at deploy time, commit the result)
+const admin = await serializeUser("admin", "admin-pw1", { /* userConfiguration, description */ });
+
+// or wrap an already-hashed credential you already hold (e.g. a legacy $2b$ bcrypt hash)
+const legacy = credentialRecord("legacy", "$2b$10$……");
+
+const security = await createRoleBasedSecurity({
+    users: [
+        { userName: "admin",  passwordHash: admin,  roles: [WellKnownRoleIds.SecurityAdmin] },
+        { userName: "legacy", passwordHash: legacy, roles: [WellKnownRoleIds.Operator] }
+    ]
+});
+```
+
+Credentials are stored as self-describing PHC strings (`$scrypt$…` / `$2b$…`), so
+schemes coexist: new/changed passwords hash with **scrypt** (Node core), while a
+legacy **bcrypt** credential still verifies and is transparently re-hashed to
+scrypt on the next successful login (*upgrade-on-login*). Pass a custom
+`registry` to `createRoleBasedSecurity` to add schemes (e.g. an external
+verifier). See [`node-opcua-role-set-common`](../node-opcua-role-set-common#users--password-hashing).
 
 ## Exports
 

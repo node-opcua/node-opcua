@@ -28,6 +28,9 @@ $ npm install node-opcua-role-set-common
 | `WellKnownRoleIds` | Pre-built `NodeId` objects for each well-known role. |
 | `saveToBinaryFile` / `loadFromBinaryFile` | Persist / restore a store to / from a binary file. |
 | `encodeIdentityStore` / `decodeIdentityStore` / `identityStoreBinaryStoreSize` | Lower-level binary (de)serialization helpers. |
+| `InMemoryUserManagementStore` | Local user list + password lifecycle (OPC 10000-18 §5). |
+| `serializeUser` / `credentialRecord` | Build a persisted user record offline (scrypt hash, or wrap an existing credential) — no clear text at rest. |
+| `PasswordHasher` / `HasherRegistry` / `ScryptHasher` / `BcryptHasher` / `defaultHasherRegistry` | Pluggable password hashing (scrypt default; bcrypt coexists). |
 
 ## The identity mapping store
 
@@ -95,6 +98,51 @@ WellKnownRoleIds.Supervisor;
 WellKnownRoleIds.ConfigureAdmin;
 WellKnownRoleIds.SecurityAdmin;
 ```
+
+## Users & password hashing
+
+`InMemoryUserManagementStore` keeps the local user list and implements the
+AddUser / ModifyUser / RemoveUser / ChangePassword behaviour (§5.2), the password
+policy, and `authenticate`. **Passwords are never stored in clear**: each user
+holds a single self-describing **PHC credential string**, so multiple hashing
+schemes coexist and are told apart by prefix:
+
+```
+scrypt:  $scrypt$ln=14,r=8,p=1$<b64 salt>$<b64 hash>     (default — Node core, no extra dependency)
+bcrypt:  $2b$10$<salt><hash>                             (verified for interop/migration)
+```
+
+New and changed passwords are hashed with **scrypt**. A legacy **bcrypt**
+credential still verifies and is transparently re-hashed to scrypt on the next
+successful login (*upgrade-on-login*, driven by `HasherRegistry.needsRehash`).
+Inject a custom `HasherRegistry` to add schemes (e.g. an external verifier).
+
+> Credential operations (`authenticate` / `addUser` / `changePassword` /
+> `modifyUser`) are **async** so an external verifier can be plugged in.
+
+### Seeding without clear text
+
+Generate a persisted record **offline** and commit that instead of a password:
+
+```ts
+import { InMemoryUserManagementStore, serializeUser, credentialRecord } from "node-opcua-role-set-common";
+import { UserConfigurationMask } from "node-opcua-types";
+
+// scrypt record from a clear password (run once at deploy time)
+const rec = await serializeUser("admin", "admin-pw1", { userConfiguration: UserConfigurationMask.None });
+
+// or wrap an already-hashed credential you hold (e.g. a legacy bcrypt hash)
+const legacy = credentialRecord("legacy", "$2b$10$……");
+
+const store = new InMemoryUserManagementStore();
+store.importUsers([rec, legacy]);          // no clear text involved
+await store.authenticate("admin", "admin-pw1"); // -> Good
+```
+
+`serializeUser` / `exportUsers` records are interchangeable and, together with
+`importUsers`, back the consolidated archive (see below). Records written by an
+older release (raw `{salt, hash}`, archive **v1**) are migrated to a `$scrypt$`
+credential on read — **no forced password resets**.
 
 ## Persistence
 

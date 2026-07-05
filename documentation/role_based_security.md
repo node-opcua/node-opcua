@@ -75,8 +75,8 @@ import { createRoleBasedSecurity } from "node-opcua-role-set-server";
 
 async function main() {
     // 1. Build the shared stores and the userManager bridge.
-    // Seeds initial users and maps them to standard Roles.
-    const security = createRoleBasedSecurity({
+    // Seeds initial users and maps them to standard Roles (async — hashes seeds).
+    const security = await createRoleBasedSecurity({
         policy: { minLength: 8, requireDigit: true },
         users: [
             {
@@ -131,11 +131,15 @@ Creates the user and identity mapping stores, builds the `userManager` bridge, a
     * `requireSpecialCharacters?: boolean`
   * `users?: RoleBasedUser[]`: List of users to seed.
     * `userName: string`
-    * `password: string`
+    * `password?: string`: clear-text seed (hashed with scrypt), **or**
+    * `passwordHash?: SerializedUserRecord`: a pre-hashed credential record (from
+      `serializeUser` / `credentialRecord`), so no clear text lives in config.
     * `roles?: NodeId[]`
     * `userConfiguration?: UserConfigurationMask`
     * `description?: string`
-* **Returns**: `RoleBasedSecurity`
+  * `registry?: HasherRegistry`: override the password-hashing schemes (default:
+    scrypt hashes, bcrypt verifies legacy credentials and upgrades on login).
+* **Returns**: `Promise<RoleBasedSecurity>` (async — seed passwords are hashed)
   * `userStore: InMemoryUserManagementStore`
   * `identityStore: InMemoryIdentityMappingStore`
   * `userManager: IManagedUserManager`

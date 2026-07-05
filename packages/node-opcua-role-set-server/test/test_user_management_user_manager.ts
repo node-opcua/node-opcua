@@ -17,10 +17,13 @@ function setup() {
     return { userStore, identityStore, um };
 }
 
-/** Promisify the callback-style bridge check (no session bound). */
+/** Promisify the callback-style bridge check with a minimal bound session. */
 function checkUser(um: IManagedUserManager, userName: string, password: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-        um.isValidUserAsync(userName, password, (err, ok) => (err ? reject(err) : resolve(!!ok)));
+        // node-opcua invokes isValidUserAsync with `this` = ServerSession; bind a
+        // minimal stand-in here (all SessionThis members are optional).
+        const session = {};
+        um.isValidUserAsync.call(session, userName, password, (err, ok) => (err ? reject(err) : resolve(!!ok)));
     });
 }
 
