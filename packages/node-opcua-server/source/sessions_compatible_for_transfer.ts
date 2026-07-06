@@ -1,23 +1,33 @@
 import { assert } from "node-opcua-assert";
+import { makeSHA1Thumbprint } from "node-opcua-crypto";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
-import {
-    AnonymousIdentityToken,
-    type UserIdentityToken,
-    UserNameIdentityToken,
-    X509IdentityToken
-} from "node-opcua-types";
+import { AnonymousIdentityToken, type UserIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
 import type { ServerSession } from "./server_session";
 
 /**
- * The subset of a Session's identity that OPC UA Part 4 §5.14.7 (TransferSubscriptions) requires
- * in order to decide whether a Subscription may be transferred to another Session.
+ * Discriminates a session's user identity for the purpose of the TransferSubscriptions ownership
+ * check. `unsupported` covers any token type we cannot safely represent (e.g. IssuedIdentityToken) and
+ * always results in the transfer being refused.
+ */
+export type TransferUserIdentityKind = "none" | "anonymous" | "username" | "x509" | "unsupported";
+
+/**
+ * The subset of a Session's identity that OPC UA Part 4 §5.14.7 (TransferSubscriptions) requires in
+ * order to decide whether a Subscription may be transferred to another Session.
  *
  * A snapshot of this identity is retained on the Subscription so that the ownership / user-identity
  * check can still be enforced once the owning Session is no longer available (for example after a
  * Session times out and its Subscriptions are moved to the orphan publish engine).
+ *
+ * Only a minimal, non-secret identity key is kept: it never stores the raw UserIdentityToken, which for
+ * UserNameIdentityToken / IssuedIdentityToken would carry sensitive bytes (Password / TokenData).
  */
 export interface ITransferSessionIdentity {
-    userIdentityToken?: UserIdentityToken;
+    kind: TransferUserIdentityKind;
+    /** set when kind === "username" */
+    userName?: string;
+    /** set when kind === "x509": SHA1 thumbprint (hex) of the user certificate (a certificate is public) */
+    certificateThumbprint?: string;
     /** ApplicationUri of the owning client, used for the anonymous-user transfer rule. */
     applicationUri?: string | null;
     /** MessageSecurityMode of the channel the session was operating on, used for the anonymous-user rule. */
@@ -27,20 +37,44 @@ export interface ITransferSessionIdentity {
 export interface SessionsCompatibleForTransferOptions {
     /**
      * OPC UA Part 4 §5.14.7 requires that an anonymous user may only transfer a Subscription when the
-     * old and the new Session share the same ApplicationUri AND the channel MessageSecurityMode is
-     * Sign or SignAndEncrypt. Setting this flag to `true` relaxes that requirement and restores the
-     * legacy behaviour of accepting anonymous-to-anonymous transfers over an unsecured channel.
+     * old and the new Session share the same ApplicationUri AND the channel MessageSecurityMode is Sign
+     * or SignAndEncrypt. Setting this flag to `true` relaxes that requirement and accepts
+     * anonymous-to-anonymous transfers over an unsecured channel.
      * @default false
      */
     allowAnonymousTransferOnUnsecuredChannel?: boolean;
 }
 
+function classifyUserIdentity(token: UserIdentityToken | undefined): Pick<
+    ITransferSessionIdentity,
+    "kind" | "userName" | "certificateThumbprint"
+> {
+    if (!token) {
+        return { kind: "none" };
+    }
+    if (token instanceof AnonymousIdentityToken) {
+        return { kind: "anonymous" };
+    }
+    if (token instanceof UserNameIdentityToken) {
+        return { kind: "username", userName: token.userName || "" };
+    }
+    if (token instanceof X509IdentityToken) {
+        return { kind: "x509", certificateThumbprint: makeSHA1Thumbprint(token.certificateData).toString("hex") };
+    }
+    // IssuedIdentityToken or any unknown/unsupported token: we cannot derive a safe, non-secret key,
+    // so treat it as unsupported and let the transfer fail closed.
+    return { kind: "unsupported" };
+}
+
 /**
- * Extract the transfer-relevant identity from a Session.
+ * Extract the (non-secret) transfer-relevant identity from a Session.
  */
 export function getTransferSessionIdentity(session: ServerSession): ITransferSessionIdentity {
+    const { kind, userName, certificateThumbprint } = classifyUserIdentity(session.userIdentityToken);
     return {
-        userIdentityToken: session.userIdentityToken,
+        kind,
+        userName,
+        certificateThumbprint,
         applicationUri: session.clientDescription ? session.clientDescription.applicationUri : undefined,
         securityMode: session.channel ? session.channel.securityMode : undefined
     };
@@ -59,8 +93,8 @@ function isSecuredChannel(securityMode: MessageSecurityMode | undefined): boolea
  *  - for an anonymous user (whose ClientUserId is null), the ApplicationUri must match and the channel
  *    MessageSecurityMode must be Sign or SignAndEncrypt.
  *
- * The identity of the owning Session must therefore be known: when it cannot be established the
- * transfer is refused rather than allowed.
+ * The identity of the owning Session must therefore be known: when it cannot be established (missing or
+ * unsupported identity token) the transfer is refused rather than allowed - and never raises.
  */
 export function sessionsCompatibleForTransfer(
     sourceIdentity: ITransferSessionIdentity | undefined,
@@ -72,44 +106,41 @@ export function sessionsCompatibleForTransfer(
     if (!sourceIdentity) {
         return false;
     }
-    const destIdentity = getTransferSessionIdentity(sessionDest);
+    const dest = getTransferSessionIdentity(sessionDest);
 
-    const srcToken = sourceIdentity.userIdentityToken;
-    const destToken = destIdentity.userIdentityToken;
-
-    if (!srcToken && !destToken) {
-        return true;
+    // An identity token we cannot safely represent -> we cannot validate ownership -> fail closed.
+    if (sourceIdentity.kind === "unsupported" || dest.kind === "unsupported") {
+        return false;
     }
-    if (srcToken instanceof AnonymousIdentityToken) {
-        if (!(destToken instanceof AnonymousIdentityToken)) {
-            return false;
-        }
-        // Legacy escape hatch: accept anonymous-to-anonymous transfers over any channel.
-        if (options?.allowAnonymousTransferOnUnsecuredChannel) {
+    // Both sessions must be operating with the same kind of identity (also covers "one side missing").
+    if (sourceIdentity.kind !== dest.kind) {
+        return false;
+    }
+    switch (sourceIdentity.kind) {
+        case "none":
+            // neither session carries a user identity token
             return true;
+        case "anonymous": {
+            // Legacy escape hatch: accept anonymous-to-anonymous transfers over any channel.
+            if (options?.allowAnonymousTransferOnUnsecuredChannel) {
+                return true;
+            }
+            // §5.14.7: for anonymous users the ApplicationUri must match and both the old and the new
+            // Session must operate on a secured (Sign / SignAndEncrypt) channel.
+            if (!isSecuredChannel(sourceIdentity.securityMode) || !isSecuredChannel(dest.securityMode)) {
+                return false;
+            }
+            if (!sourceIdentity.applicationUri || !dest.applicationUri) {
+                return false;
+            }
+            return sourceIdentity.applicationUri === dest.applicationUri;
         }
-        // §5.14.7: for anonymous users the ApplicationUri must match and both the old and the new
-        // Session must operate on a secured (Sign / SignAndEncrypt) channel, so that the ApplicationUri
-        // claim is backed by an authenticated application instance certificate.
-        if (!isSecuredChannel(sourceIdentity.securityMode) || !isSecuredChannel(destIdentity.securityMode)) {
+        case "username":
+            return !!sourceIdentity.userName && sourceIdentity.userName === dest.userName;
+        case "x509":
+            return !!sourceIdentity.certificateThumbprint && sourceIdentity.certificateThumbprint === dest.certificateThumbprint;
+        default:
+            /* c8 ignore next */
             return false;
-        }
-        if (!sourceIdentity.applicationUri || !destIdentity.applicationUri) {
-            return false;
-        }
-        return sourceIdentity.applicationUri === destIdentity.applicationUri;
-    } else if (srcToken instanceof UserNameIdentityToken) {
-        if (!(destToken instanceof UserNameIdentityToken)) {
-            return false;
-        }
-        return srcToken.userName === destToken.userName;
-    } else if (srcToken instanceof X509IdentityToken) {
-        if (!(destToken instanceof X509IdentityToken)) {
-            return false;
-        }
-        return srcToken.certificateData.toString("hex") === destToken.certificateData.toString("hex");
-    } else {
-        /* c8 ignore next */
-        throw new Error("Unsupported Identity token");
     }
 }
