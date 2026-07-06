@@ -97,4 +97,41 @@ describe("createRoleBasedSecurity — one store behind the userManager bridge", 
             }
         );
     });
+
+    it("rejects when a seed user provides BOTH password and passwordHash", async () => {
+        const passwordHash = await serializeUser("admin", "s3cret-init");
+        await createRoleBasedSecurity({
+            users: [{ userName: "admin", password: "admin-pw1", passwordHash, roles: [WellKnownRoleIds.Operator] }]
+        }).then(
+            () => {
+                throw new Error("expected rejection");
+            },
+            (err: Error) => {
+                err.message.should.match(/not both/);
+            }
+        );
+    });
+
+    it("rejects an invalid userConfiguration on a pre-hashed (passwordHash) seed", async () => {
+        const passwordHash = await serializeUser("admin", "s3cret-init");
+        // MustChangePassword + NoChangeByUser is an illegal combination (§5.2.3);
+        // importUsers bypasses addUser, so createRoleBasedSecurity must catch it.
+        await createRoleBasedSecurity({
+            users: [
+                {
+                    userName: "admin",
+                    passwordHash,
+                    userConfiguration: UserConfigurationMask.MustChangePassword | UserConfigurationMask.NoChangeByUser,
+                    roles: [WellKnownRoleIds.Operator]
+                }
+            ]
+        }).then(
+            () => {
+                throw new Error("expected rejection");
+            },
+            (err: Error) => {
+                err.message.should.match(/invalid userConfiguration/);
+            }
+        );
+    });
 });

@@ -47,6 +47,15 @@ const SCRYPT_KEYLEN = 64;
 const SCRYPT_SALT_BYTES = 16;
 const SCRYPT_LN = Math.log2(SCRYPT_N);
 
+// Upper bounds on the work factors accepted from a stored credential string.
+// A tampered/poisoned credential (e.g. an edited archive) must not be able to
+// set huge parameters and cause resource exhaustion during login, so anything
+// out of range is rejected (parseScrypt returns null → verify() fails closed).
+// The default (ln=14, r=8, p=1) sits comfortably below these limits.
+const SCRYPT_LN_MAX = 20; // N = 2^20 (~1M) — beyond any legitimate configuration here
+const SCRYPT_R_MAX = 32;
+const SCRYPT_P_MAX = 16;
+
 interface ParsedScrypt {
     ln: number;
     r: number;
@@ -67,10 +76,18 @@ function parseScrypt(phc: string): ParsedScrypt | null {
     // $scrypt$ln=14,r=8,p=1$<salt>$<hash>
     const m = /^\$scrypt\$ln=(\d+),r=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$/.exec(phc);
     if (!m) return null;
+    const ln = Number(m[1]);
+    const r = Number(m[2]);
+    const p = Number(m[3]);
+    // Reject out-of-range work factors so a tampered credential can't force an
+    // absurd scryptSync cost. Fails closed: verify() treats null as "no match".
+    if (ln < 1 || ln > SCRYPT_LN_MAX || r < 1 || r > SCRYPT_R_MAX || p < 1 || p > SCRYPT_P_MAX) {
+        return null;
+    }
     return {
-        ln: Number(m[1]),
-        r: Number(m[2]),
-        p: Number(m[3]),
+        ln,
+        r,
+        p,
         salt: Buffer.from(m[4], "base64"),
         hash: Buffer.from(m[5], "base64")
     };

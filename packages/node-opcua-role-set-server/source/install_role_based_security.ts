@@ -24,6 +24,7 @@
  * Methods, persistence) is backed by the same two stores, so the "legacy"
  * (userManager) and "modern" (RoleSet Methods) views can never drift apart.
  */
+import { make_errorLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import {
     ArchiveStore,
@@ -31,7 +32,8 @@ import {
     InMemoryIdentityMappingStore,
     InMemoryUserManagementStore,
     type PasswordPolicy,
-    type SerializedUserRecord
+    type SerializedUserRecord,
+    validateUserConfiguration
 } from "node-opcua-role-set-common";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 import { type InstallRoleSetResult, type IServerForRoleSet, installRoleSet } from "./install_role_set.js";
@@ -41,6 +43,8 @@ import {
     installUserManagement
 } from "./install_user_management.js";
 import { createUserManager, type IManagedUserManager } from "./user_management_user_manager.js";
+
+const errorLog = make_errorLog("RoleBasedSecurity");
 
 /**
  * A user to seed, with the well-known/custom Roles it holds.
@@ -118,15 +122,33 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
     const identityStore = new InMemoryIdentityMappingStore();
 
     for (const user of options?.users ?? []) {
+        // Exactly one of password / passwordHash — reject the ambiguous case up
+        // front rather than silently preferring one (the docstring says "never
+        // both"), so a misconfiguration is loud instead of a silent surprise.
+        if (user.password !== undefined && user.passwordHash) {
+            throw new Error(
+                `RoleBasedUser "${user.userName}": provide either "password" (clear text) or "passwordHash" (pre-hashed record), not both.`
+            );
+        }
         if (user.passwordHash) {
             // Pre-hashed seed: import the credential record verbatim — no clear
             // text involved. `userName`/`userConfiguration`/`description` on the
             // RoleBasedUser take precedence over the record's own fields.
+            const userConfiguration = user.userConfiguration ?? user.passwordHash.userConfiguration;
+            // importUsers bypasses addUser's validation, so apply the same
+            // UserConfigurationMask check here (e.g. MustChangePassword +
+            // NoChangeByUser is an illegal combination — §5.2.3).
+            const configError = validateUserConfiguration(userConfiguration);
+            if (configError) {
+                throw new Error(
+                    `RoleBasedUser "${user.userName}": invalid userConfiguration (${configError.name}).`
+                );
+            }
             userStore.importUsers?.([
                 {
                     ...user.passwordHash,
                     userName: user.userName,
-                    userConfiguration: user.userConfiguration ?? user.passwordHash.userConfiguration,
+                    userConfiguration,
                     description: user.description ?? user.passwordHash.description
                 }
             ]);
@@ -163,7 +185,17 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
             // migration sticks across restarts.
             if (persistence) {
                 userStore.setOnCredentialUpgraded?.(() => {
-                    void persistence.save();
+                    // Background flush: a failed save must not surface as a
+                    // process-level unhandled rejection. The upgraded credential
+                    // is already live in memory; it will be re-persisted on the
+                    // next login/mutation, so log and move on.
+                    persistence.save().catch((err) => {
+                        // Log the message only — a minified/obfuscated stack is noise.
+                        errorLog(
+                            "createRoleBasedSecurity: failed to persist credential upgrade:",
+                            err instanceof Error ? err.message : err
+                        );
+                    });
                 });
             }
 

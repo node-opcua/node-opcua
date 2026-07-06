@@ -360,7 +360,7 @@ export class InMemoryUserManagementStore implements IUserManagementStore {
  *
  * @returns a `Bad_ConfigurationError` StatusCode, or `null` if valid.
  */
-function validateUserConfiguration(mask: UserConfigurationMask): StatusCode | null {
+export function validateUserConfiguration(mask: UserConfigurationMask): StatusCode | null {
     if (has(mask, UserConfigurationMask.MustChangePassword) && has(mask, UserConfigurationMask.NoChangeByUser)) {
         return StatusCodes.BadConfigurationError;
     }
