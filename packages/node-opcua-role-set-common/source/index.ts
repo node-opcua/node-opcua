@@ -53,7 +53,8 @@ export {
     type PasswordPolicy,
     type SerializedUserRecord,
     serializeUser,
-    type UserRecord
+    type UserRecord,
+    validateUserConfiguration
 } from "./user_management_store.js";
 export { WellKnownRoleIds, WellKnownRoles } from "./well_known_role_ids.js";
 export {
