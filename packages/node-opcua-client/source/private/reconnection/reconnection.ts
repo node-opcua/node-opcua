@@ -187,7 +187,8 @@ function create_session_and_repeat_if_failed(client: IClientBase, session: Clien
         // create new session, based on old session,
         // so we can reuse subscriptions data
         client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
-            _throwIfShouldNotContinue(session);
+            const abortErr = _shouldNotContinue(session);
+            if (abortErr) return reject(abortErr);
 
             if (!err && session1) {
                 assert(session === session1, "session should have been recycled");
@@ -299,7 +300,8 @@ function attempt_subscription_transfer(
             subscriptionsToTransfer,
             (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
                 // may be the connection with server has been disconnected
-                _throwIfShouldNotContinue(session);
+                const abortErr = _shouldNotContinue(session);
+                if (abortErr) return reject(abortErr);
 
                 if (err || !transferSubscriptionsResponse) {
                     warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
