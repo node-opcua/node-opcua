@@ -89,4 +89,68 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         should(decoded.serverUri).eql(reverseHello1.serverUri);
         should(decoded.endpointUrl).eql(reverseHello1.endpointUrl);
     });
+
+    it("RHE-7 decodeReverseHello should reject a chunk shorter than the 8-byte header", () => {
+        let caught: any;
+        try {
+            decodeReverseHello(Buffer.alloc(4));
+        } catch (err) {
+            caught = err;
+        }
+        should.exist(caught);
+        caught.statusCode.name.should.match(/BadTcpMessageTypeInvalid/);
+    });
+
+    it("RHE-8 decodeReverseHello should reject a non-final chunk (isFinal !== 'F')", () => {
+        const message = packTcpMessage("RHE", new ReverseHelloMessage({ serverUri: "urn:s", endpointUrl: "opc.tcp://h:1" }));
+        message.write("C", 3, "binary"); // flip the 'F' (final) marker to 'C' (chunk)
+
+        let caught: any;
+        try {
+            decodeReverseHello(message);
+        } catch (err) {
+            caught = err;
+        }
+        should.exist(caught);
+        caught.message.should.match(/final/);
+        caught.statusCode.name.should.match(/BadTcpMessageTypeInvalid/);
+    });
+
+    it("RHE-9 decodeReverseHello should reject a header whose declared length does not match the buffer", () => {
+        const message = packTcpMessage("RHE", new ReverseHelloMessage({ serverUri: "urn:s", endpointUrl: "opc.tcp://h:1" }));
+        message.writeUInt32LE(message.length + 100, 4); // corrupt the declared length
+
+        let caught: any;
+        try {
+            decodeReverseHello(message);
+        } catch (err) {
+            caught = err;
+        }
+        should.exist(caught);
+        caught.statusCode.name.should.match(/BadTcpMessageTooLarge/);
+    });
+
+    it("RHE-10 decodeReverseHello should reject a well-framed but undecodable body", () => {
+        // 8-byte RHE header (declared length == buffer length) + a serverUri UAString whose length
+        // prefix claims far more bytes than the buffer holds -> the field decode throws.
+        const frame = Buffer.alloc(12);
+        frame.write("RHEF", 0, "binary");
+        frame.writeUInt32LE(12, 4); // declared length matches the buffer
+        frame.writeUInt32LE(0x1000_0000, 8); // bogus UAString length (~256 MB)
+
+        let caught: any;
+        try {
+            decodeReverseHello(frame);
+        } catch (err) {
+            caught = err;
+        }
+        should.exist(caught);
+        caught.statusCode.name.should.match(/BadTcpEndpointUrlInvalid/);
+    });
+
+    it("RHE-11 toString() renders the serverUri and endpointUrl", () => {
+        const s = new ReverseHelloMessage({ serverUri: "urn:my:Server", endpointUrl: "opc.tcp://host:1234" }).toString();
+        s.should.match(/urn:my:Server/);
+        s.should.match(/opc.tcp:\/\/host:1234/);
+    });
 });
