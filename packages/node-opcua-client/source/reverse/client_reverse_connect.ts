@@ -216,18 +216,6 @@ export class ClientReverseConnect {
         };
     }
 
-    public waitForConnectionAsync(expectation?: ReverseConnectExpectation): Promise<IAcceptedReverseConnection> {
-        return new Promise<IAcceptedReverseConnection>((resolve, reject) => {
-            this.waitForConnection(expectation, (err, accepted) => {
-                if (err || !accepted) {
-                    reject(err || new Error("no accepted reverse connection"));
-                } else {
-                    resolve(accepted);
-                }
-            });
-        });
-    }
-
     #handleIncomingSocket(socket: Socket): void {
         // Track the socket and attach durable error/close guards FIRST, before any rejection path,
         // so the socket is never without an "error" listener (an unhandled "error" would crash the

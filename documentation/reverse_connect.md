@@ -73,6 +73,17 @@ The server keeps one waiting connection per target: if the socket closes without
 the SecureChannel is later aborted, it recreates the socket and re-sends a `ReverseHello` after the
 (exponentially-backed-off) delay.
 
+## Limitations
+
+- **Single endpoint / security policy.** The server always dials out from its first endpoint
+  (`endpoints[0]`) and advertises a single `EndpointUrl` (from `getEndpointUrl()`) in the
+  `ReverseHello`. A server exposing multiple endpoints or several security policies cannot let the
+  client select among them over reverse connect — the client gets exactly the one endpoint the server
+  advertises. If you need a specific security policy on a reverse connection, configure that policy on
+  the server's primary endpoint.
+- **Startup race.** If the manager tries to dial before the server's endpoints are ready, it retries
+  after a fixed short delay (`reconnectDelay`) and does not inflate the drop backoff.
+
 ## Client usage
 
 Open a `ClientReverseConnect` listener and let one or more clients wait on it, matched by

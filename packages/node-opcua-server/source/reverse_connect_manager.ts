@@ -15,6 +15,7 @@
  */
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { Socket } from "node:net";
+import type { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 
 import type { OPCUAServerEndPoint } from "./server_end_point";
 
@@ -54,7 +55,7 @@ export interface ReverseConnectManagerContext {
 interface ReverseConnectionState {
     clientEndpointUrl: string;
     pendingSocket?: Socket;
-    channel?: { close(cb: () => void): void; removeListener(event: string, listener: () => void): void };
+    channel?: ServerSecureChannelLayer;
     /** the manager's own "abort" listener on `channel`, so stop() can remove ONLY it (not the endpoint's) */
     onAbort?: () => void;
     retryTimer?: NodeJS.Timeout;
@@ -126,8 +127,11 @@ export class ReverseConnectManager {
         }
         const endpoint = this.#context.getDialEndpoint();
         if (!endpoint) {
-            // endpoints not ready yet (e.g. still starting) - retry shortly
-            this.#scheduleRetry(state);
+            // endpoints not ready yet (e.g. server still starting) — this is a startup race, not a
+            // dial failure, so retry after a FIXED short delay and do NOT inflate the drop-backoff.
+            // (Going through the exponential path here would push currentDelay toward maxReconnectDelay
+            //  before the very first successful dial on a slow-starting server.)
+            this.#scheduleRetry(state, false);
             return;
         }
 
@@ -176,12 +180,20 @@ export class ReverseConnectManager {
         );
     }
 
-    #scheduleRetry(state: ReverseConnectionState): void {
+    /**
+     * Schedule the next dial attempt.
+     * @param backoff when true (genuine drop/dial failure), use the current exponential delay and
+     *                double it (capped at maxReconnectDelay). When false (startup race, endpoints not
+     *                ready yet), use a fixed reconnectDelay and leave the backoff untouched.
+     */
+    #scheduleRetry(state: ReverseConnectionState, backoff = true): void {
         if (this.#stopped || state.retryTimer) {
             return;
         }
-        const delay = state.currentDelay;
-        state.currentDelay = Math.min(state.currentDelay * 2, this.#maxReconnectDelay);
+        const delay = backoff ? state.currentDelay : this.#reconnectDelay;
+        if (backoff) {
+            state.currentDelay = Math.min(state.currentDelay * 2, this.#maxReconnectDelay);
+        }
         // c8 ignore next
         doDebug && warningLog(`reverse connect: re-dialing ${state.clientEndpointUrl} in ${delay} ms`);
         state.retryTimer = setTimeout(() => {
