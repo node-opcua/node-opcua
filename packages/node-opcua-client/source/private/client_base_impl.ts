@@ -902,12 +902,20 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
     protected _handleUnrecoverableConnectionFailure(err: Error, callback: ErrorCallback): void {
         debugLog(err.message);
+        // Terminal connect failure: make sure the client is removed from the leak registry. A
+        // synchronous throw out of _connectStep2 (e.g. an invalid SecureChannel config) lands here
+        // WITHOUT the error-branch unregister ever running, which would otherwise leak the client.
+        // unregister() is idempotent (a no-op when the client was never registered or already removed).
+        OPCUAClientBase.registry.unregister(this);
         this.emit("connection_failed", err);
         this._setInternalState("disconnected");
         callback(err);
     }
     private _handleDisconnectionWhileConnecting(err: Error, callback: ErrorCallback) {
         debugLog(err.message);
+        // see _handleUnrecoverableConnectionFailure: idempotent unregister guards against a leaked
+        // client when a connect attempt fails before the error-branch unregister runs.
+        OPCUAClientBase.registry.unregister(this);
         this.emit("connection_failed", err);
         this._setInternalState("disconnected");
         callback(err);
@@ -1006,6 +1014,23 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         }
         if (this._secureChannel !== null) {
             setImmediate(() => callback(new Error("connect already called")));
+            return;
+        }
+
+        // A reverse-connect client cannot dial the server to fetch its certificate (that is the whole
+        // point of reverse connect), so for a secure channel the server certificate MUST be supplied up
+        // front via OPCUAClientOptions.serverCertificate. Reject early with a clear message rather than
+        // letting the SecureChannel layer fail deep inside with an opaque error (which also used to leak
+        // the client, since that failure path never reached the connect-failure unregister).
+        if (this.securityMode !== MessageSecurityMode.None && !this.serverCertificate) {
+            callback(
+                new Error(
+                    "connectReverse: a secure connection (securityMode=" +
+                        MessageSecurityMode[this.securityMode] +
+                        ") requires the server certificate to be supplied up front " +
+                        "(OPCUAClientOptions.serverCertificate), because a reverse-connect client cannot dial the server to fetch it."
+                )
+            );
             return;
         }
 
