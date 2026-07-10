@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "🔒 Professional Support & Membership"
+    url: "https://support.sterfive.com"
+    about: "Get fast, guaranteed priority support and security hotfixes from the core creators."
+  - name: "💖 Sponsor & Back Node-OPCUA"
+    url: "https://github.com/sponsors/node-opcua"
+    about: "Support continuous development, CI stability, and long-term maintenance of this project."
+  - name: "💬 GitHub Discussions"
+    url: "https://github.com/node-opcua/node-opcua/discussions"
+    about: "Ask questions, share ideas, and connect with the Node-OPCUA community."

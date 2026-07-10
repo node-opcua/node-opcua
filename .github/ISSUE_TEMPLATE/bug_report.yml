@@ -1,0 +1,125 @@
+name: "🐛 Bug Report"
+description: File a structured bug report to help improve node-opcua
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for contributing to Node-OPCUA!
+
+        > [!IMPORTANT]
+        > **GitHub issues are handled by the community.** Please do not submit commercial technical support requests here.
+        
+        To get guaranteed, fast, and dedicated professional investigation, consider subscribing to the **[Node-OPCUA Membership Program](https://support.sterfive.com)**.
+        
+        ### Other ways to get help:
+        * **Security Issues:** Please do NOT open public bug reports for vulnerabilities. Report them privately via the GitHub Security Tab or consult our **[Security Policy (SECURITY.md)](https://github.com/node-opcua/node-opcua/blob/main/.github/SECURITY.md)**.
+        * Ask questions or share ideas on **[GitHub Discussions](https://github.com/node-opcua/node-opcua/discussions)**
+        * Check out the [Node-OPCUA by Example Book](https://leanpub.com/node-opcuabyexample-edition2024)
+
+  - type: checkboxes
+    id: role
+    attributes:
+      label: Context
+      description: What role is node-opcua acting as in your application?
+      options:
+        - label: My request is related to node-opcua acting as an OPCUA CLIENT
+        - label: My request is related to node-opcua acting as an OPCUA SERVER
+
+  - type: checkboxes
+    id: installation
+    attributes:
+      label: Installation Method
+      options:
+        - label: I have installed node-opcua from source (using git clone)
+        - label: I have installed node-opcua as a package (using npm install)
+        - label: I am using an application that uses node-opcua (e.g. Node-RED)
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Raspbian (Raspberry Pi)
+        - Other (please specify in OS Version below)
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS / Device Details
+      placeholder: e.g. Windows 11 Pro, Ubuntu 22.04 LTS, Raspberry Pi 4 Model B
+
+  - type: input
+    id: node-opcua-version
+    attributes:
+      label: Node-OPCUA Version
+      placeholder: e.g. 2.128.0 (please check your package.json or local installation hash)
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      placeholder: e.g. v18.16.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: remote-system
+    attributes:
+      label: Description of the other OPCUA system
+      description: If applicable, describe the other OPCUA system you are trying to connect to.
+      placeholder: |
+        Name: ______
+        Version: ______
+        Manufacturer/Software vendor: ______
+        Product Site Link: https://
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is and how it manifests.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce & Code Snippet
+      description: |
+        Please provide step-by-step instructions to reproduce the behavior, and a self-contained reproduction script.
+        You can also create a gist at https://gist.github.com/ and share the link here.
+      placeholder: |
+        1. Step one
+        2. Step two
+        
+        ```typescript
+        // Code snippet here
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs / Stack Traces
+      description: Paste any relevant error logs or trace outputs here.
+      render: shell

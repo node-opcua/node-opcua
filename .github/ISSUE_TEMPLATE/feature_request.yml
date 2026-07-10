@@ -1,0 +1,48 @@
+name: "💡 Feature Request"
+description: Suggest an idea or proposal for this project
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Suggesting a new feature for Node-OPCUA
+
+        Thank you for helping to drive the future roadmap of Node-OPCUA!
+
+        > [!NOTE]
+        > Feature requests are reviewed in order of relevance, complexity, and with support/grants from our project sponsors. 
+        
+        To accelerate development of specific features, consider backing us via **[GitHub Sponsors](https://github.com/sponsors/node-opcua)** or contacting us directly for custom enterprise development at [contact@sterfive.com](mailto:contact@sterfive.com).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem? Please describe.
+      description: A clear and concise description of what the problem or limitation is (e.g. "I am frustrated when...").
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen and how it should work in node-opcua.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions, packages, or workarounds you've considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context, designs, specifications, or screenshots about the feature request here.
+    validations:
+      required: false

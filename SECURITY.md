@@ -18,22 +18,30 @@ We may consider patching or fixing prior versions of `node-opcua` only for users
 
 ## How to Report a Security Vulnerability
 
-
 If you discover a security vulnerability within `node-opcua`, we appreciate your efforts in responsibly disclosing it to us.
 
-To ensure a smooth and effective resolution process, please follow these steps:
+To ensure a smooth, confidential, and effective resolution process, please use one of the following methods:
 
-1. **Confidential Reporting**:
-  
-   Do not publicly disclose the vulnerability. Instead, send a detailed report to our security team at `security@sterfive.com`, including:
-   - A clear description of the vulnerability.
-   - Steps to reproduce the issue.
-   - Any relevant code snippets or screenshots.
-   - Your contact information (if you wish to be credited).
+### Method 1: GitHub Private Vulnerability Reporting (Preferred)
+We recommend reporting security issues privately directly through GitHub:
+1. Navigate to the main page of the **[node-opcua/node-opcua](https://github.com/node-opcua/node-opcua)** repository.
+2. Click on the **Security** tab.
+3. In the left sidebar, click on **Advisories**.
+4. Click on **Report a vulnerability** to open the private draft advisory form.
+5. Provide a detailed description, reproduction steps, and any proof-of-concept code, then submit.
 
-2. **Acknowledgment**: 
+### Method 2: Secure Email Reporting
+If you prefer not to use GitHub's advisory system, please send a detailed confidential report to our security team at **`security@sterfive.com`**, including:
+- A clear description of the vulnerability.
+- Steps to reproduce the issue.
+- Any relevant code snippets, logs, or screenshots.
+- Your contact information (if you wish to be credited).
 
-   We will acknowledge receipt of your report usually within 24 hours and provide an estimated timeline for resolution.
+---
+
+### Acknowledgment
+
+We will acknowledge receipt of your report (usually within 24 hours) and provide an estimated timeline for resolution.
 
 ## Security Vulnerability Disclosure Policy
 
