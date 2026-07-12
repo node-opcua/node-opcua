@@ -2021,6 +2021,27 @@ importers:
         specifier: 2.174.0
         version: link:../node-opcua-variant
 
+  packages/node-opcua-nodeset-i-4-aas:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.174.0
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.174.0
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.174.0
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.174.0
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeset-ua:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-variant:
+        specifier: 2.174.0
+        version: link:../node-opcua-variant
+
   packages/node-opcua-nodeset-ia:
     dependencies:
       node-opcua-address-space-base:
@@ -2575,6 +2596,39 @@ importers:
       node-opcua-status-code:
         specifier: 2.173.0
         version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.174.0
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-weihenstephan:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.174.0
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.174.0
+        version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.174.0
+        version: link:../node-opcua-data-access
+      node-opcua-data-model:
+        specifier: 2.174.0
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-di:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-machinery:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-pack-ml:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeset-pack-ml
+      node-opcua-nodeset-ua:
+        specifier: 2.174.0
+        version: link:../node-opcua-nodeset-ua
       node-opcua-variant:
         specifier: 2.174.0
         version: link:../node-opcua-variant
