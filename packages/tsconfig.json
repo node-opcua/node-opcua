@@ -59,6 +59,7 @@
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-scales-v-2" },
         { "path": "node-opcua-nodeset-ua" },
+        { "path": "node-opcua-nodeset-weihenstephan" },
         { "path": "node-opcua-nodeset-woodworking" },
         { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-pseudo-session" },
