@@ -5,5 +5,10 @@
   ],
   "version": "2.175.0",
   "npmClient": "pnpm",
-  "exact": true
+  "exact": true,
+  "command": {
+    "version": {
+      "forcePublish": true
+    }
+  }
 }

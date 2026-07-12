@@ -1,7 +1,8 @@
+import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
+import { ExtensionObject } from "node-opcua-extension-object";
 import {
     BitField,
     EnumerationDefinitionSchema,
@@ -13,31 +14,29 @@ import {
     StructuredTypeSchema,
     TypeDefinition
 } from "node-opcua-factory";
-import { NodeId, makeExpandedNodeId, resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, INodeId, makeExpandedNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
-    browseAll,
     BrowseDescriptionLike,
+    browseAll,
     findBasicDataType,
     IBasicSessionAsync,
     IBasicSessionAsync2,
     IBasicSessionBrowseAsyncSimple,
     IBasicSessionBrowseNextAsync
 } from "node-opcua-pseudo-session";
-import {
-    EnumDefinition,
-    DataTypeDefinition,
-    StructureDefinition,
-    StructureType,
-    StructureField,
-    EnumField
-} from "node-opcua-types";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeAndEncodingId, createDynamicObjectConstructor } from "node-opcua-schemas";
+import {
+    DataTypeDefinition,
+    EnumDefinition,
+    EnumField, 
+    StructureDefinition,
+    StructureField,
+    StructureType
+} from "node-opcua-types";
 //
 import { DataType } from "node-opcua-variant";
-import { DataTypeIds } from "node-opcua-constants";
-import { _findEncodings } from "./private/find_encodings";
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import { _findEncodings } from "./private/find_encodings";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -387,17 +386,17 @@ async function resolveFieldType(
         let schema: TypeDefinition | undefined;
         let category: FieldCategory = FieldCategory.enumeration;
 
-        if (dataTypeFactory.hasStructureByTypeName(fieldTypeName!)) {
+        if (dataTypeFactory.hasStructureByTypeName(fieldTypeName)) {
             schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
             category = FieldCategory.complex;
-        } else if (dataTypeFactory.hasBuiltInType(fieldTypeName!)) {
+        } else if (dataTypeFactory.hasBuiltInType(fieldTypeName)) {
             category = FieldCategory.basic;
-            schema = dataTypeFactory.getBuiltInType(fieldTypeName!);
-        } else if (dataTypeFactory.hasEnumeration(fieldTypeName!)) {
+            schema = dataTypeFactory.getBuiltInType(fieldTypeName);
+        } else if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
             category = FieldCategory.enumeration;
-            schema = dataTypeFactory.getEnumeration(fieldTypeName!)!;
+            schema = dataTypeFactory.getEnumeration(fieldTypeName) || undefined;
         } else {
-            doDebug && debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it");
+            doDebug && debugLog(` type ${fieldTypeName} has not been seen yet, let resolve it`);
             const res = await resolve2(session, dataTypeNodeId, dataTypeManager, fieldTypeName, cache);
             schema = res.schema;
             category = res.category;

@@ -32,7 +32,9 @@ import { OPCUAServer, DataType, Variant } from "node-opcua";
 const server = new OPCUAServer({ port: 4840 });
 await server.initialize();
 
-const addressSpace = server.engine.addressSpace!;
+const addressSpace = server.engine.addressSpace;
+if (!addressSpace) throw new Error("AddressSpace not initialized");
+
 const namespace = addressSpace.getOwnNamespace();
 namespace.addVariable({
     browseName: "Temperature",

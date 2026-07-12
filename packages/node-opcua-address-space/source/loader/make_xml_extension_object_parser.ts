@@ -260,11 +260,11 @@ function _makeTypeReader(
                     throw new Error(`??? ${field.dataType}  ${field.name}`);
                 }
 
-                reader.parser![field.name!] = {
+                reader.parser![field.name || ""] = {
                     parser: fieldParser.parser,
                     // endElement: fieldReader.endElement,
                     finish(this: any) {
-                        const elName = lowerFirstLetter(field.name!);
+                        const elName = lowerFirstLetter(field.name || "");
                         if (fieldParser.finish) {
                             fieldParser.finish.call(this);
                         } else {
