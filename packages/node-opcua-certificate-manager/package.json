@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.174.0",
+    "version": "2.175.1",
     "description": "pure nodejs OPCUA SDK - module certificate-manager",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
@@ -24,17 +24,17 @@
     },
     "dependencies": {
         "env-paths": "2.2.1",
-        "node-opcua-assert": "2.164.0",
-        "node-opcua-common": "2.174.0",
+        "node-opcua-assert": "2.175.1",
+        "node-opcua-common": "2.175.1",
         "node-opcua-crypto": "5.3.6",
-        "node-opcua-debug": "2.172.0",
-        "node-opcua-object-registry": "2.172.0",
+        "node-opcua-debug": "2.175.1",
+        "node-opcua-object-registry": "2.175.1",
         "node-opcua-pki": "6.18.0",
-        "node-opcua-status-code": "2.173.0",
+        "node-opcua-status-code": "2.175.1",
         "thenify-ex": "4.4.0"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.172.0"
+        "node-opcua-leak-detector": "2.175.1"
     },
     "eslintConfig": {
         "env": {

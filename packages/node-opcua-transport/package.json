@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-transport",
-    "version": "2.174.0",
+    "version": "2.175.1",
     "description": "pure nodejs OPCUA SDK - module transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -34,20 +34,20 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.164.0",
-        "node-opcua-basic-types": "2.174.0",
-        "node-opcua-binary-stream": "2.173.0",
-        "node-opcua-buffer-utils": "2.173.0",
-        "node-opcua-chunkmanager": "2.174.0",
-        "node-opcua-debug": "2.172.0",
-        "node-opcua-factory": "2.174.0",
-        "node-opcua-object-registry": "2.172.0",
-        "node-opcua-packet-assembler": "2.172.0",
-        "node-opcua-status-code": "2.173.0",
-        "node-opcua-utils": "2.173.0"
+        "node-opcua-assert": "2.175.1",
+        "node-opcua-basic-types": "2.175.1",
+        "node-opcua-binary-stream": "2.175.1",
+        "node-opcua-buffer-utils": "2.175.1",
+        "node-opcua-chunkmanager": "2.175.1",
+        "node-opcua-debug": "2.175.1",
+        "node-opcua-factory": "2.175.1",
+        "node-opcua-object-registry": "2.175.1",
+        "node-opcua-packet-assembler": "2.175.1",
+        "node-opcua-status-code": "2.175.1",
+        "node-opcua-utils": "2.175.1"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.172.0"
+        "node-opcua-leak-detector": "2.175.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
