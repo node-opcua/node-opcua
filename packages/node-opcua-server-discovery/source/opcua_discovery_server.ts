@@ -3,7 +3,6 @@
  */
 
 
-import { EventEmitter } from "node:events";
 import os from "node:os";
 import path from "node:path";
 import { URL } from "node:url";
@@ -42,11 +41,10 @@ import {
     RegisterServer2Response,
     RegisterServerRequest,
     RegisterServerResponse,
-    ServerOnNetwork, 
     serviceToString
 } from "node-opcua-service-discovery";
 import { ApplicationDescription, type ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
-import { ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { MDNSResponder } from "./mdns_responder";
 
 const debugLog = make_debugLog("LDSSERVER");
@@ -197,11 +195,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         this.mDnsLDSAnnouncer = new BonjourHolder();
 
-        // declare the discovery server itself in bonjour
         await this.mDnsLDSAnnouncer.announcedOnMulticastSubnet(
             {
                 capabilities: this.capabilitiesForMDNS,
-                name: this.serverInfo.applicationUri!,
+                name: this.serverInfo.applicationUri || "",
                 path: "/DiscoveryServer",
                 host: hostname || "",
                 port: this.endpoints[0].port
@@ -254,7 +251,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         return this.registeredServers.size;
     }
 
-    public getServers(channel: ServerSecureChannelLayer): ApplicationDescription[] {
+    public getServers(_channel: ServerSecureChannelLayer): ApplicationDescription[] {
         this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
 
         const servers: ApplicationDescription[] = [this.serverInfo];
@@ -470,23 +467,23 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         serverInfo.discoveryUrls ??= [];
 
-        const endpointUrl = serverInfo.discoveryUrls[0]!;
+        const endpointUrl = serverInfo.discoveryUrls[0] || this.getEndpointUrl();
         const parsedUrl = new URL(endpointUrl);
 
         discoveryConfiguration.serverCapabilities = discoveryConfiguration.serverCapabilities || [];
         const announcement = {
-            capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x!) || ["DA"],
-            name: discoveryConfiguration.mdnsServerName!,
+            capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x || "") || ["DA"],
+            name: discoveryConfiguration.mdnsServerName || "",
             host: parsedUrl.hostname || "",
             path: parsedUrl.pathname || "/",
-            port: parseInt(parsedUrl.port!, 10)
+            port: parseInt(parsedUrl.port || "0", 10)
         };
 
-        if (previousConfMap.has(discoveryConfiguration.mdnsServerName!)) {
+        if (previousConfMap.has(discoveryConfiguration.mdnsServerName || "")) {
             // configuration already exists
             debugLog("Configuration ", discoveryConfiguration.mdnsServerName, " already exists !");
-            const prevConf = previousConfMap.get(discoveryConfiguration.mdnsServerName!)!;
-            previousConfMap.delete(discoveryConfiguration.mdnsServerName!);
+            const prevConf = previousConfMap.get(discoveryConfiguration.mdnsServerName || "");
+            previousConfMap.delete(discoveryConfiguration.mdnsServerName || "");
             (discoveryConfiguration as any).bonjourHolder = (prevConf as any).bonjourHolder;
         }
 
@@ -505,16 +502,22 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
      */
     async #internalRegisterServerOffline(server: RegisteredServerExtended,  forced: boolean) {
 
-        const key = server.serverUri!;
+        if (!server.serverUri) {
+            throw new Error("serverUri is required");
+        }
+        const key = server.serverUri;
 
         let configurationResults: StatusCode[] | null = null;
         // server is announced offline
         if (this.registeredServers.has(key)) {
-            const serverToUnregister = this.registeredServers.get(key)!;
-            debugLog(chalk.cyan("unregistering server : "), chalk.yellow(serverToUnregister.serverUri!));
+            const serverToUnregister = this.registeredServers.get(key);
+            if (!serverToUnregister) {
+                throw new Error("internal error");
+            }
+            debugLog(chalk.cyan("unregistering server : "), chalk.yellow(serverToUnregister?.serverUri));
             configurationResults = [];
 
-            const discoveryConfigurations = serverToUnregister.discoveryConfiguration || [];
+            const discoveryConfigurations = serverToUnregister?.discoveryConfiguration || [];
 
             for (const conf of discoveryConfigurations) {
                 await this.#stopAnnouncedOnMulticastSubnet(conf);

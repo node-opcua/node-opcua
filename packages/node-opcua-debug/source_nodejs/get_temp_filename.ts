@@ -11,5 +11,5 @@ export function getTempFilename(tmpFilename: string | null): string {
     if (!fs.existsSync(temporaryFolder)) {
         fs.mkdirSync(temporaryFolder);
     }
-    return path.normalize(path.join(temporaryFolder, tmpFilename!));
+    return path.normalize(path.join(temporaryFolder, tmpFilename));
 }

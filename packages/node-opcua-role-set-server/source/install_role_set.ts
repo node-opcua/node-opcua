@@ -171,9 +171,12 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     server.roleResolvers.push(resolver);
 
     function refreshIdentities(role: UARole): void {
+        console.log(`[REFRESH] role: ${role.browseName.toString()}, nodeId: ${role.nodeId.toString()}`);
+        const identities = store.getIdentitiesForRole(role.nodeId);
+        console.log(`[REFRESH] identities for ${role.nodeId.toString()}:`, JSON.stringify(identities));
         role.identities.setValueFromSource({
             dataType: DataType.ExtensionObject,
-            value: store.getIdentitiesForRole(role.nodeId)
+            value: identities
         });
     }
 

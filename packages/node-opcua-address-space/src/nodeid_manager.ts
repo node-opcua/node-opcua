@@ -169,13 +169,13 @@ export class NodeIdManager {
                 const [parentNodeId, suffix] = parentInfo;
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
-            const fullName = compose(fullParentName, prepareName(options.browseName!));
+            const fullName = compose(fullParentName, prepareName(options.browseName));
             if (this._cacheSymbolicName[fullName]) {
                 return makeNodeId(this._cacheSymbolicName[fullName][0], this.namespaceIndex);
             }
             const nodeId = this._constructNodeId(options);
             if (nodeId.identifierType === NodeIdType.NUMERIC) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass!];
+                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
             return nodeId;
@@ -192,9 +192,9 @@ export class NodeIdManager {
                 const [parentNodeId, suffix] = parentInfo;
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
-            const fullName = compose(fullParentName, prepareName(options.browseName!));
+            const fullName = compose(fullParentName, prepareName(options.browseName));
             if (!this._cacheSymbolicName[fullName]) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass!];
+                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
         }

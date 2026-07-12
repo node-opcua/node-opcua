@@ -16,7 +16,7 @@ function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): voi
     xw.writeAttribute("LengthInBits", "32");
     for (const f of e.fields || []) {
         xw.startElement("opc:EnumeratedValue");
-        xw.writeAttribute("Name", f.name!);
+        xw.writeAttribute("Name", f.name|| "");
         assert(f.value[0] === 0, "unsupported 64 bit value !");
         xw.writeAttribute("Value", f.value[1].toString());
         xw.endElement();
@@ -119,15 +119,15 @@ function dumpDataTypeStructure(
         }
 
         xw.startElement("opc:Field");
-        xw.writeAttribute("Name", f.name!);
+        xw.writeAttribute("Name", f.name|| "");
 
         const typeName = buildXmlName(addressSpace as AddressSpacePrivate, map, f.dataType);
         xw.writeAttribute("TypeName", typeName);
         if (isArray) {
-            xw.writeAttribute("LengthField", `NoOf${f.name!}`);
+            xw.writeAttribute("LengthField", `NoOf${f.name|| ""}`);
         }
         if (f.isOptional) {
-            xw.writeAttribute("SwitchField", `${f.name}Specified`);
+            xw.writeAttribute("SwitchField", `${f.name|| ""}Specified`);
         }
         xw.endElement();
     }
@@ -137,7 +137,7 @@ function dumpDataTypeStructure(
 function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: Map<number, string>) {
     const addressSpace = dataType.addressSpace;
 
-    const name: string = dataType.browseName.name!;
+    const name: string = dataType.browseName.name || "";
 
     const definition = dataType.getDefinition();
     if (definition instanceof StructureDefinition) {

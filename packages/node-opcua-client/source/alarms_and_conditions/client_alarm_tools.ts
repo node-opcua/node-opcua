@@ -43,7 +43,7 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
     mi.removeAllListeners();
 
     _sessionPriv.$monitoredItemForAlarmList = null;
-    await _sessionPriv.$subscriptionForAlarmList!.terminate();
+    await _sessionPriv.$subscriptionForAlarmList?.terminate();
     _sessionPriv.$clientAlarmList = null;
     return;
 }
@@ -123,7 +123,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
                 eventId.value?.toString("hex")
         );
         try {
-            if (!conditionId || !conditionId.value || conditionId.dataType === DataType.Null) {
+            if (!conditionId?.value || conditionId.dataType === DataType.Null) {
                 // not a acknowledgeable condition
                 warningLog(
                     " not acknowledgeable condition ---- " + eventType.value.toString() + " ",

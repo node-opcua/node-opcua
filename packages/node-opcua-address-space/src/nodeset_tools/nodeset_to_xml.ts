@@ -898,7 +898,7 @@ function _dumpStructureDefinition(
     for (let index = nbFieldsInBase; index < fields.length; index++) {
         const defItem = fields[index];
         xw.startElement("Field");
-        xw.writeAttribute("Name", defItem.name!);
+        xw.writeAttribute("Name", defItem.name as string);
 
         if (defItem.arrayDimensions) {
             xw.writeAttribute("ArrayDimensions", defItem.arrayDimensions.map((x) => x.toString()).join(","));

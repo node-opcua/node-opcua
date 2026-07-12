@@ -100,6 +100,18 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
     }
 }
 
+function isAnonymous(token: unknown): token is AnonymousIdentityToken {
+    return token instanceof AnonymousIdentityToken;
+}
+
+function isUserName(token: unknown): token is UserNameIdentityToken {
+    return token instanceof UserNameIdentityToken;
+}
+
+function isX509(token: unknown): token is X509IdentityToken {
+    return token instanceof X509IdentityToken;
+}
+
 /**
  * Check if a single identity mapping rule matches a user identity token.
  *
@@ -111,31 +123,31 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
 function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken): boolean {
     switch (rule.criteriaType) {
         case IdentityCriteriaType.Anonymous:
-            return token instanceof AnonymousIdentityToken;
+            return isAnonymous(token);
 
         case IdentityCriteriaType.AuthenticatedUser:
-            return !(token instanceof AnonymousIdentityToken);
+            return !isAnonymous(token);
 
         case IdentityCriteriaType.UserName:
-            return token instanceof UserNameIdentityToken && token.userName === rule.criteria;
+            return isUserName(token) && (token as any).userName === rule.criteria;
 
         case IdentityCriteriaType.Thumbprint: {
-            if (!(token instanceof X509IdentityToken) || !token.certificateData) {
+            if (!isX509(token) || !(token as any).certificateData) {
                 return false;
             }
-            const certBuffer = token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
+            const certBuffer = (token as any).certificateData instanceof Buffer ? (token as any).certificateData : Buffer.from((token as any).certificateData);
             const thumbprint = makeSHA1Thumbprint(certBuffer).toString("hex").toUpperCase();
             const expected = (rule.criteria ?? "").toUpperCase().replace(/[\s:]/g, "");
             return thumbprint === expected;
         }
 
         case IdentityCriteriaType.X509Subject: {
-            if (!(token instanceof X509IdentityToken) || !token.certificateData) {
+            if (!isX509(token) || !(token as any).certificateData) {
                 return false;
             }
             try {
                 const certBuffer =
-                    token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
+                    (token as any).certificateData instanceof Buffer ? (token as any).certificateData : Buffer.from((token as any).certificateData);
                 const info = exploreCertificate(certBuffer);
                 const subject = info.tbsCertificate.subject ?? {};
                 return matchX509Subject(rule.criteria ?? "", subject);
