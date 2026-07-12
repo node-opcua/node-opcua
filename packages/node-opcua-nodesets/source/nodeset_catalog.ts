@@ -27,6 +27,8 @@ export type NodesetName =
     | "scales"
     | "tightening"
     | "lads"
+    | "i4aas"
+    | "weihenstephan"
     | "woodWorking";
 
 export type NodesetMeta = {
@@ -300,6 +302,22 @@ export const nodesetCatalog: NodesetMeta[] = [
         xmlFile: "Opc.Ua.Scales.NodeSet2.xml",
         dependencies: ['di', 'ia', 'machinery', 'packML'],
         licence: "DUAL"
+    },
+    {
+        name: "i4aas",
+        packageName: "i4aas",
+        uri: "http://opcfoundation.org/UA/I4AAS/",
+        xmlFile: "Opc.Ua.I4AAS.NodeSet2.xml",
+        dependencies: [],
+        licence: "MIT"
+    },
+    {
+        name: "weihenstephan",
+        packageName: "weihenstephan",
+        uri: "http://opcfoundation.org/UA/Weihenstephan/",
+        xmlFile: "Opc.Ua.Weihenstephan.NodeSet2.xml",
+        dependencies: ['di', 'machinery', 'packML'],
+        licence: "MIT"
     }
 
 ];
