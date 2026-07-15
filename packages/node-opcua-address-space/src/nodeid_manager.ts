@@ -223,17 +223,16 @@ export class NodeIdManager {
         if (!occupant) {
             return true;
         }
-        // a namespaceIndex of 0 on options.browseName is ambiguous: it may mean "explicitly
-        // namespace 0" or simply "unspecified, use this manager's own namespace" (the latter is
-        // what happens when browseName is passed as a plain string, see internalCreateNode).
-        // Normalizing 0 to this manager's namespace on both sides keeps the common default-namespace
-        // case working, while still relying on the parent check below to disambiguate real
-        // same-name/same-namespace collisions (e.g. two sibling nodes both using explicit "0:EngineeringUnits").
-        const normalizeNs = (ns: number | undefined | null) => ns || this.namespaceIndex;
+        // options.browseName is expected to already carry its real, resolved namespaceIndex by the
+        // time it reaches here: internalCreateNode() normalizes plain-string browseNames to
+        // `namespaceIndex: this.index` before construction, so `0` here means "explicitly namespace 0"
+        // (e.g. the standard "0:EURange" / "0:EngineeringUnits" properties), not "unspecified".
+        // Comparing literally keeps genuinely different namespaces (own-namespace vs explicit ns 0)
+        // from being treated as the same node.
         const sameBrowseName =
             !!occupant.browseName &&
             occupant.browseName.name === (options.browseName?.name ?? null) &&
-            normalizeNs(occupant.browseName.namespaceIndex) === normalizeNs(options.browseName?.namespaceIndex);
+            (occupant.browseName.namespaceIndex ?? 0) === (options.browseName?.namespaceIndex ?? 0);
 
         const expectedParentNodeId = parentInfo ? parentInfo[0] : null;
         const sameParent = expectedParentNodeId
