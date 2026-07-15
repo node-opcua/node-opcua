@@ -72,7 +72,7 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
 
 function prepareName(browseName?: QualifiedName | QualifiedNameOptions): string {
     const m = browseName?.name?.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
-    return m ||"";
+    return m || "";
 }
 
 export interface AddressSpacePartial {
@@ -170,11 +170,12 @@ export class NodeIdManager {
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
             const fullName = compose(fullParentName, prepareName(options.browseName));
-            if (this._cacheSymbolicName[fullName]) {
-                return makeNodeId(this._cacheSymbolicName[fullName][0], this.namespaceIndex);
+            const cached = this._cacheSymbolicName[fullName];
+            if (cached && this._isCacheHitReusable(cached[0], options, parentInfo)) {
+                return makeNodeId(cached[0], this.namespaceIndex);
             }
             const nodeId = this._constructNodeId(options);
-            if (nodeId.identifierType === NodeIdType.NUMERIC) {
+            if (nodeId.identifierType === NodeIdType.NUMERIC && !cached) {
                 this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
@@ -199,6 +200,47 @@ export class NodeIdManager {
             }
         }
         return nodeId;
+    }
+
+    /**
+     * A symbol-cache hit is only safe to reuse when it actually refers to
+     * the node we are about to construct. Because the cache key is built
+     * from a (possibly truncated, e.g. during a clone where parentNodeId
+     * isn't linked yet) parent-name chain, two unrelated nodes can end up
+     * sharing the same key. When that happens, reusing the cached nodeId
+     * would hand a brand-new node the identity of a completely different,
+     * already-registered one.
+     *
+     * We only trust the cache hit when either:
+     *  - nothing occupies that nodeId yet (first-time reservation), or
+     *  - the occupant is genuinely the same node (same browseName AND same
+     *    parent) - in which case we deliberately return the same id so
+     *    that the caller's duplicate-registration error still fires.
+     */
+    private _isCacheHitReusable(value: number, options: ConstructNodeIdOptions, parentInfo: [NodeId, Suffix] | null): boolean {
+        const candidate = makeNodeId(value, this.namespaceIndex);
+        const occupant = this.addressSpace.findNode(candidate);
+        if (!occupant) {
+            return true;
+        }
+        // a namespaceIndex of 0 on options.browseName is ambiguous: it may mean "explicitly
+        // namespace 0" or simply "unspecified, use this manager's own namespace" (the latter is
+        // what happens when browseName is passed as a plain string, see internalCreateNode).
+        // Normalizing 0 to this manager's namespace on both sides keeps the common default-namespace
+        // case working, while still relying on the parent check below to disambiguate real
+        // same-name/same-namespace collisions (e.g. two sibling nodes both using explicit "0:EngineeringUnits").
+        const normalizeNs = (ns: number | undefined | null) => ns || this.namespaceIndex;
+        const sameBrowseName =
+            !!occupant.browseName &&
+            occupant.browseName.name === (options.browseName?.name ?? null) &&
+            normalizeNs(occupant.browseName.namespaceIndex) === normalizeNs(options.browseName?.namespaceIndex);
+
+        const expectedParentNodeId = parentInfo ? parentInfo[0] : null;
+        const sameParent = expectedParentNodeId
+            ? !!occupant.parentNodeId && sameNodeId(occupant.parentNodeId, expectedParentNodeId)
+            : !occupant.parentNodeId;
+
+        return sameBrowseName && sameParent;
     }
 
     private _constructNodeId(options: ConstructNodeIdOptions): NodeId {
