@@ -143,7 +143,9 @@ describe("NodeIdManager", () => {
         nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object\nSomeName_Property1;1001;Variable`);
 
         const options2 = {
-            browseName: coerceQualifiedName("Property1"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "Property1", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Variable,
             registerSymbolicNames: true,
             references: [
@@ -192,14 +194,16 @@ describe("NodeIdManager", () => {
             dataType: "Double"
         });
 
-        // force a symbol-cache collision: pretend the truncated key for a totally
-        // different (parent2, EngineeringUnits) pair maps to the already-occupied
-        // nodeId of firstChild.
-        const collidingKey = "EngineeringUnits";
+        // force a symbol-cache collision: pretend a previous (buggy) run mapped the *real* key
+        // that a (parent2, EngineeringUnits) child resolves to ("Parent2_EngineeringUnits") onto
+        // the already-occupied nodeId of firstChild (a child of parent1).
+        const collidingKey = "Parent2_EngineeringUnits";
         (nodeIdManager as any)._cacheSymbolicName[collidingKey] = [firstChild.nodeId.value as number, NodeClass.Variable];
 
         const options: ConstructNodeIdOptions = {
-            browseName: coerceQualifiedName("EngineeringUnits"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "EngineeringUnits", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Variable,
             registerSymbolicNames: true,
             references: [{ isForward: false, nodeId: parent2.nodeId, referenceType: resolveNodeId("HasComponent") }]
@@ -221,7 +225,9 @@ describe("NodeIdManager", () => {
         });
 
         const options: ConstructNodeIdOptions = {
-            browseName: coerceQualifiedName("EngineeringUnits"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "EngineeringUnits", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Variable,
             registerSymbolicNames: true,
             references: [{ isForward: false, nodeId: parent.nodeId, referenceType: resolveNodeId("HasComponent") }]
@@ -244,13 +250,16 @@ describe("NodeIdManager", () => {
             dataType: "Double"
         });
 
-        // force a symbol-cache collision on a truncated key, same parent, but a genuinely
-        // different local name ("InstrumentRange" vs "EngineeringUnits").
-        const collidingKey = "InstrumentRange";
+        // force a symbol-cache collision: pretend a previous (buggy) run mapped the *real* key
+        // that a (parent, InstrumentRange) child resolves to ("Parent1_InstrumentRange") onto the
+        // already-occupied nodeId of firstChild ("Parent1_EngineeringUnits" for real).
+        const collidingKey = "Parent1_InstrumentRange";
         (nodeIdManager as any)._cacheSymbolicName[collidingKey] = [firstChild.nodeId.value as number, NodeClass.Variable];
 
         const options: ConstructNodeIdOptions = {
-            browseName: coerceQualifiedName("InstrumentRange"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "InstrumentRange", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Variable,
             registerSymbolicNames: true,
             references: [{ isForward: false, nodeId: parent.nodeId, referenceType: resolveNodeId("HasComponent") }]
@@ -268,7 +277,9 @@ describe("NodeIdManager", () => {
         const firstChild = ns.addObject({ browseName: "TopLevelObject" });
 
         const options: ConstructNodeIdOptions = {
-            browseName: coerceQualifiedName("TopLevelObject"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "TopLevelObject", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Object,
             registerSymbolicNames: true
         };
@@ -284,13 +295,16 @@ describe("NodeIdManager", () => {
         // a top-level occupant (no parent)
         const firstChild = ns.addObject({ browseName: "SharedName" });
 
-        // force a collision: the truncated key for a (parent, SharedName) pair maps to the
+        // force a collision: pretend a previous (buggy) run mapped the *real* key that a
+        // (parent, SharedName) child resolves to ("SomeParent_SharedName") onto the
         // already-occupied nodeId of the top-level firstChild.
         const parent = ns.addObject({ browseName: "SomeParent" });
-        (nodeIdManager as any)._cacheSymbolicName.SharedName = [firstChild.nodeId.value as number, NodeClass.Object];
+        (nodeIdManager as any)._cacheSymbolicName.SomeParent_SharedName = [firstChild.nodeId.value as number, NodeClass.Object];
 
         const options: ConstructNodeIdOptions = {
-            browseName: coerceQualifiedName("SharedName"),
+            // mirror what internalCreateNode() does for a plain string browseName: it resolves to
+            // this namespace's own index, not the QualifiedName default of 0.
+            browseName: coerceQualifiedName({ name: "SharedName", namespaceIndex: ns.index }),
             nodeClass: NodeClass.Object,
             registerSymbolicNames: true,
             references: [{ isForward: false, nodeId: parent.nodeId, referenceType: resolveNodeId("HasComponent") }]
