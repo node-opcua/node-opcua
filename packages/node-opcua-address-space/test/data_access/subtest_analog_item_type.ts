@@ -182,5 +182,164 @@ export function subtest_analog_item_type(maintest: any): void {
             const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.Good);
         });
+
+        it("should honor a typeDefinition that is a strict subtype of AnalogItemType and materialize its own mandatory members", () => {
+            const analogItemType = addressSpace.findVariableType("AnalogItemType")!;
+
+            // simulates a companion-specification VariableType derived from AnalogItemType,
+            // with its own mandatory member (e.g. PADIM's ActualVolumeFlowRateVariableType / LowFlowCutOff)
+            const myAnalogSubtype = namespace.addVariableType({
+                browseName: "MyAnalogSubtype",
+                subtypeOf: analogItemType
+            });
+            namespace.addVariable({
+                browseName: "LowFlowCutOff",
+                componentOf: myAnalogSubtype,
+                dataType: "Double",
+                modellingRule: "Mandatory"
+            });
+
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const analogItem = namespace.addAnalogDataItem({
+                browseName: "MyAnalogSubtypeInstance",
+                dataType: "Double",
+                engineeringUnits: standardUnits.degree_celsius,
+                engineeringUnitsRange: { low: 0, high: 100 },
+                instrumentRange: { low: 0, high: 100 },
+                organizedBy: objectsFolder,
+                typeDefinition: myAnalogSubtype,
+                value: new Variant({ dataType: DataType.Double, value: 10.0 })
+            });
+
+            // the HasTypeDefinition reference must point to the requested subtype, not AnalogItemType
+            analogItem.typeDefinitionObj.nodeId.toString().should.eql(myAnalogSubtype.nodeId.toString());
+
+            // the subtype's own mandatory member must have been instantiated
+            const lowFlowCutOff = analogItem.getComponentByName("LowFlowCutOff");
+            should.exist(lowFlowCutOff);
+
+            // and the usual AnalogItemType members must still be there, with a single instance each
+            analogItem.euRange.readValue().value.value.low.should.eql(0);
+            analogItem.euRange.readValue().value.value.high.should.eql(100);
+            analogItem.instrumentRange?.readValue().value.value.low.should.eql(0);
+            analogItem.engineeringUnits?.readValue().value.value.displayName.text?.should.eql(
+                standardUnits.degree_celsius.displayName?.text
+            );
+
+            const browseDescription = new BrowseDescription({
+                browseDirection: BrowseDirection.Forward,
+                nodeClassMask: 0,
+                referenceTypeId: 0,
+                resultMask: 0x3f
+            });
+            const references = analogItem.browseNode(browseDescription);
+            references.filter((r) => r.browseName.name === "EURange").length.should.eql(1);
+            references.filter((r) => r.browseName.name === "InstrumentRange").length.should.eql(1);
+            references.filter((r) => r.browseName.name === "EngineeringUnits").length.should.eql(1);
+        });
+
+        it("should accept a typeDefinition passed as a NodeId, resolving it like the VariableType instance form", () => {
+            const analogItemType = addressSpace.findVariableType("AnalogItemType")!;
+            const myAnalogSubtype2 = namespace.addVariableType({
+                browseName: "MyAnalogSubtype2",
+                subtypeOf: analogItemType
+            });
+
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const analogItem = namespace.addAnalogDataItem({
+                browseName: "MyAnalogSubtype2Instance",
+                dataType: "Double",
+                engineeringUnitsRange: { low: 0, high: 100 },
+                organizedBy: objectsFolder,
+                typeDefinition: myAnalogSubtype2.nodeId,
+                value: new Variant({ dataType: DataType.Double, value: 10.0 })
+            });
+
+            analogItem.typeDefinitionObj.nodeId.toString().should.eql(myAnalogSubtype2.nodeId.toString());
+        });
+
+        it("should accept a typeDefinition passed as a browseName string (own-namespace form)", () => {
+            const analogItemType = addressSpace.findVariableType("AnalogItemType")!;
+            const myAnalogSubtype2b = namespace.addVariableType({
+                browseName: "MyAnalogSubtype2b",
+                subtypeOf: analogItemType
+            });
+
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const analogItem = namespace.addAnalogDataItem({
+                browseName: "MyAnalogSubtype2bInstance",
+                dataType: "Double",
+                engineeringUnitsRange: { low: 0, high: 100 },
+                organizedBy: objectsFolder,
+                typeDefinition: `${namespace.index}:MyAnalogSubtype2b`,
+                value: new Variant({ dataType: DataType.Double, value: 10.0 })
+            });
+
+            analogItem.typeDefinitionObj.nodeId.toString().should.eql(myAnalogSubtype2b.nodeId.toString());
+        });
+
+        it("should throw when typeDefinition is not a subtype of AnalogItemType", () => {
+            const unrelatedType = namespace.addVariableType({
+                browseName: "UnrelatedVariableType",
+                subtypeOf: "BaseDataVariableType"
+            });
+
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            should(() =>
+                namespace.addAnalogDataItem({
+                    browseName: "ShouldFail",
+                    dataType: "Double",
+                    engineeringUnitsRange: { low: 0, high: 100 },
+                    organizedBy: objectsFolder,
+                    typeDefinition: unrelatedType,
+                    value: new Variant({ dataType: DataType.Double, value: 10.0 })
+                })
+            ).throw(/shall be a subtype of AnalogItemType/);
+        });
+
+        it("should instantiate only the mandatory members when a subtype is used without instrumentRange/engineeringUnits options", () => {
+            const analogItemType = addressSpace.findVariableType("AnalogItemType")!;
+            const myAnalogSubtype3 = namespace.addVariableType({
+                browseName: "MyAnalogSubtype3",
+                subtypeOf: analogItemType
+            });
+            namespace.addVariable({
+                browseName: "LowFlowCutOff",
+                componentOf: myAnalogSubtype3,
+                dataType: "Double",
+                modellingRule: "Mandatory"
+            });
+
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const analogItem = namespace.addAnalogDataItem({
+                browseName: "MyAnalogSubtype3Instance",
+                dataType: "Double",
+                engineeringUnitsRange: { low: 0, high: 100 },
+                organizedBy: objectsFolder,
+                typeDefinition: myAnalogSubtype3,
+                value: new Variant({ dataType: DataType.Double, value: 10.0 })
+            });
+
+            analogItem.typeDefinitionObj.nodeId.toString().should.eql(myAnalogSubtype3.nodeId.toString());
+            should.exist(analogItem.getComponentByName("LowFlowCutOff"));
+
+            analogItem.euRange.readValue().value.value.low.should.eql(0);
+            should.not.exist(analogItem.instrumentRange);
+            should.not.exist(analogItem.engineeringUnits);
+
+            const browseDescription = new BrowseDescription({
+                browseDirection: BrowseDirection.Forward,
+                nodeClassMask: 0,
+                referenceTypeId: 0,
+                resultMask: 0x3f
+            });
+            const references = analogItem.browseNode(browseDescription);
+            references.filter((r) => r.browseName.name === "EURange").length.should.eql(1);
+        });
     });
 }

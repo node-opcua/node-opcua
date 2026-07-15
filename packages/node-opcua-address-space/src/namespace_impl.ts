@@ -45,7 +45,7 @@ import {
     type QualifiedNameLike
 } from "node-opcua-data-model";
 import { dumpIf, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { UAAnalogItem, UADataItem, UAInitialState, UAState } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -903,9 +903,52 @@ export class NamespaceImpl implements NamespacePrivate {
             throw new Error("expecting AnalogItemType to be defined , check nodeset xml file");
         }
 
-        const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
+        // options.typeDefinition may designate a subtype of AnalogItemType (e.g. a companion
+        // specification's own AnalogItemType-derived VariableType). In that case we must honor it
+        // so that the subtype's identity - and its own mandatory members - are preserved, instead of
+        // silently downgrading the variable to a plain AnalogItemType.
+        let requestedTypeDefinition = analogItemType;
+        if (options.typeDefinition) {
+            const t =
+                options.typeDefinition instanceof BaseNodeImpl
+                    ? (options.typeDefinition as unknown as UAVariableType)
+                    : addressSpace.findVariableType(options.typeDefinition as NodeIdLike);
+            if (!t) {
+                throw new Error(`cannot find requested typeDefinition ${options.typeDefinition.toString()}`);
+            }
+            if (!t.isSubtypeOf(analogItemType)) {
+                throw new Error(`typeDefinition ${t.browseName.toString()} shall be a subtype of AnalogItemType`);
+            }
+            requestedTypeDefinition = t;
+        }
+        const isStrictSubtype = !sameNodeId(requestedTypeDefinition.nodeId, analogItemType.nodeId);
 
-        const variable = this.addVariable(clone_options) as unknown as UAVariableImpl;
+        let variable: UAVariableImpl;
+        if (isStrictSubtype) {
+            // instantiate the requested subtype so that its own mandatory members
+            // (in addition to the AnalogItemType ones) get materialized.
+            const optionals: string[] = [];
+            if (Object.hasOwn(options, "instrumentRange")) {
+                optionals.push("InstrumentRange");
+            }
+            if (Object.hasOwn(options, "engineeringUnits")) {
+                optionals.push("EngineeringUnits");
+            }
+            variable = requestedTypeDefinition.instantiate({
+                browseName: options.browseName,
+                componentOf: options.componentOf,
+                dataType: addressSpace._coerce_DataType(dataType as NodeIdLike),
+                modellingRule: options.modellingRule,
+                nodeId: options.nodeId,
+                notifierOf: options.notifierOf,
+                eventSourceOf: options.eventSourceOf,
+                organizedBy: options.organizedBy,
+                optionals
+            }) as unknown as UAVariableImpl;
+        } else {
+            const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
+            variable = this.addVariable(clone_options) as unknown as UAVariableImpl;
+        }
 
         add_dataItem_stuff(variable, options);
 
@@ -920,18 +963,30 @@ export class NamespaceImpl implements NamespacePrivate {
         // prepared to handle this.
         //     Example:    EURange ::= {-200.0,1400.0}
 
-        const euRange = this.addVariable({
-            browseName: { name: "EURange", namespaceIndex: 0 },
-            dataType: "Range",
-            minimumSamplingInterval: 0,
-            modellingRule: options.modellingRule,
-            propertyOf: variable,
-            typeDefinition: "PropertyType",
-            value: new Variant({
-                dataType: DataType.ExtensionObject,
-                value: new Range(options.engineeringUnitsRange)
-            })
-        }) as unknown as UAVariableImpl;
+        // when `variable` was instantiated from a strict AnalogItemType subtype (isStrictSubtype),
+        // EURange/InstrumentRange/EngineeringUnits may already exist as cloned mandatory/optional
+        // members of that subtype - reuse them instead of creating duplicate property nodes.
+        const euRangeExisting = variable.getPropertyByName("EURange") as UAVariableImpl | null;
+        const euRange =
+            euRangeExisting ||
+            (this.addVariable({
+                browseName: { name: "EURange", namespaceIndex: 0 },
+                dataType: "Range",
+                minimumSamplingInterval: 0,
+                modellingRule: options.modellingRule,
+                propertyOf: variable,
+                typeDefinition: "PropertyType",
+                value: new Variant({
+                    dataType: DataType.ExtensionObject,
+                    value: new Range(options.engineeringUnitsRange)
+                })
+            }) as unknown as UAVariableImpl);
+        if (euRangeExisting) {
+            euRange.setValueFromSource(
+                new Variant({ dataType: DataType.ExtensionObject, value: new Range(options.engineeringUnitsRange) }),
+                StatusCodes.Good
+            );
+        }
 
         assert(euRange.readValue().value.value instanceof Range);
 
@@ -939,19 +994,28 @@ export class NamespaceImpl implements NamespacePrivate {
         euRange.on("value_changed", handler);
 
         if (Object.hasOwn(options, "instrumentRange")) {
-            const instrumentRange = this.addVariable({
-                accessLevel: "CurrentRead | CurrentWrite",
-                browseName: { name: "InstrumentRange", namespaceIndex: 0 },
-                dataType: "Range",
-                minimumSamplingInterval: 0,
-                modellingRule: options.modellingRule ? "Mandatory" : undefined,
-                propertyOf: variable,
-                typeDefinition: "PropertyType",
-                value: new Variant({
-                    dataType: DataType.ExtensionObject,
-                    value: new Range(options.instrumentRange)
-                })
-            });
+            const instrumentRangeExisting = variable.getPropertyByName("InstrumentRange") as UAVariableImpl | null;
+            const instrumentRange =
+                instrumentRangeExisting ||
+                this.addVariable({
+                    accessLevel: "CurrentRead | CurrentWrite",
+                    browseName: { name: "InstrumentRange", namespaceIndex: 0 },
+                    dataType: "Range",
+                    minimumSamplingInterval: 0,
+                    modellingRule: options.modellingRule ? "Mandatory" : undefined,
+                    propertyOf: variable,
+                    typeDefinition: "PropertyType",
+                    value: new Variant({
+                        dataType: DataType.ExtensionObject,
+                        value: new Range(options.instrumentRange)
+                    })
+                });
+            if (instrumentRangeExisting) {
+                instrumentRange.setValueFromSource(
+                    new Variant({ dataType: DataType.ExtensionObject, value: new Range(options.instrumentRange) }),
+                    StatusCodes.Good
+                );
+            }
 
             instrumentRange.on("value_changed", handler);
         }
@@ -964,19 +1028,28 @@ export class NamespaceImpl implements NamespacePrivate {
             // EngineeringUnits  specifies the units for the   DataItem‟s value (e.g., degree, hertz, seconds).   The
             // EUInformation   type is specified in   5.6.3.
 
-            const eu = this.addVariable({
-                accessLevel: "CurrentRead",
-                browseName: { name: "EngineeringUnits", namespaceIndex: 0 },
-                dataType: "EUInformation",
-                minimumSamplingInterval: 0,
-                modellingRule: options.modellingRule ? "Mandatory" : undefined,
-                propertyOf: variable,
-                typeDefinition: "PropertyType",
-                value: new Variant({
-                    dataType: DataType.ExtensionObject,
-                    value: engineeringUnits
-                })
-            });
+            const euExisting = variable.getPropertyByName("EngineeringUnits") as UAVariableImpl | null;
+            const eu =
+                euExisting ||
+                this.addVariable({
+                    accessLevel: "CurrentRead",
+                    browseName: { name: "EngineeringUnits", namespaceIndex: 0 },
+                    dataType: "EUInformation",
+                    minimumSamplingInterval: 0,
+                    modellingRule: options.modellingRule ? "Mandatory" : undefined,
+                    propertyOf: variable,
+                    typeDefinition: "PropertyType",
+                    value: new Variant({
+                        dataType: DataType.ExtensionObject,
+                        value: engineeringUnits
+                    })
+                });
+            if (euExisting) {
+                eu.setValueFromSource(
+                    new Variant({ dataType: DataType.ExtensionObject, value: engineeringUnits }),
+                    StatusCodes.Good
+                );
+            }
 
             eu.on("value_changed", handler);
         }

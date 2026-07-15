@@ -2,7 +2,8 @@ import type {
     AddVariableOptionsWithoutValue,
     AddYArrayItemOptions,
     BindVariableOptions,
-    UADataType
+    UADataType,
+    UAVariableType
 } from "node-opcua-address-space-base";
 import type { NodeIdLike } from "node-opcua-nodeid";
 import type { UAAnalogItem, UADataItem } from "node-opcua-nodeset-ua";
@@ -44,6 +45,13 @@ export interface AddAnalogDataItemOptions extends AddDataItemOptions {
     engineeringUnits?: EUInformationOptions | EUInformation;
     minimumSamplingInterval?: number;
     dataType?: string | NodeIdLike | UADataType;
+
+    /**
+     * an optional VariableType, which must be a subtype of AnalogItemType, to use instead of the
+     * plain AnalogItemType. Its own mandatory members (if any) will be instantiated as well.
+     * @default AnalogItemType
+     */
+    typeDefinition?: string | NodeIdLike | UAVariableType;
 
     /**
      * the acceptValueOutOfRange property indicates whether the write operation will accept or reject a value which
