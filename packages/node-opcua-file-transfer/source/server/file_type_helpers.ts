@@ -306,7 +306,7 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
             break;
         case OpenFileMode.ReadWrite:
         case OpenFileMode.Write:
-            flags = "w+";
+            flags = "r+";
             break;
         case OpenFileMode.ReadWriteAppend:
         case OpenFileMode.WriteAppend:
