@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-units",
-    "version": "2.175.1",
+    "version": "2.175.2",
     "description": "pure nodejs OPCUA SDK - module units",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -14,8 +14,8 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-data-access": "2.175.1",
-        "node-opcua-types": "2.175.1"
+        "node-opcua-data-access": "2.175.2",
+        "node-opcua-types": "2.175.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

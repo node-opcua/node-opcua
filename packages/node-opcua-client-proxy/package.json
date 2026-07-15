@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client-proxy",
-    "version": "2.175.1",
+    "version": "2.175.2",
     "description": "pure nodejs OPCUA SDK - module client-proxy",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
@@ -18,12 +18,12 @@
         "node-opcua-data-value": "2.175.1",
         "node-opcua-debug": "2.175.1",
         "node-opcua-nodeid": "2.175.1",
-        "node-opcua-pseudo-session": "2.175.1",
-        "node-opcua-service-browse": "2.175.1",
-        "node-opcua-service-call": "2.175.1",
-        "node-opcua-service-read": "2.175.1",
-        "node-opcua-service-subscription": "2.175.1",
-        "node-opcua-service-write": "2.175.1",
+        "node-opcua-pseudo-session": "2.175.2",
+        "node-opcua-service-browse": "2.175.2",
+        "node-opcua-service-call": "2.175.2",
+        "node-opcua-service-read": "2.175.2",
+        "node-opcua-service-subscription": "2.175.2",
+        "node-opcua-service-write": "2.175.2",
         "node-opcua-status-code": "2.175.1",
         "node-opcua-utils": "2.175.1",
         "node-opcua-variant": "2.175.1"

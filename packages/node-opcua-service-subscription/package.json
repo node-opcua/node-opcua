@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-subscription",
-    "version": "2.175.1",
+    "version": "2.175.2",
     "description": "pure nodejs OPCUA SDK - module service-subscription",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.175.1",
-        "node-opcua-types": "2.175.1",
+        "node-opcua-types": "2.175.2",
         "node-opcua-variant": "2.175.1"
     },
     "devDependencies": {
@@ -21,8 +21,8 @@
         "node-opcua-debug": "2.175.1",
         "node-opcua-nodeid": "2.175.1",
         "node-opcua-packet-analyzer": "2.175.1",
-        "node-opcua-secure-channel": "2.175.1",
-        "node-opcua-service-read": "2.175.1",
+        "node-opcua-secure-channel": "2.175.2",
+        "node-opcua-service-read": "2.175.2",
         "node-opcua-status-code": "2.175.1"
     },
     "author": "Etienne Rossignon",
