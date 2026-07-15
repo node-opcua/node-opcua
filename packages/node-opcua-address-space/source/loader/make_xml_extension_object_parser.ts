@@ -12,7 +12,7 @@ import {
     type UInt64
 } from "node-opcua-basic-types";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, type INodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, ExpandedNodeId, type INodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
@@ -30,6 +30,30 @@ import { makeVariantReader } from "./parsers/variant_parser";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
+
+// textual form of an ExpandedNodeId, as found in <ExpandedNodeId><Identifier>...</Identifier></ExpandedNodeId>:
+// an optional server index, an optional namespace uri, then a plain nodeId. see OPC UA part 6.
+const regexServerIndex = /^svr=([0-9]+);(.*)$/;
+const regexNamespaceUri = /^nsu=(.*?);(.*)$/;
+
+function parseExpandedNodeId(text: string): ExpandedNodeId {
+    let remaining = text.trim();
+    let serverIndex = 0;
+    let namespaceUri: string | null = null;
+
+    const serverIndexMatch = remaining.match(regexServerIndex);
+    if (serverIndexMatch) {
+        serverIndex = parseInt(serverIndexMatch[1], 10);
+        remaining = serverIndexMatch[2];
+    }
+    const namespaceUriMatch = remaining.match(regexNamespaceUri);
+    if (namespaceUriMatch) {
+        namespaceUri = namespaceUriMatch[1];
+        remaining = namespaceUriMatch[2];
+    }
+    const nodeId = coerceNodeId(remaining);
+    return new ExpandedNodeId(nodeId.identifierType, nodeId.value, nodeId.namespace, namespaceUri, serverIndex);
+}
 
 function clamp(value: number, minValue: number, maxValue: number) {
     if (value < minValue) {
@@ -169,6 +193,13 @@ const partials = {
             // to do check Local or GMT
             this.value = coerceNodeId(this.text);
         }
+    },
+
+    // <ExpandedNodeId><Identifier>svr=1;nsu=http://acme.com/UA/;i=42</Identifier></ExpandedNodeId>
+    ExpandedNodeId: <Parser<ExpandedNodeId>>{
+        finish(this: Parser<ExpandedNodeId>) {
+            this.value = parseExpandedNodeId(this.text);
+        }
     }
 };
 
@@ -231,10 +262,16 @@ function _makeTypeReader(
     let reader: ReaderStateParserLike = readerMap.get(dataTypeName)!;
 
     if (reader) {
-        return { name, reader: reader.parser! };
+        return { name, reader };
     }
 
     reader = {
+        init(this: any) {
+            // the same reader instance is used for every element of that data type: the value must be
+            // reset here, or the element being read would inherit the fields of the previously read one
+            // ( or of the enclosing one, when the structure refers to itself ).
+            this.value = undefined;
+        },
         finish(this: any) {
             /** empty  */
         },
@@ -244,6 +281,12 @@ function _makeTypeReader(
     };
 
     if (definition instanceof StructureDefinition) {
+        // the reader must be registered *before* its fields are explored: a structure may refer to
+        // itself, directly or through one of its fields, and the recursion below would never end.
+        // `reader` and `reader.parser` keep their identity while being filled, so a nested reference
+        // that picks the reader up from the map ends up pointing at the completed reader.
+        readerMap.set(dataTypeName, reader);
+
         for (const field of definition.fields || []) {
             const typeReader = _makeTypeReader(field.dataType, definitionMap, readerMap, translateNodeId);
             const fieldParser = typeReader.reader;
@@ -301,7 +344,6 @@ function _makeTypeReader(
                 throw new Error("Unsupported ValueRank !");
             }
         }
-        readerMap.set(dataTypeName, reader);
         return { name, reader };
     } else if (definition instanceof EnumDefinition) {
         const turnToInt = (value: any) => {

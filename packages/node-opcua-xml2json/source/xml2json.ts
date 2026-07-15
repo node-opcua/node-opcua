@@ -255,6 +255,7 @@ export class Xml2Json {
     public currentLevel = 0;
     private state_stack: any[] = [];
     private current_state: IReaderState | null = null;
+    private activation_count: Map<IReaderState, number> = new Map();
 
     constructor(options: ReaderStateParser) {
         const state = options instanceof ReaderStateBase ? (options as ReaderState) : new ReaderState(options);
@@ -274,8 +275,16 @@ export class Xml2Json {
      */
     public _promote(new_state: IReaderState, level: number, name?: string, attr?: XmlAttributes): void {
         attr = attr || {};
+
+        // a reader state carries the state of the element being read, so the same instance cannot be
+        // active at two levels at once. This happens when a data type refers to itself, directly or
+        // indirectly: the reader of the nested element is then the very same object as the outer one.
+        // In that case only, take a copy of the outer activation and restore it in _demote.
+        const isReentrant = this.activation_count.has(new_state);
+        this.activation_count.set(new_state, (this.activation_count.get(new_state) || 0) + 1);
+
         this.state_stack.push({
-            backup: {},
+            backup: isReentrant ? { ...(new_state as unknown as Record<string, unknown>) } : null,
             state: this.current_state
         });
 
@@ -294,6 +303,23 @@ export class Xml2Json {
         this.current_state = state;
         if (this.current_state) {
             this.current_state._on_endElement2(level, elementName);
+        }
+
+        const count = (this.activation_count.get(cur_state) || 1) - 1;
+        if (count === 0) {
+            this.activation_count.delete(cur_state);
+        } else {
+            this.activation_count.set(cur_state, count);
+        }
+        if (backup) {
+            // cur_state was a nested activation of a state that is still active at an outer level:
+            // put the outer element back the way it was. The parent has already consumed the nested
+            // value in _on_endElement2 above, so nothing is lost here.
+            const state_as_object = cur_state as unknown as Record<string, unknown>;
+            for (const key of Object.keys(state_as_object)) {
+                delete state_as_object[key];
+            }
+            Object.assign(state_as_object, backup);
         }
     }
 
