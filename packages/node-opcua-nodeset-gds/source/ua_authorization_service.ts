@@ -17,7 +17,11 @@ export interface UAAuthorizationService_Base {
     serviceUri: UAProperty<UAString, DataType.String>;
     serviceCertificate: UAProperty<Buffer, DataType.ByteString>;
     userTokenPolicies?: UAProperty<DTUserTokenPolicy[], DataType.ExtensionObject>;
+    supportedRoles?: UAProperty<UAString[], DataType.String>;
     getServiceDescription: UAMethod;
     requestAccessToken?: UAMethod;
+    startRequestToken?: UAMethod;
+    finishRequestToken?: UAMethod;
+    refreshToken?: UAMethod;
 }
 export interface UAAuthorizationService extends UAObject, UAAuthorizationService_Base {}
