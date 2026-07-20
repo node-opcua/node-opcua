@@ -16,7 +16,10 @@ import type { UAFolder, UAFolder_Base } from "./ua_folder";
  */
 export interface UAAliasNameCategory_Base extends UAFolder_Base {
     findAlias: UAMethod;
+    findAliasVerbose?: UAMethod;
     lastChange?: UAProperty<UInt32, DataType.UInt32>;
+    addAliasesToCategory?: UAMethod;
+    deleteAliasesFromCategory?: UAMethod;
    // PlaceHolder for $Alias$
    // PlaceHolder for $SubAliasNameCategories$
 }

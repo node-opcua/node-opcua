@@ -17,5 +17,6 @@ export interface UALogObject_Base {
     maxRecords?: UAProperty<UInt32, DataType.UInt32>;
     maxStorageDuration?: UAProperty<number, DataType.Double>;
     minimumSeverity?: UAProperty<UInt16, DataType.UInt16>;
+    releaseContinuationPoint?: UAMethod;
 }
 export interface UALogObject extends UAObject, UALogObject_Base {}

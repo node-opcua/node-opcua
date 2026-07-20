@@ -3,10 +3,20 @@ const path = require("path");
 const https = require('https');
 let http = require('http');
 const fs = require("fs");
-const ProgressBar = require('progress');
-
 
 const force = true;
+
+function renderProgress(downloadedBytes, totalBytes, file_url) {
+    if (totalBytes > 0) {
+        const percent = Math.min(100, Math.floor(downloadedBytes * 100 / totalBytes));
+        const width = 20;
+        const filled = Math.floor((percent * width) / 100);
+        const bar = '='.repeat(filled) + ' '.repeat(width - filled);
+        process.stdout.write(`  [${bar}] ${percent}% downloading ${file_url}\r`);
+    } else {
+        process.stdout.write(`  [${downloadedBytes} bytes] downloading ${file_url}\r`);
+    }
+}
 
 function wget(dest_folder, file_url) {
 
@@ -20,7 +30,6 @@ function wget(dest_folder, file_url) {
         http = https;
     }
 
-    const path = require("path");
     const filename = path.join(dest_folder, path.basename(file_url)); // + path.extname(url);
 
     if (fs.existsSync(filename) && !force) {
@@ -35,34 +44,20 @@ function wget(dest_folder, file_url) {
 
     const req = http.get(request_options, { headers: { 'user-agent': 'Mozilla/5.0' } }, function(response) {
         // handle the response
-        let res_data = '';
-        // console.log(response);
-        let fileBytes = parseInt(response.headers['content-length'], 10);
-        if (!Number.isFinite(fileBytes)) {
-            fileBytes = 10000;
-        }
-        const bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {
-            complete: '=',
-            incomplete: ' ',
-            width: 20,
-            total: fileBytes
-        });
+        let downloadedBytes = 0;
+        const contentLength = parseInt(response.headers['content-length'], 10);
+        const totalBytes = Number.isFinite(contentLength) ? contentLength : 0;
 
         response.on('data', function(chunk) {
-            res_data += chunk;
-
-            if (chunk.length) {
-                try {
-                    bar.tick(chunk.length);
-                } catch (err) {
-                    console.log(chunk.length, " fileBytes = ", response.headers['content-length']);
-                }
-            }
+            downloadedBytes += chunk.length;
+            renderProgress(downloadedBytes, totalBytes, file_url);
             stream.write(chunk, "binary");
-
         });
+
         response.on('end', function() {
             stream.end();
+            renderProgress(downloadedBytes, totalBytes, file_url);
+            process.stdout.write('\n');
         });
     });
     req.on('error', function(err) {

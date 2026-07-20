@@ -1,5 +1,6 @@
 export * from "./dt_application_record";
 export * from "./ua_access_token_issued_audit_event";
+export * from "./ua_access_token_requested_audit_event";
 export * from "./ua_application_registration_changed_audit_event";
 export * from "./ua_authorization_service";
 export * from "./ua_authorization_services_folder";
