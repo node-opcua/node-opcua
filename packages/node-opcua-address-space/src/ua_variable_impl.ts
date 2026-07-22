@@ -758,26 +758,23 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>   
             dataValue.value = variant1;
 
             if (dataValue.value.dataType === DataType.ExtensionObject) {
+                // early, detailed diagnostics on a malformed extension object (the actual throw
+                // happens below in _internal_set_dataValue).
                 const valueIsCorrect = this.checkExtensionObjectIsCorrect(dataValue.value.value);
                 if (!valueIsCorrect) {
                     errorLog("setValueFromSource Invalid value !");
                     errorLog(this.toString());
                     errorLog(dataValue.toString());
-                    this.checkExtensionObjectIsCorrect(dataValue.value.value);
                 }
-                // ----------------------------------
-                if (this.$extensionObject || this.$$extensionObjectArray) {
-                    // we have an extension object already bound to this node
-                    // the client is asking us to replace the object entirely by a new one
-                    // const ext = dataValue.value.value;
-                    this._internal_set_dataValue(dataValue);
-                    return;
-                } else {
-                    this.$dataValue = dataValue;
-                }
-            } else {
-                this._internal_set_dataValue(dataValue);
             }
+            // Route every value - scalar or ExtensionObject - through _internal_set_dataValue.
+            // This guarantees the change is consistently propagated to observers (historian,
+            // monitored items) and, when the node is a bound extension object (or a bound
+            // sub-structure child), cascaded through the proxy field setters by the overridden
+            // _inner_replace_dataValue. Previously ExtensionObject values were special-cased with a
+            // silent "this.$dataValue = dataValue" assignment that skipped notification for plain
+            // (unbound) extension object variables and threw on bound sub-structure children.
+            this._internal_set_dataValue(dataValue);
         } catch (err) {
             errorLog("UAVariable#setValueFromString Error : ", this.browseName.toString(), this.nodeId.toString());
             errorLog((err as Error).message);
