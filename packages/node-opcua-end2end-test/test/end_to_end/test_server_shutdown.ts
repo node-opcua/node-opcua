@@ -157,15 +157,21 @@ describe("Testing server shutdown", () => {
         const waitForSpy = (spy: SinonSpy, count: number, timeoutMs: number): Promise<void> =>
             new Promise<void>((resolve) => {
                 if (spy.callCount >= count) return resolve();
+                let settled = false;
+                const done = () => {
+                    if (settled) return;
+                    settled = true;
+                    clearInterval(t);
+                    clearTimeout(timer);
+                    resolve();
+                };
                 const t = setInterval(() => {
                     if (spy.callCount >= count) {
-                        clearInterval(t);
-                        resolve();
+                        done();
                     }
                 }, 50);
-                setTimeout(() => {
-                    clearInterval(t);
-                    resolve(); // let the assertion below report the mismatch
+                const timer = setTimeout(() => {
+                    done(); // let the assertion below report the mismatch
                 }, timeoutMs);
             });
 

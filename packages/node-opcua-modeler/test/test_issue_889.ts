@@ -215,7 +215,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1);
-        browseSpy.callCount.should.be.lessThanOrEqual(4876);
+        browseSpy.callCount.should.be.lessThanOrEqual(4878);
         browseNextSpy.callCount.should.eql(97);
 
 
@@ -244,7 +244,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1);
-        browseSpy.callCount.should.be.lessThanOrEqual(4869);
+        browseSpy.callCount.should.be.lessThanOrEqual(4874);
         browseNextSpy.callCount.should.eql(97);
 
         const a = dataTypeManager.getDataTypeFactory(1) as unknown as DataTypeFactoryPriv;

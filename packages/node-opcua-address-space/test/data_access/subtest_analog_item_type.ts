@@ -21,7 +21,8 @@ export function subtest_analog_item_type(maintest: any): void {
         const context = SessionContext.defaultContext;
 
         it("should add an analog data item in the addresss_space", async () => {
-            const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
+            const objectsFolder = addressSpace.findNode("ObjectsFolder");
+            if (!objectsFolder) throw new Error("Cannot find ObjectsFolder");
             objectsFolder.browseName.toString().should.eql("Objects");
 
             let fakeValue = 1;
@@ -184,7 +185,8 @@ export function subtest_analog_item_type(maintest: any): void {
         });
 
         it("should honor a typeDefinition that is a strict subtype of AnalogItemType and materialize its own mandatory members", () => {
-            const analogItemType = addressSpace.findVariableType("AnalogItemType")!;
+            const analogItemType = addressSpace.findVariableType("AnalogItemType");
+            if (!analogItemType) throw new Error("Cannot find AnalogItemType");
 
             // simulates a companion-specification VariableType derived from AnalogItemType,
             // with its own mandatory member (e.g. PADIM's ActualVolumeFlowRateVariableType / LowFlowCutOff)
