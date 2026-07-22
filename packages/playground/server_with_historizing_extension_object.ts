@@ -85,9 +85,6 @@ async function main() {
             }
         });
         uaVariable.setValueFromSource({ dataType: DataType.ExtensionObject, value: result });
-
-        // Important in case of a extension object
-        uaVariable.touchValue();
     };
 
     const timerId = setInterval(doScan, 1000);
