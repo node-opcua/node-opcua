@@ -162,7 +162,6 @@ try {
 }
 
 function checkMemoryConsumption() {
-    _
     // Only force a full GC when heap snapshots are requested.
     // Forcing GC on every test (~2 calls per test) adds 70-110ms
     // per call and degrades progressively as the heap grows,
