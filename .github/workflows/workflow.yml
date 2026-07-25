@@ -82,27 +82,49 @@ jobs:
       # is gitignored; the lean `build` (tsc only) doesn't produce it.
       - run: pnpm run build:all
       - run: pnpm run pretest
+      # pwsh, not bash: this step exists to surface the *raw* exit code, and
+      # Git Bash's $? is a POSIX wait status — only 8 bits. That truncation is
+      # exactly what produced the misleading "exit 127" we chased for weeks:
+      # any NTSTATUS ending in 0x7F (native crash) is indistinguishable from a
+      # genuine exit(127) once bash has masked it. $LASTEXITCODE keeps all 32.
       - name: Run tests
-        shell: bash
+        shell: pwsh
         run: |
-          cd packages
-          # Run the suite without letting a non-zero exit abort the step yet,
-          # so we can surface the *raw* exit code. GitHub's "exit code 127"
-          # message is misleading: bash reports codes mod 256, and a native
-          # crash / loader-thread fault exits before run_all_mocha_tests.js's
-          # own clamped process.exit() ever runs.
-          set +e
-          node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js
-          code=$?
-          set -e
-          echo "::notice::run_all_mocha_tests.js exited with code ${code}"
-          case "${code}" in
-            0) ;;
-            1) echo "::error::test runner reported a test failure (exit 1)" ;;
-            2) echo "::error::unhandled rejection / uncaught exception during run (exit 2) — look for the [FATAL] line above" ;;
-            *) echo "::error::abnormal exit ${code}: node died before the runner's clean exit path. No [FATAL] line above => native/loader-thread crash (not a counted test failure)." ;;
-          esac
-          exit ${code}
+          $reportDir = Join-Path $env:RUNNER_TEMP 'node-reports'
+          New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
+          Set-Location packages
+          # --report-on-fatalerror / --report-uncaught-exception: write a
+          # diagnostic JSON (native stack, heap stats, active handles) when V8
+          # or libuv aborts. Uploaded by the next step; it is the only evidence
+          # that survives a death this abrupt, since stdout to a pipe is async
+          # on Windows and the last writes are lost when the process is killed.
+          node --expose-gc --max-old-space-size=4096 `
+               --report-on-fatalerror --report-uncaught-exception `
+               --report-directory="$reportDir" `
+               run_all_mocha_tests.js
+          $code = $LASTEXITCODE
+          $hex = '0x{0:X8}' -f $code
+          Write-Host "::notice::run_all_mocha_tests.js exited with code $code ($hex)"
+          switch ($code) {
+            0 { }
+            1 { Write-Host "::error::test runner reported a test failure (exit 1)" }
+            2 { Write-Host "::error::unhandled rejection / uncaught exception during run (exit 2) — look for the [FATAL] line above" }
+            default {
+              Write-Host "::error::abnormal exit $code ($hex): node died before the runner's clean exit path. A 0xC00000xx value is an NTSTATUS => native crash (access violation, stack overflow, abort); check the node-report artifact and note that missing stdout does NOT rule out a JS-level fault."
+            }
+          }
+          exit $code
+
+      # if: failure() only — a passing run writes no report and the upload
+      # would just warn about an empty directory.
+      - name: Upload node diagnostic reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-report-windows-${{ matrix.node-version }}
+          path: ${{ runner.temp }}/node-reports
+          if-no-files-found: ignore
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
@@ -111,6 +133,10 @@ jobs:
       fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
+        # Deliberately NOT pinned to 24.15.0 like the Windows job: every
+        # abnormal-exit crash on record came from build_on_windows (24.15.0).
+        # Linux has never reproduced it, so pinning here would only cost us
+        # coverage of current Node 24.
         node-version: [22.x, 24.x]
 
     steps:
