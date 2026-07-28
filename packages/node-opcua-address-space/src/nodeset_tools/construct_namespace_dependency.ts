@@ -71,13 +71,15 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
 
         const namespaceIndex = dataType.namespace;
         consider(namespaceIndex);
+        // mark the dataType as visited *before* exploring its fields: a structure may refer to
+        // itself (directly or through a cycle), and marking it afterwards would recurse forever
+        _visitedDataType.add(dataType.toString());
         if (dataTypeNode.isStructure()) {
             const definition = dataTypeNode.getStructureDefinition();
             for (const field of definition.fields || []) {
                 exploreDataTypeField(field);
             }
         }
-        _visitedDataType.add(dataType.toString());
     }
 
     function exploreExtensionObject(e: ExtensionObject) {

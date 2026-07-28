@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
+import { DataType } from "node-opcua-variant";
 import {
     _constructNamespaceTranslationTable,
     _recomputeRequiredModelsFromTypes,
@@ -191,5 +192,50 @@ describe("constructNamespaceDependency", function () {
         _recomputeRequiredModelsFromTypes2(addressSpace2.getNamespace(3)).requiredNamespaceIndexes.should.eql([0, 2]);
         _recomputeRequiredModelsFromTypes2(addressSpace2.getNamespace(4)).requiredNamespaceIndexes.should.eql([0, 2]);
         await addressSpace2.dispose();
+    });
+});
+
+// see https://github.com/node-opcua/node-opcua/issues/1547
+// exploring the dataTypes of a namespace used to recurse forever when a structure refers to
+// itself: the guard marking a dataType as visited was applied after its fields were explored.
+// ( the TMC nodeset exhibits this with MaterialSublotType, a sublot made of sublots )
+describe("constructNamespaceDependency with self referencing structures", function () {
+    this.timeout(100000);
+
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        addressSpace.registerNamespace("Private");
+        // WwMessageArgumentValueDataType owns a field of its own type
+        const recursiveNodeset = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_recursive_structure.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, recursiveNodeset]);
+    });
+    after(() => {
+        addressSpace.dispose();
+    });
+
+    it("RRR-5 should not overflow the stack when a variable holds a self referencing extension object", () => {
+        const nsAcme = addressSpace.getNamespaceIndex("http://acme");
+        nsAcme.should.be.greaterThan(0);
+
+        const dataType = addressSpace.findDataType("WwMessageArgumentValueDataType", nsAcme)!;
+        dataType.isStructure().should.eql(true);
+
+        // the recursion is only entered through the value of a variable, so we need an instance
+        const extObj = addressSpace.constructExtensionObject(dataType, {
+            switchField: 1,
+            array: [{ boolean: 1 }, { uInt16: 16 }]
+        });
+        const namespace = addressSpace.getOwnNamespace();
+        namespace.addVariable({
+            browseName: "RecursiveValue",
+            dataType: dataType.nodeId,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: { dataType: DataType.ExtensionObject, value: extObj }
+        });
+
+        // used to throw RangeError: Maximum call stack size exceeded
+        const { requiredNamespaceIndexes } = _recomputeRequiredModelsFromTypes(namespace);
+        requiredNamespaceIndexes.should.eql([0, nsAcme]);
     });
 });
