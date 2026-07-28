@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-file-transfer",
-    "version": "2.175.2",
+    "version": "2.175.3",
     "description": "pure nodejs OPCUA SDK - module file-transfer",
     "scripts": {
         "build": "tsc -b",
@@ -16,7 +16,7 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.175.2",
+        "node-opcua-address-space": "2.175.3",
         "node-opcua-address-space-base": "2.175.2",
         "node-opcua-assert": "2.175.1",
         "node-opcua-basic-types": "2.175.1",
@@ -35,10 +35,10 @@
     },
     "devDependencies": {
         "memfs": "^4.57.8",
-        "node-opcua": "2.175.2",
-        "node-opcua-client": "2.175.2",
+        "node-opcua": "2.175.3",
+        "node-opcua-client": "2.175.3",
         "node-opcua-leak-detector": "2.175.1",
-        "node-opcua-nodesets": "2.175.1",
+        "node-opcua-nodesets": "2.175.3",
         "node-opcua-utils": "2.175.1"
     },
     "author": "Etienne Rossignon",
