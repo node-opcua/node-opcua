@@ -63,6 +63,34 @@ function getPackageInfo(dependency: string, options: Options) {
     return p;
 }
 
+// The version stamped on the generated packages must be the monorepo release version
+// (lerna.json), not the version of some sibling package: lerna only bumps the packages
+// it considers changed, so a sibling can lag behind the release and make every
+// regeneration drift away from what was committed.
+function getReleaseVersion(options: Options): string {
+    let folder = __dirname;
+    for (let i = 0; i < 6; i++) {
+        if (path.basename(folder) === "node_modules") {
+            // installed as a dependency: the lerna.json above us belongs to someone else.
+            break;
+        }
+        const lernaJson = path.join(folder, "lerna.json");
+        if (fs.existsSync(lernaJson)) {
+            const { version } = JSON.parse(fs.readFileSync(lernaJson, "utf8"));
+            if (version) {
+                return version;
+            }
+        }
+        const parent = path.dirname(folder);
+        if (parent === folder) {
+            break;
+        }
+        folder = parent;
+    }
+    // standalone use (the tool installed from npm): fall back on the SDK version.
+    return getPackageInfo("node-opcua-address-space-base", options).version;
+}
+
 interface Info {
     files: string[];
     folder: string;
@@ -148,7 +176,7 @@ async function _output_index_ts_file(info: Info): Promise<void> {
 }
 async function _output_package_json(info: Info, options: Options): Promise<void> {
     const packagejson = path.join(info.folder, "package.json");
-    const version = getPackageInfo("node-opcua-address-space-base", options).version;
+    const version = getReleaseVersion(options);
 
     const content2: string[] = [];
     content2.push(`{`);
