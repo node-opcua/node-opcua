@@ -3040,7 +3040,7 @@ importers:
         specifier: 6.19.0
         version: 6.19.0
       node-opcua-server-configuration:
-        specifier: 2.175.4
+        specifier: 2.175.5
         version: link:../node-opcua-server-configuration
       node-opcua-utils:
         specifier: 2.175.1
