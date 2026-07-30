@@ -699,7 +699,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 valueRank,
                 arrayDimensions: valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions),
                 minimumSamplingInterval: attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0,
-                historizing: false,
+                historizing: coerceBoolean(attrs.Historizing),
                 nodeId,
                 accessLevel: accessLevel,
                 userAccessLevel: accessLevel // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
@@ -822,6 +822,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 valueRank,
                 arrayDimensions: valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions),
                 minimumSamplingInterval: attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0,
+                // UAVariableType has no Historizing attribute in the XSD: keep it false
                 historizing: false,
                 nodeId: convertToNodeId(attrs.NodeId) || null
             };
