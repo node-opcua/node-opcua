@@ -29,13 +29,13 @@
         "node-opcua-assert": "2.175.1",
         "node-opcua-client": "2.175.3",
         "node-opcua-common": "2.175.2",
-        "node-opcua-crypto": "5.3.6",
+        "node-opcua-crypto": "5.4.0",
         "node-opcua-debug": "2.175.1",
         "node-opcua-status-code": "2.175.1",
         "node-opcua-transport": "2.175.1"
     },
     "devDependencies": {
-        "@playwright/test": "^1.61.1",
+        "@playwright/test": "^1.62.0",
         "@types/ws": "^8.18.1",
         "buffer": "^6.0.3",
         "esbuild": "^0.28.1",
@@ -43,7 +43,7 @@
         "node-opcua-leak-detector": "2.175.1",
         "process": "^0.11.10",
         "util": "^0.12.5",
-        "ws": "^8.21.0"
+        "ws": "^8.21.1"
     },
     "author": "Sterfive SAS",
     "license": "MIT",

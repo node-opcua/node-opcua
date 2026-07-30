@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@inquirer/prompts": "8.5.2",
-        "commander": "^12.1.0",
+        "commander": "^15.0.0",
         "node-opcua-certificate-manager": "2.175.2",
         "node-opcua-client": "2.175.3",
         "node-opcua-role-set-client": "2.175.2",
@@ -26,7 +26,7 @@
         "node-opcua-types": "2.175.2"
     },
     "devDependencies": {
-        "tsx": "^4.22.4"
+        "tsx": "^4.23.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
