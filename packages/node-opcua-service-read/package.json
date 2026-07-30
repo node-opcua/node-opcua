@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-read",
-    "version": "2.175.4",
+    "version": "2.175.6",
     "description": "pure nodejs OPCUA SDK - module service-read",
     "scripts": {
         "build": "tsc -b",
@@ -10,15 +10,15 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.175.1",
-        "node-opcua-data-model": "2.175.4",
-        "node-opcua-data-value": "2.175.4",
-        "node-opcua-service-secure-channel": "2.175.4",
-        "node-opcua-types": "2.175.4"
+        "node-opcua-assert": "2.175.6",
+        "node-opcua-data-model": "2.175.6",
+        "node-opcua-data-value": "2.175.6",
+        "node-opcua-service-secure-channel": "2.175.6",
+        "node-opcua-types": "2.175.6"
     },
     "devDependencies": {
-        "node-opcua-nodeid": "2.175.1",
-        "node-opcua-packet-analyzer": "2.175.4"
+        "node-opcua-nodeid": "2.175.6",
+        "node-opcua-packet-analyzer": "2.175.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-role-set-client",
-    "version": "2.175.4",
+    "version": "2.175.6",
     "description": "pure nodejs OPCUA SDK - client-side role-set management (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -17,17 +17,17 @@
     },
     "dependencies": {
         "node-opcua-constants": "2.175.1",
-        "node-opcua-data-model": "2.175.4",
-        "node-opcua-nodeid": "2.175.1",
-        "node-opcua-pseudo-session": "2.175.4",
-        "node-opcua-service-call": "2.175.4",
-        "node-opcua-service-translate-browse-path": "2.175.4",
-        "node-opcua-status-code": "2.175.1",
-        "node-opcua-types": "2.175.4",
-        "node-opcua-variant": "2.175.4"
+        "node-opcua-data-model": "2.175.6",
+        "node-opcua-nodeid": "2.175.6",
+        "node-opcua-pseudo-session": "2.175.6",
+        "node-opcua-service-call": "2.175.6",
+        "node-opcua-service-translate-browse-path": "2.175.6",
+        "node-opcua-status-code": "2.175.6",
+        "node-opcua-types": "2.175.6",
+        "node-opcua-variant": "2.175.6"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.175.1"
+        "node-opcua-leak-detector": "2.175.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

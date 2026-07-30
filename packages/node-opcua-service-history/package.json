@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-history",
-    "version": "2.175.4",
+    "version": "2.175.6",
     "description": "pure nodejs OPCUA SDK - module service-history",
     "scripts": {
         "test": "mocha",
@@ -10,13 +10,13 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.175.1",
-        "node-opcua-data-value": "2.175.4",
-        "node-opcua-types": "2.175.4"
+        "node-opcua-assert": "2.175.6",
+        "node-opcua-data-value": "2.175.6",
+        "node-opcua-types": "2.175.6"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.175.4",
-        "node-opcua-service-read": "2.175.4"
+        "node-opcua-packet-analyzer": "2.175.6",
+        "node-opcua-service-read": "2.175.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
