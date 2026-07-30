@@ -845,6 +845,13 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
             xw.writeAttribute("MinimumSamplingInterval", minimumSamplingInterval);
         }
     }
+    // Historizing exists in the XSD on UAVariable only: UAVariableType is restricted to
+    // DataType/ValueRank/ArrayDimensions. UAVariableTypeImpl nevertheless owns a `historizing`
+    // property, so the node class must be tested here rather than the presence of the property.
+    // false being the default, the attribute is only emitted when it is set.
+    if (node.nodeClass === NodeClass.Variable && (node as UAVariable).historizing) {
+        xw.writeAttribute("Historizing", "true");
+    }
 }
 
 function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
