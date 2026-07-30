@@ -21,7 +21,7 @@ import { type Certificate, readCertificateChainAsync } from "node-opcua-crypto";
 import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { CertificateManager } from "node-opcua-pki";
+import type { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
