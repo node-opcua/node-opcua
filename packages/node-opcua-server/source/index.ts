@@ -29,6 +29,7 @@ export * from "./invalidate_server_certificate_cache";
 export * from "./monitored_item";
 export * from "./opcua_server";
 export * from "./register_server_manager";
+export * from "./reverse_connect_manager";
 export * from "./register_server_manager_mdns_only";
 export * from "./server_capabilities";
 export * from "./server_end_point";

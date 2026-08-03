@@ -1344,6 +1344,14 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         this.#_pending_transport = undefined;
         this.#_transport = transport;
 
+        // Reconcile the endpoint URL with the transport's. For a normal (client-initiated)
+        // transport this equals the URL passed to create(); for a reverse-connect transport it is
+        // the EndpointUrl learned from the server's ReverseHello, which replaces the placeholder
+        // used during create(). Downstream endpoint matching / session creation relies on this.
+        if (transport.endpointUrl && transport.endpointUrl.length > 0) {
+            this.endpointUrl = transport.endpointUrl;
+        }
+
         // install message chunker limits:
         this.#messageChunker.maxMessageSize = this.#_transport?.maxMessageSize || 0;
         this.#messageChunker.maxChunkCount = this.#_transport?.maxChunkCount || 0;

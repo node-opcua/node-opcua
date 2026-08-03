@@ -527,58 +527,82 @@ export class ServerSecureChannelLayer extends EventEmitter {
      *
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
+        this.#_prepareTransportTimeout();
+        this.#transport.init(socket, (err?: Error | null) => this.#_onTransportInitialized(err, callback));
+        this.#_installTransportCloseListener();
+    }
+
+    /**
+     * Initialize this SecureChannel for a REVERSE connection (OPC UA Part 6 §7.1.3).
+     *
+     * Identical to {@link init} except that the transport first sends a ReverseHello ("RHE")
+     * on the (server-created, outbound) socket before waiting for the Client's "HEL". Once the
+     * HEL/ACK handshake completes the flow is byte-identical to a normal inbound connection.
+     *
+     * @param socket        an already-connected outbound socket to the Client
+     * @param reverseHello  the ServerUri (server ApplicationUri) and EndpointUrl to advertise
+     */
+    public initReverse(
+        socket: ISocketLike,
+        reverseHello: { serverUri: string; endpointUrl: string },
+        callback: ErrorCallback
+    ): void {
+        this.#_prepareTransportTimeout();
+        this.#transport.initReverse(socket, reverseHello, (err?: Error | null) => this.#_onTransportInitialized(err, callback));
+        this.#_installTransportCloseListener();
+    }
+
+    #_prepareTransportTimeout(): void {
         const minTimeout = 2000;
         // set the transport timeout
         this.#transport.timeout = Math.max(minTimeout, this.timeout);
-
         debugLog("Setting socket timeout to ", this.#transport.timeout);
+    }
 
-        this.#transport.init(socket, (err?: Error | null) => {
-            // the transport is now initialized or has failed to initialize
-            if (err) {
-                // failed to initialize the transport ( most likely a timeout has occurred)
-                // or a errorneous Hello message has been received
-                debugLog("ServerSecureChannelLayer : Transport layer has failed to initialize");
-                callback(err);
-            } else {
-                // we know this means that it has received the TCP "Hello" Message
-                // and has sent a "Acknowledge" Message
-
-                this.#_build_message_builder();
-
-                this.#_rememberClientAddressAndPort();
-
-                // adjust sizes;
-                this.#messageChunker.maxMessageSize = this.#transport.maxMessageSize;
-                this.#messageChunker.maxChunkCount = this.#transport.maxChunkCount;
-
-                // bind low level TCP transport to messageBuilder
-                this.#transport.on("chunk", (messageChunk: Buffer) => {
-                    // c8 ignore next
-                    if (doTraceIncomingChunk) {
-                        console.log(hexDump(messageChunk));
-                    }
-                    this.#messageBuilder?.feed(messageChunk);
-                });
-                debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
-                debugLog("... now waiting for OpenSecureChannelRequest...");
-
-                ServerSecureChannelLayer.registry.register(this);
-
-                // the wait should terminate before the the transport timeouts
-                const _waitForOpenSecureChannelTimeout = Math.max(minTimeout / 2.0, this.timeout - 2000);
-
-                this.#_wait_for_open_secure_channel_request(this.timeout);
-                callback();
-            }
-        });
-
+    #_installTransportCloseListener(): void {
         // detect transport closure
         this.#transport_socket_close_listener = (err: Error | null) => {
             debugLog(`transport has send 'close' event ${err ? err.message : "null"}`);
             this.#_abort(err || new Error("Transport closed abruptly"));
         };
         this.#transport.on("close", this.#transport_socket_close_listener);
+    }
+
+    #_onTransportInitialized(err: Error | null | undefined, callback: ErrorCallback): void {
+        // the transport is now initialized or has failed to initialize
+        if (err) {
+            // failed to initialize the transport ( most likely a timeout has occurred)
+            // or a errorneous Hello message has been received
+            debugLog("ServerSecureChannelLayer : Transport layer has failed to initialize");
+            callback(err);
+            return;
+        }
+        // we know this means that it has received the TCP "Hello" Message
+        // and has sent a "Acknowledge" Message
+
+        this.#_build_message_builder();
+
+        this.#_rememberClientAddressAndPort();
+
+        // adjust sizes;
+        this.#messageChunker.maxMessageSize = this.#transport.maxMessageSize;
+        this.#messageChunker.maxChunkCount = this.#transport.maxChunkCount;
+
+        // bind low level TCP transport to messageBuilder
+        this.#transport.on("chunk", (messageChunk: Buffer) => {
+            // c8 ignore next
+            if (doTraceIncomingChunk) {
+                console.log(hexDump(messageChunk));
+            }
+            this.#messageBuilder?.feed(messageChunk);
+        });
+        debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
+        debugLog("... now waiting for OpenSecureChannelRequest...");
+
+        ServerSecureChannelLayer.registry.register(this);
+
+        this.#_wait_for_open_secure_channel_request(this.timeout);
+        callback();
     }
 
     /**

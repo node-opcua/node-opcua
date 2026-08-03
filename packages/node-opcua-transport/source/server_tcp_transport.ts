@@ -16,6 +16,7 @@ import { type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-sta
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
 import type { IHelloAckLimits } from "./i_hello_ack_limits";
+import { ReverseHelloMessage, validateReverseHelloFields } from "./ReverseHelloMessage";
 import { type ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
@@ -169,6 +170,51 @@ export class ServerTCP_transport extends TCP_transport {
 
         assert(!this._socket, "init already called!");
         this._install_socket(socket);
+        this._install_HEL_message_receiver(callback);
+    }
+
+    /**
+     * Initialize the server transport for a REVERSE connection (OPC UA Part 6 §7.1.3).
+     *
+     * Unlike {@link init}, the Server has created the (outbound) socket, so it MUST send a
+     * ReverseHello ("RHE") Message first and then wait for the Client's "HEL" exactly as a
+     * normal inbound connection would. Everything after the RHE is byte-identical to `init`:
+     * the client replies with HEL, the server answers ACK and the SecureChannel is opened.
+     *
+     * @param socket        an already-connected outbound socket to the Client
+     * @param reverseHello  the ServerUri (server ApplicationUri) and EndpointUrl to advertise
+     * @param callback      called once the HEL/ACK handshake completes (or on error)
+     */
+    public initReverse(
+        socket: ISocketLike,
+        reverseHello: { serverUri: string; endpointUrl: string },
+        callback: ErrorCallback
+    ): void {
+        // c8 ignore next
+        debugLog?.(chalk.cyan("initReverse socket"));
+
+        assert(!this._socket, "init already called!");
+
+        const reverseHelloMessage = new ReverseHelloMessage({
+            serverUri: reverseHello.serverUri,
+            endpointUrl: reverseHello.endpointUrl
+        });
+        try {
+            // never emit an out-of-spec ReverseHello (Part 6 §7.1.2.6 : 4096-byte field limit)
+            validateReverseHelloFields(reverseHelloMessage);
+        } catch (err) {
+            callback(err instanceof Error ? err : new Error(String(err)));
+            return;
+        }
+
+        this._install_socket(socket);
+
+        // c8 ignore next
+        doTraceHelloAck && warningLog(`sending ReverseHello\n${reverseHelloMessage.toString()}`);
+
+        // send the ReverseHello, then reuse the exact same HEL receiver as a normal inbound connection.
+        const messageChunk = packTcpMessage("RHE", reverseHelloMessage);
+        this.write(messageChunk);
         this._install_HEL_message_receiver(callback);
     }
 

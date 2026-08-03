@@ -61,6 +61,7 @@
 | __**Transport Protocol**__             |                          |                    |
 | **Transport**                          | **Status**               | **Comment**        |
 | UA-TCP UA-SC UA Binary                 |  :white_check_mark:      | OPC.TCP - Binary   |          
+| Reverse Connect (Part 6 §7.1.3)        |  :white_check_mark:      | client & server - see [reverse_connect.md](documentation/reverse_connect.md) |
 | SOAP-HTTP WS-SC UA Binary              |  :new_moon:              | HTTP/HTTPS - Binary|               
 | SOAP-HTTP WS-SC UA XML                 |  :new_moon:              |                    |               
 | SOAP-HTTP WS-SC UA XML-UA Binary       |  :new_moon:              |                    |               
