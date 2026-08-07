@@ -1,6 +1,6 @@
 import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
-import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceExpandedNodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";
@@ -254,6 +254,49 @@ describe("OPC 10000-17: FindAlias", () => {
             const plain = await callFind(aliases, "FindAlias", "TI101");
             resultAliases(plain).should.have.length(1, "merged into a single AliasNameDataType");
             resultAliases(plain)[0].referencedNodes!.should.have.length(2, "with both targets");
+        });
+    });
+
+    describe("the AliasName's namespace (clause 6.2)", () => {
+        it("should report the namespace the alias was published in, not the category's", async () => {
+            // Aliases, TagVariables and Topics all live in namespace 0, so using
+            // the category's namespace put every alias on the wire as ns=0,
+            // which is reserved for the OPC Foundation
+            const result = await callFind(tagVariables, "FindAlias", "TI101");
+            const entry = resultAliases(result)[0];
+            entry.aliasName.namespaceIndex.should.not.eql(0, "namespace 0 is never right for an alias");
+            entry.aliasName.namespaceIndex.should.eql(addressSpace.getOwnNamespace().index);
+        });
+
+        it("should report it the same way through FindAliasVerbose", async () => {
+            const result = await callFind(tagVariables, "FindAliasVerbose", "TI101");
+            resultVerbose(result)[0].aliasName.namespaceIndex.should.eql(addressSpace.getOwnNamespace().index);
+        });
+
+        it("should still carry the alias name itself", async () => {
+            const result = await callFind(tagVariables, "FindAlias", "TI101");
+            resultAliases(result)[0].aliasName.name!.should.eql("TI101");
+        });
+
+        it("should fall back to the Server's own namespace when a store reports none", async () => {
+            // a store that is not backed by the address space may not know
+            addressSpace.dispose();
+            addressSpace = await makeAddressSpace();
+            const store = {
+                find: () => [
+                    {
+                        aliasName: "EXT-1",
+                        referencedNodes: [coerceExpandedNodeId("ns=1;i=42")],
+                        serverUris: [null],
+                        categoryNodeId: WellKnownCategories.TagVariables,
+                        referenceTypeIds: [ALIAS_FOR]
+                    }
+                ],
+                lastChange: () => 0
+            };
+            await installAliasNamesOnAddressSpace(addressSpace, { store });
+            const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
+            resultAliases(result)[0].aliasName.namespaceIndex.should.eql(addressSpace.getOwnNamespace().index);
         });
     });
 

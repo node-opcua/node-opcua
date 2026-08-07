@@ -10,17 +10,31 @@
  * binds them.
  */
 
-import type { IAddressSpace, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { IAddressSpace, ISessionContext, UAObject } from "node-opcua-address-space-base";
 import type { IAliasStore, LikeOptions } from "node-opcua-alias-name-common";
-import { NodeClass } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { AddressSpaceAliasStore } from "./address_space_alias_store.js";
 import { collectAllCategories } from "./alias_hierarchy.js";
-import { type AliasComparator, makeFindAliasHandler } from "./bind_find_alias.js";
-import { MethodDeclarations, WellKnownCategories, WellKnownOptionalMethods } from "./well_known.js";
+import {
+    type BindAliasCategoryOptions,
+    bindAliasCategory,
+    getInstalledAliasNames,
+    setInstalledAliasNames
+} from "./bind_alias_category.js";
+import type { AliasComparator } from "./bind_find_alias.js";
+import { WellKnownCategories } from "./well_known.js";
 
 /** Default result cap; beyond it a call answers `Bad_ResponseTooLarge`. */
 export const DEFAULT_MAX_RESULTS = 1000;
+
+/**
+ * Supplies the `AliasNameCategoryType` instances to bind.
+ *
+ * Defaults to walking down from `Aliases`. Replace it when the category set is
+ * dynamic — one per customer, one per upstream Server — and cannot be described
+ * by a fixed list of roots known at install time.
+ */
+export type CategoryDiscovery = (addressSpace: IAddressSpace) => UAObject[];
 
 export interface InstallAliasNamesOptions {
     /**
@@ -43,6 +57,9 @@ export interface InstallAliasNamesOptions {
      * (clauses 6.3.4 and 6.3.5, conformance unit AliasName Configuration
      * Support). Off by default, so the write surface does not appear unless it
      * is asked for.
+     *
+     * **Not implemented yet** — passing `true` throws rather than silently
+     * exposing nothing.
      */
     configurationMethods?: boolean;
     /** Passed to the `Like` matcher used by the default store. */
@@ -51,14 +68,19 @@ export interface InstallAliasNamesOptions {
     comparator?: AliasComparator;
     /**
      * Read gate; return false to answer `Bad_UserAccessDenied`
-     * (clause 6.3.2 Table 4). Defaults to allowing everyone.
+     * (clause 6.3.2 Table 4). Receives the category the Method was called on, and
+     * may return a Promise. Defaults to allowing everyone.
      */
-    isReadAllowed?: (context: ISessionContext) => boolean;
+    isReadAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
     /**
      * File backing the persisted `LastChange` values (clause 6.3.1: "The
      * LastChange shall be persisted"). A Client that sees a value older than
      * the one it cached is required to drop its cache, so a restart that resets
      * `LastChange` to zero is a bug visible in every connected Client.
+     *
+     * **Not implemented yet** — passing a path throws rather than accepting it
+     * and persisting nothing, which would leave a Server believing persistence
+     * was on.
      */
     persistencePath?: string;
     /**
@@ -67,8 +89,14 @@ export interface InstallAliasNamesOptions {
      * Categories are discovered by walking down from `Aliases`, which is where
      * clause 9.1 puts them. Name a category here if the Server models one
      * outside that hierarchy, otherwise its MANDATORY `FindAlias` stays unbound.
+     *
+     * Ignored when {@link discoverCategories} is supplied.
      */
     additionalCategoryRoots?: Array<NodeId | UAObject>;
+    /**
+     * Replace category discovery entirely. See {@link CategoryDiscovery}.
+     */
+    discoverCategories?: CategoryDiscovery;
 }
 
 export interface InstallAliasNamesResult {
@@ -78,6 +106,14 @@ export interface InstallAliasNamesResult {
     categories: NodeId[];
     /** True when this call did the work; false when AliasNames were already installed. */
     installed: boolean;
+    /**
+     * The options every category was bound with.
+     *
+     * Pass these to {@link bindAliasCategory} to bind a category created later
+     * exactly as the installed ones were bound, without reassembling them by
+     * hand and risking a different store or result cap.
+     */
+    bindingOptions: BindAliasCategoryOptions;
 }
 
 /** The server-like object we need: just access to the address space. */
@@ -86,14 +122,6 @@ export interface IServerForAliasNames {
         addressSpace: IAddressSpace | null;
     };
 }
-
-/**
- * Marks an address space as already carrying AliasName bindings, so a second
- * `installAliasNames` is a no-op rather than a double binding.
- */
-const INSTALLED = Symbol.for("node-opcua-alias-name-server.installed");
-
-type MaybeInstalled = { [INSTALLED]?: InstallAliasNamesResult };
 
 /**
  * Install AliasName support on a Server. Call after `server.start()`, when the
@@ -120,10 +148,26 @@ export async function installAliasNamesOnAddressSpace(
     addressSpace: IAddressSpace,
     options?: InstallAliasNamesOptions
 ): Promise<InstallAliasNamesResult> {
-    const marker = addressSpace as IAddressSpace & MaybeInstalled;
-    const already = marker[INSTALLED];
+    const already = getInstalledAliasNames(addressSpace);
     if (already) {
         return { ...already, installed: false };
+    }
+
+    // Refuse the options that are declared but not yet honoured, rather than
+    // accepting them and doing nothing. A Server that believes LastChange is
+    // being persisted has a defect visible in every connected Client.
+    if (options?.configurationMethods) {
+        throw new Error(
+            "installAliasNames: configurationMethods is not implemented yet " +
+                "(AddAliasesToCategory / DeleteAliasesFromCategory, OPC 10000-17 clauses 6.3.4 and 6.3.5)."
+        );
+    }
+    if (options?.persistencePath !== undefined) {
+        throw new Error(
+            "installAliasNames: persistencePath is not implemented yet " +
+                "(LastChange persistence, OPC 10000-17 clause 6.3.1). Omit it rather than " +
+                "relying on persistence that is not happening."
+        );
     }
 
     const aliasesRoot = addressSpace.findNode(WellKnownCategories.Aliases);
@@ -135,129 +179,30 @@ export async function installAliasNamesOnAddressSpace(
     }
 
     const store = options?.store ?? new AddressSpaceAliasStore(addressSpace, { likeOptions: options?.likeOptions });
-    const maxResults = options?.maxResults ?? DEFAULT_MAX_RESULTS;
-    const verbose = options?.verbose ?? true;
-    const configurationMethods = options?.configurationMethods ?? false;
 
-    const bindingOptions = {
+    const bindingOptions: BindAliasCategoryOptions = {
         store,
-        maxResults,
+        maxResults: options?.maxResults ?? DEFAULT_MAX_RESULTS,
+        verbose: options?.verbose ?? true,
         comparator: options?.comparator,
         isReadAllowed: options?.isReadAllowed
     };
-    const findAliasHandler = makeFindAliasHandler(bindingOptions, false);
-    const findAliasVerboseHandler = makeFindAliasHandler(bindingOptions, true);
 
-    const categories = collectAllCategories(addressSpace, options?.additionalCategoryRoots);
+    const discover: CategoryDiscovery =
+        options?.discoverCategories ?? ((space) => collectAllCategories(space, options?.additionalCategoryRoots));
+    const categories = discover(addressSpace);
 
+    // one binding path, shared with bindAliasCategory, so a category created
+    // after installation cannot end up bound differently
     for (const category of categories) {
-        bindFindAlias(category, findAliasHandler);
-        if (verbose) {
-            const method = ensureOptionalMethod(addressSpace, category, "FindAliasVerbose");
-            method?.bindMethod(findAliasVerboseHandler);
-        }
+        bindAliasCategory(addressSpace, category, bindingOptions);
     }
 
-    // The configuration Methods (clauses 6.3.4 / 6.3.5) are the next slice; the
-    // flag is accepted now so the option shape does not change when they land.
-    if (configurationMethods) {
-        throw new Error(
-            "installAliasNames: configurationMethods is not implemented yet " +
-                "(AddAliasesToCategory / DeleteAliasesFromCategory, OPC 10000-17 clauses 6.3.4 and 6.3.5)."
-        );
-    }
-
-    const result: InstallAliasNamesResult = {
+    const installed = {
         store,
         categories: categories.map((c) => c.nodeId),
-        installed: true
+        bindingOptions
     };
-    marker[INSTALLED] = result;
-    return result;
-}
-
-/** Bind the mandatory `FindAlias` on a category, if the instance carries one. */
-function bindFindAlias(category: UAObject, handler: Parameters<UAMethod["bindMethod"]>[0]): void {
-    const method = findMethodByDeclaration(category, MethodDeclarations.FindAlias, "FindAlias");
-    method?.bindMethod(handler);
-}
-
-/**
- * Find a Method on a category by its MethodDeclarationId, falling back to the
- * BrowseName.
- *
- * The declaration id is the reliable key: a Server may publish the Method under
- * a localised DisplayName, and the BrowseName is only unique within the
- * namespace. The fallback covers instances built in code, which do not always
- * carry a `methodDeclarationId`.
- */
-function findMethodByDeclaration(category: UAObject, declarationId: NodeId, browseName: string): UAMethod | null {
-    for (const component of category.getComponents()) {
-        if (component.nodeClass !== NodeClass.Method) {
-            continue;
-        }
-        const method = component as UAMethod;
-        if (method.methodDeclarationId && method.methodDeclarationId.value === declarationId.value) {
-            return method;
-        }
-        if (method.browseName.name === browseName) {
-            return method;
-        }
-    }
-    return null;
-}
-
-/**
- * Ensure an optional Method exists on a category, adding it when the nodeset
- * only declared it on the type.
- *
- * The shipped `Opc.Ua.NodeSet2.xml` declares `FindAliasVerbose`,
- * `AddAliasesToCategory` and `DeleteAliasesFromCategory` on
- * `AliasNameCategoryType` but instantiates none of them on `Aliases`,
- * `TagVariables` or `Topics`. Upstream nonetheless reserves fixed NodeIds for
- * those instances, so where one exists it is used in preference to a
- * server-assigned id; an aggregating Server then sees the NodeId it expects.
- */
-function ensureOptionalMethod(
-    addressSpace: IAddressSpace,
-    category: UAObject,
-    name: "FindAliasVerbose" | "AddAliasesToCategory" | "DeleteAliasesFromCategory"
-): UAMethod | null {
-    const declarationId = MethodDeclarations[name];
-    const existing = findMethodByDeclaration(category, declarationId, name);
-    if (existing) {
-        return existing;
-    }
-
-    const declaration = addressSpace.findNode(declarationId);
-    if (!declaration || declaration.nodeClass !== NodeClass.Method) {
-        // an address space whose nodeset predates the optional Methods
-        return null;
-    }
-
-    const reservedNodeId = reservedMethodNodeId(category.nodeId, name);
-    // a reserved id already taken by something else means the address space is
-    // not what we think it is; fall back to a server-assigned id rather than
-    // colliding
-    const nodeId = reservedNodeId && !addressSpace.findNode(reservedNodeId) ? reservedNodeId : undefined;
-
-    return (declaration as UAMethod).clone({
-        namespace: addressSpace.getNamespace(category.nodeId.namespace),
-        nodeId,
-        componentOf: category,
-        methodDeclarationId: declarationId
-    });
-}
-
-/** The NodeId OPC 10000-17 reserves for an optional Method on a well-known category. */
-function reservedMethodNodeId(
-    categoryNodeId: NodeId,
-    name: "FindAliasVerbose" | "AddAliasesToCategory" | "DeleteAliasesFromCategory"
-): NodeId | undefined {
-    for (const [key, wellKnownId] of Object.entries(WellKnownCategories)) {
-        if (wellKnownId.value === categoryNodeId.value && wellKnownId.namespace === categoryNodeId.namespace) {
-            return WellKnownOptionalMethods[key as keyof typeof WellKnownOptionalMethods][name];
-        }
-    }
-    return undefined;
+    setInstalledAliasNames(addressSpace, installed);
+    return { ...installed, installed: true };
 }

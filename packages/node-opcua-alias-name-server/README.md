@@ -86,11 +86,75 @@ second node; an exact duplicate of (name, target) is ignored.
 | `store` | `AddressSpaceAliasStore` | Where aliases come from. Inject your own to back them with a database or an existing tag dictionary. |
 | `maxResults` | `1000` | Beyond this a call answers `Bad_ResponseTooLarge` (clause 6.3.2 Table 4). |
 | `verbose` | `true` | Also bind `FindAliasVerbose` (clause 6.3.3). |
-| `configurationMethods` | `false` | Expose `AddAliasesToCategory` / `DeleteAliasesFromCategory`. **Not implemented yet** — passing `true` throws rather than silently doing nothing. |
 | `comparator` | insertion order | Result ordering (clause 6.3.2, "best match first"). |
-| `isReadAllowed` | allow all | Return false to answer `Bad_UserAccessDenied`. |
+| `isReadAllowed` | allow all | `(context, categoryNodeId) => boolean \| Promise<boolean>`. Return false to answer `Bad_UserAccessDenied`. |
 | `likeOptions` | case sensitive | Passed to the `Like` matcher. |
 | `additionalCategoryRoots` | — | Categories modelled outside the `Aliases` hierarchy. |
+| `discoverCategories` | walk from `Aliases` | Replace category discovery entirely, for a Server whose category set is dynamic. |
+| `configurationMethods` | `false` | **Not implemented yet** — passing `true` throws. |
+| `persistencePath` | — | **Not implemented yet** — passing a path throws. |
+
+Both unimplemented options throw rather than being accepted and ignored. A Server that
+believes `LastChange` is being persisted, or that the write Methods are exposed, has a
+defect that is invisible locally and visible to every connected Client.
+
+## Extending it
+
+Everything installation does is available piecewise, so an advanced Server — a GDS, an
+aggregating Server, a vendor Server with per-customer categories — does not have to
+re-implement a private half.
+
+### Categories created at runtime
+
+`installAliasNames` binds what exists when it runs, and is a no-op if called again. A
+category created afterwards would otherwise have an unbound MANDATORY `FindAlias` — the
+exact defect this package removes, reappearing at runtime. Use `addAliasCategory`, which
+creates *and* binds:
+
+```ts
+import { addAliasCategory, WellKnownCategories } from "node-opcua-alias-name-server";
+
+const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
+// FindAlias and FindAliasVerbose are already bound, with the options
+// installAliasNames was given
+```
+
+For a category built by hand, bind it with the options installation used:
+
+```ts
+import { bindAliasCategory, getInstalledAliasNames } from "node-opcua-alias-name-server";
+
+const installed = getInstalledAliasNames(addressSpace)!;
+bindAliasCategory(addressSpace, myCategory, installed.bindingOptions);
+```
+
+`installAliasNamesOnAddressSpace` calls `bindAliasCategory` in its own loop, so there is
+exactly one binding path and a late category cannot diverge from an installed one. This
+matters most for `FindAliasVerbose`, whose clone-with-reserved-NodeId logic cannot
+sensibly be hand-rolled.
+
+### Dynamic category sets
+
+`additionalCategoryRoots` only covers roots known at install time. When the set is
+genuinely dynamic, replace discovery:
+
+```ts
+await installAliasNames(server, {
+    discoverCategories: (addressSpace) => myTenantCategories(addressSpace)
+});
+```
+
+### Per-category access control
+
+`isReadAllowed` receives the category the Method was called on and may return a Promise,
+so "may this user see *this* customer's category" is expressible, and a permission lookup
+may hit a database:
+
+```ts
+await installAliasNames(server, {
+    isReadAllowed: async (context, categoryNodeId) => tenantOf(context) === ownerOf(categoryNodeId)
+});
+```
 
 ### Result ordering
 
@@ -156,11 +220,17 @@ source.
 
 ## What is not here yet
 
-- `AddAliasesToCategory` / `DeleteAliasesFromCategory` (clauses 6.3.4, 6.3.5 — conformance
-  unit *AliasName Configuration Support*). The option exists and throws.
-- `LastChange` rollup and persistence (clause 6.3.1). `AddressSpaceAliasStore` already
-  tracks per-category VersionTimes and rolls them up on read; the Property is not yet
-  written or persisted.
+- **`AddAliasesToCategory` / `DeleteAliasesFromCategory`** (clauses 6.3.4, 6.3.5 —
+  conformance unit *AliasName Configuration Support*). `configurationMethods: true`
+  throws. `IAliasStore.add` / `delete` are declared, and already return the per-item
+  `StatusCode[]` those clauses require, but nothing calls them yet.
+- **`LastChange`** (clause 6.3.1). The `LastChange` Property is **not written and not
+  persisted**, and `persistencePath` throws. `AddressSpaceAliasStore` already tracks
+  per-category VersionTimes and rolls them up on read, and `IAliasStore.lastChange()` and
+  `WellKnownLastChange` exist, but nothing yet connects them to the address space. Do not
+  assume a Client can rely on `LastChange` from this release.
+- **Aggregation across Servers** (Annexes B, C) and the **Annex D PubSub change
+  notification** — out of scope by design, not pending.
 
 ## License
 
