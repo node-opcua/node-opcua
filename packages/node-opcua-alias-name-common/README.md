@@ -79,9 +79,26 @@ Two consequences worth designing around:
 > other than the address space — a database, a configuration file, an existing tag
 > dictionary — but treat it as provisional.
 
-`AliasEntry` carries the string part of the alias name only, because clause 6.2 requires
-the namespace to be ignored when comparing AliasNames. `serverUris` is parallel to
-`referencedNodes` and holds `null` for a Node on the local Server (clause 7.3).
+`AliasEntry` carries the string part of the alias name as its identity, because clause 6.2
+requires the namespace to be ignored when comparing AliasNames — but
+`aliasNameNamespaceUri` still reports the namespace it was published in, so a Server does
+not have to invent one. Omit it and the binding falls back to the Server's own namespace,
+never to namespace 0, which is reserved for the OPC Foundation.
+
+Three arrays are parallel to `referencedNodes`, same length and same order:
+
+| Field | Meaning |
+|---|---|
+| `serverUris` | `null` for a Node on the local Server (clause 7.3) |
+| `referenceTypeIds` | `AliasFor` or the subtype reaching *that* target (clause 8.2) |
+
+The order of `referencedNodes` is the store's responsibility and is never reordered: an
+`AliasComparator` orders entries relative to one another, and merging by name appends
+rather than re-sorts.
+
+`add` and `delete` return one `StatusCode` per entry, parallel to the entries passed in,
+because clauses 6.3.4 and 6.3.5 report per item rather than per call — a single target on
+another Server yields `Uncertain_ReferenceOutOfServer` while its siblings succeed.
 
 ## License
 

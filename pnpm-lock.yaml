@@ -677,6 +677,9 @@ importers:
       node-opcua-nodeid:
         specifier: 2.175.6
         version: link:../node-opcua-nodeid
+      node-opcua-status-code:
+        specifier: 2.175.6
+        version: link:../node-opcua-status-code
 
   packages/node-opcua-alias-name-server:
     dependencies:

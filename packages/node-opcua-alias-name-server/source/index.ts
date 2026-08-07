@@ -11,6 +11,16 @@
 export { AddressSpaceAliasStore, type AddressSpaceAliasStoreOptions } from "./address_space_alias_store.js";
 export { AliasNameError, addAlias, findAlias, removeAlias, type AddAliasOptions } from "./add_alias.js";
 export {
+    addAliasCategory,
+    bindAliasCategory,
+    ensureOptionalMethod,
+    findMethodByDeclaration,
+    getInstalledAliasNames,
+    type AddAliasCategoryOptions,
+    type BindAliasCategoryOptions,
+    type InstalledAliasNames
+} from "./bind_alias_category.js";
+export {
     aliasesOf,
     collectAllCategories,
     collectCategories,
@@ -30,6 +40,7 @@ export {
     DEFAULT_MAX_RESULTS,
     installAliasNames,
     installAliasNamesOnAddressSpace,
+    type CategoryDiscovery,
     type IServerForAliasNames,
     type InstallAliasNamesOptions,
     type InstallAliasNamesResult

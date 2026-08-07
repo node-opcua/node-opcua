@@ -103,12 +103,16 @@ export class AddressSpaceAliasStore implements IAliasStore {
                 }
                 entries.push({
                     aliasName,
+                    // the namespace the alias Object was actually published in,
+                    // not the category's - Aliases and friends live in
+                    // namespace 0, which clause 6.2 never intends for an alias
+                    aliasNameNamespaceUri: this.namespaceUriOf(alias.browseName.namespaceIndex),
                     referencedNodes: targets.map((t) => t.expandedNodeId),
                     // every target is on this Server; aggregating other Servers
                     // is out of scope for this package (Annex B / Annex C)
                     serverUris: targets.map(() => null),
                     categoryNodeId: category.nodeId,
-                    referenceTypeId: targets[0].referenceTypeId
+                    referenceTypeIds: targets.map((t) => t.referenceTypeId)
                 });
             }
         }
@@ -152,6 +156,13 @@ export class AddressSpaceAliasStore implements IAliasStore {
     /** Snapshot the per-category `LastChange` values for persistence. */
     public snapshotLastChange(): Array<[string, number]> {
         return [...this.lastChangeByCategory.entries()];
+    }
+
+    /** The URI of a namespace index, or undefined for namespace 0. */
+    private namespaceUriOf(namespaceIndex: number): string | undefined {
+        // namespace 0 is the OPC Foundation's and is never a legitimate alias
+        // namespace; reporting it would be worse than reporting nothing
+        return namespaceIndex === 0 ? undefined : this.addressSpace.getNamespaceUri(namespaceIndex);
     }
 
     /**

@@ -6,6 +6,7 @@
  */
 
 import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import type { StatusCode } from "node-opcua-status-code";
 
 /**
  * One AliasName and the Nodes it resolves to.
@@ -25,10 +26,27 @@ export interface AliasEntry {
     aliasName: string;
 
     /**
+     * The namespace URI the AliasName was published in.
+     *
+     * Clause 6.2 requires a Client to ignore the namespace when *comparing*
+     * AliasNames, which is why it is not part of the identity above — but a
+     * Server should still report it truthfully rather than invent one. Clause
+     * 6.2 expects namespace 1 or a vendor namespace; namespace 0 is reserved for
+     * the OPC Foundation and is never right for an alias.
+     *
+     * Omit it and the binding falls back to the Server's own namespace. A store
+     * that is not backed by the address space — one holding aliases published
+     * elsewhere — should set it.
+     */
+    aliasNameNamespaceUri?: string;
+
+    /**
      * The Nodes this alias names. Clause 7.2: there is always at least one.
      *
-     * The order is significant — clause 6.3.2 requires the Server to return its
-     * best match first.
+     * The order is the Server's recommendation, best first (clause 6.3.2).
+     * Ordering *within* this array is the store's responsibility: an
+     * {@link AliasComparator} orders entries relative to one another and never
+     * reorders the targets inside one, and neither does merging by name.
      */
     referencedNodes: ExpandedNodeId[];
 
@@ -45,10 +63,14 @@ export interface AliasEntry {
     categoryNodeId: NodeId;
 
     /**
-     * The ReferenceType of the link from the AliasName Object to its target,
-     * `AliasFor` (i=23469) or a subtype (clause 8.2).
+     * The ReferenceType linking the AliasName Object to each entry of
+     * {@link referencedNodes} — `AliasFor` (i=23469) or a subtype (clause 8.2).
+     *
+     * Parallel to `referencedNodes`, same length and same order: one alias may
+     * reach different targets through different `AliasFor` subtypes, so a single
+     * value could only ever describe the first.
      */
-    referenceTypeId: NodeId;
+    referenceTypeIds: NodeId[];
 }
 
 /** The search a `FindAlias` / `FindAliasVerbose` call turns into. */
@@ -113,9 +135,37 @@ export interface IAliasStore {
      */
     lastChange(categoryNodeId: NodeId): number | Promise<number>;
 
-    /** Add aliases to a category. Present only on a writable store. */
-    add?(categoryNodeId: NodeId, entries: AliasEntry[]): void | Promise<void>;
+    /**
+     * Add aliases to a category. Present only on a writable store.
+     *
+     * Returns one StatusCode **per entry, in the same order and of the same
+     * length** — `AddAliasesToCategory` reports its outcome per item, not per
+     * call (clause 6.3.4 Table 10). A store is expected to produce
+     * `Bad_NodeIdInvalid` or `Bad_NodeIdUnknown` for a target it cannot resolve
+     * locally, `Bad_NotSupported` if it does not accept remote targets at all,
+     * and `Uncertain_ReferenceOutOfServer` for any target on another Server —
+     * including the case where no check was performed, which is why the
+     * uncertain code exists.
+     *
+     * An exact duplicate of (AliasName, target, target Server) is `Good` and
+     * ignored, whether it was already stored or repeated within this call.
+     */
+    add?(categoryNodeId: NodeId, entries: AliasEntry[]): StatusCode[] | Promise<StatusCode[]>;
 
-    /** Remove aliases from a category. Present only on a writable store. */
-    delete?(categoryNodeId: NodeId, entries: Pick<AliasEntry, "aliasName" | "referencedNodes">[]): void | Promise<void>;
+    /**
+     * Remove aliases from a category. Present only on a writable store.
+     *
+     * Returns one StatusCode **per entry, in the same order and of the same
+     * length** (clause 6.3.5 Table 14): `Bad_NotFound` when the alias is not
+     * there, `Bad_InvalidState` when it is not owned by the local Server.
+     *
+     * Removal is all-or-nothing per name — if any target of a name cannot be
+     * removed, none of that name's targets are — and removing the last target
+     * removes the `AliasNameType` Object, since clause 7.2 gives it at least one
+     * ReferencedNode.
+     */
+    delete?(
+        categoryNodeId: NodeId,
+        entries: Pick<AliasEntry, "aliasName" | "referencedNodes">[]
+    ): StatusCode[] | Promise<StatusCode[]>;
 }

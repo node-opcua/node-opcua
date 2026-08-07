@@ -47,8 +47,14 @@ export interface FindAliasBindingOptions {
      * Read gate. Return false to answer `Bad_UserAccessDenied`
      * (clause 6.3.2 Table 4). Defaults to allowing everyone, matching a Server
      * that publishes its aliases openly.
+     *
+     * Receives the category the Method was called on, so a Server with
+     * per-customer or per-tenant categories can answer "may this user see *this*
+     * category" rather than only "may this user read aliases at all". May return
+     * a Promise: the handler is async anyway, so a permission lookup that hits a
+     * database costs nothing structurally.
      */
-    isReadAllowed?: (context: ISessionContext) => boolean;
+    isReadAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
 }
 
 /** Read `AliasNameSearchPattern` (argument 0). */
@@ -104,6 +110,40 @@ function mergeByAliasName(entries: AliasEntry[]): AliasEntry[] {
 }
 
 /**
+ * Resolve each entry's AliasName namespace index, once per call.
+ *
+ * The namespace reported is the one the alias was published in, taken from the
+ * store. Using the *category's* namespace instead would put every alias on the
+ * three well-known categories into namespace 0, which is reserved for the OPC
+ * Foundation and is not what clause 6.2 intends. A store that does not know its
+ * namespace falls back to the Server's own, never to 0.
+ *
+ * Clients ignore the namespace when comparing AliasNames (clause 6.2), so this
+ * is not a matching concern — it is a matter of reporting truthfully.
+ */
+function makeNamespaceResolver(category: UAObject): (entry: AliasEntry) => number {
+    const addressSpace = category.addressSpace;
+    const ownNamespaceIndex = addressSpace.getOwnNamespace().index;
+    const cache = new Map<string, number>();
+
+    return (entry: AliasEntry): number => {
+        if (!entry.aliasNameNamespaceUri) {
+            return ownNamespaceIndex;
+        }
+        const cached = cache.get(entry.aliasNameNamespaceUri);
+        if (cached !== undefined) {
+            return cached;
+        }
+        const index = addressSpace.getNamespaceIndex(entry.aliasNameNamespaceUri);
+        // an unregistered URI resolves to -1; reporting the Server's own
+        // namespace is closer to the truth than reporting namespace 0
+        const resolved = index >= 0 ? index : ownNamespaceIndex;
+        cache.set(entry.aliasNameNamespaceUri, resolved);
+        return resolved;
+    };
+}
+
+/**
  * Build a handler for `FindAlias` or `FindAliasVerbose`.
  *
  * `this` is the Method node, so the category searched is the Method's parent —
@@ -119,18 +159,18 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
         inputArguments: Variant[],
         context: ISessionContext
     ): Promise<CallMethodResultOptions> {
-        if (options.isReadAllowed && !options.isReadAllowed(context)) {
+        const category = this.parent as UAObject | null;
+        if (!category) {
+            return { statusCode: StatusCodes.BadInternalError };
+        }
+
+        if (options.isReadAllowed && !(await options.isReadAllowed(context, category.nodeId))) {
             return { statusCode: StatusCodes.BadUserAccessDenied };
         }
 
         const pattern = readPattern(inputArguments);
         if (pattern === null) {
             return { statusCode: StatusCodes.BadInvalidArgument };
-        }
-
-        const category = this.parent as UAObject | null;
-        if (!category) {
-            return { statusCode: StatusCodes.BadInternalError };
         }
 
         const query: AliasQuery = {
@@ -169,11 +209,12 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
 
         // No match is Good with an empty AliasNodeList (clause 6.3.2 Table 3),
         // never an error.
+        const namespaceIndexOf = makeNamespaceResolver(category);
         const value = verbose
             ? ordered.map(
                   (entry) =>
                       new AliasNameVerboseDataType({
-                          aliasName: { name: entry.aliasName, namespaceIndex: category.browseName.namespaceIndex },
+                          aliasName: { name: entry.aliasName, namespaceIndex: namespaceIndexOf(entry) },
                           referencedNodes: entry.referencedNodes,
                           serverUris: entry.serverUris,
                           aliasNameCategoryId: entry.categoryNodeId
@@ -182,7 +223,7 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
             : ordered.map(
                   (entry) =>
                       new AliasNameDataType({
-                          aliasName: { name: entry.aliasName, namespaceIndex: category.browseName.namespaceIndex },
+                          aliasName: { name: entry.aliasName, namespaceIndex: namespaceIndexOf(entry) },
                           referencedNodes: entry.referencedNodes
                       })
               );
