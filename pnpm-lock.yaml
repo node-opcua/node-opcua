@@ -675,6 +675,43 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-nodeid
 
+  packages/node-opcua-alias-name-server:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.175.6
+        version: link:../node-opcua-address-space-base
+      node-opcua-alias-name-common:
+        specifier: 2.175.6
+        version: link:../node-opcua-alias-name-common
+      node-opcua-constants:
+        specifier: 2.175.1
+        version: link:../node-opcua-constants
+      node-opcua-data-model:
+        specifier: 2.175.6
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.175.6
+        version: link:../node-opcua-nodeid
+      node-opcua-service-call:
+        specifier: 2.175.6
+        version: link:../node-opcua-service-call
+      node-opcua-status-code:
+        specifier: 2.175.6
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.175.6
+        version: link:../node-opcua-types
+      node-opcua-variant:
+        specifier: 2.175.6
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-address-space:
+        specifier: 2.175.6
+        version: link:../node-opcua-address-space
+      node-opcua-nodesets:
+        specifier: 2.175.3
+        version: link:../node-opcua-nodesets
+
   packages/node-opcua-assert:
     dependencies:
       chalk:
