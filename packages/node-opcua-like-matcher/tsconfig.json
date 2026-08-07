@@ -9,14 +9,7 @@
     "include": [
         "source/**/*.ts"
     ],
-    "references": [
-        {
-            "path": "../node-opcua-like-matcher"
-        },
-        {
-            "path": "../node-opcua-nodeid"
-        }
-    ],
+    "references": [],
     "exclude": [
         "node_modules",
         "dist"

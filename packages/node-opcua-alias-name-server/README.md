@@ -109,7 +109,7 @@ are bounded:
 - **The search pattern.** Parsing allocates one element per character, and the transport
   accepts a String up to 16 MB, so patterns over 2048 characters are refused with
   `Bad_InvalidArgument` before anything is allocated. See the cost table in
-  `node-opcua-alias-name-common`. Adjust with `likeOptions.maxPatternLength`.
+  `node-opcua-like-matcher`. Adjust with `likeOptions.maxPatternLength`.
 - **The result set.** `maxResults` bounds the *work*, not just the response: the store
   stops collecting one entry past the cap rather than walking the whole hierarchy and
   discarding it. The cap is applied to the raw entries before they are merged by name,

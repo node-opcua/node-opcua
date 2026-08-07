@@ -1,16 +1,23 @@
 /**
- * @module node-opcua-alias-name-common
+ * @module node-opcua-like-matcher
  *
  * The OPC 10000-4 `Like` FilterOperator, clause 7.4.4 Table 120
  * ("Wildcard characters").
  *
- * `Like` is used by the `AliasNameSearchPattern` argument of `FindAlias` and
- * `FindAliasVerbose` (OPC 10000-17 clause 6.3.2), by `QueryApplications` in
- * OPC 10000-12, and by event filters. It is implemented here rather than with a
- * translation to `RegExp` source, because a naive translation lets regular
- * expression metacharacters in the pattern leak through with their regex
- * meaning: `a.b` would match `axb`, which is wrong. Every character that is not
- * one of the five wildcard constructs below is matched literally.
+ * `Like` is a Part 4 primitive with several unrelated consumers: the
+ * `AliasNameSearchPattern` argument of `FindAlias` and `FindAliasVerbose`
+ * (OPC 10000-17 clause 6.3.2), the `applicationName` / `applicationUri` /
+ * `productUri` filters of `QueryApplications` (OPC 10000-12), and Part 4 event
+ * filter ContentFilters. Hence a package of its own, with no dependencies, so
+ * none of those has to depend on another's.
+ *
+ * It is interpreted rather than translated into `RegExp` source, for two
+ * reasons. A naive translation lets regular expression metacharacters in the
+ * pattern leak through with their regex meaning — `a.b` would match `axb`, which
+ * is wrong — and it inherits the backtracking engine's behaviour on patterns
+ * with many `%`, which is a denial of service (see the cost note below). Every
+ * character that is not one of the five wildcard constructs below is matched
+ * literally.
  *
  * The five constructs of Table 120:
  *
@@ -46,13 +53,13 @@
  * operator is case sensitive."* So this is **not** a point the specification
  * leaves open, and {@link like} is case sensitive by default.
  *
- * What OPC 10000-17 does leave open is whether *AliasName* comparison should be
- * case sensitive. Clause 6.2 requires only that a Client ignore the namespace of
- * an AliasName when comparing; it says nothing about case. Since plant tag
- * conventions such as ISA-5.1 are conventionally upper case but are not
- * guaranteed to be entered that way, {@link LikeOptions.caseInsensitive} is
- * offered as an explicit opt-in for a server that wants to relax it. Turning it
- * on is a deliberate deviation from Part 4, so it is off by default.
+ * Individual consumers may leave it open even though Part 4 does not. OPC
+ * 10000-17 clause 6.2, for instance, requires only that a Client ignore an
+ * AliasName's namespace when comparing, and says nothing about case — and plant
+ * tag conventions such as ISA-5.1 are conventionally upper case without being
+ * guaranteed to be entered that way. {@link LikeOptions.caseInsensitive} is
+ * offered as an explicit opt-in for such a caller. Turning it on is a deliberate
+ * deviation from Part 4, so it is off by default.
  *
  * The option affects **comparison only, never parsing**. Whether a pattern is
  * well formed is the same either way, so {@link isValidLikePattern} can never
@@ -62,9 +69,10 @@
  *
  * ## Cost, and why the pattern length is capped
  *
- * `AliasNameSearchPattern` is attacker-supplied: `FindAlias` is a remote Method
- * that a Server will typically let an anonymous session call. So the cost of
- * every stage is bounded deliberately rather than incidentally.
+ * Patterns arrive off the wire. `FindAlias` and `QueryApplications` are both
+ * remote calls a Server will typically let an anonymous session make, so the
+ * pattern is attacker-supplied and the cost of every stage is bounded
+ * deliberately rather than incidentally.
  *
  * Writing `P` for the pattern length, `E` for the number of parsed elements
  * (`E <= P`), `A` for the number of `%` elements left after consecutive ones are
@@ -97,8 +105,9 @@
 /**
  * Thrown when a search pattern is not a valid `Like` pattern.
  *
- * Callers binding `FindAlias` should map this to `Bad_InvalidArgument`
- * (OPC 10000-17 clause 6.3.2 Table 4) rather than guessing at an intent.
+ * A caller binding a Method whose argument is a search pattern should map this
+ * to `Bad_InvalidArgument` rather than guessing at an intent — that is what
+ * OPC 10000-17 clause 6.3.2 Table 4 prescribes for `FindAlias`, for instance.
  */
 export class InvalidLikePatternError extends Error {
     /** The pattern that could not be parsed. */
