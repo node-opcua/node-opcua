@@ -14,8 +14,9 @@
 
 import type { IAddressSpace, ISessionContext, UAMethod, UAObject, UAObjectType } from "node-opcua-address-space-base";
 import type { IAliasStore } from "node-opcua-alias-name-common";
-import { NodeClass } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
+import type { RolePermissionTypeOptions } from "node-opcua-types";
 import { type AliasComparator, makeFindAliasHandler } from "./bind_find_alias.js";
 import {
     ALIAS_NAME_CATEGORY_TYPE,
@@ -37,6 +38,11 @@ export interface BindAliasCategoryOptions {
     comparator?: AliasComparator;
     /** Read gate; see {@link FindAliasBindingOptions.isReadAllowed}. */
     isReadAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
+    /**
+     * Write gate for the configuration Methods, mirroring `isReadAllowed`.
+     * Defaults to denying everyone.
+     */
+    isWriteAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
 }
 
 /**
@@ -71,6 +77,20 @@ export interface AddAliasCategoryOptions extends Partial<BindAliasCategoryOption
      * correct for any category the specification does not name.
      */
     nodeId?: NodeId;
+    /**
+     * ObjectType to instantiate. Defaults to `AliasNameCategoryType`; a subtype
+     * is accepted, since discovery and binding both already handle subtypes.
+     */
+    categoryType?: UAObjectType | NodeId;
+    /**
+     * RolePermissions for the new category.
+     *
+     * Worth setting deliberately. Namespace 0 declares no `RolePermissions` on
+     * any Part 17 node, so a category created without them inherits the
+     * namespace default silently — which is a decision either way, just an
+     * invisible one.
+     */
+    rolePermissions?: RolePermissionTypeOptions[];
 }
 
 /**
@@ -92,24 +112,123 @@ export function addAliasCategory(
     options?: AddAliasCategoryOptions
 ): UAObject {
     const parentNode = coerceCategoryNode(addressSpace, parent);
-    const categoryType = addressSpace.findObjectType(ALIAS_NAME_CATEGORY_TYPE);
-    if (!categoryType) {
-        throw new Error("addAliasCategory: AliasNameCategoryType (i=23456) is not in the address space");
-    }
+    const categoryType = resolveCategoryType(addressSpace, options?.categoryType);
 
     const namespace = addressSpace.getNamespace(options?.namespaceIndex ?? addressSpace.getOwnNamespace().index);
-    const category = (categoryType as UAObjectType).instantiate({
+    const category = categoryType.instantiate({
         browseName: { name: browseName, namespaceIndex: namespace.index },
         nodeId: options?.nodeId,
         organizedBy: parentNode,
         namespace
     }) as UAObject;
 
+    if (options?.rolePermissions) {
+        // instantiate() does not take them, so they are applied after
+        category.setRolePermissions(options.rolePermissions);
+    }
+
     const bindingOptions = resolveBindingOptions(addressSpace, options);
     if (bindingOptions) {
         bindAliasCategory(addressSpace, category, bindingOptions);
     }
     return category;
+}
+
+/**
+ * Resolve the ObjectType to instantiate, defaulting to `AliasNameCategoryType`.
+ *
+ * A subtype is accepted: discovery matches on "is this an instance of
+ * AliasNameCategoryType *or a subtype*", and binding looks the Methods up by
+ * MethodDeclarationId, so neither cares which exact type was used.
+ */
+function resolveCategoryType(addressSpace: IAddressSpace, categoryType?: UAObjectType | NodeId): UAObjectType {
+    const base = addressSpace.findObjectType(ALIAS_NAME_CATEGORY_TYPE);
+    if (!base) {
+        throw new Error("addAliasCategory: AliasNameCategoryType (i=23456) is not in the address space");
+    }
+    if (!categoryType) {
+        return base;
+    }
+    const resolved =
+        categoryType instanceof NodeIdClass ? addressSpace.findObjectType(categoryType) : (categoryType as UAObjectType);
+    if (!resolved) {
+        throw new Error(`addAliasCategory: unknown ObjectType ${String(categoryType)}`);
+    }
+    if (resolved.nodeId.value !== base.nodeId.value && !resolved.isSubtypeOf(base)) {
+        throw new Error(
+            `addAliasCategory: ${resolved.browseName.toString()} is not AliasNameCategoryType or a subtype of it`
+        );
+    }
+    return resolved;
+}
+
+/**
+ * Remove a category, and decide what happens to what it Organizes.
+ *
+ * The specification does not say, so the rule is stated here rather than left to
+ * whatever `deleteNode` happens to do:
+ *
+ * - **`reparent`** (the default) moves the category's aliases and subcategories
+ *   to its parent before deleting it. Nothing disappears, so a Client that had
+ *   resolved an alias keeps resolving it — the alias Object keeps its NodeId,
+ *   and clause 6.2 makes a NodeId change mean "this is a different alias".
+ * - **`cascade`** deletes them with it. Correct when the category *is* the
+ *   thing being retired, such as a tenant being removed.
+ *
+ * Refuses to remove one of the three well-known categories, which clause 9
+ * requires a Server to have.
+ *
+ * @returns the aliases and subcategories that were re-parented, or deleted.
+ */
+export function removeAliasCategory(
+    addressSpace: IAddressSpace,
+    category: UAObject | NodeId,
+    options?: { orphans?: "reparent" | "cascade" }
+): { moved: NodeId[]; deleted: NodeId[] } {
+    const node = coerceCategoryNode(addressSpace, category);
+    for (const wellKnown of Object.values(WellKnownCategories)) {
+        if (wellKnown.value === node.nodeId.value && wellKnown.namespace === node.nodeId.namespace) {
+            throw new Error(
+                `removeAliasCategory: ${node.browseName.toString()} is a well-known category that ` +
+                    "OPC 10000-17 clause 9 requires the Server to have"
+            );
+        }
+    }
+
+    const parents = node.findReferencesExAsObject("HierarchicalReferences", BrowseDirection.Inverse);
+    // Organizes only, not every hierarchical reference. A category's Methods are
+    // HasComponent children that belong to it and must go with it; re-parenting
+    // those would leave the parent with a second FindAlias.
+    const childReferences = node.findReferencesEx("Organizes", BrowseDirection.Forward);
+    const orphans = options?.orphans ?? "reparent";
+    const moved: NodeId[] = [];
+    const deleted: NodeId[] = [];
+
+    if (orphans === "reparent") {
+        const parent = parents[0];
+        if (!parent) {
+            throw new Error(
+                `removeAliasCategory: ${node.browseName.toString()} has no parent to re-parent its contents to; ` +
+                    'pass { orphans: "cascade" } to delete them instead'
+            );
+        }
+        for (const reference of childReferences) {
+            parent.addReference({ referenceType: reference.referenceType, nodeId: reference.nodeId });
+            // Detach before deleting: deleteNode cascades through Organizes, so
+            // a child still referenced here would be deleted along with the
+            // category despite having just been re-parented.
+            node.removeReference({ referenceType: reference.referenceType, nodeId: reference.nodeId });
+            moved.push(reference.nodeId);
+        }
+    } else {
+        for (const reference of childReferences) {
+            deleted.push(reference.nodeId);
+        }
+    }
+
+    // whatever is still attached goes with it
+    addressSpace.deleteNode(node.nodeId);
+    return { moved, deleted };
 }
 
 /**

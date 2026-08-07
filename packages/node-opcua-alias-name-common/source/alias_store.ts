@@ -99,8 +99,16 @@ export interface AliasQuery {
     categoryNodeId: NodeId;
 
     /**
-     * Stop and report `Bad_ResponseTooLarge` beyond this many results
-     * (clause 6.3.2 Table 4).
+     * The caller's result cap (clause 6.3.2 Table 4).
+     *
+     * **A store must return at most `maxResults + 1` entries**, and must return
+     * that extra one when more exist. The caller distinguishes "this is the
+     * complete answer" from "there may be more" purely by whether the count
+     * exceeded the cap: a store that stops at exactly `maxResults` reports a
+     * truncated scan as a complete answer, and the caller has no way to notice.
+     *
+     * Stopping early is the point — it is what keeps a `%` query against a large
+     * tag set from building a result set only to discard it.
      */
     maxResults?: number;
 }

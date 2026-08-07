@@ -87,10 +87,11 @@ second node; an exact duplicate of (name, target) is ignored.
 | `maxResults` | `1000` | Beyond this a call answers `Bad_ResponseTooLarge` (clause 6.3.2 Table 4). |
 | `verbose` | `true` | Also bind `FindAliasVerbose` (clause 6.3.3). |
 | `comparator` | insertion order | Result ordering (clause 6.3.2, "best match first"). |
-| `isReadAllowed` | allow all | `(context, categoryNodeId) => boolean \| Promise<boolean>`. Return false to answer `Bad_UserAccessDenied`. |
+| `isReadAllowed` | allow all | `(context, categoryNodeId) => boolean \| Promise<boolean>`, consulted per category. |
+| `isWriteAllowed` | **deny all** | Same shape, for the configuration Methods. |
 | `likeOptions` | case sensitive | Passed to the `Like` matcher. |
 | `additionalCategoryRoots` | — | Categories modelled outside the `Aliases` hierarchy. |
-| `discoverCategories` | walk from `Aliases` | Replace category discovery entirely, for a Server whose category set is dynamic. |
+| `categoryProvider` | `defaultCategoryProvider()` | Replace category discovery entirely; may be async. |
 | `configurationMethods` | `false` | **Not implemented yet** — passing `true` throws. |
 | `persistencePath` | — | **Not implemented yet** — passing a path throws. |
 
@@ -139,10 +140,18 @@ sensibly be hand-rolled.
 genuinely dynamic, replace discovery:
 
 ```ts
+import { defaultCategoryProvider } from "node-opcua-alias-name-server";
+
 await installAliasNames(server, {
-    discoverCategories: (addressSpace) => myTenantCategories(addressSpace)
+    categoryProvider: async (addressSpace) => [
+        ...(await defaultCategoryProvider()(addressSpace)),
+        ...(await myTenantCategories(addressSpace))
+    ]
 });
 ```
+
+`additionalCategoryRoots` is expressed through `defaultCategoryProvider`, so the two
+compose rather than being parallel mechanisms.
 
 ### Per-category access control
 
@@ -155,6 +164,42 @@ await installAliasNames(server, {
     isReadAllowed: async (context, categoryNodeId) => tenantOf(context) === ownerOf(categoryNodeId)
 });
 ```
+
+The gate is consulted **per category**, each at most once per call, and the outcome
+differs by how the category was reached:
+
+| Situation | Result |
+|---|---|
+| Direct call on a denied category | `Bad_UserAccessDenied` — nothing left to filter |
+| Denied category reached by a recursive search | Omitted; the call still returns `Good` |
+
+Absence is the only answer that discloses nothing: an error, or a count that changed,
+would confirm the category exists. `FindAliasVerbose` filters at the same point as
+`FindAlias`, so it cannot leak an `AliasNameCategoryId` or a `ServerUri` for a category
+the plain form would have hidden.
+
+`Bad_ResponseTooLarge` is still possible for a gated caller, since the cap is applied to
+the raw scan to keep truncation detectable — but it names no category.
+
+OPC 10000-17 defines no security model at all: four `Bad_UserAccessDenied` rows, no
+Security clause, no Roles, and no `RolePermissions` on any Part 17 node in the standard
+nodeset. Every Server has to supply its own rule, which is why this hook exists rather
+than a built-in policy.
+
+### Removing a category
+
+The specification does not say what happens to a category's contents, so the rule is
+explicit:
+
+```ts
+removeAliasCategory(addressSpace, tenantCategory);                        // re-parent (default)
+removeAliasCategory(addressSpace, tenantCategory, { orphans: "cascade" }); // delete with it
+```
+
+`reparent` moves the aliases and subcategories to the parent first, so an alias keeps its
+NodeId and a Client that resolved it keeps resolving it — clause 6.2 makes a NodeId change
+mean "this is a different alias". `cascade` is right when the category itself is being
+retired. The three well-known categories cannot be removed; clause 9 requires them.
 
 ### Result ordering
 

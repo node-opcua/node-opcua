@@ -16,6 +16,7 @@ export {
     ensureOptionalMethod,
     findMethodByDeclaration,
     getInstalledAliasNames,
+    removeAliasCategory,
     type AddAliasCategoryOptions,
     type BindAliasCategoryOptions,
     type InstalledAliasNames
@@ -40,7 +41,8 @@ export {
     DEFAULT_MAX_RESULTS,
     installAliasNames,
     installAliasNamesOnAddressSpace,
-    type CategoryDiscovery,
+    defaultCategoryProvider,
+    type CategoryProvider,
     type IServerForAliasNames,
     type InstallAliasNamesOptions,
     type InstallAliasNamesResult
