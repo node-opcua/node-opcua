@@ -340,8 +340,8 @@ describe("OPC 10000-17: FindAlias", () => {
             let seen = 0;
             const inner = new AddressSpaceAliasStore(addressSpace);
             const counting = {
-                find: (query: Parameters<typeof inner.find>[0]) => {
-                    const entries = inner.find(query);
+                find: async (query: Parameters<typeof inner.find>[0]) => {
+                    const entries = await inner.find(query);
                     seen = entries.length;
                     return entries;
                 },

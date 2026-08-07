@@ -263,6 +263,21 @@ The normative identifier is `ALIAS` (OPC 10000-12 Annex D Table D.1), matched
 case-insensitively. Part 17's prose writes it `Alias`; Part 12 Annex D is the normative
 source.
 
+## Known limitations of this release
+
+Two things a first-time integrator should know before deploying, both of which are
+invisible from the outside:
+
+1. **`LastChange` is inert.** The Property is in every Server's address space and now
+   sits next to a `FindAlias` that works, but nothing writes it. A Client following
+   clause 6.3.1's cache protocol sees a value that never changes and therefore never
+   refreshes its cache. Harmless in a first release — no Client can have cached anything
+   yet — but do not build on it.
+2. **Nothing here is exercised over a transport.** Every test drives `method.execute()`
+   in process. Encoding, chunking on a large result, permissions under a real session,
+   and session lifetime are consequently untested. That is the specific residual risk of
+   this slice, and it closes when the client and integration-test packages land.
+
 ## What is not here yet
 
 - **`AddAliasesToCategory` / `DeleteAliasesFromCategory`** (clauses 6.3.4, 6.3.5 —
