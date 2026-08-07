@@ -17,6 +17,7 @@
         { "path": "node-opcua-address-space-for-conformance-testing" },
         { "path": "node-opcua-aggregates" },
         { "path": "node-opcua-alarm-condition" },
+        { "path": "node-opcua-alias-name-client" },
         { "path": "node-opcua-alias-name-common" },
         { "path": "node-opcua-alias-name-server" },
         { "path": "node-opcua-like-matcher" },

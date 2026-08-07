@@ -669,6 +669,43 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-variant
 
+  packages/node-opcua-alias-name-client:
+    dependencies:
+      node-opcua-constants:
+        specifier: 2.175.1
+        version: link:../node-opcua-constants
+      node-opcua-data-model:
+        specifier: 2.175.6
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.175.6
+        version: link:../node-opcua-nodeid
+      node-opcua-pseudo-session:
+        specifier: 2.175.6
+        version: link:../node-opcua-pseudo-session
+      node-opcua-service-translate-browse-path:
+        specifier: 2.175.6
+        version: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code:
+        specifier: 2.175.6
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.175.6
+        version: link:../node-opcua-types
+      node-opcua-variant:
+        specifier: 2.175.6
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-address-space:
+        specifier: 2.175.6
+        version: link:../node-opcua-address-space
+      node-opcua-alias-name-server:
+        specifier: 2.175.6
+        version: link:../node-opcua-alias-name-server
+      node-opcua-nodesets:
+        specifier: 2.175.3
+        version: link:../node-opcua-nodesets
+
   packages/node-opcua-alias-name-common:
     dependencies:
       node-opcua-like-matcher:
