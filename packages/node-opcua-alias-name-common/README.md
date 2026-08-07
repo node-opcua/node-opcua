@@ -1,0 +1,121 @@
+# node-opcua-alias-name-common
+
+Shared types, the OPC 10000-4 `Like` matcher and `VersionTime` helpers for OPC UA
+**AliasNames** (OPC 10000-17).
+
+These packages let a Server publish **its own** AliasNames and let a Client resolve
+them. They do **not** aggregate AliasNames collected from other Servers: Annex B
+(aggregating Server) and Annex C (GDS) of OPC 10000-17, and the Annex D PubSub change
+notification, are out of scope. Anything that requires knowing about more than one
+Server is not implemented here.
+
+This package holds the framework-agnostic pieces used by both
+`node-opcua-alias-name-server` and `node-opcua-alias-name-client`. It deliberately
+depends on nothing heavier than `node-opcua-nodeid`.
+
+see http://node-opcua.github.io/
+
+## Installation
+
+```bash
+npm install node-opcua-alias-name-common
+```
+
+## What's in the box
+
+### The `Like` matcher (OPC 10000-4, Table 120)
+
+`FindAlias` takes an `AliasNameSearchPattern`, which is a `Like` pattern. The five
+constructs are `%`, `_`, `\`, `[...]` and `[^...]`.
+
+```ts
+import { like, isValidLikePattern, LikePattern, InvalidLikePatternError } from "node-opcua-alias-name-common";
+
+like("TI101", "TI%");          // true
+like("would", "_ould");        // true
+like("abc4", "abc[13-68]");    // true
+like("xyzd", "xyz[^dgh]");     // false
+like("5%",   "5[%]");          // true  - the list operand makes % literal
+like("100%", "100\\%");        // true  - so does the escape character
+```
+
+Everything that is not one of the five constructs is matched **literally**, including
+every regular expression metacharacter. This is the bug in implementations that build a
+`RegExp` by substituting `%` and `_` and leaving the rest alone:
+
+```ts
+like("axb", "a.b");            // false - '.' is a full stop, not "any character"
+```
+
+The whole subject must match; the pattern is anchored at both ends.
+
+Compile once and reuse when testing many subjects:
+
+```ts
+const pattern = new LikePattern("TI%");
+names.filter((n) => pattern.test(n));
+```
+
+An invalid pattern throws `InvalidLikePatternError`, carrying the pattern and the index
+at which parsing failed, so a Method binding can return `Bad_InvalidArgument`
+(OPC 10000-17 clause 6.3.2 Table 4) instead of guessing. Use `isValidLikePattern` to
+check without catching.
+
+#### Case sensitivity
+
+OPC 10000-4 states, immediately above Table 120, that *"The Like operator is case
+sensitive"*, so this is not a point the specification leaves open and `like` is case
+sensitive by default.
+
+What OPC 10000-17 does leave open is whether *AliasName comparison* is case sensitive:
+clause 6.2 requires only that a Client ignore an AliasName's namespace when comparing.
+`{ caseInsensitive: true }` is offered as an explicit opt-in for servers whose tag
+conventions need it, and is a deliberate deviation from Part 4:
+
+```ts
+like("TI101", "ti%", { caseInsensitive: true }); // true
+```
+
+The matcher is exported because `Like` is not specific to AliasNames — `QueryApplications`
+(OPC 10000-12) and event filters use the same operator.
+
+### `VersionTime` (OPC 10000-4 clause 7.43)
+
+The `LastChange` Property of an `AliasNameCategoryType` is a `VersionTime`: a **UInt32
+count of seconds since 2000-01-01T00:00:00Z**. It is *not* a `DateTime`, which is the
+easiest thing to get wrong here.
+
+```ts
+import { toVersionTime, fromVersionTime, maxVersionTime } from "node-opcua-alias-name-common";
+
+toVersionTime(new Date("2000-01-01T00:00:00Z")); // 0
+fromVersionTime(86400);                          // 2000-01-02T00:00:00.000Z
+```
+
+Two consequences worth designing around:
+
+- **Resolution is one second.** Two changes inside the same second are
+  indistinguishable. A Client that sees a `LastChange` *equal* to its cached value should
+  re-browse rather than assume nothing changed; only a value *older* than the cached one
+  means "drop the cache" (clause 6.3.1).
+- **It wraps in 2136** (`VERSION_TIME_WRAP_DATE`, 2136-02-07T06:28:16Z). There is nothing
+  in the specification to do about this; it is documented, not handled. Instants before
+  the epoch clamp to `0` rather than wrapping to a far-future value.
+
+`maxVersionTime` is the rollup used by clause 6.3.1, where a nested category's
+`LastChange` is the latest of all its descendants.
+
+### `IAliasStore`
+
+> **Experimental.** The shape of `IAliasStore` is expected to move before it is
+> considered stable. It is exported so a Server can back its aliases with something
+> other than the address space — a database, a configuration file, an existing tag
+> dictionary — but treat it as provisional.
+
+`AliasEntry` carries the string part of the alias name only, because clause 6.2 requires
+the namespace to be ignored when comparing AliasNames. `serverUris` is parallel to
+`referencedNodes` and holds `null` for a Node on the local Server (clause 7.3).
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
