@@ -669,6 +669,12 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-variant
 
+  packages/node-opcua-alias-name-common:
+    dependencies:
+      node-opcua-nodeid:
+        specifier: 2.175.6
+        version: link:../node-opcua-nodeid
+
   packages/node-opcua-assert:
     dependencies:
       chalk:
