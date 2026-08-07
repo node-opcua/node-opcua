@@ -109,6 +109,26 @@ function get_class_TScript_filename_local(schemaName: string): string {
 
 function write_enumeration_setter(write: WriteFunc, _schema: IStructuredTypeSchema, field: FieldType, member: string): void {
     const capMember = capitalizeFirstLetter(member);
+    if (field.isArray) {
+        // an array of enumeration values: coerce each element individually, and
+        // preserve a null array (which is distinct from an empty one in OPC UA).
+        write(`    public set${capMember}(value: EnumItemLike[] | null | undefined): ${field.fieldType}[] | null {`);
+        write(`        if (value === null || value === undefined) {`);
+        write(`            this.${member} = null;`);
+        write(`            return this.${member};`);
+        write(`        }`);
+        write(`        this.${member} = value.map((element: EnumItemLike) => {`);
+        write(`            const coercedValue = _enumeration${field.fieldType}.get(element);`);
+        write(`            /* c8 ignore next */`);
+        write(`            if (coercedValue === undefined || coercedValue === null) {`);
+        write(`               throw new Error("value cannot be coerced to ${field.fieldType} :" + element);`);
+        write(`            }`);
+        write(`            return coercedValue.value as ${field.fieldType};`);
+        write(`        });`);
+        write(`        return this.${member};`);
+        write(`    }`);
+        return;
+    }
     write(`    public set${capMember}(value: any): ${field.fieldType} {`);
     write(`        const coercedValue = _enumeration${field.fieldType}.get(value);`);
     write(`        /* c8 ignore next */`);
@@ -127,12 +147,21 @@ function write_enumeration_fast_init(
     member: string,
     i: number
 ): void {
+    if (field.isArray) {
+        write(`             this.${member} =  [];`);
+        return;
+    }
     write(`             this.${member} =  0 as  ${field.fieldType};`);
 }
 
 function write_enumeration(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
-    assert(!field.isArray); // would not work in this case
     const capMember = capitalizeFirstLetter(member);
+    if (field.isArray) {
+        write(
+            `        this.${field.name} = this.set${capMember}(initialize_field_array(schema.fields[${i}], options?.${field.name}));`
+        );
+        return;
+    }
     write(`        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options?.${field.name}));`);
 }
 
