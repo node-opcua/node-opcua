@@ -79,6 +79,34 @@ like("TI101", "ti%", { caseInsensitive: true }); // true
 The matcher is exported because `Like` is not specific to AliasNames — `QueryApplications`
 (OPC 10000-12) and event filters use the same operator.
 
+#### Cost, and the pattern length limit
+
+`AliasNameSearchPattern` is attacker-supplied: `FindAlias` is a remote Method a Server
+will usually let an anonymous session call. Writing `P` for the pattern length, `E` for
+the parsed element count (`E <= P`), `A` for the number of `%` left after consecutive
+ones are collapsed (`A <= E/2`) and `T` for the subject length:
+
+| Stage | Bound | Why |
+|---|---|---|
+| Parsing | `O(P)` time, terminates | the cursor strictly increases every iteration |
+| Recursion depth | `T + 2`, **independent of `P`** | recursion happens only at `%`, and consecutive `%` collapse, so each nesting level costs at least one subject character |
+| Matching | `O(E * T)` time, `O(A * T)` memory | the memo explores each `(element, offset)` pair at most once |
+| Parse allocation | `O(P)` | one element object per construct |
+
+Only that last row grows with attacker input, and the transport accepts a String up to
+`BinaryStream.maxStringLength` (16 MB by default) — which would turn one call into roughly
+a gigabyte of objects. So patterns longer than `DEFAULT_MAX_PATTERN_LENGTH` (**2048
+characters**) are refused with `InvalidLikePatternError` before anything is allocated,
+which a Method binding reports as `Bad_InvalidArgument`. Capping `P` bounds every other
+row with it.
+
+A real search pattern is a tag glob such as `TI1%`, so 2 KB is already far beyond
+practical use. Raise it with `{ maxPatternLength }` only if you have a reason.
+
+Without the memo, a pattern alternating `%` and `_` reaches the same `(element, offset)`
+pairs by exponentially many routes and effectively never returns — a naive backtracker
+hangs on `%_%_%_...`.
+
 ### `VersionTime` (OPC 10000-4 clause 7.43)
 
 The `LastChange` Property of an `AliasNameCategoryType` is a `VersionTime`: a **UInt32

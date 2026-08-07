@@ -77,8 +77,20 @@ export class AddressSpaceAliasStore implements IAliasStore {
         const referenceTypeFilter = this.resolveReferenceTypeFilter(query.referenceTypeFilter);
         const entries: AliasEntry[] = [];
 
+        // Stop one past the cap. The caller only needs to know that the cap was
+        // exceeded, so collecting the whole hierarchy first would be wasted work
+        // -- and on a Server with a large tag set, a `%` pattern would build the
+        // entire result set purely to throw it away with Bad_ResponseTooLarge.
+        const collectLimit = query.maxResults === undefined ? Number.POSITIVE_INFINITY : query.maxResults + 1;
+
         for (const category of collectCategories(this.addressSpace, root as UAObject)) {
+            if (entries.length >= collectLimit) {
+                break;
+            }
             for (const alias of aliasesOf(this.addressSpace, category)) {
+                if (entries.length >= collectLimit) {
+                    break;
+                }
                 const aliasName = alias.browseName.name;
                 if (!aliasName || !pattern.test(aliasName)) {
                     continue;

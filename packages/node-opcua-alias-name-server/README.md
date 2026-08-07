@@ -101,6 +101,23 @@ publishing its own aliases has no basis to prefer one of its own Nodes over anot
 the default preserves discovery order: deterministic, and therefore stable across calls.
 Supply `comparator` when your Server does have a basis.
 
+### Denial-of-service bounds
+
+`FindAlias` is remotely callable, usually by an anonymous session, so both of its inputs
+are bounded:
+
+- **The search pattern.** Parsing allocates one element per character, and the transport
+  accepts a String up to 16 MB, so patterns over 2048 characters are refused with
+  `Bad_InvalidArgument` before anything is allocated. See the cost table in
+  `node-opcua-alias-name-common`. Adjust with `likeOptions.maxPatternLength`.
+- **The result set.** `maxResults` bounds the *work*, not just the response: the store
+  stops collecting one entry past the cap rather than walking the whole hierarchy and
+  discarding it. The cap is applied to the raw entries before they are merged by name,
+  because merging can reduce the count and would otherwise report a truncated scan as a
+  complete answer. A merge that trips the cap is therefore `Bad_ResponseTooLarge` even
+  though the merged list would have been short — conservative, and consistent with
+  "try new filter and repeat find".
+
 ### Category discovery
 
 Categories are found by walking down from `Aliases`, which is where clause 9.1 puts them:
