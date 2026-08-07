@@ -1,5 +1,5 @@
 import should from "should";
-import { InvalidLikePatternError, LikePattern, isValidLikePattern, like } from "../source";
+import { DEFAULT_MAX_PATTERN_LENGTH, InvalidLikePatternError, LikePattern, isValidLikePattern, like } from "../source";
 
 /**
  * OPC 10000-4 clause 7.4.4, Table 120 - "Wildcard characters".
@@ -270,6 +270,53 @@ describe("OPC 10000-4: the Like operator (Table 120)", () => {
             isValidLikePattern("").should.eql(true);
             isValidLikePattern("abc[13").should.eql(false);
             isValidLikePattern("abc\\").should.eql(false);
+        });
+    });
+
+    describe("pattern length limit", () => {
+        // The pattern arrives from the network and parsing allocates one element
+        // per character, so this cap is what stops a single FindAlias call from
+        // turning a 16 MB String (the transport maximum) into ~1 GB of objects.
+        it("should accept a pattern at the limit", () => {
+            const atLimit = "a".repeat(DEFAULT_MAX_PATTERN_LENGTH);
+            isValidLikePattern(atLimit).should.eql(true);
+        });
+
+        it("should reject a pattern one character over the limit", () => {
+            const overLimit = "a".repeat(DEFAULT_MAX_PATTERN_LENGTH + 1);
+            should(() => like("a", overLimit)).throw(InvalidLikePatternError);
+            isValidLikePattern(overLimit).should.eql(false);
+        });
+
+        it("should say why it refused", () => {
+            should(() => like("a", "a".repeat(DEFAULT_MAX_PATTERN_LENGTH + 1))).throw(/exceeds the 2048 character limit/);
+        });
+
+        it("should not copy a huge pattern into the error message", () => {
+            // quoting the pattern whole would put megabytes into the message and
+            // into every log line that records it
+            try {
+                like("a", "a".repeat(100_000));
+                throw new Error("should have thrown");
+            } catch (err) {
+                should(err).be.instanceOf(InvalidLikePatternError);
+                (err as Error).message.length.should.be.below(300);
+            }
+        });
+
+        it("should allow the limit to be raised deliberately", () => {
+            const long = "a".repeat(DEFAULT_MAX_PATTERN_LENGTH + 1);
+            isValidLikePattern(long, { maxPatternLength: 8192 }).should.eql(true);
+            like(long, long, { maxPatternLength: 8192 }).should.eql(true);
+        });
+
+        it("should refuse before allocating, so the cost of a rejection is flat", () => {
+            // a rejected pattern must not be parsed at all
+            const started = Date.now();
+            for (let i = 0; i < 50; i++) {
+                should(() => like("a", "%".repeat(1_000_000))).throw(InvalidLikePatternError);
+            }
+            (Date.now() - started).should.be.below(1000);
         });
     });
 

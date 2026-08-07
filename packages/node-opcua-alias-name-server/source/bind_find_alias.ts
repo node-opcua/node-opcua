@@ -79,15 +79,23 @@ function readReferenceTypeFilter(inputArguments: Variant[]): NodeId | undefined 
  */
 function mergeByAliasName(entries: AliasEntry[]): AliasEntry[] {
     const byName = new Map<string, AliasEntry>();
+    // Membership is kept in a Set per name rather than rescanning the growing
+    // array: with a linear scan, a name shared by many entries makes this
+    // quadratic in the size of the result set.
+    const seenTargets = new Map<string, Set<string>>();
+
     for (const entry of entries) {
         const existing = byName.get(entry.aliasName);
         if (!existing) {
             byName.set(entry.aliasName, { ...entry, referencedNodes: [...entry.referencedNodes] });
+            seenTargets.set(entry.aliasName, new Set(entry.referencedNodes.map((n) => n.toString())));
             continue;
         }
+        const seen = seenTargets.get(entry.aliasName)!;
         for (const node of entry.referencedNodes) {
-            const already = existing.referencedNodes.some((n) => n.toString() === node.toString());
-            if (!already) {
+            const key = node.toString();
+            if (!seen.has(key)) {
+                seen.add(key);
                 existing.referencedNodes.push(node);
             }
         }
@@ -143,12 +151,17 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
             throw err;
         }
 
-        const results = verbose ? found : mergeByAliasName(found);
-
-        // clause 6.3.2 Table 4: too large to return, "try new filter and repeat find"
-        if (results.length > options.maxResults) {
+        // clause 6.3.2 Table 4: too large to return, "try new filter and repeat find".
+        //
+        // Applied to what the store produced, *before* merging. The store stops
+        // collecting one entry past the cap, so a count that reaches it means
+        // "there may be more"; merging first could reduce the count back under
+        // the cap and report a truncated scan as a complete answer.
+        if (found.length > options.maxResults) {
             return { statusCode: StatusCodes.BadResponseTooLarge };
         }
+
+        const results = verbose ? found : mergeByAliasName(found);
 
         // sort() is stable in modern JavaScript, so a comparator that returns 0
         // leaves discovery order untouched

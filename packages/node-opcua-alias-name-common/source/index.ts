@@ -10,6 +10,7 @@
 
 export type { AliasEntry, AliasQuery, IAliasStore } from "./alias_store.js";
 export {
+    DEFAULT_MAX_PATTERN_LENGTH,
     InvalidLikePatternError,
     isValidLikePattern,
     like,

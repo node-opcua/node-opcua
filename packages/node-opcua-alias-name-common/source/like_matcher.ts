@@ -43,6 +43,39 @@
  * guaranteed to be entered that way, {@link LikeOptions.caseInsensitive} is
  * offered as an explicit opt-in for a server that wants to relax it. Turning it
  * on is a deliberate deviation from Part 4, so it is off by default.
+ *
+ * ## Cost, and why the pattern length is capped
+ *
+ * `AliasNameSearchPattern` is attacker-supplied: `FindAlias` is a remote Method
+ * that a Server will typically let an anonymous session call. So the cost of
+ * every stage is bounded deliberately rather than incidentally.
+ *
+ * Writing `P` for the pattern length, `E` for the number of parsed elements
+ * (`E <= P`), `A` for the number of `%` elements left after consecutive ones are
+ * collapsed (`A <= ceil(E/2)`) and `T` for the subject length:
+ *
+ * - **Parsing terminates.** The cursor strictly increases on every iteration of
+ *   both {@link parsePattern} and {@link parseList}, so parsing costs `O(P)`
+ *   steps and cannot loop.
+ * - **Recursion depth is `O(T)`, not `O(P)`.** Recursion happens only at `%`.
+ *   Consecutive `%` are collapsed during parsing, so between any two `%`
+ *   elements there is at least one element that consumes exactly one character.
+ *   Each extra nesting level therefore costs at least one character of the
+ *   subject, bounding depth at `T + 2` however long the pattern is. A long
+ *   pattern cannot overflow the stack.
+ * - **Matching is `O(E * T)` time and `O(A * T)` memory.** The `failed` memo
+ *   means each `(element, offset)` pair is explored at most once. Without it a
+ *   pattern alternating `%` and `_` explores the same pairs by exponentially
+ *   many routes and effectively never returns.
+ * - **Parsing allocates `O(P)`** — one element object per construct. This is the
+ *   only term that grows with attacker input, and the transport allows a String
+ *   up to `BinaryStream.maxStringLength` (16 MB by default), which would turn a
+ *   single call into roughly a gigabyte of objects.
+ *
+ * {@link DEFAULT_MAX_PATTERN_LENGTH} closes that last term, and in doing so
+ * bounds every other one with it. A real search pattern is a tag glob such as
+ * `TI1%`; 2 KB is already orders of magnitude beyond any practical use, so the
+ * cap costs nothing and is not worth making generous.
  */
 
 /**
@@ -58,12 +91,26 @@ export class InvalidLikePatternError extends Error {
     public readonly index: number;
 
     constructor(pattern: string, index: number, reason: string) {
-        super(`invalid Like pattern at index ${index}: ${reason} (pattern: ${JSON.stringify(pattern)})`);
+        // The pattern comes from the network and may be megabytes long; quoting
+        // it whole would copy it into the message, and into any log that records
+        // the message. An excerpt is enough to identify the problem.
+        const excerpt = pattern.length > 64 ? `${pattern.slice(0, 64)}... (${pattern.length} chars)` : pattern;
+        super(`invalid Like pattern at index ${index}: ${reason} (pattern: ${JSON.stringify(excerpt)})`);
         this.name = "InvalidLikePatternError";
         this.pattern = pattern;
         this.index = index;
     }
 }
+
+/**
+ * Longest pattern accepted by default, in characters.
+ *
+ * Parsing allocates one element per pattern character, and the pattern arrives
+ * from the network, so an uncapped pattern is a memory-exhaustion vector — see
+ * the cost note on this module. A search pattern in practice is a tag glob a few
+ * characters long, so this is already far beyond real use.
+ */
+export const DEFAULT_MAX_PATTERN_LENGTH = 2048;
 
 export interface LikeOptions {
     /**
@@ -71,6 +118,17 @@ export interface LikeOptions {
      * `Like` operator as case sensitive.
      */
     caseInsensitive?: boolean;
+    /**
+     * Longest pattern accepted, in characters. Defaults to
+     * {@link DEFAULT_MAX_PATTERN_LENGTH}. A longer pattern raises
+     * {@link InvalidLikePatternError}, which a Method binding reports as
+     * `Bad_InvalidArgument`.
+     *
+     * Raise it only with a reason: the cost of parsing is linear in this value,
+     * and it is the only bound standing between a remote caller and unbounded
+     * allocation.
+     */
+    maxPatternLength?: number;
 }
 
 /** `%` — any run of zero or more characters. */
@@ -103,10 +161,17 @@ export class LikePattern {
     private readonly elements: PatternElement[];
     private readonly caseInsensitive: boolean;
 
-    /** @throws {@link InvalidLikePatternError} if the pattern is malformed. */
+    /**
+     * @throws {@link InvalidLikePatternError} if the pattern is malformed, or
+     * longer than {@link LikeOptions.maxPatternLength}.
+     */
     constructor(pattern: string, options?: LikeOptions) {
         this.caseInsensitive = options?.caseInsensitive ?? false;
-        this.elements = parsePattern(pattern, this.caseInsensitive);
+        this.elements = parsePattern(
+            pattern,
+            this.caseInsensitive,
+            options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH
+        );
     }
 
     /** True when `subject` matches this pattern in its entirety. */
@@ -132,9 +197,9 @@ export function like(subject: string, pattern: string, options?: LikeOptions): b
  * catch. Note the specification places no restriction on how *broad* a pattern
  * may be — `%` alone is valid and matches everything.
  */
-export function isValidLikePattern(pattern: string): boolean {
+export function isValidLikePattern(pattern: string, options?: LikeOptions): boolean {
     try {
-        parsePattern(pattern, false);
+        parsePattern(pattern, false, options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH);
         return true;
     } catch {
         return false;
@@ -142,7 +207,16 @@ export function isValidLikePattern(pattern: string): boolean {
 }
 
 /** Parse a pattern into elements, folding case up-front when requested. */
-function parsePattern(pattern: string, caseInsensitive: boolean): PatternElement[] {
+function parsePattern(pattern: string, caseInsensitive: boolean, maxPatternLength: number): PatternElement[] {
+    // Checked before a single element is allocated: this is what keeps the
+    // O(P) parse allocation bounded for a pattern that arrived from the network.
+    if (pattern.length > maxPatternLength) {
+        throw new InvalidLikePatternError(
+            pattern,
+            maxPatternLength,
+            `pattern is ${pattern.length} characters, which exceeds the ${maxPatternLength} character limit`
+        );
+    }
     const fold = (c: string) => (caseInsensitive ? c.toLowerCase() : c);
     const elements: PatternElement[] = [];
     let i = 0;

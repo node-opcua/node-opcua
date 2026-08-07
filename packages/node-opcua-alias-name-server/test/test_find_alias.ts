@@ -4,6 +4,7 @@ import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";
+import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
 import { installAliasNamesOnAddressSpace } from "../source/install_alias_names.js";
 import { ALIAS_FOR, WellKnownCategories } from "../source/well_known.js";
 import { aliasNames, callFind, getObject, makeAddressSpace, resultAliases, resultVerbose } from "./helpers.js";
@@ -274,6 +275,58 @@ describe("OPC 10000-17: FindAlias", () => {
             // "try new filter and repeat find" - a narrower pattern succeeds
             const narrower = await callFind(category, "FindAlias", "TAG1");
             narrower.statusCode!.should.eql(StatusCodes.Good);
+        });
+
+        it("should stop scanning once the cap is passed, not collect everything first", async () => {
+            // otherwise a '%' query against a large tag set builds the entire
+            // result set purely to throw it away
+            addressSpace.dispose();
+            addressSpace = await makeAddressSpace();
+            const ns = addressSpace.getOwnNamespace();
+            for (let i = 0; i < 50; i++) {
+                const v = ns.addVariable({ browseName: `V${i}`, dataType: "Double" }) as UAVariable;
+                addAlias(addressSpace, WellKnownCategories.TagVariables, `TAG${i}`, v);
+            }
+
+            let seen = 0;
+            const counting = {
+                find: (query: Parameters<typeof countingFind>[0]) => countingFind(query),
+                lastChange: () => 0
+            };
+            const store = new AddressSpaceAliasStore(addressSpace);
+            function countingFind(query: Parameters<typeof store.find>[0]) {
+                const entries = store.find(query);
+                seen = entries.length;
+                return entries;
+            }
+
+            await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 5, store: counting });
+            const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
+
+            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            seen.should.eql(6, "one past the cap, not all 50");
+        });
+
+        it("should apply the cap before merging by name", async () => {
+            // 4 entries sharing one name merge to 1; reporting Good would hide
+            // that the scan stopped early
+            addressSpace.dispose();
+            addressSpace = await makeAddressSpace();
+            const ns = addressSpace.getOwnNamespace();
+            const categoryType = addressSpace.findObjectType("AliasNameCategoryType")!;
+            const tags = getObject(addressSpace, WellKnownCategories.TagVariables);
+            for (let i = 0; i < 4; i++) {
+                const sub = categoryType.instantiate({
+                    browseName: `Sub${i}`,
+                    organizedBy: tags,
+                    namespace: ns
+                }) as UAObject;
+                const v = ns.addVariable({ browseName: `V${i}`, dataType: "Double" }) as UAVariable;
+                addAlias(addressSpace, sub, "TI101", v);
+            }
+            await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 2 });
+            const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
         });
 
         it("should allow exactly the cap", async () => {
