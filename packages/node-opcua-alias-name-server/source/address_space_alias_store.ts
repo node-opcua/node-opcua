@@ -66,7 +66,7 @@ export class AddressSpaceAliasStore implements IAliasStore {
      * has to name the category that actually held the alias, which for a nested
      * hit is the nested one, not the one that was called.
      */
-    public find(query: AliasQuery): AliasEntry[] {
+    public async find(query: AliasQuery): Promise<AliasEntry[]> {
         const root = this.addressSpace.findNode(query.categoryNodeId);
         if (!root || root.nodeClass !== NodeClass.Object) {
             return [];
@@ -87,6 +87,13 @@ export class AddressSpaceAliasStore implements IAliasStore {
         for (const category of collectCategories(this.addressSpace, root as UAObject)) {
             if (entries.length >= collectLimit) {
                 break;
+            }
+            // Skipped before its aliases are walked, so the cap is spent only on
+            // entries the caller may see - and the scan does less work. Only
+            // this category is skipped, not its descendants: the gate is
+            // per-category, and a denied parent does not imply a denied child.
+            if (query.isVisible && !(await query.isVisible(category.nodeId))) {
+                continue;
             }
             for (const alias of aliasesOf(this.addressSpace, category)) {
                 if (entries.length >= collectLimit) {

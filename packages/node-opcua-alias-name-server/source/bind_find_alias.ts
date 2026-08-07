@@ -199,7 +199,12 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
             pattern,
             referenceTypeFilter: readReferenceTypeFilter(inputArguments),
             categoryNodeId: category.nodeId,
-            maxResults: options.maxResults
+            maxResults: options.maxResults,
+            // Handed the same memoised closure the filter below uses, so the
+            // rule is evaluated at most once per category per call however many
+            // times it is consulted. Passed only when a gate is configured, so
+            // an ungated Server takes exactly the path it took before.
+            isVisible: gate ? mayRead : undefined
         };
 
         let found: AliasEntry[];
@@ -227,6 +232,11 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
         // A nested category the caller may not read is omitted, and the call
         // still succeeds: an error, or a count that changed, would confirm the
         // category exists. Absence is the only answer that discloses nothing.
+        //
+        // The store was given the same predicate and should already have skipped
+        // these, so this is normally a no-op. It stays as a backstop: an injected
+        // store written by someone else may ignore `isVisible`, and the cost of
+        // that must be a wasted scan, never a leak.
         const visible: AliasEntry[] = [];
         for (const entry of found) {
             if (await mayRead(entry.categoryNodeId)) {

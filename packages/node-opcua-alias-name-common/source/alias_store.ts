@@ -109,8 +109,33 @@ export interface AliasQuery {
      *
      * Stopping early is the point — it is what keeps a `%` query against a large
      * tag set from building a result set only to discard it.
+     *
+     * The cap counts entries the caller may **see**; see {@link isVisible}.
      */
     maxResults?: number;
+
+    /**
+     * Consulted per category while scanning, so that {@link maxResults} counts
+     * only entries the caller may see.
+     *
+     * Omit it and every entry counts toward the cap — which on a Server with a
+     * per-tenant read gate means one tenant's aliases can exhaust the cap before
+     * another tenant's are even reached. A caller who may see two aliases out of
+     * fifty-two would get `Bad_ResponseTooLarge` from a search at the root and
+     * have no way to retrieve their own two, since the only workaround is to
+     * search their own category, and knowing which category is theirs is exactly
+     * what the gate exists to hide.
+     *
+     * With this honoured, `Bad_ResponseTooLarge` means "there are more than you
+     * can be shown", which is both the honest statement and one that discloses
+     * nothing.
+     *
+     * A store that can express visibility inside its own query — a join, an index
+     * predicate — should do that instead and ignore this. The caller keeps its
+     * own filter regardless, so a store that ignores the predicate is slower and
+     * may report the cap too eagerly, but can never leak.
+     */
+    isVisible?: (categoryNodeId: NodeId) => boolean | Promise<boolean>;
 }
 
 /**

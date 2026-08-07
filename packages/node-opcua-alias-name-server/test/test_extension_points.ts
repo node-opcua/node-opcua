@@ -7,6 +7,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType } from "node-opcua-types";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";
+import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
 import {
     addAliasCategory,
     bindAliasCategory,
@@ -374,6 +375,103 @@ describe("OPC 10000-17: extension points", () => {
             entries.map((e) => e.aliasName.name).should.eql(["V-OPEN"]);
             // no AliasNameCategoryId and no ServerUris for the hidden category
             entries.every((e) => !sameNodeId(e.aliasNameCategoryId, secret.nodeId)).should.eql(true);
+        });
+
+        it("should not spend the result cap on entries the caller may not see", async () => {
+            // The repro: 2 visible aliases, 50 gated out, maxResults 10.
+            // Counting the invisible 50 toward the cap makes a root-level search
+            // permanently useless for a gated caller, and the only workaround --
+            // "search your own category" -- needs the knowledge the gate hides.
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const mine = addAliasCategory(space, WellKnownCategories.TagVariables, "TenantA");
+            const theirs = addAliasCategory(space, WellKnownCategories.TagVariables, "TenantB");
+            addAlias(space, mine, "MINE-1", ns.addVariable({ browseName: "Mine1", dataType: "Double" }));
+            addAlias(space, mine, "MINE-2", ns.addVariable({ browseName: "Mine2", dataType: "Double" }));
+            for (let i = 0; i < 50; i++) {
+                addAlias(space, theirs, `THEIRS-${i}`, ns.addVariable({ browseName: `Theirs${i}`, dataType: "Double" }));
+            }
+            await installAliasNamesOnAddressSpace(space, {
+                maxResults: 10,
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, theirs.nodeId)
+            });
+
+            const result = await callFind(getObject(space, WellKnownCategories.Aliases), "FindAlias", "%");
+
+            result.statusCode!.should.eql(StatusCodes.Good, "the other tenant's rows must not exhaust the cap");
+            aliasNames(result).should.eql(["MINE-1", "MINE-2"]);
+        });
+
+        it("should still report Bad_ResponseTooLarge when the visible entries exceed the cap", async () => {
+            // the cap still means something: "there are more than you can be
+            // shown", which discloses nothing about who owns them
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const mine = addAliasCategory(space, WellKnownCategories.TagVariables, "AllMine");
+            for (let i = 0; i < 20; i++) {
+                addAlias(space, mine, `MINE-${i}`, ns.addVariable({ browseName: `AllMine${i}`, dataType: "Double" }));
+            }
+            await installAliasNamesOnAddressSpace(space, {
+                maxResults: 10,
+                isReadAllowed: () => true
+            });
+
+            const result = await callFind(getObject(space, WellKnownCategories.Aliases), "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+        });
+
+        it("should not leak through a store that ignores isVisible", async () => {
+            // the handler's filter is a backstop, not decoration: an injected
+            // store may ignore the predicate, and the cost of that must be a
+            // wasted scan rather than a disclosure
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const open = addAliasCategory(space, WellKnownCategories.TagVariables, "IgnOpen");
+            const secret = addAliasCategory(space, WellKnownCategories.TagVariables, "IgnSecret");
+            addAlias(space, open, "IGN-OPEN", ns.addVariable({ browseName: "IgnOpenVar", dataType: "Double" }));
+            addAlias(space, secret, "IGN-SECRET", ns.addVariable({ browseName: "IgnSecretVar", dataType: "Double" }));
+
+            const inner = new AddressSpaceAliasStore(space);
+            const ignoresVisibility: IAliasStore = {
+                // deliberately drops isVisible
+                find: (query) => inner.find({ ...query, isVisible: undefined }),
+                lastChange: () => 0
+            };
+
+            await installAliasNamesOnAddressSpace(space, {
+                store: ignoresVisibility,
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, secret.nodeId)
+            });
+
+            const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.Good);
+            aliasNames(result).should.eql(["IGN-OPEN"], "the backstop still removes the hidden category");
+        });
+
+        it("should evaluate the rule at most once per category even though the store also asks", async () => {
+            // the store is handed the handler's memoised closure, so honouring
+            // the predicate must not double the number of evaluations
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const a = addAliasCategory(space, WellKnownCategories.TagVariables, "OnceA");
+            const b = addAliasCategory(space, WellKnownCategories.TagVariables, "OnceB");
+            for (let i = 0; i < 4; i++) {
+                addAlias(space, a, `OA-${i}`, ns.addVariable({ browseName: `OAVar${i}`, dataType: "Double" }));
+                addAlias(space, b, `OB-${i}`, ns.addVariable({ browseName: `OBVar${i}`, dataType: "Double" }));
+            }
+            const asked: string[] = [];
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => {
+                    asked.push(categoryNodeId.toString());
+                    return true;
+                }
+            });
+
+            await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
+
+            for (const categoryNodeId of new Set(asked)) {
+                asked.filter((id) => id === categoryNodeId).should.have.length(1, `asked more than once for ${categoryNodeId}`);
+            }
         });
 
         it("should allow everything by default, so a publisher is unaffected", async () => {
