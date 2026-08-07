@@ -49,12 +49,31 @@ like("axb", "a.b");            // false - '.' is a full stop, not "any character
 
 The whole subject must match; the pattern is anchored at both ends.
 
-Compile once and reuse when testing many subjects:
+**Compile once and reuse when testing many subjects.** `like()` re-parses on every
+call, so a `like()` in a loop parses the pattern per record — and if the record set is
+empty, a malformed pattern is never reported at all:
 
 ```ts
 const pattern = new LikePattern("TI%");
 names.filter((n) => pattern.test(n));
 ```
+
+#### Where Table 120 is silent: `\` inside a list
+
+The table defines `\` and `[...]` separately and never says what `\` means *inside* a
+list. This implementation **honours the escape there too**, because the table describes
+the escape unconditionally as allowing "literal interpretation" and because otherwise a
+literal `]` cannot be put in a list at all:
+
+```ts
+like("]", "[a\\]b]");   // true  - the list is {a, ], b}
+like("]", "[\\]]");     // true  - not an "empty list" error
+like("-", "[a\\-z]");   // true  - the list is {a, -, z}, not the range a..z
+like("m", "[a-z]");     // true  - an unescaped '-' is still a range
+```
+
+This is a reading, not a requirement — other implementations may choose the opposite —
+so it is stated and pinned by tests rather than left to chance.
 
 An invalid pattern throws `InvalidLikePatternError`, carrying the pattern and the index
 at which parsing failed, so a Method binding can return `Bad_InvalidArgument`
@@ -75,6 +94,11 @@ conventions need it, and is a deliberate deviation from Part 4:
 ```ts
 like("TI101", "ti%", { caseInsensitive: true }); // true
 ```
+
+The option affects **comparison only, never parsing**: whether a pattern is well formed
+is the same either way, so `isValidLikePattern` can never accept a pattern that
+`new LikePattern(...)` then rejects. Ranges are matched as written rather than
+case-folded — folding the endpoints of `[Z-a]` would give `[z-a]`, which matches nothing.
 
 The matcher is exported because `Like` is not specific to AliasNames — `QueryApplications`
 (OPC 10000-12) and event filters use the same operator.

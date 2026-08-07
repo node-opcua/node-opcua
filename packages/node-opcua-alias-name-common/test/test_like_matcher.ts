@@ -273,6 +273,55 @@ describe("OPC 10000-4: the Like operator (Table 120)", () => {
         });
     });
 
+    describe("the escape character inside a character list", () => {
+        // Table 120 defines both '\' and '[...]' but says nothing about '\'
+        // *inside* a list, so this is a reading, not a requirement. We honour the
+        // escape: the table describes the escape unconditionally as allowing
+        // "literal interpretation", and it is otherwise impossible to put a
+        // literal ']' in a list at all. Built from char codes so no quoting layer
+        // can mangle the backslash.
+        const BS = String.fromCharCode(92);
+
+        it("should let an escaped ']' be a member instead of closing the list", () => {
+            like("]", `[a${BS}]b]`).should.eql(true);
+            like("a", `[a${BS}]b]`).should.eql(true);
+            like("b", `[a${BS}]b]`).should.eql(true);
+            like("c", `[a${BS}]b]`).should.eql(false);
+        });
+
+        it("should accept a list whose only member is an escaped ']'", () => {
+            // without the escape this parses as the empty list "[]" and throws
+            like("]", `[${BS}]]`).should.eql(true);
+            like("x", `[${BS}]]`).should.eql(false);
+        });
+
+        it("should let an escaped '-' be a literal member in the middle of a list", () => {
+            // unescaped this would be the range a..z
+            like("-", `[a${BS}-z]`).should.eql(true);
+            like("a", `[a${BS}-z]`).should.eql(true);
+            like("z", `[a${BS}-z]`).should.eql(true);
+            like("m", `[a${BS}-z]`).should.eql(false, "not a range");
+        });
+
+        it("should still treat an unescaped '-' between two atoms as a range", () => {
+            like("m", "[a-z]").should.eql(true);
+        });
+
+        it("should let an escaped backslash be a member", () => {
+            like(BS, `[${BS}${BS}]`).should.eql(true);
+            like("x", `[${BS}${BS}]`).should.eql(false);
+        });
+
+        it("should reject a dangling escape inside a list", () => {
+            should(() => like("a", `[a${BS}`)).throw(InvalidLikePatternError);
+        });
+
+        it("should treat an escaped wildcard inside a list as that character", () => {
+            like("%", `[${BS}%]`).should.eql(true);
+            like("_", `[${BS}_]`).should.eql(true);
+        });
+    });
+
     describe("pattern length limit", () => {
         // The pattern arrives from the network and parsing allocates one element
         // per character, so this cap is what stops a single FindAlias call from
@@ -337,6 +386,51 @@ describe("OPC 10000-4: the Like operator (Table 120)", () => {
             like("ABC1", "abc[0-9]", { caseInsensitive: true }).should.eql(true);
             like("XYZD", "xyz[c-f]", { caseInsensitive: true }).should.eql(true);
             like("XYZD", "xyz[^c-f]", { caseInsensitive: true }).should.eql(false);
+            like("xyzd", "XYZ[C-F]", { caseInsensitive: true }).should.eql(true);
+        });
+
+        it("should not let the option change which patterns are valid", () => {
+            // folding at parse time made '[a-Z]' reversed when sensitive and
+            // valid when insensitive, so isValidLikePattern could disagree with
+            // the LikePattern the caller went on to build
+            for (const pattern of ["[a-Z]", "[Z-a]", "[A-z]", "[z-A]"]) {
+                const sensitive = isValidLikePattern(pattern);
+                let insensitive = true;
+                try {
+                    new LikePattern(pattern, { caseInsensitive: true });
+                } catch {
+                    insensitive = false;
+                }
+                insensitive.should.eql(sensitive, `validity disagreement on ${pattern}`);
+            }
+        });
+
+        it("should not corrupt a range by folding its endpoints", () => {
+            // lower-casing '[Z-a]' would give '[z-a]', which matches nothing
+            like("Z", "[Z-a]").should.eql(true);
+            like("_", "[Z-a]").should.eql(true, "underscore is between Z and a in ASCII");
+            like("Z", "[Z-a]", { caseInsensitive: true }).should.eql(true);
+            like("_", "[Z-a]", { caseInsensitive: true }).should.eql(true);
+        });
+    });
+
+    describe("cost guards", () => {
+        // A RegExp translation of this pattern takes ~15 seconds: each '%'
+        // becomes '.*' and a backtracking engine explores every way to split the
+        // subject across them. These fail loudly if anyone "simplifies" the
+        // matcher into a RegExp.
+        it("should stay fast when the pattern is mostly '%'", () => {
+            const subject = "a".repeat(200);
+            const started = Date.now();
+            like(subject, `${"%".repeat(40)}x`).should.eql(false);
+            (Date.now() - started).should.be.below(500);
+        });
+
+        it("should stay fast when '%' and '_' alternate", () => {
+            const subject = "a".repeat(200);
+            const started = Date.now();
+            like(subject, `${"%_".repeat(20)}x`).should.eql(false);
+            (Date.now() - started).should.be.below(500);
         });
     });
 
