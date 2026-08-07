@@ -30,6 +30,16 @@
  * `main%` matches anything starting with `main`, and `%en%` matches anything
  * containing `en`, exactly as Table 120 describes.
  *
+ * ## Where the table is silent
+ *
+ * Table 120 defines `\` and `[...]` separately and never says what `\` means
+ * *inside* a list. This implementation **honours the escape there too**, so
+ * `[a\]b]` is the list `{a, ], b}` and `[a\-z]` is `{a, -, z}` rather than a
+ * range. Two reasons: the table describes the escape unconditionally as allowing
+ * "literal interpretation", and without it a literal `]` cannot be put in a list
+ * at all. This is a reading, not a requirement — implementations may differ, so
+ * it is stated here and pinned by tests rather than left to chance.
+ *
  * ## Case sensitivity
  *
  * OPC 10000-4 states it directly, immediately above Table 120: *"The Like
@@ -43,6 +53,12 @@
  * guaranteed to be entered that way, {@link LikeOptions.caseInsensitive} is
  * offered as an explicit opt-in for a server that wants to relax it. Turning it
  * on is a deliberate deviation from Part 4, so it is off by default.
+ *
+ * The option affects **comparison only, never parsing**. Whether a pattern is
+ * well formed is the same either way, so {@link isValidLikePattern} can never
+ * disagree with the {@link LikePattern} a caller goes on to build. Ranges are
+ * matched as written rather than case-folded, because folding the endpoints of
+ * `[Z-a]` would give `[z-a]`, which matches nothing.
  *
  * ## Cost, and why the pattern length is capped
  *
@@ -167,22 +183,24 @@ export class LikePattern {
      */
     constructor(pattern: string, options?: LikeOptions) {
         this.caseInsensitive = options?.caseInsensitive ?? false;
-        this.elements = parsePattern(
-            pattern,
-            this.caseInsensitive,
-            options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH
-        );
+        this.elements = parsePattern(pattern, options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH);
     }
 
     /** True when `subject` matches this pattern in its entirety. */
     public test(subject: string): boolean {
-        const text = this.caseInsensitive ? subject.toLowerCase() : subject;
-        return matchFrom(this.elements, 0, text, 0, new Set<number>());
+        return matchFrom(this.elements, 0, subject, 0, new Set<number>(), this.caseInsensitive);
     }
 }
 
 /**
  * Test `subject` against a OPC 10000-4 `Like` pattern.
+ *
+ * This parses `pattern` on every call. When testing many subjects against one
+ * pattern — filtering a tag list, or the records of a `QueryApplications`
+ * response — build a {@link LikePattern} once and call `test` per subject
+ * instead. Besides the parsing saved, it reports a malformed pattern once,
+ * up front, rather than only if some record happens to be tested: a `like()`
+ * in a loop over an empty result set never notices a bad pattern at all.
  *
  * @throws {@link InvalidLikePatternError} if `pattern` is malformed.
  */
@@ -199,15 +217,25 @@ export function like(subject: string, pattern: string, options?: LikeOptions): b
  */
 export function isValidLikePattern(pattern: string, options?: LikeOptions): boolean {
     try {
-        parsePattern(pattern, false, options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH);
+        parsePattern(pattern, options?.maxPatternLength ?? DEFAULT_MAX_PATTERN_LENGTH);
         return true;
     } catch {
         return false;
     }
 }
 
-/** Parse a pattern into elements, folding case up-front when requested. */
-function parsePattern(pattern: string, caseInsensitive: boolean, maxPatternLength: number): PatternElement[] {
+/**
+ * Parse a pattern into elements.
+ *
+ * Case is deliberately **not** folded here. Folding at parse time would make
+ * whether a pattern is *well formed* depend on a matching option: `[a-Z]` is a
+ * reversed range unfolded but a valid one folded, and `[Z-a]` is the reverse.
+ * `isValidLikePattern` would then be able to disagree with the `LikePattern` the
+ * caller goes on to build. Folding also silently corrupts ranges — lower-casing
+ * the endpoints of `[Z-a]` produces `[z-a]`, which matches nothing. Case is
+ * handled at match time instead, where it only affects comparison.
+ */
+function parsePattern(pattern: string, maxPatternLength: number): PatternElement[] {
     // Checked before a single element is allocated: this is what keeps the
     // O(P) parse allocation bounded for a pattern that arrived from the network.
     if (pattern.length > maxPatternLength) {
@@ -217,7 +245,6 @@ function parsePattern(pattern: string, caseInsensitive: boolean, maxPatternLengt
             `pattern is ${pattern.length} characters, which exceeds the ${maxPatternLength} character limit`
         );
     }
-    const fold = (c: string) => (caseInsensitive ? c.toLowerCase() : c);
     const elements: PatternElement[] = [];
     let i = 0;
 
@@ -245,13 +272,13 @@ function parsePattern(pattern: string, caseInsensitive: boolean, maxPatternLengt
             if (i + 1 >= pattern.length) {
                 throw new InvalidLikePatternError(pattern, i, "dangling escape character");
             }
-            elements.push({ kind: "literal", value: fold(pattern[i + 1]) });
+            elements.push({ kind: "literal", value: pattern[i + 1] });
             i += 2;
             continue;
         }
 
         if (c === "[") {
-            const { element, next } = parseList(pattern, i, fold);
+            const { element, next } = parseList(pattern, i);
             elements.push(element);
             i = next;
             continue;
@@ -259,20 +286,39 @@ function parsePattern(pattern: string, caseInsensitive: boolean, maxPatternLengt
 
         // Everything else - including ']', '.', '*', '(' and every other regular
         // expression metacharacter - is an ordinary character.
-        elements.push({ kind: "literal", value: fold(c) });
+        elements.push({ kind: "literal", value: c });
         i += 1;
     }
     return elements;
 }
 
+/** One character inside a list, and whether it arrived escaped. */
+interface ListAtom {
+    char: string;
+    escaped: boolean;
+    /** Index in the pattern, for error reporting. */
+    index: number;
+}
+
 /**
  * Parse a `[...]` list starting at `start` (which indexes the `[`).
  *
- * Inside a list only `]` is special (it ends the list) and `-` between two
- * characters forms a range. A `-` in first or last position is a literal, which
- * is what makes `[a-]` and `[-a]` well formed.
+ * Table 120 defines `\` as the escape character and `[...]` as a list, but does
+ * not say what `\` means *inside* a list. This implementation **honours the
+ * escape inside lists**, for two reasons: the table describes the escape
+ * unconditionally as allowing "literal interpretation", and it is otherwise
+ * impossible to put a literal `]` in a list at all. So `[a\]b]` is the list
+ * `{a, ], b}`, and `[\]]` is the list `{]}` rather than a parse error.
+ *
+ * The list is read into atoms first so that escaping composes properly: an
+ * escaped `]` does not close the list, and an escaped `-` cannot act as a range
+ * separator, which is what makes a literal `-` expressible in the middle of a
+ * list (`[a\-z]` is `{a, -, z}`, not the range `a` to `z`).
+ *
+ * An unescaped `-` between two atoms forms a range. In first or last position it
+ * is a literal, which is what makes `[-a]` and `[a-]` well formed.
  */
-function parseList(pattern: string, start: number, fold: (c: string) => string): { element: ListElement; next: number } {
+function parseList(pattern: string, start: number): { element: ListElement; next: number } {
     let i = start + 1;
     let negated = false;
 
@@ -282,41 +328,55 @@ function parseList(pattern: string, start: number, fold: (c: string) => string):
         i += 1;
     }
 
-    const chars: string[] = [];
-    const ranges: Array<{ from: string; to: string }> = [];
+    const atoms: ListAtom[] = [];
     let closed = false;
 
     while (i < pattern.length) {
-        if (pattern[i] === "]") {
+        const c = pattern[i];
+        if (c === "]") {
             closed = true;
             i += 1;
             break;
         }
-
-        const current = pattern[i];
-
-        // A range needs a '-' followed by a character that is not the closing
-        // bracket. "abc[13-68]" is therefore literal '1', range '3'-'6',
-        // literal '8', which is exactly the example given in Table 120.
-        const isRange = pattern[i + 1] === "-" && i + 2 < pattern.length && pattern[i + 2] !== "]";
-        if (isRange) {
-            const from = fold(current);
-            const to = fold(pattern[i + 2]);
-            if (from > to) {
-                throw new InvalidLikePatternError(pattern, i, `range '${current}-${pattern[i + 2]}' is reversed`);
+        if (c === "\\") {
+            if (i + 1 >= pattern.length) {
+                throw new InvalidLikePatternError(pattern, i, "dangling escape character");
             }
-            ranges.push({ from, to });
-            i += 3;
+            atoms.push({ char: pattern[i + 1], escaped: true, index: i });
+            i += 2;
             continue;
         }
-
-        chars.push(fold(current));
+        atoms.push({ char: c, escaped: false, index: i });
         i += 1;
     }
 
     if (!closed) {
         throw new InvalidLikePatternError(pattern, start, "unterminated '[' list");
     }
+
+    const chars: string[] = [];
+    const ranges: Array<{ from: string; to: string }> = [];
+    let k = 0;
+    while (k < atoms.length) {
+        // A range is atom, unescaped '-', atom. "abc[13-68]" is therefore
+        // literal '1', range '3'-'6', literal '8' - exactly the example in
+        // Table 120.
+        const isRange = k + 2 < atoms.length && !atoms[k + 1].escaped && atoms[k + 1].char === "-";
+        if (isRange) {
+            const from = atoms[k].char;
+            const to = atoms[k + 2].char;
+            // compared unfolded, so validity never depends on caseInsensitive
+            if (from > to) {
+                throw new InvalidLikePatternError(pattern, atoms[k].index, `range '${from}-${to}' is reversed`);
+            }
+            ranges.push({ from, to });
+            k += 3;
+            continue;
+        }
+        chars.push(atoms[k].char);
+        k += 1;
+    }
+
     if (chars.length === 0 && ranges.length === 0) {
         // "[]" and "[^]" have nothing to match against
         throw new InvalidLikePatternError(pattern, start, "empty '[]' list");
@@ -324,16 +384,42 @@ function parseList(pattern: string, start: number, fold: (c: string) => string):
     return { element: { kind: "list", negated, chars, ranges }, next: i };
 }
 
-/** True when the single character `c` satisfies the list element. */
-function listMatches(element: ListElement, c: string): boolean {
-    let inList = element.chars.includes(c);
-    if (!inList) {
-        for (const range of element.ranges) {
-            if (c >= range.from && c <= range.to) {
-                inList = true;
-                break;
-            }
+/** True when two characters are equal, honouring the case-sensitivity setting. */
+function charEquals(a: string, b: string, caseInsensitive: boolean): boolean {
+    if (a === b) {
+        return true;
+    }
+    return caseInsensitive && a.toLowerCase() === b.toLowerCase();
+}
+
+/** True when `c` is literally a member of the list, ignoring case folding. */
+function isMember(element: ListElement, c: string): boolean {
+    if (element.chars.includes(c)) {
+        return true;
+    }
+    for (const range of element.ranges) {
+        if (c >= range.from && c <= range.to) {
+            return true;
         }
+    }
+    return false;
+}
+
+/**
+ * True when the single character `c` satisfies the list element.
+ *
+ * Case insensitivity is applied by trying the other case of the *subject*
+ * character rather than by folding the list. Folding a range's endpoints would
+ * corrupt it — `[Z-a]` lower-cased becomes `[z-a]`, which matches nothing —
+ * whereas testing `c`, `c.toLowerCase()` and `c.toUpperCase()` leaves the range
+ * exactly as written.
+ */
+function listMatches(element: ListElement, c: string, caseInsensitive: boolean): boolean {
+    let inList = isMember(element, c);
+    if (!inList && caseInsensitive) {
+        const lower = c.toLowerCase();
+        const upper = c.toUpperCase();
+        inList = (lower !== c && isMember(element, lower)) || (upper !== c && isMember(element, upper));
     }
     return element.negated ? !inList : inList;
 }
@@ -348,7 +434,14 @@ function listMatches(element: ListElement, c: string): boolean {
  * O(elements x text.length) instead of the exponential blow-up a plain
  * backtracker suffers on a pattern like `%_%_%_...`.
  */
-function matchFrom(elements: PatternElement[], ei: number, text: string, ti: number, failed: Set<number>): boolean {
+function matchFrom(
+    elements: PatternElement[],
+    ei: number,
+    text: string,
+    ti: number,
+    failed: Set<number>,
+    caseInsensitive: boolean
+): boolean {
     let elementIndex = ei;
     let textIndex = ti;
     const stride = text.length + 1;
@@ -366,7 +459,7 @@ function matchFrom(elements: PatternElement[], ei: number, text: string, ti: num
                 if (failed.has(key)) {
                     continue;
                 }
-                if (matchFrom(elements, elementIndex + 1, text, skip, failed)) {
+                if (matchFrom(elements, elementIndex + 1, text, skip, failed, caseInsensitive)) {
                     return true;
                 }
                 failed.add(key);
@@ -382,12 +475,12 @@ function matchFrom(elements: PatternElement[], ei: number, text: string, ti: num
             case "anyChar":
                 break;
             case "literal":
-                if (text[textIndex] !== element.value) {
+                if (!charEquals(text[textIndex], element.value, caseInsensitive)) {
                     return false;
                 }
                 break;
             case "list":
-                if (!listMatches(element, text[textIndex])) {
+                if (!listMatches(element, text[textIndex], caseInsensitive)) {
                     return false;
                 }
                 break;
