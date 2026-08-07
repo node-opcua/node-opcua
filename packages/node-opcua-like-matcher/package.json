@@ -1,7 +1,7 @@
 {
-    "name": "node-opcua-alias-name-common",
+    "name": "node-opcua-like-matcher",
     "version": "2.175.6",
-    "description": "pure nodejs OPCUA SDK - alias-name common types, Like matcher and VersionTime helpers (OPC 10000-17)",
+    "description": "pure nodejs OPCUA SDK - the OPC 10000-4 Like FilterOperator (Table 120 wildcard matching)",
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
@@ -15,10 +15,7 @@
         "node": ">=18.x",
         "npm": ">=10.x"
     },
-    "dependencies": {
-        "node-opcua-like-matcher": "2.175.6",
-        "node-opcua-nodeid": "2.175.6"
-    },
+    "dependencies": {},
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {

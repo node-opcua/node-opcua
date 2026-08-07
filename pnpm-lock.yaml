@@ -671,6 +671,9 @@ importers:
 
   packages/node-opcua-alias-name-common:
     dependencies:
+      node-opcua-like-matcher:
+        specifier: 2.175.6
+        version: link:../node-opcua-like-matcher
       node-opcua-nodeid:
         specifier: 2.175.6
         version: link:../node-opcua-nodeid
@@ -1715,6 +1718,8 @@ importers:
       wtfnode:
         specifier: ^0.10.1
         version: 0.10.1
+
+  packages/node-opcua-like-matcher: {}
 
   packages/node-opcua-local-discovery-server:
     dependencies:

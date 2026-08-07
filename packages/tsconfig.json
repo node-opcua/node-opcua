@@ -19,6 +19,7 @@
         { "path": "node-opcua-alarm-condition" },
         { "path": "node-opcua-alias-name-common" },
         { "path": "node-opcua-alias-name-server" },
+        { "path": "node-opcua-like-matcher" },
         { "path": "node-opcua-benchmarker" },
         { "path": "node-opcua-client" },
         { "path": "node-opcua-client" },
