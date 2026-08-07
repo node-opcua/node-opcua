@@ -164,7 +164,29 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
             return { statusCode: StatusCodes.BadInternalError };
         }
 
-        if (options.isReadAllowed && !(await options.isReadAllowed(context, category.nodeId))) {
+        // The gate is consulted per category, and each category at most once per
+        // call. Memoised because a recursive search reaches the same category
+        // through every alias it holds, and the rule may hit a database.
+        const gate = options.isReadAllowed;
+        const decisions = new Map<string, boolean>();
+        const mayRead = async (categoryNodeId: NodeId): Promise<boolean> => {
+            if (!gate) {
+                return true;
+            }
+            const key = categoryNodeId.toString();
+            const cached = decisions.get(key);
+            if (cached !== undefined) {
+                return cached;
+            }
+            const allowed = await gate(context, categoryNodeId);
+            decisions.set(key, allowed);
+            return allowed;
+        };
+
+        // A direct call on a category the caller may not read is
+        // Bad_UserAccessDenied: there is nothing left to filter, so silence
+        // would be a lie rather than a non-disclosure.
+        if (!(await mayRead(category.nodeId))) {
             return { statusCode: StatusCodes.BadUserAccessDenied };
         }
 
@@ -193,15 +215,29 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
 
         // clause 6.3.2 Table 4: too large to return, "try new filter and repeat find".
         //
-        // Applied to what the store produced, *before* merging. The store stops
-        // collecting one entry past the cap, so a count that reaches it means
-        // "there may be more"; merging first could reduce the count back under
-        // the cap and report a truncated scan as a complete answer.
+        // Applied to what the store produced, *before* filtering and merging.
+        // The store stops collecting one entry past the cap, so a count that
+        // reaches it means "there may be more"; reducing the count first would
+        // report a truncated scan as a complete answer. The code names no
+        // category, so it discloses nothing a gated caller should not see.
         if (found.length > options.maxResults) {
             return { statusCode: StatusCodes.BadResponseTooLarge };
         }
 
-        const results = verbose ? found : mergeByAliasName(found);
+        // A nested category the caller may not read is omitted, and the call
+        // still succeeds: an error, or a count that changed, would confirm the
+        // category exists. Absence is the only answer that discloses nothing.
+        const visible: AliasEntry[] = [];
+        for (const entry of found) {
+            if (await mayRead(entry.categoryNodeId)) {
+                visible.push(entry);
+            }
+        }
+
+        // Filtering happens before the verbose/plain split, so FindAliasVerbose
+        // cannot reveal a ServerUri or an AliasNameCategoryId for a category
+        // that FindAlias would have hidden.
+        const results = verbose ? visible : mergeByAliasName(visible);
 
         // sort() is stable in modern JavaScript, so a comparator that returns 0
         // leaves discovery order untouched

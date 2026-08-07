@@ -21,6 +21,7 @@ import {
 } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { ExpandedNodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { aliasesOf, collectCategories } from "./alias_hierarchy.js";
 import { ALIAS_FOR } from "./well_known.js";
 
@@ -156,6 +157,31 @@ export class AddressSpaceAliasStore implements IAliasStore {
     /** Snapshot the per-category `LastChange` values for persistence. */
     public snapshotLastChange(): Array<[string, number]> {
         return [...this.lastChangeByCategory.entries()];
+    }
+
+    /**
+     * `AddAliasesToCategory` is not implemented yet (clause 6.3.4).
+     *
+     * Answers `Bad_NotSupported` for every entry rather than throwing or being
+     * absent, so the Configuration Support facet has a working stub before it
+     * has an implementation: a binding can call it and produce a well-formed
+     * per-item result array today.
+     *
+     * Use {@link addAlias} to add aliases from Server code.
+     */
+    public add(_categoryNodeId: NodeId, entries: AliasEntry[]): StatusCode[] {
+        return entries.map(() => StatusCodes.BadNotSupported);
+    }
+
+    /**
+     * `DeleteAliasesFromCategory` is not implemented yet (clause 6.3.5).
+     * See {@link add}; use {@link removeAlias} from Server code.
+     */
+    public delete(
+        _categoryNodeId: NodeId,
+        entries: Pick<AliasEntry, "aliasName" | "referencedNodes">[]
+    ): StatusCode[] {
+        return entries.map(() => StatusCodes.BadNotSupported);
     }
 
     /** The URI of a namespace index, or undefined for namespace 0. */

@@ -29,11 +29,28 @@ export { DEFAULT_MAX_RESULTS };
 /**
  * Supplies the `AliasNameCategoryType` instances to bind.
  *
- * Defaults to walking down from `Aliases`. Replace it when the category set is
- * dynamic — one per customer, one per upstream Server — and cannot be described
- * by a fixed list of roots known at install time.
+ * Defaults to {@link defaultCategoryProvider}, which walks down from `Aliases`.
+ * Replace it when the category set is not a static tree — one category per
+ * customer, one per upstream Server, categories that appear and disappear at
+ * runtime. May be asynchronous, since the set may have to be fetched.
+ *
+ * A provider only decides *what installation binds*. Categories created after
+ * installation are bound with {@link bindAliasCategory}, or created already
+ * bound with {@link addAliasCategory}.
  */
-export type CategoryDiscovery = (addressSpace: IAddressSpace) => UAObject[];
+export type CategoryProvider = (addressSpace: IAddressSpace) => UAObject[] | Promise<UAObject[]>;
+
+/**
+ * The default provider: every `AliasNameCategoryType` instance at or below
+ * `Aliases`, plus any roots named in `additionalCategoryRoots`.
+ *
+ * `additionalCategoryRoots` is expressed through this rather than as a parallel
+ * mechanism, so a custom provider can reuse it — `defaultCategoryProvider(roots)`
+ * composes with whatever else the Server knows about.
+ */
+export function defaultCategoryProvider(additionalRoots?: Array<NodeId | UAObject>): CategoryProvider {
+    return (addressSpace: IAddressSpace) => collectAllCategories(addressSpace, additionalRoots);
+}
 
 export interface InstallAliasNamesOptions {
     /**
@@ -66,11 +83,26 @@ export interface InstallAliasNamesOptions {
     /** Result ordering (clause 6.3.2, "best match first"). */
     comparator?: AliasComparator;
     /**
-     * Read gate; return false to answer `Bad_UserAccessDenied`
-     * (clause 6.3.2 Table 4). Receives the category the Method was called on, and
-     * may return a Promise. Defaults to allowing everyone.
+     * Read gate, consulted **per category** and allowed to be asynchronous.
+     * Defaults to allowing everyone, so a Server that simply publishes its
+     * aliases is unaffected.
+     *
+     * A direct call on a denied category answers `Bad_UserAccessDenied`; a
+     * denied category reached by a recursive search is omitted and the call
+     * still returns `Good`, so nothing reveals that it exists.
+     *
+     * OPC 10000-17 defines no security model — four `Bad_UserAccessDenied` rows,
+     * no Security clause, no Roles, and no `RolePermissions` on any Part 17 node
+     * in the standard nodeset — so every Server has to supply its own rule.
      */
     isReadAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
+    /**
+     * Write gate for the configuration Methods, mirroring
+     * {@link isReadAllowed}. **Defaults to denying everyone**: the write surface
+     * is the one place where a permissive default would be a security defect
+     * rather than a convenience.
+     */
+    isWriteAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
     /**
      * File backing the persisted `LastChange` values (clause 6.3.1: "The
      * LastChange shall be persisted"). A Client that sees a value older than
@@ -89,13 +121,14 @@ export interface InstallAliasNamesOptions {
      * clause 9.1 puts them. Name a category here if the Server models one
      * outside that hierarchy, otherwise its MANDATORY `FindAlias` stays unbound.
      *
-     * Ignored when {@link discoverCategories} is supplied.
+     * Ignored when {@link categoryProvider} is supplied — compose it in with
+     * {@link defaultCategoryProvider} instead of passing both.
      */
     additionalCategoryRoots?: Array<NodeId | UAObject>;
     /**
-     * Replace category discovery entirely. See {@link CategoryDiscovery}.
+     * Replace category discovery entirely. See {@link CategoryProvider}.
      */
-    discoverCategories?: CategoryDiscovery;
+    categoryProvider?: CategoryProvider;
 }
 
 export interface InstallAliasNamesResult {
@@ -184,12 +217,12 @@ export async function installAliasNamesOnAddressSpace(
         maxResults: options?.maxResults ?? DEFAULT_MAX_RESULTS,
         verbose: options?.verbose ?? true,
         comparator: options?.comparator,
-        isReadAllowed: options?.isReadAllowed
+        isReadAllowed: options?.isReadAllowed,
+        isWriteAllowed: options?.isWriteAllowed
     };
 
-    const discover: CategoryDiscovery =
-        options?.discoverCategories ?? ((space) => collectAllCategories(space, options?.additionalCategoryRoots));
-    const categories = discover(addressSpace);
+    const provider = options?.categoryProvider ?? defaultCategoryProvider(options?.additionalCategoryRoots);
+    const categories = await provider(addressSpace);
 
     // one binding path, shared with bindAliasCategory, so a category created
     // after installation cannot end up bound differently

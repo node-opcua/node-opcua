@@ -2,14 +2,20 @@ import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import type { IAliasStore } from "node-opcua-alias-name-common";
-import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
+import { PermissionType } from "node-opcua-types";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";
-import { addAliasCategory, bindAliasCategory, getInstalledAliasNames } from "../source/bind_alias_category.js";
+import {
+    addAliasCategory,
+    bindAliasCategory,
+    getInstalledAliasNames,
+    removeAliasCategory
+} from "../source/bind_alias_category.js";
 import { DEFAULT_MAX_RESULTS, installAliasNamesOnAddressSpace } from "../source/install_alias_names.js";
 import { WellKnownCategories } from "../source/well_known.js";
-import { aliasNames, callFind, getMethod, getObject, makeAddressSpace, resultAliases } from "./helpers.js";
+import { aliasNames, callFind, getMethod, getObject, makeAddressSpace, resultAliases, resultVerbose } from "./helpers.js";
 
 /**
  * The injection points an advanced Server needs: a GDS, an aggregating Server,
@@ -206,12 +212,12 @@ describe("OPC 10000-17: extension points", () => {
         });
     });
 
-    describe("discoverCategories", () => {
+    describe("categoryProvider", () => {
         it("should replace discovery entirely", async () => {
             const addressSpace = await pristine();
             const tagVariables = getObject(addressSpace, WellKnownCategories.TagVariables);
             const result = await installAliasNamesOnAddressSpace(addressSpace, {
-                discoverCategories: () => [tagVariables]
+                categoryProvider: () => [tagVariables]
             });
 
             result.categories.should.have.length(1);
@@ -224,7 +230,7 @@ describe("OPC 10000-17: extension points", () => {
             const addressSpace = await pristine();
             let seen: AddressSpace | null = null;
             await installAliasNamesOnAddressSpace(addressSpace, {
-                discoverCategories: (space) => {
+                categoryProvider: (space) => {
                     seen = space as AddressSpace;
                     return [];
                 }
@@ -273,6 +279,194 @@ describe("OPC 10000-17: extension points", () => {
             });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "%");
             result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+        });
+    });
+
+    describe("the read gate during a recursive search", () => {
+        it("should omit a denied category from a recursive search and still return Good", async () => {
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const open = addAliasCategory(space, WellKnownCategories.TagVariables, "Open");
+            const secret = addAliasCategory(space, WellKnownCategories.TagVariables, "Secret");
+            addAlias(space, open, "OPEN-1", ns.addVariable({ browseName: "OpenVar", dataType: "Double" }));
+            addAlias(space, secret, "SECRET-1", ns.addVariable({ browseName: "SecretVar", dataType: "Double" }));
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, secret.nodeId)
+            });
+
+            const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
+
+            result.statusCode!.should.eql(StatusCodes.Good, "denial is not an error");
+            aliasNames(result).should.eql(["OPEN-1"], "the denied category contributes nothing, and nothing says so");
+        });
+
+        it("should consult the gate per category, not once for the call", async () => {
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const a = addAliasCategory(space, WellKnownCategories.TagVariables, "TenantA");
+            const b = addAliasCategory(space, WellKnownCategories.TagVariables, "TenantB");
+            addAlias(space, a, "A-1", ns.addVariable({ browseName: "AVar", dataType: "Double" }));
+            addAlias(space, b, "B-1", ns.addVariable({ browseName: "BVar", dataType: "Double" }));
+
+            const asked: string[] = [];
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => {
+                    asked.push(categoryNodeId.toString());
+                    return !sameNodeId(categoryNodeId, b.nodeId);
+                }
+            });
+
+            const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.Good);
+            aliasNames(result).should.eql(["A-1"]);
+
+            // the gate saw both nested categories, not just the one called on
+            asked.should.containEql(a.nodeId.toString());
+            asked.should.containEql(b.nodeId.toString());
+        });
+
+        it("should ask about each category at most once per call", async () => {
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const cat = addAliasCategory(space, WellKnownCategories.TagVariables, "ManyAliases");
+            for (let i = 0; i < 5; i++) {
+                addAlias(space, cat, `M-${i}`, ns.addVariable({ browseName: `MVar${i}`, dataType: "Double" }));
+            }
+            const asked: string[] = [];
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => {
+                    asked.push(categoryNodeId.toString());
+                    return true;
+                }
+            });
+            await callFind(cat, "FindAlias", "%");
+            // five aliases in one category, but the rule may hit a database
+            asked.filter((id) => id === cat.nodeId.toString()).should.have.length(1);
+        });
+
+        it("should return Bad_UserAccessDenied on a direct call to a denied category", async () => {
+            // nothing left to filter, so silence would be a lie
+            const space = await pristine();
+            const denied = addAliasCategory(space, WellKnownCategories.TagVariables, "DeniedDirect");
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, denied.nodeId)
+            });
+            const result = await callFind(denied, "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+        });
+
+        it("should not let FindAliasVerbose disclose more than FindAlias", async () => {
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const open = addAliasCategory(space, WellKnownCategories.TagVariables, "VOpen");
+            const secret = addAliasCategory(space, WellKnownCategories.TagVariables, "VSecret");
+            addAlias(space, open, "V-OPEN", ns.addVariable({ browseName: "VOpenVar", dataType: "Double" }));
+            addAlias(space, secret, "V-SECRET", ns.addVariable({ browseName: "VSecretVar", dataType: "Double" }));
+            await installAliasNamesOnAddressSpace(space, {
+                isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, secret.nodeId)
+            });
+
+            const tagVariables = getObject(space, WellKnownCategories.TagVariables);
+            const verbose = await callFind(tagVariables, "FindAliasVerbose", "%");
+            verbose.statusCode!.should.eql(StatusCodes.Good);
+
+            const entries = resultVerbose(verbose);
+            entries.map((e) => e.aliasName.name).should.eql(["V-OPEN"]);
+            // no AliasNameCategoryId and no ServerUris for the hidden category
+            entries.every((e) => !sameNodeId(e.aliasNameCategoryId, secret.nodeId)).should.eql(true);
+        });
+
+        it("should allow everything by default, so a publisher is unaffected", async () => {
+            const space = await pristine();
+            const ns = space.getOwnNamespace();
+            const cat = addAliasCategory(space, WellKnownCategories.TagVariables, "Ungated");
+            addAlias(space, cat, "U-1", ns.addVariable({ browseName: "UVar", dataType: "Double" }));
+            await installAliasNamesOnAddressSpace(space);
+            const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.Good);
+            aliasNames(result).should.eql(["U-1"]);
+        });
+    });
+
+    describe("addAliasCategory options", () => {
+        it("should accept a subtype of AliasNameCategoryType", () => {
+            const ns = addressSpace.getOwnNamespace();
+            const subtype = ns.addObjectType({
+                browseName: "TenantCategoryType",
+                subtypeOf: addressSpace.findObjectType("AliasNameCategoryType")!
+            });
+            const category = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "SubtypedCat", {
+                categoryType: subtype
+            });
+
+            category.typeDefinitionObj.browseName.name!.should.eql("TenantCategoryType");
+            getMethod(category, "FindAlias")!.isBound().should.eql(true, "binding handles subtypes");
+        });
+
+        it("should reject a type that is not an AliasNameCategoryType", () => {
+            const baseObjectType = addressSpace.findObjectType("BaseObjectType")!;
+            should(() =>
+                addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "BadType", {
+                    categoryType: baseObjectType
+                })
+            ).throw(/not AliasNameCategoryType or a subtype/);
+        });
+
+        it("should apply rolePermissions when given", () => {
+            const category = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "WithPermissions", {
+                rolePermissions: [{ roleId: resolveNodeId("i=15644"), permissions: PermissionType.Browse }]
+            });
+            should.exist(category.rolePermissions);
+            category.rolePermissions!.should.have.length(1);
+        });
+    });
+
+    describe("removeAliasCategory", () => {
+        it("should re-parent what the category organises by default", () => {
+            const parent = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "RemoveParent");
+            const doomed = addAliasCategory(addressSpace, parent, "Doomed");
+            const sensor = addressSpace
+                .getOwnNamespace()
+                .addVariable({ browseName: "SurvivingVar", dataType: "Double" }) as UAVariable;
+            const alias = addAlias(addressSpace, doomed, "SURV-1", sensor);
+
+            const { moved, deleted } = removeAliasCategory(addressSpace, doomed);
+
+            deleted.should.have.length(0);
+            moved.some((id) => sameNodeId(id, alias.nodeId)).should.eql(true);
+            should.exist(addressSpace.findNode(alias.nodeId), "the alias keeps its NodeId, so clients keep resolving it");
+            should.not.exist(addressSpace.findNode(doomed.nodeId));
+        });
+
+        it("should still find a re-parented alias through the parent", async () => {
+            const parent = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "RemoveParent2");
+            const doomed = addAliasCategory(addressSpace, parent, "Doomed2");
+            const sensor = addressSpace
+                .getOwnNamespace()
+                .addVariable({ browseName: "SurvivingVar2", dataType: "Double" }) as UAVariable;
+            addAlias(addressSpace, doomed, "SURV-2", sensor);
+
+            removeAliasCategory(addressSpace, doomed);
+            aliasNames(await callFind(parent, "FindAlias", "SURV-2")).should.eql(["SURV-2"]);
+        });
+
+        it("should delete the contents when asked to cascade", () => {
+            const parent = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "CascadeParent");
+            const doomed = addAliasCategory(addressSpace, parent, "DoomedCascade");
+            const sensor = addressSpace
+                .getOwnNamespace()
+                .addVariable({ browseName: "DoomedVar", dataType: "Double" }) as UAVariable;
+            const alias = addAlias(addressSpace, doomed, "GONE-1", sensor);
+
+            const { deleted } = removeAliasCategory(addressSpace, doomed, { orphans: "cascade" });
+
+            deleted.some((id) => sameNodeId(id, alias.nodeId)).should.eql(true);
+            should.not.exist(addressSpace.findNode(alias.nodeId));
+        });
+
+        it("should refuse to remove a well-known category", () => {
+            // clause 9 requires the Server to have all three
+            should(() => removeAliasCategory(addressSpace, WellKnownCategories.TagVariables)).throw(/well-known category/);
         });
     });
 
