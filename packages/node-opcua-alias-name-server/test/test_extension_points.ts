@@ -16,20 +16,38 @@ import { aliasNames, callFind, getMethod, getObject, makeAddressSpace, resultAli
  * or a vendor Server whose categories are created per customer at runtime.
  */
 describe("OPC 10000-17: extension points", () => {
-    let addressSpace: AddressSpace;
-
-    beforeEach(async () => {
-        addressSpace = await makeAddressSpace();
-    });
-
+    /**
+     * A pristine address space, disposed after the test.
+     *
+     * Most tests here install with their own options, and installation is once
+     * per address space, so they cannot share a fixture. Loading the standard
+     * nodeset costs roughly a second, so tests that only need a
+     * default-installed address space use the shared one below and isolate
+     * themselves with uniquely named categories.
+     */
+    const pristineSpaces: AddressSpace[] = [];
+    async function pristine(): Promise<AddressSpace> {
+        const space = await makeAddressSpace();
+        pristineSpaces.push(space);
+        return space;
+    }
     afterEach(() => {
-        addressSpace.dispose();
+        while (pristineSpaces.length) {
+            pristineSpaces.pop()!.dispose();
+        }
     });
+
+    /** Installed once with default options; tests here only add to it. */
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = await makeAddressSpace();
+        await installAliasNamesOnAddressSpace(addressSpace);
+    });
+    after(() => addressSpace.dispose());
 
     describe("addAliasCategory", () => {
-        it("should create a category and bind it in one step", async () => {
-            await installAliasNamesOnAddressSpace(addressSpace);
-            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
+        it("should create a category and bind it in one step", () => {
+            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "WellsBind");
 
             getMethod(wells, "FindAlias")!.isBound().should.eql(true);
             getMethod(wells, "FindAliasVerbose")!.isBound().should.eql(true);
@@ -38,11 +56,10 @@ describe("OPC 10000-17: extension points", () => {
         it("should answer FindAlias on a category created after installation", async () => {
             // an unbound MANDATORY FindAlias is the defect this package removes;
             // it must not be able to reappear at runtime
-            await installAliasNamesOnAddressSpace(addressSpace);
-            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
+            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "WellsAnswer");
             const sensor = addressSpace
                 .getOwnNamespace()
-                .addVariable({ browseName: "WellHeadPressure", dataType: "Double" }) as UAVariable;
+                .addVariable({ browseName: "WellHeadPressureAnswer", dataType: "Double" }) as UAVariable;
             addAlias(addressSpace, wells, "PT-301", sensor);
 
             const result = await callFind(wells, "FindAlias", "PT%");
@@ -51,16 +68,18 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should be reachable from a recursive search on Aliases", async () => {
-            await installAliasNamesOnAddressSpace(addressSpace);
-            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
-            const sensor = addressSpace.getOwnNamespace().addVariable({ browseName: "P", dataType: "Double" }) as UAVariable;
-            addAlias(addressSpace, wells, "PT-301", sensor);
+            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "WellsRecursive");
+            const sensor = addressSpace
+                .getOwnNamespace()
+                .addVariable({ browseName: "PRecursive", dataType: "Double" }) as UAVariable;
+            addAlias(addressSpace, wells, "PT-777", sensor);
 
-            const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "PT-301");
-            aliasNames(result).should.eql(["PT-301"]);
+            const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "PT-777");
+            aliasNames(result).should.eql(["PT-777"]);
         });
 
         it("should reuse the options installation was given", async () => {
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 1 });
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
             const ns = addressSpace.getOwnNamespace();
@@ -74,6 +93,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should let an explicit option override the inherited one", async () => {
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 1 });
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells", { maxResults: 10 });
             const ns = addressSpace.getOwnNamespace();
@@ -87,6 +107,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should create an unbound category when installation has not run", async () => {
+            const addressSpace = await pristine();
             // nothing to bind against yet; installAliasNames picks it up later
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
             getMethod(wells, "FindAlias")!.isBound().should.eql(false);
@@ -96,11 +117,11 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should use a server-assigned NodeId by default and honour an explicit one", () => {
-            const auto = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Auto");
+            const auto = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "AutoId");
             auto.nodeId.namespace.should.not.eql(0);
 
             const explicitId = new NodeId(NodeIdType.NUMERIC, 987654, addressSpace.getOwnNamespace().index);
-            const chosen = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Explicit", {
+            const chosen = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "ExplicitId", {
                 nodeId: explicitId
             });
             sameNodeId(chosen.nodeId, explicitId).should.eql(true);
@@ -112,7 +133,7 @@ describe("OPC 10000-17: extension points", () => {
             const installed = await installAliasNamesOnAddressSpace(addressSpace);
             const categoryType = addressSpace.findObjectType("AliasNameCategoryType")!;
             const handmade = categoryType.instantiate({
-                browseName: "HandMade",
+                browseName: "HandMadeBind",
                 organizedBy: getObject(addressSpace, WellKnownCategories.TagVariables),
                 namespace: addressSpace.getOwnNamespace()
             }) as UAObject;
@@ -126,7 +147,7 @@ describe("OPC 10000-17: extension points", () => {
             const installed = await installAliasNamesOnAddressSpace(addressSpace);
             const categoryType = addressSpace.findObjectType("AliasNameCategoryType")!;
             const handmade = categoryType.instantiate({
-                browseName: "HandMade",
+                browseName: "HandMadeVerbose",
                 organizedBy: getObject(addressSpace, WellKnownCategories.TagVariables),
                 namespace: addressSpace.getOwnNamespace()
             }) as UAObject;
@@ -150,6 +171,7 @@ describe("OPC 10000-17: extension points", () => {
 
     describe("InstallAliasNamesResult.bindingOptions", () => {
         it("should expose what every category was bound with", async () => {
+            const addressSpace = await pristine();
             const store: IAliasStore = { find: () => [], lastChange: () => 0 };
             const installed = await installAliasNamesOnAddressSpace(addressSpace, { store, maxResults: 42, verbose: false });
             installed.bindingOptions.store.should.equal(store);
@@ -158,28 +180,35 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should be readable from the address space afterwards", async () => {
+            const addressSpace = await pristine();
             const installed = await installAliasNamesOnAddressSpace(addressSpace);
             const recovered = getInstalledAliasNames(addressSpace);
             should.exist(recovered);
             recovered!.store.should.equal(installed.store);
         });
 
-        it("should report undefined before installation", () => {
+        it("should report undefined before installation", async () => {
+            const addressSpace = await pristine();
             should.not.exist(getInstalledAliasNames(addressSpace));
         });
 
-        it("should agree with the fallback used when nothing is installed", () => {
-            // addAliasCategory keeps a local copy to avoid a circular import
-            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells", {
-                store: { find: () => [], lastChange: () => 0 }
-            });
-            should.exist(getMethod(wells, "FindAlias"));
-            DEFAULT_MAX_RESULTS.should.eql(1000);
+        it("should fall back to DEFAULT_MAX_RESULTS when a category is bound before installation", async () => {
+            const addressSpace = await pristine();
+            // a store is supplied but no cap, and nothing is installed to inherit
+            // one from, so the shared default applies
+            const store: IAliasStore = { find: () => [], lastChange: () => 0 };
+            const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells", { store });
+
+            getMethod(wells, "FindAlias")!.isBound().should.eql(true);
+            const result = await callFind(wells, "FindAlias", "%");
+            result.statusCode!.should.eql(StatusCodes.Good);
+            DEFAULT_MAX_RESULTS.should.be.above(0);
         });
     });
 
     describe("discoverCategories", () => {
         it("should replace discovery entirely", async () => {
+            const addressSpace = await pristine();
             const tagVariables = getObject(addressSpace, WellKnownCategories.TagVariables);
             const result = await installAliasNamesOnAddressSpace(addressSpace, {
                 discoverCategories: () => [tagVariables]
@@ -192,6 +221,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should receive the address space", async () => {
+            const addressSpace = await pristine();
             let seen: AddressSpace | null = null;
             await installAliasNamesOnAddressSpace(addressSpace, {
                 discoverCategories: (space) => {
@@ -205,6 +235,7 @@ describe("OPC 10000-17: extension points", () => {
 
     describe("isReadAllowed", () => {
         it("should receive the category the Method was called on", async () => {
+            const addressSpace = await pristine();
             const seen: NodeId[] = [];
             await installAliasNamesOnAddressSpace(addressSpace, {
                 isReadAllowed: (_context: ISessionContext, categoryNodeId: NodeId) => {
@@ -219,6 +250,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should be able to gate one category and allow another", async () => {
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, {
                 isReadAllowed: (_context: ISessionContext, categoryNodeId: NodeId) =>
                     !sameNodeId(categoryNodeId, WellKnownCategories.Topics)
@@ -232,6 +264,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should await a Promise, for permissions that live in a database", async () => {
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, {
                 isReadAllowed: async () => {
                     await new Promise((resolve) => setTimeout(resolve, 1));
@@ -245,6 +278,7 @@ describe("OPC 10000-17: extension points", () => {
 
     describe("options that are declared but not implemented", () => {
         it("should refuse persistencePath rather than silently ignoring it", async () => {
+            const addressSpace = await pristine();
             // a Server that believes LastChange is persisted has a defect
             // visible in every connected Client
             await installAliasNamesOnAddressSpace(addressSpace, {
@@ -253,6 +287,7 @@ describe("OPC 10000-17: extension points", () => {
         });
 
         it("should refuse configurationMethods rather than exposing nothing", async () => {
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { configurationMethods: true }).should.be.rejectedWith(
                 /configurationMethods is not implemented yet/
             );

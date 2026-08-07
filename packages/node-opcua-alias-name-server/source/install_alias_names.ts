@@ -22,10 +22,9 @@ import {
     setInstalledAliasNames
 } from "./bind_alias_category.js";
 import type { AliasComparator } from "./bind_find_alias.js";
-import { WellKnownCategories } from "./well_known.js";
+import { DEFAULT_MAX_RESULTS, WellKnownCategories } from "./well_known.js";
 
-/** Default result cap; beyond it a call answers `Bad_ResponseTooLarge`. */
-export const DEFAULT_MAX_RESULTS = 1000;
+export { DEFAULT_MAX_RESULTS };
 
 /**
  * Supplies the `AliasNameCategoryType` instances to bind.
