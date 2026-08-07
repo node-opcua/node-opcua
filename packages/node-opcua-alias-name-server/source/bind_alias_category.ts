@@ -17,7 +17,13 @@ import type { IAliasStore } from "node-opcua-alias-name-common";
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
 import { type AliasComparator, makeFindAliasHandler } from "./bind_find_alias.js";
-import { ALIAS_NAME_CATEGORY_TYPE, MethodDeclarations, WellKnownCategories, WellKnownOptionalMethods } from "./well_known.js";
+import {
+    ALIAS_NAME_CATEGORY_TYPE,
+    DEFAULT_MAX_RESULTS,
+    MethodDeclarations,
+    WellKnownCategories,
+    WellKnownOptionalMethods
+} from "./well_known.js";
 
 /** Everything a category needs in order to answer `FindAlias`. */
 export interface BindAliasCategoryOptions {
@@ -123,18 +129,12 @@ function resolveBindingOptions(
     }
     return {
         store,
-        maxResults: options?.maxResults ?? installed?.bindingOptions.maxResults ?? DEFAULT_MAX_RESULTS_FALLBACK,
+        maxResults: options?.maxResults ?? installed?.bindingOptions.maxResults ?? DEFAULT_MAX_RESULTS,
         verbose: options?.verbose ?? installed?.bindingOptions.verbose,
         comparator: options?.comparator ?? installed?.bindingOptions.comparator,
         isReadAllowed: options?.isReadAllowed ?? installed?.bindingOptions.isReadAllowed
     };
 }
-
-/**
- * Kept local to avoid a circular import with install_alias_names.
- * Must match `DEFAULT_MAX_RESULTS`; the test suite asserts they agree.
- */
-const DEFAULT_MAX_RESULTS_FALLBACK = 1000;
 
 /** Accept a category node or its NodeId. */
 function coerceCategoryNode(addressSpace: IAddressSpace, node: UAObject | NodeId): UAObject {

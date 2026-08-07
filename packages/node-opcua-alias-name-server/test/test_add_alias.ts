@@ -5,23 +5,28 @@ import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import should from "should";
 import { AliasNameError, addAlias, findAlias, removeAlias } from "../source/add_alias.js";
 import { ALIAS_FOR, WellKnownCategories } from "../source/well_known.js";
-import { getObject, makeAddressSpace } from "./helpers.js";
+import { sharedAddressSpace, uniqueCategory, uniqueObject, uniqueVariable } from "./helpers.js";
 
 describe("OPC 10000-17: addAlias / removeAlias", () => {
     let addressSpace: AddressSpace;
     let sensor: UAVariable;
+    /**
+     * A private subcategory of TagVariables, fresh for each test.
+     *
+     * Isolation comes from the category, not from a new address space: FindAlias
+     * and findAlias are both scoped to the category they are given, so aliases
+     * added here are invisible to every other test. The clause 9.3 restriction
+     * still applies, because it applies to the whole TagVariables hierarchy.
+     */
     let tagVariables: UAObject;
 
-    beforeEach(async () => {
-        addressSpace = await makeAddressSpace();
-        sensor = addressSpace
-            .getOwnNamespace()
-            .addVariable({ browseName: "Temperature", dataType: "Double" }) as UAVariable;
-        tagVariables = getObject(addressSpace, WellKnownCategories.TagVariables);
+    before(async () => {
+        addressSpace = await sharedAddressSpace();
     });
 
-    afterEach(() => {
-        addressSpace.dispose();
+    beforeEach(() => {
+        sensor = uniqueVariable(addressSpace, "Temperature");
+        tagVariables = uniqueCategory(addressSpace, WellKnownCategories.TagVariables, "Tags");
     });
 
     describe("clause 6.2: the AliasNameType contract", () => {
@@ -82,9 +87,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should add a second target to an existing name rather than duplicating the node", () => {
-            const spare = addressSpace
-                .getOwnNamespace()
-                .addVariable({ browseName: "SpareTemperature", dataType: "Double" }) as UAVariable;
+            const spare = uniqueVariable(addressSpace, "SpareTemperature");
             const first = addAlias(addressSpace, tagVariables, "TI101", sensor);
             const second = addAlias(addressSpace, tagVariables, "TI101", spare);
 
@@ -107,10 +110,11 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should accept a subtype of AliasFor", () => {
+            // a unique name: the address space is shared across the suite
             const subtype = addressSpace.getOwnNamespace().addReferenceType({
-                browseName: "AliasForVariant",
+                browseName: `AliasForVariant_${tagVariables.browseName.name}`,
                 isAbstract: false,
-                inverseName: "HasAliasVariant",
+                inverseName: `HasAliasVariant_${tagVariables.browseName.name}`,
                 subtypeOf: "AliasFor"
             });
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor, { referenceType: subtype.nodeId });
@@ -132,35 +136,32 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should reject an Object", () => {
-            const object = addressSpace.getOwnNamespace().addObject({ browseName: "SomeObject" });
+            const object = uniqueObject(addressSpace);
             should(() => addAlias(addressSpace, tagVariables, "TI101", object)).throw(/clause 9.3/);
         });
 
         it("should apply to a nested vendor subcategory too", () => {
             // "This is the root folder for AliasNameType instances that contain an
             // AliasFor reference to Variables" - the restriction is on the hierarchy
-            const categoryType = addressSpace.findObjectType("AliasNameCategoryType")!;
-            const wells = categoryType.instantiate({
-                browseName: "Wells",
-                organizedBy: tagVariables,
-                namespace: addressSpace.getOwnNamespace()
-            }) as UAObject;
-            const object = addressSpace.getOwnNamespace().addObject({ browseName: "SomeObject" });
+            const wells = uniqueCategory(addressSpace, tagVariables, "Wells");
+            const object = uniqueObject(addressSpace);
             should(() => addAlias(addressSpace, wells, "TI101", object)).throw(/clause 9.3/);
         });
     });
 
     describe("clause 9.4: Topics restricts targets to PublishedDataSetType", () => {
+        // a private subcategory of Topics: the restriction applies to the whole
+        // Topics hierarchy, so it is enforced here exactly as at the root
         it("should reject a Variable", () => {
-            const topics = getObject(addressSpace, WellKnownCategories.Topics);
+            const topics = uniqueCategory(addressSpace, WellKnownCategories.Topics, "Topics");
             should(() => addAlias(addressSpace, topics, "TOPIC1", sensor)).throw(/clause 9.4/);
         });
 
         it("should accept a PublishedDataSetType instance", () => {
-            const topics = getObject(addressSpace, WellKnownCategories.Topics);
+            const topics = uniqueCategory(addressSpace, WellKnownCategories.Topics, "Topics");
             const publishedDataSetType = addressSpace.findObjectType("PublishedDataSetType")!;
             const dataSet = publishedDataSetType.instantiate({
-                browseName: "WellDataSet",
+                browseName: `WellDataSet_${topics.browseName.name}`,
                 namespace: addressSpace.getOwnNamespace()
             }) as UAObject;
             should(() => addAlias(addressSpace, topics, "TOPIC1", dataSet)).not.throw();
@@ -168,10 +169,10 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
     });
 
     describe("categories with no restriction", () => {
-        it("should let the Aliases root name any NodeClass", () => {
-            const aliases = getObject(addressSpace, WellKnownCategories.Aliases);
-            const object = addressSpace.getOwnNamespace().addObject({ browseName: "SomeObject" });
-            should(() => addAlias(addressSpace, aliases, "ANY1", object)).not.throw();
+        it("should let a category outside TagVariables and Topics name any NodeClass", () => {
+            const plain = uniqueCategory(addressSpace, WellKnownCategories.Aliases, "Plain");
+            const object = uniqueObject(addressSpace);
+            should(() => addAlias(addressSpace, plain, "ANY1", object)).not.throw();
         });
     });
 
@@ -188,9 +189,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should remove one target and keep the alias when others remain", () => {
-            const spare = addressSpace
-                .getOwnNamespace()
-                .addVariable({ browseName: "SpareTemperature", dataType: "Double" }) as UAVariable;
+            const spare = uniqueVariable(addressSpace, "SpareTemperature");
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor);
             addAlias(addressSpace, tagVariables, "TI101", spare);
 
@@ -209,7 +208,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should report false for a target the alias does not name", () => {
-            const other = addressSpace.getOwnNamespace().addVariable({ browseName: "Other", dataType: "Double" });
+            const other = uniqueVariable(addressSpace, "Other");
             addAlias(addressSpace, tagVariables, "TI101", sensor);
             removeAlias(addressSpace, tagVariables, "TI101", other).should.eql(false);
         });
@@ -217,7 +216,8 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
 
     describe("input coercion", () => {
         it("should accept a category given by NodeId", () => {
-            const alias = addAlias(addressSpace, WellKnownCategories.TagVariables, "TI101", sensor);
+            // by NodeId rather than by node object; still a private category
+            const alias = addAlias(addressSpace, tagVariables.nodeId, "TI101", sensor);
             alias.browseName.name!.should.eql("TI101");
         });
 
@@ -233,7 +233,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         });
 
         it("should reject a category that is not an AliasNameCategoryType instance", () => {
-            const notACategory = addressSpace.getOwnNamespace().addObject({ browseName: "NotACategory" });
+            const notACategory = uniqueObject(addressSpace, "NotACategory");
             should(() => addAlias(addressSpace, notACategory.nodeId, "TI101", sensor)).throw(AliasNameError);
         });
     });

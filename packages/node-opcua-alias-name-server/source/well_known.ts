@@ -13,6 +13,15 @@
 import { MethodIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
+/**
+ * Default result cap; beyond it a call answers `Bad_ResponseTooLarge`
+ * (clause 6.3.2 Table 4).
+ *
+ * Lives here rather than in `install_alias_names` so that `bind_alias_category`
+ * can use it without the two importing each other.
+ */
+export const DEFAULT_MAX_RESULTS = 1000;
+
 /** `AliasNameType` ObjectType (clause 6.2). */
 export const ALIAS_NAME_TYPE: NodeId = resolveNodeId(ObjectTypeIds.AliasNameType);
 
