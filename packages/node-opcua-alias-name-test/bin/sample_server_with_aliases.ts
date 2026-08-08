@@ -86,6 +86,15 @@ export interface SampleServerOptions {
     /** Cap for a single FindAlias call. */
     maxResults?: number;
     /**
+     * Expose `AddAliasesToCategory` / `DeleteAliasesFromCategory` (CU 5874).
+     *
+     * Off by default, matching the library. When on, `engineer` may write and
+     * `contractor` may not, so the write gate is observable from a Client.
+     */
+    configurationMethods?: boolean;
+    /** File backing the persisted `LastChange` (clause 6.3.1). */
+    persistencePath?: string;
+    /**
      * Gate reads per category. Default denies `Unit200` to `contractor`, which
      * is the behaviour the permission tests assert.
      */
@@ -143,6 +152,10 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
     const unit200 = nodeIds.unit200Category;
     await installAliasNames(server, {
         maxResults: options?.maxResults,
+        configurationMethods: options?.configurationMethods ?? false,
+        persistencePath: options?.persistencePath,
+        // only an engineer may change the alias set
+        isWriteAllowed: (context: ISessionContext) => context.getUserName() === SAMPLE_USERS.engineer.userName,
         isReadAllowed:
             options?.isReadAllowed ??
             ((context: ISessionContext, categoryNodeId: NodeId) => {
@@ -239,19 +252,33 @@ if (require.main === module) {
         .option("--pki <folder>", "PKI root folder (default: a unique temp folder)")
         .option("--no-anonymous", "disallow anonymous sessions")
         .option("--bulk <number>", "add this many extra aliases under a Bulk category", (v) => Number.parseInt(v, 10), 0)
+        .option("--configuration", "expose AddAliasesToCategory / DeleteAliasesFromCategory (CU 5874)")
+        .option("--persist <file>", "file backing the persisted LastChange")
         .parse(process.argv);
-    const opts = program.opts<{ port: number; pki?: string; anonymous: boolean; bulk: number }>();
+    const opts = program.opts<{
+        port: number;
+        pki?: string;
+        anonymous: boolean;
+        bulk: number;
+        configuration?: boolean;
+        persist?: string;
+    }>();
 
     startSampleServer({
         port: opts.port,
         pkiRoot: opts.pki,
         allowAnonymous: opts.anonymous,
-        bulkAliasCount: opts.bulk
+        bulkAliasCount: opts.bulk,
+        configurationMethods: opts.configuration,
+        persistencePath: opts.persist
     })
         .then((handle) => {
             console.log(`Sample AliasName server ready at ${handle.endpointUrl}`);
             console.log(`ServerCapabilities advertises: ${ALIAS_CAPABILITY}`);
             console.log("Try:  FindAlias(\"TI101\")  or  FindAlias(\"%101\")  on Aliases (i=23470)");
+            if (opts.configuration) {
+                console.log("Configuration Methods exposed (CU 5874); only 'engineer' may write.");
+            }
             console.log(
                 "Users:",
                 Object.values(SAMPLE_USERS)

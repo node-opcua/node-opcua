@@ -67,8 +67,9 @@ the automatic path that is under test, not the sample's good intentions.
 Start it, point the tool at the printed endpoint, and exercise `FindAlias` on `Aliases`
 (`i=23470`). The relevant conformance units are *AliasName Base*, *AliasName Hierarchy*,
 *AliasName Category Tags*, *AliasName Category Topics*, and *AliasName FindAliasVerbose*
-(CU 5869). *AliasName Configuration Support* (CU 5874) will not pass — the configuration
-Methods are not implemented in this release.
+(CU 5869). For *AliasName Configuration Support* (CU 5874), start the sample with
+`--configuration` so `AddAliasesToCategory` and `DeleteAliasesFromCategory` are exposed;
+without it they are absent, which is conformant since both are Optional.
 
 ## Running the tests
 

@@ -8,7 +8,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
-import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, type VariantLike, VariantArrayType } from "node-opcua-variant";
 
 /**
  * A fresh address space with the standard nodeset (which carries Part 17).
@@ -127,11 +127,11 @@ export async function callFind(
     if (!method) {
         throw new Error(`${category.browseName.toString()} has no ${methodName} Method`);
     }
-    const inputArguments: Variant[] = [
-        { dataType: DataType.String, value: pattern } as Variant,
+    const inputArguments: VariantLike[] = [
+        { dataType: DataType.String, value: pattern },
         // an omitted ReferenceTypeFilter arrives as the null NodeId, which is
         // what a Client sends; `null` is not a legal Variant value here
-        { dataType: DataType.NodeId, value: referenceTypeFilter ?? NodeId.nullNodeId } as Variant
+        { dataType: DataType.NodeId, value: referenceTypeFilter ?? NodeId.nullNodeId }
     ];
     return method.execute(category, inputArguments, defaultContext());
 }

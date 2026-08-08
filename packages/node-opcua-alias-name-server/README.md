@@ -99,12 +99,14 @@ second node; an exact duplicate of (name, target) is ignored.
 | `additionalCategoryRoots` | — | Categories modelled outside the `Aliases` hierarchy. |
 | `categoryProvider` | `defaultCategoryProvider()` | Replace category discovery entirely; may be async. |
 | `advertiseCapability` | `true` | Declare `ALIAS` in the Server's `capabilitiesForMDNS` (OPC 10000-12 Annex D). |
-| `configurationMethods` | `false` | **Not implemented yet** — passing `true` throws. |
-| `persistencePath` | — | **Not implemented yet** — passing a path throws. |
+| `configurationMethods` | `false` | Expose `AddAliasesToCategory` / `DeleteAliasesFromCategory` (CU 5874). |
+| `persistencePath` | — | File backing the persisted `LastChange` (clause 6.3.1). |
+| `lastChangeOnAllCategories` | `true` | Add a `LastChange` Property to every category, not only the root. |
 
-Both unimplemented options throw rather than being accepted and ignored. A Server that
-believes `LastChange` is being persisted, or that the write Methods are exposed, has a
-defect that is invisible locally and visible to every connected Client.
+**Set `persistencePath` on any Server that Clients cache against.** Without it every
+restart resets `LastChange` to zero, and clause 6.3.1 requires a Client seeing a value
+older than its cache to *clear that cache* — so an unpersisted Server silently orders
+every connected Client to discard a still-valid cache on every restart.
 
 ## Extending it
 
@@ -279,19 +281,80 @@ import { advertiseAliasCapability } from "node-opcua-alias-name-server";
 advertiseAliasCapability(server.capabilitiesForMDNS);
 ```
 
+## `LastChange` (clause 6.3.1)
+
+A **`VersionTime`: a UInt32 count of seconds since 2000-01-01T00:00:00Z**, not a
+`DateTime` — which is what every other "last changed" Property in the SDK is, and so the
+easiest thing here to get wrong.
+
+All three clause 6.3.1 triggers move it: an alias added or deleted, a category added or
+deleted, and an alias's referenced Nodes changing. Nested categories roll up — a change
+deep in the hierarchy moves every ancestor to the root — and the rollup is applied when
+the change happens, not computed on read, so the Property a Client subscribes to actually
+carries the value.
+
+```ts
+await installAliasNames(server, { persistencePath: "./aliases-lastchange.json" });
+```
+
+The archive is small JSON — a version and a map of category NodeId to VersionTime — and
+is written atomically. A corrupt or future-versioned archive is **reported**, not silently
+treated as "start from zero", because that is the same cache-clearing bug persistence
+exists to prevent.
+
+Two things worth designing around:
+
+- **Resolution is one second.** Two changes inside the same second are indistinguishable.
+  A Client should treat an *equal* `LastChange` as "re-browse to be sure"; only a value
+  *older* than the cached one carries clause 6.3.1's "clear the cache" meaning.
+- **Category NodeIds must be stable**, since the archive keys on them.
+  `addAliasCategory` therefore derives a string NodeId from the category's path
+  (`ns=1;s=Aliases/TagVariables/Unit200`) rather than taking the next free numeric id,
+  which would shift whenever an unrelated Node happened to be created first.
+
+## The configuration Methods (clauses 6.3.4, 6.3.5)
+
+Off by default. Turning them on exposes `AddAliasesToCategory` and
+`DeleteAliasesFromCategory` on every category — but **every call is denied until
+`isWriteAllowed` says otherwise**:
+
+```ts
+await installAliasNames(server, {
+    configurationMethods: true,
+    isWriteAllowed: async (context, categoryNodeId) => isEngineer(context)
+});
+```
+
+Read and write are gated independently, and only one of them is safe to open by default:
+`isReadAllowed` allows everyone, `isWriteAllowed` denies everyone.
+
+Both Methods report **per item**. The call succeeds and an `ErrorCodes` array parallel to
+`AliasNames` says what happened to each, so one bad entry does not fail the batch. Only
+the argument errors of Tables 11 and 15 — mismatched array sizes, an empty call, a denied
+caller — fail the call itself.
+
+`AddAliasesToCategory` follows Table 10: `Bad_NodeIdUnknown` for a missing local target,
+`Bad_NotSupported` for a remote target unless `allowRemoteTargets` is set on the store,
+and `Uncertain_ReferenceOutOfServer` for a remote target when it is — the clause is
+explicit that the uncertain code applies *whether or not* a check was performed, and this
+Server does not check, since that would mean being a Client of the other Server. An exact
+duplicate of (AliasName, target, target Server) is `Good` and ignored, whether already
+stored or repeated within the same call. A null `TargetReferenceType` defaults to
+`AliasFor`, and the `ServerIndex` inside an incoming `ExpandedNodeId` is ignored —
+`TargetServers` is authoritative (Table 9).
+
+`DeleteAliasesFromCategory` follows Table 14: `Bad_NotFound` when the name is not there,
+`Bad_InvalidState` when it is not owned by this Server. An entry with no target removes
+every target of that name, removal is all-or-nothing per name, and removing the last
+target removes the `AliasNameType` Object, since clause 7.2 gives it at least one
+ReferencedNode.
+
 ## What is not here yet
 
-- **`AddAliasesToCategory` / `DeleteAliasesFromCategory`** (clauses 6.3.4, 6.3.5 —
-  conformance unit *AliasName Configuration Support*). `configurationMethods: true`
-  throws. `IAliasStore.add` / `delete` are declared, and already return the per-item
-  `StatusCode[]` those clauses require, but nothing calls them yet.
-- **`LastChange`** (clause 6.3.1). The `LastChange` Property is **not written and not
-  persisted**, and `persistencePath` throws. `AddressSpaceAliasStore` already tracks
-  per-category VersionTimes and rolls them up on read, and `IAliasStore.lastChange()` and
-  `WellKnownLastChange` exist, but nothing yet connects them to the address space. Do not
-  assume a Client can rely on `LastChange` from this release.
 - **Aggregation across Servers** (Annexes B, C) and the **Annex D PubSub change
   notification** — out of scope by design, not pending.
+- **UACTT has not been run.** The sample Server in `node-opcua-alias-name-test` is ready
+  for it.
 
 ## License
 

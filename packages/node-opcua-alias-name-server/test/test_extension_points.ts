@@ -674,13 +674,6 @@ describe("OPC 10000-17: extension points", () => {
         });
     });
 
-    describe("options that are declared but not implemented", () => {
-        // persistencePath is implemented now; see test_last_change.ts
-        it("should refuse configurationMethods rather than exposing nothing", async () => {
-            const addressSpace = await pristine();
-            await installAliasNamesOnAddressSpace(addressSpace, { configurationMethods: true }).should.be.rejectedWith(
-                /configurationMethods is not implemented yet/
-            );
-        });
-    });
+    // persistencePath and configurationMethods are both implemented now; see
+    // test_last_change.ts and test_configuration_methods.ts
 });

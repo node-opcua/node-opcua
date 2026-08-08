@@ -110,13 +110,22 @@ addAlias(addressSpace, unit200, "LSH-201", levelSwitch);
 
 ### 3. Remotely, via `AddAliasesToCategory`
 
-> **Not implemented in this release.** `configurationMethods: true` throws rather than
-> exposing Methods that do nothing. The store interface already returns the per-item
-> `StatusCode[]` that clauses 6.3.4 and 6.3.5 require, so the facet can be added without
-> a breaking change.
+Off by default. Turning it on exposes `AddAliasesToCategory` and
+`DeleteAliasesFromCategory` (clauses 6.3.4 and 6.3.5, CU 5874) — but every call is denied
+until `isWriteAllowed` says otherwise:
 
-When it lands, a Client will be able to add aliases at run time, gated by
-`isWriteAllowed`, which defaults to denying everyone.
+```ts
+await installAliasNames(server, {
+    configurationMethods: true,
+    isWriteAllowed: async (context, categoryNodeId) => isEngineer(context)
+});
+```
+
+Both report **per item**: the call succeeds and an `ErrorCodes` array parallel to
+`AliasNames` says what happened to each, so one bad entry does not fail the batch.
+Duplicates are ignored rather than refused, a null `TargetReferenceType` defaults to
+`AliasFor`, and a target on another Server yields `Uncertain_ReferenceOutOfServer` — or
+`Bad_NotSupported` unless the store is created with `allowRemoteTargets`.
 
 ## Resolving an alias from a Client
 
@@ -173,12 +182,28 @@ tag tree:
 npm run sample-server --workspace node-opcua-alias-name-test
 ```
 
+## `LastChange` and caching
+
+`LastChange` is a **`VersionTime`: a UInt32 of seconds since 2000-01-01T00:00:00Z**, not a
+`DateTime`. It moves on every clause 6.3.1 trigger and rolls up from a nested category to
+the root.
+
+**Persist it.** Clause 6.3.1 requires a Client that sees a `LastChange` older than its
+cached value to clear that cache, so a Server that restarts with `LastChange` reset to
+zero silently orders every connected Client to discard a still-valid cache:
+
+```ts
+await installAliasNames(server, { persistencePath: "./aliases-lastchange.json" });
+```
+
+Resolution is one second, so a Client should treat an *equal* value as "re-browse to be
+sure" rather than "nothing changed".
+
 ## Current limitations
 
-- **`LastChange` is inert.** The Property exists but nothing writes it, so a Client
-  following clause 6.3.1's cache protocol never refreshes. `persistencePath` throws rather
-  than pretending to persist.
-- **The configuration Methods are not implemented** (clauses 6.3.4, 6.3.5).
+- **Aggregation across Servers** (Annexes B and C) and the **Annex D PubSub change
+  notification** are out of scope by design.
+- **UACTT has not been run** against the sample Server.
 
 ## The packages
 

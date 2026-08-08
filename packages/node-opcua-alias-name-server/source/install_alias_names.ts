@@ -71,12 +71,14 @@ export interface InstallAliasNamesOptions {
     verbose?: boolean;
     /**
      * Also expose `AddAliasesToCategory` and `DeleteAliasesFromCategory`
-     * (clauses 6.3.4 and 6.3.5, conformance unit AliasName Configuration
-     * Support). Off by default, so the write surface does not appear unless it
-     * is asked for.
+     * (clauses 6.3.4 and 6.3.5, conformance unit *AliasName Configuration
+     * Support*, CU 5874).
      *
-     * **Not implemented yet** — passing `true` throws rather than silently
-     * exposing nothing.
+     * **Off by default**: both Methods are Optional, and a write surface that
+     * appears without being asked for is a surface nobody reviewed. Turning it
+     * on is not by itself dangerous — every call is denied until
+     * {@link isWriteAllowed} says otherwise — but the Methods do become visible
+     * to a browsing Client.
      */
     configurationMethods?: boolean;
     /** Passed to the `Like` matcher used by the default store. */
@@ -286,15 +288,6 @@ export async function installAliasNamesOnAddressSpace(
         return { ...already, installed: false };
     }
 
-    // Refuse the options that are declared but not yet honoured, rather than
-    // accepting them and doing nothing. A Server that believes LastChange is
-    // being persisted has a defect visible in every connected Client.
-    if (options?.configurationMethods) {
-        throw new Error(
-            "installAliasNames: configurationMethods is not implemented yet " +
-                "(AddAliasesToCategory / DeleteAliasesFromCategory, OPC 10000-17 clauses 6.3.4 and 6.3.5)."
-        );
-    }
     const aliasesRoot = addressSpace.findNode(WellKnownCategories.Aliases);
     if (!aliasesRoot) {
         throw new Error(
@@ -318,6 +311,7 @@ export async function installAliasNamesOnAddressSpace(
         isReadAllowed: options?.isReadAllowed,
         isWriteAllowed: options?.isWriteAllowed,
         lastChangeProperty: options?.lastChangeOnAllCategories ?? true,
+        configurationMethods: options?.configurationMethods ?? false,
         onChanged: (categoryNodeId: NodeId) => lastChange.touch(categoryNodeId).then(() => undefined)
     };
 
