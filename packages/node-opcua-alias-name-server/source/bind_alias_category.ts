@@ -397,19 +397,34 @@ function resolveBindingOptions(
     options?: AddAliasCategoryOptions
 ): BindAliasCategoryOptions | null {
     const installed = getInstalledAliasNames(addressSpace);
-    const store = options?.store ?? installed?.bindingOptions.store;
+    const inherited = installed?.bindingOptions;
+    const store = options?.store ?? inherited?.store;
     if (!store) {
         // nothing to bind against yet; installAliasNames will pick this category
         // up when it runs, since it is Organized below its parent
         return null;
     }
-    return {
+
+    // Inherit by spreading rather than by listing fields. Cherry-picking meant
+    // every new binding option had to be remembered here too, and forgetting one
+    // let a category created at runtime diverge from an installed one - silently,
+    // and in whichever direction was least safe.
+    const merged: BindAliasCategoryOptions = {
+        ...inherited,
         store,
-        maxResults: options?.maxResults ?? installed?.bindingOptions.maxResults ?? DEFAULT_MAX_RESULTS,
-        verbose: options?.verbose ?? installed?.bindingOptions.verbose,
-        comparator: options?.comparator ?? installed?.bindingOptions.comparator,
-        isReadAllowed: options?.isReadAllowed ?? installed?.bindingOptions.isReadAllowed
+        maxResults: options?.maxResults ?? inherited?.maxResults ?? DEFAULT_MAX_RESULTS
     };
+
+    // Only keys the caller actually supplied override the inherited value; an
+    // absent key must not read as "false".
+    for (const key of Object.keys(options ?? {}) as Array<keyof AddAliasCategoryOptions>) {
+        const value = options?.[key];
+        if (value === undefined || key === "namespaceIndex" || key === "nodeId" || key === "categoryType" || key === "rolePermissions") {
+            continue;
+        }
+        Object.assign(merged, { [key]: value });
+    }
+    return merged;
 }
 
 /** Accept a category node or its NodeId. */

@@ -159,11 +159,14 @@ describe("OPC 10000-17: installAliasNames", () => {
             should.not.exist(getMethod(aliases, "DeleteAliasesFromCategory"));
         });
 
-        it("should say plainly that they are not implemented yet when asked for", async () => {
+        it("should expose them when asked for", async () => {
+            // still denied to every caller until isWriteAllowed says otherwise;
+            // see test_configuration_methods.ts
             const addressSpace = await pristine();
-            await installAliasNamesOnAddressSpace(addressSpace, { configurationMethods: true }).should.be.rejectedWith(
-                /not implemented yet/
-            );
+            await installAliasNamesOnAddressSpace(addressSpace, { configurationMethods: true });
+            const aliases = getObject(addressSpace, WellKnownCategories.Aliases);
+            should.exist(getMethod(aliases, "AddAliasesToCategory"));
+            should.exist(getMethod(aliases, "DeleteAliasesFromCategory"));
         });
     });
 

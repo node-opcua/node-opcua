@@ -20,21 +20,35 @@ import {
     nowVersionTime
 } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { ExpandedNodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, type NodeId, NodeId as NodeIdClass, NodeIdType } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { addAlias, findAlias, removeAlias } from "./add_alias.js";
 import { aliasesOf, collectCategories } from "./alias_hierarchy.js";
 import { ALIAS_FOR } from "./well_known.js";
 
 /**
- * An ExpandedNodeId as a local NodeId string, dropping the ServerIndex.
+ * An ExpandedNodeId as a NodeId on this Server, dropping the ServerIndex.
  *
- * Clause 6.3.4 Table 9: "The ServerIndex in the ExpandedNodeId shall be ignored
- * and the TargetServers Uri shall be used."
+ * Clause 6.3.4 Table 9: *"The ServerIndex in the ExpandedNodeId shall be ignored
+ * and the TargetServers Uri shall be used."*
+ *
+ * Built from the identifier's own parts rather than by re-parsing its string
+ * form, which would have to cope with `svr=`, `nsu=` and quoting. When the
+ * ExpandedNodeId carries a namespace URI, that URI decides the index — the
+ * numeric index travelling beside it belongs to the *sending* Server's namespace
+ * table, not ours.
  */
-function stripServerIndex(nodeId: ExpandedNodeId): string {
-    const namespace = nodeId.namespace ?? 0;
-    return `ns=${namespace};${nodeId.toString().split(";").slice(-1)[0]}`;
+function toLocalNodeId(addressSpace: IAddressSpace, nodeId: ExpandedNodeId): NodeId | null {
+    let namespaceIndex = nodeId.namespace ?? 0;
+    if (nodeId.namespaceUri) {
+        const resolved = addressSpace.getNamespaceIndex(nodeId.namespaceUri);
+        if (resolved < 0) {
+            // a namespace this Server does not know: the Node cannot be here
+            return null;
+        }
+        namespaceIndex = resolved;
+    }
+    return new NodeIdClass(nodeId.identifierType, nodeId.value, namespaceIndex);
 }
 
 export interface AddressSpaceAliasStoreOptions {
@@ -291,13 +305,16 @@ export class AddressSpaceAliasStore implements IAliasStore {
             // all or nothing: check every requested target is present first
             const references = alias.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward);
             const present = new Set(references.map((r) => r.nodeId.toString()));
+            const wanted: NodeId[] = [];
             for (const target of requested) {
-                if (!present.has(stripServerIndex(target))) {
+                const local = toLocalNodeId(this.addressSpace, target);
+                if (!local || !present.has(local.toString())) {
                     return StatusCodes.BadNotFound;
                 }
+                wanted.push(local);
             }
-            for (const target of requested) {
-                removeAlias(this.addressSpace, categoryNode, entry.aliasName, resolveNodeId(stripServerIndex(target)));
+            for (const target of wanted) {
+                removeAlias(this.addressSpace, categoryNode, entry.aliasName, target);
             }
             return StatusCodes.Good;
         });
@@ -305,10 +322,8 @@ export class AddressSpaceAliasStore implements IAliasStore {
 
     /** Add an alias whose target is on this Server. */
     private addLocal(category: UAObject, entry: AliasEntry, target: ExpandedNodeId): StatusCode {
-        let localNodeId: NodeId;
-        try {
-            localNodeId = resolveNodeId(stripServerIndex(target));
-        } catch {
+        const localNodeId = toLocalNodeId(this.addressSpace, target);
+        if (!localNodeId) {
             return StatusCodes.BadNodeIdInvalid;
         }
         if (!this.addressSpace.findNode(localNodeId)) {

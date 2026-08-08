@@ -236,10 +236,10 @@ writes `ALIAS`, matched case-insensitively.
 
 | Scenario | Status |
 |---|---|
-| `LastChange` updates when an alias is added | ⬜ NOA-7; the Property is inert in this release |
-| `LastChange` survives a Server restart | ⬜ NOA-7; `persistencePath` throws rather than pretending |
-| `AddAliasesToCategory` over the wire | ⬜ clause 6.3.4; the store stub returns `Bad_NotSupported` per entry |
-| `DeleteAliasesFromCategory` over the wire | ⬜ clause 6.3.5 |
+| `LastChange` updates when an alias is added | ✅ unit-tested in `node-opcua-alias-name-server` |
+| `LastChange` survives a Server restart | ✅ unit-tested; `persistencePath` |
+| `AddAliasesToCategory` over the wire | ⬜ implemented and unit-tested; not yet exercised over a transport |
+| `DeleteAliasesFromCategory` over the wire | ⬜ same |
 | A Node on another Server (non-zero `ServerIndex`) | ⬜ needs two Servers; out of scope by design. The client-side resolution step is unit-tested in `node-opcua-alias-name-client`. |
 | UACTT run | ⬜ not yet executed against the sample Server |
 
