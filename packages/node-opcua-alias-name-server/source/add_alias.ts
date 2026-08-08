@@ -9,6 +9,7 @@ import type { BaseNode, IAddressSpace, UAObject, UAObjectType } from "node-opcua
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
 import { findAliasNameType } from "./alias_hierarchy.js";
+import { lookupAlias, noteAliasAdded, noteAliasRemoved } from "./alias_index.js";
 import { getInstalledAliasNames } from "./bind_alias_category.js";
 import { ALIAS_FOR, ALIAS_NAME_CATEGORY_TYPE, PUBLISHED_DATA_SET_TYPE, WellKnownCategories } from "./well_known.js";
 
@@ -122,6 +123,7 @@ export function addAlias(
     }) as UAObject;
 
     alias.addReference({ referenceType: referenceTypeId, nodeId: targetNodeId });
+    noteAliasAdded(addressSpace, categoryNode, aliasName, alias.nodeId);
     // clause 6.3.1: "an AliasName was added to [...] the AliasNameCategory"
     notifyAliasChanged(addressSpace, categoryNode.nodeId);
     return alias;
@@ -150,6 +152,7 @@ export function removeAlias(
 
     if (!target) {
         addressSpace.deleteNode(alias.nodeId);
+        noteAliasRemoved(addressSpace, categoryNode, aliasName);
         notifyAliasChanged(addressSpace, categoryNode.nodeId);
         return true;
     }
@@ -164,6 +167,7 @@ export function removeAlias(
     if (references.length === 1) {
         // the last target: the alias itself goes (clause 7.2)
         addressSpace.deleteNode(alias.nodeId);
+        noteAliasRemoved(addressSpace, categoryNode, aliasName);
         notifyAliasChanged(addressSpace, categoryNode.nodeId);
         return true;
     }
@@ -172,29 +176,15 @@ export function removeAlias(
     return true;
 }
 
-/** The `AliasNameType` instance with this name Organized by `category`, if any. */
+/**
+ * The `AliasNameType` instance with this name Organized by `category`, if any.
+ *
+ * Compares the string part only, ignoring the namespace, as clause 6.2 requires.
+ * Backed by a per-category index — see {@link lookupAlias} for why a plain scan
+ * was not good enough.
+ */
 export function findAlias(addressSpace: IAddressSpace, category: UAObject, aliasName: string): UAObject | null {
-    const aliasNameType = findAliasNameType(addressSpace);
-    if (!aliasNameType) {
-        return null;
-    }
-    for (const child of category.findReferencesExAsObject("HierarchicalReferences", BrowseDirection.Forward)) {
-        if (child.nodeClass !== NodeClass.Object) {
-            continue;
-        }
-        // clause 6.2: compare the string part only, ignoring the namespace
-        if (child.browseName.name !== aliasName) {
-            continue;
-        }
-        const typeDefinition = (child as UAObject).typeDefinitionObj;
-        if (
-            typeDefinition &&
-            (typeDefinition.nodeId.value === aliasNameType.nodeId.value || typeDefinition.isSubtypeOf(aliasNameType))
-        ) {
-            return child as UAObject;
-        }
-    }
-    return null;
+    return lookupAlias(addressSpace, category, aliasName);
 }
 
 /**
