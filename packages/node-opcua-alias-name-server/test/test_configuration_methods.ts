@@ -6,7 +6,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { coerceExpandedNodeId, ExpandedNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, type VariantLike, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import should from "should";
 import { addAlias, findAlias } from "../source/add_alias.js";
 import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
@@ -259,7 +259,9 @@ describe("OPC 10000-17: the configuration Methods", () => {
                 [coerceExpandedNodeId(a.nodeId.toString()), coerceExpandedNodeId(b.nodeId.toString())]
             );
 
-            errorCodes(result).every((c) => c.isGood()).should.eql(true);
+            errorCodes(result)
+                .every((c) => c.isGood())
+                .should.eql(true);
             findAlias(space, tags, "TI101")!.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward).should.have.length(2);
         });
 
@@ -402,7 +404,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
         });
 
         it("should move LastChange", async () => {
-            const { space, tags } = await serverWithAlias();
+            const { tags } = await serverWithAlias();
             const property = tags.getPropertyByName("LastChange") as UAVariable;
             const before = property.readValue().value.value as number;
 

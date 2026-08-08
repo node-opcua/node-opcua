@@ -26,17 +26,14 @@ import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeId as NodeIdClass, NodeIdType } from "node-opcua-nodeid";
 import type { RolePermissionTypeOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import {
-    makeAddAliasesToCategoryHandler,
-    makeDeleteAliasesFromCategoryHandler
-} from "./bind_configuration_methods.js";
+import { makeAddAliasesToCategoryHandler, makeDeleteAliasesFromCategoryHandler } from "./bind_configuration_methods.js";
 import { type AliasComparator, makeFindAliasHandler } from "./bind_find_alias.js";
 import { LAST_CHANGE_BROWSE_NAME, type LastChangeTracker } from "./last_change.js";
 import {
     ALIAS_NAME_CATEGORY_TYPE,
     DEFAULT_MAX_RESULTS,
-    VERSION_TIME_DATA_TYPE,
     MethodDeclarations,
+    VERSION_TIME_DATA_TYPE,
     WellKnownCategories,
     WellKnownOptionalMethods
 } from "./well_known.js";
@@ -130,13 +127,8 @@ export function bindAliasCategory(addressSpace: IAddressSpace, category: UAObjec
  * BrowseName, and it is derived from the same information every run, so it is
  * the same NodeId every run.
  */
-function defaultCategoryNodeId(
-    addressSpace: IAddressSpace,
-    parent: UAObject,
-    browseName: string,
-    namespaceIndex: number
-): NodeId {
-    const path = [...categoryPathOf(addressSpace, parent), browseName].join("/");
+function defaultCategoryNodeId(parent: UAObject, browseName: string, namespaceIndex: number): NodeId {
+    const path = [...categoryPathOf(parent), browseName].join("/");
     return new NodeIdClass(NodeIdType.STRING, path, namespaceIndex);
 }
 
@@ -147,7 +139,7 @@ function defaultCategoryNodeId(
  * which keeps the id derivable for a category modelled outside the standard
  * hierarchy.
  */
-function categoryPathOf(addressSpace: IAddressSpace, category: UAObject): string[] {
+function categoryPathOf(category: UAObject): string[] {
     const segments: string[] = [];
     const seen = new Set<string>();
     let current: UAObject | null = category;
@@ -245,7 +237,7 @@ export function addAliasCategory(
     const categoryType = resolveCategoryType(addressSpace, options?.categoryType);
 
     const namespace = addressSpace.getNamespace(options?.namespaceIndex ?? addressSpace.getOwnNamespace().index);
-    const nodeId = options?.nodeId ?? defaultCategoryNodeId(addressSpace, parentNode, browseName, namespace.index);
+    const nodeId = options?.nodeId ?? defaultCategoryNodeId(parentNode, browseName, namespace.index);
 
     if (addressSpace.findNode(nodeId)) {
         throw new Error(
@@ -296,9 +288,7 @@ function resolveCategoryType(addressSpace: IAddressSpace, categoryType?: UAObjec
         throw new Error(`addAliasCategory: unknown ObjectType ${String(categoryType)}`);
     }
     if (resolved.nodeId.value !== base.nodeId.value && !resolved.isSubtypeOf(base)) {
-        throw new Error(
-            `addAliasCategory: ${resolved.browseName.toString()} is not AliasNameCategoryType or a subtype of it`
-        );
+        throw new Error(`addAliasCategory: ${resolved.browseName.toString()} is not AliasNameCategoryType or a subtype of it`);
     }
     return resolved;
 }
@@ -392,10 +382,7 @@ function notifyCategoryChanged(addressSpace: IAddressSpace, categoryNodeId: Node
  * Merge explicit options over whatever installation recorded, or return null
  * when there is nothing to bind with.
  */
-function resolveBindingOptions(
-    addressSpace: IAddressSpace,
-    options?: AddAliasCategoryOptions
-): BindAliasCategoryOptions | null {
+function resolveBindingOptions(addressSpace: IAddressSpace, options?: AddAliasCategoryOptions): BindAliasCategoryOptions | null {
     const installed = getInstalledAliasNames(addressSpace);
     const inherited = installed?.bindingOptions;
     const store = options?.store ?? inherited?.store;
@@ -419,7 +406,13 @@ function resolveBindingOptions(
     // absent key must not read as "false".
     for (const key of Object.keys(options ?? {}) as Array<keyof AddAliasCategoryOptions>) {
         const value = options?.[key];
-        if (value === undefined || key === "namespaceIndex" || key === "nodeId" || key === "categoryType" || key === "rolePermissions") {
+        if (
+            value === undefined ||
+            key === "namespaceIndex" ||
+            key === "nodeId" ||
+            key === "categoryType" ||
+            key === "rolePermissions"
+        ) {
             continue;
         }
         Object.assign(merged, { [key]: value });

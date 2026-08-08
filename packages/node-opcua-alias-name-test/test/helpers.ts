@@ -3,8 +3,8 @@ import {
     MessageSecurityMode,
     OPCUAClient,
     SecurityPolicy,
-    UserTokenType,
-    type UserIdentityInfo
+    type UserIdentityInfo,
+    UserTokenType
 } from "node-opcua-client";
 import { SAMPLE_USERS } from "../bin/sample_server_with_aliases.js";
 

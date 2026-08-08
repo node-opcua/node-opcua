@@ -2,7 +2,6 @@ import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
 import { coerceExpandedNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import should from "should";
 import { addAlias } from "../source/add_alias.js";
 import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
 import { addAliasCategory } from "../source/bind_alias_category.js";

@@ -55,7 +55,9 @@ export async function readAliasNameArchive(path: string): Promise<AliasNameArchi
     try {
         parsed = JSON.parse(raw);
     } catch {
-        throw new Error(`readAliasNameArchive: ${path} is not valid JSON. Delete it to start fresh, but note that a Client that has cached AliasNames will be told to clear its cache.`);
+        throw new Error(
+            `readAliasNameArchive: ${path} is not valid JSON. Delete it to start fresh, but note that a Client that has cached AliasNames will be told to clear its cache.`
+        );
     }
 
     const archive = parsed as Partial<AliasNameArchive>;

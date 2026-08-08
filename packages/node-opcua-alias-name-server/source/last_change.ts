@@ -35,7 +35,12 @@ import { maxVersionTime, nowVersionTime } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import { type AliasNameArchive, ALIAS_NAME_ARCHIVE_VERSION, readAliasNameArchive, writeAliasNameArchive } from "./alias_name_archive.js";
+import {
+    ALIAS_NAME_ARCHIVE_VERSION,
+    type AliasNameArchive,
+    readAliasNameArchive,
+    writeAliasNameArchive
+} from "./alias_name_archive.js";
 import { WellKnownCategories } from "./well_known.js";
 
 /** BrowseName of the Property, per clause 6.3.1 Table 2. */
@@ -177,10 +182,7 @@ export class LastChangeTracker {
             if (!node) {
                 return;
             }
-            for (const parent of (node as BaseNode).findReferencesExAsObject(
-                "HierarchicalReferences",
-                BrowseDirection.Inverse
-            )) {
+            for (const parent of (node as BaseNode).findReferencesExAsObject("HierarchicalReferences", BrowseDirection.Inverse)) {
                 if (parent.nodeClass === NodeClass.Object) {
                     visit(parent.nodeId);
                 }

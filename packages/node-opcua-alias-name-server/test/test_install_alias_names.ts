@@ -1,7 +1,6 @@
 import "mocha";
 import type { AddressSpace, UAObject } from "node-opcua-address-space";
-import { NodeClass } from "node-opcua-data-model";
-import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";

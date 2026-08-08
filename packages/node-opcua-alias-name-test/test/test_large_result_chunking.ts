@@ -1,8 +1,8 @@
 import "mocha";
+import { AliasNameCallError, ClientAliasSet } from "node-opcua-alias-name-client";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import { AliasNameCallError, ClientAliasSet } from "node-opcua-alias-name-client";
-import { startSampleServer, type SampleServerHandle } from "../bin/sample_server_with_aliases.js";
+import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_aliases.js";
 import { ANONYMOUS, withSession } from "./helpers.js";
 
 /**

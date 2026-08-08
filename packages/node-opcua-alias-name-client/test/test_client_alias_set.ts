@@ -2,19 +2,13 @@ import "mocha";
 import { AddressSpace, PseudoSession, type UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { addAlias, addAliasCategory, installAliasNamesOnAddressSpace, WellKnownCategories } from "node-opcua-alias-name-server";
-import { ExpandedNodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { VariableIds } from "node-opcua-constants";
+import { ExpandedNodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataType, VariantArrayType } from "node-opcua-variant";
 import { StatusCodes } from "node-opcua-status-code";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import {
-    ALIASES_ROOT,
-    AliasNameCallError,
-    AliasNameMethodNotSupportedError,
-    ClientAliasSet,
-    TAG_VARIABLES
-} from "../source";
+import { ALIASES_ROOT, AliasNameCallError, AliasNameMethodNotSupportedError, ClientAliasSet, TAG_VARIABLES } from "../source";
 
 /**
  * The Client is driven by a `PseudoSession` over an in-process address space, so
@@ -79,7 +73,10 @@ describe("OPC 10000-17: ClientAliasSet", () => {
 
         it("should accept a Like pattern", async () => {
             const entries = await aliases.findAlias("%101");
-            entries.map((e) => e.aliasName).sort().should.eql(["FIT-101", "TI101"]);
+            entries
+                .map((e) => e.aliasName)
+                .sort()
+                .should.eql(["FIT-101", "TI101"]);
         });
 
         it("should search from the Aliases root by default", async () => {

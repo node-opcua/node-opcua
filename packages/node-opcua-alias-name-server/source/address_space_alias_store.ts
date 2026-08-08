@@ -14,13 +14,13 @@ import {
     type AliasEntry,
     type AliasQuery,
     type IAliasStore,
-    LikePattern,
     type LikeOptions,
+    LikePattern,
     maxVersionTime,
     nowVersionTime
 } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { ExpandedNodeId, type NodeId, NodeId as NodeIdClass, NodeIdType } from "node-opcua-nodeid";
+import { ExpandedNodeId, type NodeId, NodeId as NodeIdClass, type NodeIdType } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { addAlias, findAlias, removeAlias } from "./add_alias.js";
 import { aliasesOf, collectCategories } from "./alias_hierarchy.js";

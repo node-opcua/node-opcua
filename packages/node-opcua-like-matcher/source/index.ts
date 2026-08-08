@@ -13,7 +13,7 @@ export {
     DEFAULT_MAX_PATTERN_LENGTH,
     InvalidLikePatternError,
     isValidLikePattern,
-    like,
+    type LikeOptions,
     LikePattern,
-    type LikeOptions
+    like
 } from "./like_matcher.js";

@@ -121,8 +121,7 @@ export interface SampleServerHandle {
  */
 export async function startSampleServer(options?: SampleServerOptions): Promise<SampleServerHandle> {
     const port = options?.port ?? SAMPLE_SERVER_PORT;
-    const pkiRoot =
-        options?.pkiRoot ?? path.join(os.tmpdir(), `node-opcua-alias-name-sample-${process.pid}-${port}`);
+    const pkiRoot = options?.pkiRoot ?? path.join(os.tmpdir(), `node-opcua-alias-name-sample-${process.pid}-${port}`);
 
     const serverCertificateManager = new OPCUACertificateManager({
         automaticallyAcceptUnknownCertificate: true,
@@ -146,7 +145,10 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
 
     await server.initialize();
 
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("sample server: the address space is missing after initialize()");
+    }
     const nodeIds = buildTagTree(addressSpace, options?.bulkAliasCount ?? 0);
 
     const unit200 = nodeIds.unit200Category;
@@ -275,7 +277,7 @@ if (require.main === module) {
         .then((handle) => {
             console.log(`Sample AliasName server ready at ${handle.endpointUrl}`);
             console.log(`ServerCapabilities advertises: ${ALIAS_CAPABILITY}`);
-            console.log("Try:  FindAlias(\"TI101\")  or  FindAlias(\"%101\")  on Aliases (i=23470)");
+            console.log('Try:  FindAlias("TI101")  or  FindAlias("%101")  on Aliases (i=23470)');
             if (opts.configuration) {
                 console.log("Configuration Methods exposed (CU 5874); only 'engineer' may write.");
             }

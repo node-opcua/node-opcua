@@ -1,5 +1,5 @@
 import should from "should";
-import { DEFAULT_MAX_PATTERN_LENGTH, InvalidLikePatternError, LikePattern, isValidLikePattern, like } from "../source";
+import { DEFAULT_MAX_PATTERN_LENGTH, InvalidLikePatternError, isValidLikePattern, LikePattern, like } from "../source";
 
 /**
  * The `Like` matcher lives in `node-opcua-like-matcher`, because `Like` is an

@@ -1,5 +1,5 @@
 import should from "should";
-import { DEFAULT_MAX_PATTERN_LENGTH, InvalidLikePatternError, LikePattern, isValidLikePattern, like } from "../source";
+import { DEFAULT_MAX_PATTERN_LENGTH, InvalidLikePatternError, isValidLikePattern, LikePattern, like } from "../source";
 
 /**
  * OPC 10000-4 clause 7.4.4, Table 120 - "Wildcard characters".

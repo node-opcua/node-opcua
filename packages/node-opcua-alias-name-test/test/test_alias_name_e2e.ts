@@ -1,15 +1,10 @@
 import "mocha";
+import { ALIASES_ROOT, AliasNameCallError, ClientAliasSet, TAG_VARIABLES } from "node-opcua-alias-name-client";
 import { AttributeIds } from "node-opcua-data-model";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import {
-    ALIASES_ROOT,
-    AliasNameCallError,
-    ClientAliasSet,
-    TAG_VARIABLES
-} from "node-opcua-alias-name-client";
-import { ALIAS_CAPABILITY, startSampleServer, type SampleServerHandle } from "../bin/sample_server_with_aliases.js";
+import { ALIAS_CAPABILITY, type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_aliases.js";
 import { ANONYMOUS, asUser, withSession } from "./helpers.js";
 
 /**
@@ -87,7 +82,10 @@ describe("OPC 10000-17: AliasNames end to end", function () {
                 const aliases = new ClientAliasSet(session);
                 const entries = await aliases.findAlias("%101");
 
-                entries.map((e) => e.aliasName).sort().should.eql(["FIT-101", "TI101"]);
+                entries
+                    .map((e) => e.aliasName)
+                    .sort()
+                    .should.eql(["FIT-101", "TI101"]);
                 for (const entry of entries) {
                     entry.aliasName.should.be.a.String();
                     entry.referencedNodes.should.be.an.Array();
@@ -179,12 +177,8 @@ describe("OPC 10000-17: AliasNames end to end", function () {
 
         it("should serve two concurrent sessions", async () => {
             const [a, b] = await Promise.all([
-                withSession(handle.endpointUrl, ANONYMOUS, async (session) =>
-                    new ClientAliasSet(session).findAlias("TI101")
-                ),
-                withSession(handle.endpointUrl, ANONYMOUS, async (session) =>
-                    new ClientAliasSet(session).findAlias("FIT-101")
-                )
+                withSession(handle.endpointUrl, ANONYMOUS, async (session) => new ClientAliasSet(session).findAlias("TI101")),
+                withSession(handle.endpointUrl, ANONYMOUS, async (session) => new ClientAliasSet(session).findAlias("FIT-101"))
             ]);
             a[0].aliasName.should.eql("TI101");
             b[0].aliasName.should.eql("FIT-101");
