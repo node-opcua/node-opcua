@@ -10,7 +10,7 @@
  * vendor Object of the same BrowseName elsewhere.
  */
 
-import { MethodIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableIds } from "node-opcua-constants";
+import { DataTypeIds, MethodIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
 /**
@@ -27,6 +27,9 @@ export const ALIAS_NAME_TYPE: NodeId = resolveNodeId(ObjectTypeIds.AliasNameType
 
 /** `AliasNameCategoryType` ObjectType (clause 6.3). */
 export const ALIAS_NAME_CATEGORY_TYPE: NodeId = resolveNodeId(ObjectTypeIds.AliasNameCategoryType);
+
+/** `VersionTime` DataType (OPC 10000-4 clause 7.43) - a UInt32 subtype. */
+export const VERSION_TIME_DATA_TYPE: NodeId = resolveNodeId(DataTypeIds.VersionTime);
 
 /** `AliasFor` ReferenceType (clause 8.2); the default link to a target Node. */
 export const ALIAS_FOR: NodeId = resolveNodeId(ReferenceTypeIds.AliasFor);

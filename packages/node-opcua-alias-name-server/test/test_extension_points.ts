@@ -129,15 +129,47 @@ describe("OPC 10000-17: extension points", () => {
             getMethod(wells, "FindAlias")!.isBound().should.eql(true);
         });
 
-        it("should use a server-assigned NodeId by default and honour an explicit one", () => {
+        it("should derive a stable, readable NodeId from the category's path", () => {
+            // an auto-increment numeric id would move whenever an unrelated Node
+            // is created first, which silently breaks LastChange persistence --
+            // it keys on the category NodeId
             const auto = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "AutoId");
             auto.nodeId.namespace.should.not.eql(0);
+            auto.nodeId.value.should.eql("Aliases/TagVariables/AutoId");
 
             const explicitId = new NodeId(NodeIdType.NUMERIC, 987654, addressSpace.getOwnNamespace().index);
             const chosen = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "ExplicitId", {
                 nodeId: explicitId
             });
             sameNodeId(chosen.nodeId, explicitId).should.eql(true);
+        });
+
+        it("should give the same category the same NodeId on every run", async () => {
+            // the property LastChange persistence depends on
+            const first = await pristine();
+            await installAliasNamesOnAddressSpace(first);
+            const a = addAliasCategory(first, WellKnownCategories.TagVariables, "Unit200");
+
+            // a second Server that happens to create an unrelated Node first
+            const second = await pristine();
+            await installAliasNamesOnAddressSpace(second);
+            second.getOwnNamespace().addVariable({ browseName: "SomethingElse", dataType: "Double" });
+            const b = addAliasCategory(second, WellKnownCategories.TagVariables, "Unit200");
+
+            b.nodeId.toString().should.eql(a.nodeId.toString(), "an auto-increment id would have shifted");
+        });
+
+        it("should nest the path for a category inside another", () => {
+            const parent = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "NestPath");
+            const child = addAliasCategory(addressSpace, parent, "Deep");
+            child.nodeId.value.should.eql("Aliases/TagVariables/NestPath/Deep");
+        });
+
+        it("should refuse a duplicate rather than silently making a different node", () => {
+            addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "DupCat");
+            should(() => addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "DupCat")).throw(
+                /already exists/
+            );
         });
     });
 
@@ -643,15 +675,7 @@ describe("OPC 10000-17: extension points", () => {
     });
 
     describe("options that are declared but not implemented", () => {
-        it("should refuse persistencePath rather than silently ignoring it", async () => {
-            const addressSpace = await pristine();
-            // a Server that believes LastChange is persisted has a defect
-            // visible in every connected Client
-            await installAliasNamesOnAddressSpace(addressSpace, {
-                persistencePath: "./aliases.bin"
-            }).should.be.rejectedWith(/persistencePath is not implemented yet/);
-        });
-
+        // persistencePath is implemented now; see test_last_change.ts
         it("should refuse configurationMethods rather than exposing nothing", async () => {
             const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { configurationMethods: true }).should.be.rejectedWith(

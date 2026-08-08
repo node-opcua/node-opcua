@@ -9,6 +9,7 @@ import type { BaseNode, IAddressSpace, UAObject, UAObjectType } from "node-opcua
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
 import { findAliasNameType } from "./alias_hierarchy.js";
+import { getInstalledAliasNames } from "./bind_alias_category.js";
 import { ALIAS_FOR, ALIAS_NAME_CATEGORY_TYPE, PUBLISHED_DATA_SET_TYPE, WellKnownCategories } from "./well_known.js";
 
 /** Raised when an alias would break a rule of OPC 10000-17. */
@@ -31,6 +32,16 @@ export interface AddAliasOptions {
      * requires Clients to ignore it when comparing.
      */
     namespaceIndex?: number;
+    /**
+     * Accept a target this Server cannot resolve.
+     *
+     * For a Node on **another** Server, which by definition is not in this
+     * address space: the existence check and the clause 9.3 / 9.4 category
+     * restrictions are both skipped, because neither can be evaluated without
+     * being a Client of that Server. Used by `AddAliasesToCategory` when
+     * `TargetServers` names a remote Server (clause 6.3.4).
+     */
+    allowUnresolvedTarget?: boolean;
 }
 
 /**
@@ -60,14 +71,21 @@ export function addAlias(
     options?: AddAliasOptions
 ): UAObject {
     const categoryNode = coerceCategory(addressSpace, category);
-    const targetNode = coerceTarget(addressSpace, target);
     const referenceTypeId = coerceReferenceType(addressSpace, options?.referenceType);
 
     if (!aliasName) {
         throw new AliasNameError("addAlias: the alias name must not be empty");
     }
 
-    assertTargetAllowedInCategory(addressSpace, categoryNode, targetNode);
+    // A target on another Server is not in this address space, so it can be
+    // neither resolved nor checked against the category restrictions.
+    const targetNodeId = options?.allowUnresolvedTarget
+        ? (target instanceof NodeIdClass ? target : (target as BaseNode).nodeId)
+        : coerceTarget(addressSpace, target).nodeId;
+
+    if (!options?.allowUnresolvedTarget) {
+        assertTargetAllowedInCategory(addressSpace, categoryNode, addressSpace.findNode(targetNodeId)!);
+    }
 
     const existing = findAlias(addressSpace, categoryNode, aliasName);
     if (existing) {
@@ -76,9 +94,12 @@ export function addAlias(
         // already there is a no-op rather than an error
         const alreadyLinked = existing
             .findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)
-            .some((reference) => reference.nodeId.toString() === targetNode.nodeId.toString());
+            .some((reference) => reference.nodeId.toString() === targetNodeId.toString());
         if (!alreadyLinked) {
-            existing.addReference({ referenceType: referenceTypeId, nodeId: targetNode.nodeId });
+            existing.addReference({ referenceType: referenceTypeId, nodeId: targetNodeId });
+            // clause 6.3.1: "the referenced Nodes of an AliasName in the
+            // AliasNameCategory changed"
+            notifyAliasChanged(addressSpace, categoryNode.nodeId);
         }
         return existing;
     }
@@ -99,7 +120,9 @@ export function addAlias(
         namespace
     }) as UAObject;
 
-    alias.addReference({ referenceType: referenceTypeId, nodeId: targetNode.nodeId });
+    alias.addReference({ referenceType: referenceTypeId, nodeId: targetNodeId });
+    // clause 6.3.1: "an AliasName was added to [...] the AliasNameCategory"
+    notifyAliasChanged(addressSpace, categoryNode.nodeId);
     return alias;
 }
 
@@ -126,6 +149,7 @@ export function removeAlias(
 
     if (!target) {
         addressSpace.deleteNode(alias.nodeId);
+        notifyAliasChanged(addressSpace, categoryNode.nodeId);
         return true;
     }
 
@@ -139,9 +163,11 @@ export function removeAlias(
     if (references.length === 1) {
         // the last target: the alias itself goes (clause 7.2)
         addressSpace.deleteNode(alias.nodeId);
+        notifyAliasChanged(addressSpace, categoryNode.nodeId);
         return true;
     }
     alias.removeReference({ referenceType: match.referenceType, nodeId: targetNodeId });
+    notifyAliasChanged(addressSpace, categoryNode.nodeId);
     return true;
 }
 
@@ -281,4 +307,19 @@ function coerceReferenceType(addressSpace: IAddressSpace, referenceType: NodeId 
         );
     }
     return resolved;
+}
+
+/**
+ * Tell the installed `LastChange` tracker that a category changed
+ * (clause 6.3.1).
+ *
+ * Routed through whatever installation recorded on the address space rather
+ * than through a parameter, so `addAlias` keeps its simple signature and a
+ * Server that has not installed AliasNames is unaffected. Fire and forget: the
+ * Property is written synchronously, only the persistence write is async, and
+ * failing to persist must not fail the caller's add.
+ */
+function notifyAliasChanged(addressSpace: IAddressSpace, categoryNodeId: NodeId): void {
+    const installed = getInstalledAliasNames(addressSpace);
+    void installed?.lastChange?.touch(categoryNodeId);
 }
