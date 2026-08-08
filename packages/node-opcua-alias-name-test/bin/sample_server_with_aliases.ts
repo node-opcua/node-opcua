@@ -23,8 +23,9 @@
  * category the call was made on (clause 6.3.3).
  *
  * The server advertises the `ALIAS` capability (OPC 10000-12 Annex D Table D.1).
- * Without it nothing looking for alias-capable Servers will ever find this one,
- * and that failure is silent.
+ * It does **not** set it explicitly: `installAliasNames` adds it, which is why
+ * this sample calls it between `initialize()` and `start()` -- mDNS registration
+ * reads the capability list during `start()`.
  *
  * Run standalone:
  *   npm run sample-server --workspace node-opcua-alias-name-test
@@ -36,7 +37,13 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import type { IAddressSpace, ISessionContext, UAObject, UAVariable } from "node-opcua-address-space";
-import { addAlias, addAliasCategory, installAliasNames, WellKnownCategories } from "node-opcua-alias-name-server";
+import {
+    ALIAS_SERVER_CAPABILITY_ID,
+    addAlias,
+    addAliasCategory,
+    installAliasNames,
+    WellKnownCategories
+} from "node-opcua-alias-name-server";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import type { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
@@ -47,12 +54,10 @@ import { DataType } from "node-opcua-variant";
 export const SAMPLE_SERVER_PORT = 48557;
 
 /**
- * The `ALIAS` ServerCapability identifier (OPC 10000-12 Annex D Table D.1).
- *
- * Part 17's prose writes it `Alias`; Part 12 Annex D is the normative source and
- * writes `ALIAS`, matched case-insensitively.
+ * The `ALIAS` ServerCapability identifier (OPC 10000-12 Annex D Table D.1),
+ * re-exported so tests can assert it without importing the server package.
  */
-export const ALIAS_CAPABILITY = "ALIAS";
+export const ALIAS_CAPABILITY = ALIAS_SERVER_CAPABILITY_ID;
 
 /**
  * Demo credentials. `engineer` may see every category; `contractor` is denied
@@ -121,10 +126,9 @@ export async function startSampleServer(options?: SampleServerOptions): Promise<
         serverCertificateManager,
         allowAnonymous: options?.allowAnonymous ?? true,
         nodeset_filename: [nodesets.standard],
-        // OPC 10000-12 Annex D Table D.1. Required, not optional: a Server that
-        // does not advertise this is never discovered by anything looking for
-        // alias-capable Servers, and nothing reports that it was missed.
-        capabilitiesForMDNS: [ALIAS_CAPABILITY],
+        // Note: ALIAS is NOT set here. installAliasNames adds it below, which
+        // is the point -- declaring the capability is part of installing the
+        // feature rather than something each Server has to remember.
         userManager: {
             isValidUser: (userName: string, password: string) =>
                 Object.values(SAMPLE_USERS).some((u) => u.userName === userName && u.password === password)

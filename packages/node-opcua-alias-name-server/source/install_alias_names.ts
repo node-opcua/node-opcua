@@ -129,6 +129,25 @@ export interface InstallAliasNamesOptions {
      * Replace category discovery entirely. See {@link CategoryProvider}.
      */
     categoryProvider?: CategoryProvider;
+    /**
+     * Declare the `ALIAS` ServerCapability (OPC 10000-12 Annex D Table D.1).
+     * **On by default.**
+     *
+     * A Server that does not advertise it is never discovered by anything
+     * looking for alias-capable Servers, and nothing reports the failure — so
+     * leaving it to each caller to remember means it will sometimes be
+     * forgotten, invisibly. Installing the feature and declaring it are the same
+     * decision, so they happen together.
+     *
+     * **Call `installAliasNames` before `server.start()`.** The address space
+     * exists from `initialize()` onwards, and mDNS/LDS registration reads the
+     * capability list during `start()` — afterwards the list is still correct
+     * for anything reading `ServerConfiguration`, but the registration has
+     * already gone out without it.
+     *
+     * Set false if the Server manages its own capability list.
+     */
+    advertiseCapability?: boolean;
 }
 
 export interface InstallAliasNamesResult {
@@ -148,16 +167,63 @@ export interface InstallAliasNamesResult {
     bindingOptions: BindAliasCategoryOptions;
 }
 
-/** The server-like object we need: just access to the address space. */
+/** The server-like object we need: the address space, and the capability list. */
 export interface IServerForAliasNames {
     engine: {
         addressSpace: IAddressSpace | null;
     };
+    /**
+     * The Server's OPC 10000-12 Annex D capability identifiers — on an
+     * `OPCUAServer` this is `capabilitiesForMDNS`. Optional so a caller can pass
+     * anything address-space-shaped; when present, `ALIAS` is added to it.
+     */
+    capabilitiesForMDNS?: string[];
 }
 
 /**
- * Install AliasName support on a Server. Call after `server.start()`, when the
- * address space exists.
+ * The `ALIAS` ServerCapability identifier (OPC 10000-12 Annex D Table D.1).
+ *
+ * Part 17's prose writes it `Alias`; Part 12 Annex D is the normative source and
+ * writes `ALIAS`, matched case-insensitively.
+ */
+export const ALIAS_SERVER_CAPABILITY_ID = "ALIAS";
+
+/** The placeholder node-opcua uses for "no capabilities declared". */
+const NO_CAPABILITY_PLACEHOLDER = "NA";
+
+/**
+ * Add `ALIAS` to a Server's Annex D capability list, in place.
+ *
+ * Idempotent, case-insensitive, and replaces the `NA` placeholder rather than
+ * producing the meaningless `["NA", "ALIAS"]`.
+ *
+ * @returns true when the list was changed.
+ */
+export function advertiseAliasCapability(capabilities: string[]): boolean {
+    if (capabilities.some((c) => c.toUpperCase() === ALIAS_SERVER_CAPABILITY_ID)) {
+        return false;
+    }
+    // "NA" means "none"; it cannot coexist with a real capability
+    const placeholderIndex = capabilities.findIndex((c) => c.toUpperCase() === NO_CAPABILITY_PLACEHOLDER);
+    if (placeholderIndex >= 0) {
+        capabilities.splice(placeholderIndex, 1);
+    }
+    capabilities.push(ALIAS_SERVER_CAPABILITY_ID);
+    return true;
+}
+
+/**
+ * Install AliasName support on a Server.
+ *
+ * Call it **between `initialize()` and `start()`**: the address space exists
+ * from `initialize()`, and the `ALIAS` capability has to be in place before
+ * `start()` performs the mDNS/LDS registration that reads it.
+ *
+ * ```ts
+ * await server.initialize();
+ * await installAliasNames(server);
+ * await server.start();
+ * ```
  */
 export async function installAliasNames(
     server: IServerForAliasNames,
@@ -165,9 +231,19 @@ export async function installAliasNames(
 ): Promise<InstallAliasNamesResult> {
     const addressSpace = server.engine.addressSpace;
     if (!addressSpace) {
-        throw new Error("installAliasNames: address space is not available. Call this after server.start().");
+        throw new Error(
+            "installAliasNames: address space is not available. Call this after server.initialize()."
+        );
     }
-    return installAliasNamesOnAddressSpace(addressSpace, options);
+
+    const result = await installAliasNamesOnAddressSpace(addressSpace, options);
+
+    // Declaring the capability is part of installing the feature, not a separate
+    // thing to remember: a Server that omits it is never discovered, silently.
+    if ((options?.advertiseCapability ?? true) && server.capabilitiesForMDNS) {
+        advertiseAliasCapability(server.capabilitiesForMDNS);
+    }
+    return result;
 }
 
 /**

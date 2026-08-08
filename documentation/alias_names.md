@@ -22,25 +22,34 @@ One call fixes it:
 ```ts
 import { installAliasNames } from "node-opcua-alias-name-server";
 
-await server.start();
+await server.initialize();
 await installAliasNames(server);
+await server.start();
 ```
 
-## Advertise the capability
+**Call it between `initialize()` and `start()`.** The address space exists from
+`initialize()` onwards, and `start()` performs the registration that reads the capability
+list described next.
 
-**Do this.** A Server that does not advertise `ALIAS` is never discovered by anything
-looking for alias-capable Servers, and the failure is silent — nothing errors, the Server
-simply never appears.
+## The capability is declared for you
+
+A Server that does not advertise `ALIAS` is never discovered by anything looking for
+alias-capable Servers, and the failure is silent — nothing errors, the Server simply never
+appears. So `installAliasNames` declares it rather than leaving it to be remembered:
 
 ```ts
-const server = new OPCUAServer({
-    // OPC 10000-12 Annex D Table D.1
-    capabilitiesForMDNS: ["ALIAS"]
-});
+await installAliasNames(server);
+server.capabilitiesForMDNS;  // ["ALIAS"]   (OPC 10000-12 Annex D Table D.1)
 ```
 
-The normative identifier is `ALIAS`, matched case-insensitively. Part 17's prose writes it
-`Alias`; Part 12 Annex D is the normative source.
+It is idempotent, case-insensitive, and replaces node-opcua's `NA` placeholder — which
+means "no capabilities" — rather than sitting beside it. Existing capabilities are kept.
+
+The normative identifier is `ALIAS`. Part 17's prose writes it `Alias`; Part 12 Annex D is
+the normative source.
+
+Pass `advertiseCapability: false` if your Server manages its own capability list, or call
+`advertiseAliasCapability(server.capabilitiesForMDNS)` directly.
 
 ## Three ways to declare an alias
 

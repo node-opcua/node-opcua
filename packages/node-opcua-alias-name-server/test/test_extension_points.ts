@@ -14,7 +14,13 @@ import {
     getInstalledAliasNames,
     removeAliasCategory
 } from "../source/bind_alias_category.js";
-import { DEFAULT_MAX_RESULTS, installAliasNamesOnAddressSpace } from "../source/install_alias_names.js";
+import {
+    ALIAS_SERVER_CAPABILITY_ID,
+    DEFAULT_MAX_RESULTS,
+    advertiseAliasCapability,
+    installAliasNames,
+    installAliasNamesOnAddressSpace
+} from "../source/install_alias_names.js";
 import { WellKnownCategories } from "../source/well_known.js";
 import { aliasNames, callFind, getMethod, getObject, makeAddressSpace, resultAliases, resultVerbose } from "./helpers.js";
 
@@ -565,6 +571,74 @@ describe("OPC 10000-17: extension points", () => {
         it("should refuse to remove a well-known category", () => {
             // clause 9 requires the Server to have all three
             should(() => removeAliasCategory(addressSpace, WellKnownCategories.TagVariables)).throw(/well-known category/);
+        });
+    });
+
+    describe("the ALIAS ServerCapability (OPC 10000-12 Annex D)", () => {
+        /** The minimum an OPCUAServer looks like to installAliasNames. */
+        function fakeServer(space: AddressSpace, capabilitiesForMDNS: string[]) {
+            return { engine: { addressSpace: space }, capabilitiesForMDNS };
+        }
+
+        it("should be declared automatically when the feature is installed", async () => {
+            // a Server that omits it is never discovered by anything looking for
+            // alias-capable Servers, and nothing reports the failure - so this
+            // is not left to each caller to remember
+            const space = await pristine();
+            const capabilities: string[] = [];
+            await installAliasNames(fakeServer(space, capabilities));
+            capabilities.should.eql(["ALIAS"]);
+        });
+
+        it("should replace the NA placeholder rather than sitting beside it", async () => {
+            // node-opcua defaults to ["NA"], which means "none" and cannot
+            // coexist with a real capability
+            const space = await pristine();
+            const capabilities = ["NA"];
+            await installAliasNames(fakeServer(space, capabilities));
+            capabilities.should.eql(["ALIAS"]);
+        });
+
+        it("should keep capabilities the Server already declared", async () => {
+            const space = await pristine();
+            const capabilities = ["DA", "HD"];
+            await installAliasNames(fakeServer(space, capabilities));
+            capabilities.should.eql(["DA", "HD", "ALIAS"]);
+        });
+
+        it("should not add it twice", async () => {
+            const space = await pristine();
+            const capabilities = ["ALIAS"];
+            await installAliasNames(fakeServer(space, capabilities));
+            capabilities.should.eql(["ALIAS"]);
+        });
+
+        it("should recognise it case-insensitively, as Annex D specifies", async () => {
+            // Part 17 prose writes it "Alias"; Part 12 Annex D is normative
+            const space = await pristine();
+            const capabilities = ["Alias"];
+            await installAliasNames(fakeServer(space, capabilities));
+            capabilities.should.eql(["Alias"], "already declared, in another case");
+        });
+
+        it("should be skippable for a Server managing its own list", async () => {
+            const space = await pristine();
+            const capabilities: string[] = [];
+            await installAliasNames(fakeServer(space, capabilities), { advertiseCapability: false });
+            capabilities.should.eql([]);
+        });
+
+        it("should not fail on an address-space-only caller with no capability list", async () => {
+            const space = await pristine();
+            const result = await installAliasNames({ engine: { addressSpace: space } });
+            result.installed.should.eql(true);
+        });
+
+        it("should expose the helper for a Server that wires it itself", () => {
+            const capabilities = ["NA"];
+            advertiseAliasCapability(capabilities).should.eql(true, "changed");
+            capabilities.should.eql([ALIAS_SERVER_CAPABILITY_ID]);
+            advertiseAliasCapability(capabilities).should.eql(false, "already there");
         });
     });
 
