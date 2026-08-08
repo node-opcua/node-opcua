@@ -77,7 +77,9 @@ export class ServerIndexResolver {
      * Servers is out of scope. It is non-null only when talking to a Server that
      * does aggregate.
      */
-    public async locate(expandedNodeId: ExpandedNodeId): Promise<{ local: boolean; serverIndex: number; serverUri: string | null }> {
+    public async locate(
+        expandedNodeId: ExpandedNodeId
+    ): Promise<{ local: boolean; serverIndex: number; serverUri: string | null }> {
         const serverIndex = expandedNodeId.serverIndex ?? LOCAL_SERVER_INDEX;
         if (serverIndex === LOCAL_SERVER_INDEX) {
             return { local: true, serverIndex, serverUri: null };

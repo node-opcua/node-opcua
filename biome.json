@@ -40,5 +40,17 @@
 				}
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["**/test/**/*.ts", "**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		}
+	]
 }

@@ -258,9 +258,7 @@ export async function installAliasNames(
 ): Promise<InstallAliasNamesResult> {
     const addressSpace = server.engine.addressSpace;
     if (!addressSpace) {
-        throw new Error(
-            "installAliasNames: address space is not available. Call this after server.initialize()."
-        );
+        throw new Error("installAliasNames: address space is not available. Call this after server.initialize().");
     }
 
     const result = await installAliasNamesOnAddressSpace(addressSpace, options);

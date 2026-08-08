@@ -8,31 +8,8 @@
  * notification are out of scope.
  */
 
+export { type AddAliasOptions, AliasNameError, addAlias, findAlias, removeAlias } from "./add_alias.js";
 export { AddressSpaceAliasStore, type AddressSpaceAliasStoreOptions } from "./address_space_alias_store.js";
-export { AliasNameError, addAlias, findAlias, removeAlias, type AddAliasOptions } from "./add_alias.js";
-export {
-    ALIAS_NAME_ARCHIVE_VERSION,
-    readAliasNameArchive,
-    writeAliasNameArchive,
-    type AliasNameArchive
-} from "./alias_name_archive.js";
-export {
-    LAST_CHANGE_BROWSE_NAME,
-    LastChangeTracker,
-    type LastChangeTrackerOptions
-} from "./last_change.js";
-export {
-    addAliasCategory,
-    bindAliasCategory,
-    ensureOptionalMethod,
-    findMethodByDeclaration,
-    ensureLastChangeProperty,
-    getInstalledAliasNames,
-    removeAliasCategory,
-    type AddAliasCategoryOptions,
-    type BindAliasCategoryOptions,
-    type InstalledAliasNames
-} from "./bind_alias_category.js";
 export {
     aliasesOf,
     collectAllCategories,
@@ -44,23 +21,46 @@ export {
     presentWellKnownCategories
 } from "./alias_hierarchy.js";
 export {
-    insertionOrderComparator,
-    makeFindAliasHandler,
+    ALIAS_NAME_ARCHIVE_VERSION,
+    type AliasNameArchive,
+    readAliasNameArchive,
+    writeAliasNameArchive
+} from "./alias_name_archive.js";
+export {
+    type AddAliasCategoryOptions,
+    addAliasCategory,
+    type BindAliasCategoryOptions,
+    bindAliasCategory,
+    ensureLastChangeProperty,
+    ensureOptionalMethod,
+    findMethodByDeclaration,
+    getInstalledAliasNames,
+    type InstalledAliasNames,
+    removeAliasCategory
+} from "./bind_alias_category.js";
+export {
     type AliasComparator,
-    type FindAliasBindingOptions
+    type FindAliasBindingOptions,
+    insertionOrderComparator,
+    makeFindAliasHandler
 } from "./bind_find_alias.js";
 export {
-    DEFAULT_MAX_RESULTS,
-    installAliasNames,
-    installAliasNamesOnAddressSpace,
-    advertiseAliasCapability,
-    defaultCategoryProvider,
     ALIAS_SERVER_CAPABILITY_ID,
+    advertiseAliasCapability,
     type CategoryProvider,
-    type IServerForAliasNames,
+    DEFAULT_MAX_RESULTS,
+    defaultCategoryProvider,
     type InstallAliasNamesOptions,
-    type InstallAliasNamesResult
+    type InstallAliasNamesResult,
+    type IServerForAliasNames,
+    installAliasNames,
+    installAliasNamesOnAddressSpace
 } from "./install_alias_names.js";
+export {
+    LAST_CHANGE_BROWSE_NAME,
+    LastChangeTracker,
+    type LastChangeTrackerOptions
+} from "./last_change.js";
 export {
     ALIAS_FOR,
     ALIAS_NAME_CATEGORY_TYPE,

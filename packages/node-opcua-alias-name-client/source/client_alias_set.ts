@@ -15,7 +15,7 @@ import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-
 import { type ExpandedNodeId, type NodeId, NodeId as NodeIdClass, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
+import type { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { AliasNameCallError, AliasNameMethodNotSupportedError } from "./errors.js";
 import { ServerIndexResolver } from "./server_index_resolver.js";
@@ -216,7 +216,9 @@ export class ClientAliasSet {
      * searches recursively — but a Client that wants to show the hierarchy, or
      * to search one branch, needs it.
      */
-    public async browseSubCategories(categoryNodeId: NodeId = ALIASES_ROOT): Promise<Array<{ nodeId: NodeId; browseName: string }>> {
+    public async browseSubCategories(
+        categoryNodeId: NodeId = ALIASES_ROOT
+    ): Promise<Array<{ nodeId: NodeId; browseName: string }>> {
         const result = await this.session.browse({
             nodeId: categoryNodeId,
             browseDirection: BrowseDirection.Forward,

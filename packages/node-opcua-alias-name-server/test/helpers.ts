@@ -1,14 +1,14 @@
 import { AddressSpace, SessionContext, type UAMethod, type UAObject, type UAVariable } from "node-opcua-address-space";
-import { addAliasCategory } from "../source/bind_alias_category.js";
-import { installAliasNamesOnAddressSpace } from "../source/install_alias_names.js";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
-import { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
-import { DataType, type VariantLike, VariantArrayType } from "node-opcua-variant";
+import type { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
+import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
+import { addAliasCategory } from "../source/bind_alias_category.js";
+import { installAliasNamesOnAddressSpace } from "../source/install_alias_names.js";
 
 /**
  * A fresh address space with the standard nodeset (which carries Part 17).

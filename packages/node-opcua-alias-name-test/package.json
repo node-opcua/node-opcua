@@ -6,7 +6,9 @@
     "scripts": {
         "test": "mocha",
         "test:check": "tsc --noEmit -p test/tsconfig.json",
-        "sample-server": "tsx bin/sample_server_with_aliases.ts"
+        "sample-server": "tsx bin/sample_server_with_aliases.ts",
+        "lint": "biome check .",
+        "format": "biome check --write ."
     },
     "devEngines": {
         "node": ">=18.x",

@@ -11,7 +11,6 @@
  * and Annex C) and the Annex D PubSub change notification are out of scope.
  */
 
-export type { AliasEntry, AliasQuery, IAliasStore } from "./alias_store.js";
 /**
  * The OPC 10000-4 `Like` matcher, re-exported so Part 17 consumers have one
  * import. It lives in `node-opcua-like-matcher` because `Like` is a Part 4
@@ -23,10 +22,11 @@ export {
     DEFAULT_MAX_PATTERN_LENGTH,
     InvalidLikePatternError,
     isValidLikePattern,
-    like,
+    type LikeOptions,
     LikePattern,
-    type LikeOptions
+    like
 } from "node-opcua-like-matcher";
+export type { AliasEntry, AliasQuery, IAliasStore } from "./alias_store.js";
 export {
     fromVersionTime,
     maxVersionTime,

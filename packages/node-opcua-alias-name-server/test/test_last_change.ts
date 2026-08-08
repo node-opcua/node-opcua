@@ -90,9 +90,7 @@ describe("OPC 10000-17: LastChange (clause 6.3.1)", () => {
             // the single most likely implementation mistake in this clause
             const space = await pristine();
             await installAliasNamesOnAddressSpace(space);
-            const property = getObject(space, WellKnownCategories.Aliases).getPropertyByName(
-                LAST_CHANGE_BROWSE_NAME
-            ) as UAVariable;
+            const property = getObject(space, WellKnownCategories.Aliases).getPropertyByName(LAST_CHANGE_BROWSE_NAME) as UAVariable;
 
             const dataValue = property.readValue();
             dataValue.value.dataType.should.eql(DataType.UInt32);
@@ -277,7 +275,7 @@ describe("OPC 10000-17: LastChange (clause 6.3.1)", () => {
         });
     });
 
-    describe("persistence (clause 6.3.1: \"The LastChange shall be persisted\")", () => {
+    describe('persistence (clause 6.3.1: "The LastChange shall be persisted")', () => {
         it("should survive a restart", async () => {
             // a restart that resets LastChange to zero silently orders every
             // connected Client to clear a still-valid cache

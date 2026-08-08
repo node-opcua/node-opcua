@@ -8,16 +8,11 @@ import { PermissionType } from "node-opcua-types";
 import should from "should";
 import { addAlias } from "../source/add_alias.js";
 import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
-import {
-    addAliasCategory,
-    bindAliasCategory,
-    getInstalledAliasNames,
-    removeAliasCategory
-} from "../source/bind_alias_category.js";
+import { addAliasCategory, bindAliasCategory, getInstalledAliasNames, removeAliasCategory } from "../source/bind_alias_category.js";
 import {
     ALIAS_SERVER_CAPABILITY_ID,
-    DEFAULT_MAX_RESULTS,
     advertiseAliasCapability,
+    DEFAULT_MAX_RESULTS,
     installAliasNames,
     installAliasNamesOnAddressSpace
 } from "../source/install_alias_names.js";
@@ -167,9 +162,7 @@ describe("OPC 10000-17: extension points", () => {
 
         it("should refuse a duplicate rather than silently making a different node", () => {
             addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "DupCat");
-            should(() => addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "DupCat")).throw(
-                /already exists/
-            );
+            should(() => addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "DupCat")).throw(/already exists/);
         });
     });
 
@@ -208,7 +201,10 @@ describe("OPC 10000-17: extension points", () => {
             bindAliasCategory(addressSpace, category, installed.bindingOptions);
             bindAliasCategory(addressSpace, category, installed.bindingOptions);
 
-            category.getComponents().filter((c) => c.browseName.name === "FindAliasVerbose").should.have.length(1);
+            category
+                .getComponents()
+                .filter((c) => c.browseName.name === "FindAliasVerbose")
+                .should.have.length(1);
             const result = await callFind(category, "FindAlias", "%");
             result.statusCode!.should.eql(StatusCodes.Good);
         });

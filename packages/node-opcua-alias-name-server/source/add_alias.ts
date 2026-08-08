@@ -79,12 +79,13 @@ export function addAlias(
 
     // A target on another Server is not in this address space, so it can be
     // neither resolved nor checked against the category restrictions.
-    const targetNodeId = options?.allowUnresolvedTarget
-        ? (target instanceof NodeIdClass ? target : (target as BaseNode).nodeId)
-        : coerceTarget(addressSpace, target).nodeId;
-
-    if (!options?.allowUnresolvedTarget) {
-        assertTargetAllowedInCategory(addressSpace, categoryNode, addressSpace.findNode(targetNodeId)!);
+    let targetNodeId: NodeId;
+    if (options?.allowUnresolvedTarget) {
+        targetNodeId = target instanceof NodeIdClass ? target : (target as BaseNode).nodeId;
+    } else {
+        const targetNode = coerceTarget(addressSpace, target);
+        targetNodeId = targetNode.nodeId;
+        assertTargetAllowedInCategory(addressSpace, categoryNode, targetNode);
     }
 
     const existing = findAlias(addressSpace, categoryNode, aliasName);
@@ -186,7 +187,10 @@ export function findAlias(addressSpace: IAddressSpace, category: UAObject, alias
             continue;
         }
         const typeDefinition = (child as UAObject).typeDefinitionObj;
-        if (typeDefinition && (typeDefinition.nodeId.value === aliasNameType.nodeId.value || typeDefinition.isSubtypeOf(aliasNameType))) {
+        if (
+            typeDefinition &&
+            (typeDefinition.nodeId.value === aliasNameType.nodeId.value || typeDefinition.isSubtypeOf(aliasNameType))
+        ) {
             return child as UAObject;
         }
     }
@@ -219,8 +223,7 @@ function assertTargetAllowedInCategory(addressSpace: IAddressSpace, category: UA
         const ok =
             publishedDataSetType &&
             typeDefinition &&
-            (typeDefinition.nodeId.value === publishedDataSetType.nodeId.value ||
-                typeDefinition.isSubtypeOf(publishedDataSetType));
+            (typeDefinition.nodeId.value === publishedDataSetType.nodeId.value || typeDefinition.isSubtypeOf(publishedDataSetType));
         if (!ok) {
             throw new AliasNameError(
                 `addAlias: Topics restricts targets to PublishedDataSetType or a subtype ` +

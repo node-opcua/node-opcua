@@ -97,7 +97,9 @@ function mergeByAliasName(entries: AliasEntry[]): AliasEntry[] {
             seenTargets.set(entry.aliasName, new Set(entry.referencedNodes.map((n) => n.toString())));
             continue;
         }
-        const seen = seenTargets.get(entry.aliasName)!;
+        // written alongside byName above, so it is always present
+        const seen = seenTargets.get(entry.aliasName) ?? new Set<string>();
+        seenTargets.set(entry.aliasName, seen);
         for (const node of entry.referencedNodes) {
             const key = node.toString();
             if (!seen.has(key)) {

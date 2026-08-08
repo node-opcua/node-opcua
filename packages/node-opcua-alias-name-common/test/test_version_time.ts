@@ -1,11 +1,11 @@
 import should from "should";
 import {
-    VERSION_TIME_EPOCH_MS,
-    VERSION_TIME_WRAP_DATE,
     fromVersionTime,
     maxVersionTime,
     nowVersionTime,
-    toVersionTime
+    toVersionTime,
+    VERSION_TIME_EPOCH_MS,
+    VERSION_TIME_WRAP_DATE
 } from "../source";
 
 /**

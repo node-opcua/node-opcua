@@ -116,9 +116,7 @@ export function makeAddAliasesToCategoryHandler(options: ConfigurationBindingOpt
 
         // Table 9: "If null, it defaults to AliasFor."
         const referenceTypeId =
-            targetReferenceTypeRaw instanceof NodeIdClass && !targetReferenceTypeRaw.isEmpty()
-                ? targetReferenceTypeRaw
-                : ALIAS_FOR;
+            targetReferenceTypeRaw instanceof NodeIdClass && !targetReferenceTypeRaw.isEmpty() ? targetReferenceTypeRaw : ALIAS_FOR;
 
         const entries: AliasEntry[] = aliasNames.map((aliasName, i) => {
             // Table 9: "The ServerIndex in the ExpandedNodeId shall be ignored

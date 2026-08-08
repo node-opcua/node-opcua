@@ -12,12 +12,12 @@
 
 export {
     ALIASES_ROOT,
-    ClientAliasSet,
-    TAG_VARIABLES,
-    TOPICS,
     type ClientAliasEntry,
+    ClientAliasSet,
     type ClientAliasVerboseEntry,
-    type FindAliasOptions
+    type FindAliasOptions,
+    TAG_VARIABLES,
+    TOPICS
 } from "./client_alias_set.js";
 export { AliasNameCallError, AliasNameMethodNotSupportedError } from "./errors.js";
 export { LOCAL_SERVER_INDEX, ServerIndexResolver } from "./server_index_resolver.js";
