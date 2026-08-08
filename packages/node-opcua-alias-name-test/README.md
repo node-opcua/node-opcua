@@ -57,9 +57,10 @@ Two demo users: `engineer` / `engineer-pw1` sees everything; `contractor` /
 `contractor-pw1` is denied the `Unit200` category, which makes the per-category read gate
 observable from a Client.
 
-The server advertises the **`ALIAS`** capability (OPC 10000-12 Annex D Table D.1). This is
-required, not optional: a Server that omits it is never discovered by anything looking for
-alias-capable Servers, and nothing reports the failure.
+The server advertises the **`ALIAS`** capability (OPC 10000-12 Annex D Table D.1) — but
+note it never sets it: `installAliasNames` does, which is why the sample calls it between
+`initialize()` and `start()`. The e2e suite asserts the capability is present, so it is
+the automatic path that is under test, not the sample's good intentions.
 
 ### For UACTT
 

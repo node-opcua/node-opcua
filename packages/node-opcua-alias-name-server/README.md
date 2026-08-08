@@ -36,9 +36,15 @@ integration:
 ```ts
 import { installAliasNames } from "node-opcua-alias-name-server";
 
+await server.initialize();
+await installAliasNames(server);   // also declares the ALIAS capability
 await server.start();
-await installAliasNames(server);
 ```
+
+**Call it between `initialize()` and `start()`.** The address space exists from
+`initialize()` onwards, and `start()` performs the mDNS/LDS registration that reads the
+capability list — so installing afterwards binds the Methods correctly but registers the
+Server without `ALIAS`.
 
 `FindAlias` now answers correctly on `Aliases`, `TagVariables`, `Topics` and every
 vendor subcategory nested below them. The default store reads the address space
@@ -92,6 +98,7 @@ second node; an exact duplicate of (name, target) is ignored.
 | `likeOptions` | case sensitive | Passed to the `Like` matcher. |
 | `additionalCategoryRoots` | — | Categories modelled outside the `Aliases` hierarchy. |
 | `categoryProvider` | `defaultCategoryProvider()` | Replace category discovery entirely; may be async. |
+| `advertiseCapability` | `true` | Declare `ALIAS` in the Server's `capabilitiesForMDNS` (OPC 10000-12 Annex D). |
 | `configurationMethods` | `false` | **Not implemented yet** — passing `true` throws. |
 | `persistencePath` | — | **Not implemented yet** — passing a path throws. |
 
@@ -243,40 +250,34 @@ reserves fixed NodeIds for those instances (`i=24054`, `i=24063`, `i=24072`), so
 installation uses them rather than server-assigned ones and an aggregating Server sees
 the NodeId it expects. Vendor subcategories get a server-assigned NodeId, as they must.
 
-## Advertise the `ALIAS` capability
+## The `ALIAS` capability is declared for you
 
-**Do this.** A Server that does not advertise the capability will never be discovered by
-anything looking for alias-capable Servers, and that failure is silent — nothing errors,
-the Server simply never appears.
+`installAliasNames` adds `ALIAS` to the Server's `capabilitiesForMDNS`
+(OPC 10000-12 Annex D Table D.1). Declaring the capability and installing the feature are
+the same decision, so they happen together — leaving it to each caller to remember means
+it will sometimes be forgotten, and a Server that omits it is simply never discovered by
+anything looking for alias-capable Servers, with nothing reporting the failure.
+
+It is idempotent, case-insensitive, and replaces node-opcua's `NA` placeholder rather
+than producing the meaningless `["NA", "ALIAS"]`:
+
+| Before | After |
+|---|---|
+| `[]` | `["ALIAS"]` |
+| `["NA"]` | `["ALIAS"]` |
+| `["DA", "HD"]` | `["DA", "HD", "ALIAS"]` |
+| `["Alias"]` | `["Alias"]` — already declared |
+
+The normative identifier is `ALIAS`; Part 17's prose writes it `Alias`, and Part 12
+Annex D is the normative source.
+
+Pass `advertiseCapability: false` if the Server manages its own capability list, or use
+the helper directly:
 
 ```ts
-import { ALIAS_SERVER_CAPABILITY } from "node-opcua-alias-name-server";
-
-const server = new OPCUAServer({
-    serverCapabilities: { operationLimits: {}, /* ... */ }
-});
-// ServerCapabilities/ServerProfileArray-adjacent capability set, OPC 10000-12 Annex D
-server.serverCapabilities.push(ALIAS_SERVER_CAPABILITY);
+import { advertiseAliasCapability } from "node-opcua-alias-name-server";
+advertiseAliasCapability(server.capabilitiesForMDNS);
 ```
-
-The normative identifier is `ALIAS` (OPC 10000-12 Annex D Table D.1), matched
-case-insensitively. Part 17's prose writes it `Alias`; Part 12 Annex D is the normative
-source.
-
-## Known limitations of this release
-
-Two things a first-time integrator should know before deploying, both of which are
-invisible from the outside:
-
-1. **`LastChange` is inert.** The Property is in every Server's address space and now
-   sits next to a `FindAlias` that works, but nothing writes it. A Client following
-   clause 6.3.1's cache protocol sees a value that never changes and therefore never
-   refreshes its cache. Harmless in a first release — no Client can have cached anything
-   yet — but do not build on it.
-2. **Nothing here is exercised over a transport.** Every test drives `method.execute()`
-   in process. Encoding, chunking on a large result, permissions under a real session,
-   and session lifetime are consequently untested. That is the specific residual risk of
-   this slice, and it closes when the client and integration-test packages land.
 
 ## What is not here yet
 

@@ -207,11 +207,15 @@ the Server rather than the session, so nothing goes stale when sessions come and
 
 ### 6.1 The `ALIAS` capability is advertised ✅
 
+> **Given** a sample Server that never sets `capabilitiesForMDNS` itself
+> **When** `installAliasNames` runs between `initialize()` and `start()`
 > **Then** the Server's `capabilitiesForMDNS` contains `ALIAS`
 
-*Proves:* OPC 10000-12 Annex D Table D.1 is honoured. A Server that omits it is never
-found by anything looking for alias-capable Servers, and **nothing reports the failure** —
-which is why this is asserted rather than left to the sample's good intentions.
+*Proves:* OPC 10000-12 Annex D Table D.1 is honoured **automatically**. A Server that omits
+the capability is never found by anything looking for alias-capable Servers, and **nothing
+reports the failure** — so declaring it is part of installing the feature rather than
+something each Server has to remember. The sample deliberately does not set it, so this
+scenario exercises the automatic path.
 
 Note the spelling: Part 17's prose writes it `Alias`, Part 12 Annex D is normative and
 writes `ALIAS`, matched case-insensitively.
