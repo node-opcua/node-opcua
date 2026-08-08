@@ -838,6 +838,20 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
         if ((node as UAVariable).accessLevel !== currentReadFlag) {
             xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());
         }
+        // UserAccessLevel is implicitly accessLevel when omitted (see convertUserAccessLevel in the loader),
+        // so it only needs to be written down when it further restricts accessLevel.
+        const userAccessLevel = (node as UAVariable).userAccessLevel;
+        if (userAccessLevel !== undefined && userAccessLevel !== (node as UAVariable).accessLevel) {
+            xw.writeAttribute("UserAccessLevel", userAccessLevel.toString());
+        }
+    }
+    // access policy: undefined means "inherit from the namespace", an empty rolePermissions array
+    // means "this node deliberately grants nothing".
+    if (node.accessRestrictions !== undefined) {
+        xw.writeAttribute("AccessRestrictions", node.accessRestrictions.toString());
+    }
+    if (node.rolePermissions !== undefined && node.rolePermissions.length === 0) {
+        xw.writeAttribute("HasNoPermissions", "true");
     }
     if (Object.hasOwn(node, "minimumSamplingInterval")) {
         const minimumSamplingInterval = (node as UAVariable).minimumSamplingInterval;
@@ -854,10 +868,29 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     }
 }
 
+// the UANode XSD sequence is DisplayName, Description, Category, Documentation, References,
+// RolePermissions, Extensions: RolePermissions must therefore come after References.
+function _dumpRolePermissions(xw: XmlWriter, node: BaseNode) {
+    const rolePermissions = node.rolePermissions;
+    if (!rolePermissions || rolePermissions.length === 0) {
+        // the empty case is carried by the HasNoPermissions attribute
+        return;
+    }
+    xw.startElement("RolePermissions");
+    for (const rolePermission of rolePermissions) {
+        xw.startElement("RolePermission");
+        xw.writeAttribute("Permissions", rolePermission.permissions.toString());
+        xw.text(n(xw, rolePermission.roleId));
+        xw.endElement();
+    }
+    xw.endElement();
+}
+
 function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
     _dumpDisplayName(xw, node);
     _dumpDescription(xw, node);
     _dumpReferences(xw, node);
+    _dumpRolePermissions(xw, node);
 }
 
 function coerceInt64ToInt32(int64: Int64): number {
@@ -1149,7 +1182,9 @@ function _dumpUAObject(xw: XmlWriter, node: UAObject) {
 function dumpElementInFolder(xw: XmlWriter, node: BaseNodeImpl) {
     const aggregates = node
         .getFolderElements()
-        .sort((x: BaseNode, y: BaseNode) => ((x?.browseName.name?.toString() || 0) > (y?.browseName.name?.toString() || 0) ? 1 : -1));
+        .sort((x: BaseNode, y: BaseNode) =>
+            (x?.browseName.name?.toString() || 0) > (y?.browseName.name?.toString() || 0) ? 1 : -1
+        );
     for (const aggregate of aggregates.sort(sortByNodeId)) {
         // do not export node that do not belong to our namespace
         if (node.nodeId.namespace !== aggregate.nodeId.namespace) {

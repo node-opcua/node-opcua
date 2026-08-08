@@ -21,9 +21,11 @@ import { coerceBoolean, coerceByte, coerceInt32, StatusCodes } from "node-opcua-
 import { DataTypeIds } from "node-opcua-constants";
 import {
     type AccessLevelFlag,
+    type AccessRestrictionsFlag,
     coerceLocalizedText,
     type LocalizedText,
     makeAccessLevelFlag,
+    makeAccessRestrictionsFlag,
     NodeClass,
     type QualifiedName,
     stringToQualifiedName
@@ -32,7 +34,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { getBuiltInType } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { EnumFieldOptions } from "node-opcua-types";
+import type { EnumFieldOptions, RolePermissionTypeOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
@@ -73,6 +75,32 @@ function stringToUInt32Array(str: string): number[] | null {
 function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
     const accessLevelN: number = parseInt(accessLevel || "1", 10); // CurrentRead if not specified
     return makeAccessLevelFlag(accessLevelN);
+}
+
+/**
+ * the XSD gives UserAccessLevel a default of 1, but a nodeset that raises AccessLevel and stays
+ * silent on UserAccessLevel means "the user may do whatever the node allows", not "read only".
+ * Falling back on accessLevel is what every other stack does and what node-opcua has always done;
+ * what changes here is that an *explicit* UserAccessLevel is no longer dropped.
+ */
+function convertUserAccessLevel(userAccessLevel: string | null | undefined, accessLevel: AccessLevelFlag): AccessLevelFlag {
+    if (userAccessLevel === undefined || userAccessLevel === null || userAccessLevel === "") {
+        return accessLevel;
+    }
+    return convertAccessLevel(userAccessLevel);
+}
+
+function convertAccessRestrictions(accessRestrictions?: string | null): AccessRestrictionsFlag | undefined {
+    if (accessRestrictions === undefined || accessRestrictions === null || accessRestrictions === "") {
+        // undefined is not None: it means "inherit the namespace default"
+        return undefined;
+    }
+    const value = parseInt(accessRestrictions, 10);
+    if (Number.isNaN(value)) {
+        errorLog("load_nodeset2: ignoring invalid AccessRestrictions attribute", accessRestrictions);
+        return undefined;
+    }
+    return makeAccessRestrictionsFlag(value);
 }
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
@@ -404,6 +432,52 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             }
         }
     };
+    // #region access policy (AccessRestrictions / HasNoPermissions / RolePermissions)
+    const applyNodePermissions = (options.permissions ?? "apply") === "apply";
+
+    interface INodePermissions {
+        accessRestrictions?: AccessRestrictionsFlag;
+        rolePermissions?: RolePermissionTypeOptions[];
+    }
+
+    /**
+     * read the access policy carried by the attributes of any UANode.
+     * The `<RolePermissions>` element is handled separately by `role_permissions_parser`.
+     */
+    function convertNodePermissions(attrs: XmlAttributes): INodePermissions {
+        if (!applyNodePermissions) {
+            return {};
+        }
+        return {
+            accessRestrictions: convertAccessRestrictions(attrs.AccessRestrictions),
+            // HasNoPermissions="true" is not the same as an absent <RolePermissions>: the former
+            // grants nothing at all, the latter inherits the namespace default. An empty array
+            // is how BaseNode distinguishes the two.
+            rolePermissions: coerceBoolean(attrs.HasNoPermissions) ? [] : undefined
+        };
+    }
+
+    const role_permissions_parser = {
+        // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
+        init(this: any) {
+            this.array = [] as RolePermissionTypeOptions[];
+            if (applyNodePermissions) {
+                this.parent.obj.rolePermissions = this.array;
+            }
+        },
+        parser: {
+            RolePermission: {
+                // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
+                finish(this: any) {
+                    this.parent.array.push({
+                        roleId: _translateNodeId(this.text.trim()),
+                        permissions: parseInt(this.attrs.Permissions || "0", 10)
+                    });
+                }
+            }
+        }
+    };
+    // #endregion
     // #region UAObject
     const state_UAObject = {
         // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
@@ -416,7 +490,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 nodeId: convertToNodeId(attrs.NodeId) || null,
                 browseName: convertQualifiedName(attrs.BrowseName),
                 eventNotifier: coerceByte(attrs.EventNotifier) || 0,
-                symbolicName: attrs.SymbolicName || null
+                symbolicName: attrs.SymbolicName || null,
+                ...convertNodePermissions(attrs)
             };
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
@@ -444,7 +519,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
 
-            References: references_parser
+            References: references_parser,
+            RolePermissions: role_permissions_parser
         }
     };
     // #endregion
@@ -459,7 +535,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 isAbstract: coerceBoolean(attrs.IsAbstract),
                 nodeId: convertToNodeId(attrs.NodeId) || null,
                 browseName: convertQualifiedName(attrs.BrowseName),
-                eventNotifier: coerceByte(attrs.EventNotifier) || 0
+                eventNotifier: coerceByte(attrs.EventNotifier) || 0,
+                ...convertNodePermissions(attrs)
             };
         },
         // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
@@ -481,7 +558,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
 
-            References: references_parser
+            References: references_parser,
+            RolePermissions: role_permissions_parser
         }
     };
     // #endregion
@@ -495,7 +573,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 nodeClass: NodeClass.ReferenceType,
                 isAbstract: coerceBoolean(attrs.IsAbstract),
                 nodeId: convertToNodeId(attrs.NodeId) || null,
-                browseName: convertQualifiedName(attrs.BrowseName)
+                browseName: convertQualifiedName(attrs.BrowseName),
+                ...convertNodePermissions(attrs)
             };
         },
         // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
@@ -523,7 +602,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     this.parent.obj.inverseName = this.text;
                 }
             },
-            References: references_parser
+            References: references_parser,
+            RolePermissions: role_permissions_parser
         }
     };
 
@@ -555,7 +635,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 displayName: "",
                 description: "",
                 symbolicName: attrs.SymbolicName,
-                partialDefinition: []
+                partialDefinition: [],
+                ...convertNodePermissions(attrs)
             };
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
@@ -618,6 +699,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
             References: references_parser,
+            RolePermissions: role_permissions_parser,
 
             Definition: _definitionParser
         }
@@ -677,6 +759,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         historizing: boolean;
         accessLevel: number;
         userAccessLevel: number;
+        accessRestrictions?: AccessRestrictionsFlag;
+        rolePermissions?: RolePermissionTypeOptions[];
     }
     type ReaderUAVariableL1 = ReaderStateParserLike & { obj: IUAVariableProps; isDraft: boolean; isDeprecated: boolean };
     type ReaderUAVariableL2 = ReaderStateParserLike & { parent: ReaderUAVariableL1; text: string };
@@ -702,7 +786,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 historizing: coerceBoolean(attrs.Historizing),
                 nodeId,
                 accessLevel: accessLevel,
-                userAccessLevel: accessLevel // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
+                userAccessLevel: convertUserAccessLevel(attrs.UserAccessLevel, accessLevel),
+                ...convertNodePermissions(attrs)
             };
             this.isDraft = attrs.ReleaseStatus === "Draft" || false;
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated" || false;
@@ -784,6 +869,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
             References: references_parser,
+            RolePermissions: role_permissions_parser,
 
             Value: makeVariantReader<ReaderUAVariableL2>(
                 (self: ReaderUAVariableL2, data: VariantOptions) => {
@@ -824,7 +910,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 minimumSamplingInterval: attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0,
                 // UAVariableType has no Historizing attribute in the XSD: keep it false
                 historizing: false,
-                nodeId: convertToNodeId(attrs.NodeId) || null
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                ...convertNodePermissions(attrs)
             };
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
@@ -848,6 +935,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
             References: references_parser,
+            RolePermissions: role_permissions_parser,
             Value: makeVariantReader<ReaderUAVariableTypeL2>(
                 (self: ReaderUAVariableTypeL2, data: VariantOptions) => {
                     self.parent.obj.value = data;
@@ -878,7 +966,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 browseName: convertQualifiedName(attrs.BrowseName),
                 parentNodeId: attrs.ParentNodeId || null,
                 nodeId: convertToNodeId(attrs.NodeId) || null,
-                methodDeclarationId: attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null
+                methodDeclarationId: attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null,
+                ...convertNodePermissions(attrs)
             };
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
@@ -897,7 +986,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     this.parent.obj.displayName = this.text;
                 }
             },
-            References: references_parser
+            References: references_parser,
+            RolePermissions: role_permissions_parser
         }
     };
     // #endregion
