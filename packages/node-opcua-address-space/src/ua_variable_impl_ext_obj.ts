@@ -573,7 +573,12 @@ export function _bindExtensionObject(
                     uaVariable.$extensionObject?.schema.name
             );
         }
-        return uaVariable.$extensionObject;
+        // the variable may have been bound at load time with createMissingProp:false ( the loader only
+        // binds what the nodeset declares ): a caller explicitly asking for the missing child
+        // properties must still get them installed on the existing extension object.
+        if (!options.createMissingProp) {
+            return uaVariable.$extensionObject;
+        }
     }
 
     if (uaVariable.dataTypeObj.isAbstract) {
