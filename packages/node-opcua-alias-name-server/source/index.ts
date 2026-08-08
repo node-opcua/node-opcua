@@ -11,10 +11,22 @@
 export { AddressSpaceAliasStore, type AddressSpaceAliasStoreOptions } from "./address_space_alias_store.js";
 export { AliasNameError, addAlias, findAlias, removeAlias, type AddAliasOptions } from "./add_alias.js";
 export {
+    ALIAS_NAME_ARCHIVE_VERSION,
+    readAliasNameArchive,
+    writeAliasNameArchive,
+    type AliasNameArchive
+} from "./alias_name_archive.js";
+export {
+    LAST_CHANGE_BROWSE_NAME,
+    LastChangeTracker,
+    type LastChangeTrackerOptions
+} from "./last_change.js";
+export {
     addAliasCategory,
     bindAliasCategory,
     ensureOptionalMethod,
     findMethodByDeclaration,
+    ensureLastChangeProperty,
     getInstalledAliasNames,
     removeAliasCategory,
     type AddAliasCategoryOptions,

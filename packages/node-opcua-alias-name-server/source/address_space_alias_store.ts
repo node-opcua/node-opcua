@@ -20,14 +20,37 @@ import {
     nowVersionTime
 } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { ExpandedNodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { ExpandedNodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { addAlias, findAlias, removeAlias } from "./add_alias.js";
 import { aliasesOf, collectCategories } from "./alias_hierarchy.js";
 import { ALIAS_FOR } from "./well_known.js";
+
+/**
+ * An ExpandedNodeId as a local NodeId string, dropping the ServerIndex.
+ *
+ * Clause 6.3.4 Table 9: "The ServerIndex in the ExpandedNodeId shall be ignored
+ * and the TargetServers Uri shall be used."
+ */
+function stripServerIndex(nodeId: ExpandedNodeId): string {
+    const namespace = nodeId.namespace ?? 0;
+    return `ns=${namespace};${nodeId.toString().split(";").slice(-1)[0]}`;
+}
 
 export interface AddressSpaceAliasStoreOptions {
     /** Passed through to the OPC 10000-4 `Like` matcher. */
     likeOptions?: LikeOptions;
+    /**
+     * Accept `AddAliasesToCategory` entries whose target is on another Server.
+     *
+     * Off by default. Clause 6.3.4 Table 10 makes `Bad_NotSupported` an
+     * explicitly allowed answer — *"Support for remote Server TargetNodes is
+     * optional"* — and storing a reference this Server can never resolve or
+     * verify is a poor default. When on, such entries are accepted and reported
+     * `Uncertain_ReferenceOutOfServer`, since this Server does not check Nodes
+     * on other Servers.
+     */
+    allowRemoteTargets?: boolean;
 }
 
 /** Turn a local NodeId into an ExpandedNodeId with the namespace URI filled in. */
@@ -50,9 +73,12 @@ export class AddressSpaceAliasStore implements IAliasStore {
     /** Per-category `LastChange`, as a VersionTime (clause 6.3.1). */
     private readonly lastChangeByCategory = new Map<string, number>();
 
+    private readonly allowRemoteTargets: boolean;
+
     constructor(addressSpace: IAddressSpace, options?: AddressSpaceAliasStoreOptions) {
         this.addressSpace = addressSpace;
         this.likeOptions = options?.likeOptions;
+        this.allowRemoteTargets = options?.allowRemoteTargets ?? false;
     }
 
     /**
@@ -167,28 +193,166 @@ export class AddressSpaceAliasStore implements IAliasStore {
     }
 
     /**
-     * `AddAliasesToCategory` is not implemented yet (clause 6.3.4).
+     * Add aliases to a category (clause 6.3.4), one StatusCode per entry.
      *
-     * Answers `Bad_NotSupported` for every entry rather than throwing or being
-     * absent, so the Configuration Support facet has a working stub before it
-     * has an implementation: a binding can call it and produce a well-formed
-     * per-item result array today.
+     * The per-item codes of Table 10:
      *
-     * Use {@link addAlias} to add aliases from Server code.
+     * - `Bad_NodeIdInvalid` — the NodeId is syntactically unusable.
+     * - `Bad_NodeIdUnknown` — the target is on this Server and does not exist.
+     * - `Uncertain_ReferenceOutOfServer` — the target is on another Server. The
+     *   clause is explicit that this is returned **whether or not** a check was
+     *   performed: *"If the Server does not check for the external Node's
+     *   existence, it shall return Uncertain_ReferenceOutOfServer."* This Server
+     *   does not check, because checking means being a Client of the other
+     *   Server, which is the aggregation these packages exclude by design.
+     * - `Bad_NotSupported` — when {@link AddressSpaceAliasStoreOptions.allowRemoteTargets}
+     *   is off, which Table 10 explicitly permits.
+     *
+     * An exact duplicate of (AliasName, target, target Server) is `Good` and
+     * ignored, whether it was already stored or repeated within this call.
      */
-    public add(_categoryNodeId: NodeId, entries: AliasEntry[]): StatusCode[] {
-        return entries.map(() => StatusCodes.BadNotSupported);
+    public add(categoryNodeId: NodeId, entries: AliasEntry[]): StatusCode[] {
+        const category = this.addressSpace.findNode(categoryNodeId);
+        if (!category || category.nodeClass !== NodeClass.Object) {
+            return entries.map(() => StatusCodes.BadNodeIdUnknown);
+        }
+        const categoryNode = category as UAObject;
+
+        // duplicates repeated *within* this call are ignored too, so the set
+        // has to grow as we go rather than being a snapshot of the start state
+        const seenInThisCall = new Set<string>();
+
+        return entries.map((entry) => {
+            const target = entry.referencedNodes[0];
+            const serverUri = entry.serverUris[0] ?? null;
+
+            if (!target) {
+                return StatusCodes.BadNodeIdInvalid;
+            }
+            if (!entry.aliasName) {
+                return StatusCodes.BadNodeIdInvalid;
+            }
+
+            const key = `${entry.aliasName} ${target.toString()} ${serverUri ?? ""}`;
+            if (seenInThisCall.has(key)) {
+                return StatusCodes.Good;
+            }
+            seenInThisCall.add(key);
+
+            // Table 9: the ServerIndex inside the ExpandedNodeId is ignored;
+            // TargetServers is authoritative
+            if (serverUri !== null) {
+                if (!this.allowRemoteTargets) {
+                    return StatusCodes.BadNotSupported;
+                }
+                return this.addRemote(categoryNode, entry, target, serverUri);
+            }
+
+            return this.addLocal(categoryNode, entry, target);
+        });
     }
 
     /**
-     * `DeleteAliasesFromCategory` is not implemented yet (clause 6.3.5).
-     * See {@link add}; use {@link removeAlias} from Server code.
+     * Remove aliases from a category (clause 6.3.5), one StatusCode per entry.
+     *
+     * `Bad_NotFound` when the name is not in the category, `Bad_InvalidState`
+     * when it is there but not owned by this Server — clause 6.3.5 opens by
+     * saying a Server "shall only delete AliasName instances that are defined on
+     * the Server exposing this Method".
+     *
+     * An entry with no target removes every target of that name. Removal is
+     * all-or-nothing per name: if any target cannot go, none of that name's do.
      */
-    public delete(
-        _categoryNodeId: NodeId,
-        entries: Pick<AliasEntry, "aliasName" | "referencedNodes">[]
-    ): StatusCode[] {
-        return entries.map(() => StatusCodes.BadNotSupported);
+    public delete(categoryNodeId: NodeId, entries: Pick<AliasEntry, "aliasName" | "referencedNodes">[]): StatusCode[] {
+        const category = this.addressSpace.findNode(categoryNodeId);
+        if (!category || category.nodeClass !== NodeClass.Object) {
+            return entries.map(() => StatusCodes.BadNotFound);
+        }
+        const categoryNode = category as UAObject;
+
+        return entries.map((entry) => {
+            const alias = findAlias(this.addressSpace, categoryNode, entry.aliasName);
+            if (!alias) {
+                return StatusCodes.BadNotFound;
+            }
+            // an alias whose targets all live on other Servers was learned from
+            // elsewhere and is not ours to delete
+            if (this.isForeign(alias)) {
+                return StatusCodes.BadInvalidState;
+            }
+
+            const requested = entry.referencedNodes ?? [];
+            if (requested.length === 0) {
+                // "all AliasNames with the provided name are deleted"
+                removeAlias(this.addressSpace, categoryNode, entry.aliasName);
+                return StatusCodes.Good;
+            }
+
+            // all or nothing: check every requested target is present first
+            const references = alias.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward);
+            const present = new Set(references.map((r) => r.nodeId.toString()));
+            for (const target of requested) {
+                if (!present.has(stripServerIndex(target))) {
+                    return StatusCodes.BadNotFound;
+                }
+            }
+            for (const target of requested) {
+                removeAlias(this.addressSpace, categoryNode, entry.aliasName, resolveNodeId(stripServerIndex(target)));
+            }
+            return StatusCodes.Good;
+        });
+    }
+
+    /** Add an alias whose target is on this Server. */
+    private addLocal(category: UAObject, entry: AliasEntry, target: ExpandedNodeId): StatusCode {
+        let localNodeId: NodeId;
+        try {
+            localNodeId = resolveNodeId(stripServerIndex(target));
+        } catch {
+            return StatusCodes.BadNodeIdInvalid;
+        }
+        if (!this.addressSpace.findNode(localNodeId)) {
+            // Table 10: "The TargetNode does not exist in the AliasName Server
+            // and the TargetServer is the local server"
+            return StatusCodes.BadNodeIdUnknown;
+        }
+        try {
+            addAlias(this.addressSpace, category, entry.aliasName, localNodeId, {
+                referenceType: entry.referenceTypeIds[0]
+            });
+        } catch {
+            // a category restriction (clause 9.3 / 9.4) refused the target
+            return StatusCodes.BadNodeIdInvalid;
+        }
+        return StatusCodes.Good;
+    }
+
+    /**
+     * Add an alias whose target is on another Server.
+     *
+     * Always `Uncertain_ReferenceOutOfServer`: this Server does not verify
+     * Nodes on other Servers, and clause 6.3.4 says that case returns the
+     * uncertain code rather than success.
+     */
+    private addRemote(category: UAObject, entry: AliasEntry, target: ExpandedNodeId, _serverUri: string): StatusCode {
+        try {
+            addAlias(this.addressSpace, category, entry.aliasName, target, {
+                referenceType: entry.referenceTypeIds[0],
+                allowUnresolvedTarget: true
+            });
+        } catch {
+            return StatusCodes.BadNodeIdInvalid;
+        }
+        return StatusCodes.UncertainReferenceOutOfServer;
+    }
+
+    /** True when none of the alias's targets are on this Server. */
+    private isForeign(alias: UAObject): boolean {
+        const references = alias.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward);
+        if (references.length === 0) {
+            return false;
+        }
+        return references.every((reference) => this.addressSpace.findNode(reference.nodeId) === null);
     }
 
     /** The URI of a namespace index, or undefined for namespace 0. */

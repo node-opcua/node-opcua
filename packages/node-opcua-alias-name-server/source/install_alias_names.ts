@@ -22,6 +22,7 @@ import {
     setInstalledAliasNames
 } from "./bind_alias_category.js";
 import type { AliasComparator } from "./bind_find_alias.js";
+import { LastChangeTracker } from "./last_change.js";
 import { DEFAULT_MAX_RESULTS, WellKnownCategories } from "./well_known.js";
 
 export { DEFAULT_MAX_RESULTS };
@@ -104,16 +105,35 @@ export interface InstallAliasNamesOptions {
      */
     isWriteAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
     /**
-     * File backing the persisted `LastChange` values (clause 6.3.1: "The
-     * LastChange shall be persisted"). A Client that sees a value older than
-     * the one it cached is required to drop its cache, so a restart that resets
-     * `LastChange` to zero is a bug visible in every connected Client.
+     * File backing the persisted `LastChange` values (clause 6.3.1: *"The
+     * LastChange shall be persisted"*).
      *
-     * **Not implemented yet** — passing a path throws rather than accepting it
-     * and persisting nothing, which would leave a Server believing persistence
-     * was on.
+     * Without it, every restart resets `LastChange` to zero — and a Client that
+     * sees a value older than the one it cached is required by clause 6.3.1 to
+     * clear its cache. So an unpersisted Server silently orders every connected
+     * Client to discard a still-valid cache on every restart. Set this on any
+     * Server that Clients cache against.
+     *
+     * The file is small JSON: a version and a map of category NodeId to
+     * VersionTime. Writes are atomic.
      */
     persistencePath?: string;
+    /**
+     * Add a `LastChange` Property to every category, not only the `Aliases` root.
+     *
+     * On by default. `LastChange` is Optional on `AliasNameCategoryType` and the
+     * shipped nodeset instantiates it only on the root, which clause 9.2 makes
+     * mandatory — but the clause 6.3.1 rollup is only observable where the
+     * Property exists, so a Client watching one branch needs it there. Turn it
+     * off to keep the address space exactly as the nodeset ships it.
+     */
+    lastChangeOnAllCategories?: boolean;
+    /**
+     * Supplies "now" as a VersionTime, for tests that need to pin it. A
+     * VersionTime has one-second resolution, which is otherwise awkward to
+     * assert against.
+     */
+    nowVersionTime?: () => number;
     /**
      * Extra roots to search for `AliasNameCategoryType` instances.
      *
@@ -157,6 +177,11 @@ export interface InstallAliasNamesResult {
     categories: NodeId[];
     /** True when this call did the work; false when AliasNames were already installed. */
     installed: boolean;
+    /**
+     * Keeps `LastChange` correct across the hierarchy, and persists it
+     * (clause 6.3.1).
+     */
+    lastChange?: LastChangeTracker;
     /**
      * The options every category was bound with.
      *
@@ -270,14 +295,6 @@ export async function installAliasNamesOnAddressSpace(
                 "(AddAliasesToCategory / DeleteAliasesFromCategory, OPC 10000-17 clauses 6.3.4 and 6.3.5)."
         );
     }
-    if (options?.persistencePath !== undefined) {
-        throw new Error(
-            "installAliasNames: persistencePath is not implemented yet " +
-                "(LastChange persistence, OPC 10000-17 clause 6.3.1). Omit it rather than " +
-                "relying on persistence that is not happening."
-        );
-    }
-
     const aliasesRoot = addressSpace.findNode(WellKnownCategories.Aliases);
     if (!aliasesRoot) {
         throw new Error(
@@ -288,13 +305,20 @@ export async function installAliasNamesOnAddressSpace(
 
     const store = options?.store ?? new AddressSpaceAliasStore(addressSpace, { likeOptions: options?.likeOptions });
 
+    const lastChange = new LastChangeTracker(addressSpace, {
+        persistencePath: options?.persistencePath,
+        now: options?.nowVersionTime
+    });
+
     const bindingOptions: BindAliasCategoryOptions = {
         store,
         maxResults: options?.maxResults ?? DEFAULT_MAX_RESULTS,
         verbose: options?.verbose ?? true,
         comparator: options?.comparator,
         isReadAllowed: options?.isReadAllowed,
-        isWriteAllowed: options?.isWriteAllowed
+        isWriteAllowed: options?.isWriteAllowed,
+        lastChangeProperty: options?.lastChangeOnAllCategories ?? true,
+        onChanged: (categoryNodeId: NodeId) => lastChange.touch(categoryNodeId).then(() => undefined)
     };
 
     const provider = options?.categoryProvider ?? defaultCategoryProvider(options?.additionalCategoryRoots);
@@ -309,8 +333,18 @@ export async function installAliasNamesOnAddressSpace(
     const installed = {
         store,
         categories: categories.map((c) => c.nodeId),
-        bindingOptions
+        bindingOptions,
+        lastChange
     };
+    // Recorded before restore, so anything the restore triggers can already find
+    // the tracker on the address space.
     setInstalledAliasNames(addressSpace, installed);
+
+    // Bring persisted values back and publish them, including the zeros for
+    // categories that have never changed - a Property with no value at all reads
+    // as Bad_WaitingForInitialData rather than "nothing has happened yet".
+    await lastChange.restore();
+    lastChange.publishAll(installed.categories);
+
     return { ...installed, installed: true };
 }

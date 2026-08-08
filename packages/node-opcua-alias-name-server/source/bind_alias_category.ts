@@ -12,15 +12,30 @@
  * it should not be able to reappear at runtime.
  */
 
-import type { IAddressSpace, ISessionContext, UAMethod, UAObject, UAObjectType } from "node-opcua-address-space-base";
+import type {
+    BaseNode,
+    IAddressSpace,
+    ISessionContext,
+    UAMethod,
+    UAObject,
+    UAObjectType,
+    UAVariable
+} from "node-opcua-address-space-base";
 import type { IAliasStore } from "node-opcua-alias-name-common";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
+import { type NodeId, NodeId as NodeIdClass, NodeIdType } from "node-opcua-nodeid";
 import type { RolePermissionTypeOptions } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
+import {
+    makeAddAliasesToCategoryHandler,
+    makeDeleteAliasesFromCategoryHandler
+} from "./bind_configuration_methods.js";
 import { type AliasComparator, makeFindAliasHandler } from "./bind_find_alias.js";
+import { LAST_CHANGE_BROWSE_NAME, type LastChangeTracker } from "./last_change.js";
 import {
     ALIAS_NAME_CATEGORY_TYPE,
     DEFAULT_MAX_RESULTS,
+    VERSION_TIME_DATA_TYPE,
     MethodDeclarations,
     WellKnownCategories,
     WellKnownOptionalMethods
@@ -43,6 +58,12 @@ export interface BindAliasCategoryOptions {
      * Defaults to denying everyone.
      */
     isWriteAllowed?: (context: ISessionContext, categoryNodeId: NodeId) => boolean | Promise<boolean>;
+    /** Also add and bind `AddAliasesToCategory` / `DeleteAliasesFromCategory`. */
+    configurationMethods?: boolean;
+    /** Ensure the category carries a `LastChange` Property (clause 6.3.1). */
+    lastChangeProperty?: boolean;
+    /** Called after a configuration Method changed the category. */
+    onChanged?: (categoryNodeId: NodeId) => void | Promise<void>;
 }
 
 /**
@@ -65,6 +86,115 @@ export function bindAliasCategory(addressSpace: IAddressSpace, category: UAObjec
         const verbose = ensureOptionalMethod(addressSpace, category, "FindAliasVerbose");
         verbose?.bindMethod(makeFindAliasHandler(options, true));
     }
+
+    if (options.lastChangeProperty ?? true) {
+        ensureLastChangeProperty(addressSpace, category);
+    }
+
+    // The write surface only appears when asked for (clause 6.3.4 / 6.3.5 are
+    // both Optional), and even then every call is denied unless isWriteAllowed
+    // says otherwise.
+    if (options.configurationMethods) {
+        const configurationOptions = {
+            store: options.store,
+            isWriteAllowed: options.isWriteAllowed,
+            onChanged: options.onChanged
+        };
+        const add = ensureOptionalMethod(addressSpace, category, "AddAliasesToCategory");
+        add?.bindMethod(makeAddAliasesToCategoryHandler(configurationOptions));
+        const remove = ensureOptionalMethod(addressSpace, category, "DeleteAliasesFromCategory");
+        remove?.bindMethod(makeDeleteAliasesFromCategoryHandler(configurationOptions));
+    }
+}
+
+/**
+ * The default NodeId for a new category: a **string** NodeId spelling out its
+ * path under `Aliases`, for instance `ns=1;s=Aliases/TagVariables/Unit200`.
+ *
+ * The obvious alternative — letting the namespace assign the next free numeric
+ * id — is wrong here for two reasons.
+ *
+ * It is **not stable across restarts**. The counter depends on how many other
+ * Nodes were created first, so adding one unrelated Variable to a Server shifts
+ * every category's NodeId. That silently breaks `LastChange` persistence, which
+ * keys on the category NodeId: the restored values no longer match any
+ * category, `LastChange` reads 0, and clause 6.3.1 then requires every connected
+ * Client to clear a cache that was perfectly valid. A Server-side change with a
+ * purely remote symptom.
+ *
+ * It is also **not diagnosable**. `ns=1;i=1010` in a log or a
+ * `FindAliasVerbose` result says nothing; `ns=1;s=Aliases/TagVariables/Unit200`
+ * says which category it is without a lookup.
+ *
+ * The path is unique because two categories cannot share a parent and a
+ * BrowseName, and it is derived from the same information every run, so it is
+ * the same NodeId every run.
+ */
+function defaultCategoryNodeId(
+    addressSpace: IAddressSpace,
+    parent: UAObject,
+    browseName: string,
+    namespaceIndex: number
+): NodeId {
+    const path = [...categoryPathOf(addressSpace, parent), browseName].join("/");
+    return new NodeIdClass(NodeIdType.STRING, path, namespaceIndex);
+}
+
+/**
+ * The BrowseNames from the `Aliases` root down to `category`, inclusive.
+ *
+ * Falls back to the category's own BrowseName when it is not under the root,
+ * which keeps the id derivable for a category modelled outside the standard
+ * hierarchy.
+ */
+function categoryPathOf(addressSpace: IAddressSpace, category: UAObject): string[] {
+    const segments: string[] = [];
+    const seen = new Set<string>();
+    let current: UAObject | null = category;
+
+    while (current) {
+        const key: string = current.nodeId.toString();
+        if (seen.has(key)) {
+            break;
+        }
+        seen.add(key);
+        segments.unshift(current.browseName.name ?? key);
+
+        if (key === WellKnownCategories.Aliases.toString()) {
+            break;
+        }
+        const parents: BaseNode[] = current.findReferencesExAsObject("HierarchicalReferences", BrowseDirection.Inverse);
+        const next = parents.find((p) => p.nodeClass === NodeClass.Object);
+        current = next ? (next as UAObject) : null;
+    }
+    return segments;
+}
+
+/**
+ * Ensure a category has a `LastChange` Property.
+ *
+ * `LastChange` is Optional on `AliasNameCategoryType` and the shipped nodeset
+ * instantiates it only on the `Aliases` root, which clause 9.2 makes mandatory.
+ * Adding it to every category is conformant — Optional means may, not must not —
+ * and it is what makes the clause 6.3.1 rollup observable: without it, a Client
+ * watching one branch has nothing to watch.
+ */
+export function ensureLastChangeProperty(addressSpace: IAddressSpace, category: UAObject): UAVariable | null {
+    const existing = category.getPropertyByName(LAST_CHANGE_BROWSE_NAME);
+    if (existing) {
+        return existing;
+    }
+    const namespace = addressSpace.getNamespace(
+        category.nodeId.namespace === 0 ? addressSpace.getOwnNamespace().index : category.nodeId.namespace
+    );
+    return namespace.addVariable({
+        propertyOf: category,
+        browseName: LAST_CHANGE_BROWSE_NAME,
+        // VersionTime (i=20998) is a UInt32 subtype, not a DateTime
+        dataType: VERSION_TIME_DATA_TYPE,
+        minimumSamplingInterval: 1000,
+        value: { dataType: DataType.UInt32, value: 0 }
+    }) as UAVariable;
 }
 
 export interface AddAliasCategoryOptions extends Partial<BindAliasCategoryOptions> {
@@ -115,9 +245,18 @@ export function addAliasCategory(
     const categoryType = resolveCategoryType(addressSpace, options?.categoryType);
 
     const namespace = addressSpace.getNamespace(options?.namespaceIndex ?? addressSpace.getOwnNamespace().index);
+    const nodeId = options?.nodeId ?? defaultCategoryNodeId(addressSpace, parentNode, browseName, namespace.index);
+
+    if (addressSpace.findNode(nodeId)) {
+        throw new Error(
+            `addAliasCategory: ${nodeId.toString()} already exists. A category's default NodeId is derived from its ` +
+                "path under Aliases, so this means a category of the same name already exists under the same parent."
+        );
+    }
+
     const category = categoryType.instantiate({
         browseName: { name: browseName, namespaceIndex: namespace.index },
-        nodeId: options?.nodeId,
+        nodeId,
         organizedBy: parentNode,
         namespace
     }) as UAObject;
@@ -131,6 +270,8 @@ export function addAliasCategory(
     if (bindingOptions) {
         bindAliasCategory(addressSpace, category, bindingOptions);
     }
+    // clause 6.3.1: "The last time an AliasNameCategory was added or deleted"
+    notifyCategoryChanged(addressSpace, parentNode.nodeId);
     return category;
 }
 
@@ -228,7 +369,23 @@ export function removeAliasCategory(
 
     // whatever is still attached goes with it
     addressSpace.deleteNode(node.nodeId);
+    // clause 6.3.1: a category was deleted
+    for (const parent of parents) {
+        notifyCategoryChanged(addressSpace, parent.nodeId);
+    }
     return { moved, deleted };
+}
+
+/**
+ * Tell the installed `LastChange` tracker that a category's contents changed.
+ *
+ * Fire and forget: the Property is written synchronously and only the
+ * persistence write is async, so a failure to persist must not fail the
+ * caller's structural change.
+ */
+function notifyCategoryChanged(addressSpace: IAddressSpace, categoryNodeId: NodeId): void {
+    const installed = getInstalledAliasNames(addressSpace);
+    void installed?.lastChange?.touch(categoryNodeId);
 }
 
 /**
@@ -358,6 +515,8 @@ export interface InstalledAliasNames {
     store: IAliasStore;
     categories: NodeId[];
     bindingOptions: BindAliasCategoryOptions;
+    /** Keeps `LastChange` correct across the hierarchy (clause 6.3.1). */
+    lastChange?: LastChangeTracker;
 }
 
 type MaybeInstalled = { [INSTALLED]?: InstalledAliasNames };
