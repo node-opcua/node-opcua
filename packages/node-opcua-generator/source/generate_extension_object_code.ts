@@ -219,7 +219,7 @@ import {
     UInt64, UInt8,
 } from "node-opcua-basic-types";
 
-import { Enum, EnumItem } from "node-opcua-enum";
+import { Enum, EnumItem, EnumItemLike } from "node-opcua-enum";
 
 import { BinaryStream , OutputBinaryStream} from "node-opcua-binary-stream";
 import {

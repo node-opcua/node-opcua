@@ -1107,8 +1107,10 @@ export function _clone<T extends UAObject | UAVariable | UAMethod, O>(
 }
 
 function _add(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef) {
-    assert(reference.node); // const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
     const targetNode = reference.node;
+    // a reference may point to a node that is not (yet) in the address space:
+    // such a dangling reference simply cannot be indexed by browse name.
+    if (!targetNode) return;
     const hash = targetNode.browseName?.name || "";
     const existing = _childByNameMap.get(hash);
     if (existing) {
@@ -1130,6 +1132,7 @@ function sameRef(a: UAReference, b: UAReference) {
 }
 function _remove(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef) {
     const target = reference.node;
+    if (!target) return;
     const hash = target.browseName.name || "";
     const existing = _childByNameMap.get(hash);
     if (Array.isArray(existing)) {

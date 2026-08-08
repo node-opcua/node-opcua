@@ -13,6 +13,7 @@ import {
 } from "node-opcua-basic-types";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, ExpandedNodeId, type INodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
@@ -72,6 +73,61 @@ interface Parser<T> extends ReaderStateParserLike {
     parent: any;
     text: string;
 }
+
+// <StatusCode><Code>2153644032</Code></StatusCode>
+const statusCode_parser: ReaderStateParserLike = {
+    init(this: any) {
+        this.value = StatusCodes.Good;
+    },
+    parser: {
+        Code: {
+            finish(this: any) {
+                this.parent.value = coerceStatusCode(parseInt(this.text, 10));
+            }
+        }
+    }
+};
+
+// a DiagnosticInfo field is stored on the enclosing DiagnosticInfo, which is only
+// created when at least one field is present ( <DiagnosticInfo/> stays empty ).
+function _diagnosticInfoField(name: string, convert: (text: string) => unknown): ReaderStateParserLike {
+    return {
+        finish(this: any) {
+            this.parent.value = this.parent.value || {};
+            this.parent.value[name] = convert(this.text);
+        }
+    };
+}
+
+// <DiagnosticInfo><SymbolicId>1</SymbolicId>...<InnerDiagnosticInfo>...</InnerDiagnosticInfo></DiagnosticInfo>
+const diagnosticInfo_parser: ReaderStateParserLike = {
+    init(this: any) {
+        this.value = undefined;
+    },
+    parser: {
+        SymbolicId: _diagnosticInfoField("symbolicId", (text) => parseInt(text, 10)),
+        NamespaceUri: _diagnosticInfoField("namespaceUri", (text) => parseInt(text, 10)),
+        Locale: _diagnosticInfoField("locale", (text) => parseInt(text, 10)),
+        LocalizedText: _diagnosticInfoField("localizedText", (text) => parseInt(text, 10)),
+        AdditionalInfo: _diagnosticInfoField("additionalInfo", (text) => text),
+        InnerStatusCode: {
+            ...statusCode_parser,
+            finish(this: any) {
+                this.parent.value = this.parent.value || {};
+                this.parent.value.innerStatusCode = this.value;
+            }
+        }
+    }
+};
+// InnerDiagnosticInfo is a DiagnosticInfo in turn: the parser is registered after the
+// fact so that it can refer to the reader being built.
+diagnosticInfo_parser.parser!.InnerDiagnosticInfo = {
+    ...diagnosticInfo_parser,
+    finish(this: any) {
+        this.parent.value = this.parent.value || {};
+        this.parent.value.innerDiagnosticInfo = this.value;
+    }
+};
 const partials = {
     LocalizedText: localizedText_parser.LocalizedText,
     QualifiedName: makeQualifiedNameParser((nodeId: string) => coerceNodeId(nodeId)).QualifiedName,
@@ -195,6 +251,10 @@ const partials = {
         }
     },
 
+    StatusCode: statusCode_parser,
+
+    DiagnosticInfo: diagnosticInfo_parser,
+
     // <ExpandedNodeId><Identifier>svr=1;nsu=http://acme.com/UA/;i=42</Identifier></ExpandedNodeId>
     ExpandedNodeId: <Parser<ExpandedNodeId>>{
         finish(this: Parser<ExpandedNodeId>) {
@@ -305,6 +365,13 @@ function _makeTypeReader(
 
                 reader.parser![field.name || ""] = {
                     parser: fieldParser.parser,
+                    // the field reader borrows the partial's sub-parsers: it must borrow its init
+                    // too, or the state those sub-parsers write into is never set up.
+                    init(this: any, elementName: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
+                        if (fieldParser.init) {
+                            fieldParser.init.call(this, elementName, attrs, parent, engine);
+                        }
+                    },
                     // endElement: fieldReader.endElement,
                     finish(this: any) {
                         const elName = lowerFirstLetter(field.name || "");

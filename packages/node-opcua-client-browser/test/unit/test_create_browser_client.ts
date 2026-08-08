@@ -2,6 +2,7 @@ import should from "should";
 
 import { OPCUAClient } from "node-opcua-client";
 import { InMemoryCertificateStore } from "node-opcua-common";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { IClientTransportFactory } from "node-opcua-transport";
 
 import { browserWsTransportFactory } from "../../dist";

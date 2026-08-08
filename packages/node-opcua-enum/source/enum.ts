@@ -103,6 +103,9 @@ export interface _TypescriptEnum {
     [key: string | number]: number | string;
 }
 
+/** Anything {@link Enum.get} accepts: an EnumItem, its name, or its numeric value. */
+export type EnumItemLike = EnumItem | string | number;
+
 export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
     if (Array.isArray(map)) {
         let mm: _TypescriptEnum | null = null;
@@ -165,7 +168,7 @@ export class Enum {
      * @param  key The object to get with.
      * @return the get result.
      */
-    public get(key: EnumItem | string | number): EnumItem | null {
+    public get(key: EnumItemLike): EnumItem | null {
         const pThis = this as any;
         if (key instanceof EnumItem) {
             if (!pThis[key.key]) {

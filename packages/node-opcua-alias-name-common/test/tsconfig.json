@@ -1,0 +1,28 @@
+{
+    "extends": "../../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "..",
+        "outDir": "../dist-test",
+        "noEmit": true,
+        "composite": false,
+        "incremental": false,
+        "declaration": false,
+        "sourceMap": false,
+        "skipLibCheck": true,
+        // tsconfig.common.json pins types to ["node"]; the test program also
+        // needs mocha's globals (describe/it). Declared here rather than relying
+        // on some test file happening to `import ... from "mocha"`.
+        "types": [
+            "node",
+            "mocha"
+        ]
+    },
+    "include": [
+        "../source/**/*.ts",
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "../node_modules",
+        "../dist"
+    ]
+}

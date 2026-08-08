@@ -1,0 +1,43 @@
+{
+    "name": "node-opcua-alias-name-common",
+    "version": "2.175.6",
+    "description": "pure nodejs OPCUA SDK - alias-name common types, Like matcher and VersionTime helpers (OPC 10000-17)",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "biome check .",
+        "format": "biome check --write .",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "dependencies": {
+        "node-opcua-like-matcher": "2.175.6",
+        "node-opcua-nodeid": "2.175.6",
+        "node-opcua-status-code": "2.175.6"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
+}

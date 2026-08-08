@@ -1,0 +1,7 @@
+require:
+  - tsx
+ui: bdd
+reporter: spec
+timeout: 20000
+spec: test/**/*.ts
+bail: true
