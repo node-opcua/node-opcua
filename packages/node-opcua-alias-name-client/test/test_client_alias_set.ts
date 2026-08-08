@@ -3,6 +3,7 @@ import { AddressSpace, PseudoSession, type UAVariable } from "node-opcua-address
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { addAlias, addAliasCategory, installAliasNamesOnAddressSpace, WellKnownCategories } from "node-opcua-alias-name-server";
 import { VariableIds } from "node-opcua-constants";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { ExpandedNodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";

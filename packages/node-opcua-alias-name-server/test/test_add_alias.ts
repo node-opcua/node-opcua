@@ -1,11 +1,12 @@
 import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
 import { BrowseDirection } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import should from "should";
 import { AliasNameError, addAlias, findAlias, removeAlias } from "../source/add_alias.js";
 import { ALIAS_FOR, WellKnownCategories } from "../source/well_known.js";
-import { sharedAddressSpace, uniqueCategory, uniqueObject, uniqueVariable } from "./helpers.js";
+import { disposeSharedAddressSpace, sharedAddressSpace, uniqueCategory, uniqueObject, uniqueVariable } from "./helpers.js";
 
 describe("OPC 10000-17: addAlias / removeAlias", () => {
     let addressSpace: AddressSpace;
@@ -22,6 +23,12 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
 
     before(async () => {
         addressSpace = await sharedAddressSpace();
+    });
+
+    // the address space is created lazily by the first suite that asks for it, so that suite
+    // owns it: the leak detector checks the registry when this suite ends.
+    after(() => {
+        disposeSharedAddressSpace();
     });
 
     beforeEach(() => {

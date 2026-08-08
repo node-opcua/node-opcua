@@ -1,5 +1,6 @@
 import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceExpandedNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { addAlias } from "../source/add_alias.js";
@@ -28,6 +29,22 @@ import { aliasNames, callFind, getObject, makeAddressSpace, resultAliases, resul
  * nested `describe`.
  */
 describe("OPC 10000-17: FindAlias", () => {
+    /**
+     * A pristine address space, disposed after the test — including when the
+     * test fails, which an inline `dispose()` at the end of the body would miss.
+     */
+    const pristineSpaces: AddressSpace[] = [];
+    async function pristine(): Promise<AddressSpace> {
+        const space = await makeAddressSpace();
+        pristineSpaces.push(space);
+        return space;
+    }
+    afterEach(() => {
+        while (pristineSpaces.length) {
+            pristineSpaces.pop()!.dispose();
+        }
+    });
+
     describe("searching a fixed set of aliases", () => {
         let addressSpace: AddressSpace;
         let tagVariables: UAObject;
@@ -295,7 +312,7 @@ describe("OPC 10000-17: FindAlias", () => {
         // Each case needs its own install options, and installation is once per
         // address space, so these cannot share a fixture.
         async function withAliases(count: number, maxResults: number): Promise<AddressSpace> {
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             const ns = addressSpace.getOwnNamespace();
             for (let i = 0; i < count; i++) {
                 const v = ns.addVariable({ browseName: `V${i}`, dataType: "Double" }) as UAVariable;
@@ -315,7 +332,6 @@ describe("OPC 10000-17: FindAlias", () => {
             // "try new filter and repeat find" - a narrower pattern succeeds
             const narrower = await callFind(category, "FindAlias", "TAG1");
             narrower.statusCode!.should.eql(StatusCodes.Good);
-            addressSpace.dispose();
         });
 
         it("should allow exactly the cap", async () => {
@@ -323,13 +339,12 @@ describe("OPC 10000-17: FindAlias", () => {
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
             result.statusCode!.should.eql(StatusCodes.Good);
             resultAliases(result).should.have.length(3);
-            addressSpace.dispose();
         });
 
         it("should stop scanning once the cap is passed, not collect everything first", async () => {
             // otherwise a '%' query against a large tag set builds the entire
             // result set purely to throw it away
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             const ns = addressSpace.getOwnNamespace();
             for (let i = 0; i < 50; i++) {
                 const v = ns.addVariable({ browseName: `V${i}`, dataType: "Double" }) as UAVariable;
@@ -352,13 +367,12 @@ describe("OPC 10000-17: FindAlias", () => {
 
             result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
             seen.should.eql(6, "one past the cap, not all 50");
-            addressSpace.dispose();
         });
 
         it("should apply the cap before merging by name", async () => {
             // 4 entries sharing one name merge to 1; reporting Good would hide
             // that the scan stopped early
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             const ns = addressSpace.getOwnNamespace();
             const tags = getObject(addressSpace, WellKnownCategories.TagVariables);
             const categoryType = addressSpace.findObjectType("AliasNameCategoryType")!;
@@ -374,23 +388,21 @@ describe("OPC 10000-17: FindAlias", () => {
             await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 2 });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
             result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
-            addressSpace.dispose();
         });
     });
 
     describe("access control (clause 6.3.2 Table 4)", () => {
         it("should return Bad_UserAccessDenied when reads are gated", async () => {
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { isReadAllowed: () => false });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "%");
             result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
-            addressSpace.dispose();
         });
     });
 
     describe("a store that is not backed by the address space", () => {
         it("should fall back to the Server's own namespace when the store reports none", async () => {
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             const store = {
                 find: () => [
                     {
@@ -406,13 +418,12 @@ describe("OPC 10000-17: FindAlias", () => {
             await installAliasNamesOnAddressSpace(addressSpace, { store });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
             resultAliases(result)[0].aliasName.namespaceIndex.should.eql(addressSpace.getOwnNamespace().index);
-            addressSpace.dispose();
         });
     });
 
     describe("a replacement comparator", () => {
         it("should honour it", async () => {
-            const addressSpace = await makeAddressSpace();
+            const addressSpace = await pristine();
             const ns = addressSpace.getOwnNamespace();
             for (const name of ["TI101", "FIT-101", "LSH-201"]) {
                 const v = ns.addVariable({ browseName: `V_${name}`, dataType: "Double" }) as UAVariable;
@@ -425,7 +436,6 @@ describe("OPC 10000-17: FindAlias", () => {
             resultAliases(result)
                 .map((a) => a.aliasName.name)
                 .should.eql(["FIT-101", "LSH-201", "TI101"]);
-            addressSpace.dispose();
         });
     });
 });

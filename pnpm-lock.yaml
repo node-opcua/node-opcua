@@ -702,6 +702,9 @@ importers:
       node-opcua-alias-name-server:
         specifier: 2.175.6
         version: link:../node-opcua-alias-name-server
+      node-opcua-leak-detector:
+        specifier: 2.175.6
+        version: link:../node-opcua-leak-detector
       node-opcua-nodesets:
         specifier: 2.175.3
         version: link:../node-opcua-nodesets
@@ -751,6 +754,9 @@ importers:
       node-opcua-address-space:
         specifier: 2.175.6
         version: link:../node-opcua-address-space
+      node-opcua-leak-detector:
+        specifier: 2.175.6
+        version: link:../node-opcua-leak-detector
       node-opcua-nodesets:
         specifier: 2.175.3
         version: link:../node-opcua-nodesets
@@ -781,6 +787,12 @@ importers:
       node-opcua-data-model:
         specifier: 2.175.6
         version: link:../node-opcua-data-model
+      node-opcua-file-transfer:
+        specifier: 2.175.6
+        version: link:../node-opcua-file-transfer
+      node-opcua-leak-detector:
+        specifier: 2.175.6
+        version: link:../node-opcua-leak-detector
       node-opcua-nodeid:
         specifier: 2.175.6
         version: link:../node-opcua-nodeid

@@ -17,6 +17,7 @@ import os from "node:os";
 import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { ClientUserManagement, sessionRequiresPasswordChange } from "node-opcua-role-set-client";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { createUserManager, type IManagedUserManager, installUserManagement } from "node-opcua-role-set-server";

@@ -2,6 +2,7 @@ import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import type { IAliasStore } from "node-opcua-alias-name-common";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType } from "node-opcua-types";
