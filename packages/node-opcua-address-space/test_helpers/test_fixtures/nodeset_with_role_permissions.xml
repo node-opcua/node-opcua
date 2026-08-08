@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+           xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>http://sterfive.com/UA/RolePermissions/</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="http://sterfive.com/UA/RolePermissions/" Version="1.0.0" PublicationDate="2024-01-01T00:00:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04" PublicationDate="2020-07-15T00:00:00Z"/>
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="Double">i=11</Alias>
+    <Alias Alias="Organizes">i=35</Alias>
+    <Alias Alias="HasTypeDefinition">i=40</Alias>
+    <Alias Alias="HasComponent">i=47</Alias>
+    <Alias Alias="HasProperty">i=46</Alias>
+  </Aliases>
+
+  <!-- an object restricted to SecurityAdmin over a signed and encrypted channel -->
+  <UAObject NodeId="ns=1;i=1000" BrowseName="1:SecureObject" AccessRestrictions="3">
+    <DisplayName>SecureObject</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+    </References>
+    <RolePermissions>
+      <RolePermission Permissions="63">i=15704</RolePermission>
+    </RolePermissions>
+  </UAObject>
+
+  <!-- a variable whose UserAccessLevel is more restrictive than its AccessLevel -->
+  <UAVariable NodeId="ns=1;i=1001" BrowseName="1:SecureVariable" ParentNodeId="ns=1;i=1000"
+              DataType="Double" AccessLevel="3" UserAccessLevel="1" AccessRestrictions="1">
+    <DisplayName>SecureVariable</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1000</Reference>
+    </References>
+    <RolePermissions>
+      <RolePermission Permissions="3">i=15704</RolePermission>
+      <RolePermission Permissions="1">i=15644</RolePermission>
+    </RolePermissions>
+  </UAVariable>
+
+  <!-- a variable that deliberately grants nothing at all -->
+  <UAVariable NodeId="ns=1;i=1002" BrowseName="1:LockedVariable" ParentNodeId="ns=1;i=1000"
+              DataType="Double" HasNoPermissions="true">
+    <DisplayName>LockedVariable</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1000</Reference>
+    </References>
+  </UAVariable>
+
+  <!-- a plain variable: no policy declared, must keep inheriting the namespace default -->
+  <UAVariable NodeId="ns=1;i=1003" BrowseName="1:PlainVariable" ParentNodeId="ns=1;i=1000"
+              DataType="Double" AccessLevel="3">
+    <DisplayName>PlainVariable</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1000</Reference>
+    </References>
+  </UAVariable>
+
+  <UAMethod NodeId="ns=1;i=1004" BrowseName="1:SecureMethod" ParentNodeId="ns=1;i=1000" AccessRestrictions="2">
+    <DisplayName>SecureMethod</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1000</Reference>
+    </References>
+    <RolePermissions>
+      <RolePermission Permissions="4096">i=15704</RolePermission>
+    </RolePermissions>
+  </UAMethod>
+
+  <UAObjectType NodeId="ns=1;i=2000" BrowseName="1:SecureObjectType" AccessRestrictions="3">
+    <DisplayName>SecureObjectType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+    <RolePermissions>
+      <RolePermission Permissions="63">i=15704</RolePermission>
+    </RolePermissions>
+  </UAObjectType>
+
+</UANodeSet>

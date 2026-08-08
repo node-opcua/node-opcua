@@ -39,6 +39,7 @@ export interface CreateNodeOptions {
     description?: LocalizedTextLike | null;
 
     rolePermissions?: RolePermissionTypeOptions[];
+    accessRestrictions?: AccessRestrictionsFlag;
 
     references?: AddReferenceOpts[];
 

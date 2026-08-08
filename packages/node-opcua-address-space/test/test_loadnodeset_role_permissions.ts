@@ -1,0 +1,167 @@
+import path from "node:path";
+import { AccessLevelFlag, AccessRestrictionsFlag } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { PermissionType } from "node-opcua-types";
+import should from "should";
+import { AddressSpace, generateAddressSpaceRaw, type UAMethod, type UAObject, type UAObjectType, type UAVariable } from "..";
+import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS";
+
+const fixture = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_role_permissions.xml");
+
+const securityAdmin = resolveNodeId("WellKnownRole_SecurityAdmin").toString();
+const anonymous = resolveNodeId("WellKnownRole_Anonymous").toString();
+const IN_MEMORY = "<in-memory>";
+
+describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions", function (this: Mocha.Suite) {
+    this.timeout(200000);
+
+    let addressSpace: AddressSpace;
+    beforeEach(() => {
+        addressSpace = AddressSpace.create();
+    });
+    afterEach(() => {
+        addressSpace.dispose();
+    });
+
+    describe("when the access policy is applied (default)", () => {
+        beforeEach(async () => {
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
+        });
+
+        it("LNSRP-1 should install RolePermissions and AccessRestrictions declared on a UAObject", () => {
+            const object = addressSpace.findNode("ns=1;i=1000") as UAObject;
+            should.exist(object);
+
+            object.accessRestrictions!.should.eql(
+                AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
+            );
+
+            const rolePermissions = object.rolePermissions!;
+            rolePermissions.length.should.eql(1);
+            rolePermissions[0].roleId.toString().should.eql(securityAdmin);
+            rolePermissions[0].permissions.should.eql(63);
+        });
+
+        it("LNSRP-2 should install several RolePermissions declared on a UAVariable", () => {
+            const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
+            should.exist(variable);
+
+            variable.accessRestrictions!.should.eql(AccessRestrictionsFlag.SigningRequired);
+
+            const rolePermissions = variable.rolePermissions!;
+            rolePermissions.length.should.eql(2);
+            rolePermissions[0].roleId.toString().should.eql(securityAdmin);
+            rolePermissions[0].permissions.should.eql(PermissionType.Browse | PermissionType.ReadRolePermissions);
+            rolePermissions[1].roleId.toString().should.eql(anonymous);
+            rolePermissions[1].permissions.should.eql(PermissionType.Browse);
+        });
+
+        it("LNSRP-3 should honour an explicit UserAccessLevel that restricts AccessLevel (issue #1552)", () => {
+            const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
+            variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        });
+
+        it("LNSRP-4 should let UserAccessLevel default to AccessLevel when it is not declared", () => {
+            const variable = addressSpace.findNode("ns=1;i=1003") as UAVariable;
+            variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        });
+
+        it("LNSRP-5 should turn HasNoPermissions into an empty, non inherited, permission list", () => {
+            const variable = addressSpace.findNode("ns=1;i=1002") as UAVariable;
+            variable.rolePermissions!.should.eql([]);
+            // an empty list must not fall back on the namespace default
+            should(variable.getRolePermissions(true)).eql([]);
+        });
+
+        it("LNSRP-6 should leave a node that declares no policy inheriting the namespace default", () => {
+            const variable = addressSpace.findNode("ns=1;i=1003") as UAVariable;
+            should(variable.rolePermissions).eql(undefined);
+            should(variable.accessRestrictions).eql(undefined);
+        });
+
+        it("LNSRP-7 should install the policy on UAMethod and UAObjectType too", () => {
+            const method = addressSpace.findNode("ns=1;i=1004") as UAMethod;
+            method.accessRestrictions!.should.eql(AccessRestrictionsFlag.EncryptionRequired);
+            method.rolePermissions!.length.should.eql(1);
+            method.rolePermissions![0].permissions.should.eql(PermissionType.Call);
+
+            const objectType = addressSpace.findNode("ns=1;i=2000") as UAObjectType;
+            objectType.accessRestrictions!.should.eql(
+                AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
+            );
+            objectType.rolePermissions!.length.should.eql(1);
+        });
+    });
+
+    describe('when the access policy is ignored (permissions: "ignore")', () => {
+        beforeEach(async () => {
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture], { permissions: "ignore" });
+        });
+
+        it("LNSRP-8 should drop RolePermissions and AccessRestrictions, as node-opcua used to", () => {
+            const object = addressSpace.findNode("ns=1;i=1000") as UAObject;
+            should(object.accessRestrictions).eql(undefined);
+            should(object.rolePermissions).eql(undefined);
+
+            const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
+            should(variable.accessRestrictions).eql(undefined);
+            should(variable.rolePermissions).eql(undefined);
+
+            const locked = addressSpace.findNode("ns=1;i=1002") as UAVariable;
+            should(locked.rolePermissions).eql(undefined);
+        });
+
+        it("LNSRP-9 should still honour UserAccessLevel, which is not part of the access policy", () => {
+            const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
+            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        });
+    });
+
+    describe("round trip through the exporter", () => {
+        it("LNSRP-10 should export the access policy and UserAccessLevel and read them back (issue #1552)", async () => {
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
+
+            const xml = addressSpace.getNamespace("http://sterfive.com/UA/RolePermissions/").toNodeset2XML();
+
+            xml.should.match(/AccessRestrictions="3"/);
+            xml.should.match(/UserAccessLevel="1"/);
+            xml.should.match(/HasNoPermissions="true"/);
+            xml.should.match(/<RolePermission Permissions="63">i=15704<\/RolePermission>/);
+
+            const reloaded = AddressSpace.create();
+            try {
+                await generateAddressSpaceRaw(
+                    reloaded,
+                    [nodesets.standard, IN_MEMORY],
+                    async (xmlFile: string) => (xmlFile === IN_MEMORY ? xml : await readNodeSet2XmlFile(xmlFile)),
+                    {}
+                );
+
+                const object = reloaded.findNode("ns=1;i=1000") as UAObject;
+                object.accessRestrictions!.should.eql(
+                    AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
+                );
+                object.rolePermissions!.length.should.eql(1);
+                object.rolePermissions![0].roleId.toString().should.eql(securityAdmin);
+
+                const variable = reloaded.findNode("ns=1;i=1001") as UAVariable;
+                variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+                variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+                variable.rolePermissions!.length.should.eql(2);
+
+                const locked = reloaded.findNode("ns=1;i=1002") as UAVariable;
+                locked.rolePermissions!.should.eql([]);
+
+                const plain = reloaded.findNode("ns=1;i=1003") as UAVariable;
+                should(plain.rolePermissions).eql(undefined);
+                should(plain.accessRestrictions).eql(undefined);
+            } finally {
+                reloaded.dispose();
+            }
+        });
+    });
+});
