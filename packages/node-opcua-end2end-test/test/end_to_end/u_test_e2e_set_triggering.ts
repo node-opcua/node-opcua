@@ -133,6 +133,29 @@ export function t(test: any) {
         });
     }
 
+    /**
+     * The client handles reported across every notification the spy has seen, in order.
+     *
+     * A burst of writes is not guaranteed to land in a single publishing cycle: the
+     * server may report it as one DataChangeNotification or as several, and an extra
+     * keep-alive may sit between them. What the triggering rules say is *which* items
+     * get reported, so that is what these tests assert on, rather than on how many
+     * messages carried them.
+     */
+    function reportedClientHandles(spy: sinon.SinonSpy): number[] {
+        const handles: number[] = [];
+        for (const call of spy.getCalls()) {
+            const notification = call.args[0] as NotificationMessage;
+            // tslint:disable-next-line: no-unused-expression
+            doDebug && console.log(notification.toString());
+            const dataChange = notification.notificationData?.[0] as DataChangeNotification | undefined;
+            for (const item of dataChange?.monitoredItems ?? []) {
+                handles.push(item.clientHandle);
+            }
+        }
+        return handles;
+    }
+
     const valueTriggeringNodeId = "ns=1;s=ValueTriggering";
     const linkedValue1NodeId = "ns=1;s=LinkedValue1";
     const linkedValue2NodeId = "ns=1;s=LinkedValue2";
@@ -288,7 +311,10 @@ export function t(test: any) {
 
             await waitUntilKeepAlive(publishEngine, subscription);
 
-            raw_notification_spy.callCount.should.eql(2, "must have received a changed notification and one empty notif");
+            reportedClientHandles(raw_notification_spy).should.eql(
+                [t.monitoringParameters.clientHandle],
+                "the reporting item is reported on its own"
+            );
 
             raw_notification_spy.resetHistory();
             await incrementValue(linkedValue1NodeId);
@@ -300,17 +326,10 @@ export function t(test: any) {
             // wait until next keep alive
             await waitUntilKeepAlive(publishEngine, subscription);
 
-            raw_notification_spy.callCount.should.eql(2, "must have received a changed notification and one empty notif");
-            {
-                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
-                doDebug && console.log(notification.toString());
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
-
-                monitoredItems.length.should.eql(1);
-
-                monitoredItems[0].clientHandle.should.eql(t.monitoringParameters.clientHandle);
-            }
+            reportedClientHandles(raw_notification_spy).should.eql(
+                [t.monitoringParameters.clientHandle],
+                "without triggering, only the reporting item is reported"
+            );
             // ------------------------------ Now create triggering
 
             await subscription.setTriggering(t, [l1, l2], null);
@@ -325,20 +344,10 @@ export function t(test: any) {
             // wait until next keep alive
             await waitUntilKeepAlive(publishEngine, subscription);
 
-            raw_notification_spy.callCount.should.eql(2, "must  have received a changed notification and one empty notif");
-            {
-                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
-                doDebug && console.log(notification.toString());
-
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
-
-                monitoredItems.length.should.eql(3);
-
-                monitoredItems[0].clientHandle.should.eql(t.monitoringParameters.clientHandle);
-                monitoredItems[1].clientHandle.should.eql(l1.monitoringParameters.clientHandle);
-                monitoredItems[2].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
-            }
+            reportedClientHandles(raw_notification_spy).should.eql(
+                [t.monitoringParameters.clientHandle, l1.monitoringParameters.clientHandle, l2.monitoringParameters.clientHandle],
+                "the triggering item and both linked items are reported"
+            );
 
             /// ------------------------- Do it again
             raw_notification_spy.resetHistory();
@@ -350,20 +359,10 @@ export function t(test: any) {
             // wait until next keep alive
             await waitUntilKeepAlive(publishEngine, subscription);
 
-            raw_notification_spy.callCount.should.eql(2, "must  have received a changed notification and one empty notif");
-            {
-                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
-                doDebug && console.log(notification.toString());
-
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
-
-                monitoredItems.length.should.eql(3);
-
-                monitoredItems[0].clientHandle.should.eql(t.monitoringParameters.clientHandle);
-                monitoredItems[1].clientHandle.should.eql(l1.monitoringParameters.clientHandle);
-                monitoredItems[2].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
-            }
+            reportedClientHandles(raw_notification_spy).should.eql(
+                [t.monitoringParameters.clientHandle, l1.monitoringParameters.clientHandle, l2.monitoringParameters.clientHandle],
+                "the triggering item and both linked items are reported"
+            );
 
             // --------------------------- Now remove one element
             await subscription.setTriggering(t, [], [l1]);
@@ -377,19 +376,10 @@ export function t(test: any) {
             // wait until next keep alive
             await waitUntilKeepAlive(publishEngine, subscription);
 
-            raw_notification_spy.callCount.should.eql(2, "must have received a changed notification and one empty notif");
-            {
-                const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
-                doDebug && console.log(notification.toString());
-
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
-
-                monitoredItems.length.should.eql(2);
-
-                monitoredItems[0].clientHandle.should.eql(t.monitoringParameters.clientHandle);
-                monitoredItems[1].clientHandle.should.eql(l2.monitoringParameters.clientHandle);
-            }
+            reportedClientHandles(raw_notification_spy).should.eql(
+                [t.monitoringParameters.clientHandle, l2.monitoringParameters.clientHandle],
+                "the unlinked item is no longer triggered"
+            );
         });
         it("SetTriggering-4: Deadband testing of Linked items.", async () => {
             // note: based on 020.js in CTT ( set)
