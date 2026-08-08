@@ -448,6 +448,18 @@ export class StatusCodes {
         value: 0x803c0000,
         description: "The value was out of range."
     });
+    /** The value is over the allowed range. */
+    static UncertainOverRange: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainOverRange",
+        value: 0x40f20000,
+        description: "The value is over the allowed range."
+    });
+    /** The value is under the allowed range. */
+    static UncertainUnderRange: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainUnderRange",
+        value: 0x40f30000,
+        description: "The value is under the allowed range."
+    });
     /** The requested operation is not supported. */
     static BadNotSupported: ConstantStatusCode = new ConstantStatusCode({
         name: "BadNotSupported",
@@ -623,8 +635,8 @@ export class StatusCodes {
         description: "No DiscoveryUrl was specified."
     });
     /** The semaphore file specified by the client is not valid. */
-    static BadSempahoreFileMissing: ConstantStatusCode = new ConstantStatusCode({
-        name: "BadSempahoreFileMissing",
+    static BadSemaphoreFileMissing: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadSemaphoreFileMissing",
         value: 0x80520000,
         description: "The semaphore file specified by the client is not valid."
     });
@@ -1343,6 +1355,12 @@ export class StatusCodes {
         value: 0x80e80000,
         description: "The operation is not allowed because a transaction is in progress."
     });
+    /** The operation failed and all changes which were part of the transaction are rolled back. */
+    static BadTransactionFailed: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadTransactionFailed",
+        value: 0x80f10000,
+        description: "The operation failed and all changes which were part of the transaction are rolled back."
+    });
     /** The device identity needs a ticket before it can be accepted. */
     static BadTicketRequired: ConstantStatusCode = new ConstantStatusCode({
         name: "BadTicketRequired",
@@ -1613,12 +1631,12 @@ export class StatusCodes {
         value: 0x4020000,
         description: "The value source supports cascade handshaking and is requesting initialization of a cascade primary."
     });
-    /** The value source supports cascade handshaking, however, the source’s current state does not allow for cascade. */
+    /** The value source supports cascade handshaking, however, the source's current state does not allow for cascade. */
     static GoodCascadeNotInvited: ConstantStatusCode = new ConstantStatusCode({
         name: "GoodCascadeNotInvited",
         value: 0x4030000,
         description:
-            "The value source supports cascade handshaking, however, the source’s current state does not allow for cascade."
+            "The value source supports cascade handshaking, however, the source's current state does not allow for cascade."
     });
     /** The value source supports cascade handshaking, however, the source has not selected the corresponding cascade primary for use. */
     static GoodCascadeNotSelected: ConstantStatusCode = new ConstantStatusCode({
