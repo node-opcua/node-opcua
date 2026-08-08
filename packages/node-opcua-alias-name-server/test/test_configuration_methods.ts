@@ -3,6 +3,7 @@ import type { AddressSpace, UAMethod, UAObject, UAVariable } from "node-opcua-ad
 import { SessionContext } from "node-opcua-address-space";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { BrowseDirection } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceExpandedNodeId, ExpandedNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";

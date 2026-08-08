@@ -11,6 +11,7 @@ import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
 import { AttributeIds } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { NodeId } from "node-opcua-nodeid";
 import { ClientRoleSet } from "node-opcua-role-set-client";
 import { StatusCodes } from "node-opcua-status-code";

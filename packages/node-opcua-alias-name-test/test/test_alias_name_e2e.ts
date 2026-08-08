@@ -1,6 +1,7 @@
 import "mocha";
 import { ALIASES_ROOT, AliasNameCallError, ClientAliasSet, TAG_VARIABLES } from "node-opcua-alias-name-client";
 import { AttributeIds } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
@@ -15,7 +16,7 @@ import { ANONYMOUS, asUser, withSession } from "./helpers.js";
  * session lifetime. Those four are the residual risk of the server package, and
  * this is where they are retired.
  */
-describe("OPC 10000-17: AliasNames end to end", function () {
+describe("OPC 10000-17: AliasNames end to end", function (this: Mocha.Suite) {
     // starting a real server with the standard nodeset is not fast
     this.timeout(120000);
 

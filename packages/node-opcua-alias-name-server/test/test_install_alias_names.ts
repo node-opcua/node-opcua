@@ -1,5 +1,6 @@
 import "mocha";
 import type { AddressSpace, UAObject } from "node-opcua-address-space";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";

@@ -10,6 +10,7 @@ import path from "node:path";
 import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { ClientUserManagement } from "node-opcua-role-set-client";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";

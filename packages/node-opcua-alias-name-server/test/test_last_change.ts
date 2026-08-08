@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { fromVersionTime, toVersionTime } from "node-opcua-alias-name-common";
 import { AttributeIds } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";

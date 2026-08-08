@@ -1,5 +1,6 @@
 import "mocha";
 import { AliasNameCallError, ClientAliasSet } from "node-opcua-alias-name-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_aliases.js";
@@ -13,7 +14,7 @@ import { ANONYMOUS, withSession } from "./helpers.js";
  * chunks, and never reassembled. This is the test that says the feature works on
  * a real plant tag set rather than on three demo tags.
  */
-describe("OPC 10000-17: a large FindAlias result", function () {
+describe("OPC 10000-17: a large FindAlias result", function (this: Mocha.Suite) {
     this.timeout(180000);
 
     /** Comfortably more than one 8 KB chunk once encoded. */
