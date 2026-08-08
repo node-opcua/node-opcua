@@ -3,13 +3,31 @@
  */
 /** biome-ignore-all lint/style/useLiteralEnumMembers: still needed */
 
-import type { BaseNode, ISessionBase, ISessionContext, UAObject, UAObjectType, UAVariable } from "node-opcua-address-space-base";
+import type {
+    BaseNode,
+    IAddressSpace,
+    ISessionBase,
+    ISessionContext,
+    UAObject,
+    UAObjectType,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
+import type { UAString } from "node-opcua-basic-types";
 import { ObjectIds } from "node-opcua-constants";
 import { type Certificate, type CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
-import { AccessRestrictionsFlag, AttributeIds, allPermissions, PermissionFlag } from "node-opcua-data-model";
+import {
+    AccessRestrictionsFlag,
+    AttributeIds,
+    allPermissions,
+    BrowseDirection,
+    NodeClass,
+    PermissionFlag,
+    type QualifiedNameLike,
+    type QualifiedNameOptions
+} from "node-opcua-data-model";
 import type { PreciseClock } from "node-opcua-date-time";
-import { type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import {
     AnonymousIdentityToken,
     MessageSecurityMode,
@@ -221,14 +239,156 @@ function getDefaultUserRolePermissionsOnNamespace(
     return null;
 }
 
-export function makeRoles(roleIds: NodeIdLike[] | string | WellKnownRoles): NodeId[] {
+/**
+ * A Role, designated either by its NodeId or by its BrowseName.
+ *
+ * Roles outside namespace 0 (the GDS Roles, or any Role added with AddRole) have
+ * NodeIds that depend on the order in which nodesets were loaded, so naming them is
+ * more robust than hard coding `ns=1;i=1661`. Resolving a BrowseName requires an
+ * address space, since the RoleSet is where the answer lives.
+ *
+ * A QualifiedName whose namespaceIndex is left undefined matches in any namespace,
+ * as long as the BrowseName is unambiguous.
+ */
+export type RoleIdLike = NodeIdLike | QualifiedNameLike;
+
+/** "i=15668", "ns=1;i=1661", "ns=2;s=MyRole", "g=...", "b=..." */
+const nodeIdExpressionRegExp = /^(ns=\d+;)?[isgb]=/;
+/** "1:DiscoveryAdmin" */
+const namespacedBrowseNameRegExp = /^(\d+):(.+)$/;
+/** the left-hand half of a NodeId that a naive split(";") has torn in two */
+const namespacePrefixRegExp = /^ns=\d+$/;
+
+const roleSetNodeId = resolveNodeId(ObjectIds.Server_ServerCapabilities_RoleSet);
+
+function isQualifiedName(role: RoleIdLike): role is QualifiedNameOptions {
+    return typeof role === "object" && role !== null && !(role instanceof NodeId) && "name" in role;
+}
+
+/**
+ * split a semicolon separated list of Roles.
+ *
+ * NodeId expressions contain a semicolon of their own ("ns=1;i=1661"), so a plain
+ * split() would tear them in half: glue the two pieces back together.
+ */
+function splitRoleList(roleIds: string): string[] {
+    const roles: string[] = [];
+    for (const token of roleIds.split(";")) {
+        const role = token.trim();
+        if (role.length === 0) {
+            continue;
+        }
+        const previous = roles.length > 0 ? roles[roles.length - 1] : undefined;
+        if (previous !== undefined && namespacePrefixRegExp.test(previous)) {
+            roles[roles.length - 1] = `${previous};${role}`;
+            continue;
+        }
+        roles.push(role);
+    }
+    return roles;
+}
+
+/** the standard Roles of OPC 10000-3, which live in namespace 0 and need no address space */
+function tryResolveWellKnownRole(browseName: string): NodeId | null {
+    const name = browseName.startsWith("WellKnownRole_") ? browseName.slice("WellKnownRole_".length) : browseName;
+    try {
+        return resolveNodeId(`WellKnownRole_${name}`);
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * look a Role up by BrowseName in the RoleSet (OPC 10000-18 §4.3), which is where
+ * both the standard Roles and the ones contributed by companion nodesets are listed.
+ */
+function resolveRoleByBrowseName(
+    browseName: UAString | undefined,
+    namespaceIndex: number | undefined,
+    addressSpace: IAddressSpace | undefined
+): NodeId {
+    if (!browseName) {
+        throw new Error("makeRoles: a Role given as a QualifiedName must carry a name");
+    }
+    if (!addressSpace) {
+        throw new Error(
+            `makeRoles: cannot resolve the Role "${browseName}": it is not a standard Role of namespace 0, ` +
+                "so an address space must be passed as the second argument of makeRoles()"
+        );
+    }
+
+    const roleSet = addressSpace.findNode(roleSetNodeId);
+    if (!roleSet) {
+        throw new Error(`makeRoles: cannot resolve the Role "${browseName}": the address space has no RoleSet`);
+    }
+
+    const candidates = roleSet
+        .findReferencesExAsObject("HasComponent", BrowseDirection.Forward)
+        .filter((node) => node.nodeClass === NodeClass.Object && node.browseName.name === browseName)
+        .filter((node) => namespaceIndex === undefined || node.browseName.namespaceIndex === namespaceIndex);
+
+    if (candidates.length === 0) {
+        const known = roleSet
+            .findReferencesExAsObject("HasComponent", BrowseDirection.Forward)
+            .filter((node) => node.nodeClass === NodeClass.Object)
+            .map((node) => node.browseName.toString())
+            .join(", ");
+        throw new Error(`makeRoles: cannot find a Role named "${browseName}" in the RoleSet. Known Roles are: ${known}`);
+    }
+    if (candidates.length > 1) {
+        const ambiguous = candidates.map((node) => node.browseName.toString()).join(", ");
+        throw new Error(
+            `makeRoles: the Role name "${browseName}" is ambiguous (${ambiguous}), please qualify it with its namespace`
+        );
+    }
+    return candidates[0].nodeId;
+}
+
+function resolveRole(role: RoleIdLike, addressSpace: IAddressSpace | undefined): NodeId {
+    if (isQualifiedName(role)) {
+        return resolveRoleByBrowseName(role.name, role.namespaceIndex, addressSpace);
+    }
+    if (typeof role !== "string") {
+        return resolveNodeId(role);
+    }
+    if (nodeIdExpressionRegExp.test(role)) {
+        return resolveNodeId(role);
+    }
+    const namespacedBrowseName = namespacedBrowseNameRegExp.exec(role);
+    if (namespacedBrowseName) {
+        return resolveRoleByBrowseName(namespacedBrowseName[2], parseInt(namespacedBrowseName[1], 10), addressSpace);
+    }
+    // a bare name: the standard Roles resolve without an address space, the others need one
+    return tryResolveWellKnownRole(role) ?? resolveRoleByBrowseName(role, undefined, addressSpace);
+}
+
+/**
+ * build the list of Role NodeIds a user is granted, from any of the accepted spellings:
+ *
+ * ```ts
+ * makeRoles(WellKnownRoles.Observer);                        // a well known Role
+ * makeRoles("Observer;Operator");                            // semicolon separated names
+ * makeRoles("ns=1;i=1661");                                  // an explicit NodeId
+ * makeRoles(["Observer", "ns=1;i=1661"]);                    // mixed
+ * makeRoles("1:DiscoveryAdmin", addressSpace);               // BrowseName, namespace index
+ * makeRoles("DiscoveryAdmin", addressSpace);                 // BrowseName, any namespace
+ * makeRoles([{ name: "DiscoveryAdmin" }], addressSpace);     // idem, as a QualifiedName
+ * // when the namespace is known by its URI rather than by its index:
+ * makeRoles([{ namespaceIndex: addressSpace.getNamespaceIndex(gdsUri), name: "DiscoveryAdmin" }], addressSpace);
+ * ```
+ *
+ * @param roleIds  the Roles to resolve
+ * @param addressSpace  required only to resolve a Role by BrowseName, since that
+ *                      lookup goes through the RoleSet
+ */
+export function makeRoles(roleIds: RoleIdLike[] | string | WellKnownRoles, addressSpace?: IAddressSpace): NodeId[] {
     if (typeof roleIds === "number") {
         roleIds = [roleIds];
     }
     if (typeof roleIds === "string") {
-        roleIds = roleIds.split(";").map((r) => resolveNodeId(`WellKnownRole_${r}`));
+        roleIds = splitRoleList(roleIds);
     }
-    return roleIds.map((r) => resolveNodeId(r));
+    return roleIds.map((role) => resolveRole(role, addressSpace));
 }
 
 export class SessionContext implements ISessionContext {
