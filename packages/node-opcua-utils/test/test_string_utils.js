@@ -62,38 +62,63 @@ describe("string_utils", function () {
     });
 });
 
+/**
+ * True when the process runs under istanbul/nyc instrumentation.
+ *
+ * `__coverage__` is a *global* injected into instrumented code (not an env var), and nyc exports
+ * NYC_CONFIG / NYC_PROCESS_ID / NYC_CWD — the previous check looked for `process.env.__coverage__`
+ * and a non-existent `nyc_output_dir`, so it never fired and the benchmark below ran instrumented,
+ * where the counter calls inserted into the tight loop dominate the measurement.
+ */
+function isInstrumented() {
+    return (
+        typeof global.__coverage__ !== "undefined" ||
+        !!process.env.NYC_CONFIG ||
+        !!process.env.NYC_PROCESS_ID ||
+        !!process.env.NYC_CWD
+    );
+}
+
 describe("benchmark", () => {
-    it("countUpperCase should be faster than countUpperCaseSlow", () => {
-
-        if (process.env.nyc_output_dir || process.env.__coverage__) {
-            console.log("SKIPPING while working in NYC or ISTANBUL");
-            return;
+    it("countUpperCase should be faster than countUpperCaseSlow", function () {
+        // A wall-clock comparison is meaningless under instrumentation: istanbul adds a counter
+        // increment per branch, which penalises the two implementations by different factors and has
+        // been observed to invert the result entirely (965ms vs 175ms).
+        if (isInstrumented()) {
+            this.skip();
         }
 
-        let start = process.hrtime();
+        const LONG = "qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232";
+        const SHORT = "qkldjqsld";
+        const ITERATIONS = 200000;
 
-        function elapsed_time(note) {
-            let precision = 3; // 3 decimal places
-            let elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
-            console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
-            start = process.hrtime(); // reset the timer
-            return elapsed;
+        // elapsed milliseconds — hrtime() returns [seconds, nanoseconds] and the seconds field must be
+        // folded in: the previous version used only [1], so any run longer than 1s was reported modulo
+        // 1000ms, which on a slow machine silently corrupted the comparison.
+        function measure(fn) {
+            const t0 = process.hrtime.bigint();
+            for (let n = 0; n < ITERATIONS; n++) {
+                fn(LONG);
+                fn(SHORT);
+                fn(SHORT);
+            }
+            return Number(process.hrtime.bigint() - t0) / 1e6;
         }
 
-        start = process.hrtime();
-        for (let n = 0; n < 200000; n++) {
-            countUpperCaseSlow("qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232");
-            countUpperCaseSlow("qkldjqsld");
-            countUpperCaseSlow("qkldjqsld");
-        }
-        const d1 = elapsed_time("countUpperCaseSlow");
-        for (let n = 0; n < 200000; n++) {
-            countUpperCase("qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232");
-            countUpperCase("qkldjqsld");
-            countUpperCase("qkldjqsld");
-        }
-        const d2 = elapsed_time("countUpperCase");
+        // Warm up so neither function pays for JIT tiering in the measured run, then take the best of
+        // three passes each: a scheduler hiccup or a GC pause can only make a sample slower, so the
+        // minimum is far more stable than a single shot on a loaded CI machine.
+        measure(countUpperCaseSlow);
+        measure(countUpperCase);
 
-        d2.should.be.lessThan(d1*1.2);
+        let d1 = Infinity;
+        let d2 = Infinity;
+        for (let pass = 0; pass < 3; pass++) {
+            d1 = Math.min(d1, measure(countUpperCaseSlow));
+            d2 = Math.min(d2, measure(countUpperCase));
+        }
+        console.log(`countUpperCaseSlow: ${d1.toFixed(3)} ms, countUpperCase: ${d2.toFixed(3)} ms`);
+
+        d2.should.be.lessThan(d1 * 1.2);
     });
 });
