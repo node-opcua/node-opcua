@@ -133,48 +133,6 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     let restrictedVariableSign: UAVariable;
     let restrictedVariableSignAndEncrypt: UAVariable;
 
-    const server = {
-        userManager: {
-            getUserRoles(username: string) {
-                switch (username) {
-                    case "user":
-                    case "user1": {
-                        return makeRoles(WellKnownRoles.AuthenticatedUser);
-                    }
-                    case "admin": {
-                        return makeRoles([
-                            WellKnownRoles.AuthenticatedUser,
-                            WellKnownRoles.SecurityAdmin,
-                            WellKnownRoles.ConfigureAdmin
-                        ]);
-                    }
-                    default:
-                        return makeRoles(WellKnownRoles.Anonymous);
-                }
-            }
-        }
-    };
-
-    const contextAnonymous = makeMockSessionContext({ userName: "anonymous", server });
-    const contextAuthenticated = makeMockSessionContext({ userName: "user1", server });
-    const contextAdmin = makeMockSessionContext({ userName: "admin", server });
-
-    const contextSecurityNone = makeMockSessionContext({
-        userName: "admin",
-        securityMode: MessageSecurityMode.None,
-        server
-    });
-    const contextSecuritySign = makeMockSessionContext({
-        userName: "admin",
-        securityMode: MessageSecurityMode.Sign,
-        server
-    });
-    const contextSecuritySignAndEncrypt = makeMockSessionContext({
-        userName: "admin",
-        securityMode: MessageSecurityMode.SignAndEncrypt,
-        server
-    });
-
     before(async () => {
         addressSpace = await getMiniAddressSpace();
         namespace = addressSpace.getOwnNamespace();

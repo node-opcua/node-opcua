@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-pseudo-session
  */
-import { assert } from "node-opcua-assert";
 import { ByteString } from "node-opcua-basic-types";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -341,13 +340,24 @@ export interface IBasicSessionChangeUser {
     changeUser(userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
 }
 
+/**
+ * true when the DataValue actually carries a usable argument list.
+ *
+ * Nothing checked here is a local invariant: the status code and the shape of the value both
+ * come from a remote Server. A Server may legitimately refuse the read - Opc.Ua.NodeSet2.xml
+ * declares AccessRestrictions on many InputArguments nodes, which makes them unreadable over
+ * an unsecured channel - and a hostile one may answer with any shape at all. Asserting let
+ * either of them crash the caller with a bare Error. An unusable answer now simply yields no
+ * arguments, the same outcome as the optional InputArguments property being absent.
+ */
 function isValid(result: DataValue): boolean {
-    assert(result.statusCode.isGood());
-    if (result.value.dataType !== DataType.Null) {
-        assert(result.value.dataType === DataType.ExtensionObject);
-        assert(result.value.arrayType === VariantArrayType.Array);
+    if (!result.statusCode.isGood()) {
+        return false;
     }
-    return true;
+    if (result.value.dataType === DataType.Null) {
+        return false;
+    }
+    return result.value.dataType === DataType.ExtensionObject && result.value.arrayType === VariantArrayType.Array;
 }
 
 export async function getArgumentDefinitionHelper(
@@ -399,7 +409,6 @@ export async function getArgumentDefinitionHelper(
             nodeId: outputArgumentRef.nodeId
         });
         actions.push((result: DataValue) => {
-            assert(result.statusCode.isGood());
             if (isValid(result)) {
                 outputArguments = result.value.value as Argument[];
             }
