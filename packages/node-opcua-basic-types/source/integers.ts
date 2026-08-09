@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { getRandomInt } from "./utils";
+import { getRandomIntInclusive } from "./utils";
 
 export function isValidUInt16(value: number): boolean {
     if (!Number.isFinite(value)) {
@@ -28,7 +28,7 @@ export type SByte = Int8;
 // ---------------------------------------
 
 export function randomUInt16(): UInt16 {
-    return getRandomInt(0, 0xffff) as UInt16;
+    return getRandomIntInclusive(0, 0xffff) as UInt16;
 }
 
 export function encodeUInt16(value: UInt16, stream: OutputBinaryStream): void {
@@ -47,7 +47,7 @@ export function isValidInt16(value: number): boolean {
 }
 
 export function randomInt16(): Int16 {
-    return getRandomInt(-0x8000, 0x7fff);
+    return getRandomIntInclusive(-0x8000, 0x7fff);
 }
 
 export function encodeInt16(value: Int16, stream: OutputBinaryStream): void {
@@ -67,7 +67,7 @@ export function isValidInt32(value: number): boolean {
 }
 
 export function randomInt32(): Int32 {
-    return getRandomInt(-0x80000000, 0x7fffffff) as Int32;
+    return getRandomIntInclusive(-0x80000000, 0x7fffffff) as Int32;
 }
 
 export function encodeInt32(value: Int32, stream: OutputBinaryStream): void {
@@ -87,7 +87,7 @@ export function isValidUInt32(value: number): boolean {
 }
 
 export function randomUInt32(): UInt32 {
-    return getRandomInt(0, 0xffffffff);
+    return getRandomIntInclusive(0, 0xffffffff);
 }
 
 export function encodeUInt32(value: UInt32, stream: OutputBinaryStream): void {
@@ -106,7 +106,7 @@ export function isValidInt8(value: number): boolean {
 }
 
 export function randomInt8(): Int8 {
-    return getRandomInt(-0x7f, 0x7e);
+    return getRandomIntInclusive(-0x80, 0x7f);
 }
 
 export function encodeInt8(value: Int8, stream: OutputBinaryStream): void {
@@ -131,7 +131,7 @@ export function isValidUInt8(value: number): boolean {
 }
 
 export function randomUInt8(): UInt8 {
-    return getRandomInt(0x00, 0xff);
+    return getRandomIntInclusive(0x00, 0xff);
 }
 
 export function encodeUInt8(value: UInt8, stream: OutputBinaryStream): void {
@@ -152,7 +152,7 @@ export function isValidUInt64(value?: number | number[]): boolean {
 }
 
 export function randomUInt64(): UInt64 {
-    return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
+    return [getRandomIntInclusive(0, 0xffffffff), getRandomIntInclusive(0, 0xffffffff)];
 }
 
 export function encodeUInt64(value: UInt64 | number, stream: OutputBinaryStream): void {
@@ -223,7 +223,7 @@ export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UI
 
 export function randomInt64(): Int64 {
     // High, low
-    return [getRandomInt(0, 0xffffffff), getRandomInt(0, 0xffffffff)];
+    return [getRandomIntInclusive(0, 0xffffffff), getRandomIntInclusive(0, 0xffffffff)];
 }
 
 export const coerceInt64 = coerceUInt64;
