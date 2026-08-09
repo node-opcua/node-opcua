@@ -1,1 +1,1 @@
-export type FunctionVariadic = (...args: any[]) => void;
+export type FunctionVariadic = (...args: unknown[]) => void;

@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 /**
  * Checks if a file exists and is strictly greater than 0 bytes.
