@@ -15,8 +15,11 @@ import {
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const serverPort = 2231;
-const reverseListenPort = 5531;
+// Ports are reserved for the reverse-connect suite so it can run in parallel with the other e2e
+// tests: OPC UA server ports come from 2400-2409, client reverse-listener ports from 5600-5609.
+// Do not reuse a value from another test file — see test/reverse_connect/README.md.
+const serverPort = 2400;
+const reverseListenPort = 5600;
 const reverseListenUrl = `opc.tcp://127.0.0.1:${reverseListenPort}`;
 
 describe("ReverseConnect - basic end-to-end", function (this: Mocha.Suite) {

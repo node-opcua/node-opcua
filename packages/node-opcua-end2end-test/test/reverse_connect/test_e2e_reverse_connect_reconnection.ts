@@ -16,9 +16,10 @@ import { wait } from "../../test_helpers/utils";
 //   * the client NEVER calls fetchServerCertificate — in reverse mode it must not dial the server
 //     directly to re-fetch the certificate (that guard lives in client_base_impl).
 
-const serverPort = 2235;
-const reverseListenPort = 5535;
-const proxyPort = 5536;
+// reserved reverse-connect range — see test/reverse_connect/README.md
+const serverPort = 2402;
+const reverseListenPort = 5601;
+const proxyPort = 5602;
 const reverseListenUrl = `opc.tcp://127.0.0.1:${reverseListenPort}`;
 const proxyUrl = `opc.tcp://127.0.0.1:${proxyPort}`;
 

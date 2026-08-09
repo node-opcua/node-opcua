@@ -5,7 +5,8 @@ import { get_mini_nodeset_filename, OPCUAServer } from "node-opcua";
 import type { OPCUAServerEndPoint } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const serverPort = 2233;
+// reserved reverse-connect range — see test/reverse_connect/README.md
+const serverPort = 2401;
 
 /**
  * RC-SRV-1: direct tests of OPCUAServerEndPoint#createReverseConnection — the outbound dial that the

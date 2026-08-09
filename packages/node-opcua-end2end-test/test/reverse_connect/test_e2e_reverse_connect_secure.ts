@@ -62,9 +62,11 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
     this.timeout(40000);
 
     it("RC-E2E-3a succeeds with SignAndEncrypt when the server certificate is supplied up front", async () => {
-        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2237, 5537);
+        // reserved reverse-connect range — see test/reverse_connect/README.md
+        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2403, 5603);
         // an auto-accepting certificate store for the client's own certificate / trust list
-        const clientCertificateManager = await createServerCertificateManager(2239);
+        // (the number only discriminates the PKI folder, but keep it inside the reserved range too)
+        const clientCertificateManager = await createServerCertificateManager(2405);
         try {
             const client = OPCUAClient.create({
                 clientName: `reverse-secure ${__filename}`,
@@ -92,8 +94,8 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
     });
 
     it("RC-E2E-3b fails cleanly (does not hang) when the server certificate is omitted", async () => {
-        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2238, 5538);
-        const clientCertificateManager = await createServerCertificateManager(2240);
+        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2404, 5604);
+        const clientCertificateManager = await createServerCertificateManager(2406);
         try {
             const client = OPCUAClient.create({
                 clientName: `reverse-secure-nocert ${__filename}`,
