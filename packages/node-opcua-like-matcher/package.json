@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-like-matcher",
-    "version": "2.175.6",
+    "version": "2.176.0",
     "description": "pure nodejs OPCUA SDK - the OPC 10000-4 Like FilterOperator (Table 120 wildcard matching)",
     "scripts": {
         "build": "tsc -b",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.175.6",
+    "version": "2.176.0",
     "description": "pure nodejs OPCUA SDK - module service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -16,7 +16,7 @@
         "node-opcua-assert": "2.175.6",
         "node-opcua-debug": "2.175.6",
         "node-opcua-object-registry": "2.175.6",
-        "node-opcua-types": "2.175.6",
+        "node-opcua-types": "2.176.0",
         "sterfive-bonjour-service": "1.1.4"
     },
     "devDependencies": {

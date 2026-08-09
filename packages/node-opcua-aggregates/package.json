@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.175.6",
+    "version": "2.176.0",
     "description": "pure nodejs OPCUA SDK - module aggregates",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,19 +13,19 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.175.6",
+        "node-opcua-address-space": "2.176.0",
         "node-opcua-assert": "2.175.6",
-        "node-opcua-constants": "2.175.1",
-        "node-opcua-data-model": "2.175.6",
-        "node-opcua-data-value": "2.175.6",
-        "node-opcua-nodeid": "2.175.6",
-        "node-opcua-numeric-range": "2.175.6",
-        "node-opcua-server": "2.175.6",
-        "node-opcua-service-history": "2.175.6",
-        "node-opcua-status-code": "2.175.6",
-        "node-opcua-types": "2.175.6",
-        "node-opcua-utils": "2.175.6",
-        "node-opcua-variant": "2.175.6"
+        "node-opcua-constants": "2.176.0",
+        "node-opcua-data-model": "2.176.0",
+        "node-opcua-data-value": "2.176.0",
+        "node-opcua-nodeid": "2.176.0",
+        "node-opcua-numeric-range": "2.176.0",
+        "node-opcua-server": "2.176.0",
+        "node-opcua-service-history": "2.176.0",
+        "node-opcua-status-code": "2.176.0",
+        "node-opcua-types": "2.176.0",
+        "node-opcua-utils": "2.176.0",
+        "node-opcua-variant": "2.176.0"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.175.6",

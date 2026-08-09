@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-modeler",
-    "version": "2.175.6",
+    "version": "2.176.0",
     "description": "pure nodejs OPCUA SDK - module modeler",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -15,25 +15,25 @@
     "dependencies": {
         "cli-table3": "0.6.5",
         "csv-parse": "7.0.1",
-        "node-opcua-address-space": "2.175.6",
+        "node-opcua-address-space": "2.176.0",
         "node-opcua-assert": "2.175.6",
-        "node-opcua-basic-types": "2.175.6",
-        "node-opcua-client-dynamic-extension-object": "2.175.6",
-        "node-opcua-constants": "2.175.1",
-        "node-opcua-data-model": "2.175.6",
+        "node-opcua-basic-types": "2.176.0",
+        "node-opcua-client-dynamic-extension-object": "2.176.0",
+        "node-opcua-constants": "2.176.0",
+        "node-opcua-data-model": "2.176.0",
         "node-opcua-debug": "2.175.6",
-        "node-opcua-factory": "2.175.6",
-        "node-opcua-nodeid": "2.175.6",
+        "node-opcua-factory": "2.176.0",
+        "node-opcua-nodeid": "2.176.0",
         "node-opcua-nodesets": "2.175.3",
-        "node-opcua-numeric-range": "2.175.6",
-        "node-opcua-schemas": "2.175.6",
-        "node-opcua-service-translate-browse-path": "2.175.6",
-        "node-opcua-status-code": "2.175.6",
-        "node-opcua-types": "2.175.6",
-        "node-opcua-variant": "2.175.6"
+        "node-opcua-numeric-range": "2.176.0",
+        "node-opcua-schemas": "2.176.0",
+        "node-opcua-service-translate-browse-path": "2.176.0",
+        "node-opcua-status-code": "2.176.0",
+        "node-opcua-types": "2.176.0",
+        "node-opcua-variant": "2.176.0"
     },
     "devDependencies": {
-        "node-opcua-address-space-base": "2.175.6",
+        "node-opcua-address-space-base": "2.176.0",
         "node-opcua-leak-detector": "2.175.6"
     },
     "repository": {

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-alias-name-server",
-    "version": "2.175.6",
+    "version": "2.176.0",
     "description": "pure nodejs OPCUA SDK - server-side alias names (OPC 10000-17)",
     "scripts": {
         "build": "tsc -b",
@@ -17,18 +17,18 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.175.6",
-        "node-opcua-alias-name-common": "2.175.6",
-        "node-opcua-constants": "2.175.1",
-        "node-opcua-data-model": "2.175.6",
-        "node-opcua-nodeid": "2.175.6",
-        "node-opcua-service-call": "2.175.6",
-        "node-opcua-status-code": "2.175.6",
-        "node-opcua-types": "2.175.6",
-        "node-opcua-variant": "2.175.6"
+        "node-opcua-address-space-base": "2.176.0",
+        "node-opcua-alias-name-common": "2.176.0",
+        "node-opcua-constants": "2.176.0",
+        "node-opcua-data-model": "2.176.0",
+        "node-opcua-nodeid": "2.176.0",
+        "node-opcua-service-call": "2.176.0",
+        "node-opcua-status-code": "2.176.0",
+        "node-opcua-types": "2.176.0",
+        "node-opcua-variant": "2.176.0"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.175.6",
+        "node-opcua-address-space": "2.176.0",
         "node-opcua-leak-detector": "2.175.6",
         "node-opcua-nodesets": "2.175.3"
     },
