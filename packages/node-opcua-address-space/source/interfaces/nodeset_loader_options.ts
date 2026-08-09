@@ -1,11 +1,9 @@
 /**
- * how the per-node access policy declared in a NodeSet2 file
- * (the `AccessRestrictions` / `HasNoPermissions` attributes and the `<RolePermissions>` element)
- * is handled at load time.
+ * how a part of the access policy declared in a NodeSet2 file is handled at load time.
  *
- *  - `"apply"`  : the policy is installed on the node, as mandated by OPC UA Part 6 F.3.
- *  - `"ignore"` : the policy is discarded. This is what node-opcua did before this option existed:
- *                 a nodeset declaring a restrictive policy would load fail-open.
+ *  - `"apply"`  : the declaration is installed on the node, as mandated by OPC UA Part 6 F.3.
+ *  - `"ignore"` : the declaration is discarded. This is what node-opcua did before these options
+ *                 existed: a nodeset declaring a restrictive policy would load fail-open.
  */
 export type NodeSetPermissionsPolicy = "apply" | "ignore";
 
@@ -13,16 +11,28 @@ export interface NodeSetLoaderOptions {
     loadDraftNodes?: boolean;
     loadDeprecatedNodes?: boolean;
     /**
-     * Applying the policy is the spec-compliant behaviour and the default.
+     * the `<RolePermissions>` element and the `HasNoPermissions` attribute: *who* may do *what*.
      *
-     * Be aware of what that means for the nodesets you load. `Opc.Ua.NodeSet2.xml` alone
-     * carries 854 RolePermission entries and 359 AccessRestrictions; the restrictions sit on
-     * management surfaces (the RoleSet internals, ServerConfiguration, file transfer methods)
-     * and now require a signed — often signed and encrypted — channel to reach.
-     *
-     * Set this to `"ignore"` if an existing deployment relied on the previous fail-open
-     * behaviour and would otherwise lock itself out.
+     * This is a property of the information model, so it applies by default. `HasNoPermissions`
+     * yields an empty permission list, which is distinct from an absent `<RolePermissions>`:
+     * the former grants nothing, the latter inherits the namespace default.
      * @default "apply"
      */
     permissions?: NodeSetPermissionsPolicy;
+    /**
+     * the `AccessRestrictions` attribute: how the SecureChannel must be secured — signed,
+     * encrypted, session-bound — before the node may be reached at all.
+     *
+     * This one is **opt-in**, because it is a property of the deployment rather than of the
+     * model, and node-opcua cannot assume the deployment matches what the nodeset author had
+     * in mind. `Opc.Ua.NodeSet2.xml` carries 359 of these, and enforcing them denies 199
+     * variables under the Server Object alone — the RoleSet internals, `ServerConfiguration`,
+     * method arguments — to any Session on an unsecured channel. That is the correct reading
+     * of the attribute, and exactly what you want on a hardened server; it is also a large
+     * behaviour change for the many deployments that run with `MessageSecurityMode.None`.
+     *
+     * Turn it on once your endpoints require signing or encryption.
+     * @default "ignore"
+     */
+    accessRestrictions?: NodeSetPermissionsPolicy;
 }

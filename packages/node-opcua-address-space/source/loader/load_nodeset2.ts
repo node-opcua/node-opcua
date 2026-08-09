@@ -433,7 +433,11 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         }
     };
     // #region access policy (AccessRestrictions / HasNoPermissions / RolePermissions)
-    const applyNodePermissions = (options.permissions ?? "apply") === "apply";
+    // two independent switches: who may do what is a property of the model and applies by
+    // default, whereas how the channel must be secured is a property of the deployment and
+    // is opt-in. See NodeSetLoaderOptions.
+    const applyRolePermissions = (options.permissions ?? "apply") === "apply";
+    const applyAccessRestrictions = (options.accessRestrictions ?? "ignore") === "apply";
 
     interface INodePermissions {
         accessRestrictions?: AccessRestrictionsFlag;
@@ -445,15 +449,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
      * The `<RolePermissions>` element is handled separately by `role_permissions_parser`.
      */
     function convertNodePermissions(attrs: XmlAttributes): INodePermissions {
-        if (!applyNodePermissions) {
-            return {};
-        }
         return {
-            accessRestrictions: convertAccessRestrictions(attrs.AccessRestrictions),
+            accessRestrictions: applyAccessRestrictions ? convertAccessRestrictions(attrs.AccessRestrictions) : undefined,
             // HasNoPermissions="true" is not the same as an absent <RolePermissions>: the former
             // grants nothing at all, the latter inherits the namespace default. An empty array
             // is how BaseNode distinguishes the two.
-            rolePermissions: coerceBoolean(attrs.HasNoPermissions) ? [] : undefined
+            rolePermissions: applyRolePermissions && coerceBoolean(attrs.HasNoPermissions) ? [] : undefined
         };
     }
 
@@ -461,7 +462,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         // biome-ignore lint/suspicious/noExplicitAny: xml2json parser callback with dynamic this binding
         init(this: any) {
             this.array = [] as RolePermissionTypeOptions[];
-            if (applyNodePermissions) {
+            if (applyRolePermissions) {
                 this.parent.obj.rolePermissions = this.array;
             }
         },

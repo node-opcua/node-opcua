@@ -25,9 +25,9 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
         addressSpace.dispose();
     });
 
-    describe("when the access policy is applied (the default)", () => {
+    describe('when both parts of the policy are applied (accessRestrictions: "apply")', () => {
         beforeEach(async () => {
-            await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture], { accessRestrictions: "apply" });
         });
 
         it("LNSRP-1 should install RolePermissions and AccessRestrictions declared on a UAObject", () => {
@@ -97,6 +97,37 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
         });
     });
 
+    describe("with the default options - RolePermissions applied, AccessRestrictions not", () => {
+        beforeEach(async () => {
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
+        });
+
+        it("LNSRP-11 should install RolePermissions, which are a property of the model", () => {
+            const object = addressSpace.findNode("ns=1;i=1000") as UAObject;
+            object.rolePermissions!.length.should.eql(1);
+            object.rolePermissions![0].roleId.toString().should.eql(securityAdmin);
+
+            const locked = addressSpace.findNode("ns=1;i=1002") as UAVariable;
+            locked.rolePermissions!.should.eql([], "HasNoPermissions is part of the same declaration");
+        });
+
+        it("LNSRP-12 should leave AccessRestrictions alone, since they depend on the deployment", () => {
+            // opting in is what makes them take effect - see NodeSetLoaderOptions.accessRestrictions
+            for (const nodeId of ["ns=1;i=1000", "ns=1;i=1001", "ns=1;i=1004", "ns=1;i=2000"]) {
+                const node = addressSpace.findNode(nodeId)!;
+                should(node.accessRestrictions).eql(undefined, `${nodeId} should carry no AccessRestrictions`);
+            }
+        });
+
+        it("LNSRP-13 should not restrict a Server node an unsecured Session must still reach", () => {
+            // i=16302, the InputArguments of AddRole, carries AccessRestrictions="1". Enforcing it
+            // denies the read over an unsecured channel, which is what used to break the client proxy.
+            const inputArguments = addressSpace.findNode("i=16302")!;
+            should.exist(inputArguments);
+            should(inputArguments.accessRestrictions).eql(undefined);
+        });
+    });
+
     describe('when the access policy is ignored (permissions: "ignore")', () => {
         beforeEach(async () => {
             await generateAddressSpace(addressSpace, [nodesets.standard, fixture], { permissions: "ignore" });
@@ -123,7 +154,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
 
     describe("round trip through the exporter", () => {
         it("LNSRP-10 should export the access policy and UserAccessLevel and read them back (issue #1552)", async () => {
-            await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
+            await generateAddressSpace(addressSpace, [nodesets.standard, fixture], { accessRestrictions: "apply" });
 
             const xml = addressSpace.getNamespace("http://sterfive.com/UA/RolePermissions/").toNodeset2XML();
 
@@ -138,7 +169,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
                     reloaded,
                     [nodesets.standard, IN_MEMORY],
                     async (xmlFile: string) => (xmlFile === IN_MEMORY ? xml : await readNodeSet2XmlFile(xmlFile)),
-                    {}
+                    { accessRestrictions: "apply" }
                 );
 
                 const object = reloaded.findNode("ns=1;i=1000") as UAObject;

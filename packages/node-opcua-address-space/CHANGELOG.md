@@ -16,14 +16,21 @@ vanished. The exporter dropped the same two, so a load / dump round trip silentl
   from an absent `<RolePermissions>`: the former grants nothing, the latter inherits the namespace default.
 - **Export** — `namespace.toNodeset2XML()` emits `AccessRestrictions`, `HasNoPermissions` and a
   `<RolePermissions>` element, placed after `<References>` as `UANodeSet.xsd` requires.
-- **Compatibility switch** — `NodeSetLoaderOptions.permissions: "apply" | "ignore"`, defaulting to
-  `"apply"`. Set it to `"ignore"` to restore the previous fail-open behaviour if an existing deployment
-  would otherwise lock itself out.
+- **Two switches, with different defaults** — the two halves of the policy answer different questions,
+  so they are controlled separately:
+    - `NodeSetLoaderOptions.permissions` (`<RolePermissions>`, `HasNoPermissions`) — _who_ may do _what_.
+      A property of the information model, so it defaults to `"apply"`. Set `"ignore"` to restore the
+      previous fail-open behaviour.
+    - `NodeSetLoaderOptions.accessRestrictions` (the `AccessRestrictions` attribute) — how the
+      SecureChannel must be secured before the node can be reached. A property of the _deployment_, which
+      the loader cannot assume, so it is **opt-in** and defaults to `"ignore"`. Set `"apply"` once your
+      endpoints require signing or encryption.
 
-**Impact:** the declared policy now takes effect. `Opc.Ua.NodeSet2.xml` alone carries 854 `RolePermission`
-entries and 359 `AccessRestrictions`; the restrictions sit on management surfaces — the RoleSet internals,
-`ServerConfiguration`, the file transfer methods — which now require a signed, and often signed and
-encrypted, channel to reach.
+**Impact:** role-based permissions now take effect — `Opc.Ua.NodeSet2.xml` alone carries 854
+`RolePermission` entries. Its 359 `AccessRestrictions` stay dormant unless you opt in: enforcing them
+denies 199 variables under the Server Object alone (the RoleSet internals, `ServerConfiguration`, method
+arguments) to any Session on an unsecured channel. That is the correct reading of the attribute and what
+a hardened server wants, but it is a large change for deployments running with `MessageSecurityMode.None`.
 
 #### The `Anonymous` Role is the baseline every Session stands on
 
