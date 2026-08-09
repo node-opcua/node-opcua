@@ -833,16 +833,20 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
             xw.writeAttribute("IsAbstract", (node as any).isAbstract ? "true" : "false");
         }
     }
-    if (Object.hasOwn(node, "accessLevel")) {
+    // AccessLevel and UserAccessLevel exist in the XSD on UAVariable only. Gate on the node
+    // class rather than on the presence of the property: UAVariableTypeImpl happens not to own
+    // an accessLevel today, but it does own a `historizing` (see #1550), so a property-presence
+    // guard is one refactor away from emitting an attribute the schema rejects.
+    if (node.nodeClass === NodeClass.Variable) {
+        const variable = node as UAVariable;
         // CurrentRead is by default
-        if ((node as UAVariable).accessLevel !== currentReadFlag) {
-            xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());
+        if (variable.accessLevel !== currentReadFlag) {
+            xw.writeAttribute("AccessLevel", variable.accessLevel.toString());
         }
         // UserAccessLevel is implicitly accessLevel when omitted (see convertUserAccessLevel in the loader),
         // so it only needs to be written down when it further restricts accessLevel.
-        const userAccessLevel = (node as UAVariable).userAccessLevel;
-        if (userAccessLevel !== undefined && userAccessLevel !== (node as UAVariable).accessLevel) {
-            xw.writeAttribute("UserAccessLevel", userAccessLevel.toString());
+        if (variable.userAccessLevel !== undefined && variable.userAccessLevel !== variable.accessLevel) {
+            xw.writeAttribute("UserAccessLevel", variable.userAccessLevel.toString());
         }
     }
     // access policy: undefined means "inherit from the namespace", an empty rolePermissions array
