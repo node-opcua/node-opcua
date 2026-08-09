@@ -14,6 +14,7 @@ export function randomString(): string {
     const nbCar = getRandomInt(1, 20);
     const cars = [];
     for (let i = 0; i < nbCar; i++) {
+        // exclusive on purpose here: 26 letters, 'A' + 0 .. 'A' + 25
         cars.push(String.fromCharCode(65 + getRandomInt(0, 26)));
     }
     return cars.join("");

@@ -4,7 +4,7 @@
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
-import { getRandomInt } from "./utils";
+import { getRandomInt, getRandomIntInclusive } from "./utils";
 
 export function isValidByteString(value: unknown): boolean {
     return value === null || value instanceof Buffer;
@@ -19,7 +19,7 @@ export function randomByteString(_value: unknown, len: number): ByteString {
     len = len || getRandomInt(1, 200);
     const b = createFastUninitializedBuffer(len);
     for (let i = 0; i < len; i++) {
-        b.writeUInt8(getRandomInt(0, 255), i);
+        b.writeUInt8(getRandomIntInclusive(0, 0xff), i);
     }
     return b;
 }
