@@ -37,6 +37,7 @@ export * from "./client_session";
 export * from "./client_subscription";
 export * from "./client_utils";
 export * from "./opcua_client";
+export * from "./reverse/client_reverse_connect";
 export { ClientSidePublishEngine } from "./private/client_publish_engine";
 export * from "./tools/findservers";
 export * from "./tools/read_history_server_capabilities";

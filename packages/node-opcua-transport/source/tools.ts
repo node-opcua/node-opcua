@@ -16,6 +16,7 @@ function is_valid_msg_type(msgType: string): boolean {
             "HEL",
             "ACK",
             "ERR", // Connection Layer
+            "RHE", // ReverseHello - OPC UA Part 6 §7.1.2.6 (server-initiated / reverse connect)
             "OPN",
             "MSG",
             "CLO" // OPC Unified Architecture, Part 6 page 36

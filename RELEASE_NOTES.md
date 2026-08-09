@@ -1,4 +1,14 @@
 
+Reverse Connect
+===============
+
+  - implement OPC UA Reverse Connect (Part 6 §7.1.3) on client and server
+    - new `ReverseHelloMessage` / `"RHE"` transport message in node-opcua-transport
+    - server: `OPCUAServerOptions.reverseConnect` dials out to clients and (re)sends ReverseHello with backoff
+    - client: `ClientReverseConnect` listener + `client.connectReverse(reverseConnect, expectation?)`
+    - ServerUri/EndpointUrl validation and DoS guards on the client listener
+    - see documentation/reverse_connect.md and the reverse_connect_{client,server}.ts samples
+
 version 0.41
 ============
 
