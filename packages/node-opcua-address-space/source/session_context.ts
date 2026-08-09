@@ -153,11 +153,34 @@ export interface IRoleResolver {
     resolveRoles(userIdentityToken: AnyUserIdentityToken, context?: IRoleResolutionContext): NodeId[];
 }
 
+/**
+ * What to do when a permission cannot be resolved for a Session — either because no Role
+ * could be attached to its identity, or because neither the node nor its namespace declares
+ * any RolePermissions.
+ *
+ *  - `"allow"` : grant every permission. This is what node-opcua has always done, and what
+ *                the vast majority of address spaces need, since almost no server declares
+ *                RolePermissions on its own nodes.
+ *  - `"deny"`  : grant nothing. Fail-closed, for products that drive access entirely from
+ *                declared policy. Expect to set DefaultRolePermissions on every namespace,
+ *                otherwise the address space becomes unreadable.
+ *
+ * Note that this governs *Sessions only*. A SessionContext with no Session at all is an
+ * in-process caller (SessionContext.defaultContext, PseudoSession) and stays permissive
+ * whatever this is set to — see {@link SessionContext.getPermissions}.
+ */
+export type UnresolvedPermissionPolicy = "allow" | "deny";
+
 export interface IServerBase {
     userManager?: IUserManager;
     rolePolicyOverride?: IRolePolicyOverride | null;
     /** Additional role resolvers (identity stores, LDAP, etc.) */
     roleResolvers?: IRoleResolver[];
+    /**
+     * how to treat a permission that could not be resolved for a Session.
+     * @default "allow"
+     */
+    unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
 }
 
 export interface SessionContextOptions {
@@ -166,9 +189,15 @@ export interface SessionContextOptions {
     server?: IServerBase /* OPCUAServer*/;
 }
 
-function getPermissionForRole(rolePermissions: RolePermissionType[] | null, role: NodeId): PermissionFlag {
+function getPermissionForRole(
+    rolePermissions: RolePermissionType[] | null,
+    role: NodeId,
+    unresolved: PermissionFlag
+): PermissionFlag {
     if (rolePermissions === null) {
-        return allPermissions;
+        // neither the node nor its namespace declares any policy: nothing to match the
+        // Role against, so the answer is the caller's fail-open / fail-closed default
+        return unresolved;
     }
     const a = rolePermissions.find((r) => {
         if (!r.roleId) {
@@ -478,12 +507,17 @@ export class SessionContext implements ISessionContext {
      */
     public getCurrentUserRoles(): NodeId[] {
         if (!this.session) {
-            return []; // default context => no Session
+            // no Session: an in-process caller. getPermissions grants it everything —
+            // an empty list here does NOT mean "no rights", see unresolvedPermissions.
+            return [];
         }
 
         assert(this.session != null, "expecting a session");
         const userIdentityToken = this.session.userIdentityToken;
         if (!userIdentityToken) {
+            // a Session that was never activated. Distinct from the case above: this one
+            // is remote, and how the empty list is then interpreted depends on
+            // IServerBase.unresolvedPermissionPolicy.
             return [];
         }
 
@@ -547,16 +581,46 @@ export class SessionContext implements ISessionContext {
         }
         return node.rolePermissions;
     }
+    /**
+     * true when this context carries no Session at all.
+     *
+     * That is an in-process caller — SessionContext.defaultContext, or a PseudoSession
+     * driving the address space from inside the server — not a remote one. Such a caller
+     * has already passed whatever authorization its own entry point applies, and the
+     * address space is not the place to second-guess it, so it is always granted every
+     * permission. This is deliberate, and distinct from a remote Session whose identity
+     * merely failed to resolve to a Role: that case is governed by
+     * IServerBase.unresolvedPermissionPolicy.
+     */
+    private get isInProcessCaller(): boolean {
+        return !this.session;
+    }
+
+    /** what an unresolved permission means for this context: everything, or nothing */
+    private get unresolvedPermissions(): PermissionFlag {
+        if (this.isInProcessCaller) {
+            return allPermissions;
+        }
+        return this.server?.unresolvedPermissionPolicy === "deny" ? PermissionFlag.None : allPermissions;
+    }
+
     public getPermissions(node: BaseNode): PermissionFlag {
         const applicableRolePermissions = this.getApplicableRolePermissions(node);
 
         const roles = this.getCurrentUserRoles();
         if (roles.length === 0) {
-            return allPermissions;
+            // Two very different situations land here:
+            //  - no Session at all: an in-process caller, always trusted (see isInProcessCaller)
+            //  - a Session that resolved to no Role, either because it carries no
+            //    UserIdentityToken (it was never activated) or because its user matched
+            //    nothing. Permissive by default, for backwards compatibility, but a server
+            //    can set unresolvedPermissionPolicy: "deny" to fail closed instead.
+            return this.unresolvedPermissions;
         }
+        const unresolved = this.unresolvedPermissions;
         let orFlags: PermissionFlag = 0;
         for (const role of roles) {
-            orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role);
+            orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role, unresolved);
         }
         return orFlags;
     }
