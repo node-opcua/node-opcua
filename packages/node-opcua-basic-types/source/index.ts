@@ -6,6 +6,7 @@ export * from "./array";
 export * from "./attributeIds";
 export * from "./boolean";
 export * from "./byte_string";
+export * from "./crypto_random";
 export * from "./data_type";
 export * from "./date_time";
 export * from "./floats";

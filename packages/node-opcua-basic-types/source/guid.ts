@@ -5,8 +5,7 @@
 import assert from "node-opcua-assert";
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { isValidGuid } from "node-opcua-guid";
-
-import { getRandomInt } from "./utils";
+import { cryptoRandomBytes } from "./crypto_random";
 
 export { emptyGuid, isValidGuid } from "node-opcua-guid";
 
@@ -16,14 +15,25 @@ function toHex(i: number, nb: number): string {
 
 export type Guid = string;
 
+/** a Guid is 16 bytes on the wire, whatever its 36 character textual form suggests */
+const guidByteLength = 16;
+
+/**
+ * a new Guid, made of 16 bytes drawn from the platform CSPRNG
+ * (`crypto.getRandomValues`, under Node.js as well as in the browser).
+ *
+ * The 128 bits are fully random: no RFC 4122 version or variant bits are carved out,
+ * so a Guid produced here is unpredictable to the full width of its value. It is
+ * therefore safe to use where the identifier must not be guessable — a SessionId, or
+ * the requestId of OPC 10000-12 §7.9.5 FinishRequest.
+ *
+ * Note that the other `random*` helpers of this module (randomByteString, randomString,
+ * randomUInt32, ...) are fuzzing helpers built on Math.random and carry no such
+ * guarantee — see {@link getRandomInt}.
+ */
 export function randomGuid(): Guid {
-    const b = new BinaryStream(20);
-    for (let i = 0; i < 20; i++) {
-        b.writeUInt8(getRandomInt(0, 255));
-    }
-    b.rewind();
-    const value = decodeGuid(b) as Guid;
-    return value;
+    const stream = new BinaryStream(cryptoRandomBytes(guidByteLength));
+    return decodeGuid(stream);
 }
 
 //           1         2         3
