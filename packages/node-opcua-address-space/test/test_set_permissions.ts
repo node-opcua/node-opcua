@@ -33,7 +33,7 @@ import {
 // let's make sure should don't get removed by typescript optimizer
 const _keep_should = should;
 
-import { date_add, getMiniAddressSpace } from "../testHelpers";
+import { date_add, getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
 
 describe("Variable#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
@@ -258,14 +258,8 @@ describe("Method#setPermissions & checkPermission", () => {
 
     it("checkPermission-ReadHistory", async () => {
         const _namespace1 = addressSpace.getOwnNamespace();
-        const context = new SessionContext({
-            session: {
-                getSessionId() {
-                    return NodeId.nullNodeId;
-                },
-                continuationPointManager: new ContinuationPointManager()
-            }
-        });
+        // a real ContinuationPointManager: this test actually reads history through it
+        const context = makeMockSessionContext({ continuationPointManager: new ContinuationPointManager() });
 
         const uaVariable = addressSpace.getOwnNamespace().addVariable({
             browseName: "VariableForTestReadHistory",

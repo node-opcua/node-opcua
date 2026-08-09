@@ -2,9 +2,8 @@
  * Shared test helpers for building in-process sessions whose SessionContext
  * simulates a user identity and a SecureChannel security mode.
  */
-import { type AddressSpace, type IServerBase, type ISessionBase, PseudoSession, SessionContext } from "node-opcua-address-space";
-import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
-import { NodeId } from "node-opcua-nodeid";
+import { type AddressSpace, type IServerBase, PseudoSession, type SessionContext } from "node-opcua-address-space";
+import { makeMockSessionContext } from "node-opcua-address-space/testHelpers";
 import { type IIdentityMappingStore, identitiesToBase64, ROLE_SET_ARCHIVE_VERSION, writeArchive } from "node-opcua-role-set-common";
 import { AnonymousIdentityToken, MessageSecurityMode, type UserIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
@@ -23,19 +22,7 @@ export function makeSessionContext(
     securityMode: MessageSecurityMode,
     endpointUrl?: string
 ): SessionContext {
-    const session: ISessionBase = {
-        getSessionId: () => NodeId.nullNodeId,
-        continuationPointManager: new MockContinuationPointManager(),
-        userIdentityToken,
-        getEndpointUrl: () => endpointUrl,
-        channel: {
-            securityMode,
-            securityPolicy: "",
-            clientCertificate: null,
-            getTransportSettings: () => ({ maxMessageSize: 0 })
-        }
-    };
-    return new SessionContext({ server, session });
+    return makeMockSessionContext({ server, userIdentityToken, securityMode, endpointUrl });
 }
 
 /** A PseudoSession authenticated as `userName` (SignAndEncrypt by default). */

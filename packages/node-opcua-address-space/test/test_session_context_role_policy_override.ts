@@ -3,38 +3,8 @@ import "should";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
-import {
-    type IRolePolicyOverride,
-    type IServerBase,
-    type ISessionBase,
-    type IUserManager,
-    SessionContext,
-    WellKnownRoles
-} from "..";
-
-function makeSessionWithToken(token: AnonymousIdentityToken | UserNameIdentityToken): ISessionBase {
-    return {
-        userIdentityToken: token,
-        getSessionId: () => ({ namespace: 0, value: 1 }) as any,
-        continuationPointManager: {
-            registerHistoryReadRaw: () => ({
-                values: null,
-                continuationPoint: undefined,
-                statusCode: { isGood: () => true } as any
-            }),
-            getNextHistoryReadRaw: () => ({
-                values: null,
-                continuationPoint: undefined,
-                statusCode: { isGood: () => true } as any
-            }),
-            registerReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            getNextReferences: () => ({ values: null, continuationPoint: undefined, statusCode: { isGood: () => true } as any }),
-            dispose: () => {
-                /* empty */
-            }
-        }
-    };
-}
+import { type IRolePolicyOverride, type IServerBase, type IUserManager, WellKnownRoles } from "..";
+import { makeMockSessionContext } from "../testHelpers";
 
 describe("US-028: IRolePolicyOverride", () => {
     const securityAdminRole = resolveNodeId(WellKnownRoles.SecurityAdmin);
@@ -62,10 +32,7 @@ describe("US-028: IRolePolicyOverride", () => {
             rolePolicyOverride: override
         };
 
-        const ctx = new SessionContext({
-            session: makeSessionWithToken(anonymousToken),
-            server
-        });
+        const ctx = makeMockSessionContext({ userIdentityToken: anonymousToken, server });
 
         const roles = ctx.getCurrentUserRoles();
         roles.length.should.eql(2);
@@ -82,10 +49,7 @@ describe("US-028: IRolePolicyOverride", () => {
             rolePolicyOverride: override
         };
 
-        const ctx = new SessionContext({
-            session: makeSessionWithToken(userToken),
-            server
-        });
+        const ctx = makeMockSessionContext({ userIdentityToken: userToken, server });
 
         const roles = ctx.getCurrentUserRoles();
         // default userManager returns ConfigureAdmin for "admin"
@@ -102,10 +66,7 @@ describe("US-028: IRolePolicyOverride", () => {
             rolePolicyOverride: override
         };
 
-        const ctx = new SessionContext({
-            session: makeSessionWithToken(anonymousToken),
-            server
-        });
+        const ctx = makeMockSessionContext({ userIdentityToken: anonymousToken, server });
 
         // with override
         const rolesWithOverride = ctx.getCurrentUserRoles();
@@ -125,10 +86,7 @@ describe("US-028: IRolePolicyOverride", () => {
             userManager: defaultUserManager
         };
 
-        const ctx = new SessionContext({
-            session: makeSessionWithToken(anonymousToken),
-            server
-        });
+        const ctx = makeMockSessionContext({ userIdentityToken: anonymousToken, server });
 
         const roles = ctx.getCurrentUserRoles();
         roles.should.containDeep([anonymousRole]);

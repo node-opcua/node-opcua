@@ -14,16 +14,10 @@ import {
     PermissionFlag
 } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    AnonymousIdentityToken,
-    MessageSecurityMode,
-    PermissionType,
-    RolePermissionType,
-    UserNameIdentityToken
-} from "node-opcua-types";
+import { MessageSecurityMode, PermissionType, RolePermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
@@ -37,7 +31,7 @@ import {
     WellKnownRoles
 } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { getMiniAddressSpace, MockContinuationPointManager, mockSession } from "../testHelpers";
+import { getMiniAddressSpace, makeMockSessionContext, mockSession } from "../testHelpers";
 
 describe("AddressSpace : Variable.setPermissions", () => {
     let addressSpace: AddressSpace;
@@ -161,102 +155,161 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         }
     };
 
-    const contextAnonymous = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return new NodeId();
-            },
-            continuationPointManager: new MockContinuationPointManager(),
-            userIdentityToken: new AnonymousIdentityToken()
-        }
+    const contextAnonymous = makeMockSessionContext({ userName: "anonymous", server });
+    const contextAuthenticated = makeMockSessionContext({ userName: "user1", server });
+    const contextAdmin = makeMockSessionContext({ userName: "admin", server });
+
+    const contextSecurityNone = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.None,
+        server
+    });
+    const contextSecuritySign = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.Sign,
+        server
+    });
+    const contextSecuritySignAndEncrypt = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.SignAndEncrypt,
+        server
     });
 
-    const contextAuthenticated = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return new NodeId();
-            },
-            continuationPointManager: new MockContinuationPointManager(),
-            userIdentityToken: new UserNameIdentityToken({
-                userName: "user1"
-            })
-        }
+    before(async () => {
+        addressSpace = await getMiniAddressSpace();
+        namespace = addressSpace.getOwnNamespace();
+        variable = namespace.addVariable({
+            accessLevel: makeAccessLevelFlag(
+                "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+            ),
+            userAccessLevel: makeAccessLevelFlag(
+                "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+            ),
+            browseName: "SomeVar",
+            dataType: "Double"
+        });
     });
 
-    const contextAdmin = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return new NodeId();
-            },
-            continuationPointManager: new MockContinuationPointManager(),
-            userIdentityToken: new UserNameIdentityToken({
-                userName: "admin"
-            })
-        }
+    after(() => {
+        addressSpace.dispose();
     });
 
-    const contextSecurityNone = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return new NodeId();
-            },
-            userIdentityToken: new UserNameIdentityToken({
-                userName: "admin"
-            }),
-            continuationPointManager: new MockContinuationPointManager(),
-            channel: {
-                securityMode: MessageSecurityMode.None,
-                securityPolicy: "",
-                clientCertificate: null,
-                getTransportSettings() {
-                    return { maxMessageSize: 0 };
+    it("should adjust userAccessLevel based on session Context permission", () => {
+        variable.userAccessLevel?.should.eql(0x3f);
+        accessLevelFlagToString(variable.userAccessLevel!).should.eql(
+            "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+        );
+        const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
+        dataValue1.value.value.should.eql(0x3f);
+        accessLevelFlagToString(dataValue1.value.value).should.eql(
+            "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+        );
+    });
+
+    it("should adjust userAccessLevel based on session Context permission", () => {
+        variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+        variable.userAccessLevel.should.eql(0x03);
+
+        variable.setRolePermissions([
+            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Read") as number },
+            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Read") as number }
+        ]);
+        // variable.setPermissions({
+        //     [Permission.Read]: ["*"], // at the end we want CurrentReadAccess to All user
+        //     [Permission.Write]: ["!*"] // and no write access at all
+        // });
+
+        const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
+
+        accessLevelFlagToString(dataValue1.value.value).should.eql("CurrentRead | CurrentWrite");
+    });
+    it("should adjust userAccessLevel based on session Context permission", () => {
+        const context = new SessionContext({
+            session: mockSession
+        });
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]);
+
+        variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+        variable.userAccessLevel.should.eql(0x03);
+
+        variable.setRolePermissions([
+            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Read") as number },
+            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Read") as number },
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Read | Write") as number }
+        ]);
+        // variable.setPermissions({
+        //     [Permission.Read]: ["*"],
+        //     [Permission.Write]: ["!*", WellKnownRoles.ConfigureAdmin]
+        // });
+        context
+            .getCurrentUserRoles()
+            .map((r) => r.toString())
+            .join(";")
+            .should.eql("ns=0;i=15656;ns=0;i=15680");
+
+        const dataValue1 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
+        dataValue1.value.value.should.eql(AccessLevelFlag.CurrentRead);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]);
+        context
+            .getCurrentUserRoles()
+            .map((r) => r.value)
+            .should.eql([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]);
+        const dataValue2 = variable.readAttribute(context, AttributeIds.UserAccessLevel);
+        dataValue2.value.value.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+    });
+});
+
+describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata", () => {
+    let addressSpace: AddressSpace;
+    let namespace: Namespace;
+    let uaVariable: UAVariable;
+    let uaVariable2: UAVariable;
+    let uaDefaultVariable: UAVariable;
+    let parentNode: UAObject;
+    let restrictedVariableSign: UAVariable;
+    let restrictedVariableSignAndEncrypt: UAVariable;
+
+    const server = {
+        userManager: {
+            getUserRoles(username: string) {
+                switch (username) {
+                    case "user":
+                    case "user1": {
+                        return makeRoles(WellKnownRoles.AuthenticatedUser);
+                    }
+                    case "admin": {
+                        return makeRoles([
+                            WellKnownRoles.AuthenticatedUser,
+                            WellKnownRoles.SecurityAdmin,
+                            WellKnownRoles.ConfigureAdmin
+                        ]);
+                    }
+                    default:
+                        return makeRoles(WellKnownRoles.Anonymous);
                 }
             }
         }
+    };
+
+    const contextAnonymous = makeMockSessionContext({ userName: "anonymous", server });
+    const contextAuthenticated = makeMockSessionContext({ userName: "user1", server });
+    const contextAdmin = makeMockSessionContext({ userName: "admin", server });
+
+    const contextSecurityNone = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.None,
+        server
     });
-    const contextSecuritySign = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return NodeId.nullNodeId;
-            },
-            userIdentityToken: new UserNameIdentityToken({
-                userName: "admin"
-            }),
-            continuationPointManager: new MockContinuationPointManager(),
-            channel: {
-                securityMode: MessageSecurityMode.Sign,
-                securityPolicy: "",
-                clientCertificate: null,
-                getTransportSettings() {
-                    return { maxMessageSize: 0 };
-                }
-            }
-        }
+    const contextSecuritySign = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.Sign,
+        server
     });
-    const contextSecuritySignAndEncrypt = new SessionContext({
-        server,
-        session: {
-            getSessionId() {
-                return NodeId.nullNodeId;
-            },
-            userIdentityToken: new UserNameIdentityToken({
-                userName: "admin"
-            }),
-            continuationPointManager: new MockContinuationPointManager(),
-            channel: {
-                securityMode: MessageSecurityMode.SignAndEncrypt,
-                securityPolicy: "",
-                clientCertificate: null,
-                getTransportSettings() {
-                    return { maxMessageSize: 0 };
-                }
-            }
-        }
+    const contextSecuritySignAndEncrypt = makeMockSessionContext({
+        userName: "admin",
+        securityMode: MessageSecurityMode.SignAndEncrypt,
+        server
     });
     before(async () => {
         addressSpace = AddressSpace.create();
