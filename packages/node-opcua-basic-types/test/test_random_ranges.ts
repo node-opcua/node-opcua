@@ -1,4 +1,5 @@
 import "should";
+import "mocha";
 import { randomInt8, randomInt16, randomInt32, randomUInt8, randomUInt16, randomUInt32 } from "..";
 
 // The maxima cannot be reached by sampling — over 2^32 values the expected maximum of
