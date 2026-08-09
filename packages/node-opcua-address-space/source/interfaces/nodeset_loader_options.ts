@@ -15,10 +15,13 @@ export interface NodeSetLoaderOptions {
     /**
      * Applying the policy is the spec-compliant behaviour and the default.
      *
-     * Set this to `"ignore"` if an existing deployment relied on the previous fail-open behaviour
-     * and would otherwise lock itself out: nodesets such as `Opc.Ua.Gds.NodeSet2.xml` restrict
-     * a large part of their address space to the SecurityAdmin role over a signed and encrypted
-     * channel, and those restrictions now take effect.
+     * Be aware of what that means for the nodesets you load. `Opc.Ua.NodeSet2.xml` alone
+     * carries 854 RolePermission entries and 359 AccessRestrictions; the restrictions sit on
+     * management surfaces (the RoleSet internals, ServerConfiguration, file transfer methods)
+     * and now require a signed — often signed and encrypted — channel to reach.
+     *
+     * Set this to `"ignore"` if an existing deployment relied on the previous fail-open
+     * behaviour and would otherwise lock itself out.
      * @default "apply"
      */
     permissions?: NodeSetPermissionsPolicy;

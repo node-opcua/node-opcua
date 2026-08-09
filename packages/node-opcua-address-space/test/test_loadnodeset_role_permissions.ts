@@ -25,7 +25,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
         addressSpace.dispose();
     });
 
-    describe("when the access policy is applied (default)", () => {
+    describe("when the access policy is applied (the default)", () => {
         beforeEach(async () => {
             await generateAddressSpace(addressSpace, [nodesets.standard, fixture]);
         });

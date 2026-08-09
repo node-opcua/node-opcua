@@ -289,6 +289,7 @@ const namespacedBrowseNameRegExp = /^(\d+):(.+)$/;
 const namespacePrefixRegExp = /^ns=\d+$/;
 
 const roleSetNodeId = resolveNodeId(ObjectIds.Server_ServerCapabilities_RoleSet);
+const anonymousRoleNodeId = resolveNodeId(WellKnownRoles.Anonymous);
 
 function isQualifiedName(role: RoleIdLike): role is QualifiedNameOptions {
     return typeof role === "object" && role !== null && !(role instanceof NodeId) && "name" in role;
@@ -604,6 +605,31 @@ export class SessionContext implements ISessionContext {
         return this.server?.unresolvedPermissionPolicy === "deny" ? PermissionFlag.None : allPermissions;
     }
 
+    /**
+     * the Roles to evaluate permissions against: the ones the user resolved to, plus the
+     * Anonymous Role, which every Session stands on.
+     *
+     * Opc.Ua.NodeSet2.xml names exactly five Roles across its 854 RolePermission entries —
+     * Anonymous, SecurityAdmin, ConfigureAdmin and the two SecurityKeyServer ones — and
+     * never AuthenticatedUser, Observer, Operator, Engineer or Supervisor. Its 195 Anonymous
+     * entries (Browse, Browse|Read, Browse|Call) are therefore not a privilege reserved for
+     * unauthenticated Sessions; they are the floor granted to everyone. Read literally, an
+     * authenticated user would be unable to browse the Server Object at all, and would have
+     * strictly less access than an anonymous one.
+     *
+     * Adding the Anonymous Role here can only widen a permission set, never narrow it, and
+     * only ever to what an unauthenticated Session already has — so it cannot grant anything
+     * an attacker could not obtain by simply not authenticating. It leaves
+     * getCurrentUserRoles() alone: the identity a Session reports stays truthful, only the
+     * permission evaluation gains the baseline.
+     */
+    private getRolesForPermissionEvaluation(roles: NodeId[]): NodeId[] {
+        if (roles.find((role) => sameNodeId(role, anonymousRoleNodeId))) {
+            return roles;
+        }
+        return [...roles, anonymousRoleNodeId];
+    }
+
     public getPermissions(node: BaseNode): PermissionFlag {
         const applicableRolePermissions = this.getApplicableRolePermissions(node);
 
@@ -619,7 +645,7 @@ export class SessionContext implements ISessionContext {
         }
         const unresolved = this.unresolvedPermissions;
         let orFlags: PermissionFlag = 0;
-        for (const role of roles) {
+        for (const role of this.getRolesForPermissionEvaluation(roles)) {
             orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role, unresolved);
         }
         return orFlags;
