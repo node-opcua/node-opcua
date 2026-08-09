@@ -50,9 +50,9 @@ export function countAlpha(str: string): number {
  *
  * lowerFirstLetter convert a OPCUA Identifier to a javascript Identifier
  *
- * 
+ *
  * **rational**:
- * 
+ *
  *  OPCUA and Javascript use two different rules to build identifiers.
  *
  *  OPCUA Identifier usually starts with a upper case letter and word are join together, this is known as
@@ -81,7 +81,7 @@ export function countAlpha(str: string): number {
  *     ( ie: ALM_FlowOutOfTolerance => ALM_flowOutOfTolerance ( ALM=>ALM , FlowOutOfTolerance=>flowOutOfTolerance)
  *
  * **reference**:
- * 
+ *
  *    * https://en.wikipedia.org/wiki/Camel_case
  *    * https://en.wikipedia.org/wiki/Hungarian_notation
  *    * http://wiki.c2.com/?UnderscoreVersusCapitalAndLowerCaseVariableNaming

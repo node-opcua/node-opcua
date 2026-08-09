@@ -18,13 +18,12 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint source test",
-        "format": "prettier --write source test",
+        "lint": "biome check .",
+        "format": "biome check --write .",
         "test": "mocha",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "chalk": "4.1.2",
         "node-opcua-assert": "2.175.6"
     },
     "author": "Etienne Rossignon",

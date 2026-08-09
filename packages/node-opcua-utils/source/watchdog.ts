@@ -1,13 +1,12 @@
 /**
  * @module node-opcua-utils
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { get_clock_tick } from "./get_clock_tick";
 
 type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;
-
 
 export interface IWatchdogData2 {
     key: number;
@@ -136,7 +135,7 @@ export class WatchDog extends EventEmitter {
         assert(subscriber._watchDog instanceof WatchDog);
         assert(typeof subscriber._watchDogData.key === "number");
         assert(typeof subscriber.keepAlive === "function");
-        assert(Object.prototype.hasOwnProperty.call(this._watchdogDataMap, subscriber._watchDogData.key));
+        assert(Object.hasOwn(this._watchdogDataMap, subscriber._watchDogData.key));
 
         delete this._watchdogDataMap[subscriber._watchDogData.key];
         delete subscriber._watchDog;

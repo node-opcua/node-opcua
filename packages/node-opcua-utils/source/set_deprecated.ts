@@ -2,25 +2,21 @@
  * @module node-opcua-utils
  */
 // tslint:disable:ban-types
-import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
-import { FunctionVariadic } from "./function_variadic";
+import type { FunctionVariadic } from "./function_variadic";
 
 /* c8 ignore next */
-export function setDeprecated(constructor: FunctionVariadic, methodName: string, helpString: string): void {
-    const oldMethod = constructor.prototype[methodName];
+export function setDeprecated(constructorFunc: FunctionVariadic, methodName: string, helpString: string): void {
+    const oldMethod = constructorFunc.prototype[methodName];
 
-    assert(oldMethod instanceof Function, "expecting a valid " + methodName + "method on class " + constructor.constructor.name);
+    assert(oldMethod instanceof Function, `expecting a valid ${methodName}method on class ${constructorFunc.constructor.name}`);
 
     let counter = 0;
-    constructor.prototype[methodName] = function (...args: any[]) {
+    constructorFunc.prototype[methodName] = function (...args: unknown[]) {
         if (counter % 1000 === 0) {
             // tslint:disable:no-console
-            console.log(
-                chalk.green("Warning !"),
-                chalk.green(chalk.bold(constructor.name + "#" + methodName), " is now deprecated")
-            );
+            console.log("Warning !", `${constructorFunc.name}#${methodName}`, " is now deprecated");
             console.log("         ", helpString);
         }
         counter++;

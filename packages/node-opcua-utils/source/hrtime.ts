@@ -1,19 +1,17 @@
 // polyfil for window.performance.now
-const performance: any = (typeof global === "object" &&  global.performance) || {};
+const performance: {
+    now?: () => number;
+    mozNow?: () => number;
+    msNow?: () => number;
+    oNow?: () => number;
+    webkitNow?: () => number;
+} = (typeof global === "object" && global.performance) || {};
 const performanceNow =
-    performance.now ||
-    performance.mozNow ||
-    performance.msNow ||
-    performance.oNow ||
-    performance.webkitNow ||
-    function () {
-        return new Date().getTime();
-    };
+    performance.now || performance.mozNow || performance.msNow || performance.oNow || performance.webkitNow || (() => Date.now());
 
 // generate timestamp or delta
 // see http://nodejs.org/api/process.html#process_process_hrtime
 function hrtime_for_browser(previousTimestamp?: [number, number]): [number, number] {
-   
     previousTimestamp = previousTimestamp || [0, 0];
 
     const clocktime = performanceNow.call(performance) * 1e-3;
@@ -30,4 +28,5 @@ function hrtime_for_browser(previousTimestamp?: [number, number]): [number, numb
     return [seconds, nanoseconds];
 }
 export type HRTimeFunc = (time?: [number, number]) => [number, number];
-export const hrtime: HRTimeFunc = typeof process === "object" ? (process.hrtime as HRTimeFunc || hrtime_for_browser) : hrtime_for_browser;
+export const hrtime: HRTimeFunc =
+    typeof process === "object" ? (process.hrtime as HRTimeFunc) || hrtime_for_browser : hrtime_for_browser;
