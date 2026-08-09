@@ -21,6 +21,14 @@ import { wait } from "../../test_helpers/utils";
 //   * positive: supplying the serverCertificate up front -> connectReverse + session read succeeds;
 //   * negative: omitting it -> the attempt fails cleanly (rejects) rather than hanging.
 
+// reserved reverse-connect range — see ./README.md
+const serverAPort = 2403;
+const reverseListenAPort = 5603;
+const clientPkiAPort = 2405;
+const serverBPort = 2404;
+const reverseListenBPort = 5604;
+const clientPkiBPort = 2406;
+
 interface SecureSetup {
     server: OPCUAServer;
     reverseConnect: ClientReverseConnect;
@@ -62,11 +70,10 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
     this.timeout(40000);
 
     it("RC-E2E-3a succeeds with SignAndEncrypt when the server certificate is supplied up front", async () => {
-        // reserved reverse-connect range — see test/reverse_connect/README.md
-        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2403, 5603);
+        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(serverAPort, reverseListenAPort);
         // an auto-accepting certificate store for the client's own certificate / trust list
         // (the number only discriminates the PKI folder, but keep it inside the reserved range too)
-        const clientCertificateManager = await createServerCertificateManager(2405);
+        const clientCertificateManager = await createServerCertificateManager(clientPkiAPort);
         try {
             const client = OPCUAClient.create({
                 clientName: `reverse-secure ${__filename}`,
@@ -94,8 +101,8 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
     });
 
     it("RC-E2E-3b fails cleanly (does not hang) when the server certificate is omitted", async () => {
-        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(2404, 5604);
-        const clientCertificateManager = await createServerCertificateManager(2406);
+        const { server, reverseConnect, cleanup } = await makeSecureReverseServer(serverBPort, reverseListenBPort);
+        const clientCertificateManager = await createServerCertificateManager(clientPkiBPort);
         try {
             const client = OPCUAClient.create({
                 clientName: `reverse-secure-nocert ${__filename}`,

@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 
 import sinon from "sinon";
 import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ReverseConnectManager } from "..";
 import type { OPCUAServerEndPoint, ReverseConnectManagerContext } from "..";

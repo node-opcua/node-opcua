@@ -29,19 +29,23 @@ Both ranges were empty across all `.ts`/`.js` sources when they were reserved.
 | `5604` | `test_e2e_reverse_connect_secure.ts`        | client reverse listener (3b)     |
 | `2405` | `test_e2e_reverse_connect_secure.ts`        | client PKI folder (3a)           |
 | `2406` | `test_e2e_reverse_connect_secure.ts`        | client PKI folder (3b)           |
+| `5605` | `node-opcua-client/test/test_client_reverse_connect.ts` | RC-LISTEN-13, deliberate `EADDRINUSE` |
 
-Free within the reservation: `2407–2409`, `5605–5609`.
+Free within the reservation: `2407–2409`, `5606–5609`.
 
 ## Adding a test here
 
-Take the next free value from the tables above and add a row. Before picking anything outside these
-ranges, check it is unused:
+Take the next free value from the tables above and add a row. Every port lives in a `const` whose
+name **ends in `Port`** (`serverPort`, `reverseListenPort`, `proxyPort`, `serverAPort`, …) and is
+interpolated into the URL rather than repeated as a literal, so `grep "Port = "` finds every
+allocation in one pass. Before picking anything outside these ranges, check it is unused:
 
 ```bash
 grep -rnE "\b<port>\b" --include=*.ts --include=*.js packages packages_extra test_compliance \
   | grep -v node_modules | grep -v /dist/
 ```
 
-Unit tests (`node-opcua-client/test/test_client_reverse_connect.ts`,
-`node-opcua-server/test/test_reverse_connect_manager.ts`) need no reservation: they listen on port
-`0` and read back `listeningPort`. Prefer that whenever a fixed port is not required.
+The unit tests (`node-opcua-client/test/test_client_reverse_connect.ts`,
+`node-opcua-server/test/test_reverse_connect_manager.ts`) listen on port `0` and read back
+`listeningPort`. Prefer that whenever a fixed port is not required — the single exception is
+RC-LISTEN-13, which asserts `EADDRINUSE` and therefore needs a fixed port to collide with itself.
