@@ -4061,9 +4061,6 @@ importers:
 
   packages/node-opcua-utils:
     dependencies:
-      chalk:
-        specifier: 4.1.2
-        version: 4.1.2
       node-opcua-assert:
         specifier: 2.175.6
         version: link:../node-opcua-assert
