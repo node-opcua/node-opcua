@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.176.0",
+    "version": "2.176.1",
     "description": "pure nodejs OPCUA SDK - module server-configuration",
     "scripts": {
         "build": "tsc -b",

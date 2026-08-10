@@ -3188,7 +3188,7 @@ importers:
         specifier: 6.19.0
         version: 6.19.0
       node-opcua-server-configuration:
-        specifier: 2.176.0
+        specifier: 2.176.1
         version: link:../node-opcua-server-configuration
       node-opcua-utils:
         specifier: 2.176.0
