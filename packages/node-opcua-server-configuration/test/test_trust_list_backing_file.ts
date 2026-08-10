@@ -13,6 +13,8 @@ import {
     WellKnownRoles
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import { fs as MemFs } from "memfs";
+import type { UAObject } from "node-opcua-address-space";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import { NodeId } from "node-opcua-nodeid";
@@ -111,18 +113,47 @@ describe("TrustList backing file", () => {
         await trustList.close();
     });
 
-    it("TLBF-2 should give each TrustList its own backing path", async () => {
-        const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration")!;
-        const groups = serverConfiguration.getChildByName("CertificateGroups")!;
-
-        const filenames = groups
-            .getComponents()
-            .map((g) => (g as unknown as { getComponentByName(n: string): unknown }).getComponentByName("TrustList"))
-            .filter((t) => !!t)
-            .map((t) => (t as unknown as { $$filename?: string }).$$filename)
-            .filter((f): f is string => !!f);
+    it("TLBF-2 should give each TrustList its own backing path", () => {
+        const filenames = collectBackingPaths(addressSpace);
 
         filenames.length.should.be.greaterThan(1);
         new Set(filenames).size.should.eql(filenames.length);
     });
+
+    it("TLBF-3 should release the backing files when the address space shuts down", async () => {
+        // memfs is a single process-wide volume, so a server that is built and
+        // torn down repeatedly must not leave its serialized TrustLists behind.
+        const throwaway = AddressSpace.create();
+        await generateAddressSpace(throwaway, [nodesets.standard]);
+        throwaway.registerNamespace("Private");
+
+        await installPushCertificateManagement(throwaway, {
+            applicationGroup,
+            applicationUri: "SomeOtherUri"
+        });
+
+        const filenames = collectBackingPaths(throwaway);
+        filenames.length.should.be.greaterThan(0);
+        filenames.every((f) => MemFs.existsSync(f)).should.eql(true);
+
+        await throwaway.shutdown();
+        throwaway.dispose();
+
+        filenames.some((f) => MemFs.existsSync(f)).should.eql(false);
+    });
 });
+
+function collectBackingPaths(addressSpace: AddressSpace): string[] {
+    const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration") as UAObject;
+    const groups = serverConfiguration.getChildByName("CertificateGroups") as UAObject;
+
+    const filenames: string[] = [];
+    for (const name of ["DefaultApplicationGroup", "DefaultUserTokenGroup", "DefaultHttpsGroup"]) {
+        const group = groups.getComponentByName(name) as UAObject | null;
+        const trustList = group?.getComponentByName("TrustList") as (UAObject & { $$filename?: string }) | null;
+        if (trustList?.$$filename) {
+            filenames.push(trustList.$$filename);
+        }
+    }
+    return filenames;
+}
