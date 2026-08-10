@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-padim",
-    "version": "2.176.0",
+    "version": "2.176.1",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-padim",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -17,8 +17,8 @@
         "node-opcua-data-model": "2.176.0",
         "node-opcua-extension-object": "2.176.0",
         "node-opcua-nodeid": "2.176.0",
-        "node-opcua-nodeset-di": "2.176.0",
-        "node-opcua-nodeset-ua": "2.176.0",
+        "node-opcua-nodeset-di": "2.176.1",
+        "node-opcua-nodeset-ua": "2.176.1",
         "node-opcua-variant": "2.176.0"
     },
     "files": [
