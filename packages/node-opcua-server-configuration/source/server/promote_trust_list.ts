@@ -643,6 +643,29 @@ export async function promoteTrustList(trustList: UATrustList) {
         MemFs.writeFileSync(filename, Buffer.alloc(0));
     }
 
+    // `memfs` exports one volume for the whole process and nothing here ever
+    // released these paths. Each Open rewrites the full serialized TrustList
+    // (every trusted cert, issuer cert and CRL) and it then stays resident
+    // for the lifetime of the process. That was masked while the filename
+    // came from a module counter, because a second address space reused
+    // `/tmpFile0` and overwrote the first one's bytes; now that the paths are
+    // distinct, a process that builds and tears down servers repeatedly (test
+    // suites, an in-process restart) would accumulate one blob per TrustList
+    // per server. Release them with the address space.
+    //
+    // Registering once per TrustList is bounded: the $$promoted guard above
+    // means this runs once per node, and registerShutdownTask has no
+    // unregister counterpart.
+    trustList.addressSpace.registerShutdownTask(() => {
+        try {
+            if (MemFs.existsSync(filename)) {
+                MemFs.unlinkSync(filename);
+            }
+        } catch (err) {
+            debugLog("could not release trust list backing file", filename, (err as Error).message);
+        }
+    });
+
     // Store filename for use in _closeAndUpdate
     trustListEx.$$filename = filename;
     // Initialize write lock flag
