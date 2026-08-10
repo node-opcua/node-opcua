@@ -2,6 +2,7 @@
  * @module node-opcua-server-configuration
  */
 
+import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -592,11 +593,35 @@ async function _removeCertificate(
     }
 }
 
-let counter = 0;
+/**
+ * Backing path on the in-memory volume for a TrustList's FileType.
+ *
+ * Replaces a module-scoped `counter`. `memfs` exports one process-wide
+ * volume, but the counter is only unique within one *instance* of this
+ * module, and a process can easily load several (duplicated transitive
+ * dependency, a monorepo resolving two versions). Two TrustLists in
+ * different copies then both take `/tmpFile0` on the same volume and
+ * silently serve each other's bytes.
+ *
+ * A NodeId alone does not fix it either: two OPCUAServers in one
+ * process have separate address spaces in which the same TrustList
+ * NodeId occurs, so they would collide too. The path therefore combines
+ * a per-address-space id with the NodeId. The id is stored on the
+ * address space object itself, not in a module-scoped map, so every
+ * copy of this module sees the same value.
+ */
+function trustListBackingPath(trustList: UATrustList): string {
+    const addressSpace = trustList.addressSpace as IAddressSpace & { $$trustListVolumeId?: string };
+    if (!addressSpace.$$trustListVolumeId) {
+        addressSpace.$$trustListVolumeId = randomBytes(6).toString("hex");
+    }
+    const node = trustList.nodeId.toString().replace(/[^A-Za-z0-9]/g, "_");
+    return `/trustlist_${addressSpace.$$trustListVolumeId}_${node}`;
+}
 
 export async function promoteTrustList(trustList: UATrustList) {
     const trustListEx = trustList as UATrustListEx & { $$promoted?: boolean };
-    
+
     // Prevent double-binding if called multiple times testing
     if (trustListEx.$$promoted) {
         await _initializeLastUpdateTimeFromFilesystem(trustListEx);
@@ -604,8 +629,19 @@ export async function promoteTrustList(trustList: UATrustList) {
     }
     trustListEx.$$promoted = true;
 
-    const filename = `/tmpFile${counter}`;
-    counter += 1;
+    const filename = trustListBackingPath(trustList);
+
+    // The file is normally written by _openTrustList, just before the
+    // FileType Open runs. But Size is readable without Open, and Open
+    // itself falls through to the raw implementation when the group has
+    // no certificateManager, so the path has to exist from promotion
+    // time. Without this, both read ENOENT: Size logs and yields no
+    // value, and Open answers Bad_UnexpectedError instead of presenting
+    // an empty TrustList, which is the correct answer for a group that
+    // has nothing to serve.
+    if (!MemFs.existsSync(filename)) {
+        MemFs.writeFileSync(filename, Buffer.alloc(0));
+    }
 
     // Store filename for use in _closeAndUpdate
     trustListEx.$$filename = filename;
