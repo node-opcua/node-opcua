@@ -312,6 +312,36 @@ Two things worth designing around:
   (`ns=1;s=Aliases/TagVariables/Unit200`) rather than taking the next free numeric id,
   which would shift whenever an unrelated Node happened to be created first.
 
+### Out-of-band store mutations
+
+The binding advances `LastChange` by itself for every change that flows through it:
+`addAlias`, `removeAlias`, `addAliasCategory`, and the `AddAliasesToCategory` /
+`DeleteAliasesFromCategory` Methods. A host that mutates an **injected store**
+directly — replacing entries during a reconcile, re-reading a database, swapping a
+whole subtree — is the one case the binding cannot observe, so such a host reports
+the change itself through the tracker returned by installation:
+
+```ts
+import { installAliasNames, WellKnownCategories } from "node-opcua-alias-name-server";
+
+const { lastChange } = await installAliasNames(server, { store: myStore });
+
+// ... after each out-of-band mutation of myStore:
+await lastChange?.touch(WellKnownCategories.Aliases);
+```
+
+`touch(categoryNodeId, versionTime?)` records the change on that category and rolls
+it up to every ancestor including the `Aliases` root, exactly as an internal change
+would — clause 6.3.1's nested rule, "the latest VersionTime of all Organized
+AliasNames and AliasNameCategories". Touch the most specific category that changed,
+not the root: the rollup moves ancestors for you, and a Client watching one branch
+only re-browses when *that* branch moved. `versionTime` defaults to "now"; pass one
+to backdate a change that was discovered late. Values never move backwards.
+
+This is the supported API for a store whose content changes behind the Server's
+back; there is no store-side change-notification hook, deliberately, so a store
+stays a plain data source.
+
 ## The configuration Methods (clauses 6.3.4, 6.3.5)
 
 Off by default. Turning them on exposes `AddAliasesToCategory` and
