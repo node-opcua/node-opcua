@@ -86,8 +86,13 @@ export class ExpandedNodeId extends NodeId {
 }
 
 export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
+    if (value instanceof ExpandedNodeId) {
+        return new ExpandedNodeId(value.identifierType, value.value, value.namespace, value.namespaceUri, value.serverIndex);
+    }
     const n = coerceNodeId(value);
-    return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/ null, /*serverIndex*/ 0);
+    // a NodeId-like literal may also carry namespaceUri/serverIndex, which coerceNodeId ignores
+    const { namespaceUri, serverIndex } = (value as Partial<ExpandedNodeId>) ?? {};
+    return new ExpandedNodeId(n.identifierType, n.value, n.namespace, namespaceUri ?? null, serverIndex ?? 0);
 }
 /**
  * create an expanded nodeId

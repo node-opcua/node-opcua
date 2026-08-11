@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { QualifiedName } from "node-opcua-data-model";
-import { ExpandedNodeId, NodeId, coerceExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId, NodeIdType, coerceExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AliasNameDataType, AliasNameVerboseDataType } from "..";
 import "should";
 
@@ -49,6 +49,24 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
             reloaded.referencedNodes!.length.should.eql(2);
             reloaded.referencedNodes![0].toString().should.eql(value.referencedNodes![0].toString());
             reloaded.referencedNodes![1].toString().should.eql(value.referencedNodes![1].toString());
+        });
+
+        it("should preserve namespaceUri and serverIndex of referencedNodes at construction and through the binary encoding", () => {
+            // Annex C.2: an aggregating server disambiguates alias targets with
+            // serverIndex (against ServerArray) and namespaceUri - losing either
+            // makes FindAlias results unresolvable for remote servers.
+            const remote = new ExpandedNodeId(NodeIdType.STRING, "Temp1", 2, "urn:remote:pub1:ns", 1);
+            const value = new AliasNameDataType({
+                aliasName: { namespaceIndex: 1, name: "TI101" },
+                referencedNodes: [remote]
+            });
+
+            value.referencedNodes![0].toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:remote:pub1:ns;serverIndex:1");
+
+            const reloaded = binaryRoundTrip(value, AliasNameDataType);
+            reloaded.referencedNodes![0].namespaceUri!.should.eql("urn:remote:pub1:ns");
+            reloaded.referencedNodes![0].serverIndex.should.eql(1);
+            reloaded.referencedNodes![0].toString().should.eql(remote.toString());
         });
 
         it("should expose the standard DataType and encoding NodeIds", () => {
