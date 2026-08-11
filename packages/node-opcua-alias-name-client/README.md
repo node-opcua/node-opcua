@@ -101,6 +101,43 @@ for one, so a later `findAliasVerbose` after a `findAlias` makes no further roun
 Construct one `ClientAliasSet` per session; call `invalidate()` if the Server's address
 space changes underneath it.
 
+## Recovering the ReferenceType of each target
+
+`AliasNameDataType` and `AliasNameVerboseDataType` (clauses 7.2 and 7.3) carry the
+referenced Nodes but **not** the ReferenceType of each Reference: a target linked with a
+vendor subtype of `AliasFor` (clause 8.2) comes back indistinguishable from one linked
+with `AliasFor` itself. That is a limitation of the DataTypes, not of any Server.
+
+Most Clients never care — they want the NodeId. An **aggregator** re-publishing pulled
+aliases does: recorded as plain `AliasFor`, a downstream `FindAlias` whose
+`ReferenceTypeFilter` names the subtype can no longer be answered faithfully across the
+aggregation hop. `readAliasReferenceTypes` recovers the actual ReferenceType per
+(alias, target) by browsing the `AliasNameType` instance Nodes:
+
+```ts
+import { readAliasReferenceTypes } from "node-opcua-alias-name-client";
+
+const entries = await aliases.findAliasVerbose("%", { categoryNodeId });
+const referenceTypes = await readAliasReferenceTypes(session, entries);
+for (const entry of entries) {
+    for (const { targetNodeId, referenceTypeId } of referenceTypes.get(entry) ?? []) {
+        republish(entry.aliasName, targetNodeId, referenceTypeId);
+    }
+}
+```
+
+The map is keyed by the very elements passed in; an entry the Server could not resolve
+(deleted since the find, for instance) is absent rather than guessed at. Callers that
+already know the `AliasNameType` instance NodeIds can pass those instead of verbose
+entries and skip the lookup step.
+
+**Cost.** One `TranslateBrowsePaths` request per 1000 aliases to locate the instance
+Nodes (skipped when NodeIds are passed), one `Browse` request per 1000, plus a
+`BrowseNext` round trip per continuation the Server imposes — batched precisely so a
+large category is a handful of round trips, never one per alias. Lower `maxNodesPerCall`
+when a Server advertises tighter `OperationLimits` (OPC 10000-5 clause 6.3.11). If you
+only resolve names to NodeIds, skip all of it.
+
 ## Nodes on another Server (Annex A)
 
 A returned `ExpandedNodeId` may carry a non-zero `ServerIndex`, which says only "this Node
