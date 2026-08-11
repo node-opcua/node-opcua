@@ -182,6 +182,26 @@ export interface InstallAliasNamesResult {
     /**
      * Keeps `LastChange` correct across the hierarchy, and persists it
      * (clause 6.3.1).
+     *
+     * The binding advances it by itself for every change that flows through this
+     * package — `addAlias`, `removeAlias`, `addAliasCategory`, and the
+     * `AddAliasesToCategory` / `DeleteAliasesFromCategory` Methods. A host that
+     * mutates an **injected store out-of-band** — replacing entries during a
+     * reconcile, pulling a fresh snapshot from a database — is the one case the
+     * binding cannot see, so such a host reports the change itself:
+     *
+     * ```ts
+     * const { lastChange } = await installAliasNames(server, { store: myStore });
+     * // ... after each out-of-band mutation of myStore:
+     * await lastChange?.touch(categoryNodeId);
+     * ```
+     *
+     * `touch(categoryNodeId, versionTime?)` records the change on that category
+     * and rolls it up to every ancestor including the `Aliases` root, exactly as
+     * an internal change would (clause 6.3.1's nested-category rule). Omit
+     * `versionTime` to use "now"; pass one to backdate a change that was
+     * discovered late. This is the supported API for out-of-band store
+     * mutations.
      */
     lastChange?: LastChangeTracker;
     /**

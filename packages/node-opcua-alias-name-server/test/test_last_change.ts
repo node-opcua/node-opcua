@@ -3,9 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import "mocha";
 import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-space";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { fromVersionTime, toVersionTime } from "node-opcua-alias-name-common";
+import { fromVersionTime, type IAliasStore, toVersionTime } from "node-opcua-alias-name-common";
 import { AttributeIds } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
@@ -340,6 +340,56 @@ describe("OPC 10000-17: LastChange (clause 6.3.1)", () => {
             const tagVariables = getObject(space, WellKnownCategories.TagVariables);
             addAlias(space, tagVariables, "TI101", space.getOwnNamespace().addVariable({ browseName: "T1", dataType: "Double" }));
             readLastChange(space, WellKnownCategories.TagVariables).should.eql(4242);
+        });
+    });
+
+    describe("out-of-band mutations of an injected store", () => {
+        // A host that injects its own IAliasStore and mutates it directly -
+        // replacing entries during a reconcile, re-reading a database - changes
+        // aliases without going through addAlias or the configuration Methods,
+        // so the binding cannot see the change. `touch` on the tracker returned
+        // by installation is the supported way to report it.
+
+        it("should advance the root Aliases LastChange when the host calls touch (clause 9.2)", async () => {
+            const space = await pristine();
+            const store: IAliasStore = { find: () => [], lastChange: () => 0 };
+            const { lastChange } = await installAliasNamesOnAddressSpace(space, { store, nowVersionTime: () => 1000 });
+            readLastChange(space, WellKnownCategories.Aliases).should.eql(0);
+
+            // the host mutated `store` behind the Server's back, then reports it
+            await lastChange!.touch(WellKnownCategories.Aliases);
+
+            readLastChange(space, WellKnownCategories.Aliases).should.eql(1000);
+        });
+
+        it("should roll a touch on a nested category up to every ancestor (clause 6.3.1)", async () => {
+            const space = await pristine();
+            const store: IAliasStore = { find: () => [], lastChange: () => 0 };
+            let now = 1000;
+            const { lastChange } = await installAliasNamesOnAddressSpace(space, { store, nowVersionTime: () => now });
+            const unit200 = addAliasCategory(space, WellKnownCategories.TagVariables, "Unit200");
+            const wells = addAliasCategory(space, unit200, "Wells");
+            const sibling = addAliasCategory(space, WellKnownCategories.TagVariables, "Sibling");
+
+            now = 7000;
+            await lastChange!.touch(wells.nodeId);
+
+            readLastChange(space, wells.nodeId).should.eql(7000, "the category that changed");
+            readLastChange(space, unit200.nodeId).should.eql(7000, "its parent");
+            readLastChange(space, WellKnownCategories.TagVariables).should.eql(7000, "its grandparent");
+            readLastChange(space, WellKnownCategories.Aliases).should.eql(7000, "the root");
+            readLastChange(space, sibling.nodeId).should.eql(0, "a sibling branch is unaffected");
+        });
+
+        it("should honour an explicit VersionTime, for a change discovered late", async () => {
+            const space = await pristine();
+            const store: IAliasStore = { find: () => [], lastChange: () => 0 };
+            const { lastChange } = await installAliasNamesOnAddressSpace(space, { store, nowVersionTime: () => 9999 });
+
+            const recorded = await lastChange!.touch(WellKnownCategories.Aliases, 4321);
+
+            recorded.should.eql(4321);
+            readLastChange(space, WellKnownCategories.Aliases).should.eql(4321);
         });
     });
 

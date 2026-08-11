@@ -83,10 +83,20 @@ export class LastChangeTracker {
     /**
      * Record that a category changed, and roll the change up to every ancestor.
      *
+     * This is a public entry point, not only the binding's internal hook: a host
+     * that mutates an injected `IAliasStore` out-of-band — outside
+     * `addAlias`/`removeAlias` and the configuration Methods — calls it to
+     * report the change, since the binding has no way to observe one. Reach the
+     * tracker through the `lastChange` field of the `installAliasNames` result.
+     *
      * Ancestors are walked at write time rather than computed at read time, so
      * the Property a Client subscribes to actually carries the value — a
      * rollup that existed only inside the Server would be invisible on the
      * wire, which is the whole point of the Property.
+     *
+     * @param categoryNodeId the category that changed
+     * @param versionTime the change's VersionTime; defaults to "now"
+     * @returns the VersionTime that was recorded
      */
     public async touch(categoryNodeId: NodeId, versionTime?: number): Promise<number> {
         const value = versionTime ?? this.now();
