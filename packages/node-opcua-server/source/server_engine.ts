@@ -403,6 +403,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
     private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
+    private _serverArrayProvider?: () => string[];
 
     constructor(options?: ServerEngineOptions) {
         super();
@@ -758,6 +759,33 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     }
 
     /**
+     * Install a provider that contributes additional entries to the `Server_ServerArray`
+     * variable (ns=0;i=2254).
+     *
+     * OPC 10000-17 (GDS) Annex C.2 requires an aggregating server to expose the ServerUri
+     * of every aggregated server in its ServerArray, so that `ExpandedNodeId.serverIndex`
+     * values returned by services such as `FindAlias` can be resolved by clients.
+     *
+     * The ServerArray value served to clients is `[serverNameUrn, ...provider()]`:
+     * index 0 always remains this server's own URI, and the provider supplies the
+     * entries for indices 1..n.
+     *
+     * Index-stability contract: a `serverIndex` handed out to clients must keep
+     * designating the same server for the lifetime of this server. The provider must
+     * therefore never reorder or compact its array when a server is withdrawn; instead
+     * it must leave an empty-string hole at the withdrawn position so that subsequent
+     * indices do not shift.
+     *
+     * The provider is consulted on every read of the variable, so its result should be
+     * cheap to compute (e.g. a cached array). Pass `null` to remove a previously
+     * installed provider. The provider may be installed before or after the server is
+     * started.
+     */
+    public setServerArrayProvider(provider: (() => string[]) | null): void {
+        this._serverArrayProvider = provider || undefined;
+    }
+
+    /**
      * the urn of the server namespace
      */
     public get serverNamespaceUrn(): string {
@@ -924,18 +952,18 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     set: null // read only
                 });
 
-                const server_NameUrn_var = new Variant({
-                    arrayType: VariantArrayType.Array,
-                    dataType: DataType.String,
-                    value: [
-                        this.serverNameUrn // this is us !
-                    ]
-                });
                 const server_ServerArray_Id = makeNodeId(VariableIds.Server_ServerArray); // ns=0;i=2254
 
                 bindVariableIfPresent(server_ServerArray_Id, {
-                    get() {
-                        return server_NameUrn_var;
+                    get: () => {
+                        // index 0 is always this server's own URI; an installed provider
+                        // (see setServerArrayProvider) contributes indices 1..n
+                        const additionalEntries = this._serverArrayProvider ? this._serverArrayProvider() : [];
+                        return new Variant({
+                            arrayType: VariantArrayType.Array,
+                            dataType: DataType.String,
+                            value: [this.serverNameUrn, ...additionalEntries]
+                        });
                     },
                     set: null // read only
                 });
