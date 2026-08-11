@@ -78,6 +78,28 @@ describe("testing ExpandedNodeId", function() {
         exNodeId2.toString().should.eql("ns=0;i=10");
 
     });
+    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of an ExpandedNodeId", function() {
+
+        const exNodeId = new ExpandedNodeId(NodeIdType.STRING, "Temp1", 2, "urn:some:namespace", 3);
+        const exNodeId2 = coerceExpandedNodeId(exNodeId);
+        exNodeId2.should.not.equal(exNodeId);
+        should(exNodeId2.namespaceUri).eql("urn:some:namespace");
+        should(exNodeId2.serverIndex).eql(3);
+        exNodeId2.toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:some:namespace;serverIndex:3");
+
+    });
+    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of a NodeId-like literal", function() {
+
+        const exNodeId = coerceExpandedNodeId({
+            identifierType: NodeIdType.STRING,
+            value: "Temp1",
+            namespace: 2,
+            namespaceUri: "urn:some:namespace",
+            serverIndex: 3
+        });
+        exNodeId.toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:some:namespace;serverIndex:3");
+
+    });
 
 
     it("ExpandedNodeId.fromNodeId", () => {
