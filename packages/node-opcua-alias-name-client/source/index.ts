@@ -20,4 +20,9 @@ export {
     TOPICS
 } from "./client_alias_set.js";
 export { AliasNameCallError, AliasNameMethodNotSupportedError } from "./errors.js";
+export {
+    type AliasReferenceTypeEntry,
+    type ReadAliasReferenceTypesOptions,
+    readAliasReferenceTypes
+} from "./read_alias_reference_types.js";
 export { LOCAL_SERVER_INDEX, ServerIndexResolver } from "./server_index_resolver.js";
