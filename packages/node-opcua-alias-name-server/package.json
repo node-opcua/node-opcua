@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-alias-name-server",
-    "version": "2.176.0",
+    "version": "2.176.3",
     "description": "pure nodejs OPCUA SDK - server-side alias names (OPC 10000-17)",
     "scripts": {
         "build": "tsc -b",
@@ -28,7 +28,7 @@
         "node-opcua-variant": "2.176.0"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.176.0",
+        "node-opcua-address-space": "2.176.3",
         "node-opcua-leak-detector": "2.175.6",
         "node-opcua-nodesets": "2.175.3"
     },
