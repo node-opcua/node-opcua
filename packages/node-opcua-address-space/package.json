@@ -37,7 +37,7 @@
         "node-opcua-extension-object": "2.176.0",
         "node-opcua-factory": "2.176.0",
         "node-opcua-nodeid": "2.176.0",
-        "node-opcua-nodeset-ua": "2.176.0",
+        "node-opcua-nodeset-ua": "2.176.2",
         "node-opcua-numeric-range": "2.176.0",
         "node-opcua-object-registry": "2.175.6",
         "node-opcua-pseudo-session": "2.176.0",
