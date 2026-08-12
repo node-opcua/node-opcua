@@ -4,6 +4,8 @@ import path from "node:path";
 import type { ImportDeclarationStructure, OptionalKind, SourceFile } from "ts-morph";
 import { Node, Project, SyntaxKind } from "ts-morph";
 
+import { retryOnTransientWrite } from "./private/fs_retry";
+
 const dryRun = false;
 
 const NODE_BUILTINS = new Set([
@@ -209,7 +211,7 @@ function fixFile(file: SourceFile) {
     });
 
     if (!dryRun) {
-        file.saveSync();
+        retryOnTransientWrite(() => file.saveSync());
     }
 }
 

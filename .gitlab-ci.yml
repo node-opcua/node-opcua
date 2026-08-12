@@ -27,8 +27,9 @@ cache:
         - pnpm recursive install --frozen-lockfile=false --ignore-scripts
     script:
         - pnpm run consistency
-        # build:all = generate + tsc. Needed because _generated_opcua_types.ts
-        # is gitignored; the lean `build` (tsc only) doesn't produce it.
+        # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
+        # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
+        # generation is deliberately NOT part of it: that output is committed.
         - pnpm run build:all
         - pnpm run pretest
         - node ${SECURITY_OPTIONS} packages/parallel_test.js

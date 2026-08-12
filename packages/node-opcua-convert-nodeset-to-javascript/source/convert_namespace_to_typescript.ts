@@ -7,28 +7,10 @@ import { DataTypeIds } from "node-opcua-constants";
 import { ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
 import { convertTypeToTypescript } from "./convert_to_typescript";
 import { constructCache } from "./private/cache";
+import { writeFileSyncRetry } from "./private/fs_retry";
 import { Options } from "./options";
 
-// Robust write: on Windows, transient locks from antivirus, OneDrive, or the
-// TS language server (when files are open in an IDE) surface as ERROR_SHARING_VIOLATION
-// (errno -4094 / code UNKNOWN/EBUSY/EPERM). Retry with backoff.
-function writeFileSyncRetry(filePath: string, content: string, attempts = 6): void {
-    for (let i = 0; i < attempts; i++) {
-        try {
-            fs.writeFileSync(filePath, content);
-            return;
-        } catch (err) {
-            const code = (err as NodeJS.ErrnoException).code;
-            const transient = code === "UNKNOWN" || code === "EBUSY" || code === "EPERM";
-            if (!transient || i === attempts - 1) throw err;
-            // Synchronous backoff (tight loop is fine for ~ms-scale retries).
-            const until = Date.now() + 50 * (i + 1);
-            while (Date.now() < until) { /* spin */ }
-        }
-    }
-}
-
-function getPackageFolder(dependency: string, options: Options) {
+function findPackageJson(dependency: string, options: Options): string | undefined {
     const l = [...(options.lookupFolders || [])];
     l.push(path.join(__dirname, "../../"));
     for (const folder of l) {
@@ -37,6 +19,14 @@ function getPackageFolder(dependency: string, options: Options) {
             continue;
         }
         return d;
+    }
+    return undefined;
+}
+
+function getPackageFolder(dependency: string, options: Options) {
+    const found = findPackageJson(dependency, options);
+    if (found) {
+        return found;
     }
     //
     console.log("cannot find package.json for ", dependency, " : creating it");
@@ -63,10 +53,40 @@ function getPackageInfo(dependency: string, options: Options) {
     return p;
 }
 
-// The version stamped on the generated packages must be the monorepo release version
-// (lerna.json), not the version of some sibling package: lerna only bumps the packages
-// it considers changed, so a sibling can lag behind the release and make every
-// regeneration drift away from what was committed.
+// The version stamped on a generated package is, in order of preference:
+//
+//  1. the version the package already carries. Regenerating is not a release: the
+//     bumping is lerna's job, and lerna only bumps what it considers changed. If
+//     generation re-stamped every package with the monorepo release version, every
+//     regeneration would move packages lerna deliberately left behind, and the
+//     dependants still pinning the older version would fail `pnpm run consistency`.
+//  2. for a brand new package (nothing on disk yet), the current version of
+//     node-opcua-address-space, so it enters the workspace in step with the SDK.
+//  3. the monorepo release version, when even that is not resolvable.
+function getGeneratedPackageVersion(info: Info, options: Options): string {
+    const packagejson = path.join(info.folder, "package.json");
+    if (fs.existsSync(packagejson)) {
+        try {
+            const { version } = JSON.parse(fs.readFileSync(packagejson, "utf8"));
+            if (version) {
+                return version;
+            }
+        } catch (err) {
+            // malformed package.json: fall through and seed a fresh version
+        }
+    }
+    const seed = findPackageJson("node-opcua-address-space", options);
+    if (seed) {
+        const { version } = JSON.parse(fs.readFileSync(seed, "utf8"));
+        if (version) {
+            return version;
+        }
+    }
+    return getReleaseVersion(options);
+}
+
+// Monorepo release version (lerna.json), used only to seed a package that has no
+// version of its own yet.
 function getReleaseVersion(options: Options): string {
     let folder = __dirname;
     for (let i = 0; i < 6; i++) {
@@ -88,7 +108,12 @@ function getReleaseVersion(options: Options): string {
         folder = parent;
     }
     // standalone use (the tool installed from npm): fall back on the SDK version.
-    return getPackageInfo("node-opcua-address-space-base", options).version;
+    const base = findPackageJson("node-opcua-address-space-base", options);
+    const version = base ? JSON.parse(fs.readFileSync(base, "utf8")).version : undefined;
+    if (!version) {
+        throw new Error("cannot determine a version to stamp on the generated packages");
+    }
+    return version;
 }
 
 interface Info {
@@ -176,7 +201,7 @@ async function _output_index_ts_file(info: Info): Promise<void> {
 }
 async function _output_package_json(info: Info, options: Options): Promise<void> {
     const packagejson = path.join(info.folder, "package.json");
-    const version = getReleaseVersion(options);
+    const version = getGeneratedPackageVersion(info, options);
 
     const content2: string[] = [];
     content2.push(`{`);

@@ -29,9 +29,9 @@ Then propagate, from the repository root:
 | `packages/node-opcua-constants/source/opcua_node_ids.ts` | `node code_gen/generate_node_ids.js` | `code_gen/latest/NodeIds.csv` |
 | `packages/node-opcua-status-code/source/_generated_status_codes.ts` | `node code_gen/generate_status_code.js` | `code_gen/latest/StatusCode.csv` |
 | `packages/node-opcua-types/xmlschemas/Opc.Ua.Types.bsd` | `cp code_gen/latest/Opc.Ua.Types.bsd packages/node-opcua-types/xmlschemas/` | upstream |
-| `packages/node-opcua-types/source/_generated_opcua_types.ts` | `pnpm --filter node-opcua-types run generate` | the `.bsd` above |
+| `packages/node-opcua-types/source/_generated_opcua_types.ts` | `pnpm run generate:types` | the `.bsd` above |
 | `packages/node-opcua-nodesets/nodesets/*.xml` | `cp code_gen/latest/<file>.xml packages/node-opcua-nodesets/nodesets/` | upstream |
-| `packages/node-opcua-nodeset-*/source/**` | `pnpm --filter node-opcua-nodeset-<x> run generate` | the nodeset XML above |
+| `packages/node-opcua-nodeset-*/source/**` | `pnpm run generate:nodesets` | the nodeset XML above |
 
 Then `npx tsc -b packages` and run the test suites.
 
@@ -45,7 +45,25 @@ NodeId `0`. So always regenerate in this order:
 
 1. `generate_node_ids.js` → `opcua_node_ids.ts`
 2. `tsc -b packages/node-opcua-constants`
-3. `pnpm --filter node-opcua-types run generate`
+3. `pnpm run generate:types`
+
+## Generation is not part of the build
+
+`pnpm run build` and `pnpm run build:all` never regenerate the nodeset packages.
+Their output is committed, so regeneration is a deliberate developer action —
+run `pnpm run generate:nodesets` when a nodeset XML or the convert tool changed,
+and commit the result. `build:all` only adds `generate:types`, because
+`_generated_opcua_types.ts` is gitignored and has to be produced at build time.
+
+## Versions of generated packages
+
+The convert tool never re-stamps a `node-opcua-nodeset-*` package with the
+monorepo release version: it keeps whatever version the package already carries,
+and only a package that does not exist yet is seeded from
+`node-opcua-address-space`. Version bumping belongs to `lerna version`, which
+bumps only what changed — restamping every regenerated package would move
+packages lerna left behind and break `pnpm run consistency` for the dependants
+still pinning the older version.
 
 ## Notes
 

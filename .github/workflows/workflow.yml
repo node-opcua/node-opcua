@@ -78,8 +78,9 @@ jobs:
       # doesn't fail with ERR_PNPM_IGNORED_BUILDS. The explicit `pnpm run
       # build` step that follows does the compile that's actually needed.
       - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
-      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
-      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
+      # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
       # pwsh, not bash: this step exists to surface the *raw* exit code, and
@@ -148,8 +149,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
-      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
-      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
+      # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
       - run: pnpm run test
@@ -170,8 +172,9 @@ jobs:
           cache: 'pnpm'
       - run: npm install -g c8 coveralls codecov
       - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
-      # build:all = generate + tsc. Needed because _generated_opcua_types.ts
-      # is gitignored; the lean `build` (tsc only) doesn't produce it.
+      # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
+      # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
+      # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
       - run: make test-cov

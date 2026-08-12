@@ -53,8 +53,10 @@ jobs:
         run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
 
       - name: Build
-        # build:all = generate + tsc. Needed because _generated_opcua_types.ts
-        # is gitignored; the lean `build` (tsc only) doesn't produce it.
+        # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
+        # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
+        # generation is deliberately NOT part of it: that output is committed,
+        # and regenerating here would restamp versions lerna is about to set.
         run: pnpm run build:all
 
       - name: Publish
