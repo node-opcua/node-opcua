@@ -13,7 +13,7 @@ import {
     type DTSessionSecurityDiagnostics,
     ensureObjectIsSecure,
     type ISessionBase,
-    type IUserManager,
+    type IServerBase,
     removeElement,
     SessionContext,
     type UADynamicVariableArray,
@@ -138,16 +138,23 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     private channel_abort_event_handler: any;
 
-    constructor(parent: ServerEngine, userManager: IUserManager, sessionTimeout: number) {
+    constructor(parent: ServerEngine, server: IServerBase, sessionTimeout: number) {
         super();
 
         this.parent = parent; // SessionEngine
 
         ServerSession.registry.register(this);
 
+        // The whole IServerBase, not a `{ userManager }` wrapper around one of
+        // its fields: SessionContext.getCurrentUserRoles also consults
+        // server.roleResolvers (OPC 10000-18 §4.4 identity mapping),
+        // server.rolePolicyOverride and server.unresolvedPermissionPolicy.
+        // Wrapping the manager alone made all three invisible to every real
+        // session, so e.g. a Thumbprint rule accepted by AddIdentity was never
+        // applied when the matching X509 session actually connected.
         this.sessionContext = new SessionContext({
             session: this,
-            server: { userManager }
+            server
         });
 
         assert(isFinite(sessionTimeout));
