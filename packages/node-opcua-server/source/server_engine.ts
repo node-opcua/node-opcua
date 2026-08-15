@@ -1651,7 +1651,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const sessionTimeout = options.sessionTimeout || 1000;
         assert(typeof sessionTimeout === "number");
 
-        const session = new ServerSession(this, options.server.userManager || {}, sessionTimeout);
+        // Hand the session the IServerBase itself. Reducing it to
+        // `options.server.userManager` severed roleResolvers,
+        // rolePolicyOverride and unresolvedPermissionPolicy from every real
+        // session's SessionContext (see ServerSession's constructor).
+        const session = new ServerSession(this, options.server, sessionTimeout);
 
         debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
