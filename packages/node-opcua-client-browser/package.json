@@ -35,15 +35,15 @@
         "node-opcua-transport": "2.176.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.62.0",
+        "@playwright/test": "^1.62.1",
         "@types/ws": "^8.18.1",
         "buffer": "^6.0.3",
-        "esbuild": "^0.28.1",
+        "esbuild": "^0.28.2",
         "events": "^3.3.0",
         "node-opcua-leak-detector": "2.175.6",
         "process": "^0.11.10",
         "util": "^0.12.5",
-        "ws": "^8.21.1"
+        "ws": "^8.21.3"
     },
     "author": "Sterfive SAS",
     "license": "MIT",

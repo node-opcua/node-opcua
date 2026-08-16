@@ -14,7 +14,7 @@
     "type": "module",
     "dependencies": {
         "chalk": "4.1.2",
-        "memfs": "^4.64.0",
+        "memfs": "^4.68.1",
         "node-opcua-address-space": "2.176.3",
         "node-opcua-address-space-base": "2.176.0",
         "node-opcua-assert": "2.175.6",

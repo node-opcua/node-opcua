@@ -65,7 +65,7 @@
     "devDependencies": {
         "@biomejs/biome": "^2.5.8",
         "@types/mocha": "^10.0.10",
-        "@types/node": "24.12.2",
+        "@types/node": "24.13.3",
         "app-module-path": "^2.2.0",
 
         "bignumber.js": "^11.1.5",
@@ -73,7 +73,7 @@
         "enum": "3.0.4",
         "ersatz-node-expat": "^0.1.6",
         "json5": "^2.2.3",
-        "mocha": "12.0.0-rc.1",
+        "mocha": "12.0.0-rc.6",
         "mocha-lcov-reporter": "^1.3.0",
         "prettier": "^3.9.6",
         "should": "^13.2.3",

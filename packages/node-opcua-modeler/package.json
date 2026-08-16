@@ -14,7 +14,7 @@
     "license": "MIT",
     "dependencies": {
         "cli-table3": "0.6.5",
-        "csv-parse": "7.0.1",
+        "csv-parse": "7.0.2",
         "node-opcua-address-space": "2.176.3",
         "node-opcua-assert": "2.175.6",
         "node-opcua-basic-types": "2.176.0",
