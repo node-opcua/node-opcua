@@ -89,6 +89,24 @@ export interface InstallRoleBasedSecurityOptions {
     persistencePath?: string;
     /** Encrypt that archive at rest (AES-256-GCM, key derived from this secret). */
     persistenceSecret?: string;
+    /**
+     * Install the `UserManagement` Object (OPC 10000-18 §5). Default `true`.
+     *
+     * Set `false` to model a server that implements the RoleSet — roles and
+     * their identity mappings — **without** the optional `UserManagement`
+     * companion Object. That shape is common in the field, and it behaves
+     * differently in a client in a way worth being able to test: `readUsers()`
+     * answers with an *empty list* rather than failing, because there is no API
+     * to enumerate accounts at all. A client cannot tell that apart from "this
+     * server has no users" unless it looks for the Object.
+     *
+     * **Authentication is unaffected.** The `userManager` bridge still validates
+     * credentials against the seeded user store and still resolves Roles; only
+     * the Object exposing user *administration* is left out. That is exactly the
+     * real-world case: the server knows its users, but offers no way to list or
+     * manage them over OPC UA.
+     */
+    userManagement?: boolean;
 }
 
 /** The shared stores + bridge produced by {@link createRoleBasedSecurity}. */
@@ -106,7 +124,11 @@ export interface RoleBasedSecurity {
     install(
         server: IServerForRoleSet & IServerForUserManagement,
         options?: InstallRoleBasedSecurityOptions
-    ): Promise<{ roleSet: InstallRoleSetResult; userManagement: InstallUserManagementResult }>;
+    ): Promise<{
+        roleSet: InstallRoleSetResult;
+        /** Absent when `userManagement: false` — there is nothing to return. */
+        userManagement?: InstallUserManagementResult;
+    }>;
 }
 
 const userNameRule = (userName: string): IdentityMappingRuleType =>
@@ -200,6 +222,11 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
             }
 
             const roleSet = await installRoleSet(server, { store: identityStore, persistence });
+            if (installOptions?.userManagement === false) {
+                // Deliberately no UserManagement Object. Credentials still work:
+                // the userManager bridge authenticates from userStore either way.
+                return { roleSet };
+            }
             const userManagement = await installUserManagement(server, { store: userStore, persistence });
             return { roleSet, userManagement };
         }

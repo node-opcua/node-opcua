@@ -1,10 +1,15 @@
 import "mocha";
+import { AddressSpace } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { sameNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
 import { serializeUser, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask } from "node-opcua-types";
 import should from "should";
 import { createRoleBasedSecurity } from "../source/install_role_based_security.js";
+import type { IServerForRoleSet } from "../source/install_role_set.js";
+import type { IServerForUserManagement } from "../source/install_user_management.js";
 
 describe("createRoleBasedSecurity — one store behind the userManager bridge", () => {
     it("seeds users + roles and exposes them through getUserRoles AND getIdentitiesForRole", async () => {
@@ -133,5 +138,82 @@ describe("createRoleBasedSecurity — one store behind the userManager bridge", 
                 err.message.should.match(/invalid userConfiguration/);
             }
         );
+    });
+});
+
+describe("createRoleBasedSecurity — a RoleSet without UserManagement", () => {
+    /**
+     * Many servers implement the RoleSet without the optional `UserManagement`
+     * companion Object of §5. That shape is not exotic, and it behaves
+     * differently in a client: `readUsers()` answers with an empty list rather
+     * than failing, because there is no API to enumerate accounts at all.
+     *
+     * Being able to stand one up is what makes that client behaviour testable —
+     * previously the only way to see it was to find a third-party server.
+     */
+    let addressSpace: AddressSpace;
+    let server: IServerForRoleSet & IServerForUserManagement;
+
+    beforeEach(async function () {
+        this.timeout(30000);
+        addressSpace = AddressSpace.create();
+        addressSpace.registerNamespace("http://test");
+        await generateAddressSpace(addressSpace, [nodesets.standard]);
+        server = { roleResolvers: [], engine: { addressSpace } };
+    });
+
+    afterEach(() => {
+        addressSpace.dispose();
+    });
+
+    const seeded = () =>
+        createRoleBasedSecurity({
+            users: [{ userName: "alice", password: "alicePassword123", roles: [WellKnownRoleIds.Operator] }]
+        });
+
+    it("installs the UserManagement Object by default", async () => {
+        const security = await seeded();
+        const result = await security.install(server);
+        should.exist(result.userManagement);
+    });
+
+    it("omits it, and reports nothing to return, when userManagement is false", async () => {
+        const security = await seeded();
+        const result = await security.install(server, { userManagement: false });
+        should.not.exist(result.userManagement);
+    });
+
+    it("still installs the RoleSet", async () => {
+        // The point of the option is a server that has roles but no user
+        // administration — not a server with neither.
+        const security = await seeded();
+        const result = await security.install(server, { userManagement: false });
+        should.exist(result.roleSet);
+        server.roleResolvers.should.have.length(1);
+    });
+
+    it("keeps the seeded identity mapping, so roles still resolve", async () => {
+        const security = await seeded();
+        await security.install(server, { userManagement: false });
+        const identities = security.identityStore.getIdentitiesForRole(WellKnownRoleIds.Operator);
+        identities.should.have.length(1);
+        (identities[0].criteria ?? "").should.equal("alice");
+    });
+
+    it("still authenticates: the bridge validates against the user store", async () => {
+        // Authentication is unaffected — only the Object exposing user
+        // *administration* is left out. The server knows alice; it simply offers
+        // no way to enumerate or manage her over OPC UA.
+        const security = await seeded();
+        await security.install(server, { userManagement: false });
+
+        // isValidUserAsync is callback-style, bound to the ServerSession.
+        const check = (userName: string, password: string) =>
+            new Promise<boolean>((resolve) => {
+                security.userManager.isValidUserAsync.call({}, userName, password, (_err, ok) => resolve(!!ok));
+            });
+
+        (await check("alice", "alicePassword123")).should.be.true();
+        (await check("alice", "wrong")).should.be.false();
     });
 });
