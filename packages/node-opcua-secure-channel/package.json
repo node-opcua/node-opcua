@@ -19,7 +19,7 @@
         "node-opcua-binary-stream": "2.176.0",
         "node-opcua-chunkmanager": "2.176.0",
         "node-opcua-common": "2.176.0",
-        "node-opcua-crypto": "5.4.0",
+        "node-opcua-crypto": "5.5.0",
         "node-opcua-debug": "2.175.6",
         "node-opcua-factory": "2.176.0",
         "node-opcua-nodeid": "2.176.0",

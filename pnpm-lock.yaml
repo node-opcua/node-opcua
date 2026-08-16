@@ -63,8 +63,8 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
       csv-parse:
-        specifier: 7.0.1
-        version: 7.0.1
+        specifier: 7.0.2
+        version: 7.0.2
       dequeue:
         specifier: ^1.0.5
         version: 1.0.5
@@ -90,17 +90,17 @@ importers:
         specifier: 5.3.2
         version: 5.3.2
       memfs:
-        specifier: ^4.64.0
-        version: 4.64.0(tslib@2.8.1)
+        specifier: ^4.68.1
+        version: 4.68.1
       mocha-clean:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -145,8 +145,8 @@ importers:
         injected: true
     devDependencies:
       '@biomejs/biome':
-        specifier: ^2.5.6
-        version: 2.5.6
+        specifier: ^2.5.8
+        version: 2.5.8
       '@types/mocha':
         specifier: ^10.0.10
         version: 10.0.10
@@ -160,8 +160,8 @@ importers:
         specifier: ^11.1.5
         version: 11.1.5
       csv:
-        specifier: ^6.6.1
-        version: 6.6.1
+        specifier: ^6.6.3
+        version: 6.6.3
       enum:
         specifier: 3.0.4
         version: 3.0.4
@@ -187,8 +187,8 @@ importers:
         specifier: ^0.5.21
         version: 0.5.21
       tsx:
-        specifier: ^4.23.1
-        version: 4.23.1
+        specifier: ^4.23.12
+        version: 4.23.12
       typedoc:
         specifier: ^0.28.20
         version: 0.28.20(typescript@5.9.3)
@@ -238,8 +238,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-access:
         specifier: 2.176.0
         version: link:../node-opcua-data-access
@@ -379,8 +379,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-access:
         specifier: 2.176.0
         version: link:../node-opcua-data-access
@@ -497,8 +497,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-model:
         specifier: 2.176.0
         version: link:../node-opcua-data-model
@@ -892,8 +892,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-debug:
         specifier: 2.175.6
         version: link:../node-opcua-debug
@@ -901,8 +901,8 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-status-code:
         specifier: 2.176.0
         version: link:../node-opcua-status-code
@@ -975,8 +975,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-model:
         specifier: 2.176.0
         version: link:../node-opcua-data-model
@@ -1005,8 +1005,8 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-pseudo-session:
         specifier: 2.176.0
         version: link:../node-opcua-pseudo-session
@@ -1108,8 +1108,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-debug:
         specifier: 2.175.6
         version: link:../node-opcua-debug
@@ -1299,8 +1299,8 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-status-code:
         specifier: 2.176.0
         version: link:../node-opcua-status-code
@@ -1537,8 +1537,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-debug:
         specifier: 2.175.6
         version: link:../node-opcua-debug
@@ -1570,8 +1570,8 @@ importers:
         specifier: 2.176.2
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-server:
         specifier: 2.176.3
         version: link:../node-opcua-server
@@ -3027,8 +3027,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-nodeid:
         specifier: 2.176.0
         version: link:../node-opcua-nodeid
@@ -3179,14 +3179,14 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-packet-analyzer:
         specifier: 2.176.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-server-configuration:
         specifier: 2.176.3
         version: link:../node-opcua-server-configuration
@@ -3270,8 +3270,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-debug:
         specifier: 2.175.6
         version: link:../node-opcua-debug
@@ -3373,8 +3373,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-model:
         specifier: 2.176.0
         version: link:../node-opcua-data-model
@@ -3409,8 +3409,8 @@ importers:
         specifier: 2.175.6
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-secure-channel:
         specifier: 2.176.0
         version: link:../node-opcua-secure-channel
@@ -3527,8 +3527,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.5.0
+        version: 5.5.0
       node-opcua-data-model:
         specifier: 2.176.0
         version: link:../node-opcua-data-model
@@ -3545,8 +3545,8 @@ importers:
         specifier: 2.176.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
       node-opcua-pseudo-session:
         specifier: 2.176.0
         version: link:../node-opcua-pseudo-session
@@ -3637,8 +3637,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 6.19.0
-        version: 6.19.0
+        specifier: 6.19.1
+        version: 6.19.1
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4211,59 +4211,59 @@ importers:
 
 packages:
 
-  '@biomejs/biome@2.5.6':
-    resolution: {integrity: sha512-lxVNjv7UF6KfhMJfL9gaUHbWdJdHbsAj6OSmwSYNdhRuG67NxNQ4Xdvh3TUxsSK9sBzJBQhEJj3AopmmNJ5pSA==}
+  '@biomejs/biome@2.5.8':
+    resolution: {integrity: sha512-aeAeeJB9fSDc7Gq+2GqpQxA0qBj6gj1k2R6L1cYqGePKP/baIq1WX8y6B+D+nRsO5ViQL22K/8IwbqERW0q1nw==}
     engines: {node: '>=14.21.3'}
     hasBin: true
 
-  '@biomejs/cli-darwin-arm64@2.5.6':
-    resolution: {integrity: sha512-zMOLZP4oMrjh6m1zcSj1ud2awUPgTuMVbmQhYYWL7J8HwCnbHHBvTm7VBTRuY7epT5bez76IpKYQ11ZAqHFlnw==}
+  '@biomejs/cli-darwin-arm64@2.5.8':
+    resolution: {integrity: sha512-mk1QON9PHllvvLN5gU3f4rMxeh4syK5p9OvKyWH6/W8ueh04uaC8TUXXByhGufWf/y5mQc03ZLM45zU+cmqMjA==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [darwin]
 
-  '@biomejs/cli-darwin-x64@2.5.6':
-    resolution: {integrity: sha512-JAC1VqzvO7Th5ZplU0G2uGfkZbxEe9uDDektPAhF0JLusoz1w+T4okp2bkykI0bbaO2vslKiRfj4gU43JaGreA==}
+  '@biomejs/cli-darwin-x64@2.5.8':
+    resolution: {integrity: sha512-bsGwFMBNyHPyiLSsQcZJxdoRrg1V4JL+d7wEsvUBczlP9U9lwM+7mzQHxI4o1mhBsTmdOBbAb6fHU3Z3snN45w==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [darwin]
 
-  '@biomejs/cli-linux-arm64-musl@2.5.6':
-    resolution: {integrity: sha512-eUa3jeeYvfMt19LBeh6E5PUZpxnTC4JqNWo+EDjTtQjAr2xLGnWaxACtVU1DQqmHYbvThlJzLX+ZsYgrqh2qVw==}
+  '@biomejs/cli-linux-arm64-musl@2.5.8':
+    resolution: {integrity: sha512-VcJNbstduTHx83NGAdhp78/JOcP45BZHXL7yNsfI1uGzdUgegAz2s+mSoT7wK6PBNzLoqG0zDOXaz/RQYVtSiw==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-arm64@2.5.6':
-    resolution: {integrity: sha512-6XsYwCFkp5sMxl85ffhgeGpGgs6A7dRYFnkceZ7WVxvycuTnGdD5xa534Z3xfrBQ0JCMK/mujT6ZNPJoghedwg==}
+  '@biomejs/cli-linux-arm64@2.5.8':
+    resolution: {integrity: sha512-XmFiA0WPYFC+uiUDC8WRFzAIH9bo7vwQLav38Uoq4ETC+T/+uBi0TsYGJECkugY3r8USl3jc+Ae2/irAF6F2lQ==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-linux-x64-musl@2.5.6':
-    resolution: {integrity: sha512-2Vp13QdKysH3HIWLaYLhUUwbK+jbZonJD1K+Lr0d0RO4wH7mkYd43vJixEDm8cUWrowoRz4UUHF1nm9Ae7ym8A==}
+  '@biomejs/cli-linux-x64-musl@2.5.8':
+    resolution: {integrity: sha512-kKmiyokeISRGq2FLwvr+TzsgBusfxaZ0FZNLcOYOpCK/78tRrEjeEBLvq3xLZMpqbANgJdRPI7vZX8ZL37u9/w==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@biomejs/cli-linux-x64@2.5.6':
-    resolution: {integrity: sha512-Pop9VXCFUhFTMfFefZ39S+u2rOPyNp5iHlxbZRwXGACHLy2r0jjiRgJHmaEKJzL3SyxlVeGShXhvvElvWowonA==}
+  '@biomejs/cli-linux-x64@2.5.8':
+    resolution: {integrity: sha512-S5wcm9OBDvLHodD4PUaN488hCpco9QD/9ZxuYJiw4euWtr/oQvLR72z2ixItH8Wd5BCm6FZaeb+YNvOoM1xHtQ==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@biomejs/cli-win32-arm64@2.5.6':
-    resolution: {integrity: sha512-tDGshcm6BdkZOCGnTDX0Y8/U4IfBSlnUU7T56nNDuPEfed+aHg+u8G36NB43fJVl0Os6+QURXIE1yuD7AaEofA==}
+  '@biomejs/cli-win32-arm64@2.5.8':
+    resolution: {integrity: sha512-nILH0mzm3Hi3iEdd7o7GpB8kBR/mSQwfQG/tyBqyNrY2GFtcgwfV9nV8xLmbtUpMNY/Oi0Ml1XgfR4flOdq+AA==}
     engines: {node: '>=14.21.3'}
     cpu: [arm64]
     os: [win32]
 
-  '@biomejs/cli-win32-x64@2.5.6':
-    resolution: {integrity: sha512-WN05KwXnTO/2J45RQPvzZMXf7tZUIofHoR35xIPfCo7pQ2RFidxI8sfb5mGsaTxdMmEOzHzOPRCdA5/fCpc7xQ==}
+  '@biomejs/cli-win32-x64@2.5.8':
+    resolution: {integrity: sha512-I2czzXTY61f3nFJxXoMDq80t7MivxDEnCjE+8sDKoFfcKMaoQdkqhIFQ3KyY0XLzeSpUBYeNAXgD+iOV/BU0VA==}
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
@@ -4614,8 +4614,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-core@4.68.1':
+    resolution: {integrity: sha512-V5oZ4Gt9WJKyQef0n9cAd0N9qjSkIBm3E4MYsgNIWBk5aINCDPKxMPo1i29rBxqiT4Ixf1epklqV9VJMKIxwlw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-fsa@4.64.0':
     resolution: {integrity: sha512-nMWOVbkLFyEgmXZih3wyvxA9XpgyyqyfrINMHvEFqhi7uqfRl7c9ERJt6yX7vgMPrB9Uo+OJO+Spa0cFzPD01w==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-fsa@4.68.1':
+    resolution: {integrity: sha512-HCG72UioncuO7Gw09XNVG+S85e3cq2hrUC/mexBrsWsa3mI7eePkkqWie3uVYbtsb64OR9YGQs5SqaufDRYBcg==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -4626,8 +4638,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-node-builtins@4.68.1':
+    resolution: {integrity: sha512-HK1BTksysokNZxNspqDH0yPaqN9YgR/AYIlYiIaU2Ys4BOk5CdybI7r6BgiZuiiPiV8n4sK/kZdice7Znpy2Kw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-node-to-fsa@4.64.0':
     resolution: {integrity: sha512-WDD9WVs0hb7UAEKTgZW2f66WDrbj7gIIWwpP3spbLyXa0rghtUaFTB8L4gdR3ZCWwiKIsj38/CNijpVmpnuPUw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-node-to-fsa@4.68.1':
+    resolution: {integrity: sha512-lpKmU4X9e/oh8GIuAI7EXaS5QiLNM3KD15CkdhfS6PYmrGvoJqKQcyEfnLgnnaGslh/PFUMYSIZBCf2ejJGw8g==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -4638,8 +4662,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-node-utils@4.68.1':
+    resolution: {integrity: sha512-/GxfW1DWm9SCdkfbvqevLO/P5duobQfmKkHXxdMIDbcZMQeAgooAstIfZhkXpATzq9QbCQsnoWFM/dGHdZfndw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-node@4.64.0':
     resolution: {integrity: sha512-dO+NNkODbUli4uV42bcNrrLvq5rE7SNpdZ5TNd0dtbLsAaNK3MDiIC9lUi+brboGoIjW6vd2fB1qao60nrk5xA==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-node@4.68.1':
+    resolution: {integrity: sha512-R5D9mWtqdURzcOWj1vdXr3APCwX0xchtFT+kmW7fXLNDifWdDrnh26jSID8pdnUfFBxTyfHtFtTL/NWKzIH7kQ==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -4650,8 +4686,20 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  '@jsonjoy.com/fs-print@4.68.1':
+    resolution: {integrity: sha512-oGeZOGPYKK9v1CgeVeEDsLomH1lCnslSpqUN5GmPzrmAVGQlsmsdcXNA2O4lV8Y4xkuSuynx2ITBkUHJVaTbow==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
   '@jsonjoy.com/fs-snapshot@4.64.0':
     resolution: {integrity: sha512-oM7UDeL83q6NBzzsfKAsYKXKVXlykKFqqOLh4xZZKAzzROTlInkPbc6LTDGThEOnPiFiUzA7tYziHG9xavd76Q==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+
+  '@jsonjoy.com/fs-snapshot@4.68.1':
+    resolution: {integrity: sha512-XZfP0FDZN32bbc4t2bZN2qRrYHg5AktJnzk22HRoKGK4BprrbNRH2k5ceSNS/kupKYcofCs+O841+xaAbjnxwQ==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -5041,11 +5089,14 @@ packages:
   csv-parse@7.0.1:
     resolution: {integrity: sha512-+2z7Ar0APQ7Uu6fX4cn+pitRmxjZ1WPBcGmZFKmA74FCyi7Et/XZx8cjNQ5CjbZ4HCOxXCOpRBYvYH08Qa003A==}
 
-  csv-stringify@6.8.1:
-    resolution: {integrity: sha512-tZ6X6TKQyQgCo5OptXcyAbfN1pwmoxEqELPQ7KFazNErx7kiVsDK8o+VYRXhfMl4N9vvOOLXuioquR2MeP847A==}
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
-  csv@6.6.1:
-    resolution: {integrity: sha512-QKTUoSvOaJQGL23LxlGqQiy1n0g2Eg/T72tzsKqtX7APrchpwBpf0SJMX2fzrrXj87wkDAPQBgvoSAVKqKAYHA==}
+  csv-stringify@6.8.3:
+    resolution: {integrity: sha512-gIeSCvq5F4VtXV3naV3VAewLhBkiZBz+PPhTOA8H3Y8h/ELa+R1ml0GZck/4/Nzo9ep2lvOluilJ6MJlbZsKMA==}
+
+  csv@6.6.3:
+    resolution: {integrity: sha512-X2AnOgcxqV+OdLm1M2FOl+bPQrM1LK1jwo4FhEoq8hi8JTR0tQ8ZWv3x3N2gVMIuUmpb4CLrV08rTP49IdFQ8w==}
     engines: {node: '>= 0.1.90'}
 
   dashdash@1.14.1:
@@ -5401,6 +5452,9 @@ packages:
     peerDependencies:
       tslib: '2'
 
+  memfs@4.68.1:
+    resolution: {integrity: sha512-OD+IDRUvIxu3QHL+nFm9gdyugInD27FDJ+sl4B5QgomPHXMlbw+GP918P8VNKu2FkNlVeqBkpzkwROpamVifRw==}
+
   minimatch@10.2.4:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
@@ -5439,16 +5493,16 @@ packages:
     resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  node-opcua-crypto@5.4.0:
-    resolution: {integrity: sha512-jdIPxHKwOKORSk8K/fyE5efgDkhzx87PGoPOoJFZcA6RQTq3Kgbj5n5lYrrKILoTixLxXtM5sfJJkw4Fv5Ifjw==}
+  node-opcua-crypto@5.5.0:
+    resolution: {integrity: sha512-01JFq1qvk8dYvicj3RKxkV1ZPvIP+rOeZTOS6SWxT+K+iUVDb0ERH9GX2AIYf4TyzakbQ2C0tifHAY89pvTTjQ==}
     peerDependencies:
       node-opcua-crypto-web: ^5.4.0
     peerDependenciesMeta:
       node-opcua-crypto-web:
         optional: true
 
-  node-opcua-pki@6.19.0:
-    resolution: {integrity: sha512-3F7BCZg7Ya0ACuV/B9v59aanFH0W0ZbiPRWL/hcJOdiNugo+xQ1QRPwd3OR11oVq8IkM1lloPO+i+UPxEccwZQ==}
+  node-opcua-pki@6.19.1:
+    resolution: {integrity: sha512-75OvAOmTpymrwM7LWhbU5SpONqqvYRhzduCOYLEKhJ8fzjdm7PGzDkCCHccQuKjetNJb8ZX/3jsNLMOK3Ms1yg==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -5738,6 +5792,11 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  tsx@4.23.12:
+    resolution: {integrity: sha512-FDf4L4sYzKtzWYhU/Xm0AQFdTjdIxNo9ElTf2mxXM6k8YMHXzYUe4yODVaXP4V9uMFbVg8c0qyBccK2OOxb45Q==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   tsyringe@4.10.0:
     resolution: {integrity: sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==}
     engines: {node: '>= 6.0.0'}
@@ -5883,39 +5942,39 @@ packages:
 
 snapshots:
 
-  '@biomejs/biome@2.5.6':
+  '@biomejs/biome@2.5.8':
     optionalDependencies:
-      '@biomejs/cli-darwin-arm64': 2.5.6
-      '@biomejs/cli-darwin-x64': 2.5.6
-      '@biomejs/cli-linux-arm64': 2.5.6
-      '@biomejs/cli-linux-arm64-musl': 2.5.6
-      '@biomejs/cli-linux-x64': 2.5.6
-      '@biomejs/cli-linux-x64-musl': 2.5.6
-      '@biomejs/cli-win32-arm64': 2.5.6
-      '@biomejs/cli-win32-x64': 2.5.6
+      '@biomejs/cli-darwin-arm64': 2.5.8
+      '@biomejs/cli-darwin-x64': 2.5.8
+      '@biomejs/cli-linux-arm64': 2.5.8
+      '@biomejs/cli-linux-arm64-musl': 2.5.8
+      '@biomejs/cli-linux-x64': 2.5.8
+      '@biomejs/cli-linux-x64-musl': 2.5.8
+      '@biomejs/cli-win32-arm64': 2.5.8
+      '@biomejs/cli-win32-x64': 2.5.8
 
-  '@biomejs/cli-darwin-arm64@2.5.6':
+  '@biomejs/cli-darwin-arm64@2.5.8':
     optional: true
 
-  '@biomejs/cli-darwin-x64@2.5.6':
+  '@biomejs/cli-darwin-x64@2.5.8':
     optional: true
 
-  '@biomejs/cli-linux-arm64-musl@2.5.6':
+  '@biomejs/cli-linux-arm64-musl@2.5.8':
     optional: true
 
-  '@biomejs/cli-linux-arm64@2.5.6':
+  '@biomejs/cli-linux-arm64@2.5.8':
     optional: true
 
-  '@biomejs/cli-linux-x64-musl@2.5.6':
+  '@biomejs/cli-linux-x64-musl@2.5.8':
     optional: true
 
-  '@biomejs/cli-linux-x64@2.5.6':
+  '@biomejs/cli-linux-x64@2.5.8':
     optional: true
 
-  '@biomejs/cli-win32-arm64@2.5.6':
+  '@biomejs/cli-win32-arm64@2.5.8':
     optional: true
 
-  '@biomejs/cli-win32-x64@2.5.6':
+  '@biomejs/cli-win32-x64@2.5.8':
     optional: true
 
   '@colors/colors@1.5.0':
@@ -6165,6 +6224,13 @@ snapshots:
       thingies: 2.5.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-core@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
+      thingies: 2.5.0(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-fsa@4.64.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-core': 4.64.0(tslib@2.8.1)
@@ -6173,7 +6239,19 @@ snapshots:
       thingies: 2.5.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-fsa@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
+      thingies: 2.5.0(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-node-builtins@4.64.0(tslib@2.8.1)':
+    dependencies:
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-node-builtins@4.68.1(tslib@2.8.1)':
     dependencies:
       tslib: 2.8.1
 
@@ -6184,9 +6262,22 @@ snapshots:
       '@jsonjoy.com/fs-node-utils': 4.64.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-node-to-fsa@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-fsa': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-node-utils@4.64.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-node-builtins': 4.64.0(tslib@2.8.1)
+      glob-to-regex.js: 1.0.1(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-node-utils@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
       glob-to-regex.js: 1.0.1(tslib@2.8.1)
       tslib: 2.8.1
 
@@ -6201,9 +6292,26 @@ snapshots:
       thingies: 2.5.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  '@jsonjoy.com/fs-node@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.68.1(tslib@2.8.1)
+      glob-to-regex.js: 1.0.1(tslib@2.8.1)
+      thingies: 2.5.0(tslib@2.8.1)
+      tslib: 2.8.1
+
   '@jsonjoy.com/fs-print@4.64.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/fs-node-utils': 4.64.0(tslib@2.8.1)
+      tree-dump: 1.1.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-print@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
 
@@ -6211,6 +6319,14 @@ snapshots:
     dependencies:
       '@jsonjoy.com/buffers': 17.65.0(tslib@2.8.1)
       '@jsonjoy.com/fs-node-utils': 4.64.0(tslib@2.8.1)
+      '@jsonjoy.com/json-pack': 17.65.0(tslib@2.8.1)
+      '@jsonjoy.com/util': 17.65.0(tslib@2.8.1)
+      tslib: 2.8.1
+
+  '@jsonjoy.com/fs-snapshot@4.68.1(tslib@2.8.1)':
+    dependencies:
+      '@jsonjoy.com/buffers': 17.65.0(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
       '@jsonjoy.com/json-pack': 17.65.0(tslib@2.8.1)
       '@jsonjoy.com/util': 17.65.0(tslib@2.8.1)
       tslib: 2.8.1
@@ -6662,13 +6778,15 @@ snapshots:
 
   csv-parse@7.0.1: {}
 
-  csv-stringify@6.8.1: {}
+  csv-parse@7.0.2: {}
 
-  csv@6.6.1:
+  csv-stringify@6.8.3: {}
+
+  csv@6.6.3:
     dependencies:
       csv-generate: 4.6.1
-      csv-parse: 7.0.1
-      csv-stringify: 6.8.1
+      csv-parse: 7.0.2
+      csv-stringify: 6.8.3
       stream-transform: 3.5.1
 
   dashdash@1.14.1:
@@ -7008,6 +7126,23 @@ snapshots:
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
 
+  memfs@4.68.1:
+    dependencies:
+      '@jsonjoy.com/fs-core': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-fsa': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-to-fsa': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.68.1(tslib@2.8.1)
+      '@jsonjoy.com/json-pack': 1.11.0(tslib@2.8.1)
+      '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
+      glob-to-regex.js: 1.0.1(tslib@2.8.1)
+      thingies: 2.5.0(tslib@2.8.1)
+      tree-dump: 1.1.0(tslib@2.8.1)
+      tslib: 2.8.1
+
   minimatch@10.2.4:
     dependencies:
       brace-expansion: 5.0.6
@@ -7056,14 +7191,14 @@ snapshots:
 
   mute-stream@3.0.0: {}
 
-  node-opcua-crypto@5.4.0:
+  node-opcua-crypto@5.5.0:
     dependencies:
       '@peculiar/webcrypto': 1.7.1
       '@peculiar/x509': 2.0.0
       reflect-metadata: 0.2.2
       sshpk: 1.18.0
 
-  node-opcua-pki@6.19.0:
+  node-opcua-pki@6.19.1:
     dependencies:
       '@ster5/global-mutex': 3.3.0
       byline: 5.0.0
@@ -7071,7 +7206,7 @@ snapshots:
       chokidar: 4.0.3
       command-line-args: 6.0.2
       command-line-usage: 7.0.4
-      node-opcua-crypto: 5.4.0
+      node-opcua-crypto: 5.5.0
       yauzl: 3.4.0
     transitivePeerDependencies:
       - '@75lb/nature'
@@ -7341,6 +7476,12 @@ snapshots:
   tslib@2.8.1: {}
 
   tsx@4.23.1:
+    dependencies:
+      esbuild: 0.28.1
+    optionalDependencies:
+      fsevents: 2.3.3
+
+  tsx@4.23.12:
     dependencies:
       esbuild: 0.28.1
     optionalDependencies:
