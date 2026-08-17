@@ -3125,7 +3125,7 @@ importers:
         specifier: 2.177.0
         version: link:../node-opcua-role-set-common
       node-opcua-role-set-server:
-        specifier: 2.177.0
+        specifier: 2.177.1
         version: link:../node-opcua-role-set-server
       node-opcua-server:
         specifier: 2.177.0
