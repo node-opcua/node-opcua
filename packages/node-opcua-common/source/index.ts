@@ -49,3 +49,5 @@ export * from "./in_memory_certificate_key_pair_provider";
 export * from "./in_memory_certificate_store";
 export * from "./make_subject";
 export * from "./opcua_secure_object";
+export * from "./resolve_private_key_provider";
+export * from "./resolved_certificate_key_pair_provider";

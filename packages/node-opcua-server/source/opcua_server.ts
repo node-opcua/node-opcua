@@ -36,7 +36,7 @@ import {
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { DiskCertificateKeyPairProvider, ServerState } from "node-opcua-common";
+import { DiskCertificateKeyPairProvider, ResolvedCertificateKeyPairProvider, ServerState } from "node-opcua-common";
 import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
@@ -156,9 +156,9 @@ import type { IRegisterServerManager } from "./i_register_server_manager";
 import type { ISocketData } from "./i_socket_data";
 import { MonitoredItem } from "./monitored_item";
 import { RegisterServerManager } from "./register_server_manager";
-import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
+import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager";
 import type { SamplingFunc } from "./sampling_func";
 import type { ServerCapabilitiesOptions } from "./server_capabilities";
 import {
@@ -820,6 +820,10 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      *
      * the private key should be in PEM format
      *
+     * If the key is encrypted, `serverCertificateManager` must be an
+     * `OPCUACertificateManager` constructed with a matching
+     * `privateKeyPassphrase` (or `privateKeyProvider`) — otherwise
+     * `initialize()` fails closed.
      */
     privateKeyFile?: string;
 
@@ -3946,11 +3950,29 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             transportSettings: serverOptions.transportSettings
         });
 
-        // DiskCertificateKeyPairProvider takes file paths directly —
-        // no reference cycle back to the server object.
-        // Push certificate management replaces this provider via
-        // server.setProvider() when installing new cert paths.
-        endPoint.setCertificateProvider(new DiskCertificateKeyPairProvider(this.certificateFile, this.privateKeyFile));
+        // Give the endpoint its own DiskCertificateKeyPairProvider — a
+        // separate instance from the server's own provider, same as before
+        // this feature existed. This matters: OPCUASecureObject#invalidateCachedCertificates()
+        // (called directly, e.g. after a manual on-disk cert/key swap) only
+        // invalidates the server's own provider, not any endpoint's — so a
+        // *shared* provider instance would still leave the endpoint's own
+        // OPCUAServerEndPoint#getCombinedCertificate() cache stale, which
+        // would be a regression, not a fix.
+        //
+        // The one case a fresh disk provider cannot handle is a
+        // passphrase-encrypted key: reading it synchronously throws. In that
+        // case (and only that case) initializeCM() has already swapped the
+        // server's own provider to a ResolvedCertificateKeyPairProvider —
+        // reuse that one instead, since there is no synchronous way to build
+        // an equivalent one from scratch here. Push certificate management
+        // replaces this provider via endpoint.setCertificateProvider() when
+        // installing new cert paths, in both cases.
+        const serverProvider = this.getProvider();
+        endPoint.setCertificateProvider(
+            serverProvider instanceof ResolvedCertificateKeyPairProvider
+                ? serverProvider
+                : new DiskCertificateKeyPairProvider(this.certificateFile, this.privateKeyFile)
+        );
 
         return endPoint;
     }

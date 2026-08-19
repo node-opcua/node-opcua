@@ -19,10 +19,20 @@ export class DiskCertificateKeyPairProvider implements ICertificateChainProvider
     #privateKey: PrivateKey | null = null;
     readonly #certificateFile: string;
     readonly #privateKeyFile: string;
+    readonly #passphrase?: string | Buffer;
 
-    constructor(certificateFile: string, privateKeyFile: string) {
+    /**
+     * @param certificateFile - path to the certificate (chain) PEM file
+     * @param privateKeyFile - path to the private key PEM file
+     * @param passphrase - optional passphrase to decrypt `privateKeyFile` if it is
+     * an encrypted PKCS#8 key. Omit for a plaintext key. If the key is encrypted
+     * and no (or the wrong) passphrase is given, `getPrivateKey()` throws
+     * `PrivateKeyPassphraseRequiredError` (fails closed).
+     */
+    constructor(certificateFile: string, privateKeyFile: string, passphrase?: string | Buffer) {
         this.#certificateFile = certificateFile;
         this.#privateKeyFile = privateKeyFile;
+        this.#passphrase = passphrase;
     }
 
     public get certificateFile(): string {
@@ -56,7 +66,9 @@ export class DiskCertificateKeyPairProvider implements ICertificateChainProvider
             if (!fs.existsSync(this.#privateKeyFile)) {
                 throw new Error(`Private key file not found: ${this.#privateKeyFile}`);
             }
-            const key = readPrivateKey(this.#privateKeyFile);
+            // Fails closed with PrivateKeyPassphraseRequiredError when the key
+            // is encrypted and #passphrase is missing or wrong.
+            const key = readPrivateKey(this.#privateKeyFile, this.#passphrase);
             if (key instanceof Buffer) {
                 throw new Error(`Invalid private key ${this.#privateKeyFile}. Should not be a buffer`);
             }

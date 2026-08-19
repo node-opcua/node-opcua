@@ -3,7 +3,7 @@ import path from "node:path";
 import { assert } from "node-opcua-assert";
 import type { ByteString } from "node-opcua-basic-types";
 import type { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { exploreCertificate } from "node-opcua-crypto";
+import { _toExportableKeyObject, exploreCertificate } from "node-opcua-crypto";
 import {
     type Certificate,
     certificateMatchesPrivateKey,
@@ -83,6 +83,22 @@ async function preInstallCertificate(
     }
 }
 
+/**
+ * Encode `privateKeyObj` as a PKCS#8 PEM string, encrypted with `passphrase`
+ * (aes-256-cbc — same cipher `writePrivateKeyFile` uses) when given, plaintext
+ * otherwise. Never touches disk — the caller stages the resulting string via
+ * `FileTransactionManager.stageFile()`, so an encrypted key is the only form
+ * that is ever written, whether to the staging temp file or the final
+ * destination.
+ */
+function encodePrivateKeyPem(privateKeyObj: PrivateKey, passphrase: string | undefined): string {
+    if (!passphrase) {
+        return coercePrivateKeyPem(privateKeyObj);
+    }
+    const keyObject = _toExportableKeyObject(privateKeyObj);
+    return keyObject.export({ type: "pkcs8", format: "pem", cipher: "aes-256-cbc", passphrase }) as string;
+}
+
 // Helper: Stage private key to temporary file
 async function preInstallPrivateKey(
     serverImpl: PushCertificateManagerInternalContext,
@@ -94,7 +110,11 @@ async function preInstallPrivateKey(
 
     if (privateKey) {
         const privateKeyObj = coercePEMorDerToPrivateKey(privateKey as string | Buffer);
-        const privateKeyPEM = coercePrivateKeyPem(privateKeyObj);
+        // If the certificate manager is configured with a privateKeyPassphrase,
+        // the staged (and later applied) key must be encrypted with it — never
+        // written back to disk in clear.
+        const passphrase = await (certificateManager as OPCUACertificateManager).getPrivateKeyPassphrase?.();
+        const privateKeyPEM = encodePrivateKeyPem(privateKeyObj, passphrase);
         await serverImpl.fileTransactionManager.stageFile(certificateManager.privateKey, privateKeyPEM, "utf-8");
     }
 }
@@ -170,14 +190,17 @@ export async function executeUpdateCertificate(
         }
 
         if (!hasPrivateKeyFormat && !hasPrivateKey) {
-            // CertificateManager.getPrivateKey() caches the decoded key for the lifetime of the
-            // instance (see node-opcua-pki). createCertificateRequest()/createSelfSignedCertificate()
-            // both go through that cache, so the CSR that produced `certificate` was necessarily
-            // signed with the *cached* key. Comparing against a fresh disk read here (readPrivateKey
-            // on the file path) would compare against whatever is currently on disk instead — which
-            // can differ right after a previous updateCertificate() call replaced the private key
-            // file directly (bypassing the cache), causing a spurious BadSecurityChecksFailed.
-            const privateKeyObj = await (serverImpl.tmpCertificateManager || certificateManager).getPrivateKey();
+            // Resolve via getPrivateKey(), for two independent reasons:
+            // - CertificateManager.getPrivateKey() caches the decoded key for the lifetime of the
+            //   instance (see node-opcua-pki). createCertificateRequest()/createSelfSignedCertificate()
+            //   both go through that cache, so the CSR that produced `certificate` was necessarily
+            //   signed with the *cached* key. Comparing against a fresh disk read (readPrivateKey
+            //   on the file path) would compare against whatever is currently on disk instead — which
+            //   can differ right after a previous updateCertificate() call replaced the private key
+            //   file directly (bypassing the cache), causing a spurious BadSecurityChecksFailed.
+            // - the on-disk file may be an encrypted PKCS#8 key (privateKeyPassphrase); a raw
+            //   readPrivateKey without the manager's passphrase would fail on it.
+            const privateKeyObj = await (serverImpl.tmpCertificateManager ?? certificateManager).getPrivateKey();
 
             if (!certificateMatchesPrivateKey(certificate, privateKeyObj)) {
                 warningLog("certificate doesn't match privateKey");

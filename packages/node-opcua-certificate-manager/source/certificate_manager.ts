@@ -5,11 +5,17 @@ import fs from "node:fs";
 import path from "node:path";
 import envPaths from "env-paths";
 import { assert } from "node-opcua-assert";
+import type { ICertificateStore } from "node-opcua-common";
 import { type Certificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import type { ICertificateStore } from "node-opcua-common";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { CertificateManager, type CertificateManagerOptions } from "node-opcua-pki";
+import {
+    CertificateManager,
+    type CertificateManagerOptions,
+    type PrivateKeyPassphrase,
+    type PrivateKeyProvider,
+    resolvePrivateKeyPassphrase
+} from "node-opcua-pki";
 import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
 
 const paths = envPaths("node-opcua-default");
@@ -73,6 +79,43 @@ export interface OPCUACertificateManagerOptions {
      * @defaultValue false
      */
     disableFileWatchers?: boolean;
+
+    /**
+     * Encrypt the private key at rest with this passphrase (opt-in,
+     * default off — a plaintext key is written, exactly as before). When set:
+     * - a freshly generated key is written already encrypted (PKCS#8);
+     * - an existing *plaintext* key is re-encrypted in place by
+     *   {@link OPCUACertificateManager.initialize}, so turning the option on
+     *   for an existing install never leaves the key in cleartext;
+     * - an existing encrypted key requires the same passphrase — a mismatch,
+     *   or an encrypted key with no passphrase configured, fails
+     *   `initialize()` closed with `PrivateKeyPassphraseRequiredError`.
+     *
+     * A function is called at most once per `OPCUACertificateManager`
+     * instance (the decrypted key is cached in memory for the instance's
+     * lifetime, see {@link OPCUACertificateManager.getPrivateKey}). Never
+     * logged.
+     *
+     * The in-process default managers returned by
+     * {@link getDefaultCertificateManager} (memoized by name, e.g. `"PKI"` /
+     * `"UserPKI"`) are always passphrase-less — construct your own
+     * `OPCUACertificateManager` and pass it as `serverCertificateManager` /
+     * `clientCertificateManager` to use passphrase protection.
+     *
+     * @defaultValue undefined (plaintext key)
+     */
+    privateKeyPassphrase?: PrivateKeyPassphrase;
+
+    /**
+     * Source the private key from somewhere other than
+     * `own/private/private_key.pem` (an HSM, a KMS, ...). When set, it
+     * overrides disk entirely for every operation that needs the private
+     * key — the on-disk file is not read, and `privateKeyPassphrase` is
+     * ignored.
+     *
+     * @defaultValue undefined
+     */
+    privateKeyProvider?: PrivateKeyProvider;
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager, ICertificateStore {
@@ -81,6 +124,8 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public static registry = new ObjectRegistry();
     public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
+    readonly #privateKeyPassphrase?: PrivateKeyPassphrase;
+    readonly #privateKeyManaged: boolean;
     /* */
     constructor(options: OPCUACertificateManagerOptions) {
         options = options || {};
@@ -97,9 +142,14 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         const _options: CertificateManagerOptions = {
             keySize: options.keySize || 2048,
             location,
-            disableFileWatchers: options.disableFileWatchers
+            disableFileWatchers: options.disableFileWatchers,
+            privateKeyPassphrase: options.privateKeyPassphrase,
+            privateKeyProvider: options.privateKeyProvider
         };
         super(_options);
+
+        this.#privateKeyPassphrase = options.privateKeyPassphrase;
+        this.#privateKeyManaged = !!options.privateKeyPassphrase || !!options.privateKeyProvider;
 
         this.referenceCounter = 0;
 
@@ -115,6 +165,40 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             .initialize()
             .then(() => callback())
             .catch((err) => callback(err as Error));
+    }
+
+    /**
+     * Resolve this manager's configured `privateKeyPassphrase` (calling it,
+     * if it is a function, at most once — see
+     * {@link resolvePrivateKeyPassphrase}). Returns `undefined` when no
+     * passphrase is configured (plaintext key).
+     *
+     * Intended for callers that need to write a *new* private key to disk
+     * with the same protection as this manager (push certificate
+     * management), rather than for reading the current key — prefer
+     * {@link CertificateManager.getPrivateKey} for that.
+     */
+    public async getPrivateKeyPassphrase(): Promise<string | undefined> {
+        return resolvePrivateKeyPassphrase(this.#privateKeyPassphrase);
+    }
+
+    /**
+     * `true` when this manager was constructed with `privateKeyPassphrase`
+     * and/or `privateKeyProvider` — i.e. `getPrivateKey()` may need to do
+     * asynchronous work (decrypt, or fetch from an external source) rather
+     * than a plain synchronous disk read.
+     *
+     * Consumers (e.g. `OPCUAServer`/`OPCUAClient`'s private-key resolution)
+     * use this to decide whether installing an async-resolved, permanently
+     * cached provider is necessary at all: for a manager with neither option
+     * set, the on-disk key is always plaintext, so a plain
+     * `DiskCertificateKeyPairProvider` keeps working exactly as before —
+     * including re-reading a manually replaced key after `invalidate()`,
+     * which a resolved provider deliberately does not do (see
+     * {@link ResolvedCertificateKeyPairProvider} in `node-opcua-common`).
+     */
+    public isPrivateKeyManaged(): boolean {
+        return this.#privateKeyManaged;
     }
 
     public async dispose(): Promise<void> {

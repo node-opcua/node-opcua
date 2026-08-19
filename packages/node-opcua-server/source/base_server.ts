@@ -13,7 +13,15 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { performCertificateSanityCheck } from "node-opcua-client";
-import { type ICertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
+import {
+    type ICertificateStore,
+    type IOPCUASecureObjectOptions,
+    makeApplicationUrn,
+    makeSubject,
+    OPCUASecureObject,
+    resolvePrivateKeyProviderIfNeeded
+} from "node-opcua-common";
+import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
 import { exploreCertificate } from "node-opcua-crypto/web";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
@@ -278,8 +286,39 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     }
 
     public async initializeCM(): Promise<void> {
-        await this.serverCertificateManager.initialize();
-        await this.createDefaultCertificate();
+        // The pki-level initialize() itself already decrypts (or re-encrypts)
+        // the on-disk key when serverCertificateManager is configured with a
+        // privateKeyPassphrase, and fails closed with
+        // PrivateKeyPassphraseRequiredError on a mismatch — so this whole
+        // sequence, not just the resolve step below, needs the friendlier
+        // error message.
+        try {
+            await this.serverCertificateManager.initialize();
+            await this.createDefaultCertificate();
+
+            // Resolve the (possibly passphrase-encrypted) private key once,
+            // asynchronously, and install it as this server's provider — so
+            // that every later, synchronous getPrivateKey() call (secure
+            // channel layer, endpoint creation, ...) succeeds without touching
+            // disk again. No-ops when the caller supplied its own
+            // certificateKeyPairProvider, when running in-memory, or when
+            // serverCertificateManager doesn't expose an async getPrivateKey()
+            // (e.g. a bare ICertificateStore).
+            await resolvePrivateKeyProviderIfNeeded(
+                this,
+                this.serverCertificateManager,
+                !!this.options.certificateKeyPairProvider
+            );
+        } catch (err) {
+            if (err instanceof PrivateKeyPassphraseRequiredError) {
+                throw new Error(
+                    `[NODE-OPCUA-E30] private key ${this.privateKeyFile} is encrypted; ` +
+                    "set privateKeyPassphrase on the OPCUACertificateManager passed as serverCertificateManager"
+                );
+            }
+            throw err;
+        }
+
         if ("privateKey" in this.serverCertificateManager) {
             debugLog("privateKey      = ", this.privateKeyFile, (this.serverCertificateManager as unknown as { privateKey: string }).privateKey);
         } else {

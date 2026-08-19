@@ -94,6 +94,35 @@ buildInfo : {
 }
 ```
 
+### protecting the private key with a passphrase
+
+By default, the server's private key is stored in clear on disk, under the certificate manager's PKI
+folder (`own/private/private_key.pem`). To encrypt it at rest, construct an `OPCUACertificateManager`
+explicitly and pass it as `serverCertificateManager`, with `privateKeyPassphrase` set:
+
+```javascript
+const { OPCUACertificateManager } = require("node-opcua-certificate-manager");
+
+const serverCertificateManager = new OPCUACertificateManager({
+    rootFolder: "./certificates",
+    privateKeyPassphrase: "a-strong-passphrase" // or: () => Promise<string>
+});
+
+const server = new OPCUAServer({
+    port: 4334,
+    serverCertificateManager
+});
+```
+
+An existing plaintext key is re-encrypted in place the first time `serverCertificateManager` initializes
+with a passphrase configured; an existing encrypted key requires the same passphrase, or `server.start()`
+fails closed with an explicit error. The default (no `privateKeyPassphrase`) behavior — a plaintext key —
+is unchanged.
+
+Note: the process-wide default certificate manager (used when `serverCertificateManager` is omitted) is
+always passphrase-less — passphrase protection requires constructing your own `OPCUACertificateManager` as
+shown above. The same option is available on `clientCertificateManager` for `OPCUAClient`.
+
 ### server initialization
 
 Once created the server shall be initialized.

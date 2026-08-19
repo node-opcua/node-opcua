@@ -5,6 +5,7 @@ import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { type Certificate, type PrivateKey, split_der } from "node-opcua-crypto/web";
 
+import type { ICertificateChainProvider } from "./certificate_chain_provider";
 import { DiskCertificateKeyPairProvider } from "./disk_certificate_key_pair_provider";
 
 export interface ICertificateKeyPairProvider {
@@ -181,6 +182,38 @@ export class OPCUASecureObject<T extends Record<string | symbol, any> = any>
      */
     public setProvider(provider: ICertificateKeyPairProvider): void {
         this.#provider = ensureProviderHasLocation(provider);
+    }
+
+    /**
+     * Return the current provider, e.g. so a caller can install the exact
+     * same provider instance elsewhere (endpoints reusing the server's
+     * resolved private-key provider rather than each re-resolving it).
+     */
+    public getProvider(): ICertificateKeyPairProviderWithLocation {
+        return this.#provider;
+    }
+
+    /**
+     * Same as {@link getProvider}, but guarantees `invalidate()` is present
+     * — wrapping with a no-op if the current provider doesn't implement it
+     * — for callers, such as `OPCUAServerEndPoint.setCertificateProvider()`,
+     * that require the stricter {@link ICertificateChainProvider} shape.
+     * Every call delegates live to whatever provider is current *at call
+     * time*; it does not track later `setProvider()` swaps.
+     */
+    public getCertificateChainProvider(): ICertificateChainProvider {
+        const provider = this.#provider;
+        if (typeof provider.invalidate === "function") {
+            return provider as ICertificateChainProvider;
+        }
+        return {
+            getCertificate: () => provider.getCertificate(),
+            getCertificateChain: () => provider.getCertificateChain(),
+            getPrivateKey: () => provider.getPrivateKey(),
+            invalidate: () => {
+                /* no-op: underlying provider does not implement invalidate() */
+            }
+        };
     }
 
     /**
