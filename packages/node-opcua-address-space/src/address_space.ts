@@ -1028,7 +1028,15 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         assert(_dataType.isSubtypeOf(this.findDataType("Structure")!));
         if (!_dataType._extensionObjectConstructor) {
-            const dataTypeManager = (this as any).$$extraDataTypeManager as ExtraDataTypeManager;
+            const addressSpacePriv: any = this as any;
+            if (!addressSpacePriv.$$extraDataTypeManager) {
+                throw new Error(
+                    `getExtensionObjectConstructor: cannot build a constructor for ${_dataType.browseName.toString()} (${_dataType.nodeId.toString()}): ` +
+                        "the DataType manager is not initialised. " +
+                        "Make sure generateAddressSpace() completed successfully and/or that ensureDatatypeExtracted(addressSpace) was awaited before using structured DataTypes."
+                );
+            }
+            const dataTypeManager = addressSpacePriv.$$extraDataTypeManager as ExtraDataTypeManager;
             _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(
                 _dataType.nodeId
             ) as ExtensionObjectConstructorFuncWithSchema;

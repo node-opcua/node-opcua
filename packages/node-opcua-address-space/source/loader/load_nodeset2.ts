@@ -16,7 +16,7 @@ import type {
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
-import { assert, renderError } from "node-opcua-assert";
+import { assert } from "node-opcua-assert";
 import { coerceBoolean, coerceByte, coerceInt32, StatusCodes } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
 import {
@@ -1160,7 +1160,19 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     chalk.green("DONE")
             );
 
-        async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
+        /**
+         * run every queued post-loading task.
+         *
+         * A task that throws (typically: a `<Value>` in a third-party nodeset that does not
+         * match the declared DataType) is logged and skipped — it must NOT abort the remaining
+         * tasks nor the remaining stages of finalSteps(). Previously the failing task was
+         * re-run inside the catch block, the second throw escaped the loop, finalSteps() was
+         * abandoned and `ensureDatatypeExtracted` was never called: the address space was
+         * left half-initialised (no DataTypeManager) and any later use of a structured
+         * DataType failed with an opaque
+         * "Cannot read properties of undefined (reading 'getExtensionObjectConstructorFromDataType')".
+         */
+        async function performPostLoadingTasks(stage: string, tasks: Task[]): Promise<void> {
             for (const task of tasks) {
                 try {
                     await task(addressSpace1);
@@ -1168,9 +1180,11 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     // c8 ignore next
                     // tslint:disable:no-console
                     if (types.isNativeError(err)) {
-                        errorLog(" performPostLoadingTasks Err  => ", err.message, "\n", err);
+                        errorLog(
+                            `[NODE-OPCUA-W36] generateAddressSpace: post-loading task failed during "${stage}" and was skipped: ${err.message}`
+                        );
+                        doDebug && debugLog(err);
                     }
-                    await task(addressSpace1);
                 }
             }
             tasks.splice(0);
@@ -1179,11 +1193,11 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             /// ----------------------------------------------------------------------------------------
             // perform post task
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
-            await performPostLoadingTasks(postTasks);
+            await performPostLoadingTasks("post tasks", postTasks);
 
             doDebug &&
                 debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
-            await performPostLoadingTasks(postTasks0_InitializeVariable);
+            await performPostLoadingTasks("initializing simple variables", postTasks0_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
@@ -1202,14 +1216,17 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             pendingSimpleTypeToRegister.splice(0);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
-            await performPostLoadingTasks(postTasks0_DecodePojoString);
+            await performPostLoadingTasks("decoding XML extension objects", postTasks0_DecodePojoString);
 
             doDebug &&
                 debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
-            await performPostLoadingTasks(postTasks1_InitializeVariable);
+            await performPostLoadingTasks("initializing complex variables", postTasks1_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
-            await performPostLoadingTasks(postTasks2_AssignedExtensionObjectToDataValue);
+            await performPostLoadingTasks(
+                "assigning extension objects to variables",
+                postTasks2_AssignedExtensionObjectToDataValue
+            );
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             promoteObjectsAndVariables(addressSpace);
@@ -1218,7 +1235,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         try {
             await finalSteps();
         } catch (err) {
-            renderError(err);
+            // `renderError` was a no-op here, so a failure in the final steps (DataType extraction,
+            // promotion of objects/variables, ...) used to be silently swallowed and the caller was
+            // handed back a half-initialised address space. Surface it: log and re-throw so that
+            // generateAddressSpace() rejects.
+            const message = types.isNativeError(err) ? err.message : String(err);
+            errorLog(`[NODE-OPCUA-E30] generateAddressSpace: final post-loading steps failed: ${message}`);
+            throw err;
         }
     }
     async function addNodeSet(xmlData: string): Promise<void> {
