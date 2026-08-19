@@ -33,7 +33,7 @@ minimumReleaseAgeExclude:
   - '@biomejs/cli-linux-x64@2.4.16'
   - '@biomejs/cli-win32-arm64@2.4.16'
   - '@biomejs/cli-win32-x64@2.4.16'
-  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1
+  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1 || 6.20.0
   - node-opcua-crypto@5.4.0 || 5.5.0
 
 # Override transitive dependencies to fix Dependabot vulnerabilities
