@@ -12,8 +12,10 @@ import {
     DiskCertificateKeyPairProvider,
     type ICertificateChainProvider,
     type ICertificateKeyPairProvider,
+    ResolvedCertificateKeyPairProvider,
     resolvePrivateKeyProviderIfNeeded
 } from "node-opcua-common";
+import { readPrivateKey } from "node-opcua-crypto";
 import { type Certificate, exploreCertificateInfo, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
@@ -66,25 +68,55 @@ async function onCertificateChange(server: OPCUAServer) {
 }
 
 /**
+ * Resolve the private key immediately after a rotation, bypassing
+ * `OPCUACertificateManager.getPrivateKey()`'s cache.
+ *
+ * `getPrivateKey()` decrypts the on-disk key *once* and caches it for the
+ * manager instance's whole lifetime (pki's documented behavior — see
+ * `CertificateManager.getPrivateKey`). That's exactly right for a normal
+ * startup resolve (`resolvePrivateKeyProviderIfNeeded`, used by
+ * `initializeCM()`), but wrong here: `UpdateCertificate`/`ApplyChanges` just
+ * replaced the on-disk key file underneath this *same, long-lived*
+ * `certificateManager` instance, so a cached call would silently keep
+ * returning the pre-rotation key — certificate and key would then belong to
+ * different key pairs, and every subsequent handshake fails signature
+ * verification.
+ *
+ * `privateKeyProvider` mode has no such cache — pki consults the injected
+ * provider on every call — so this only special-cases `privateKeyPassphrase`
+ * (reading the file directly, with the manager's own configured passphrase,
+ * instead of going through the memoized `getPrivateKey()`).
+ */
+async function resolvePrivateKeyAfterRotation(certificateManager: OPCUACertificateManager, privateKeyFile: string) {
+    const passphrase = await certificateManager.getPrivateKeyPassphrase();
+    if (passphrase !== undefined) {
+        return readPrivateKey(privateKeyFile, passphrase);
+    }
+    return certificateManager.getPrivateKey();
+}
+
+/**
  * Refresh the server's certificate/private-key provider after a rotation,
  * and push the result to every endpoint.
  *
  * When the certificate manager is passphrase-/provider-managed, a
  * synchronous "invalidate, let it lazily re-read the file" (the old
  * behavior) cannot decrypt the key — so the key is instead resolved here,
- * eagerly and asynchronously, via `resolvePrivateKeyProviderIfNeeded()`, and
- * the resulting provider handed out explicitly to the server and every
+ * eagerly and asynchronously (see `resolvePrivateKeyAfterRotation`), and the
+ * resulting provider handed out explicitly to the server and every
  * endpoint.
  *
- * For a plain (unmanaged) certificate manager, `resolvePrivateKeyProviderIfNeeded`
- * is a deliberate no-op (see its doc), so this falls back to exactly the
- * previous behavior: invalidate the server's and every endpoint's cached
- * certificate/key so the next access re-reads the (plaintext) files from
- * disk.
+ * For a plain (unmanaged) certificate manager, this falls back to exactly
+ * the previous behavior: invalidate the server's and every endpoint's
+ * cached certificate/key so the next access re-reads the (plaintext) files
+ * from disk.
  */
 async function reresolveServerCertificateProvider(server: OPCUAServer): Promise<void> {
-    const resolved = await resolvePrivateKeyProviderIfNeeded(server, server.serverCertificateManager, false);
-    if (resolved) {
+    const certificateManager = server.serverCertificateManager;
+    const isManaged = certificateManager instanceof OPCUACertificateManager && certificateManager.isPrivateKeyManaged();
+    if (isManaged) {
+        const privateKey = await resolvePrivateKeyAfterRotation(certificateManager, server.privateKeyFile);
+        server.setProvider(new ResolvedCertificateKeyPairProvider(server.certificateFile, server.privateKeyFile, privateKey));
         const provider = server.getCertificateChainProvider();
         for (const endpoint of server.endpoints) {
             endpoint.setCertificateProvider(provider);
@@ -154,7 +186,7 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!server.engine?.addressSpace) {
         throw new Error(
             "Server must have a valid address space. " +
-            "You need to call installPushCertificateManagementOnServer after server has been initialized"
+                "You need to call installPushCertificateManagementOnServer after server has been initialized"
         );
     }
     await install.call(server as unknown as OPCUAServerPartial);
@@ -167,8 +199,8 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     if (!(server.serverCertificateManager instanceof OPCUACertificateManager)) {
         throw new Error(
             "installPushCertificateManagementOnServer requires a" +
-            " disk-based OPCUACertificateManager as" +
-            " serverCertificateManager"
+                " disk-based OPCUACertificateManager as" +
+                " serverCertificateManager"
         );
     }
     const cm = server.serverCertificateManager;
@@ -285,18 +317,12 @@ function isRelaxableCertificateError(statusCode: StatusCode): boolean {
  * connection from unintentionally granting trust to every
  * certificate signed by the same CA.
  */
-async function autoTrustCertificateChain(
-    server: OPCUAServer,
-    certificate: Certificate
-): Promise<void> {
+async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certificate): Promise<void> {
     let chain: Certificate[];
     try {
         chain = split_der(certificate);
     } catch (err) {
-        warningLog(
-            "[NoConfiguration] Cannot parse certificate chain for auto-trust:",
-            (err as Error).message
-        );
+        warningLog("[NoConfiguration] Cannot parse certificate chain for auto-trust:", (err as Error).message);
         return;
     }
 
@@ -310,10 +336,7 @@ async function autoTrustCertificateChain(
         try {
             exploreCertificateInfo(cert);
         } catch (err) {
-            warningLog(
-                "[NoConfiguration] Skipping invalid certificate in chain for auto-trust:",
-                (err as Error).message
-            );
+            warningLog("[NoConfiguration] Skipping invalid certificate in chain for auto-trust:", (err as Error).message);
             continue;
         }
 
@@ -325,10 +348,7 @@ async function autoTrustCertificateChain(
                 // ENOENT can happen if another concurrent call already
                 // moved the cert from rejected to trusted.
                 if ((err as Error & { code?: string }).code !== "ENOENT") {
-                    warningLog(
-                        "[NoConfiguration] Failed to auto-trust leaf certificate:",
-                        (err as Error).message
-                    );
+                    warningLog("[NoConfiguration] Failed to auto-trust leaf certificate:", (err as Error).message);
                 }
             }
         } else {
@@ -337,10 +357,7 @@ async function autoTrustCertificateChain(
             try {
                 await cm.addIssuer(cert);
             } catch (err) {
-                warningLog(
-                    "[NoConfiguration] Failed to add issuer certificate:",
-                    (err as Error).message
-                );
+                warningLog("[NoConfiguration] Failed to add issuer certificate:", (err as Error).message);
             }
         }
     }
@@ -359,10 +376,7 @@ async function autoTrustCertificateChain(
  * building but do not become trust anchors.
  */
 function installCertificateRelaxationHook(server: OPCUAServer): void {
-    const adjustCertificateStatus = async (
-        statusCode: StatusCode,
-        certificate: Certificate
-    ): Promise<StatusCode> => {
+    const adjustCertificateStatus = async (statusCode: StatusCode, certificate: Certificate): Promise<StatusCode> => {
         // Only relax in NoConfiguration state
         if (server.engine.getServerState() !== ServerState.NoConfiguration) {
             return statusCode;
@@ -373,11 +387,12 @@ function installCertificateRelaxationHook(server: OPCUAServer): void {
             return statusCode;
         }
 
-        doDebug && warningLog(
-            `[NoConfiguration] Relaxing certificate check:`,
-            `${statusCode.toString()} → Good`,
-            "(server is awaiting GDS provisioning)"
-        );
+        doDebug &&
+            warningLog(
+                `[NoConfiguration] Relaxing certificate check:`,
+                `${statusCode.toString()} → Good`,
+                "(server is awaiting GDS provisioning)"
+            );
 
         // Auto-trust the leaf certificate; issuer CAs go to issuers/
         await autoTrustCertificateChain(server, certificate);
