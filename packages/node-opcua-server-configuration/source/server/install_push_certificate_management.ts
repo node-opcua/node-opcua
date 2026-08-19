@@ -130,21 +130,39 @@ async function reresolveServerCertificateProvider(server: OPCUAServer): Promise<
 }
 
 /**
- * Deferred channel restart: called after the ApplyChanges method
- * response has been sent.  Shuts down all existing secure channels
- * (which forces clients to reconnect with the new cert) and resumes
- * the endpoints.
+ * Deferred step, called after the ApplyChanges method response has been
+ * sent (so the admin client gets its answer before its own channel is
+ * affected).
+ *
+ * With `closeChannelsOnApplyChanges` (the default) every existing secure
+ * channel is shut down immediately, forcing all connected clients to
+ * reconnect with the new certificate right away. Without it, existing
+ * channels are left alone: each keeps running on the symmetric keys it
+ * already derived until its next OpenSecureChannel *Renew*, which the
+ * server then rejects (the client still addresses the old certificate)
+ * and closes the channel — at which point that client reconnects. See
+ * {@link InstallPushCertificateManagementOnServerOptions.closeChannelsOnApplyChanges}
+ * for when each is appropriate.
+ *
+ * Either way the endpoints, suspended in `onCertificateAboutToChange`,
+ * are resumed here.
  */
-async function onApplyChangesCompleted(server: OPCUAServer) {
-    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => shutting down channels"));
-    await server.shutdownChannels();
-    doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => channels shut down"));
+async function onApplyChangesCompleted(server: OPCUAServer, closeChannels: boolean) {
+    if (closeChannels) {
+        doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => shutting down channels"));
+        await server.shutdownChannels();
+        doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => channels shut down"));
+    } else {
+        doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => leaving existing channels open until their next renew"));
+    }
 
     doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => resuming end points"));
     await server.resumeEndPoints();
     doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => end points resumed"));
 
-    debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
+    if (closeChannels) {
+        debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
+    }
 }
 
 /**
@@ -182,7 +200,38 @@ interface UAServerConfigurationEx extends UAServerConfiguration {
     $pushCertificateManager: PushCertificateManagerServerImpl;
 }
 
-export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
+export interface InstallPushCertificateManagementOnServerOptions {
+    /**
+     * What happens to secure channels that are already open when
+     * `ApplyChanges` installs a new server certificate (and possibly a new
+     * private key).
+     *
+     * - `true` (default): every existing channel is shut down as soon as
+     *   the ApplyChanges response has been sent. All connected clients
+     *   reconnect immediately with the new certificate. This is the safe
+     *   choice when the rotation is a response to a **compromised or
+     *   revoked** key: nothing keeps running under the old one.
+     *
+     * - `false`: existing channels are left open. Each keeps running on the
+     *   symmetric keys it already derived until its next OpenSecureChannel
+     *   *Renew* (at ~75% of its token lifetime); the server rejects that
+     *   Renew — the client still addresses the old certificate — and closes
+     *   the channel, and only then does that client reconnect. Choose this
+     *   for a **planned** rotation: in-flight transactions complete, and N
+     *   clients reconnect spread over a token lifetime instead of all at
+     *   once. Note the reconnection still happens — this defers it, it does
+     *   not make the rotation seamless.
+     *
+     * @defaultValue true
+     */
+    closeChannelsOnApplyChanges?: boolean;
+}
+
+export async function installPushCertificateManagementOnServer(
+    server: OPCUAServer,
+    options?: InstallPushCertificateManagementOnServerOptions
+): Promise<void> {
+    const closeChannelsOnApplyChanges = options?.closeChannelsOnApplyChanges ?? true;
     if (!server.engine?.addressSpace) {
         throw new Error(
             "Server must have a valid address space. " +
@@ -241,11 +290,11 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
     });
 
     serverConfigurationPriv.$pushCertificateManager.on("applyChangesCompleted", () => {
-        // Fire-and-forget: schedule channel teardown + endpoint
+        // Fire-and-forget: schedule (optional) channel teardown + endpoint
         // resumption AFTER the method response is sent.
         setImmediate(async () => {
             try {
-                await onApplyChangesCompleted(server);
+                await onApplyChangesCompleted(server, closeChannelsOnApplyChanges);
             } catch (err) {
                 errorLog("onApplyChangesCompleted error:", (err as Error).message);
             }

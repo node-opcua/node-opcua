@@ -1,7 +1,7 @@
 /**
- * Certificate rotation via push certificate management while a client is
- * connected, using a CA-issued certificate chain on both the server's
- * initial and rotated certificates.
+ * Certificate + private key rotation via push certificate management while
+ * a client is connected, using a CA-issued certificate chain on both the
+ * server's initial and rotated certificates.
  *
  * Because the client trusts the CA + CRL once (rather than each individual
  * certificate, or blanket-accepting anything unknown), it accepts the
@@ -9,23 +9,27 @@
  * step is needed for the new pair. This is the realistic shape of a
  * production push-certificate-management deployment.
  *
- * Proves that:
- *  - the client's session survives the rotation: push certificate
- *    management forces the old channel closed (`ApplyChanges` →
- *    `shutdownChannels()`), the client's own reconnection logic
- *    re-establishes a new channel (first attempt is rejected because the
- *    client still addresses the server's old certificate; it then
- *    re-fetches the current one and succeeds), and the *existing* OPC UA
- *    session is reactivated on that new channel — same sessionId, no
- *    CreateSession — so the caller never loses its logical connection;
- *  - once reconnected, the new channel's OpenSecureChannel *Renew* (not
- *    just the initial handshake) succeeds using the rotated pair — i.e.
- *    the new certificate and private key are fully consistent, not merely
- *    good enough for a single exchange.
+ * Two cases, differing only in `closeChannelsOnApplyChanges`:
  *
- * Note: the client never Renews on the *original* channel across the
- * rotation — push certificate management shuts it down first. Renewing
- * a live channel across a key rotation is a separate scenario.
+ *  RCC1 — default (`true`): `ApplyChanges` shuts every existing channel
+ *    down at once. The client reconnects immediately (first attempt is
+ *    rejected because it still addresses the server's old certificate; it
+ *    re-fetches the current one and succeeds), the *existing* OPC UA
+ *    session is reactivated on the new channel — same sessionId, no
+ *    CreateSession — and Renews on that new channel succeed with the
+ *    rotated pair.
+ *
+ *  RCC2 — `false`: `ApplyChanges` leaves existing channels alone. The
+ *    client keeps working on its old channel (old symmetric keys) after
+ *    the rotation; its next OpenSecureChannel *Renew* is rejected by the
+ *    server (old certificate addressed) and the channel closed, and only
+ *    then does it reconnect — again reactivating the same session. The
+ *    rotation is deferred, not seamless.
+ *
+ * In neither case does a Renew *succeed* on the original channel across
+ * the rotation: that would need the server to accept its previous
+ * certificate/key for a grace period and the client to adopt the new
+ * certificate from the Renew response — a separate scenario.
  */
 import fs from "node:fs";
 import os, { hostname } from "node:os";
@@ -42,7 +46,7 @@ import {
     SecurityPolicy,
     type UserIdentityInfoUserName
 } from "node-opcua-client";
-import { makeSHA1Thumbprint, readCertificateChain } from "node-opcua-crypto";
+import { convertPEMtoDER, makeSHA1Thumbprint, readCertificateChain } from "node-opcua-crypto";
 import { AttributeIds } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
@@ -50,7 +54,11 @@ import type { CertificateAuthority } from "node-opcua-pki";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
 import { randomBytes } from "node-opcua-utils";
-import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
+import {
+    ClientPushCertificateManagement,
+    type InstallPushCertificateManagementOnServerOptions,
+    installPushCertificateManagementOnServer
+} from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
     getSharedCertificateAuthority,
@@ -58,9 +66,26 @@ import {
     produceCertificate
 } from "../helpers/fake_certificate_authority.js";
 
-const port = 20117;
+const portRCC1 = 20117;
+const portRCC2 = 20118;
 
-/** Issue a CA-signed leaf certificate directly into `mgr`'s own cert folder, before `initialize()`/`server.initialize()` ever runs — so the manager never has a self-signed certificate to begin with. */
+const adminIdentity: UserIdentityInfoUserName = {
+    type: UserTokenType.UserName,
+    userName: "admin",
+    password: "secret"
+};
+
+const mockUserManager = {
+    isValidUser: (userName: string, password: string) => userName === "admin" && password === "secret",
+    getUserRoles(username: string): NodeId[] {
+        if (username === "admin") {
+            return makeRoles("AuthenticatedUser;SecurityAdmin");
+        }
+        return makeRoles("Anonymous");
+    }
+};
+
+/** Issue a CA-signed leaf certificate directly into `mgr`'s own cert folder, before the server ever starts — so the manager never has a self-signed certificate to begin with. */
 async function issueCASignedCertificate(
     ca: CertificateAuthority,
     mgr: OPCUACertificateManager,
@@ -79,101 +104,142 @@ async function issueCASignedCertificate(
     });
 }
 
+interface Fixture {
+    folder: string;
+    clientCertificateManager: OPCUACertificateManager;
+    clientCertificateFile: string;
+    serverCertificateManager: OPCUACertificateManager;
+    serverCertificateFile: string;
+    applicationUri: string;
+}
+
+/**
+ * One CA, trusted (issuer + CRL) by both sides. Client: self-signed
+ * (its certificate is not what's under test), explicitly trusted by the
+ * server. Server: CA-signed from the very first start.
+ */
+async function setUpFixture(name: string): Promise<Fixture> {
+    await CertificateManager.disposeAll();
+    const folder = await initializeHelpers(name, 1);
+    const ca = await getSharedCertificateAuthority();
+    const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(folder);
+
+    const clientPki = path.join(folder, "ClientPKI");
+    fs.mkdirSync(clientPki, { recursive: true });
+    const clientCertificateManager = new OPCUACertificateManager({ rootFolder: clientPki, disableFileWatchers: true });
+    await clientCertificateManager.initialize();
+    const clientCertificateFile = path.join(clientCertificateManager.rootDir, "own/certs/certificate.pem");
+    await clientCertificateManager.createSelfSignedCertificate({
+        applicationUri: makeApplicationUrn(hostname(), "NodeOPCUA-Client"),
+        subject: "/CN=RCC-Client",
+        dns: [os.hostname()],
+        ip: [],
+        startDate: new Date(),
+        validity: 365,
+        outputFile: clientCertificateFile
+    });
+    await clientCertificateManager.addIssuer(caCertificate, false, true);
+    await clientCertificateManager.addRevocationList(crl);
+    await clientCertificateManager.trustCertificate(caCertificate);
+
+    const serverPki = path.join(folder, "ServerPKI");
+    fs.mkdirSync(serverPki, { recursive: true });
+    const serverCertificateManager = new OPCUACertificateManager({ rootFolder: serverPki, disableFileWatchers: true });
+    await serverCertificateManager.initialize();
+    await serverCertificateManager.addIssuer(caCertificate, false, true);
+    await serverCertificateManager.addRevocationList(crl);
+    await serverCertificateManager.trustCertificate(caCertificate);
+
+    const serverCertificateFile = path.join(serverCertificateManager.rootDir, "own/certs/certificate.pem");
+    await issueCASignedCertificate(ca, serverCertificateManager, "RCC-Server", serverCertificateFile);
+
+    const clientCertificatePEM = await fs.promises.readFile(clientCertificateFile, "utf8");
+    await serverCertificateManager.trustCertificate(convertPEMtoDER(clientCertificatePEM));
+
+    return {
+        folder,
+        clientCertificateManager,
+        clientCertificateFile,
+        serverCertificateManager,
+        serverCertificateFile,
+        applicationUri: makeApplicationUrn(hostname(), "RCC-Server")
+    };
+}
+
+async function startServer(
+    fixture: Fixture,
+    port: number,
+    installOptions?: InstallPushCertificateManagementOnServerOptions
+): Promise<OPCUAServer> {
+    const server = new OPCUAServer({
+        port,
+        serverInfo: { applicationUri: fixture.applicationUri },
+        userManager: mockUserManager,
+        serverCertificateManager: fixture.serverCertificateManager,
+        securityModes: [MessageSecurityMode.SignAndEncrypt],
+        securityPolicies: [SecurityPolicy.Basic256Sha256]
+    });
+    await server.initialize();
+    await installPushCertificateManagementOnServer(server, installOptions);
+    await server.start();
+    return server;
+}
+
+/** Request a new key pair + CSR from the server's own certificate manager, CA-sign it, push it back, apply. */
+async function rotateServerKeyPairAndCertificate(session: ClientSession, folder: string): Promise<void> {
+    const pm = new ClientPushCertificateManagement(session);
+    const csrResponse = await pm.createSigningRequest(
+        "DefaultApplicationGroup",
+        NodeId.nullNodeId,
+        null,
+        /* regeneratePrivateKey */ true,
+        randomBytes(32)
+    );
+    if (csrResponse.statusCode.isNotGood() || !csrResponse.certificateSigningRequest) {
+        throw new Error(`createSigningRequest failed: ${csrResponse.statusCode.toString()}`);
+    }
+    const newChain = await produceCertificate(folder, csrResponse.certificateSigningRequest);
+    const updateResponse = await pm.updateCertificate("DefaultApplicationGroup", NodeId.nullNodeId, newChain[0], newChain.slice(1));
+    if (updateResponse.statusCode.isNotGood()) {
+        throw new Error(`updateCertificate failed: ${updateResponse.statusCode.toString()}`);
+    }
+    await pm.applyChanges();
+}
+
+async function readServerTime(session: ClientSession): Promise<void> {
+    const dv = await session.read({ nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value });
+    dv.statusCode.isGood().should.eql(true, "expecting a Good read");
+}
+
+async function waitUntil(cond: () => boolean, timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (!cond() && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+}
+
 describe("Certificate rotation with a connected client (CA-chain trust)", function (this: Mocha.Suite) {
-    this.timeout(Math.max(this.timeout(), 60_000));
+    this.timeout(Math.max(this.timeout(), 90_000));
 
-    it("RCC1: the client's session survives a push-cert-management rotation, and the reconnected channel renews correctly with the new CA-signed pair", async () => {
-        await CertificateManager.disposeAll();
-        const folder = await initializeHelpers("RCC", 1);
-        const ca = await getSharedCertificateAuthority();
-        const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(folder);
-
-        // --- client: self-signed is fine here, the point under test is the
-        //     server's certificate; the client just needs to trust the CA + CRL.
-        const clientPki = path.join(folder, "ClientPKI");
-        fs.mkdirSync(clientPki, { recursive: true });
-        const clientCertificateManager = new OPCUACertificateManager({
-            rootFolder: clientPki,
-            disableFileWatchers: true
-        });
-        await clientCertificateManager.initialize();
-        const clientCertificateFile = path.join(clientCertificateManager.rootDir, "own/certs/certificate.pem");
-        await clientCertificateManager.createSelfSignedCertificate({
-            applicationUri: makeApplicationUrn(hostname(), "NodeOPCUA-Client"),
-            subject: "/CN=RCC-Client",
-            dns: [os.hostname()],
-            ip: [],
-            startDate: new Date(),
-            validity: 365,
-            outputFile: clientCertificateFile
-        });
-        await clientCertificateManager.addIssuer(caCertificate, false, true);
-        await clientCertificateManager.addRevocationList(crl);
-        await clientCertificateManager.trustCertificate(caCertificate);
-
-        // --- server: certificate is CA-signed from the very first start —
-        //     never self-signed, so the client only ever needs CA + CRL trust.
-        const serverPki = path.join(folder, "ServerPKI");
-        fs.mkdirSync(serverPki, { recursive: true });
-        const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: serverPki,
-            disableFileWatchers: true
-        });
-        await serverCertificateManager.initialize();
-        await serverCertificateManager.addIssuer(caCertificate, false, true);
-        await serverCertificateManager.addRevocationList(crl);
-        await serverCertificateManager.trustCertificate(caCertificate);
-
-        const serverCertificateFile = path.join(serverCertificateManager.rootDir, "own/certs/certificate.pem");
-        await issueCASignedCertificate(ca, serverCertificateManager, "RCC-Server", serverCertificateFile);
-
-        // trust the client's certificate explicitly (no auto-accept on either side)
-        const clientCertificatePEM = await fs.promises.readFile(clientCertificateFile, "utf8");
-        const { convertPEMtoDER } = await import("node-opcua-crypto");
-        await serverCertificateManager.trustCertificate(convertPEMtoDER(clientCertificatePEM));
-
-        const applicationUri = makeApplicationUrn(hostname(), "RCC-Server");
-        const mockUserManager = {
-            isValidUser: (userName: string, password: string) => userName === "admin" && password === "secret",
-            getUserRoles(username: string): NodeId[] {
-                if (username === "admin") {
-                    return makeRoles("AuthenticatedUser;SecurityAdmin");
-                }
-                return makeRoles("Anonymous");
-            }
-        };
-
-        const server = new OPCUAServer({
-            port,
-            serverInfo: { applicationUri },
-            userManager: mockUserManager,
-            serverCertificateManager,
-            securityModes: [MessageSecurityMode.SignAndEncrypt],
-            securityPolicies: [SecurityPolicy.Basic256Sha256]
-        });
-        await server.initialize();
-        await installPushCertificateManagementOnServer(server);
-
+    it("RCC1: closeChannelsOnApplyChanges (default) — the client reconnects at once, the same session is reactivated, and the new channel renews with the new pair", async () => {
+        const fixture = await setUpFixture("RCC1");
+        const server = await startServer(fixture, portRCC1);
         const certificateBeforeThumb = makeSHA1Thumbprint(server.getCertificate()).toString("hex");
 
-        await server.start();
         let client: OPCUAClient | undefined;
         let session: ClientSession | undefined;
         try {
-            const endpointUrl = server.getEndpointUrl();
-
             client = OPCUAClient.create({
-                clientCertificateManager,
-                certificateFile: clientCertificateFile,
+                clientCertificateManager: fixture.clientCertificateManager,
+                certificateFile: fixture.clientCertificateFile,
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: SecurityPolicy.Basic256Sha256,
-                clientName: "RCC-client",
-                // force a channel renewal shortly after (re)connection, instead
-                // of waiting out the default token lifetime, so the test can
-                // observe a post-rotation Renew without an artificially long run.
+                clientName: "RCC1-client",
+                // Renew shortly after (re)connection instead of waiting out the
+                // default token lifetime, so a post-rotation Renew on the new
+                // channel is observable within the test.
                 tokenRenewalInterval: 1500
             });
-
             let renewedCount = 0;
             client.on("security_token_renewed", () => {
                 renewedCount++;
@@ -183,94 +249,105 @@ describe("Certificate rotation with a connected client (CA-chain trust)", functi
                 reconnected = true;
             });
 
-            await client.connect(endpointUrl);
-            const userIdentityToken: UserIdentityInfoUserName = {
-                type: UserTokenType.UserName,
-                userName: "admin",
-                password: "secret"
-            };
-            session = await client.createSession(userIdentityToken);
+            await client.connect(server.getEndpointUrl());
+            session = await client.createSession(adminIdentity);
             const sessionIdBefore = session.sessionId;
+            await readServerTime(session);
 
-            const before = await session.read({ nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value });
-            before.statusCode.isGood().should.eql(true, "expecting a Good read before rotation");
+            await rotateServerKeyPairAndCertificate(session, fixture.folder);
 
-            // --- rotate: request a new keypair + CSR from the server's own
-            //     certificate manager, CA-sign it, and push it back.
-            const pm = new ClientPushCertificateManagement(session);
-            const csrResponse = await pm.createSigningRequest(
-                "DefaultApplicationGroup",
-                NodeId.nullNodeId,
-                null,
-                true,
-                randomBytes(32)
-            );
-            if (csrResponse.statusCode.isNotGood() || !csrResponse.certificateSigningRequest) {
-                throw new Error(`createSigningRequest failed: ${csrResponse.statusCode.toString()}`);
-            }
-            const newChain = await produceCertificate(folder, csrResponse.certificateSigningRequest);
-            const newCertificate = newChain[0];
-            const issuerCertificates = newChain.slice(1);
-
-            const updateResponse = await pm.updateCertificate(
-                "DefaultApplicationGroup",
-                NodeId.nullNodeId,
-                newCertificate,
-                issuerCertificates
-            );
-            if (updateResponse.statusCode.isNotGood()) {
-                throw new Error(`updateCertificate failed: ${updateResponse.statusCode.toString()}`);
-            }
-            await pm.applyChanges();
-
-            // The rotation forces the current channel closed; give the client's
-            // own auto-reconnect logic time to re-establish a new one, transfer
-            // the session onto it, and — thanks to the short tokenRenewalInterval
-            // — go through at least one Renew on that new channel.
-            const deadline = Date.now() + 20_000;
-            while ((!reconnected || renewedCount < 1) && Date.now() < deadline) {
-                await new Promise((resolve) => setTimeout(resolve, 250));
-            }
+            await waitUntil(() => reconnected && renewedCount >= 1, 20_000);
             reconnected.should.eql(true, "expecting the client to have reconnected automatically after the rotation");
-            renewedCount.should.be.aboveOrEqual(
-                1,
-                "expecting at least one successful channel renewal on the reconnected channel, using the new pair"
-            );
+            renewedCount.should.be.aboveOrEqual(1, "expecting at least one Renew on the reconnected channel, with the new pair");
 
-            // The existing OPC UA session must have been *reactivated* on the
-            // new channel (ActivateSession with the same authenticationToken),
-            // not torn down and recreated: the sessionId must be unchanged.
-            //
-            // Regression guard: before the fix in OPCUAClientImpl._activateSession,
-            // the client signed the reactivation request (and encrypted the
-            // user token) against session.serverCertificate as captured at the
-            // original CreateSession — i.e. the server's *old* certificate —
-            // so the server rejected it with BadApplicationSignatureInvalid and
-            // the client silently fell back to creating a brand-new session.
+            // The existing session must have been *reactivated* on the new
+            // channel, not torn down and recreated. Regression guard for
+            // OPCUAClientImpl._activateSession signing against the stale
+            // session.serverCertificate (→ BadApplicationSignatureInvalid →
+            // silent CreateSession fallback).
             session.sessionId
                 .toString()
-                .should.eql(
-                    sessionIdBefore.toString(),
-                    "the existing session must be reactivated on the new channel, not recreated"
-                );
+                .should.eql(sessionIdBefore.toString(), "the existing session must be reactivated, not recreated");
 
-            const after = await session.read({ nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value });
-            after.statusCode.isGood().should.eql(true, "expecting a Good read after rotation + renewal");
+            await readServerTime(session);
 
-            const certificateAfterThumb = makeSHA1Thumbprint(server.getCertificate()).toString("hex");
-            certificateAfterThumb.should.not.eql(certificateBeforeThumb, "server certificate should have changed");
-
-            const chainOnDisk = readCertificateChain(serverCertificateFile);
-            chainOnDisk.length.should.be.aboveOrEqual(2, "certificate.pem should contain the leaf and the CA");
+            makeSHA1Thumbprint(server.getCertificate())
+                .toString("hex")
+                .should.not.eql(certificateBeforeThumb, "server certificate should have changed");
+            readCertificateChain(fixture.serverCertificateFile).length.should.be.aboveOrEqual(
+                2,
+                "certificate.pem should contain the leaf and the CA"
+            );
         } finally {
-            if (session) {
-                await session.close().catch(() => {
-                    /* channel may already be gone */
-                });
-            }
-            if (client) {
-                await client.disconnect();
-            }
+            await session?.close().catch(() => {
+                /* channel may already be gone */
+            });
+            await client?.disconnect();
+            await server.shutdown();
+        }
+    });
+
+    it("RCC2: closeChannelsOnApplyChanges: false — the client keeps working on its old channel, is disconnected only at its next Renew, then reactivates the same session", async () => {
+        const fixture = await setUpFixture("RCC2");
+        const server = await startServer(fixture, portRCC2, { closeChannelsOnApplyChanges: false });
+
+        let client: OPCUAClient | undefined;
+        let session: ClientSession | undefined;
+        try {
+            // Renew interval comfortably longer than the rotation itself
+            // (~1–2 s), so the post-ApplyChanges checks land while the old
+            // channel is still alive, and the failing Renew comes after.
+            const tokenRenewalInterval = 5000;
+            client = OPCUAClient.create({
+                clientCertificateManager: fixture.clientCertificateManager,
+                certificateFile: fixture.clientCertificateFile,
+                securityMode: MessageSecurityMode.SignAndEncrypt,
+                securityPolicy: SecurityPolicy.Basic256Sha256,
+                clientName: "RCC2-client",
+                tokenRenewalInterval
+            });
+            let lostCount = 0;
+            let reestablishedCount = 0;
+            client.on("connection_lost", () => {
+                lostCount++;
+            });
+            client.on("connection_reestablished", () => {
+                reestablishedCount++;
+            });
+
+            await client.connect(server.getEndpointUrl());
+            session = await client.createSession(adminIdentity);
+            const sessionIdBefore = session.sessionId;
+            await readServerTime(session);
+            server.currentChannelCount.should.eql(1);
+
+            await rotateServerKeyPairAndCertificate(session, fixture.folder);
+            // let the fire-and-forget onApplyChangesCompleted run
+            await new Promise((resolve) => setTimeout(resolve, 200));
+
+            // --- the channel was NOT shut down: server still holds it, the
+            //     client saw no disconnection, and the session still works
+            //     over the old channel (old symmetric keys).
+            server.currentChannelCount.should.eql(1, "existing channel must survive ApplyChanges");
+            lostCount.should.eql(0, "client must not have been disconnected by ApplyChanges");
+            await readServerTime(session);
+
+            // --- the next Renew on that old channel is rejected by the server
+            //     (client still addresses the old certificate) and the channel
+            //     closed; the client then reconnects and reactivates the
+            //     same session.
+            await waitUntil(() => lostCount >= 1 && reestablishedCount >= 1, tokenRenewalInterval + 20_000);
+            lostCount.should.eql(1, "expecting exactly one disconnection, at the failed Renew");
+            reestablishedCount.should.eql(1, "expecting the client to have reconnected once");
+            session.sessionId
+                .toString()
+                .should.eql(sessionIdBefore.toString(), "the existing session must be reactivated, not recreated");
+            await readServerTime(session);
+        } finally {
+            await session?.close().catch(() => {
+                /* channel may already be gone */
+            });
+            await client?.disconnect();
             await server.shutdown();
         }
     });
