@@ -11,6 +11,7 @@ import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import {
     type Certificate,
+    combine_der,
     exploreCertificate,
     extractPublicKeyFromCertificateSync,
     makePrivateKeyFromPem,
@@ -928,6 +929,21 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             return;
         }
 
+        // `session.serverCertificate` is captured once, at CreateSession. If the
+        // server has rotated its certificate since (push certificate management,
+        // OPC UA Part 12), the client has already re-learned the current one in
+        // fetchServerCertificate() while reconnecting — but the session still
+        // holds the old one. Both the clientSignature below and the encryption
+        // of a password-bearing user identity token are computed against it,
+        // so re-activating the existing session on the new channel would fail
+        // (BadApplicationSignatureInvalid on the server) and force a needless
+        // CreateSession. Refresh it from the client's current knowledge first.
+        // Only overwrite when the client actually knows a certificate: over a
+        // SecurityMode.None channel this.serverCertificate may be unset while
+        // the session's copy (from CreateSessionResponse) is still needed to
+        // encrypt the user token.
+        this.#refreshSessionServerCertificate(session);
+
         const serverCertificate = session.serverCertificate;
         // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption,
         // the Client shall ignore the ApplicationInstanceCertificate (serverCertificate)
@@ -1045,6 +1061,29 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             });
         });
     }
+    /**
+     * Bring `session.serverCertificate` in line with the server certificate the
+     * client currently knows (see the comment in {@link _activateSession}).
+     * No-op when the client has no certificate of its own to offer.
+     * @private
+     */
+    #refreshSessionServerCertificate(session: ClientSessionImpl): void {
+        const current = this.serverCertificate;
+        if (!current || current.length === 0) {
+            return;
+        }
+        const currentDer = Array.isArray(current) ? combine_der(current) : current;
+        if (session.serverCertificate && session.serverCertificate.equals(currentDer)) {
+            return;
+        }
+        doDebug &&
+            debugLog(
+                "refreshing session.serverCertificate before ActivateSession (server certificate changed since CreateSession)",
+                session.sessionId.toString()
+            );
+        session.serverCertificate = currentDer;
+    }
+
     /**
      *
      * @private
