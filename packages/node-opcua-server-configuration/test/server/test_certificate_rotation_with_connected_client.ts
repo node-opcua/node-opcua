@@ -10,20 +10,22 @@
  * production push-certificate-management deployment.
  *
  * Proves that:
- *  - the client's session survives the rotation from the *caller's*
- *    perspective: push certificate management forces the old channel
- *    closed (`ApplyChanges`), and the client's own reconnection logic
- *    re-establishes a new channel and gets the same `ClientSession` object
- *    working again — without the test ever calling `createSession()` a
- *    second time. (The underlying OPC UA session is not guaranteed to keep
- *    the same NodeId across this repair — reactivating it under the new
- *    channel can itself fail and fall back to transparently recreating one
- *    — but the caller's `session` reference and its subscriptions are
- *    unaffected either way.)
+ *  - the client's session survives the rotation: push certificate
+ *    management forces the old channel closed (`ApplyChanges` →
+ *    `shutdownChannels()`), the client's own reconnection logic
+ *    re-establishes a new channel (first attempt is rejected because the
+ *    client still addresses the server's old certificate; it then
+ *    re-fetches the current one and succeeds), and the *existing* OPC UA
+ *    session is reactivated on that new channel — same sessionId, no
+ *    CreateSession — so the caller never loses its logical connection;
  *  - once reconnected, the new channel's OpenSecureChannel *Renew* (not
  *    just the initial handshake) succeeds using the rotated pair — i.e.
  *    the new certificate and private key are fully consistent, not merely
  *    good enough for a single exchange.
+ *
+ * Note: the client never Renews on the *original* channel across the
+ * rotation — push certificate management shuts it down first. Renewing
+ * a live channel across a key rotation is a separate scenario.
  */
 import fs from "node:fs";
 import os, { hostname } from "node:os";
@@ -235,19 +237,22 @@ describe("Certificate rotation with a connected client (CA-chain trust)", functi
                 "expecting at least one successful channel renewal on the reconnected channel, using the new pair"
             );
 
-            // The caller's own `session` object — the same JS reference used
-            // before the rotation, never replaced by any reconnection code in
-            // this test — must still work: whether the client library
-            // reactivated the pre-existing OPC UA session or transparently
-            // recreated one and re-subscribed underneath it, the application
-            // never lost its logical connection and never had to intervene.
-            if (session.sessionId.toString() !== sessionIdBefore.toString()) {
-                console.log(
-                    "note: the underlying OPC UA session was recreated during reconnection",
-                    `(${sessionIdBefore.toString()} -> ${session.sessionId.toString()})`,
-                    "— the client-side session object is unaffected."
+            // The existing OPC UA session must have been *reactivated* on the
+            // new channel (ActivateSession with the same authenticationToken),
+            // not torn down and recreated: the sessionId must be unchanged.
+            //
+            // Regression guard: before the fix in OPCUAClientImpl._activateSession,
+            // the client signed the reactivation request (and encrypted the
+            // user token) against session.serverCertificate as captured at the
+            // original CreateSession — i.e. the server's *old* certificate —
+            // so the server rejected it with BadApplicationSignatureInvalid and
+            // the client silently fell back to creating a brand-new session.
+            session.sessionId
+                .toString()
+                .should.eql(
+                    sessionIdBefore.toString(),
+                    "the existing session must be reactivated on the new channel, not recreated"
                 );
-            }
 
             const after = await session.read({ nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value });
             after.statusCode.isGood().should.eql(true, "expecting a Good read after rotation + renewal");
