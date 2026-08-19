@@ -3,14 +3,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import "mocha";
-import "should";
 
-import { type Certificate, makeSHA1Thumbprint, readCertificateChainAsync, readCertificateRevocationList } from "node-opcua-crypto";
+import {
+    type Certificate,
+    makeSHA1Thumbprint,
+    PrivateKeyPassphraseRequiredError,
+    readCertificateChainAsync,
+    readCertificateRevocationList,
+    readPrivateKey
+} from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 import { CertificateManager, OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source";
-
 
 // const _tmpFolder = os.tmpdir();
 const _tmpFolder = path.join(__dirname, "../temp");
@@ -288,6 +294,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         //        const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
         acceptingCertificateMgr = await createFreshCertificateManager({
             automaticallyAcceptUnknownCertificate: true,
+            disableFileWatchers: true,
             rootFolder: temporaryFolder1
         });
         await acceptingCertificateMgr.addIssuer(issuerCertificate);
@@ -336,5 +343,123 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const rejected = path.join(rejectingCertificateMgr.rootDir, `rejected/${certificateSelfSignedThumbprint}.pem`);
         const existsInRejectedFolder = fs.existsSync(rejected);
         existsInRejectedFolder.should.eql(true, rejected);
+    });
+});
+
+describe("OPCUACertificateManager with privateKeyPassphrase", function (this: Mocha.Suite) {
+    this.timeout(Math.max(40000, this.timeout()));
+
+    const passphrase = "unit-test-passphrase";
+
+    afterEach(async () => {
+        // best effort cleanup between tests
+    });
+
+    it("PP01- forwards privateKeyPassphrase to the underlying pki CertificateManager: a freshly generated key is written already encrypted", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_passphrase_fresh");
+        if (fs.existsSync(rootFolder)) {
+            fs.rmSync(rootFolder, { recursive: true, force: true });
+        }
+        const cm = new OPCUACertificateManager({ rootFolder, privateKeyPassphrase: passphrase });
+        try {
+            await cm.initialize();
+
+            const raw = fs.readFileSync(cm.privateKey, "utf-8");
+            raw.should.containEql("ENCRYPTED PRIVATE KEY");
+
+            // reading without a passphrase must fail closed
+            (() => readPrivateKey(cm.privateKey)).should.throw(PrivateKeyPassphraseRequiredError);
+
+            // getPrivateKey() decrypts using the configured passphrase and returns a usable key
+            const key = await cm.getPrivateKey();
+            should(key).be.ok();
+        } finally {
+            await cm.dispose();
+        }
+    });
+
+    it("PP02- getPrivateKeyPassphrase() resolves the configured passphrase", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_passphrase_accessor");
+        if (fs.existsSync(rootFolder)) {
+            fs.rmSync(rootFolder, { recursive: true, force: true });
+        }
+        const cm = new OPCUACertificateManager({ rootFolder, privateKeyPassphrase: passphrase });
+        try {
+            await cm.initialize();
+            const resolved = await cm.getPrivateKeyPassphrase();
+            should(resolved).eql(passphrase);
+        } finally {
+            await cm.dispose();
+        }
+    });
+
+    it("PP03- getPrivateKeyPassphrase() resolves to undefined when no passphrase is configured", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_passphrase_none");
+        if (fs.existsSync(rootFolder)) {
+            fs.rmSync(rootFolder, { recursive: true, force: true });
+        }
+        const cm = new OPCUACertificateManager({ rootFolder });
+        try {
+            await cm.initialize();
+            const resolved = await cm.getPrivateKeyPassphrase();
+            should(resolved).be.undefined();
+
+            // the default (no passphrase) path stays byte-for-byte plaintext
+            const raw = fs.readFileSync(cm.privateKey, "utf-8");
+            raw.should.not.containEql("ENCRYPTED");
+        } finally {
+            await cm.dispose();
+        }
+    });
+
+    it("PP04- initialize() fails closed with PrivateKeyPassphraseRequiredError when an existing encrypted key has no configured passphrase", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_passphrase_missing");
+        if (fs.existsSync(rootFolder)) {
+            fs.rmSync(rootFolder, { recursive: true, force: true });
+        }
+        // create it once, encrypted
+        const cm1 = new OPCUACertificateManager({ rootFolder, privateKeyPassphrase: passphrase });
+        await cm1.initialize();
+        await cm1.dispose();
+
+        // reopen without the passphrase
+        const cm2 = new OPCUACertificateManager({ rootFolder });
+        try {
+            let caught: unknown;
+            try {
+                await cm2.initialize();
+            } catch (err) {
+                caught = err;
+            }
+            should(caught).be.instanceOf(PrivateKeyPassphraseRequiredError);
+        } finally {
+            await cm2.dispose();
+        }
+    });
+
+    it("PP05- an existing plaintext key is re-encrypted in place once privateKeyPassphrase is turned on", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_passphrase_upgrade");
+        if (fs.existsSync(rootFolder)) {
+            fs.rmSync(rootFolder, { recursive: true, force: true });
+        }
+        // create it once, plaintext
+        const cm1 = new OPCUACertificateManager({ rootFolder });
+        await cm1.initialize();
+        const rawBefore = fs.readFileSync(cm1.privateKey, "utf-8");
+        rawBefore.should.not.containEql("ENCRYPTED");
+        await cm1.dispose();
+
+        // reopen with a passphrase configured
+        const cm2 = new OPCUACertificateManager({ rootFolder, privateKeyPassphrase: passphrase });
+        try {
+            await cm2.initialize();
+            const rawAfter = fs.readFileSync(cm2.privateKey, "utf-8");
+            rawAfter.should.containEql("ENCRYPTED PRIVATE KEY");
+
+            const key = await cm2.getPrivateKey();
+            should(key).be.ok();
+        } finally {
+            await cm2.dispose();
+        }
     });
 });

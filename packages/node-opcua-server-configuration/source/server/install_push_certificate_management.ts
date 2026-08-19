@@ -8,10 +8,15 @@ import chalk from "chalk";
 import type { AddressSpace, UAServerConfiguration } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { DiskCertificateKeyPairProvider, type ICertificateKeyPairProvider } from "node-opcua-common";
-import { type Certificate, split_der, exploreCertificateInfo } from "node-opcua-crypto/web";
+import {
+    DiskCertificateKeyPairProvider,
+    type ICertificateChainProvider,
+    type ICertificateKeyPairProvider,
+    resolvePrivateKeyProviderIfNeeded
+} from "node-opcua-common";
+import { type Certificate, exploreCertificateInfo, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { invalidateServerCertificateCache, type OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
+import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type ApplicationDescriptionOptions, ServerState } from "node-opcua-types";
 
@@ -35,6 +40,7 @@ export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     createDefaultCertificate(): Promise<void>;
     setProvider(provider: ICertificateKeyPairProvider): void;
     invalidateCachedCertificates(): void;
+    getCertificateChainProvider(): ICertificateChainProvider;
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -56,7 +62,39 @@ async function onCertificateAboutToChange(server: OPCUAServer) {
  */
 async function onCertificateChange(server: OPCUAServer) {
     doDebug && debugLog("on CertificateChanged");
-    invalidateServerCertificateCache(server);
+    await reresolveServerCertificateProvider(server);
+}
+
+/**
+ * Refresh the server's certificate/private-key provider after a rotation,
+ * and push the result to every endpoint.
+ *
+ * When the certificate manager is passphrase-/provider-managed, a
+ * synchronous "invalidate, let it lazily re-read the file" (the old
+ * behavior) cannot decrypt the key — so the key is instead resolved here,
+ * eagerly and asynchronously, via `resolvePrivateKeyProviderIfNeeded()`, and
+ * the resulting provider handed out explicitly to the server and every
+ * endpoint.
+ *
+ * For a plain (unmanaged) certificate manager, `resolvePrivateKeyProviderIfNeeded`
+ * is a deliberate no-op (see its doc), so this falls back to exactly the
+ * previous behavior: invalidate the server's and every endpoint's cached
+ * certificate/key so the next access re-reads the (plaintext) files from
+ * disk.
+ */
+async function reresolveServerCertificateProvider(server: OPCUAServer): Promise<void> {
+    const resolved = await resolvePrivateKeyProviderIfNeeded(server, server.serverCertificateManager, false);
+    if (resolved) {
+        const provider = server.getCertificateChainProvider();
+        for (const endpoint of server.endpoints) {
+            endpoint.setCertificateProvider(provider);
+        }
+    } else {
+        server.invalidateCachedCertificates();
+        for (const endpoint of server.endpoints) {
+            endpoint.invalidateCertificates();
+        }
+    }
 }
 
 /**
@@ -88,9 +126,11 @@ async function install(this: OPCUAServerPartial): Promise<void> {
     const certFile = path.join(this.serverCertificateManager.rootDir, CERT_PEM_RELATIVE_PATH);
     const keyFile = this.serverCertificateManager.privateKey;
 
-    // Inject a new disk provider pointing at the cert manager's
-    // paths. The server's certificateFile/privateKeyFile getters
-    // now automatically return the new paths.
+    // Inject a new disk provider pointing at the cert manager's paths. The
+    // server's certificateFile/privateKeyFile getters now automatically
+    // return the new paths. If the key turns out to be passphrase-encrypted,
+    // resolvePrivateKeyProviderIfNeeded() below immediately replaces this
+    // with a resolved, in-memory provider.
     this.setProvider(new DiskCertificateKeyPairProvider(certFile, keyFile));
 
     // Delegate to the base server's createDefaultCertificate() which
@@ -98,9 +138,12 @@ async function install(this: OPCUAServerPartial): Promise<void> {
     // proper subject via makeSubject(), mutex locking, and file checks.
     await this.createDefaultCertificate();
 
-    // Invalidate any previously cached secrets so that
-    // getCertificateChain() / getPrivateKey() will re-read from disk.
-    this.invalidateCachedCertificates();
+    // Resolve the (possibly passphrase-encrypted) private key once,
+    // asynchronously, and install the resolved provider — a synchronous
+    // disk re-read (the old invalidateCachedCertificates() behavior) cannot
+    // decrypt an encrypted key. For a plaintext key this just replaces the
+    // disk provider above with an equivalent resolved one.
+    await resolvePrivateKeyProviderIfNeeded(this, this.serverCertificateManager, false);
 }
 
 interface UAServerConfigurationEx extends UAServerConfiguration {
@@ -108,7 +151,7 @@ interface UAServerConfigurationEx extends UAServerConfiguration {
 }
 
 export async function installPushCertificateManagementOnServer(server: OPCUAServer): Promise<void> {
-    if (!server.engine || !server.engine.addressSpace) {
+    if (!server.engine?.addressSpace) {
         throw new Error(
             "Server must have a valid address space. " +
             "You need to call installPushCertificateManagementOnServer after server has been initialized"
@@ -129,10 +172,14 @@ export async function installPushCertificateManagementOnServer(server: OPCUAServ
         );
     }
     const cm = server.serverCertificateManager;
-    const certFile = path.join(cm.rootDir, CERT_PEM_RELATIVE_PATH);
-    const keyFile = cm.privateKey;
+    // Reuse the server's own provider (installed by install() above, and
+    // already resolved if the key is passphrase-encrypted) rather than
+    // constructing a fresh DiskCertificateKeyPairProvider from the file
+    // paths — a plain disk provider would re-read the file and fail
+    // synchronously on an encrypted key.
+    const provider = server.getCertificateChainProvider();
     for (const endpoint of server.endpoints) {
-        endpoint.setCertificateProvider(new DiskCertificateKeyPairProvider(certFile, keyFile));
+        endpoint.setCertificateProvider(provider);
     }
 
     await installPushCertificateManagement(server.engine.addressSpace, {

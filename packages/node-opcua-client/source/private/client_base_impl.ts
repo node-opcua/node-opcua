@@ -10,7 +10,16 @@ import { withLock } from "@ster5/global-mutex";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { type ICertificateStore, InMemoryCertificateStore, type IOPCUASecureObjectOptions, makeApplicationUrn, makeSubject, OPCUASecureObject } from "node-opcua-common";
+import {
+    type ICertificateStore,
+    InMemoryCertificateStore,
+    type IOPCUASecureObjectOptions,
+    makeApplicationUrn,
+    makeSubject,
+    OPCUASecureObject,
+    resolvePrivateKeyProviderIfNeeded
+} from "node-opcua-common";
+import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
 import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -27,7 +36,6 @@ import {
     type Response as Response1,
     type SecurityPolicy
 } from "node-opcua-secure-channel";
-import { type IAcceptedReverseConnection, type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
 import {
     FindServersOnNetworkRequest,
     type FindServersOnNetworkRequestOptions,
@@ -45,6 +53,7 @@ import {
 import { type ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { CloseSessionRequest, type CloseSessionResponse } from "node-opcua-service-session";
 import { type ErrorCallback, StatusCodes } from "node-opcua-status-code";
+import { type IAcceptedReverseConnection, type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import {
     type CreateSecureChannelCallbackFunc,
@@ -116,7 +125,15 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
         //     maxRetry: 0 /* no- retry */,
         //     maxDelay: 2000
         // },
-        privateKeyFile: params.privateKeyFile
+        privateKeyFile: params.privateKeyFile,
+
+        // TmpClient.connect() (below) calls _connectStep2() directly and never
+        // runs initializeCM() — so it never resolves a passphrase-encrypted
+        // private key on its own. Hand it the master client's own provider
+        // (already resolved, if needed) instead of letting it build a fresh
+        // disk provider from certificateFile/privateKeyFile, which would
+        // re-read the file and fail synchronously on an encrypted key.
+        certificateKeyPairProvider: masterClient.getProvider()
     };
 
     const client = new TmpClient(options);
@@ -396,6 +413,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     private _reverseConnectRegistration?: ICancelableRegistration;
 
     public clientCertificateManager: ICertificateStore;
+    /** true when the caller supplied a certificateKeyPairProvider — the private-key resolution escape hatch. */
+    #hasUserProvidedProvider = false;
 
     public isUnusable() {
         return (
@@ -438,6 +457,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     constructor(options?: OPCUAClientBaseOptions) {
         options = options || {};
 
+        const hasUserProvidedProvider = !!options.certificateKeyPairProvider;
+
         if (options.certificateKeyPairProvider) {
             // In-memory path — use a lightweight in-memory store
             // when no cert manager was explicitly provided.
@@ -456,6 +477,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 options.certificateFile || path.join(cm.rootDir, "own/certs/client_certificate.pem");
             super(options as IOPCUASecureObjectOptions);
         }
+
+        this.#hasUserProvidedProvider = hasUserProvidedProvider;
 
         this._setInternalState("uninitialized");
 
@@ -853,7 +876,12 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 }
                 debugLog("certificateFile = ", this.certificateFile);
                 const _certificate = this.getCertificate();
-                const _privateKey = this.getPrivateKey();
+                // Note: do NOT eagerly call this.getPrivateKey() here. A freshly
+                // generated key may already be passphrase-encrypted on disk (when
+                // clientCertificateManager is configured with privateKeyPassphrase),
+                // and the disk provider's getPrivateKey() is synchronous — it cannot
+                // decrypt. initializeCM() resolves the private key asynchronously
+                // (once) right after this method returns.
             });
         }
         (this as unknown as { _inCreateDefaultCertificate: boolean })._inCreateDefaultCertificate = false;
@@ -877,17 +905,43 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             );
             return;
         }
-        await this.clientCertificateManager.initialize();
+        // The pki-level initialize() itself already decrypts (or re-encrypts)
+        // the on-disk key when clientCertificateManager is configured with a
+        // privateKeyPassphrase, and fails closed with
+        // PrivateKeyPassphraseRequiredError on a mismatch — so this whole
+        // sequence, not just the resolve step below, needs the friendlier
+        // error message.
+        try {
+            await this.clientCertificateManager.initialize();
 
-        if (this.certificateFile === "<in-memory>" || this.certificateFile === "<unknown>") {
-            // In-memory provider — cert already available, skip disk operations
-        } else {
-            // Disk path — create default cert if missing
-            await this.createDefaultCertificate();
-            // c8 ignore next
-            if (!fs.existsSync(this.privateKeyFile)) {
-                throw new Error(` cannot locate private key file ${this.privateKeyFile}`);
+            if (this.certificateFile === "<in-memory>" || this.certificateFile === "<unknown>") {
+                // In-memory provider — cert already available, skip disk operations
+            } else {
+                // Disk path — create default cert if missing
+                await this.createDefaultCertificate();
+                // c8 ignore next
+                if (!fs.existsSync(this.privateKeyFile)) {
+                    throw new Error(` cannot locate private key file ${this.privateKeyFile}`);
+                }
+
+                // Resolve the (possibly passphrase-encrypted) private key once,
+                // asynchronously, and install it as this client's provider — so
+                // that every later, synchronous getPrivateKey() call (secure
+                // channel layer, ...) succeeds without touching disk again.
+                // No-ops when the caller supplied its own
+                // certificateKeyPairProvider, or when clientCertificateManager
+                // doesn't expose an async getPrivateKey() (e.g. a bare
+                // ICertificateStore).
+                await resolvePrivateKeyProviderIfNeeded(this, this.clientCertificateManager, this.#hasUserProvidedProvider);
             }
+        } catch (err) {
+            if (err instanceof PrivateKeyPassphraseRequiredError) {
+                throw new Error(
+                    `[NODE-OPCUA-E31] private key ${this.privateKeyFile} is encrypted; ` +
+                    "set privateKeyPassphrase on the OPCUACertificateManager passed as clientCertificateManager"
+                );
+            }
+            throw err;
         }
         if (this.isUnusable()) return;
 

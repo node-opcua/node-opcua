@@ -36,12 +36,29 @@ export interface ICertificateManager {
     rejectCertificate(certificate: Certificate): Promise<void>;
 }
 
+/**
+ * A passphrase, or a function resolving one — mirrors `PrivateKeyProvider`
+ * from `node-opcua-pki`. Kept local (rather than imported) so this stub does
+ * not pull in `node-opcua-pki` — it is accepted for type compatibility with
+ * the Node entry point but ignored, since this stub always throws on
+ * construction.
+ */
+export type PrivateKeyPassphrase = string | (() => Promise<string>);
+
+export interface PrivateKeyProvider {
+    getPrivateKey(): Promise<unknown>;
+}
+
 export interface OPCUACertificateManagerOptions {
     rootFolder?: null | string;
     automaticallyAcceptUnknownCertificate?: boolean;
     name?: string;
     keySize?: 2048 | 3072 | 4096;
     disableFileWatchers?: boolean;
+    /** Accepted for type compatibility with the Node entry point; ignored — this stub always throws on construction. */
+    privateKeyPassphrase?: PrivateKeyPassphrase;
+    /** Accepted for type compatibility with the Node entry point; ignored — this stub always throws on construction. */
+    privateKeyProvider?: PrivateKeyProvider;
 }
 
 /**

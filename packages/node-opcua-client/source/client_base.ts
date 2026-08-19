@@ -166,6 +166,11 @@ export interface OPCUAClientBaseOptions {
      *     provided by NodeOPCUA as it may interfere.
      *   - ensure that the provided client certificate matches the private pey.
      *
+     * If the key is encrypted, `clientCertificateManager` must be an
+     * `OPCUACertificateManager` constructed with a matching
+     * `privateKeyPassphrase` (or `privateKeyProvider`) — otherwise
+     * `connect()` fails closed.
+     *
      * @default `${clientCertificateManager/rootFolder}/own/private/private_key.pem"
      */
     privateKeyFile?: string;

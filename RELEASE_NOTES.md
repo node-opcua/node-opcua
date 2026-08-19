@@ -1,4 +1,24 @@
 
+Private key passphrase protection
+==================================
+
+  - opt-in private-key-at-rest protection, built on `node-opcua-pki` 6.20.0 / `node-opcua-crypto` 5.6.0
+    - `OPCUACertificateManagerOptions.privateKeyPassphrase` (`string | () => Promise<string>`) encrypts the
+      managed private key (PKCS#8, aes-256-cbc); an existing plaintext key is re-encrypted in place on
+      `initialize()`, an existing encrypted key requires the same passphrase or fails closed
+    - `OPCUACertificateManagerOptions.privateKeyProvider` sources the private key from elsewhere entirely
+      (HSM, KMS, ...)
+    - `OPCUACertificateManager.getPrivateKey()` resolves (and caches) the decrypted key asynchronously
+    - `OPCUAServer` / `OPCUAClient` resolve the key once, asynchronously, during initialization — every
+      later, synchronous `getPrivateKey()` call (secure channel layer, endpoints, ...) uses the resolved
+      key, so an encrypted key never needs a synchronous disk read
+    - push certificate management (`UpdateCertificate`) writes a pushed private key already encrypted when
+      the certificate manager is passphrase-protected — it is never written back to disk in clear, not even
+      transiently
+    - default behavior (no passphrase configured) is unchanged: the key is read and written as plaintext,
+      exactly as before
+    - see documentation/creating_a_server.md
+
 Reverse Connect
 ===============
 
