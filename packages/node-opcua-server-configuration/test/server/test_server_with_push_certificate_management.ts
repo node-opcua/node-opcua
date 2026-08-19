@@ -634,6 +634,7 @@ describe("Testing server configured with push certificate management", function 
             clientName: `4 test_server_with_push_certificate_management`
         });
 
+        let reconnected = false;
         client.on("start_reconnection", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
         });
@@ -643,6 +644,7 @@ describe("Testing server configured with push certificate management", function 
         client.on("connection_reestablished", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
             debugLog("    Server certificate is now ", short_certificate_info_toString(client.serverCertificate));
+            reconnected = true;
         });
         client.on("connection_lost", () => {
             debugLog(chalk.bgWhite.red("Client has lost connection ..."));
@@ -667,7 +669,16 @@ describe("Testing server configured with push certificate management", function 
         toPem2(privateKeyBefore, "RSA PRIVATE KEY").should.not.eql(toPem2(privateKeyAfter, "RSA PRIVATE KEY"));
 
         step("then I should see the client being reconnected");
-        await new Promise((resolve) => setTimeout(resolve, 6000));
+        // Poll for the `connection_reestablished` event (or isReconnecting
+        // dropping to false on its own, in case reconnection had already
+        // completed before the listener above could observe the event)
+        // instead of a fixed sleep: a fixed wait is either wastefully long
+        // or — under system load, where backoff/reconnect can legitimately
+        // take longer — too short, making this assertion flaky.
+        const deadline = Date.now() + 30_000;
+        while (!reconnected && client.isReconnecting && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        }
 
         client.isReconnecting.should.eql(false);
 
