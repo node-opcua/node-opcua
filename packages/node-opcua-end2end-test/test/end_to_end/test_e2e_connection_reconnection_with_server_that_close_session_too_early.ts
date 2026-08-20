@@ -6,7 +6,7 @@ import {
     type ClientMonitoredItem,
     type ClientSession,
     ClientSubscription,
-    ClientTCP_transport,
+    type ClientTCP_transport,
     type ConnectionStrategyOptions,
     coerceNodeId,
     DataType,
@@ -311,42 +311,88 @@ describeWithLeakDetector(
             await when_the_server_restart();
         }
 
+        // Armed by every given_* step, BEFORE the connection is broken, so
+        // that a reconnection completing on the very first retry attempt can
+        // never slip past the then_* steps: on a fast/local network the
+        // simulated 10s outage can leave the transport connect merely
+        // stalling (not failing), in which case ZERO backoff events ever fire
+        // (backoff only fires on a *failed* attempt) and session_restored is
+        // emitted exactly once, possibly before a then_* step gets to attach
+        // its own listener. Counting from the start makes both observations
+        // race-free.
+        let session_restored_count = 0;
+        function arm_session_restored_counter() {
+            session_restored_count = 0;
+            session.on("session_restored", () => {
+                session_restored_count += 1;
+                debugLog("session has been restored (count = ", session_restored_count, ")");
+            });
+        }
+
         async function given_a_active_client_with_subscription_and_monitored_items() {
             // Default reconnection strategy (infinite retry)
             await start_active_client({ maxRetry: -1, initialDelay: 100, maxDelay: 200 });
+            arm_session_restored_counter();
         }
         async function given_a_active_client() {
             await start_active_client_no_subscription({ maxRetry: -1, initialDelay: 100, maxDelay: 200 });
+            arm_session_restored_counter();
         }
 
         async function given_a_active_client_with_subscription_and_monitored_items_AND_short_retry_strategy() {
             // Fail-fast initial strategy (client logic should still retry indefinitely after connection loss)
             await start_active_client({ maxRetry: 2, initialDelay: 100, maxDelay: 200 });
+            arm_session_restored_counter();
         }
 
         async function then_client_should_detect_failure_and_enter_reconnection_mode() {
             let backoff_counter = 0;
             if (!client) throw new Error("Client not started");
+            // Resolve on EITHER 2 backoff events OR the session having been
+            // restored (see arm_session_restored_counter) — requiring a fixed
+            // backoff count alone hangs forever when the first retry succeeds.
+            if (session_restored_count > 0) {
+                return;
+            }
             await new Promise<void>((resolve) => {
+                let settled = false;
+                const settle = () => {
+                    if (settled) return;
+                    settled = true;
+                    client?.removeListener("backoff", backoff_detector);
+                    session.removeListener("session_restored", on_session_restored);
+                    resolve();
+                };
                 const backoff_detector = () => {
                     backoff_counter += 1;
                     if (backoff_counter === 2) {
                         if (doDebug) {
                             debugLog("Bingo !  Client has detected disconnection and is currently trying to reconnect");
                         }
-                        client?.removeListener("backoff", backoff_detector);
-                        resolve();
+                        settle();
                     }
                 };
+                const on_session_restored = () => {
+                    if (doDebug) {
+                        debugLog("Bingo !  session was restored before 2 backoff events were observed");
+                    }
+                    settle();
+                };
                 client?.on("backoff", backoff_detector);
+                session.on("session_restored", on_session_restored);
             });
         }
 
         async function then_client_should_reconnect() {
+            // The restoration may already have happened while the previous
+            // step was still waiting (session_restored fires exactly once per
+            // reconnection) — check the counter armed before the break first.
+            if (session_restored_count > 0) {
+                return;
+            }
             await new Promise<void>((resolve) => {
                 const on_session_restored = () => {
                     session.removeListener("session_restored", on_session_restored);
-                    debugLog("session has been restored");
                     resolve();
                 };
                 session.on("session_restored", on_session_restored);
