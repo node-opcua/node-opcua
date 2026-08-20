@@ -114,10 +114,7 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
      * If not implemented, the original status code is returned
      * unchanged.
      */
-    adjustCertificateStatus?(
-        statusCode: StatusCode,
-        certificate: Certificate
-    ): StatusCode | Promise<StatusCode>;
+    adjustCertificateStatus?(statusCode: StatusCode, certificate: Certificate): StatusCode | Promise<StatusCode>;
 }
 
 export interface ServerSecureChannelLayerOptions {
@@ -190,7 +187,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     #counter: number = ServerSecureChannelLayer.g_counter++;
     #status: "new" | "connecting" | "open" | "closing" | "closed" = "new";
 
-    public beforeHandleOpenSecureChannelRequest = async (): Promise<void> => { };
+    public beforeHandleOpenSecureChannelRequest = async (): Promise<void> => {};
     public get securityTokenCount(): number {
         assert(typeof this.#lastTokenId === "number");
         return this.#lastTokenId;
@@ -289,6 +286,28 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public securityPolicy: SecurityPolicy = SecurityPolicy.Invalid;
 
     #parent: ServerSecureChannelParent | null;
+    /**
+     * The certificate chain and private key this channel operates with,
+     * captured from the parent on first access and kept for the channel's
+     * whole lifetime.
+     *
+     * OPC UA Part 6 defines the asymmetric handshake per *SecureChannel*,
+     * not per current-server-state: §6.7.2 — "The receiver shall reject the
+     * MessageChunk if the Certificate identified does not match the
+     * Certificate **it is using for the SecureChannel**" — and §6.7.4
+     * requires the client to close the channel if the certificate used to
+     * sign an OpenSecureChannel response differs from the one it encrypted
+     * the request to. So when the server's certificate/key pair is rotated
+     * (push certificate management) while this channel is alive, this
+     * channel must keep honoring — and answering under — the pair it was
+     * created with: thumbprint check, response signing, and the
+     * senderCertificate chain all use the bound pair. New channels bind the
+     * new pair. (The MessageBuilder already captures the decryption key at
+     * channel setup; these fields make the remaining asymmetric operations
+     * consistent with it.)
+     */
+    #boundCertificateChain: Certificate[] | null = null;
+    #boundPrivateKey: PrivateKey | null = null;
     readonly #protocolVersion: number;
     #lastTokenId: number;
     readonly #defaultSecureTokenLifetime: number;
@@ -426,6 +445,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#parent = null;
         this.#objectFactory = undefined;
+        // release the bound certificate/key material (may be a pair the
+        // server has already rotated away from)
+        this.#boundCertificateChain = null;
+        this.#boundPrivateKey = null;
 
         if (this.#messageBuilder) {
             this.#messageBuilder.dispose();
@@ -437,7 +460,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         if (this.#transport) {
             this.#transport.dispose();
-            (this as unknown as {transport: undefined | ServerTCP_transport}).transport = undefined;
+            (this as unknown as { transport: undefined | ServerTCP_transport }).transport = undefined;
         }
         this.channelId = 0xdeadbeef;
         this.#timeoutId = null;
@@ -478,25 +501,25 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-
-     * @return the X509 DER form certificate
+     * The X509 DER form certificate chain this channel is bound to
+     * (captured from the parent on first access — see the note on
+     * `#boundCertificateChain`).
      */
     public getCertificateChain(): Certificate[] {
-        if (!this.#parent) {
-            throw new Error("expecting a valid parent");
+        if (!this.#boundCertificateChain) {
+            if (!this.#parent) {
+                throw new Error("expecting a valid parent");
+            }
+            this.#boundCertificateChain = this.#parent.getCertificateChain();
         }
-        return this.#parent.getCertificateChain();
+        return this.#boundCertificateChain;
     }
 
     /**
-
-     * @return  the X509 DER form certificate
+     * The X509 DER form (leaf) certificate this channel is bound to.
      */
     public getCertificate(): Certificate {
-        if (!this.#parent) {
-            throw new Error("expecting a valid parent");
-        }
-        return this.#parent.getCertificate();
+        return this.getCertificateChain()[0];
     }
 
     public getSignatureLength(): PublicKeyLength {
@@ -506,14 +529,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-
-     * @return the privateKey
+     * The private key this channel is bound to (captured from the parent on
+     * first access — see the note on `#boundCertificateChain`).
      */
     public getPrivateKey(): PrivateKey {
-        if (!this.#parent) {
-            return invalidPrivateKey;
+        if (!this.#boundPrivateKey) {
+            if (!this.#parent) {
+                return invalidPrivateKey;
+            }
+            this.#boundPrivateKey = this.#parent.getPrivateKey();
         }
-        return this.#parent.getPrivateKey();
+        return this.#boundPrivateKey;
     }
 
     /**
@@ -745,7 +771,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      *
      */
     public close(callback?: ErrorCallback): void {
-        callback = callback || (() => { });
+        callback = callback || (() => {});
         if (!this.#transport) {
             if (typeof callback === "function") {
                 callback();
@@ -1199,8 +1225,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (fallbackToken) {
                 warningLog(
                     `tokenId ${tokenId} expired — falling back to` +
-                    ` latest valid token ${fallbackToken.tokenId}` +
-                    ` (securityMode=${MessageSecurityMode[this.securityMode]})`
+                        ` latest valid token ${fallbackToken.tokenId}` +
+                        ` (securityMode=${MessageSecurityMode[this.securityMode]})`
                 );
                 derivedKeys = fallbackToken.derivedKeys;
             } else {
@@ -1284,10 +1310,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         //   This field shall be null if the message is not encrypted.
         const evaluateReceiverThumbprint = () => {
             if (this.securityMode === MessageSecurityMode.None) return null;
-            
+
             // c8 ignore next: this should never happen
             if (!this.#clientCertificate) return null;
-            
+
             const part1 = split_der(this.#clientCertificate)[0];
             const receiverCertificateThumbprint = getThumbprint(part1);
             return receiverCertificateThumbprint;
@@ -1355,9 +1381,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 break;
             }
             default:
-                throw new Error(
-                    `BadSecurityModeRejected: unexpected securityMode ${request.securityMode}`
-                );
+                throw new Error(`BadSecurityModeRejected: unexpected securityMode ${request.securityMode}`);
         }
         return securityHeader;
     }
@@ -1601,7 +1625,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 if (!securityToken) {
                     const _tokenStack = this.#tokenStack;
                     const description = `cannot find security token ${tokenId}  ${msgType}`;
-                    return this.#_sendFatalErrorAndAbort(StatusCodes.BadCommunicationError, description, message, () => { });
+                    return this.#_sendFatalErrorAndAbort(StatusCodes.BadCommunicationError, description, message, () => {});
                 }
                 if (securityToken && channelId !== securityToken.channelId) {
                     // response = new ServiceFault({responseHeader: {serviceResult: certificate_status}});

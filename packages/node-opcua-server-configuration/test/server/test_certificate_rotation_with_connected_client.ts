@@ -19,17 +19,16 @@
  *    CreateSession — and Renews on that new channel succeed with the
  *    rotated pair.
  *
- *  RCC2 — `false`: `ApplyChanges` leaves existing channels alone. The
- *    client keeps working on its old channel (old symmetric keys) after
- *    the rotation; its next OpenSecureChannel *Renew* is rejected by the
- *    server (old certificate addressed) and the channel closed, and only
- *    then does it reconnect — again reactivating the same session. The
- *    rotation is deferred, not seamless.
- *
- * In neither case does a Renew *succeed* on the original channel across
- * the rotation: that would need the server to accept its previous
- * certificate/key for a grace period and the client to adopt the new
- * certificate from the Renew response — a separate scenario.
+ *  RCC2 — `false`: `ApplyChanges` leaves existing channels alone, and the
+ *    rotation is **seamless** for them. Each server channel is bound to
+ *    the certificate/key pair it was created with (OPC UA Part 6 §6.7.2:
+ *    the thumbprint check is against "the Certificate it is using for the
+ *    SecureChannel"; §6.7.4: the client shall close the channel if a
+ *    response is signed with a different certificate than the request was
+ *    encrypted to — so the bound pair is the only conformant answer), so
+ *    OpenSecureChannel *Renews* on the original channel keep succeeding
+ *    after the rotation: the connected client is never disconnected and
+ *    never even notices. New connections are served the new certificate.
  */
 import fs from "node:fs";
 import os, { hostname } from "node:os";
@@ -46,7 +45,7 @@ import {
     SecurityPolicy,
     type UserIdentityInfoUserName
 } from "node-opcua-client";
-import { convertPEMtoDER, makeSHA1Thumbprint, readCertificateChain } from "node-opcua-crypto";
+import { convertPEMtoDER, makeSHA1Thumbprint, readCertificateChain, split_der } from "node-opcua-crypto";
 import { AttributeIds } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
@@ -287,32 +286,31 @@ describe("Certificate rotation with a connected client (CA-chain trust)", functi
         }
     });
 
-    it("RCC2: closeChannelsOnApplyChanges: false — the client keeps working on its old channel, is disconnected only at its next Renew, then reactivates the same session", async () => {
+    it("RCC2: closeChannelsOnApplyChanges: false — the rotation is seamless: the connected client renews on its original channel with no disconnection, while a new client gets the new certificate", async () => {
         const fixture = await setUpFixture("RCC2");
         const server = await startServer(fixture, portRCC2, { closeChannelsOnApplyChanges: false });
+        const oldCertificateThumb = makeSHA1Thumbprint(server.getCertificate()).toString("hex");
 
         let client: OPCUAClient | undefined;
         let session: ClientSession | undefined;
         try {
-            // Renew interval comfortably longer than the rotation itself
-            // (~1–2 s), so the post-ApplyChanges checks land while the old
-            // channel is still alive, and the failing Renew comes after.
-            const tokenRenewalInterval = 5000;
             client = OPCUAClient.create({
                 clientCertificateManager: fixture.clientCertificateManager,
                 certificateFile: fixture.clientCertificateFile,
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: SecurityPolicy.Basic256Sha256,
                 clientName: "RCC2-client",
-                tokenRenewalInterval
+                // renew fast so several post-rotation Renews on the ORIGINAL
+                // channel are observable within the test
+                tokenRenewalInterval: 1500
             });
             let lostCount = 0;
-            let reestablishedCount = 0;
+            let renewedCount = 0;
             client.on("connection_lost", () => {
                 lostCount++;
             });
-            client.on("connection_reestablished", () => {
-                reestablishedCount++;
+            client.on("security_token_renewed", () => {
+                renewedCount++;
             });
 
             await client.connect(server.getEndpointUrl());
@@ -326,22 +324,52 @@ describe("Certificate rotation with a connected client (CA-chain trust)", functi
             await new Promise((resolve) => setTimeout(resolve, 200));
 
             // --- the channel was NOT shut down: server still holds it, the
-            //     client saw no disconnection, and the session still works
-            //     over the old channel (old symmetric keys).
+            //     client saw no disconnection, and the session still works.
             server.currentChannelCount.should.eql(1, "existing channel must survive ApplyChanges");
             lostCount.should.eql(0, "client must not have been disconnected by ApplyChanges");
             await readServerTime(session);
 
-            // --- the next Renew on that old channel is rejected by the server
-            //     (client still addresses the old certificate) and the channel
-            //     closed; the client then reconnects and reactivates the
-            //     same session.
-            await waitUntil(() => lostCount >= 1 && reestablishedCount >= 1, tokenRenewalInterval + 20_000);
-            lostCount.should.eql(1, "expecting exactly one disconnection, at the failed Renew");
-            reestablishedCount.should.eql(1, "expecting the client to have reconnected once");
-            session.sessionId
-                .toString()
-                .should.eql(sessionIdBefore.toString(), "the existing session must be reactivated, not recreated");
+            // --- seamlessness: OpenSecureChannel *Renews* on the ORIGINAL
+            //     channel keep succeeding after the rotation. The channel is
+            //     bound to the certificate/key pair it was created with
+            //     (Part 6 §6.7.2/§6.7.4), so the unmodified client — which
+            //     still encrypts to, and verifies against, the old
+            //     certificate — renews without ever noticing the rotation.
+            const renewedAtRotation = renewedCount;
+            await waitUntil(() => renewedCount >= renewedAtRotation + 2 || lostCount > 0, 20_000);
+            lostCount.should.eql(0, "the client must never be disconnected — Renews succeed on the original channel");
+            renewedCount.should.be.aboveOrEqual(
+                renewedAtRotation + 2,
+                "expecting at least two successful Renews on the original channel after the rotation"
+            );
+            session.sessionId.toString().should.eql(sessionIdBefore.toString(), "same session throughout — nothing was recreated");
+            await readServerTime(session);
+
+            // --- meanwhile a NEW client connecting now gets the NEW
+            //     certificate (accepted via the already-trusted CA + CRL).
+            const client2 = OPCUAClient.create({
+                clientCertificateManager: fixture.clientCertificateManager,
+                certificateFile: fixture.clientCertificateFile,
+                securityMode: MessageSecurityMode.SignAndEncrypt,
+                securityPolicy: SecurityPolicy.Basic256Sha256,
+                clientName: "RCC2-client2"
+            });
+            await client2.connect(server.getEndpointUrl());
+            try {
+                const seen = client2.serverCertificate!;
+                const seenLeaf = Array.isArray(seen) ? seen[0] : split_der(seen)[0];
+                makeSHA1Thumbprint(seenLeaf)
+                    .toString("hex")
+                    .should.not.eql(oldCertificateThumb, "a new client must be served the rotated certificate");
+                const session2 = await client2.createSession(adminIdentity);
+                await readServerTime(session2);
+                await session2.close();
+            } finally {
+                await client2.disconnect();
+            }
+
+            // and the first client is STILL undisturbed
+            lostCount.should.eql(0);
             await readServerTime(session);
         } finally {
             await session?.close().catch(() => {
