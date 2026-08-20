@@ -35,8 +35,7 @@ import {
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { EndpointType } from "node-opcua-types";
-import type { Variant } from "node-opcua-variant";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { raiseAuditMethodEvent } from "./audit.js";
 import {
     type BindRestrictionMethodsOptions,
@@ -170,13 +169,37 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
     server.roleResolvers ??= [];
     server.roleResolvers.push(resolver);
 
+    /**
+     * Bind a Role's `Identities` Property to THIS store, live.
+     *
+     * `node-opcua-server`'s own `bindRoleSet` (run at `server.start()`, i.e.
+     * before us) binds the same Property to `userManager.getIdentitiesForRole`
+     * — a getter that answers `[]` forever when the userManager doesn't
+     * implement that optional hook. A getter-bound variable shadows every
+     * later `setValueFromSource` on read (readValue re-evaluates the getter
+     * and overwrites `$dataValue` with its answer), so without this rebind an
+     * `AddIdentity` succeeds, persists, and resolves roles — while the
+     * Property a client reads back stays empty. `overwrite: true` replaces
+     * that binding with one backed by the store that actually owns the data.
+     */
+    function bindIdentitiesToStore(role: UARole): void {
+        role.identities.bindVariable(
+            {
+                get: () =>
+                    new Variant({
+                        dataType: DataType.ExtensionObject,
+                        arrayType: VariantArrayType.Array,
+                        value: store.getIdentitiesForRole(role.nodeId)
+                    })
+            },
+            true
+        );
+    }
+
     function refreshIdentities(role: UARole): void {
-        console.log(`[REFRESH] role: ${role.browseName.toString()}, nodeId: ${role.nodeId.toString()}`);
-        const identities = store.getIdentitiesForRole(role.nodeId);
-        console.log(`[REFRESH] identities for ${role.nodeId.toString()}:`, JSON.stringify(identities));
         role.identities.setValueFromSource({
             dataType: DataType.ExtensionObject,
-            value: identities
+            value: store.getIdentitiesForRole(role.nodeId)
         });
     }
 
@@ -255,6 +278,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
 
     /** Bind the identity + restriction Methods on a Role and seed its variables. */
     function bindRoleMethods(role: UARole): void {
+        bindIdentitiesToStore(role);
         refreshIdentities(role);
         refreshRestrictions(role);
         role.addIdentity?.bindMethod(addIdentityHandler);

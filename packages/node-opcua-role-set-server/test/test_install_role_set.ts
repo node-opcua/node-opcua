@@ -17,7 +17,7 @@ import {
     writeArchive
 } from "node-opcua-role-set-common";
 import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { type IServerForRoleSet, installRoleSet } from "../source/install_role_set.js";
 import { RoleSetResolver } from "../source/role_set_resolver.js";
@@ -123,6 +123,51 @@ describe("installRoleSet", () => {
         } catch {
             /* */
         }
+    });
+
+    it("should override a pre-existing userManager getter binding on Identities (bindRoleSet clobber)", async () => {
+        // node-opcua-server's bindRoleSet runs at server.start() — before
+        // installRoleSet — and binds every Role's Identities Property to
+        // userManager.getIdentitiesForRole, which answers [] forever when the
+        // userManager doesn't implement that optional hook. That getter
+        // shadowed installRoleSet's setValueFromSource on every read:
+        // AddIdentity succeeded, persisted, and resolved roles, while the
+        // Property a client read back stayed empty. Reproduce that exact
+        // ordering here and verify installRoleSet now rebinds to its store.
+        const roleSet = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_RoleSet) as UARoleSet;
+        for (const c of roleSet.getComponents()) {
+            if (c.nodeClass !== NodeClass.Object) continue;
+            if ((c as UARole).typeDefinitionObj?.browseName.name !== "RoleType") continue;
+            // same binding shape as node-opcua-server/source/user_manager_ua.ts
+            (c as UARole).identities.bindVariable(
+                { get: () => new Variant({ dataType: DataType.ExtensionObject, value: [] }) },
+                true
+            );
+        }
+
+        const { store } = await installRoleSet(server);
+
+        let operatorRole: UARole | undefined;
+        for (const c of roleSet.getComponents()) {
+            if (c.nodeClass !== NodeClass.Object) continue;
+            if (sameNodeId(c.nodeId, WellKnownRoleIds.Operator)) {
+                operatorRole = c as UARole;
+                break;
+            }
+        }
+        should(operatorRole).not.be.undefined();
+
+        // a runtime mutation — the store is the single source of truth, and the
+        // Property must answer from it live, not from a snapshot or a stale getter
+        store.addIdentity(
+            WellKnownRoleIds.Operator,
+            new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria: "runtime-user" })
+        );
+
+        const dv = operatorRole!.identities.readValue();
+        dv.statusCode.isGood().should.eql(true);
+        dv.value.value.should.have.length(1);
+        should(dv.value.value[0].criteria).equal("runtime-user");
     });
 
     it("should throw if address space is not available", async () => {
