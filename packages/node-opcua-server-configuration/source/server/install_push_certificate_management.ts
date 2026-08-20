@@ -137,10 +137,9 @@ async function reresolveServerCertificateProvider(server: OPCUAServer): Promise<
  * With `closeChannelsOnApplyChanges` (the default) every existing secure
  * channel is shut down immediately, forcing all connected clients to
  * reconnect with the new certificate right away. Without it, existing
- * channels are left alone: each keeps running on the symmetric keys it
- * already derived until its next OpenSecureChannel *Renew*, which the
- * server then rejects (the client still addresses the old certificate)
- * and closes the channel — at which point that client reconnects. See
+ * channels are left alone and continue — including OpenSecureChannel
+ * *Renews* — under the certificate/key pair each channel is bound to,
+ * while new connections use the new pair. See
  * {@link InstallPushCertificateManagementOnServerOptions.closeChannelsOnApplyChanges}
  * for when each is appropriate.
  *
@@ -153,7 +152,8 @@ async function onApplyChangesCompleted(server: OPCUAServer, closeChannels: boole
         await server.shutdownChannels();
         doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => channels shut down"));
     } else {
-        doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => leaving existing channels open until their next renew"));
+        doDebug &&
+            debugLog(chalk.yellow(" onApplyChangesCompleted => leaving existing channels open (bound to their original pair)"));
     }
 
     doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => resuming end points"));
@@ -212,15 +212,20 @@ export interface InstallPushCertificateManagementOnServerOptions {
      *   choice when the rotation is a response to a **compromised or
      *   revoked** key: nothing keeps running under the old one.
      *
-     * - `false`: existing channels are left open. Each keeps running on the
-     *   symmetric keys it already derived until its next OpenSecureChannel
-     *   *Renew* (at ~75% of its token lifetime); the server rejects that
-     *   Renew — the client still addresses the old certificate — and closes
-     *   the channel, and only then does that client reconnect. Choose this
-     *   for a **planned** rotation: in-flight transactions complete, and N
-     *   clients reconnect spread over a token lifetime instead of all at
-     *   once. Note the reconnection still happens — this defers it, it does
-     *   not make the rotation seamless.
+     * - `false`: existing channels are left open and the rotation is
+     *   **seamless** for them. Each server channel is bound to the
+     *   certificate/key pair it was created with (OPC UA Part 6 §6.7.2
+     *   defines the thumbprint check against "the Certificate it is using
+     *   for the SecureChannel", and §6.7.4 requires the client to close the
+     *   channel if a response is signed with a different certificate than
+     *   the request was encrypted to — so the old pair is the only one a
+     *   Renew on an old channel can conformantly use). Connected clients
+     *   keep renewing their security token under the old pair, unmodified
+     *   third-party clients included; new connections use the new pair.
+     *   Choose this for a **planned** rotation. The old pair remains in use
+     *   by those channels until they close naturally — which is exactly why
+     *   `true` stays the default: when the rotation answers a **compromised
+     *   or revoked** key, nothing must keep running under it.
      *
      * @defaultValue true
      */
