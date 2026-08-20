@@ -3,10 +3,10 @@ import path from "node:path";
 import { assert } from "node-opcua-assert";
 import type { ByteString } from "node-opcua-basic-types";
 import type { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { exploreCertificate, readPrivateKey } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto";
 import {
-    certificateMatchesPrivateKey,
     type Certificate,
+    certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
     coercePrivateKeyPem,
     combine_der,
@@ -170,9 +170,14 @@ export async function executeUpdateCertificate(
         }
 
         if (!hasPrivateKeyFormat && !hasPrivateKey) {
-            const privateKeyObj = readPrivateKey(
-                serverImpl.tmpCertificateManager ? serverImpl.tmpCertificateManager.privateKey : certificateManager.privateKey
-            );
+            // CertificateManager.getPrivateKey() caches the decoded key for the lifetime of the
+            // instance (see node-opcua-pki). createCertificateRequest()/createSelfSignedCertificate()
+            // both go through that cache, so the CSR that produced `certificate` was necessarily
+            // signed with the *cached* key. Comparing against a fresh disk read here (readPrivateKey
+            // on the file path) would compare against whatever is currently on disk instead — which
+            // can differ right after a previous updateCertificate() call replaced the private key
+            // file directly (bypassing the cache), causing a spurious BadSecurityChecksFailed.
+            const privateKeyObj = await (serverImpl.tmpCertificateManager || certificateManager).getPrivateKey();
 
             if (!certificateMatchesPrivateKey(certificate, privateKeyObj)) {
                 warningLog("certificate doesn't match privateKey");
