@@ -1214,21 +1214,23 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>   
 
         let func: (innerCallback: (err: Error | null, dataValue: DataValue) => void) => void;
 
-        if (!this.isReadable(context)) {
-            func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
-                const dataValue = new DataValue({ statusCode: StatusCodes.BadNotReadable });
-                innerCallback(null, dataValue);
-            };
+        const answerStatusOnly = (statusCode: StatusCode) => (innerCallback: (err: Error | null, dataValue: DataValue) => void) =>
+            innerCallback(null, new DataValue({ statusCode }));
+
+        if (context.isAccessRestricted(this)) {
+            // same gate as readValue(): a variable bound with a simple get()
+            // also gets a refreshFunc, sending every read down the asyncRefresh
+            // branch below - which calls the getter directly and never passes
+            // through readValue(). Without this check here, a node hardened
+            // with AccessRestrictions(EncryptionRequired) answered its value
+            // over an unencrypted channel.
+            func = answerStatusOnly(StatusCodes.BadSecurityModeInsufficient);
+        } else if (!this.isReadable(context)) {
+            func = answerStatusOnly(StatusCodes.BadNotReadable);
         } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
-                const dataValue = new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
-                innerCallback(null, dataValue);
-            };
+            func = answerStatusOnly(StatusCodes.BadUserAccessDenied);
         } else if (!this.isUserReadable(context)) {
-            func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
-                const dataValue = new DataValue({ statusCode: StatusCodes.BadNotReadable });
-                innerCallback(null, dataValue);
-            };
+            func = answerStatusOnly(StatusCodes.BadNotReadable);
         } else {
             const clock = getCurrentClock();
             func = typeof this.refreshFunc === "function" ? this.asyncRefresh.bind(this, clock) : readImmediate;
