@@ -3,4 +3,3 @@ pnpm-lock.yaml
 *.xml
 dist/
 node_modules/
-CTT/
