@@ -8,8 +8,8 @@
         "build": "tsc -b",
         "test": "mocha",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source test",
-        "format": "prettier --write source test"
+        "lint": "biome check .",
+        "format": "biome check --write ."
     },
     "dependencies": {
         "node-opcua-data-model": "2.177.0",

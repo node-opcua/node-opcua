@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "echo nothing to do",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source/**/*.ts"
+        "lint": "biome check ."
     },
     "versionBump": "1",
     "dependencies": {

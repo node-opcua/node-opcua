@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "mocha",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source/**/*.ts"
+        "lint": "biome check ."
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

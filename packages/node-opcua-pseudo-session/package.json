@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module pseudo-session",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source/**/*.ts",
+        "lint": "biome check .",
         "build": "tsc -b",
         "test": "echo mocha test"
     },

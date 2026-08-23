@@ -177,9 +177,6 @@ importers:
       mocha-lcov-reporter:
         specifier: ^1.3.0
         version: 1.3.0
-      prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
       should:
         specifier: ^13.2.3
         version: 13.2.3
@@ -1789,9 +1786,6 @@ importers:
       node-opcua-variant:
         specifier: 2.177.0
         version: link:../node-opcua-variant
-      prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -5522,11 +5516,6 @@ packages:
     resolution: {integrity: sha512-QCYG84SgGyGzqJ/vlMsxeXd/pgL/I94ixdNFyh1PusWmTCyVfPJjZ1K1jvHtsbfnXQs2TSkEP2fR7QiMZAnKFQ==}
     engines: {node: '>= 0.6'}
 
-  prettier@3.9.6:
-    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
-    engines: {node: '>=14'}
-    hasBin: true
-
   process@0.11.10:
     resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
     engines: {node: '>= 0.6.0'}
@@ -7159,8 +7148,6 @@ snapshots:
   possible-typed-array-names@1.1.0: {}
 
   precond@0.2.3: {}
-
-  prettier@3.9.6: {}
 
   process@0.11.10: {}
 

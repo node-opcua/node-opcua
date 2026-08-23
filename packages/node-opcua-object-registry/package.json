@@ -5,8 +5,8 @@
     "main": "./dist/index.js",
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint source test",
-        "format": "prettier --write source test",
+        "lint": "biome check .",
+        "format": "biome check --write .",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "mocha"
     },

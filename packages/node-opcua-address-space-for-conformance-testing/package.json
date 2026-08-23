@@ -6,8 +6,8 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint src",
-        "format": "prettier --write src",
+        "lint": "biome check .",
+        "format": "biome check --write .",
         "test": "mocha",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },

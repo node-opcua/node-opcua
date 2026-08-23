@@ -18,7 +18,7 @@
     "scripts": {
         "build": "tsc -b && tsc -p tsconfig.esm.json",
         "build:test-page": "node build-test-page.mjs",
-        "lint": "eslint source test",
+        "lint": "biome check .",
         "test:unit": "mocha",
         "test:e2e": "playwright test",
         "test": "pnpm test:unit && pnpm test:e2e",

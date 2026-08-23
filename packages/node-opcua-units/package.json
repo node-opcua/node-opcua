@@ -7,8 +7,8 @@
     "scripts": {
         "build": "tsc -b",
         "generate:units": "tsx tools/build.ts && npm run format",
-        "lint": "eslint source test",
-        "format": "prettier --write source test",
+        "lint": "biome check .",
+        "format": "biome check --write .",
         "test": "mocha",
         "test:check": "tsc --noEmit -p test/tsconfig.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"

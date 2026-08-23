@@ -7,8 +7,8 @@
     "deprecated": true,
     "description": "pure nodejs OPCUA SDK - module client-crawler (deprecated - use @sterfive/crawler module instead)",
     "scripts": {
-        "lint": "eslint source test",
-        "format": "prettier --write source test",
+        "lint": "biome check .",
+        "format": "biome check --write .",
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "mocha ",

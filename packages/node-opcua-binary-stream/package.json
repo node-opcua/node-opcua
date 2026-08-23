@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "mocha",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "eslint source/**/*.ts"
+        "lint": "biome check ."
     },
     "dependencies": {
         "node-opcua-assert": "2.175.6",

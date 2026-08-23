@@ -6,7 +6,7 @@
     "types": "./dist/source/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "lint": "eslint source/**/*.ts",
+        "lint": "biome check .",
         "test": "mocha",
         "test:check": "tsc --noEmit -p test/tsconfig.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"

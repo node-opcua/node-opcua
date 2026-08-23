@@ -8,7 +8,7 @@
         "node-opcua-local-discovery-server": "./bin/local-discovery-server.mjs"
     },
     "scripts": {
-        "lint": "eslint source/**/*.ts",
+        "lint": "biome check .",
         "test": "echo no test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo tmp",
         "build-docker": "docker build . -t lds"
