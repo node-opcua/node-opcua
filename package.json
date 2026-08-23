@@ -5,9 +5,6 @@
     "homepage": "http://node-opcua.github.io/",
     "main": "index.js",
     "bin": {},
-    "directories": {
-        "test": "test"
-    },
     "scripts": {
         "fix:tsconfigs": "pnpm --filter \"./packages/node-opcua-*\" exec fix-tsconfigs",
         "extract:dep": "pnpm exec grep -RhoP 'from\\s+\"\\Knode-opcua[^\"]+' source | sort | uniq",

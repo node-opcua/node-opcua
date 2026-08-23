@@ -41,7 +41,7 @@ interpolated into the URL rather than repeated as a literal, so `grep "Port = "`
 allocation in one pass. Before picking anything outside these ranges, check it is unused:
 
 ```bash
-grep -rnE "\b<port>\b" --include=*.ts --include=*.js packages packages_extra test_compliance \
+grep -rnE "\b<port>\b" --include=*.ts --include=*.js packages packages_extra \
   | grep -v node_modules | grep -v /dist/
 ```
 
