@@ -122,7 +122,6 @@ Lets write a small [worldweather_demo.js](#testing-the-rest-api "save:"), to exp
 Our purpose is to create a `getCityWeather` asynchronous function that pass to a callback function
 an object containing the temperature and pressure of a city. This function will be used this way:
 
-<!-- compile with literate-programming create_a_weather_station.md !-->
 
 ```javascript
 _"get city weather"
