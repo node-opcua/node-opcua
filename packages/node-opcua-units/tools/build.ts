@@ -1,12 +1,13 @@
 /* eslint-disable complexity */
-import path from "path";
-import fs from "fs";
-import { readFile, utils } from "xlsx-ugnis";
 
+import fs from "fs";
+import path from "path";
+import { readFile, utils } from "xlsx-ugnis";
 
 const j = (s: string) => s.replace(/ /gm, "_");
 
-const a = (s: string) => (s ? s.replace("U+00a0", "").replace(" ", " ").replace(/"/gm, "\\\"").replace(/'/gm, "").replace(/\n|\r/gm, " ") : "").trim();
+const a = (s: string) =>
+    (s ? s.replace("U+00a0", "").replace(" ", " ").replace(/"/gm, '\\"').replace(/'/gm, "").replace(/\n|\r/gm, " ") : "").trim();
 
 const makeU = (s: string) => {
     const r = a(s.replace(/ /gm, "_").replace("_[", "[").replace("_(", "(")).replace(/_-_/gm, "-");
@@ -14,7 +15,7 @@ const makeU = (s: string) => {
         return r.replace(/,_/, "(") + ")";
     }
     return r;
-}
+};
 
 interface EntryAnnexeII_III {
     Name: string;
@@ -31,12 +32,12 @@ interface Entry {
     Quantity: string;
     Name: string;
     Symbol: string;
-    'Group Number': string;
-    'Group ID': string;
+    "Group Number": string;
+    "Group ID": string;
     "Level/ Category": string;
     "Common Code": string;
     "Conversion Factor": string;
-    "Description"?: string;
+    Description?: string;
 }
 function makeDescription(u: Entry | EntryAnnexeII_III) {
     const cf = u["Conversion Factor"] || "";
@@ -54,9 +55,8 @@ function makeDescription(u: Entry | EntryAnnexeII_III) {
 
 // eslint-disable-next-line max-statements
 async function main() {
-
     // Reading our test file
-    const file = readFile(path.join(__dirname, './rec20_Rev17e-2021.xlsx'));
+    const file = readFile(path.join(__dirname, "./rec20_Rev17e-2021.xlsx"));
 
     const annex1 = utils.sheet_to_json(file.Sheets[file.SheetNames[1]]) as Entry[];
     const annex2_3 = utils.sheet_to_json(file.Sheets[file.SheetNames[2]]) as EntryAnnexeII_III[];
@@ -69,7 +69,7 @@ async function main() {
     // also add Level 3 units that are not marked with X or D ( Deleted) from annex II and III
     const uncategorizedUnits = annex2_3
         .filter((x) => !x.Status && x["Level /\r\nCategory"][0] === "3")
-        .sort((a, b) => a.Name > b.Name ? 1 : -1)
+        .sort((a, b) => (a.Name > b.Name ? 1 : -1));
 
     for (const e of annex1) {
         units[e.Sector] = units[e.Sector] || {};
@@ -93,34 +93,33 @@ async function main() {
         w(`import { makeEUInformation }  from "node-opcua-data-access";`);
         w(`export const categorizedUnits = { `);
         for (const [keyS, sector] of Object.entries(units)) {
-            w(' /**');
+            w(" /**");
             w(`  * ${keyS}`);
-            w('  */');
+            w("  */");
             const shortKeyS = j(keyS.split(",")[0]);
             w(` '${a(shortKeyS)}': {`);
             for (const [keyQ, q] of Object.entries(sector)) {
-                w('   /**');
+                w("   /**");
                 w(`    * ${quantityTitles[keyQ]}`);
-                w('    */');
+                w("    */");
                 w(`   '${a(j(keyQ))}': {`);
                 for (const [keyU, u] of Object.entries(q)) {
                     const code = u["Common Code"];
                     const unit = makeU(keyU);
                     const description = makeDescription(u);
                     w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
-
                 }
                 w(`    },`);
             }
             w(`  },`);
         }
-        w(' /**');
+        w(" /**");
         w(`  * Level 3 Units ( uncategorized)`);
-        w('  */');
+        w("  */");
         for (const u of uncategorizedUnits) {
             const code = u["Common\nCode"];
             if (code === undefined || code === "undefined") {
-                console.log(Object.keys(u).map((t)=>`"${t}`));
+                console.log(Object.keys(u).map((t) => `"${t}`));
                 // debugger;
             }
             const keyU = u.Name;
@@ -134,7 +133,6 @@ async function main() {
         const content = str.join("\n");
         fs.promises.writeFile(path.join(__dirname, "../source/_generated_categorized_units.ts"), content);
         str.splice(0);
-
     }
     {
         const units: Record<string, Entry> = {};
@@ -145,7 +143,7 @@ async function main() {
         w(`import { EUInformation } from "node-opcua-types";`);
         w(`import { makeEUInformation }  from "node-opcua-data-access";`);
         w(`export const allUnits  =  { `);
-        for (const [keyU, u] of Object.entries(units).sort(([a], [b]) => a > b ? 1 : (a < b) ? -1 : 0)) {
+        for (const [keyU, u] of Object.entries(units).sort(([a], [b]) => (a > b ? 1 : a < b ? -1 : 0))) {
             const code = u["Common Code"];
             const unit = makeU(keyU);
             const cf = u["Conversion Factor"] || "";
@@ -166,7 +164,6 @@ async function main() {
         }
         w(`}`);
 
-
         const content = str.join("\n");
         fs.promises.writeFile(path.join(__dirname, "../source/_generated_all_units.ts"), content);
         str.splice(0);
@@ -177,5 +174,3 @@ async function main() {
     }
 }
 main();
-
-

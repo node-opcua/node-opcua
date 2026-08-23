@@ -1,6 +1,6 @@
-import { DataType } from "node-opcua-variant";
-import { Argument, ArgumentOptions } from "node-opcua-types";
 import { coerceNodeId } from "node-opcua-nodeid";
+import { Argument, type ArgumentOptions } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
 import should from "should";
 
 import "../source/imports";

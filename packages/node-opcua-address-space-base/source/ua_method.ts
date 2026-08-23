@@ -24,12 +24,11 @@ export declare type MethodFunctorA = (
 
 export type MethodFunctor = MethodFunctorC | MethodFunctorA;
 
-
 export interface UAMethodEvents extends BaseNodeEvents {
-    "method_executed": (inputArguments: Variant[], context: ISessionContext, callMethodResult: CallMethodResultOptions) => void;
-    "afterCall": (context: ISessionContext,inputArguments: Variant[], callMethodResult: CallMethodResultOptions) => void;
+    method_executed: (inputArguments: Variant[], context: ISessionContext, callMethodResult: CallMethodResultOptions) => void;
+    afterCall: (context: ISessionContext, inputArguments: Variant[], callMethodResult: CallMethodResultOptions) => void;
 }
-export interface UAMethod<T extends UAMethodEvents & ListenerSignature<T>   = UAMethodEvents> extends BaseNode<T> {
+export interface UAMethod<T extends UAMethodEvents & ListenerSignature<T> = UAMethodEvents> extends BaseNode<T> {
     readonly nodeClass: NodeClass.Method;
     readonly typeDefinition: NodeId;
     readonly typeDefinitionObj: UAObjectType;

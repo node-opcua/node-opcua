@@ -2,18 +2,18 @@
  * @module node-opcua-extension-object
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import {
     BaseUAObject,
+    DataTypeFactory,
     getStandardDataTypeFactory,
-    IStructuredTypeSchema,
+    type IStructuredTypeSchema,
     is_internal_id,
     registerBuiltInType,
-    StructuredTypeSchema,
-    DataTypeFactory
+    StructuredTypeSchema
 } from "node-opcua-factory";
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -143,10 +143,7 @@ export class OpaqueStructure extends ExtensionObject {
 export interface IDataTypeFactory {
     constructObject(dataTypeNodeId: NodeId): BaseUAObject | null;
 }
-export function decodeExtensionObject(
-    stream: BinaryStream, 
-    _value?: ExtensionObject | null,
-): ExtensionObject | null {
+export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionObject | null): ExtensionObject | null {
     const nodeId = decodeNodeId(stream);
     const encodingType = stream.readUInt8();
 

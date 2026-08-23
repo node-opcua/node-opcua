@@ -1,5 +1,6 @@
 // Fixture: TypeScript test — requires tsx to load
 import assert from "node:assert";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
 

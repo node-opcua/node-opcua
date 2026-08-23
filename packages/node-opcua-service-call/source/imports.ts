@@ -2,7 +2,7 @@
  * @module node-opcua-service-browse
  */
 import { assert } from "node-opcua-assert";
-import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-types";
 import { DataType, verifyRankAndDimensions } from "node-opcua-variant";
 
@@ -11,10 +11,10 @@ export {
     ArgumentOptions,
     CallMethodRequest,
     CallMethodRequestOptions,
-    CallRequest,
-    CallRequestOptions,
     CallMethodResult,
     CallMethodResultOptions,
+    CallRequest,
+    CallRequestOptions,
     CallResponse
 } from "node-opcua-types";
 
@@ -41,7 +41,7 @@ function _coerceToNodeId(n: NodeId | string | DataType): NodeId {
     if (dataType instanceof NodeId) {
         return dataType;
     }
-    if (Object.prototype.hasOwnProperty.call(dataType, "value")) {
+    if (typeof dataType === "object" && Object.hasOwn(dataType, "value")) {
         const a = dataType as unknown as { value: unknown; namespace?: number };
         return coerceNodeId(a.value, a.namespace);
     }

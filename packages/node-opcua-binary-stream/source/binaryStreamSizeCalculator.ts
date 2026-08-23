@@ -17,7 +17,6 @@ import { calculateByteLength } from "./binaryStream";
  *
  */
 export class BinaryStreamSizeCalculator {
-
     public length: number;
 
     constructor() {
@@ -52,7 +51,7 @@ export class BinaryStreamSizeCalculator {
         this.length += 2;
     }
 
-    public  writeFloat(value: number): void {
+    public writeFloat(value: number): void {
         this.length += 4;
     }
 
@@ -75,7 +74,7 @@ export class BinaryStreamSizeCalculator {
         }
     }
 
-    public writeString(str: null|string): void {
+    public writeString(str: null | string): void {
         if (str === undefined || str === null) {
             this.writeUInt32(-1);
             return;

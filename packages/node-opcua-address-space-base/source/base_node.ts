@@ -1,4 +1,4 @@
-import  { EventEmitter } from "node:events";
+import { EventEmitter } from "node:events";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ReferenceTypeIds } from "node-opcua-constants";
 import type {
@@ -139,7 +139,6 @@ export const TypedEventEmitter = EventEmitter as unknown as {
     new <T extends ListenerSignature<T>>(): ITypedEventEmitter<T>;
 };
 export interface BaseNode<T extends BaseNodeEvents & ListenerSignature<T> = BaseNodeEvents> extends ITypedEventEmitter<T> {
- 
     readonly nodeClass: NodeClass;
     get addressSpace(): IAddressSpace;
     readonly browseName: QualifiedName;

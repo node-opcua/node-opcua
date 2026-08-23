@@ -26,5 +26,5 @@ export enum WellKnownRoles {
     /** Change non-security related configuration. */
     ConfigureAdmin = ObjectIds.WellKnownRole_ConfigureAdmin,
     /** Change security related settings. */
-    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin,
+    SecurityAdmin = ObjectIds.WellKnownRole_SecurityAdmin
 }

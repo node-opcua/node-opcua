@@ -135,7 +135,10 @@ function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken)
             if (!isX509(token) || !(token as any).certificateData) {
                 return false;
             }
-            const certBuffer = (token as any).certificateData instanceof Buffer ? (token as any).certificateData : Buffer.from((token as any).certificateData);
+            const certBuffer =
+                (token as any).certificateData instanceof Buffer
+                    ? (token as any).certificateData
+                    : Buffer.from((token as any).certificateData);
             const thumbprint = makeSHA1Thumbprint(certBuffer).toString("hex").toUpperCase();
             const expected = (rule.criteria ?? "").toUpperCase().replace(/[\s:]/g, "");
             return thumbprint === expected;
@@ -147,7 +150,9 @@ function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken)
             }
             try {
                 const certBuffer =
-                    (token as any).certificateData instanceof Buffer ? (token as any).certificateData : Buffer.from((token as any).certificateData);
+                    (token as any).certificateData instanceof Buffer
+                        ? (token as any).certificateData
+                        : Buffer.from((token as any).certificateData);
                 const info = exploreCertificate(certBuffer);
                 const subject = info.tbsCertificate.subject ?? {};
                 return matchX509Subject(rule.criteria ?? "", subject);

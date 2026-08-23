@@ -311,10 +311,10 @@ export class BinaryStream {
         if (remainingBytes < buf.length) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                buf.length +
-                " but only " +
-                remainingBytes +
-                " left"
+                    buf.length +
+                    " but only " +
+                    remainingBytes +
+                    " left"
             );
         }
         buf.copy(this.buffer, this.length, 0, buf.length);
@@ -337,10 +337,10 @@ export class BinaryStream {
         if (remainingBytes < byteLength) {
             throw new Error(
                 "BinaryStream.writeByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                byteLength +
-                " but only " +
-                remainingBytes +
-                " left"
+                    byteLength +
+                    " but only " +
+                    remainingBytes +
+                    " left"
             );
         }
         this.buffer.write(value, this.length);
@@ -369,7 +369,9 @@ export class BinaryStream {
 
     public readArrayBuffer(length: number): Uint8Array {
         if (length > BinaryStream.maxByteStringLength) {
-            throw new Error(`maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${length}`);
+            throw new Error(
+                `maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${length}`
+            );
         }
         // c8 ignore next
         if (performCheck) {
@@ -404,7 +406,9 @@ export class BinaryStream {
             return zeroLengthBuffer;
         }
         if (bufLen > BinaryStream.maxByteStringLength) {
-            throw new Error(`maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${bufLen}`);
+            throw new Error(
+                `maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${bufLen}`
+            );
         }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;
@@ -412,10 +416,10 @@ export class BinaryStream {
         if (remainingBytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                bufLen +
-                " but only " +
-                remainingBytes +
-                " left"
+                    bufLen +
+                    " but only " +
+                    remainingBytes +
+                    " left"
             );
         }
         // create a shared memory buffer ! for speed
@@ -433,7 +437,9 @@ export class BinaryStream {
             return "";
         }
         if (bufLen > BinaryStream.maxStringLength) {
-            throw new Error(`maxStringLength(${BinaryStream.maxStringLength}) has been exceeded in BinaryStream.readString len=${bufLen}`);
+            throw new Error(
+                `maxStringLength(${BinaryStream.maxStringLength}) has been exceeded in BinaryStream.readString len=${bufLen}`
+            );
         }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;
@@ -441,10 +447,10 @@ export class BinaryStream {
         if (remainingBytes < bufLen) {
             throw new Error(
                 "BinaryStream.readByteStream error : not enough bytes left in buffer :  bufferLength is " +
-                bufLen +
-                " but only " +
-                remainingBytes +
-                " left"
+                    bufLen +
+                    " but only " +
+                    remainingBytes +
+                    " left"
             );
         }
         const str = this.buffer.toString("utf-8", this.length, this.length + bufLen);

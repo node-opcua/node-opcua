@@ -140,7 +140,10 @@ const userNameRule = (userName: string): IdentityMappingRuleType =>
  * then call {@link RoleBasedSecurity.install} after `server.start()`.
  */
 export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityOptions): Promise<RoleBasedSecurity> {
-    const userStore = new InMemoryUserManagementStore(options?.policy, options?.registry ? { registry: options.registry } : undefined);
+    const userStore = new InMemoryUserManagementStore(
+        options?.policy,
+        options?.registry ? { registry: options.registry } : undefined
+    );
     const identityStore = new InMemoryIdentityMappingStore();
 
     for (const user of options?.users ?? []) {
@@ -162,9 +165,7 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
             // NoChangeByUser is an illegal combination — §5.2.3).
             const configError = validateUserConfiguration(userConfiguration);
             if (configError) {
-                throw new Error(
-                    `RoleBasedUser "${user.userName}": invalid userConfiguration (${configError.name}).`
-                );
+                throw new Error(`RoleBasedUser "${user.userName}": invalid userConfiguration (${configError.name}).`);
             }
             userStore.importUsers?.([
                 {
@@ -182,7 +183,9 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
                 user.description ?? ""
             );
         } else {
-            throw new Error(`RoleBasedUser "${user.userName}": provide either "password" (clear text) or "passwordHash" (pre-hashed record).`);
+            throw new Error(
+                `RoleBasedUser "${user.userName}": provide either "password" (clear text) or "passwordHash" (pre-hashed record).`
+            );
         }
         for (const role of user.roles ?? []) {
             identityStore.addIdentity(role, userNameRule(user.userName));

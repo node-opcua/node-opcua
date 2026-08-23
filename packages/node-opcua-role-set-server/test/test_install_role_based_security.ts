@@ -79,7 +79,9 @@ describe("createRoleBasedSecurity — one store behind the userManager bridge", 
         });
 
         // the original clear-text password authenticates against the imported hash
-        (await security.userStore.authenticate("admin", "s3cret-init")).statusCode.should.equal(StatusCodes.GoodPasswordChangeRequired);
+        (await security.userStore.authenticate("admin", "s3cret-init")).statusCode.should.equal(
+            StatusCodes.GoodPasswordChangeRequired
+        );
         (await security.userStore.authenticate("admin", "nope")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
 
         // roles are seeded exactly like the clear-text path

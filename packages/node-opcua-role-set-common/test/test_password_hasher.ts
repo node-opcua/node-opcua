@@ -1,6 +1,6 @@
 import "mocha";
 import should from "should";
-import { HasherRegistry, ScryptHasher, defaultHasherRegistry, scryptPhc } from "../source/password_hasher.js";
+import { defaultHasherRegistry, HasherRegistry, ScryptHasher, scryptPhc } from "../source/password_hasher.js";
 
 describe("ScryptHasher — credential parsing hardening", () => {
     const hasher = new ScryptHasher();

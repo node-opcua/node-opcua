@@ -1,5 +1,5 @@
 // tslint:disable: no-console
-import { Benchmarker, ITestRun } from "..";
+import { Benchmarker, type ITestRun } from "..";
 
 describe("Testing Benchmarker", () => {
     it("forEach vs simple loops", (done) => {
@@ -38,18 +38,21 @@ describe("Testing Benchmarker", () => {
     });
 
     it("should benchmark async function ", async () => {
-
         const bench = new Benchmarker();
 
         async function test1() {
-            await new Promise<void>((resolve) => setImmediate(() => {
-                resolve();
-            }));
+            await new Promise<void>((resolve) =>
+                setImmediate(() => {
+                    resolve();
+                })
+            );
         }
         async function test2() {
-            await new Promise<void>((resolve) => process.nextTick(() => {
-                resolve();
-            }));
+            await new Promise<void>((resolve) =>
+                process.nextTick(() => {
+                    resolve();
+                })
+            );
         }
         await bench
             .add("test1 - setImmediate", test1)
@@ -65,5 +68,4 @@ describe("Testing Benchmarker", () => {
             })
             .run({ max_time: 0.25 });
     });
-
 });

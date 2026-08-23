@@ -4,7 +4,7 @@
 // tslint:disable:no-bitwise
 
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 function warnLog(...args: [any?, ...any[]]) {
     /* c8 ignore next */
@@ -375,14 +375,15 @@ Object.defineProperty(ModifiableStatusCode.prototype, "_base", { enumerable: fal
 Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable: false, writable: true });
 
 import { StatusCodes } from "./_generated_status_codes";
+
 export { StatusCodes } from "./_generated_status_codes";
 
 export function coerceStatusCode(statusCode: StatusCode | number | string | { value: number }): StatusCode {
     if (statusCode instanceof StatusCode) {
         return statusCode;
     }
-    if (Object.prototype.hasOwnProperty.call(statusCode, "value")) {
-        return getStatusCodeFromCode((statusCode as { value: number }).value);
+    if (typeof statusCode === "object" && Object.hasOwn(statusCode, "value")) {
+        return getStatusCodeFromCode(statusCode.value);
     }
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);

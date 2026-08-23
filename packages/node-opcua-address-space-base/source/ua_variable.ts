@@ -89,7 +89,7 @@ export interface IVariableDataTypeChange {
     changeDataType(newDataType: NodeIdLike, newValue?: VariantLike): void;
 }
 export interface UAVariableEvents extends BaseNodeEvents {
-    value_changed: (newDataValue: DataValue, index_range?: NumericRange |null) => void;
+    value_changed: (newDataValue: DataValue, index_range?: NumericRange | null) => void;
     semantic_changed: () => void;
 }
 export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = UAVariableEvents>

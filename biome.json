@@ -1,56 +1,66 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true,
-		"defaultBranch": "master"
-	},
-	"formatter": {
-		"enabled": true,
-		"lineEnding": "lf",
-		"indentStyle": "space",
-		"indentWidth": 4,
-		"lineWidth": 132
-	},
+    "$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true,
+        "defaultBranch": "master"
+    },
+    "formatter": {
+        "enabled": true,
+        "lineEnding": "lf",
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 132
+    },
     "javascript": {
         "formatter": {
             "quoteStyle": "double",
             "trailingCommas": "none"
         }
     },
-	"files": {
-		"includes": ["packages/**/*.ts", "packages_extra/**/*.ts", "tools/**/*.ts"]
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"style": {
-				"useImportType": {
-					"level": "error",
-					"fix": "safe"
-				}
-			}
-		}
-	},
-	"overrides": [
-		{
-			"includes": ["**/test/**/*.ts", "**/*.test.ts"],
-			"linter": {
-				"rules": {
-					"style": {
-						"noNonNullAssertion": "off"
-					}
-				}
-			}
-		}
-	]
+    "files": {
+        "includes": [
+            "packages/**/*.ts",
+            "packages_extra/**/*.ts",
+            "tools/**/*.ts",
+            "!packages/node-opcua-nodeset-*/**",
+            "!packages/node-opcua-constants/source/opcua_node_ids.ts",
+            "!**/_generated_*.ts",
+            "!**/_auto_generated_*",
+            "!**/_test_generated/**",
+            "!packages/node-opcua-variant/test/data_factory_code_generator/**"
+        ]
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "style": {
+                "useImportType": {
+                    "level": "error",
+                    "fix": "safe"
+                }
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["**/test/**/*.ts", "**/*.test.ts"],
+            "linter": {
+                "rules": {
+                    "style": {
+                        "noNonNullAssertion": "off"
+                    }
+                }
+            }
+        }
+    ]
 }

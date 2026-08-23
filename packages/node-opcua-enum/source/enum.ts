@@ -24,7 +24,7 @@ export class EnumItem {
 
     /**
      * Checks if the EnumItem is the same as the passing object.
-     * 
+     *
      * @param  {EnumItem | String | Number} item The object to check with.
      * @return {Boolean}                          The check result.
      */
@@ -40,7 +40,7 @@ export class EnumItem {
 
     /**
      * Checks if the flagged EnumItem has the passing object.
-     * 
+     *
      * @param  {EnumItem | String |Number} value The object to check with.
      * @return {Boolean}                            The check result.
      */
@@ -56,7 +56,7 @@ export class EnumItem {
 
     /**
      * Returns String representation of this EnumItem.
-     * 
+     *
      * @return {String} String representation of this EnumItem.
      */
     public toString(): string {
@@ -119,7 +119,6 @@ export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
     return map as _TypescriptEnum;
 }
 
-
 /**
  * @class Enum
  * @constructor
@@ -141,7 +140,7 @@ export class Enum {
             mm = map;
         }
 
-        for (const  [key, val] of Object.entries(mm)) {
+        for (const [key, val] of Object.entries(mm)) {
             if (typeof val !== "number") {
                 continue;
             }

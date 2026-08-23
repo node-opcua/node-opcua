@@ -76,7 +76,7 @@ export class OPCUACertificateManager {
     constructor(_options?: OPCUACertificateManagerOptions) {
         throw new Error(
             "OPCUACertificateManager is not available in the browser bundle. " +
-            "Pass an InMemoryCertificateStore from node-opcua-common as clientCertificateManager instead."
+                "Pass an InMemoryCertificateStore from node-opcua-common as clientCertificateManager instead."
         );
     }
 }
@@ -91,7 +91,7 @@ export class OPCUACertificateManager {
 export function getDefaultCertificateManager(_name: "PKI" | "UserPKI"): never {
     throw new Error(
         "getDefaultCertificateManager is not available in the browser bundle. " +
-        "Pass clientCertificateManager explicitly when constructing the client."
+            "Pass clientCertificateManager explicitly when constructing the client."
     );
 }
 

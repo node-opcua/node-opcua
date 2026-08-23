@@ -2,6 +2,7 @@
  * @module node-opcua-data-access
  */
 export { EUInformation } from "node-opcua-types";
+
 /*jslint bitwise: true */
 // tslint:disable:no-bitwise
 

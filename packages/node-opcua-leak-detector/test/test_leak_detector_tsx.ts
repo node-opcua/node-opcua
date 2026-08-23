@@ -14,6 +14,7 @@
  */
 
 import assert from "node:assert";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { describeWithLeakDetector: _describeWithLeakDetector } = require("../src/resource_leak_detector");
 
@@ -29,7 +30,6 @@ const describeWithLeakDetector = memLeakDisabled
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("TS1 - TypeScript basic (tsx loaded)", () => {
-
     it("TS1.1 - TypeScript syntax works", () => {
         const x: number = 42;
         assert.strictEqual(x, 42);
@@ -41,7 +41,9 @@ describeWithLeakDetector("TS1 - TypeScript basic (tsx loaded)", () => {
     });
 
     it("TS1.3 - TypeScript generics", () => {
-        function identity<T>(val: T): T { return val; }
+        function identity<T>(val: T): T {
+            return val;
+        }
         assert.strictEqual(identity(42), 42);
         assert.strictEqual(identity("foo"), "foo");
     });
@@ -53,7 +55,6 @@ describeWithLeakDetector("TS1 - TypeScript basic (tsx loaded)", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("TS2 - TypeScript timer lifecycle", () => {
-
     it("TS2.1 - cleaned timer", () => {
         const t = setTimeout(() => {}, 60000);
         clearTimeout(t);
@@ -76,7 +77,6 @@ describeWithLeakDetector("TS2 - TypeScript timer lifecycle", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("TS3 - TypeScript second block", () => {
-
     it("TS3.1 - process exits after multiple tsx blocks", () => {
         assert.ok(true);
     });
@@ -88,7 +88,6 @@ describeWithLeakDetector("TS3 - TypeScript second block", () => {
 });
 
 describeWithLeakDetector("TS4 - TypeScript third block (final)", () => {
-
     it("TS4.1 - final block exits cleanly", () => {
         assert.strictEqual(1 + 1, 2);
     });

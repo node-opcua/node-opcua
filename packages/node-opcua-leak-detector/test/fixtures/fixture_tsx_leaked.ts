@@ -1,5 +1,6 @@
 // Fixture: TypeScript with leaked timer — proves tsx + leak combo exits
 import assert from "node:assert";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
 

@@ -154,15 +154,14 @@ export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
 
-export interface UAObjectEvents extends BaseNodeEvents {    
-
-    "event_raised":()=>void;
+export interface UAObjectEvents extends BaseNodeEvents {
+    event_raised: () => void;
 }
 
 /**
  * @interface UAObject
  */
-export interface UAObject<T extends UAObjectEvents & ListenerSignature<T>  = UAObjectEvents>
+export interface UAObject<T extends UAObjectEvents & ListenerSignature<T> = UAObjectEvents>
     extends BaseNode<T>,
         EventRaiser,
         IPropertyAndComponentHolder {
