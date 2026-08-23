@@ -1,6 +1,6 @@
 import {
     adjustLimitsWithParameters,
-    type IHelloAckLimits
+    type IHelloAckLimits,
     OPCUAClient,
     OPCUAServer
 } from "node-opcua";
