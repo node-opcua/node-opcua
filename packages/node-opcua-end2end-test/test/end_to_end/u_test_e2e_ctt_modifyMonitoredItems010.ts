@@ -1,9 +1,13 @@
 import "should";
 import {
     AttributeIds,
+    type ClientMonitoredItemBase,
     ClientMonitoredItemGroup,
+    type ClientSession,
+    type ClientSessionRawSubscriptionService,
     ClientSidePublishEngine,
     ClientSubscription,
+    type ModifyMonitoredItemsResponse,
     OPCUAClient,
     Subscription,
     TimestampsToReturn
@@ -13,8 +17,21 @@ import sinon from "sinon";
 
 interface TestHarness {
     endpointUrl: string;
-    [k: string]: any;
 }
+
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEngine;
+}
+
+// modifyMonitoredItems is deliberately excluded from the public ClientSession type
+// (superseded by ClientMonitoredItemGroup.modify), re-declared Promise-only here since
+// its optional-callback overload otherwise wins overload resolution for a single arg call.
+type RawSession = Omit<ClientSession & ClientSessionRawSubscriptionService, "modifyMonitoredItems"> & {
+    modifyMonitoredItems(options: {
+        subscriptionId: number;
+        itemsToModify: { monitoredItemId: number | undefined; requestedParameters: { samplingInterval: number } }[];
+    }): Promise<ModifyMonitoredItemsResponse>;
+};
 
 // Scalar nodes
 const itemsToMonitor1: { nodeId: string; attributeId: number }[] = [
@@ -116,11 +133,11 @@ export function t(test: TestHarness) {
     describe("CTT 010 modify samplingInterval on large monitored item group", () => {
         let oldPublishInPipeline = 0;
         beforeEach(() => {
-            oldPublishInPipeline = (ClientSidePublishEngine as any).publishRequestCountInPipeline;
-            (ClientSidePublishEngine as any).publishRequestCountInPipeline = 1;
+            oldPublishInPipeline = ClientSidePublishEngine.publishRequestCountInPipeline;
+            ClientSidePublishEngine.publishRequestCountInPipeline = 1;
         });
         afterEach(() => {
-            (ClientSidePublishEngine as any).publishRequestCountInPipeline = oldPublishInPipeline;
+            ClientSidePublishEngine.publishRequestCountInPipeline = oldPublishInPipeline;
         });
 
         it("creates many monitored items and modifies half", async () => {
@@ -129,7 +146,7 @@ export function t(test: TestHarness) {
 
             await client.withSessionAsync(endpointUrl, async (session) => {
                 // pause publish engine while we create large group
-                (session as any).getPublishEngine().suspend(true);
+                (session as SessionWithPublishEngine).getPublishEngine().suspend(true);
 
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 200,
@@ -176,10 +193,13 @@ export function t(test: TestHarness) {
                 const group = ClientMonitoredItemGroup.create(subscription, itemsToMonitor, options, TimestampsToReturn.Both);
                 await new Promise<void>((resolve, reject) => {
                     group.on("initialized", () => {
-                        const badItems = group.monitoredItems.filter((it: any) => it.statusCode.isNotGood());
+                        const badItems = group.monitoredItems.filter((it: ClientMonitoredItemBase) => it.statusCode!.isNotGood());
                         if (badItems.length) {
                             const details = group.monitoredItems
-                                .map((it: any, i: number) => `${itemsToMonitor[i].nodeId.padEnd(30)} ${it.statusCode.toString()}`)
+                                .map(
+                                    (it: ClientMonitoredItemBase, i: number) =>
+                                        `${itemsToMonitor[i].nodeId.padEnd(30)} ${it.statusCode!.toString()}`
+                                )
                                 .join("\n");
                             return reject(new Error(`Initialization failed for some nodeIds:\n${details}`));
                         }
@@ -189,7 +209,7 @@ export function t(test: TestHarness) {
                 });
 
                 // Resume publish and trigger initial publish requests
-                (session as any).getPublishEngine().internalSendPublishRequest();
+                (session as SessionWithPublishEngine).getPublishEngine().internalSendPublishRequest();
 
                 // Wait for first raw notification (bounded wait)
                 const waitFirstNotification = async () => {
@@ -204,26 +224,26 @@ export function t(test: TestHarness) {
                 rawNotificationSpy.callCount.should.be.greaterThan(0);
                 const firstMonitoredCount = rawNotificationSpy.getCall(0).args[0].notificationData[0].monitoredItems.length;
                 firstMonitoredCount.should.eql(
-                    Math.min(group.monitoredItems.length, (Subscription as any).maxNotificationPerPublishHighLimit)
+                    Math.min(group.monitoredItems.length, Subscription.maxNotificationPerPublishHighLimit)
                 );
 
                 rawNotificationSpy.resetHistory();
                 rawNotificationSpy.callCount.should.eql(0);
 
                 // Modify sampling interval: first half 1000 ms, second half 3000 ms
-                const itemsToModify = group.monitoredItems.map((mi: any, index: number) => ({
+                const itemsToModify = group.monitoredItems.map((mi: ClientMonitoredItemBase, index: number) => ({
                     monitoredItemId: mi.monitoredItemId,
                     requestedParameters: { samplingInterval: index % 2 ? 3000 : 1000 }
                 }));
 
-                await (session as any).modifyMonitoredItems({
+                await (session as RawSession).modifyMonitoredItems({
                     subscriptionId: subscription.subscriptionId,
                     itemsToModify
                 });
 
-                (session as any).getPublishEngine().internalSendPublishRequest();
-                (session as any).getPublishEngine().internalSendPublishRequest();
-                (session as any).getPublishEngine().internalSendPublishRequest();
+                (session as SessionWithPublishEngine).getPublishEngine().internalSendPublishRequest();
+                (session as SessionWithPublishEngine).getPublishEngine().internalSendPublishRequest();
+                (session as SessionWithPublishEngine).getPublishEngine().internalSendPublishRequest();
 
                 await new Promise((r) => setTimeout(r, 6000));
 
