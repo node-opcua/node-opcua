@@ -1,13 +1,16 @@
 import "should";
-import { AttributeIds, ClientMonitoredItem, type ClientSession, type ClientSubscription, DataValue, OPCUAClient } from "node-opcua";
+import {
+    AttributeIds,
+    type CallbackT,
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    DataValue,
+    OPCUAClient
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 import { waitForChange } from "./_helpers_monitoring";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
 
 const doDebug = false;
 
@@ -16,19 +19,19 @@ const doDebug = false;
  * on a single subscription.
  * Ensures both monitored items receive data changes independently.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Bug #123 multiple monitors on same variable", () => {
         it("creates two monitored items for one variable", async () => {
-            const server = test.server;
+            const server = test.server!;
             const refreshRate = 100; // ms
-            const namespace = server.engine.addressSpace.getOwnNamespace();
+            const namespace = server.engine.addressSpace!.getOwnNamespace();
             let counter = 1;
             const variableToMonitor = namespace.addVariable({
-                organizedBy: server.engine.addressSpace.rootFolder.objects,
+                organizedBy: server.engine.addressSpace!.rootFolder.objects,
                 browseName: "SlowVariable_123",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: (callback: any) => {
+                    refreshFunc: (callback: CallbackT<DataValue>) => {
                         setTimeout(() => {
                             counter += 1;
                             callback(
@@ -47,7 +50,7 @@ export function t(test: TestHarness) {
 
             const client = OPCUAClient.create({});
             await client.withSubscriptionAsync(
-                test.endpointUrl,
+                test.endpointUrl!,
                 {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 10 * 60 * 10,
