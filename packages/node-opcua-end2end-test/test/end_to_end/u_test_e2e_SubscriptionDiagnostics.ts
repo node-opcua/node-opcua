@@ -1,26 +1,46 @@
 import {
     AttributeIds,
     type ClientSession,
+    type ClientSessionRawSubscriptionService,
     type ClientSubscription,
     CreateSubscriptionRequest,
     coerceNodeId,
     DataType,
     MonitoringMode,
     makeBrowsePath,
+    type NodeId,
     OPCUAClient,
     StatusCodes,
+    type TransferSubscriptionsResponse,
     VariableIds,
     VariantArrayType
 } from "node-opcua";
+
+// SubscriptionDiagnosticsDataType is not part of the public node-opcua API surface,
+// so this mirrors the subset of fields these tests actually read.
+interface SubscriptionDiagnosticsDataTypeLike {
+    sessionId: NodeId;
+    subscriptionId: number;
+    publishingInterval: number;
+    maxLifetimeCount: number;
+}
 
 const doDebug = false;
 
 interface TestHarness {
     endpointUrl: string;
-    server: any; // could be refined
+    server?: unknown;
 }
 
-async function readSubscriptionDiagnosticArray(session: ClientSession): Promise<any[]> {
+// createSubscription/setMonitoringMode/transferSubscriptions are deliberately excluded
+// from the public ClientSession type (superseded by createSubscription2 & friends).
+// transferSubscriptions is re-declared Promise-only because its optional-callback
+// overload otherwise wins overload resolution for a single-argument call.
+type RawSession = Omit<ClientSession & ClientSessionRawSubscriptionService, "transferSubscriptions"> & {
+    transferSubscriptions(options: { subscriptionIds: number[] }): Promise<TransferSubscriptionsResponse>;
+};
+
+async function readSubscriptionDiagnosticArray(session: ClientSession): Promise<SubscriptionDiagnosticsDataTypeLike[]> {
     const dataValue = await session.read({
         nodeId: coerceNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray), // 2290
         attributeId: AttributeIds.Value
@@ -29,17 +49,22 @@ async function readSubscriptionDiagnosticArray(session: ClientSession): Promise<
     return dataValue.value.value;
 }
 
-async function readSubscriptionDiagnosticArrayOnClient(endpointUrl: string): Promise<any[]> {
+async function readSubscriptionDiagnosticArrayOnClient(endpointUrl: string): Promise<SubscriptionDiagnosticsDataTypeLike[]> {
     const client = OPCUAClient.create({});
-    const a = await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
+    const a = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
         return await readSubscriptionDiagnosticArray(session);
     });
     return a;
 }
 
-async function readServerDiagnosticsSummary(endpointUrl: string): Promise<any> {
+interface ServerDiagnosticsSummary {
+    currentSubscriptionCount: number;
+    toString?(): string;
+}
+
+async function readServerDiagnosticsSummary(endpointUrl: string): Promise<ServerDiagnosticsSummary> {
     const client = OPCUAClient.create({});
-    const a = await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
+    const a = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
         const dataValue = await session.read({
             nodeId: coerceNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
             attributeId: AttributeIds.Value
@@ -60,12 +85,12 @@ async function stopSubscriptionByTransfer(endpointUrl: string, subscription: Cli
     if (doDebug) console.log("transferring subscription", subscriptionId);
 
     const client = OPCUAClient.create({});
-    await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
-        const response = await (session as any).transferSubscriptions({ subscriptionIds: [subscriptionId] });
-        if (response.results[0].statusCode.isNotGood()) {
+    await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        const response = await (session as RawSession).transferSubscriptions({ subscriptionIds: [subscriptionId] });
+        if (response.results![0].statusCode.isNotGood()) {
             console.log(response.toString());
         }
-        response.results[0].statusCode.should.eql(StatusCodes.Good);
+        response.results![0].statusCode.should.eql(StatusCodes.Good);
         await subscription.terminate();
     });
 }
@@ -95,11 +120,12 @@ async function createPersistentSubscription(endpointUrl: string): Promise<Client
 
 async function checkSubscriptionExists(session: ClientSession, subscriptionId: number): Promise<boolean> {
     try {
-        await (session as any).setMonitoringMode({ subscriptionId, monitoringMode: MonitoringMode.Reporting });
+        await (session as RawSession).setMonitoringMode({ subscriptionId, monitoringMode: MonitoringMode.Reporting });
         return true;
-    } catch (err: any) {
-        if (err.message.match(/BadNothingToDo/)) return true;
-        if (err.message.match(/BadSubscriptionIdInvalid/)) return false;
+    } catch (err: unknown) {
+        const message = (err as Error).message;
+        if (message.match(/BadNothingToDo/)) return true;
+        if (message.match(/BadSubscriptionIdInvalid/)) return false;
         console.log(err);
         return false;
     }
@@ -110,7 +136,7 @@ export function t(test: TestHarness): void {
         it("SubscriptionDiagnostics-1 : server should expose SubscriptionDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            await (client as any).withSubscriptionAsync(
+            await client.withSubscriptionAsync(
                 endpointUrl,
                 {
                     requestedPublishingInterval: 100,
@@ -178,7 +204,7 @@ export function t(test: TestHarness): void {
         it("SubscriptionDiagnostics-2 : server should remove SubscriptionDiagnostics when subscription is terminated", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            const [initial, after, final] = await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
+            const [initial, after, final] = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
                 const initial = await readSubscriptionDiagnosticArray(session);
                 const subscription = await session.createSubscription2({
                     requestedPublishingInterval: 100,
@@ -204,12 +230,12 @@ export function t(test: TestHarness): void {
         it("SubscriptionDiagnostics-3 : server should remove diagnostics when subscription has timed out", async () => {
             const client = OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
-            await (client as any).withSessionAsync(endpointUrl, async (session: ClientSession) => {
+            await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
                 const before = await readSubscriptionDiagnosticArray(session);
                 if (before.length) {
                     console.log(" Warning : subscriptionDiagnosticArray is not zero : previous tests may not have cleaned up");
                 }
-                const result = await (session as any).createSubscription(
+                const result = await (session as RawSession).createSubscription(
                     new CreateSubscriptionRequest({
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 10,
