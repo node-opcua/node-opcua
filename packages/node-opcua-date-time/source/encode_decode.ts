@@ -5,7 +5,7 @@ import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream"
 import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, getMinOPCUADate } from "./date_time";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
-export function isValidDateTime(value: any) {
+export function isValidDateTime(value: unknown) {
     return value instanceof Date;
 }
 
@@ -65,7 +65,7 @@ export function decodeHighAccuracyDateTime(stream: BinaryStream, _value?: Date |
     return bn_hundredNanoSecondFrom1601ToDate(hi, lo, 0, _value);
 }
 
-export function coerceDateTime(value: any): Date {
+export function coerceDateTime(value: string | number | Date | null | undefined): Date {
     if (!value) {
         return getMinOPCUADate();
     }

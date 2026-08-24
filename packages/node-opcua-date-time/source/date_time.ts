@@ -83,12 +83,10 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
     const a = tL.add(offsetLong).multiply(factorLong).add(excess100nanosecond);
 
     const high_low = [a.getHighBits(), a.getLowBits()];
-    const picoseconds2 = excess100nanosecond * 10000 + +picoseconds;
-    picoseconds2;
     return high_low;
 }
 
-export function bn_dateToHundredNanoSecondFrom1601Excess(date: Date, picoseconds: number): number {
+export function bn_dateToHundredNanoSecondFrom1601Excess(_date: Date, picoseconds: number): number {
     // 100 nano seconds = 100 x 1000 picoseconds
     return (picoseconds || 0) % 100000;
 }
@@ -172,8 +170,8 @@ export function installPeriodicClockAdjustment() {
 }
 export function uninstallPeriodicClockAdjustment() {
     periodicClockAdjustment.timerInstallationCount--;
-    if (periodicClockAdjustment.timerInstallationCount <= 0) {
-        g_clearInterval(timerId!);
+    if (periodicClockAdjustment.timerInstallationCount <= 0 && timerId) {
+        g_clearInterval(timerId);
         timerId = null;
     }
 }
