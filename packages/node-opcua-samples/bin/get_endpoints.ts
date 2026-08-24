@@ -3,8 +3,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { types } from "node:util";
 import chalk from "chalk";
-import yargs from "yargs";
-
 import {
     ApplicationType,
     coerceMessageSecurityMode,
@@ -16,6 +14,7 @@ import {
     UserTokenType
 } from "node-opcua";
 import { type Certificate, toPem } from "node-opcua-crypto";
+import yargs from "yargs";
 
 const Table = require("easy-table");
 const treeify = require("treeify");
@@ -46,12 +45,12 @@ async function main() {
         })
         .example("get_endpoints  --endpoint opc.tcp://localhost:49230", "").argv;
 
-    const securityMode = coerceMessageSecurityMode(argv.securityMode!);
+    const securityMode = coerceMessageSecurityMode(argv.securityMode);
     if (securityMode === MessageSecurityMode.Invalid) {
         throw new Error("Invalid Security mode");
     }
 
-    const securityPolicy = coerceSecurityPolicy(argv.securityPolicy!);
+    const securityPolicy = coerceSecurityPolicy(argv.securityPolicy);
     if (securityPolicy === SecurityPolicy.Invalid) {
         throw new Error("Invalid securityPolicy");
     }
@@ -147,7 +146,7 @@ async function main() {
             chalk.cyan(endpoint.securityPolicyUri)
         );
         const table2 = new Table();
-        for (const token of endpoint.userIdentityTokens!) {
+        for (const token of endpoint.userIdentityTokens || []) {
             table2.cell("policyId", token.policyId);
             table2.cell("tokenType", UserTokenType[token.tokenType]);
             table2.cell("issuedTokenType", token.issuedTokenType);

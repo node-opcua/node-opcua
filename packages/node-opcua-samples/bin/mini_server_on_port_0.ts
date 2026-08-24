@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
-import { nodesets, OPCUAServer } from "node-opcua";
 import chalk from "chalk";
+import { nodesets, OPCUAServer } from "node-opcua";
+
 async function main() {
     const serverOptions = {
         port: 0,

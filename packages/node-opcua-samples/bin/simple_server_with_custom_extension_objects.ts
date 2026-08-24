@@ -39,7 +39,10 @@ async function main() {
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     server.on("post_initialize", () => {
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized by post_initialize");
+        }
 
         // to do: expose new nodeid here
         const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
@@ -63,12 +66,12 @@ async function main() {
 
     try {
         await server.start();
-    } catch (err) {
+    } catch (_err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
 
-    const endpointUrl = server.getEndpointUrl()!;
+    const endpointUrl = server.getEndpointUrl();
 
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));

@@ -1,4 +1,5 @@
 process.env.NODEOPCUADEBUG = "CLIENT{TRACE};TRANSPORT{CHUNK-HELACK}";
+
 import { OPCUAClient } from "node-opcua";
 
 (async () => {

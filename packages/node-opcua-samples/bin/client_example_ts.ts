@@ -1,20 +1,18 @@
 #!/usr/bin/env tsx
 import fs from "node:fs";
 import path from "node:path";
-import util from "node:util";
-import { types } from "node:util";
-import yargs from "yargs/yargs";
+import util, { types } from "node:util";
 import chalk from "chalk";
 import Table from "easy-table";
-
 import {
     ApplicationType,
     AttributeIds,
     BrowseDirection,
-    callConditionRefresh,
     ClientMonitoredItem,
+    type ClientSecureChannelLayer,
     type ClientSession,
     type ClientSubscription,
+    callConditionRefresh,
     coerceMessageSecurityMode,
     coerceNodeId,
     coerceSecurityPolicy,
@@ -23,15 +21,16 @@ import {
     dumpEvent,
     hexDump,
     type IBasicSessionAsync,
+    MessageSecurityMode,
     makeExpandedNodeId,
     makeNodeId,
-    MessageSecurityMode,
     NodeClassMask,
     NodeId,
     ObjectTypeIds,
-    ofType,
     OPCUAClient,
     type OPCUAClientOptions,
+    ofType,
+    type QualifiedName,
     type QueryFirstRequestOptions,
     resolveNodeId,
     SecurityPolicy,
@@ -40,8 +39,8 @@ import {
     VariableIds,
     type Variant
 } from "node-opcua";
-
 import { type Certificate, toPem } from "node-opcua-crypto";
+import yargs from "yargs/yargs";
 
 const { asTree } = require("treeify");
 
@@ -49,12 +48,22 @@ function w(str: string, l: number): string {
     return str.padEnd(l).substring(0, l);
 }
 
+// a dynamically-built browse tree: { [browseName]: <same shape recursively> }
+type BrowseTree = { [browseName: string]: BrowseTree };
+
+// a dynamically-built event-type tree: each node optionally carries its own nodeId,
+// plus one child entry per browseName found under it
+interface EventTypeNode {
+    nodeId?: string;
+    [browseName: string]: EventTypeNode | string | undefined;
+}
+
 async function enumerateAllConditionTypes(session: ClientSession) {
-    const tree: any = {};
+    const tree: BrowseTree = {};
 
-    const conditionEventTypes: any = {};
+    const conditionEventTypes: Record<string, string> = {};
 
-    async function findAllNodeOfType(tree1: any, typeNodeId1: NodeId, browseName: string) {
+    async function findAllNodeOfType(tree1: BrowseTree, typeNodeId1: NodeId, browseName: string) {
         const browseDesc1 = {
             nodeId: typeNodeId1,
             referenceTypeId: resolveNodeId("HasSubtype"),
@@ -97,22 +106,28 @@ async function enumerateAllConditionTypes(session: ClientSession) {
 
     await findAllNodeOfType(tree, typeNodeId, "ConditionType");
 
-    return tree;
+    return conditionEventTypes;
 }
 
-async function enumerateAllAlarmAndConditionInstances(session: ClientSession): Promise<any[]> {
-    const conditions: any = {};
+interface AlarmInfo {
+    parent: NodeId;
+    alarmNodeId: NodeId;
+    browseName: QualifiedName;
+    typeDefinition: NodeId;
+    typeDefinitionName: string;
+}
 
-    const found: any = [];
+async function enumerateAllAlarmAndConditionInstances(session: ClientSession): Promise<AlarmInfo[]> {
+    const found: AlarmInfo[] = [];
 
     function isConditionEventType(nodeId: NodeId): boolean {
-        return  Object.hasOwn(conditions, nodeId.toString());
+        return Object.hasOwn(conditions, nodeId.toString());
     }
 
     async function exploreForObjectOfType(session1: ClientSession, nodeId: NodeId) {
-        async function worker(element: any) {
+        async function worker(elementNodeId: NodeId) {
             const nodeToBrowse = {
-                nodeId: element.nodeId,
+                nodeId: elementNodeId,
                 referenceTypeId: resolveNodeId("HierarchicalReferences"),
 
                 browseDirection: BrowseDirection.Forward,
@@ -123,11 +138,11 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
 
             const browseResult = await session1.browse(nodeToBrowse);
 
-            for (const ref of browseResult.references!) {
+            for (const ref of browseResult.references || []) {
                 if (isConditionEventType(ref.typeDefinition)) {
                     //
-                    const alarm = {
-                        parent: element.nodeId,
+                    const alarm: AlarmInfo = {
+                        parent: elementNodeId,
 
                         alarmNodeId: ref.nodeId,
                         browseName: ref.browseName,
@@ -144,14 +159,14 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
         await worker(nodeId);
     }
 
-    await enumerateAllConditionTypes(session);
+    const conditions = await enumerateAllConditionTypes(session);
 
     await exploreForObjectOfType(session, resolveNodeId("RootFolder"));
 
-    return Object.values(conditions);
+    return found;
 }
 
-async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tree: any) {
+async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tree: EventTypeNode) {
     const browseDesc1 = {
         nodeId: baseNodeId,
         referenceTypeId: resolveNodeId("HasSubtype"),
@@ -164,8 +179,8 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
     const browseResult = await session.browse(browseDesc1);
 
     // to do continuation points
-    for (const reference of browseResult.references!) {
-        const subtree = { nodeId: reference.nodeId.toString() };
+    for (const reference of browseResult.references || []) {
+        const subtree: EventTypeNode = { nodeId: reference.nodeId.toString() };
         tree[reference.browseName.toString()] = subtree;
         await _getAllEventTypes(session, reference.nodeId, subtree);
     }
@@ -176,12 +191,12 @@ async function _getAllEventTypes(session: ClientSession, baseNodeId: NodeId, tre
  */
 async function getAllEventTypes(session: ClientSession) {
     const baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
-    const result = {};
+    const result: EventTypeNode = {};
     await _getAllEventTypes(session, baseNodeId, result);
     return result;
 }
 
-async function monitorAlarm(session: IBasicSessionAsync, subscription: ClientSubscription, alarmNodeId: NodeId) {
+async function monitorAlarm(session: IBasicSessionAsync, subscription: ClientSubscription, _alarmNodeId: NodeId) {
     try {
         await callConditionRefresh(session, subscription.subscriptionId);
     } catch (err) {
@@ -245,12 +260,12 @@ function getTick() {
         }
     }).argv;
 
-    const securityMode = coerceMessageSecurityMode(argv.securityMode!);
+    const securityMode = coerceMessageSecurityMode(argv.securityMode);
     if (securityMode === MessageSecurityMode.Invalid) {
         throw new Error("Invalid Security mode");
     }
 
-    const securityPolicy = coerceSecurityPolicy(argv.securityPolicy!);
+    const securityPolicy = coerceSecurityPolicy(argv.securityPolicy);
     if (securityPolicy === SecurityPolicy.Invalid) {
         throw new Error("Invalid securityPolicy");
     }
@@ -355,7 +370,7 @@ function getTick() {
                 endpoint.securityPolicyUri
             );
             const table2 = new Table();
-            for (const token of endpoint.userIdentityTokens!) {
+            for (const token of endpoint.userIdentityTokens || []) {
                 table2.cell("policyId", token.policyId);
                 table2.cell("tokenType", token.tokenType.toString());
                 table2.cell("issuedTokenType", token.issuedTokenType);
@@ -369,7 +384,9 @@ function getTick() {
 
         // reconnect using the correct end point URL now
         console.log(chalk.cyan("Server Certificate :"));
-        console.log(chalk.yellow(hexDump(serverCertificate!)));
+        if (serverCertificate) {
+            console.log(chalk.yellow(hexDump(serverCertificate)));
+        }
 
         console.log(" adjusted endpoint Url =", client.endpointUrl);
 
@@ -528,8 +545,8 @@ function getTick() {
                 ]
             };
 
-            const queryFirstResult = await session.queryFirst(queryFirstRequest);
-            queryFirstResult;
+            const _queryFirstResult = await session.queryFirst(queryFirstRequest);
+            _queryFirstResult;
             console.log(
                 " -----------------------------------------------------------------------------------------------------------------"
             );
@@ -567,23 +584,23 @@ function getTick() {
 
         let t = getTick();
 
-        console.log("started subscription :", subscription!.subscriptionId);
+        console.log("started subscription :", subscription?.subscriptionId);
         console.log(" revised parameters ");
         console.log(
             "  revised maxKeepAliveCount  ",
-            subscription!.maxKeepAliveCount,
+            subscription?.maxKeepAliveCount,
             " ( requested ",
             `${parameters.requestedMaxKeepAliveCount})`
         );
         console.log(
             "  revised lifetimeCount      ",
-            subscription!.lifetimeCount,
+            subscription?.lifetimeCount,
             " ( requested ",
             `${parameters.requestedLifetimeCount})`
         );
         console.log(
             "  revised publishingInterval ",
-            subscription!.publishingInterval,
+            subscription?.publishingInterval,
             " ( requested ",
             `${parameters.requestedPublishingInterval})`
         );
@@ -601,7 +618,8 @@ function getTick() {
                     span / 1000,
                     "sec",
                     " pending request on server = ",
-                    (subscription as any).getPublishEngine().nbPendingPublishRequests
+                    (subscription as unknown as { publishEngine: { nbPendingPublishRequests: number } }).publishEngine
+                        .nbPendingPublishRequests
                 );
             })
             .on("terminated", () => {
@@ -739,9 +757,8 @@ function getTick() {
                 console.log(chalk.red("  -------------------------------------------------------------------- "));
                 console.log(chalk.red("  --                               SIMULATE CONNECTION BREAK        -- "));
                 console.log(chalk.red("  -------------------------------------------------------------------- "));
-                const socket = (client as any)._secureChannel.getTransport()._socket;
-                socket.end();
-                socket.emit("error", new Error("ECONNRESET"));
+                const secureChannel = (client as unknown as { _secureChannel: ClientSecureChannelLayer })._secureChannel;
+                secureChannel.forceConnectionBreak();
             }, timeout);
         }
 

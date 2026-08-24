@@ -1,5 +1,6 @@
-import { OPCUAServer, makeRoles, WellKnownRoles, type NodeId, nodesets } from "node-opcua";
-import { hashSync, genSaltSync, compareSync } from "bcryptjs";
+import { compareSync, genSaltSync, hashSync } from "bcryptjs";
+import { makeRoles, type NodeId, nodesets, OPCUAServer, WellKnownRoles } from "node-opcua";
+
 const port = 2510;
 let server: OPCUAServer;
 

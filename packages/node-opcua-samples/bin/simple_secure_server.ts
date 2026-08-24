@@ -3,17 +3,16 @@
 import os from "node:os";
 
 import chalk from "chalk";
-import yargs from "yargs";
-
 import {
-    makeApplicationUrn,
     MessageSecurityMode,
+    makeApplicationUrn,
     nodesets,
     OPCUAServer,
     type OPCUAServerOptions,
     SecurityPolicy,
     type ServerSession
 } from "node-opcua";
+import yargs from "yargs";
 
 Error.stackTraceLimit = Infinity;
 
@@ -105,7 +104,7 @@ async function main() {
 
     await server.start();
 
-    const endpointUrl = server.getEndpointUrl()!;
+    const endpointUrl = server.getEndpointUrl();
     console.log(chalk.yellow("  server on port      :"), chalk.cyan(server.endpoints[0].port.toString()));
     console.log(chalk.yellow("  endpointUrl         :"), chalk.cyan(endpointUrl));
 
@@ -113,17 +112,17 @@ async function main() {
 
     if (argv.silent) {
         console.log("silent");
-        console.log = (...args: [any?, ...any[]]) => {
+        console.log = (..._args: unknown[]) => {
             /* silent */
         };
     }
 
     server.on("create_session", (session: ServerSession) => {
         console.log(" SESSION CREATED");
-        console.log(chalk.cyan("    client application URI: "), session.clientDescription!.applicationUri);
-        console.log(chalk.cyan("        client product URI: "), session.clientDescription!.productUri);
-        console.log(chalk.cyan("   client application name: "), session.clientDescription!.applicationName.toString());
-        console.log(chalk.cyan("   client application type: "), session.clientDescription!.applicationType.toString());
+        console.log(chalk.cyan("    client application URI: "), session.clientDescription?.applicationUri);
+        console.log(chalk.cyan("        client product URI: "), session.clientDescription?.productUri);
+        console.log(chalk.cyan("   client application name: "), session.clientDescription?.applicationName.toString());
+        console.log(chalk.cyan("   client application type: "), session.clientDescription?.applicationType.toString());
         console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
         console.log(chalk.cyan("           session timeout: "), session.sessionTimeout);
         console.log(chalk.cyan("                session id: "), session.nodeId);

@@ -48,7 +48,7 @@ async function main() {
 
     try {
         await server.start();
-    } catch (err) {
+    } catch (_err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
     }
