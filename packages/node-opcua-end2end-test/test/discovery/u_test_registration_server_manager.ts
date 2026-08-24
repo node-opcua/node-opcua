@@ -1,11 +1,23 @@
 import os from "node:os";
 import "should";
-import { makeApplicationUrn, type OPCUADiscoveryServer, OPCUAServer, RegisterServerMethod } from "node-opcua";
+import {
+    makeApplicationUrn,
+    type OPCUADiscoveryServer,
+    OPCUAServer,
+    type RegisterServerManager,
+    RegisterServerMethod
+} from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { stepLog } from "../../test_helpers/utils";
 import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, fa, pause } from "./helpers/_helper";
 import type { TestHarness } from "./helpers/harness";
+
+// registerServerManager?: IRegisterServerManager doesn't declare .timeout (only the concrete
+// RegisterServerManager subclass does), so this narrows the cast instead of using any.
+function withTimeout(manager: OPCUAServer["registerServerManager"]): RegisterServerManager {
+    return manager as RegisterServerManager;
+}
 
 const debugLog = make_debugLog("TEST");
 
@@ -60,7 +72,7 @@ export function t(_test: TestHarness) {
                 server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "FF");
 
                 await server.start();
-                (server.registerServerManager as any).timeout = 100;
+                withTimeout(server.registerServerManager).timeout = 100;
                 debugLog("discoveryServerEndpointUrl = ", discoveryServerEndpointUrl);
             });
 
@@ -104,7 +116,7 @@ export function t(_test: TestHarness) {
             let server: OPCUAServer;
             await fa("given a server that registers itself to the local discovery server", async () => {
                 server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port, "GG");
-                (server.registerServerManager as any).timeout = 100;
+                withTimeout(server.registerServerManager).timeout = 100;
             });
 
             await fa("when the server starts", async () => {
@@ -168,7 +180,7 @@ export function t(_test: TestHarness) {
                 }
             });
 
-            (server.registerServerManager as any).timeout = 100;
+            withTimeout(server.registerServerManager).timeout = 100;
             // when server starts
             stepLog("when server starts");
             await server.start();
@@ -257,7 +269,7 @@ export function t(_test: TestHarness) {
                     applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
                 }
             });
-            (server.registerServerManager as any).timeout = 100;
+            withTimeout(server.registerServerManager).timeout = 100;
             await server.start();
             // #endregion
 
@@ -272,7 +284,7 @@ export function t(_test: TestHarness) {
 
                 discoveryServerEndpointUrl
             });
-            (server.registerServerManager as any).timeout = 100;
+            withTimeout(server.registerServerManager).timeout = 100;
             await server.start();
 
             // when server s
@@ -301,7 +313,7 @@ export function t(_test: TestHarness) {
                     }
                 });
 
-                (server.registerServerManager as any).timeout = 100;
+                withTimeout(server.registerServerManager).timeout = 100;
 
                 // when server starts
                 // it should end up registering itself to the LDS
