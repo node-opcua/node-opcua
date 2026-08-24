@@ -7,37 +7,54 @@
 import "should";
 import {
     AttributeIds,
+    type ClientSession,
+    type ClientSessionPublishService,
+    type ClientSessionRawSubscriptionService,
+    type ClientSubscription,
     CreateMonitoredItemsRequest,
     CreateSubscriptionRequest,
+    type DeleteSubscriptionsRequestLike,
+    type DeleteSubscriptionsResponse,
     MonitoringMode,
     OPCUAClient,
+    PublishRequest,
     type ReadValueIdOptions,
     StatusCodes,
-    TimestampsToReturn
+    TimestampsToReturn,
+    type TransferSubscriptionsRequestLike,
+    type TransferSubscriptionsResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server?: any;
-    [k: string]: any;
-}
+// createSubscription/createMonitoredItems/transferSubscriptions/deleteSubscriptions are
+// deliberately excluded from the public ClientSession type (superseded by createSubscription2),
+// but these tests exercise the raw low-level subscription service directly. transferSubscriptions
+// and deleteSubscriptions are re-declared Promise-only here because their optional-callback
+// overload otherwise wins overload resolution for a single-argument call and returns void.
+type RawSession = Omit<
+    ClientSession & ClientSessionRawSubscriptionService & ClientSessionPublishService,
+    "transferSubscriptions" | "deleteSubscriptions"
+> & {
+    transferSubscriptions(options: TransferSubscriptionsRequestLike): Promise<TransferSubscriptionsResponse>;
+    deleteSubscriptions(options: DeleteSubscriptionsRequestLike): Promise<DeleteSubscriptionsResponse>;
+};
 
 function delay(ms: number) {
     return new Promise((r) => setTimeout(r, ms));
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("#TSS TransferSessionService", () => {
         const spyOnTerminated = sinon.spy();
-        let endpointUrl = test.endpointUrl;
+        let endpointUrl = test.endpointUrl!;
 
         before(() => {
             if (!test.server) {
                 throw new Error("Test harness server not provided");
             }
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         async function createSubscriptionAndCloseSession(): Promise<{ subscriptionId: number }> {
@@ -70,12 +87,12 @@ export function t(test: TestHarness) {
             await client2.connect(endpointUrl);
             const session2 = await client2.createSession();
             try {
-                const response: any = await (session2 as any).transferSubscriptions({
+                const response: TransferSubscriptionsResponse = await (session2 as RawSession).transferSubscriptions({
                     subscriptionIds: [subscriptionId],
                     sendInitialValues: true
                 });
                 spyOnTerminated.callCount.should.eql(0);
-                response.results.length.should.eql(1);
+                response.results!.length.should.eql(1);
                 // manually terminate client-side object (server copy persists until deleted or session closed)
             } finally {
                 // ensure cleanup via DeleteSubscriptions through session close
@@ -92,7 +109,7 @@ export function t(test: TestHarness) {
             const client = OPCUAClient.create({});
             await client.connect(endpointUrl);
             const session1 = await client.createSession();
-            const subscription: any = await session1.createSubscription2({
+            const subscription: ClientSubscription = await session1.createSubscription2({
                 requestedPublishingInterval: 100,
                 requestedLifetimeCount: 10 * 60,
                 requestedMaxKeepAliveCount: 5,
@@ -104,20 +121,20 @@ export function t(test: TestHarness) {
             const subscriptionId = subscription.subscriptionId;
             const session2 = await client.createSession();
             try {
-                const response: any = await (session2 as any).transferSubscriptions({
+                const response: TransferSubscriptionsResponse = await (session2 as RawSession).transferSubscriptions({
                     subscriptionIds: [subscriptionId],
                     sendInitialValues: true
                 });
-                response.results.length.should.eql(1);
-                response.results[0].statusCode.should.eql(StatusCodes.Good);
+                response.results!.length.should.eql(1);
+                response.results![0].statusCode.should.eql(StatusCodes.Good);
                 // deleting subscription on session1 shall fail
-                const deleteResp1: any = await (session1 as any).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
-                deleteResp1.results.length.should.eql(1);
-                deleteResp1.results[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                const deleteResp1 = await (session1 as RawSession).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
+                deleteResp1.results!.length.should.eql(1);
+                deleteResp1.results![0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
                 // deleting subscription on session2 shall succeed
-                const deleteResp2: any = await (session2 as any).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
-                deleteResp2.results.length.should.eql(1);
-                deleteResp2.results[0].should.eql(StatusCodes.Good);
+                const deleteResp2 = await (session2 as RawSession).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
+                deleteResp2.results!.length.should.eql(1);
+                deleteResp2.results![0].should.eql(StatusCodes.Good);
             } finally {
                 await session1.close(true);
                 await session2.close(true);
@@ -131,7 +148,7 @@ export function t(test: TestHarness) {
             const spyStatusChanged = sinon.spy();
             const spyKeepAlive = sinon.spy();
             const session1 = await client.createSession();
-            const subscription: any = await session1.createSubscription2({
+            const subscription: ClientSubscription = await session1.createSubscription2({
                 requestedPublishingInterval: 100,
                 requestedLifetimeCount: 6000,
                 requestedMaxKeepAliveCount: 10,
@@ -151,12 +168,12 @@ export function t(test: TestHarness) {
             const session2 = await client.createSession();
             // slight delay to ensure session2 ready
             await delay(200);
-            const response: any = await (session2 as any).transferSubscriptions({
+            const response: TransferSubscriptionsResponse = await (session2 as RawSession).transferSubscriptions({
                 subscriptionIds: [subscription.subscriptionId],
                 sendInitialValues: true
             });
-            response.results.length.should.eql(1);
-            response.results[0].statusCode.should.eql(StatusCodes.Good);
+            response.results!.length.should.eql(1);
+            response.results![0].statusCode.should.eql(StatusCodes.Good);
             await delay(1000);
             spyStatusChanged.callCount.should.eql(1);
             await session2.close(true);
@@ -168,7 +185,7 @@ export function t(test: TestHarness) {
         it("TSS-4 should resend initialValue on monitored Item after transfer", async () => {
             const client = OPCUAClient.create({});
             await client.connect(endpointUrl);
-            const session1: any = await client.createSession();
+            const session1: ClientSession = await client.createSession();
 
             const createSubRequest = new CreateSubscriptionRequest({
                 requestedPublishingInterval: 100,
@@ -178,7 +195,7 @@ export function t(test: TestHarness) {
                 publishingEnabled: true,
                 priority: 6
             });
-            const createSubResponse: any = await session1.createSubscription(createSubRequest);
+            const createSubResponse = await (session1 as RawSession).createSubscription(createSubRequest);
             const subscriptionId = createSubResponse.subscriptionId;
 
             const itemToMonitor: ReadValueIdOptions = { nodeId: "ns=2;s=Static_Scalar_Double", attributeId: AttributeIds.Value };
@@ -199,27 +216,27 @@ export function t(test: TestHarness) {
                     }
                 ]
             });
-            const monResp: any = await session1.createMonitoredItems(createMonItemsReq);
-            monResp.results.length.should.eql(1);
-            monResp.results[0].statusCode.should.eql(StatusCodes.Good);
-            monResp.results[0].revisedSamplingInterval.should.eql(250);
+            const monResp = await (session1 as RawSession).createMonitoredItems(createMonItemsReq);
+            monResp.results!.length.should.eql(1);
+            monResp.results![0].statusCode.should.eql(StatusCodes.Good);
+            monResp.results![0].revisedSamplingInterval.should.eql(250);
 
             const spyPublishSession1 = sinon.spy();
             const spyPublishSession2 = sinon.spy();
 
             // queue multiple publish requests
             for (let i = 0; i < 6; i++) {
-                session1.publish({}, spyPublishSession1);
+                (session1 as RawSession).publish(new PublishRequest({}), spyPublishSession1);
             }
             await delay(300);
 
-            const session2: any = await client.createSession();
-            const transferResp: any = await session2.transferSubscriptions({
+            const session2: ClientSession = await client.createSession();
+            const transferResp = await (session2 as RawSession).transferSubscriptions({
                 subscriptionIds: [subscriptionId],
                 sendInitialValues: true
             });
-            transferResp.results.length.should.eql(1);
-            transferResp.results[0].statusCode.should.eql(StatusCodes.Good);
+            transferResp.results!.length.should.eql(1);
+            transferResp.results![0].statusCode.should.eql(StatusCodes.Good);
             await delay(300);
 
             // Inspect first publish responses from session1
@@ -233,7 +250,7 @@ export function t(test: TestHarness) {
             publishResp1.notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
 
             // Now send publish requests on session2
-            for (let i = 0; i < 4; i++) session2.publish({}, spyPublishSession2);
+            for (let i = 0; i < 4; i++) (session2 as RawSession).publish(new PublishRequest({}), spyPublishSession2);
             await delay(600);
 
             const session2Resp0 = spyPublishSession2.getCall(0).args[1];
@@ -242,7 +259,7 @@ export function t(test: TestHarness) {
             session2Resp0.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification");
 
             // delete subscription via session2 then close
-            await session2.deleteSubscriptions({ subscriptionIds: [subscriptionId] });
+            await (session2 as RawSession).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
             await session2.close();
 
             // Expect remaining publish responses to carry BadNoSubscription errors
