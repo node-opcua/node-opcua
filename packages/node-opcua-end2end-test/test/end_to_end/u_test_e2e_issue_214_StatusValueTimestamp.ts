@@ -11,20 +11,16 @@ import {
     TimestampsToReturn,
     Variant
 } from "node-opcua";
+import type { UAVariableImpl } from "node-opcua-address-space/src/ua_variable_impl";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("NXX1 Testing issue #214 - DataChangeTrigger.StatusValueTimestamp", () => {
         it("#214 - DataChangeTrigger.StatusValueTimestamp", async () => {
             const nodeId = "ns=2;s=Static_Scalar_Double";
-            const variable: any = test.server.engine.addressSpace.findNode(nodeId);
+            const variable = test.server!.engine.addressSpace!.findNode(nodeId) as unknown as UAVariableImpl;
             const variant = new Variant({ dataType: DataType.Double, value: 3.14 });
             let nbChanges = 0;
 
@@ -43,7 +39,7 @@ export function t(test: TestHarness) {
             }, 100);
 
             const client = OPCUAClient.create({});
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             try {
                 await perform_operation_on_subscription_async(client, endpointUrl, async (_session, subscription) => {
