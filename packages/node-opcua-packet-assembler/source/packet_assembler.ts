@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { make_warningLog } from "node-opcua-debug";
 
@@ -31,7 +31,7 @@ export interface PacketInfo {
 
 /**
  * Function type for extracting packet metadata from buffer data.
- * 
+ *
  * @param data - Buffer containing at least minimumSizeInBytes of data
  * @returns Packet metadata including expected length and headers
  */
@@ -65,31 +65,31 @@ export interface PacketAssembler {
 }
 /**
  * Assembles fragmented data from transport layers into complete message chunks.
- * 
+ *
  * ## Zero-Copy Optimization
- * 
+ *
  * The PacketAssembler uses zero-copy optimization for performance:
  * - **Single-chunk messages**: Returns a view of the input buffer (no allocation, no copy)
  * - **Multi-chunk messages**: Creates a new buffer via Buffer.concat() (safe copy)
- * 
+ *
  * ## Buffer Lifetime Management
- * 
+ *
  * **Important**: When receiving single-chunk messages, the returned buffer is a view of the
  * input buffer. Consumers are responsible for creating copies if they need buffers that
  * survive beyond immediate processing or if the transport layer reuses buffers.
- * 
+ *
  * ### Safe Usage:
  * ```typescript
  * assembler.on("chunk", (chunk) => {
  *   // Option 1: Process immediately (safe)
  *   const value = chunk.readUInt32LE(0);
- *   
+ *
  *   // Option 2: Create a copy for later use
  *   const copy = Buffer.from(chunk);
  *   queue.push(copy);
  * });
  * ```
- * 
+ *
  * ### Unsafe Usage:
  * ```typescript
  * const chunks = [];
@@ -98,11 +98,11 @@ export interface PacketAssembler {
  *   chunks.push(chunk);
  * });
  * ```
- * 
+ *
  * @fires PacketAssembler#startChunk - Emitted when a new chunk begins
  * @fires PacketAssembler#chunk - Emitted when a complete chunk is assembled
  * @fires PacketAssembler#error - Emitted on assembly errors
- * 
+ *
  * @example
  * ```typescript
  * const assembler = new PacketAssembler({
@@ -114,11 +114,11 @@ export interface PacketAssembler {
  *   minimumSizeInBytes: 8,
  *   maxChunkSize: 65536
  * });
- * 
+ *
  * assembler.on("chunk", (chunk) => {
  *   console.log("Complete chunk:", chunk.length, "bytes");
  * });
- * 
+ *
  * // Feed data from transport
  * socket.on("data", (data) => assembler.feed(data));
  * ```
@@ -139,12 +139,12 @@ export class PacketAssembler extends EventEmitter {
 
     /**
      * Creates a new PacketAssembler instance.
-     * 
+     *
      * @param options - Configuration options for the assembler
      * @param options.readChunkFunc - Function to extract packet metadata from buffer
      * @param options.minimumSizeInBytes - Minimum bytes needed to read packet header (default: 8)
      * @param options.maxChunkSize - Maximum allowed chunk size (default: 65529)
-     * 
+     *
      * @throws {Error} If readChunkFunc is not a function
      * @throws {Error} If maxChunkSize is less than minimumSizeInBytes
      */
@@ -166,24 +166,24 @@ export class PacketAssembler extends EventEmitter {
 
     /**
      * Feeds incoming data to the assembler for processing.
-     * 
+     *
      * This method can be called multiple times with partial data. The assembler will
      * buffer incomplete chunks and emit the "chunk" event when a complete message
      * has been assembled.
-     * 
+     *
      * ## Zero-Copy Behavior
-     * 
+     *
      * - If the data contains a complete single chunk, it returns a **view of the input buffer**
      *   (zero-copy optimization)
      * - If multiple fragments are needed, it creates a **new buffer** via Buffer.concat()
      *   (safe copy)
-     * 
+     *
      * @param data - Buffer containing incoming data (can be partial or complete chunks)
-     * 
+     *
      * @fires startChunk - When a new chunk header is detected
-     * @fires chunk - When a complete chunk has been assembled  
+     * @fires chunk - When a complete chunk has been assembled
      * @fires error - If chunk size validation fails
-     * 
+     *
      * @example
      * ```typescript
      * // Feed data as it arrives from transport
@@ -264,9 +264,9 @@ export class PacketAssembler extends EventEmitter {
 
     /**
      * Builds the final chunk buffer from accumulated fragments.
-     * 
+     *
      * ## Zero-Copy Implementation
-     * 
+     *
      * This method implements the zero-copy optimization:
      * - **Single chunk** (data provided, stack empty): Returns the input buffer directly (zero-copy)
      * - **Single buffered chunk** (no data, one item in stack): Returns the stacked buffer
@@ -274,7 +274,7 @@ export class PacketAssembler extends EventEmitter {
      *
      * @param data - Current buffer fragment (may be null)
      * @returns Complete chunk buffer (either view or new buffer)
-     * 
+     *
      * @private
      * @internal
      */

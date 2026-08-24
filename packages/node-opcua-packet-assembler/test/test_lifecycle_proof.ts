@@ -1,14 +1,11 @@
-
-import { PacketAssembler, PacketInfo } from "../source/packet_assembler";
+import { PacketAssembler, type PacketInfo } from "../source/packet_assembler";
 import { BinaryStream } from "../../node-opcua-binary-stream/source/binaryStream";
 import { decodeVariant } from "../../node-opcua-variant/source/variant";
 import { DataType } from "../../node-opcua-variant/source/DataType_enum";
 import "should";
 
 describe("PacketAssembler - Buffer Lifecycle Proof", () => {
-
     it("should provide a view of the input buffer for single chunks (Zero Copy)", (done) => {
-
         const readChunkFunc = (data: Buffer): PacketInfo => {
             return {
                 length: data.readUInt32LE(4),
