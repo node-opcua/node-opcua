@@ -26,6 +26,16 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
+// biome-ignore lint/suspicious/noExplicitAny: reaching into private client/server/subscription implementation internals for test-only fault injection
+type InternalAny = any;
+
+interface ClientTestOptions {
+    securityMode?: MessageSecurityMode;
+    securityPolicy?: SecurityPolicy;
+    doNotWaitForConnection?: boolean;
+    requestedSessionTimeout?: number;
+}
+
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -94,7 +104,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
 
     afterEach(async () => {
         await client.disconnect();
-        client = null as any;
+        client = null as unknown as OPCUAClient;
     });
 
     after(async () => {
@@ -118,7 +128,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
     });
 
     it("TR02 - a server should not accept a connection when the protocol version is incompatible", async () => {
-        (client as any).protocolVersion = 0xdeadbeef; // set a invalid protocol version
+        (client as unknown as { protocolVersion: number }).protocolVersion = 0xdeadbeef; // set a invalid protocol version
         server.currentChannelCount.should.equal(0);
 
         debugLog(" connect");
@@ -159,7 +169,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
     it("TR04 - a client shall be able to reconnect if the first connection has failed", async () => {
         server.currentChannelCount.should.equal(0);
 
-        (client as any).protocolVersion = 0;
+        (client as unknown as { protocolVersion: number }).protocolVersion = 0;
 
         const unused_port = 8909;
         const bad_endpointUrl = `opc.tcp://${os.hostname()}:${unused_port}`;
@@ -208,7 +218,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         // OPC UA Part 4 (1.02) §5.4.1: A Client shall verify the HostName in the Server Certificate matches
         // the HostName in the endpointUrl of the EndpointDescription. Mismatches shall be reported and may
         // lead to channel closure. Here we append garbage to the valid endpoint to force the mismatch.
-        (client as any).endpointMustExist = true;
+        (client as unknown as { endpointMustExist: boolean }).endpointMustExist = true;
         const badEndpoint = `${endpointUrl}/someCrap`;
 
         let connectSucceeded = false;
@@ -239,7 +249,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
     it("TR07 - calling connect on the client twice shall return a error the second time", async () => {
         server.currentChannelCount.should.equal(0);
 
-        (client as any).protocolVersion = 0;
+        (client as unknown as { protocolVersion: number }).protocolVersion = 0;
         await client.connect(endpointUrl);
 
         let _err: Error | undefined;
@@ -359,7 +369,10 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         should.not.exist(client, "client must have been disposed");
     });
 
-    async function create_client_and_create_a_connection_to_server(_options: any, connectionStrategy: ConnectionStrategyOptions) {
+    async function create_client_and_create_a_connection_to_server(
+        _options: ClientTestOptions,
+        connectionStrategy: ConnectionStrategyOptions
+    ) {
         should.not.exist(client, "expecting no client");
 
         should.not.exist(client, "Already have a client ");
@@ -697,7 +710,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await subscription?.terminate();
     }
 
-    let values_to_check: any[] = [];
+    let values_to_check: number[] = [];
 
     let monitoredItem: ClientMonitoredItem | undefined;
 
@@ -785,7 +798,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     async function break_connection(socketError: string) {
-        const _client = client as any;
+        const _client = client as InternalAny;
         const clientSocket: Socket = _client._secureChannel.getTransport()._socket;
         clientSocket.end();
         clientSocket.destroy();
@@ -813,15 +826,15 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         if (!server) {
             throw new Error("server is not initialized");
         }
-        const channels = (server.endpoints[0] as any)._channels;
+        const channels = (server.endpoints[0] as InternalAny)._channels;
         debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
         //xx assert(Object.keys(server.engine._sessions).length === 1);
 
-        const sessionKey = Object.keys((server.engine as any)._sessions)[0];
-        const session = (server.engine as any)._sessions[sessionKey];
+        const sessionKey = Object.keys((server.engine as InternalAny)._sessions)[0];
+        const session = (server.engine as InternalAny)._sessions[sessionKey];
 
         const subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
         subscriptionKeys.length.should.eql(1);
@@ -830,7 +843,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     // let make sure it will timeout almost immediately
     async function accelerate_subscription_timeout(subscription: ClientSubscription): Promise<void> {
-        const _subscription = subscription as any;
+        const _subscription = subscription as InternalAny;
         debugLog(
             "accelerate_subscription_timeout",
             _subscription.id,
@@ -881,7 +894,8 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
     it("TR16 - a client with some active monitoring items should be able to seamlessly reconnect after a connection break - and retrieve missed notification without lost ( Republish)", async () => {
-        await f(start_demo_server), await f(reset_continuous);
+        await f(start_demo_server);
+        await f(reset_continuous);
         // use robust connectionStrategy
         await f(create_client_and_create_a_connection_to_server.bind(null, {}, custom_connectivity_strategy));
         await f(client_create_and_activate_session);
@@ -1106,7 +1120,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await f(disconnect_client);
     });
 
-    async function test_1(options: any): Promise<void> {
+    async function test_1(options: ClientTestOptions): Promise<void> {
         await f(start_demo_server);
         await f(reset_continuous);
         // use robust connectionStrategy
