@@ -1,28 +1,23 @@
 import "should";
-import { OPCUAClient } from "node-opcua";
+import { OPCUAClient, type ServerSecureChannelLayer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 /**
  * Enhancement #192 - Server emits 'newChannel' on secure channel open and 'closeChannel' on close.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Enhancement #192 channel open/close events", () => {
         it("emits newChannel and closeChannel once for a single client connect/disconnect", async () => {
             const server = test.server;
             if (!server) return;
 
-            const spyNew = sinon.spy((channel: any) => {
+            const spyNew = sinon.spy((channel: ServerSecureChannelLayer) => {
                 channel.remoteAddress.should.be.instanceof(String);
                 channel.remotePort.should.be.instanceof(Number);
             });
-            const spyClose = sinon.spy((channel: any) => {
+            const spyClose = sinon.spy((channel: ServerSecureChannelLayer) => {
                 channel.remoteAddress.should.be.instanceof(String);
                 channel.remotePort.should.be.instanceof(Number);
             });
@@ -30,7 +25,7 @@ export function t(test: TestHarness) {
             server.on("closeChannel", spyClose);
 
             const client = OPCUAClient.create({});
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             await client.disconnect();
 
             server.removeListener("newChannel", spyNew);
