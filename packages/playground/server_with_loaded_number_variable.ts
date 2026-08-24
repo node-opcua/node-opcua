@@ -1,12 +1,12 @@
 import {
-    OPCUAServer,
-    nodesets,
-    type UAVariable,
-    type UAObject,
-    DataType,
-    SessionContext,
     AttributeIds,
+    DataType,
     DataValue,
+    nodesets,
+    OPCUAServer,
+    SessionContext,
+    type UAObject,
+    type UAVariable,
     Variant
 } from "node-opcua";
 
@@ -15,10 +15,19 @@ async function main() {
         nodeset_filename: [nodesets.standard, "tmp.xml"]
     });
     await server.initialize();
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("addressSpace should be initialized");
+    }
 
-    const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject")! as UAObject;
-    const v = obj.getPropertyByName("MyVariable")! as UAVariable;
+    const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject") as UAObject | null;
+    if (!obj) {
+        throw new Error("cannot find MyObject");
+    }
+    const v = obj.getPropertyByName("MyVariable") as UAVariable | null;
+    if (!v) {
+        throw new Error("cannot find MyVariable");
+    }
 
     v.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
     v.setValueFromSource({ dataType: DataType.Int32, value: 42 });

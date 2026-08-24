@@ -2,8 +2,9 @@
 import { types } from "node:util";
 import {
     type AddressSpace,
-    DataType,
     type CallMethodResultOptions,
+    DataType,
+    type ISessionContext,
     type NodeIdLike,
     nodesets,
     OPCUAServer,
@@ -11,9 +12,7 @@ import {
     StatusCodes,
     type UAMethod,
     type UAObject,
-    Variant,
-    type ISessionContext,
-    CallbackT
+    Variant
 } from "node-opcua";
 
 function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
@@ -56,8 +55,8 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
 
     methodI.bindMethod(async function (
         this: UAMethod,
-        inputArguments: Variant[],
-        context: ISessionContext
+        _inputArguments: Variant[],
+        _context: ISessionContext
     ): Promise<CallMethodResultOptions> {
         const callMethodResult = {
             outputArguments: [
@@ -92,7 +91,7 @@ async function callMethodFromServer(addressSpace: AddressSpace, nodeId: NodeIdLi
 
         const callMethodResponse = await method.execute(commands, [param1, param2, param3], context);
 
-        console.log(callMethodResponse.outputArguments![0]!.toString());
+        console.log(callMethodResponse.outputArguments?.[0]?.toString());
     }
 }
 
@@ -105,7 +104,10 @@ async function main() {
         await server.initialize();
 
         // post-initialize
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized");
+        }
 
         const object = installObjectWithMethod(addressSpace);
 

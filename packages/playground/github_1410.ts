@@ -1,5 +1,6 @@
-import { OPCUAClient, type DataValue, AttributeIds, type IBasicSession, TimestampsToReturn } from "node-opcua-client";
-async function handleOperationChange(session: IBasicSession, dataValue: DataValue) {
+import { AttributeIds, type DataValue, type IBasicSession, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
+
+async function handleOperationChange(_session: IBasicSession, dataValue: DataValue) {
     console.log("to do something with the new value", dataValue.toString());
 }
 

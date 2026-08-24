@@ -4,7 +4,6 @@ import chalk from "chalk";
 
 import {
     AttributeIds,
-    BrowseResult,
     type ClientMonitoredItemBase,
     ClientMonitoredItemGroup,
     type ConnectionStrategyOptions,
@@ -14,8 +13,7 @@ import {
     type OPCUAClientOptions,
     resolveNodeId,
     SecurityPolicy,
-    TimestampsToReturn,
-    UserTokenType
+    TimestampsToReturn
 } from "node-opcua-client";
 
 const endpointUri = "opc.tcp://localhost:48010";
@@ -75,7 +73,7 @@ const endpointUri = "opc.tcp://localhost:48010";
             requestedPublishingInterval: 1000
         });
 
-        subscription.on("raw_notification", (n: any) => {
+        subscription.on("raw_notification", (n: unknown) => {
             console.log(n.toString());
         });
 
@@ -117,7 +115,7 @@ const endpointUri = "opc.tcp://localhost:48010";
             console.log(" Initialized !");
         });
 
-        monitoredItemGroup.on("changed", (monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => {
+        monitoredItemGroup.on("changed", (_monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => {
             console.log("Changed on ", index, dataValue.value.toString());
         });
 

@@ -1,26 +1,22 @@
 import {
-    OPCUAServer,
-    resolveNodeId,
-    DataType,
-    ServerState,
-    AttributeIds,
-    type RolePermissionTypeOptions,
-    WellKnownRoles,
-    PermissionType,
     AccessRestrictionsFlag,
-    nodesets,
+    AttributeIds,
+    DataType,
+    OPCUAClient,
+    OPCUAServer,
+    PermissionType,
+    type RolePermissionTypeOptions,
     setNamespaceMetaData,
-    UserNameIdentityToken,
-    UserTokenType
+    UserTokenType,
+    WellKnownRoles
 } from "node-opcua";
-import { TimestampsToReturn, OPCUAClient } from "node-opcua";
 
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const _pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 (async () => {
     const server = new OPCUAServer({
         userManager: {
-            isValidUser(username: string, password: string) {
+            isValidUser(_username: string, _password: string) {
                 return true;
             }
         }
@@ -38,7 +34,10 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
             permissions: PermissionType.Read | PermissionType.Write
         }
     ];
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("addressSpace should be initialized");
+    }
     const namespace = addressSpace.getOwnNamespace();
 
     setNamespaceMetaData(namespace);

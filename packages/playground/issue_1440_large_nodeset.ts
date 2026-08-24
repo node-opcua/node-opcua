@@ -8,7 +8,10 @@ async function main() {
 
     await server.initialize();
 
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("addressSpace should be initialized");
+    }
 
     addressSpace.isFrugal = true;
 
@@ -23,13 +26,16 @@ async function main() {
 
     const startDate = Date.now();
 
-    const dataTypeDouble = addressSpace.findDataType("Double")!;
+    const dataTypeDouble = addressSpace.findDataType("Double");
+    if (!dataTypeDouble) {
+        throw new Error("Double DataType not found");
+    }
 
-    (addressSpace as any).modelChangeTransaction(() => {
-        for (var i = 0; i < 100000; i++) {
-            i % 1000 == 0 && console.log("i", i);
+    (addressSpace as unknown as { modelChangeTransaction(func: () => void): void }).modelChangeTransaction(() => {
+        for (let i = 0; i < 100000; i++) {
+            i % 1000 === 0 && console.log("i", i);
             //console.log("i = ", i);
-            const uaVariable = namespace.addVariable({
+            const _uaVariable = namespace.addVariable({
                 // organizedBy: uaTestPoint,
                 componentOf: uaTestPoint, // use component
                 browseName: `point_${i}`,

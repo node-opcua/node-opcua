@@ -1,14 +1,14 @@
 import {
     AttributeIds,
-    OPCUAClient,
+    ContentFilter,
+    constructEventFilter,
     DataType,
     extractConditionFields,
-    resolveNodeId,
-    constructEventFilter,
-    ofType,
-    TimestampsToReturn,
-    ContentFilter,
     MonitoringMode,
+    OPCUAClient,
+    ofType,
+    resolveNodeId,
+    TimestampsToReturn,
     type Variant
 } from "node-opcua-client";
 
@@ -41,6 +41,7 @@ async function main() {
             console.log("subscription created", subscription.toString());
 
             try {
+                // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                 if (false) {
                     const m2 = await subscription.monitor(
                         {
@@ -65,7 +66,7 @@ async function main() {
 
                 const fields = await extractConditionFields(session, "AcknowledgeableConditionType");
 
-                const AcknowledgeableConditionType = resolveNodeId("AcknowledgeableConditionType");
+                const _AcknowledgeableConditionType = resolveNodeId("AcknowledgeableConditionType");
 
                 //  const eventFilter = constructEventFilter(fields, ofType(AcknowledgeableConditionType));
                 const eventFilter = constructEventFilter(fields, ofType("BaseEventType"));
@@ -92,8 +93,8 @@ async function main() {
                 console.log("Monitoring  result", monitoredItem.result?.toString());
                 monitoredItem.on("changed", (eventFields: Variant[]) => {
                     console.log("Event received: ");
-                    eventFields.forEach((f, index) => {
-                        if (eventFields[index].dataType != DataType.Null) {
+                    eventFields.forEach((_f, index) => {
+                        if (eventFields[index].dataType !== DataType.Null) {
                             console.log("   ", fields[index].padEnd(23, " "), eventFields[index].toString());
                         }
                     });

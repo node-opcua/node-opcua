@@ -1,9 +1,7 @@
 import util from "node:util";
-import { createLogger, transports, format } from "winston";
-
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { setDebugLogger, setWarningLogger, setErrorLogger } from "node-opcua-debug";
 import { OPCUAClient } from "node-opcua-client";
+import { make_debugLog, make_errorLog, make_warningLog, setDebugLogger, setErrorLogger, setWarningLogger } from "node-opcua-debug";
+import { createLogger, format, transports } from "winston";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -11,7 +9,8 @@ const warningLog = make_warningLog("TEST");
 
 const stripColorFormat = format(function stripColor(info) {
     //   info.message = info.message[0];
-    const code = /\u001b\[(\d+(;\d+)*)?m/g; // eslint-disable-line no-control-regex
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: matches ANSI escape codes to strip color from log output
+    const code = /\u001b\[(\d+(;\d+)*)?m/g;
     info.message = info.message.replace(code, "");
     return info;
 })();
@@ -48,13 +47,13 @@ const logger = createLogger({
 
 console.log("B");
 
-setDebugLogger((...args: any[]) => {
+setDebugLogger((...args: unknown[]) => {
     logger.debug(util.format(...args));
 });
-setWarningLogger((...args: any[]) => {
+setWarningLogger((...args: unknown[]) => {
     logger.warn(util.format(...args));
 });
-setErrorLogger((...args: any[]) => {
+setErrorLogger((...args: unknown[]) => {
     logger.error(util.format(...args));
 });
 console.log("C");
@@ -70,7 +69,7 @@ async function main() {
     });
 
     const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
-    await client.withSessionAsync(endpointUrl, async (session) => {
+    await client.withSessionAsync(endpointUrl, async (_session) => {
         warningLog("Connected");
     });
     errorLog(new Error("Cannot do this !"));

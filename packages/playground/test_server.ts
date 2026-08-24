@@ -34,7 +34,7 @@ async function main() {
             // ... or check its schema name
             switch (request.schema.name) {
                 case "BrowseRequest": {
-                    const browseRequest = request as BrowseRequest;
+                    const _browseRequest = request as BrowseRequest;
                     break;
                 }
                 // etc...
@@ -56,12 +56,15 @@ async function main() {
             }
         });
         // post-initialize
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized");
+        }
 
         addressSpace.installAlarmsAndConditionsService();
         const namespace = addressSpace.getOwnNamespace();
 
-        const myEventType = namespace.addEventType({
+        const _myEventType = namespace.addEventType({
             browseName: "MyEventType",
             subtypeOf: "TransitionEventType"
         });
@@ -86,7 +89,7 @@ async function main() {
             organizedBy: addressSpace.rootFolder.objects
         });
 
-        const boiler1 = makeBoiler(addressSpace, {
+        const _boiler1 = makeBoiler(addressSpace, {
             browseName: "Boiler1",
             organizedBy: addressSpace.rootFolder.objects
         });

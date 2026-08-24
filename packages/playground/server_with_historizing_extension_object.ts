@@ -1,15 +1,15 @@
 import {
-    OPCUAServer,
-    nodesets,
     DataType,
-    OPCUAClient,
     HistoryReadRequest,
+    nodesets,
+    OPCUAClient,
+    OPCUAServer,
     ReadRawModifiedDetails,
     TimestampsToReturn
 } from "node-opcua";
 export function date_add(date: Date, options: { seconds: number }): Date {
-    const date1 = new Date(date.getTime() + options.seconds * 1000);
-    (date1 as any).picoseconds = 0;
+    const date1 = new Date(date.getTime() + options.seconds * 1000) as Date & { picoseconds: number };
+    date1.picoseconds = 0;
     return date1;
 }
 
@@ -18,7 +18,10 @@ async function main() {
         nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
     });
     await server.initialize();
-    const addressSpace = server.engine.addressSpace!;
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("addressSpace should be initialized");
+    }
 
     const namespace = addressSpace.getOwnNamespace();
 

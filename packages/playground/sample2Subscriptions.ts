@@ -41,7 +41,7 @@ const options: OPCUAClientOptions = {
 
 const client = OPCUAClient.create(options);
 
-client.on("backoff", (count: number, delay: number) => {
+client.on("backoff", (_count: number, _delay: number) => {
     console.log("backoff ");
 });
 
@@ -86,7 +86,7 @@ async function test1() {
 
         const item1 = await subscription.monitor(itemToMonitor1, parameters1, TimestampsToReturn.Source);
 
-        console.log(" Item1 = ", item1.result!.statusCode.toString());
+        console.log(" Item1 = ", item1.result?.statusCode.toString());
 
         item1.on("changed", (dataValue: DataValue) => {
             console.log(" Value1 has changed : ", dataValue.toString());
@@ -101,7 +101,7 @@ async function test1() {
             queueSize: 100,
             samplingInterval: 0
         };
-        const item2 = subscription.monitor(itemToMonitor2, parameters2, TimestampsToReturn.Both);
+        const _item2 = subscription.monitor(itemToMonitor2, parameters2, TimestampsToReturn.Both);
 
         await wait(20000);
 

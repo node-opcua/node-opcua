@@ -1,7 +1,13 @@
-import { installAlarmMonitoring, OPCUAClient, uninstallAlarmMonitoring, type UserIdentityInfoUserName, UserTokenType } from "node-opcua";
+import {
+    installAlarmMonitoring,
+    OPCUAClient,
+    type UserIdentityInfoUserName,
+    UserTokenType,
+    uninstallAlarmMonitoring
+} from "node-opcua";
 
 const endpointUrl = "opc.tcp://localhost:48010";
-const doDebug = false;
+const _doDebug = false;
 
 (async () => {
     try {

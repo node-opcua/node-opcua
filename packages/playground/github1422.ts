@@ -12,14 +12,14 @@ async function main(): Promise<void> {
 
     const endpointUrl = "opc.tcp://localhost:4840/";
 
-    const subscriptionParamters = {
+    const _subscriptionParamters = {
         requestedPublishingInterval: 1000,
         maxNotificationsPerPublish: 100,
         publishingEnabled: true,
         priority: 10
     };
 
-    await client.withSessionAsync(endpointUrl, async (session) => {
+    await client.withSessionAsync(endpointUrl, async (_session) => {
         console.log("CTRL+C to stop");
         await new Promise<void>((resolve) => process.once("SIGINT", resolve));
     });

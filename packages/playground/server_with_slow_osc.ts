@@ -1,6 +1,9 @@
 import { types } from "node:util";
+
 process.env.NODEOPCUADEBUG = process.env.NODEOPCUADEBUG || "SERVER{TRACE}PERF";
+
 import { DataType, OPCUACertificateManager, OPCUAServer, type ServerSecureChannelLayer } from "node-opcua";
+
 async function main() {
     try {
         const serverCertificateManager = new OPCUACertificateManager({
@@ -27,7 +30,10 @@ async function main() {
         console.log("certificate", server.certificateFile);
 
         // post-initialize
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized");
+        }
 
         addressSpace.installAlarmsAndConditionsService();
         const namespace = addressSpace.getOwnNamespace();

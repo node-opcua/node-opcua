@@ -1,14 +1,14 @@
 import {
-    OPCUAServer,
-    UserTokenType,
-    SecurityPolicy,
-    OPCUACertificateManager,
     MessageSecurityMode,
-    type UserIdentityInfo
+    OPCUACertificateManager,
+    OPCUAClient,
+    OPCUAServer,
+    SecurityPolicy,
+    type UserIdentityInfo,
+    UserTokenType
 } from "node-opcua";
-import { OPCUAClient } from "node-opcua";
 
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const _pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 (async () => {
     const serverCertificateManager = new OPCUACertificateManager({
@@ -17,7 +17,7 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     const server = new OPCUAServer({
         serverCertificateManager,
         userManager: {
-            isValidUser(username: string, password: string) {
+            isValidUser(_username: string, _password: string) {
                 return true;
             }
         },
@@ -61,18 +61,18 @@ async function testConnection({
                 userIdentity
             },
 
-            async (session) => {
+            async (_session) => {
                 return true;
             }
         );
-    } catch (err) {
+    } catch (_err) {
         result = false;
     }
     const offset = "http://opcfoundation.org/UA/SecurityPolicy".length + 1;
     console.log(
         `${UserTokenType[userIdentity.type].padEnd(10)} ${MessageSecurityMode[securityMode].padEnd(9)} ${securityPolicy.substring(offset).padEnd(12)} expected ${expected}, is ${result} `
     );
-    return result == expected;
+    return result === expected;
 }
 (async () => {
     var r1 = await testConnection({

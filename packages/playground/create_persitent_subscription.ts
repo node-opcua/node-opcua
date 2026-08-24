@@ -1,6 +1,6 @@
 import { OPCUAClient } from "node-opcua";
 
-const endpointUrl1 = "opc.tcp://localhost:48010";
+const _endpointUrl1 = "opc.tcp://localhost:48010";
 const endpointUrl = "opc.tcp://localhost:26543";
 (async () => {
     const client = OPCUAClient.create({

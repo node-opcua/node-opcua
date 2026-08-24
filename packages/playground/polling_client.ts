@@ -15,7 +15,7 @@ import {
 // this test requires UA C++ Demo Server
 const endpointUri = `opc.tcp://${os.hostname()}:48010`;
 
-const doDebug = false;
+const _doDebug = false;
 
 async function main() {
     const connectionStrategy: ConnectionStrategyOptions = {

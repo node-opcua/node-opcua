@@ -5,17 +5,12 @@ import os from "node:os";
 import { types } from "node:util";
 import {
     type BrowseDescriptionLike,
-    BrowseResult,
     type ConnectionStrategyOptions,
     DataType,
-    DataValueT,
     MessageSecurityMode,
     OPCUAClient,
     type OPCUAClientOptions,
     SecurityPolicy,
-    StatusCode,
-    StatusCodes,
-    UserTokenType,
     Variant
 } from "node-opcua-client";
 
@@ -23,7 +18,7 @@ import {
 const addNodeMethodNodeId = "ns=2;s=Demo.Massfolder_Static.AddNodes";
 const endpointUri = `opc.tcp://${os.hostname()}:48010`;
 
-const doDebug = false;
+const _doDebug = false;
 
 async function main() {
     const connectionStrategy: ConnectionStrategyOptions = {
@@ -69,11 +64,11 @@ async function main() {
         console.log("BrowseResult = ", browseResult.toString());
         if (browseResult.statusCode.isGood()) {
             // console.log(browseResult.toString());
-            console.log("reading initial ", browseResult.references!.length, "elements");
+            console.log("reading initial ", browseResult.references?.length, "elements");
             let continuationPoint = browseResult.continuationPoint;
             while (continuationPoint) {
                 browseResult = await session.browseNext(continuationPoint, false);
-                console.log("reading extra ", browseResult.references!.length);
+                console.log("reading extra ", browseResult.references?.length);
 
                 continuationPoint = browseResult.continuationPoint;
             }

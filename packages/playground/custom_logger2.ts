@@ -1,11 +1,7 @@
-import util from "node:util";
-
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { setDebugLogger, setWarningLogger, setErrorLogger } from "node-opcua-debug";
-import { OPCUAClient } from "node-opcua-client";
 
-const debugLog = make_debugLog("TEST");
-const errorLog = make_errorLog("TEST");
+const _debugLog = make_debugLog("TEST");
+const _errorLog = make_errorLog("TEST");
 const warningLog = make_warningLog("TEST");
 
 async function main() {

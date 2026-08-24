@@ -10,8 +10,7 @@ import {
     OPCUAClient,
     type OPCUAClientOptions,
     SecurityPolicy,
-    UserTokenType,
-    Variant
+    UserTokenType
 } from "node-opcua-client";
 
 const connectionStrategy: ConnectionStrategyOptions = {
@@ -52,7 +51,7 @@ const client = OPCUAClient.create(options);
             nodeId: "i=2558"
         });
 
-        for (const reference of result.references!) {
+        for (const reference of result.references || []) {
             console.log(reference.toString());
         }
         const registeredNodes = await session.registerNodes(["ns=1;s=FanSpeed", "ns=1;s=PumpSpeed"]);

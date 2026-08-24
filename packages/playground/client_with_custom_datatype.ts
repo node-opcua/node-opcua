@@ -1,7 +1,8 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import chalk from "chalk";
+
 import os from "node:os";
+import chalk from "chalk";
 
 import {
     AttributeIds,
@@ -13,7 +14,7 @@ import {
     SecurityPolicy
 } from "node-opcua-client";
 
-const doDebug = false;
+const _doDebug = false;
 
 async function main() {
     const connectionStrategy: ConnectionStrategyOptions = {
@@ -44,7 +45,7 @@ async function main() {
 
     const dataValueDataType = await session.read({ nodeId: variableNodeID, attributeId: AttributeIds.DataType });
     console.log(" DataType =", dataValueDataType.value.value.toString());
-    const dataTypeNodeId = dataValueDataType.value.value as NodeId;
+    const _dataTypeNodeId = dataValueDataType.value.value as NodeId;
 
     const dataValueDataTypeBrowseName = await session.read({
         attributeId: AttributeIds.BrowseName,

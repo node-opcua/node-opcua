@@ -1,4 +1,12 @@
-import { type Variant, AttributeIds, ofType, constructEventFilter, MonitoringMode, OPCUAClient, TimestampsToReturn } from "node-opcua";
+import {
+    AttributeIds,
+    constructEventFilter,
+    MonitoringMode,
+    OPCUAClient,
+    ofType,
+    TimestampsToReturn,
+    type Variant
+} from "node-opcua";
 
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
 
@@ -10,7 +18,7 @@ const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
         await client.withSubscriptionAsync(
             endpointUrl,
             { publishingEnabled: true, requestedPublishingInterval: 1000 },
-            async (session, subscription) => {
+            async (_session, subscription) => {
                 console.log("connected");
 
                 const fields = ["EventType", "SourceName", "Time", "Message"];
@@ -33,7 +41,7 @@ const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
                 monitoredItem.on("changed", (eventFields: Variant[]) => {
                     // console.log("Event received: ", eventFields);
                     // construct a structure that contains the event fields
-                    const event: Record<string, any> = {};
+                    const event: Record<string, unknown> = {};
                     for (let i = 0; i < fields.length; i++) {
                         event[fields[i]] = eventFields[i].value;
                     }

@@ -1,4 +1,4 @@
-import { AddressSpace, nodesets, generateAddressSpace, Variant, DataType, StatusCodes } from "node-opcua";
+import { AddressSpace, DataType, generateAddressSpace, nodesets, StatusCodes, Variant } from "node-opcua";
 
 (async () => {
     const addressSpace = AddressSpace.create();
@@ -14,7 +14,7 @@ import { AddressSpace, nodesets, generateAddressSpace, Variant, DataType, Status
     let selected = "apple";
 
     const myObject = ownNameSpace.addObject({ browseName: "MyObject", organizedBy: addressSpace.rootFolder.objects });
-    const v1 = ownNameSpace.addVariable({
+    const _v1 = ownNameSpace.addVariable({
         browseName: "Fruit",
         componentOf: myObject,
         dataType: fruitEnumType,

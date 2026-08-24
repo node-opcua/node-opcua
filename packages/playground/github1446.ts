@@ -1,4 +1,4 @@
-import { OPCUAClient, MessageSecurityMode, SecurityPolicy } from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua";
 
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com"; // Replace with your server URL
 
