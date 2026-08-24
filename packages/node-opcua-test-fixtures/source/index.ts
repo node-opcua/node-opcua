@@ -1,5 +1,5 @@
-import path from "path";
+import path from "node:path";
 export function getFixture(relativeName: string) {
-    const filename =  path.join(__dirname, ".." , relativeName);
+    const filename = path.join(__dirname, "..", relativeName);
     return filename;
 }
