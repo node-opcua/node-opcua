@@ -8,10 +8,15 @@
 //  The test logs states & transitions to aid visual inspection and debugging.
 // --------------------------------------------------------------------------------------------
 import "should";
+import type { ClientSession } from "node-opcua";
 import { getAddressSpaceFixture } from "node-opcua-address-space/testHelpers";
 import { UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_client_server_session, type ClientServerSession } from "../../test_helpers/build_client_server_session";
+
+// _client is a private ClientSessionImpl field, reached here only to log low-level perf counters.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 describe("testing client Proxy State Machine", function (this: Mocha.Context) {
     this.timeout(Math.max(200_000, this.timeout()));
@@ -23,18 +28,18 @@ describe("testing client Proxy State Machine", function (this: Mocha.Context) {
         nodeset_filename: [getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml")]
     };
 
-    let session: any; // session type from build_client_server_session (ClientSession)
+    let session: ClientSession;
     let client_server: ClientServerSession;
 
     before(async () => {
         // Spin up server + client + session (helper guarantees a live session)
-        client_server = await build_client_server_session(serverOptions as any);
+        client_server = await build_client_server_session(serverOptions);
         session = client_server.g_session; // active ClientSession used for all sub-tests
     });
 
     function dumpStats() {
         // Low-level perf counters from internal client (handy when diagnosing chatter)
-        const client: any = (client_server as any).g_session._client;
+        const client = (client_server.g_session as InternalAny)._client;
         console.log("bytesRead              ", client.bytesRead, "bytes");
         console.log("transactionsPerformed  ", client.transactionsPerformed);
     }
@@ -59,7 +64,7 @@ describe("testing client Proxy State Machine", function (this: Mocha.Context) {
      */
     it("Z1a should read ExclusiveLimitStateMachineType definition & log it", async () => {
         dumpStats();
-        const proxyManager = new UAProxyManager(session as any);
+        const proxyManager = new UAProxyManager(session);
         await proxyManager.start();
         // Retrieve full proxy for the StateMachineType (not an instance) so we can
         // inspect its states & transitions metadata.
@@ -80,7 +85,7 @@ describe("testing client Proxy State Machine", function (this: Mocha.Context) {
     });
 
     it("Z1b should read ShelvedStateMachineType definition & log it", async () => {
-        const proxyManager = new UAProxyManager(session as any);
+        const proxyManager = new UAProxyManager(session);
         await proxyManager.start();
         const ShelvedStateMachineType = "ShelvedStateMachineType";
         // Acquire the shelving state machine definition (used in alarm handling)
