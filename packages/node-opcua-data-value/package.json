@@ -26,7 +26,6 @@
     },
     "devDependencies": {
         "node-opcua-extension-object": "2.177.0",
-        "node-opcua-numeric-range": "2.177.0",
         "node-opcua-packet-analyzer": "2.177.0"
     },
     "author": "Etienne Rossignon",
