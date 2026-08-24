@@ -3,10 +3,10 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { decodeString, encodeString, type UAString } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 // OPC.UA Part 4 7.21 Numerical Range
 // The syntax for the string contains one of the following two constructs. The first construct is the string
@@ -37,8 +37,6 @@ const NUMERIC_RANGE_EMPTY_STRING = "NumericRange:<Empty>";
 //         <index>    ::= <digit> [<digit>]
 //         <digit>    ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' |9'
 //
-// tslint:disable:object-literal-shorthand
-// tslint:disable:only-arrow-functions
 export const schemaNumericRange = {
     name: "NumericRange",
     subType: "String",
@@ -193,10 +191,10 @@ function construct_from_string(value: string): NumericalRange0 {
 }
 
 function _set_single_value(value: number | null): NumericalRange0 {
-    if (value === null || value < 0 || !isFinite(value)) {
+    if (value === null || value < 0 || !Number.isFinite(value)) {
         return {
             type: NumericRangeType.InvalidRange,
-            value: "" + value?.toString()
+            value: `${value?.toString()}`
         };
     } else {
         return {
@@ -239,7 +237,7 @@ function construct_from_values(value: number, secondValue?: number): NumericalRa
     if (secondValue === undefined) {
         return _set_single_value(value);
     } else {
-        if (!isFinite(secondValue)) {
+        if (!Number.isFinite(secondValue)) {
             throw new Error(" invalid second argument, expecting a number");
         }
         return _set_range_value(value, secondValue);
@@ -250,8 +248,8 @@ function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
     assert(value.length === 2);
 
     // c8 ignore next
-    if (!isFinite(value[0]) || !isFinite(value[1])) {
-        return { type: NumericRangeType.InvalidRange, value: "" + value };
+    if (!Number.isFinite(value[0]) || !Number.isFinite(value[1])) {
+        return { type: NumericRangeType.InvalidRange, value: `${value}` };
     }
     let range1 = _set_range_value(value[0], value[1]);
     if (!value2) {
@@ -265,7 +263,7 @@ function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
         nr2.type === NumericRangeType.MatrixRange ||
         nr2.type === NumericRangeType.Empty
     ) {
-        return { type: NumericRangeType.InvalidRange, value: "" + value };
+        return { type: NumericRangeType.InvalidRange, value: `${value}` };
     }
     if (range1.type === NumericRangeType.SingleValue) {
         range1 = {
@@ -289,7 +287,6 @@ export class NumericRange implements NumericalRange1 {
     public static coerce = coerceNumericRange;
 
     public static schema = schemaNumericRange;
-    // tslint:disable:variable-name
     public static NumericRangeType = NumericRangeType;
 
     public static readonly empty = new NumericRange() as NumericalRange0;
@@ -323,13 +320,9 @@ export class NumericRange implements NumericalRange1 {
     public value: NumericalRangeValueType;
 
     constructor();
-    // tslint:disable-next-line: unified-signatures
     constructor(value: string | null);
-    // tslint:disable-next-line: unified-signatures
     constructor(value: number, secondValue?: number);
-    // tslint:disable-next-line: unified-signatures
     constructor(value: number[]);
-    // tslint:disable-next-line: unified-signatures
     constructor(value: number[], secondValue: number[]);
     constructor(value?: null | string | number | number[], secondValue?: number | number[]) {
         this.type = NumericRangeType.InvalidRange;
@@ -343,8 +336,8 @@ export class NumericRange implements NumericalRange1 {
             this.value = a.value;
         } else if (
             typeof value === "number" &&
-            isFinite(value) &&
-            (secondValue === undefined || (typeof secondValue === "number" && isFinite(secondValue)))
+            Number.isFinite(value) &&
+            (secondValue === undefined || (typeof secondValue === "number" && Number.isFinite(secondValue)))
         ) {
             const a = construct_from_values(value, secondValue);
             this.type = a.type;
@@ -459,11 +452,11 @@ export class NumericRange implements NumericalRange1 {
             };
         }
 
-        let index;
-        let low_index;
-        let high_index;
-        let rowRange;
-        let colRange;
+        let index: number;
+        let low_index: number;
+        let high_index: number;
+        let rowRange: number[];
+        let colRange: number[];
         switch (self.type) {
             case NumericRangeType.Empty:
                 return extract_empty(array, dimensions);
@@ -534,8 +527,8 @@ export class NumericRange implements NumericalRange1 {
 
         const self = this as NumericalRange0;
 
-        let low_index;
-        let high_index;
+        let low_index: number;
+        let high_index: number;
         switch (self.type) {
             case NumericRangeType.Empty:
                 low_index = 0;
@@ -565,8 +558,8 @@ export class NumericRange implements NumericalRange1 {
         const insertInPlace = Array.isArray(arrayToAlter)
             ? insertInPlaceStandardArray
             : arrayToAlter instanceof Buffer
-            ? insertInPlaceBuffer
-            : insertInPlaceTypedArray;
+              ? insertInPlaceBuffer
+              : insertInPlaceTypedArray;
         return {
             array: insertInPlace(arrayToAlter, low_index, high_index, newValues),
             statusCode: StatusCodes.Good
@@ -579,7 +572,7 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
         return arr;
     }
 
-    let res;
+    let res: unknown;
     if ((arr as any).buffer instanceof ArrayBuffer) {
         res = (arr as any).subarray(start, end);
     } else if (arr instanceof Buffer) {
@@ -596,7 +589,7 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
         // we need to make sure that we end up with a Buffer object and not a Uint8Array.
         res = Buffer.from(res);
     }
-    return res;
+    return res as T;
 }
 
 export interface ExtractResult<T> {
@@ -627,7 +620,7 @@ function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number
 }
 
 function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: number, high_index: number): ExtractResult<T> {
-    assert(isFinite(low_index) && isFinite(high_index));
+    assert(Number.isFinite(low_index) && Number.isFinite(high_index));
     assert(low_index >= 0);
     assert(low_index <= high_index);
     if (low_index >= array.length) {
@@ -646,7 +639,7 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
 }
 
 function isArrayLike(value: any): boolean {
-    return typeof value.length === "number" || Object.prototype.hasOwnProperty.call(value, "length");
+    return typeof value.length === "number" || Object.hasOwn(value, "length");
 }
 
 function extract_matrix_range<U, T extends ArrayLike<U>>(
@@ -697,14 +690,10 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     // store the extracted matrix.
     const tmp = new (array as any).constructor(nbColDest * nbRowDest);
 
-    let row;
-    let col;
-    let r;
-    let c;
-    r = 0;
-    for (row = rowLow; row <= rowHigh; row++) {
-        c = 0;
-        for (col = colLow; col <= colHigh; col++) {
+    let r = 0;
+    for (let row = rowLow; row <= rowHigh; row++) {
+        let c = 0;
+        for (let col = colLow; col <= colHigh; col++) {
             const srcIndex = row * nbCol + col;
             const destIndex = r * nbColDest + c;
             tmp[destIndex] = (array as any)[srcIndex];
