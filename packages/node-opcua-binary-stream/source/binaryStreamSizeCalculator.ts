@@ -27,35 +27,35 @@ export class BinaryStreamSizeCalculator {
         this.length = 0;
     }
 
-    public writeInt8(value: number): void {
+    public writeInt8(_value: number): void {
         this.length += 1;
     }
 
-    public writeUInt8(value: number): void {
+    public writeUInt8(_value: number): void {
         this.length += 1;
     }
 
-    public writeInt16(value: number): void {
+    public writeInt16(_value: number): void {
         this.length += 2;
     }
 
-    public writeInteger(value: number): void {
+    public writeInteger(_value: number): void {
         this.length += 4;
     }
 
-    public writeUInt32(value: number): void {
+    public writeUInt32(_value: number): void {
         this.length += 4;
     }
 
-    public writeUInt16(value: number): void {
+    public writeUInt16(_value: number): void {
         this.length += 2;
     }
 
-    public writeFloat(value: number): void {
+    public writeFloat(_value: number): void {
         this.length += 4;
     }
 
-    public writeDouble(value: number): void {
+    public writeDouble(_value: number): void {
         this.length += 8;
     }
 

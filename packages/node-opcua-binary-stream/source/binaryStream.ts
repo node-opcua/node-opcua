@@ -142,7 +142,7 @@ export class BinaryStream {
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
-            assert(isFinite(value));
+            assert(Number.isFinite(value));
             assert(value >= 0 && value <= MAXUINT32);
         }
         this.buffer.writeUInt32LE(value, this.length);
