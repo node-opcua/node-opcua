@@ -20,7 +20,6 @@ const warningLog = make_warningLog(__filename);
 
 import chalk from "chalk";
 
-/* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
     public static schema: IStructuredTypeSchema = new StructuredTypeSchema({
         baseType: "",
@@ -84,18 +83,18 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         /* c8 ignore next */
         if (!object.schema) {
             debugLog(" object = ", object);
-            throw new Error("object has no schema " + object.constructor.name);
+            throw new Error(`object has no schema ${object.constructor.name}`);
         }
         const encodingDefaultBinary = object.schema.encodingDefaultBinary!;
         /* c8 ignore next */
         if (!encodingDefaultBinary) {
             debugLog(chalk.yellow("encoding ExtObj "), object);
-            throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
+            throw new Error(`Cannot find encodingDefaultBinary for this object : ${object.schema.name}`);
         }
         /* c8 ignore next */
         if (encodingDefaultBinary.isEmpty()) {
             debugLog(chalk.yellow("encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
-            throw new Error("Cannot find encodingDefaultBinary for this object : " + object.schema.name);
+            throw new Error(`Cannot find encodingDefaultBinary for this object : ${object.schema.name}`);
         }
         /* c8 ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
@@ -104,7 +103,7 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
                 (object.constructor as any).encodingDefaultBinary.toString(),
                 object.schema.name
             );
-            throw new Error("Cannot find valid OPCUA encodingDefaultBinary for this object : " + object.schema.name);
+            throw new Error(`Cannot find valid OPCUA encodingDefaultBinary for this object : ${object.schema.name}`);
         }
 
         encodeNodeId(encodingDefaultBinary, stream);
@@ -114,7 +113,6 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
     }
 }
 
-// tslint:disable:max-classes-per-file
 export class OpaqueStructure extends ExtensionObject {
     // the nodeId is the same as the encodingDefaultBinary
     public nodeId: NodeId;
