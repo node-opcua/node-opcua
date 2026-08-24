@@ -1,20 +1,40 @@
 import "should";
 import chalk from "chalk";
-import { AttributeIds, ClientMonitoredItem, ClientSubscription, DataType, OPCUAClient, RepublishRequest } from "node-opcua";
+import {
+    AttributeIds,
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSessionPublishService,
+    ClientSubscription,
+    DataType,
+    type MonitoredItemNotification,
+    OPCUAClient,
+    RepublishRequest,
+    type RepublishResponse
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
 
 interface TestHarness {
     endpointUrl: string;
-    server: any;
-    [k: string]: any;
+    server: unknown;
 }
+
+// republish is deliberately excluded from the public ClientSession type; reaching into
+// _publishEngine.acknowledge_notification is a genuine private-internal reach for fault
+// injection (dropping acknowledgements to force sequence numbers to stay pending).
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+type RawSession = Omit<ClientSession & ClientSessionPublishService, "republish"> & {
+    republish(options: RepublishRequest): Promise<RepublishResponse>;
+};
 
 const doDebug = false;
 
+// biome-ignore lint/complexity/noBannedTypes: generic step-function wrapper accepts any test helper function
 function f(func: Function) {
-    const fct = async (...args: any[]) => {
+    const fct = async (...args: unknown[]) => {
         if (doDebug) {
             console.log(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         }
@@ -35,7 +55,7 @@ export function t(test: TestHarness) {
         let spy_publish: sinon.SinonSpy | null = null;
         let _the_value = 10001;
 
-        async function create_subscription_and_monitor_item(session: any) {
+        async function create_subscription_and_monitor_item(session: ClientSession) {
             subscription = ClientSubscription.create(session, {
                 requestedPublishingInterval: 150,
                 requestedLifetimeCount: 10 * 60 * 10,
@@ -59,20 +79,23 @@ export function t(test: TestHarness) {
                     );
                     monitoredItem1.once("changed", () => {
                         subscription?.on("raw_notification", subscription_raw_notification_event!);
-                        spy_publish = sinon.spy(session, "publish");
+                        spy_publish = sinon.spy(session as RawSession, "publish");
                         resolve();
                     });
                 });
             });
         }
 
-        async function prevent_publish_request_acknowledgement(session: any) {
-            (session as any)._publishEngine.acknowledge_notification = (_subscriptionId: number, _sequenceNumber: number) => {
+        async function prevent_publish_request_acknowledgement(session: ClientSession) {
+            (session as InternalAny)._publishEngine.acknowledge_notification = (
+                _subscriptionId: number,
+                _sequenceNumber: number
+            ) => {
                 // intentionally ignore acknowledgements to keep sequence numbers pending
             };
         }
 
-        async function write_value(session: any) {
+        async function write_value(session: ClientSession) {
             _the_value += 1;
             const nodesToWrite = [
                 {
@@ -84,13 +107,13 @@ export function t(test: TestHarness) {
             await session.write(nodesToWrite);
         }
 
-        async function write_value_and_wait_for_change(session: any) {
+        async function write_value_and_wait_for_change(session: ClientSession) {
             if (!monitoredItem1) throw new Error("monitoredItem1 not initialized");
             await new Promise<void>((resolve, reject) => {
                 const timeoutId = setTimeout(() => {
                     reject(new Error("monitoredItem1 changed notification not received in time !"));
                 }, 4000);
-                monitoredItem1?.once("changed", (dataValue: any) => {
+                monitoredItem1?.once("changed", (dataValue: { value: { value: number } }) => {
                     clearTimeout(timeoutId);
                     dataValue.value.value.should.eql(_the_value);
                     resolve();
@@ -106,19 +129,21 @@ export function t(test: TestHarness) {
                 /* eslint-disable-line no-console */ console.log("keep trying to connect to ", endpointUrl);
             });
 
-            const expected_values: any[] = [];
+            const expected_values: MonitoredItemNotification[] = [];
             let sequenceNumbers: number[] = [];
 
-            async function verify_republish(session: any, index: number) {
+            async function verify_republish(session: ClientSession, index: number) {
                 const request = new RepublishRequest({
                     subscriptionId: subscription?.subscriptionId,
                     retransmitSequenceNumber: sequenceNumbers[index]
                 });
-                const response = await session.republish(request);
-                response.notificationMessage.notificationData[0].monitoredItems[0].should.eql(expected_values[index]);
+                const response = await (session as RawSession).republish(request);
+                (response.notificationMessage.notificationData![0] as InternalAny).monitoredItems[0].should.eql(
+                    expected_values[index]
+                );
             }
 
-            await perform_operation_on_subscription_async(client, endpointUrl, async (session: any) => {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session: ClientSession) => {
                 await f(create_subscription_and_monitor_item)(session);
                 await f(write_value_and_wait_for_change)(session);
                 await f(prevent_publish_request_acknowledgement)(session);
