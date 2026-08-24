@@ -1,5 +1,5 @@
 import "should"; // assertion side effects
-import { OPCUAClient, type OPCUAServer } from "node-opcua";
+import { type ApplicationDescription, type FindServersRequestLike, OPCUAClient, type OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 // declare function build_server_with_temperature_device(...args: any[]): void;
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
@@ -30,8 +30,8 @@ export function t(_test: TestHarness) {
             }
         }
 
-        async function findServersAsync(client: OPCUAClient, filters?: any) {
-            return await new Promise<any[]>((resolve, reject) => {
+        async function findServersAsync(client: OPCUAClient, filters?: FindServersRequestLike) {
+            return await new Promise<ApplicationDescription[]>((resolve, reject) => {
                 if (filters) {
                     client.findServers(filters, (err, servers) => (err ? reject(err) : resolve(servers || [])));
                 } else {
