@@ -1,7 +1,6 @@
 // tslint:disable:no-console
-import fs from "fs";
-import { types } from "util";
-
+import fs from "node:fs";
+import { types } from "node:util";
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { createBoilerType } from "node-opcua-address-space/testHelpers";
@@ -13,9 +12,9 @@ import {
     promoteToMandatory,
     setNamespaceMetaData,
     Symbols,
-    UAObject,
-    UAVariable,
-    UAVariableT
+    type UAObject,
+    type UAVariable,
+    type UAVariableT
 } from "..";
 
 import { getPresetSymbolsFromCSV, saveSymbolsToCSV, buildModel } from "../nodeJS";

@@ -1,8 +1,8 @@
-import fs from "fs";
-import { types } from "util";
-import { Parser, parse } from "csv-parse";
+import fs from "node:fs";
+import { types } from "node:util";
+import { type Parser, parse } from "csv-parse";
 
-import { Symbols } from "..";
+import type { Symbols } from "..";
 import { toCSV } from "..";
 
 // node 14 onward : import { readFile, writeFile } from "fs/promises";

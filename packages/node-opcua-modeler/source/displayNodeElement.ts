@@ -91,7 +91,6 @@ function getTypeDefinitionAsText(node: BaseNode): string {
         return (node as UAVariable | UAObject).typeDefinitionObj.browseName.toString() || "";
     return "";
 }
-// eslint-disable-next-line complexity
 function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptions) {
     resolveReferenceNode(data.node.addressSpace, ref);
     if (!ref.isForward) {

@@ -1,11 +1,10 @@
 Error.stackTraceLimit = 100000;
-// tslint:disable: no-console
-import fs from "fs";
+import fs from "node:fs";
 // node 14 onward : import {  writeFile } from "fs/promises";
 const { writeFile } = fs.promises;
 
-import os from "os";
-import path from "path";
+import os from "node:os";
+import path from "node:path";
 import should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import {
@@ -14,11 +13,11 @@ import {
     addVariableTypeForDataType,
     //
     DataType,
-    ExtensionObjectDefinition,
+    type ExtensionObjectDefinition,
     getSymbols,
     nodesets,
     setSymbols,
-    StructureDefinitionOptions
+    type StructureDefinitionOptions
 } from "..";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
@@ -82,7 +81,7 @@ describe("addExtensionObjectDataType", function (this: any) {
                 console.log(
                     b.browseName.toString(),
                     b.nodeId.toString(),
-                    b.typeDefinitionObj ? b.typeDefinitionObj.browseName.toString() + " ... " + b.typeDefinition.toString() : ""
+                    b.typeDefinitionObj ? `${b.typeDefinitionObj.browseName.toString()} ... ${b.typeDefinition.toString()}` : ""
                 ); // .nodeId.toString(), b.browseName.toString());
             });
         }
@@ -327,10 +326,6 @@ describe("addVariableTypeForDataType", function (this: any) {
         symbols
             .map((x) => x[0])
             .sort()
-            .should.eql([
-                "MyDataType",
-                "MyDataType_Encoding_DefaultBinary",
-                "MyDataType_Encoding_DefaultXML"
-            ].sort());
+            .should.eql(["MyDataType", "MyDataType_Encoding_DefaultBinary", "MyDataType_Encoding_DefaultXML"].sort());
     });
 });

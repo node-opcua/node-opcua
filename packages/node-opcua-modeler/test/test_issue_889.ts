@@ -1,5 +1,5 @@
-import path from "path";
-import os from "os";
+import path from "node:path";
+import os from "node:os";
 import { spy } from "sinon";
 import should from "should";
 
@@ -7,19 +7,19 @@ import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager, populateDataTypeManager, DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, adjustNamespaceArray, PseudoSession, UADataType } from "node-opcua-address-space";
+import { AddressSpace, adjustNamespaceArray, PseudoSession, type UADataType } from "node-opcua-address-space";
 import { BrowseDescription } from "node-opcua-types";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { StructureInfo } from "node-opcua-factory";
+import type { StructureInfo } from "node-opcua-factory";
 
 import {
     addExtensionObjectDataType,
     BrowseDirection,
     DataType,
-    ExtensionObjectDefinition,
+    type ExtensionObjectDefinition,
     NodeClassMask,
     StatusCodes,
-    StructureDefinitionOptions
+    type StructureDefinitionOptions
 } from "..";
 
 interface DataTypeFactoryPriv {
@@ -78,7 +78,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
             for (let i = 0; i < nbPerLevel; i++) {
                 counter += 1;
                 const options: ExtensionObjectDefinition = {
-                    browseName: "T" + counter + "DataType",
+                    browseName: `T${counter}DataType`,
                     isAbstract: false,
                     description: { text: "" },
                     structureDefinition,
@@ -105,14 +105,13 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         const xml = namespace.toNodeset2XML();
         if (true) {
-            const fs = require("fs");
+            const fs = require("node:fs");
             const tmpFile = path.join(os.tmpdir(), "tmp_1.xml");
             await fs.promises.writeFile(tmpFile, xml, "utf-8");
             /* to be completed */
         }
         return allDataTypes;
     }
-
 
     function createLimitedPseudoSession() {
         const maxBrowseContinuationPoints = 2;
@@ -133,13 +132,10 @@ describe("loading very large DataType Definitions ", function (this: any) {
         return session;
     }
 
-    async function check(
-        uaDataType: UADataType[],
-        extractor: (uaDataType: UADataType) => Promise<StructureInfo | null>) {
+    async function check(uaDataType: UADataType[], extractor: (uaDataType: UADataType) => Promise<StructureInfo | null>) {
         const results: any[] = [];
         const notFound: UADataType[] = [];
         for (let i = 0; i < uaDataType.length; i++) {
-
             const structureInfo = await extractor(uaDataType[i]);
 
             if (!structureInfo) {
@@ -152,7 +148,6 @@ describe("loading very large DataType Definitions ", function (this: any) {
     }
 
     it("LGH #889  session has limited continuation points", async () => {
-
         const session = createLimitedPseudoSession();
         // try to overflow the number of continuation points
         const browseResults = await session.browse(
@@ -169,7 +164,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
         );
         console.log(
             browseResults.map(
-                (a) => a.statusCode.toString() + " l=" + a.references?.length + " c=" + a.continuationPoint?.toString("hex")
+                (a) => `${a.statusCode.toString()} l=${a.references?.length} c=${a.continuationPoint?.toString("hex")}`
             )
         );
         browseResults[0].statusCode.should.eql(StatusCodes.Good);
@@ -193,18 +188,19 @@ describe("loading very large DataType Definitions ", function (this: any) {
         browseResults[4].continuationPoint?.toString("hex").should.eql("");
 
         // now clear the continuation points
-        const continuationPoints = browseResults.map((a) =>
-            a.continuationPoint).filter((c) => c !== null && c?.toString("hex") !== "");
-        console.log("continuationPoints", continuationPoints.map((a) => a?.toString("hex")));
+        const continuationPoints = browseResults
+            .map((a) => a.continuationPoint)
+            .filter((c) => c !== null && c?.toString("hex") !== "");
+        console.log(
+            "continuationPoints",
+            continuationPoints.map((a) => a?.toString("hex"))
+        );
 
-        const browseResults2 = await session.browseNext(continuationPoints,/*releaseContinuationPoints*/ true);
+        const browseResults2 = await session.browseNext(continuationPoints, /*releaseContinuationPoints*/ true);
 
         browseResults2.length.should.eql(continuationPoints.length);
-
-
     });
     it("LGH #889 should load large DataType tree - Auto", async () => {
-
         const session = createLimitedPseudoSession();
 
         const browseSpy = spy(session, "browse");
@@ -218,7 +214,6 @@ describe("loading very large DataType Definitions ", function (this: any) {
         browseSpy.callCount.should.be.lessThanOrEqual(4878);
         browseNextSpy.callCount.should.eql(97);
 
-
         // verify that all datastructure have been extracted
         const extractor = async (uaDataType: UADataType) => dataTypeManager.getStructureInfoForDataType(uaDataType.nodeId);
         const { results, notFound } = await check(allDataTypes, extractor);
@@ -227,12 +222,9 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         const a = dataTypeManager.getDataTypeFactory(1) as unknown as DataTypeFactoryPriv;
         a._structureInfoByDataTypeMap.size.should.eql(allDataTypes.length);
-
     });
 
-
     it("LGH #889 should load large DataType tree - Force104", async () => {
-
         const session = createLimitedPseudoSession();
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
@@ -258,7 +250,6 @@ describe("loading very large DataType Definitions ", function (this: any) {
     });
 
     it("LGH #889 should load large DataType tree - Lazy", async () => {
-
         const session = createLimitedPseudoSession();
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
@@ -273,7 +264,6 @@ describe("loading very large DataType Definitions ", function (this: any) {
         browseSpy.callCount.should.be.lessThanOrEqual(4886);
         browseNextSpy.callCount.should.eql(0);
 
-
         const a = dataTypeManager.getDataTypeFactory(1) as unknown as DataTypeFactoryPriv;
         should.exist(a, "expecting dataTypeFactory for namespace 1 to have been created");
 
@@ -284,6 +274,5 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         notFound.length.should.eql(0, "all data types should be found");
         results.length.should.eql(allDataTypes.length, "all data types should be found");
-
     });
 });

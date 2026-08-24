@@ -176,7 +176,6 @@ describe("promoteToMandatory", () => {
 
             exploreNode(objInstance);
 
-
             should(objInstance.typeDefinitionObj.browseName.name).eql("MyObjectType");
             const folder1InInstance = objInstance.getComponentByName("Folder1") as UAObject;
             const folder2InInstance = objInstance.getComponentByName("Folder2") as UAObject;
@@ -211,7 +210,6 @@ describe("promoteToMandatory", () => {
         const folder1_bis = promoteChild(derivedObjectType, "Folder1", 1) as UAObject;
 
         exploreNode(derivedObjectType);
-
 
         console.log("A2-!!!!!!!!!!!!!!!!");
         const variable1_bis = folder1_bis.getComponentByName("Variable1");

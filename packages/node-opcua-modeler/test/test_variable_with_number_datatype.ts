@@ -1,27 +1,31 @@
 import "should";
-import fs from "fs";
-import path from "path";
-import { tmpdir } from 'node:os';
+import fs from "node:fs";
+import path from "node:path";
+import { tmpdir } from "node:os";
 import { DataTypeIds } from "node-opcua-constants";
 import { DataType, Variant } from "node-opcua-variant";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, dumpToBSD, ensureDatatypeExtracted, INamespace, Namespace, UAObject, UAVariable } from "node-opcua-address-space";
+import {
+    AddressSpace,
+    dumpToBSD,
+    ensureDatatypeExtracted,
+    type INamespace,
+    Namespace,
+    type UAObject,
+    type UAVariable
+} from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/distNodeJS";
-import { StructureFieldOptions } from "node-opcua-types";
+import type { StructureFieldOptions } from "node-opcua-types";
 import { addExtensionObjectDataType } from "..";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("A- testing UAVariable with number dataType", () => {
-
     let addressSpace: AddressSpace;
     let namespace: INamespace;
     before(async () => {
-
         addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard]);
         namespace = addressSpace.registerNamespace("Private");
     });
     after(() => {
@@ -29,41 +33,33 @@ describe("A- testing UAVariable with number dataType", () => {
     });
 
     it("should create a variable with dataType Number and accept a float in addVariable", async () => {
-
         const myVariable = namespace.addVariable({
             browseName: "MyVariable",
             dataType: resolveNodeId(DataTypeIds.Number),
-            value:  new Variant({ dataType: DataType.Float, value: 3.14 })
-          
+            value: new Variant({ dataType: DataType.Float, value: 3.14 })
         });
-        
+
         console.log(myVariable.toString());
 
         const dataValue = myVariable.readValue();
         dataValue.value.dataType.should.eql(DataType.Float);
         dataValue.value.value.should.eql(3.14);
-
     });
     it("should create a variable with dataType Number and set it to a float", async () => {
-
         const myVariable = namespace.addVariable({
             browseName: "MyVariable",
-            dataType: resolveNodeId(DataTypeIds.Number),
-
+            dataType: resolveNodeId(DataTypeIds.Number)
         });
-        myVariable.setValueFromSource({ dataType: DataType.Float, value: 3.14  });
+        myVariable.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
 
         const dataValue = myVariable.readValue();
         dataValue.value.dataType.should.eql(DataType.Float);
         dataValue.value.value.should.eql(3.14);
-
     });
     it("should create a variable with dataType Number and  set it to a float then to UInt32", async () => {
-
         const myVariable = namespace.addVariable({
             browseName: "MyVariable",
-            dataType: resolveNodeId(DataTypeIds.Number),
-
+            dataType: resolveNodeId(DataTypeIds.Number)
         });
         myVariable.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
         myVariable.setValueFromSource({ dataType: DataType.UInt32, value: 314 });
@@ -73,10 +69,9 @@ describe("A- testing UAVariable with number dataType", () => {
         dataValue.value.value.should.eql(314);
     });
     it("should instantiate a variable with dataType Number and  set it to a float then to UInt32", async () => {
-
         const objectType = namespace.addObjectType({
             browseName: "MyObjectType"
-        }); 
+        });
         const myVariable = namespace.addVariable({
             browseName: "MyVariable",
             dataType: resolveNodeId(DataTypeIds.Number),
@@ -87,14 +82,11 @@ describe("A- testing UAVariable with number dataType", () => {
         const obj = objectType.instantiate({
             browseName: "Instance",
             organizedBy: addressSpace.rootFolder.objects
-        }); 
+        });
 
         var v = obj.getPropertyByName("MyVariable")! as UAVariable;
         v.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
     });
-
-
-
 });
 
 async function createModel() {
@@ -104,7 +96,7 @@ async function createModel() {
     const objectType = namespace.addObject({
         browseName: "MyObject",
         nodeId: "s=MyObject",
-        organizedBy: addressSpace.rootFolder.objects    
+        organizedBy: addressSpace.rootFolder.objects
     });
     const variable = namespace.addVariable({
         browseName: "MyVariable",
@@ -114,30 +106,25 @@ async function createModel() {
     variable.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
     const xml = namespace.toNodeset2XML();
     console.log(xml);
-    const nodesetFilename = path.join(tmpdir(),"tmp1.xml");
+    const nodesetFilename = path.join(tmpdir(), "tmp1.xml");
     fs.writeFileSync(nodesetFilename, xml);
     addressSpace.dispose();
     return nodesetFilename;
 }
 describe("B- testing UAVariable with number dataType", () => {
-
     it("should create a model with a variable with dataType Number and  set it to a float then to UInt32", async () => {
-
         const nodeset = await createModel();
         const addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset ]);   
-        const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject")! as UAObject;   
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+        const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject")! as UAObject;
         const v = obj.getPropertyByName("MyVariable")! as UAVariable;
         v.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
 
         addressSpace.dispose();
     });
-
 });
 
-
 async function createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDataTypeNumber() {
-
     const addressSpace = AddressSpace.create();
     const namespace = addressSpace.registerNamespace("Private");
     await generateAddressSpace(addressSpace, [nodesets.standard]);
@@ -150,8 +137,7 @@ async function createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDa
             description: "value",
             arrayDimensions: null,
             isOptional: false,
-            maxStringLength: 0,
-         
+            maxStringLength: 0
         }
     ];
 
@@ -187,7 +173,7 @@ async function createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDa
     const xmlbsd = dumpToBSD(namespace);
 
     const extensionObject = addressSpace.constructExtensionObject(uaDataType, {
-        field1: new Variant({ dataType: DataType.Float, value: 3.14 })  
+        field1: new Variant({ dataType: DataType.Float, value: 3.14 })
     });
     variable.setValueFromSource({ dataType: DataType.ExtensionObject, value: extensionObject });
 
@@ -200,23 +186,18 @@ async function createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDa
     return nodesetFilename;
 }
 
-
-
 describe("C- testing UAVariable with an extension object with a field as number dataType", () => {
-
     it("should create a model with a variable with an extension object with a dataType Number and  set it to a float then to UInt32", async () => {
-
         const nodeset = await createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDataTypeNumber();
         const addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
         const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject")! as UAObject;
         const v = obj.getPropertyByName("MyVariable")! as UAVariable;
 
-
-        const currentValue = v.readValue().value.value; 
+        const currentValue = v.readValue().value.value;
 
         const newValue = addressSpace.constructExtensionObject(v.dataType, {
-            field1: new Variant({ dataType: DataType.UInt32, value: 42 })   
+            field1: new Variant({ dataType: DataType.UInt32, value: 42 })
         });
         // currentValue.should.be.instanceOf(Object);
         // currentValue.field1 = new Variant({ dataType: DataType.UInt32, value: 42 });
@@ -224,7 +205,6 @@ describe("C- testing UAVariable with an extension object with a field as number 
 
         addressSpace.dispose();
     });
-
 });
 /*
 <opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://yourorganisation.org/toto/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://yourorganisation.org/toto/">

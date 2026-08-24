@@ -1,6 +1,6 @@
-import fs from "fs";
-import { Namespace } from "node-opcua-address-space";
-import { BuildDocumentationOptions, buildDocumentationToString } from "..";
+import fs from "node:fs";
+import type { Namespace } from "node-opcua-address-space";
+import { type BuildDocumentationOptions, buildDocumentationToString } from "..";
 
 export async function buildDocumentationToFile(namespace: Namespace, filename: string, options?: BuildDocumentationOptions) {
     const str = await buildDocumentationToString(namespace, options);

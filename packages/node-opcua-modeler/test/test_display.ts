@@ -6,7 +6,6 @@ import { removeDecoration } from "./test_helpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
-
 describe("displayNodeElement", () => {
     let addressSpace: AddressSpace;
 

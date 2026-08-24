@@ -1,7 +1,7 @@
 import should from "should";
-import { AddressSpace } from "..";
+import type { AddressSpace } from "..";
 import { buildModel } from "../nodeJS";
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("buildModel", () => {
     it("should build a empty model", async () => {
@@ -14,7 +14,6 @@ describe("buildModel", () => {
             xmlFiles: []
         });
 
-        // tslint:disable-next-line: no-console
         // console.log(xmlModel);
 
         xmlModel.should.eql(`<?xml version="1.0"?>
