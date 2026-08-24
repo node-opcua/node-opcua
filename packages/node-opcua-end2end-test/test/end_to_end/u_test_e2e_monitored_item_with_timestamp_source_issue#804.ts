@@ -2,20 +2,16 @@ import "should";
 import { AttributeIds, ClientMonitoredItem, ClientSubscription, OPCUAClient, resolveNodeId, TimestampsToReturn } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 /**
  * Issue #804 - Ensure monitoring with TimestampsToReturn.Source produces DataValues with only sourceTimestamp.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("MonitoredItem with TimestampsToReturn.Source (#804)", () => {
         it("monitors with SourceTimestamp only", async () => {
             const client = OPCUAClient.create({});
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 10 * 60 * 10,
