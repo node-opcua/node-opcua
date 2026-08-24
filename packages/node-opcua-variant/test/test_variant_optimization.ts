@@ -1,11 +1,9 @@
-
+import { DataType } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { decodeVariant, VariantArrayType } from "..";
-import { DataType } from "node-opcua-basic-types";
 import "should";
 
 describe("Variant Optimization: Zero-Copy and Alignment", () => {
-
     it("should use zero-copy for large ByteArray (always aligned)", () => {
         const size = 1000;
         const buffer = Buffer.allocUnsafe(size + 10);
@@ -109,5 +107,4 @@ describe("Variant Optimization: Zero-Copy and Alignment", () => {
         valueArr[0].should.not.equal(999.999); // Decoupled
         valueArr[0].should.equal(0);
     });
-
 });

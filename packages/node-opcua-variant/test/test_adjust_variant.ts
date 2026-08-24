@@ -1,12 +1,4 @@
-"use strict";
-
-
-import {
-    Variant,
-    DataType,
-    VariantArrayType,
-    adjustVariant
-} from "..";
+import { adjustVariant, DataType, Variant, VariantArrayType } from "..";
 
 describe("method #adjustVariant", () => {
     it("should adjust a Scalar/ByteString to a Byte/Array", () => {

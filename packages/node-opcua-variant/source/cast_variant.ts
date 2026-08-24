@@ -1,4 +1,3 @@
-
 // TODO
 /**
  * cast the variant value to match the type required by the variable

@@ -1,8 +1,7 @@
-
-import { BinaryStream } from "node-opcua-binary-stream";
-import { decodeVariant, Variant } from "../source/variant";
 import { DataType } from "node-opcua-basic-types";
 import { Benchmarker } from "node-opcua-benchmarker";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { decodeVariant, Variant } from "../source/variant";
 
 const size = 10 * 1024 * 1024; // 10 MB
 const buffer = Buffer.allocUnsafe(size + 100);
@@ -33,7 +32,7 @@ bench.on("cycle", (message: string) => {
 });
 
 bench.on("complete", (fastest) => {
-    console.log("Fastest is " + fastest.name);
+    console.log(`Fastest is ${fastest.name}`);
 });
 
 console.log("Running Benchmark...");

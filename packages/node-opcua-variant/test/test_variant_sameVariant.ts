@@ -1,9 +1,8 @@
-/* eslint-disable max-statements */
 import "should";
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
 
-import { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } from "..";
+import { buildVariantArray, DataType, sameVariant, Variant, VariantArrayType } from "..";
 
 describe("testing return sameVariant for pull request", () => {
     it("testing same variants of type Boolean", () => {
