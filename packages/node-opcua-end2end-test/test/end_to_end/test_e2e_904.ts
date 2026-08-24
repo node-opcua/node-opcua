@@ -43,8 +43,10 @@ async function startServer(): Promise<OPCUAServer> {
                 return;
             }
             // let's tweak the serverNonce !!!
-            // to emulate  Schneider Electric PLC - M580 behavior
-            (response as any).serverNonce = serverNonce;
+            // to emulate  Schneider Electric PLC - M580 behavior.
+            // serverNonce is intentionally null/empty here to exercise the client's rejection
+            // path, even though ByteString (Buffer) doesn't declare that as a valid value.
+            (response as unknown as { serverNonce: typeof serverNonce }).serverNonce = serverNonce;
         }
     });
     await server.initialize();
