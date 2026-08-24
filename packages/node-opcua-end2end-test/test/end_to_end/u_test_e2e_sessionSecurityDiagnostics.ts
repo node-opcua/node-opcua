@@ -15,6 +15,7 @@ import {
 } from "node-opcua";
 import should from "should";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const clientOptions = {
     endpointMustExist: false,
@@ -22,12 +23,12 @@ const clientOptions = {
     securityPolicy: SecurityPolicy.Basic256Sha256
 };
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("SDS2 Testing SessionSecurityDiagnostics", () => {
-        let connectionPoint: any = null;
+        let connectionPoint: EndpointWithUserIdentity;
         before(() => {
             connectionPoint = {
-                endpointUrl: test.endpointUrl,
+                endpointUrl: test.endpointUrl!,
                 userIdentity: {
                     type: UserTokenType.UserName,
                     userName: "user1",
@@ -44,7 +45,7 @@ export function t(test: any) {
 
             // first attempt as Anonymous user
             await client.withSessionAsync(
-                { endpointUrl: test.endpointUrl, userIdentity: { type: UserTokenType.Anonymous } },
+                { endpointUrl: test.endpointUrl!, userIdentity: { type: UserTokenType.Anonymous } },
                 async (session) => {
                     const nodesToRead = [
                         {
@@ -175,14 +176,13 @@ export function t(test: any) {
 
         it("SDS2-C server should expose a SessionSecurityDiagnostics in SessionDiagnosticsSummary.SessionSecurityDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
-            await perform_operation_on_subscription_async(client, test.endpointUrl, async (session, _subscription) => {
+            await perform_operation_on_subscription_async(client, test.endpointUrl!, async (session, _subscription) => {
                 //xx console.log("session nodeId = ",session.sessionId);
 
                 let sessionDiagnosticsArrayNodeId = resolveNodeId(
                     "Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray"
                 );
                 const serverNodeId = resolveNodeId("Server");
-                let sessionDiagnosticsNodeId: NodeId | undefined;
 
                 const browsePath = [
                     makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray")
@@ -201,7 +201,7 @@ export function t(test: any) {
                 const browseResult = await session.browse([browseDesc]);
                 // enumerate all sessions available
                 //xx console.log(browseResult[0].toString());
-                sessionDiagnosticsNodeId = browseResult[0].references?.[0].nodeId;
+                const sessionDiagnosticsNodeId: NodeId | undefined = browseResult[0].references?.[0].nodeId;
 
                 // read session diagnostics
                 const nodeToRead = {
