@@ -5,6 +5,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 import { waitUntilCondition } from "../../test_helpers/utils";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const warningLog = make_warningLog("TEST");
 
@@ -15,10 +16,10 @@ type ClientSessionEx = ClientSession & {
     _keepAliveManager: ClientSessionKeepAliveManager;
 };
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("ZZZA Testing timeout on session ", () => {
         it("An opened session will eventually time out on server side if the client doesn't make transactions", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const requestedSessionTimeout = 2000;
             const client = OPCUAClient.create({
                 keepSessionAlive: false,
@@ -29,14 +30,14 @@ export function t(test: any) {
                 await client.connect(endpointUrl);
                 session = await client.createSession();
                 // server may revise, accept within 50%..150% of requested
-                (session as any).timeout.should.be.within(requestedSessionTimeout * 0.5, requestedSessionTimeout * 1.5);
+                session.timeout.should.be.within(requestedSessionTimeout * 0.5, requestedSessionTimeout * 1.5);
                 // wait a bit longer than requested to let server timeout the session
                 await pause(requestedSessionTimeout + 1000);
                 // Attempt to close (may already be timed out)
                 try {
                     await session.close();
-                } catch (err: any) {
-                    if (!/BadSessionIdInvalid/.test(err.message)) {
+                } catch (err) {
+                    if (!/BadSessionIdInvalid/.test((err as Error).message)) {
                         throw err;
                     }
                 }
@@ -44,7 +45,7 @@ export function t(test: any) {
                 await client.disconnect().catch(() => undefined);
             }
             if (test.server) {
-                await waitUntilCondition(() => test.server.engine.currentSessionCount === 0, 10 * 1000);
+                await waitUntilCondition(() => test.server!.engine.currentSessionCount === 0, 10 * 1000);
             }
         });
 
@@ -56,7 +57,7 @@ export function t(test: any) {
             }) as OPCUAClientEx;
             const connection_lost_spy = sinon.spy();
             client.on("connection_lost", connection_lost_spy);
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             await client.connect(endpointUrl);
             const session = (await client.createSession()) as ClientSessionEx;
             // Allow some tolerance
@@ -81,7 +82,7 @@ export function t(test: any) {
             }) as OPCUAClientEx;
             const connection_lost_spy = sinon.spy();
             client.on("connection_lost", connection_lost_spy);
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const keepalive_spy = sinon.spy();
             await client.connect(endpointUrl);
             const session = (await client.createSession()) as ClientSessionEx;
