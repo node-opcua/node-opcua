@@ -3,12 +3,12 @@
 import chalk from "chalk";
 
 import {
-    Argument,
+    type Argument,
     AttributeIds,
-    ConnectionStrategyOptions,
+    type ConnectionStrategyOptions,
     MessageSecurityMode,
     OPCUAClient,
-    OPCUAClientOptions,
+    type OPCUAClientOptions,
     SecurityPolicy,
     UserTokenType,
     Variant
@@ -39,7 +39,7 @@ const client = OPCUAClient.create(options);
         });
 
         const session = await client.createSession({
-            password: (()=>"password1")(),
+            password: (() => "password1")(),
             type: UserTokenType.UserName,
             userName: "user1"
         });

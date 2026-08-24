@@ -1,17 +1,17 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import os from "os";
+import os from "node:os";
 
-import { types } from "util";
+import { types } from "node:util";
 import {
-    BrowseDescriptionLike,
+    type BrowseDescriptionLike,
     BrowseResult,
-    ConnectionStrategyOptions,
+    type ConnectionStrategyOptions,
     DataType,
     DataValueT,
     MessageSecurityMode,
     OPCUAClient,
-    OPCUAClientOptions,
+    type OPCUAClientOptions,
     SecurityPolicy,
     StatusCode,
     StatusCodes,
@@ -21,7 +21,7 @@ import {
 
 // this test requires UA C++ Demo Server
 const addNodeMethodNodeId = "ns=2;s=Demo.Massfolder_Static.AddNodes";
-const endpointUri = "opc.tcp://" + os.hostname() + ":48010";
+const endpointUri = `opc.tcp://${os.hostname()}:48010`;
 
 const doDebug = false;
 

@@ -13,15 +13,9 @@ export function date_add(date: Date, options: { seconds: number }): Date {
     return date1;
 }
 
-
 async function main() {
-
     const server = new OPCUAServer({
-        nodeset_filename: [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.autoId
-        ]
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
     });
     await server.initialize();
     const addressSpace = server.engine.addressSpace!;
@@ -39,24 +33,20 @@ async function main() {
 
     const uaMyObject = namespace.addObject({
         organizedBy: addressSpace.rootFolder.objects,
-        browseName: "MyObject",
+        browseName: "MyObject"
     });
-
-
 
     const uaVariable = namespace.addVariable({
         componentOf: uaMyObject,
         browseName: "TheVariable",
         nodeId: "s=MyObject.TheVariable",
-        dataType: rfidScanResult,
-
+        dataType: rfidScanResult
     });
     uaVariable.on("value_changed", (dataValue) => {
         console.log(dataValue.toString());
     });
 
     addressSpace.installHistoricalDataNode(uaVariable);
-
 
     let counter = 0;
     const doScan = () => {
@@ -109,7 +99,6 @@ async function main() {
     console.log("Shutting down server...");
     await server.shutdown(1000);
     console.log("Server shut down completed");
-
 }
 main();
 
@@ -118,7 +107,6 @@ async function readHistoricalRfidScanResults() {
         endpointMustExist: false
     });
     await client.withSessionAsync("opc.tcp://localhost:26543", async (session) => {
-
         const nodeId = "ns=1;s=MyObject.TheVariable";
         const today = new Date();
         const historyReadDetails = new ReadRawModifiedDetails({
@@ -131,13 +119,14 @@ async function readHistoricalRfidScanResults() {
         const indexRange = undefined;
         const dataEncoding = undefined;
         const continuationPoint = undefined;
-        const result = await session.historyRead(new HistoryReadRequest({
-            nodesToRead: [{ nodeId, indexRange, dataEncoding, continuationPoint }],
-            historyReadDetails,
-            releaseContinuationPoints: false,
-            timestampsToReturn: TimestampsToReturn.Both
-        }));
+        const result = await session.historyRead(
+            new HistoryReadRequest({
+                nodesToRead: [{ nodeId, indexRange, dataEncoding, continuationPoint }],
+                historyReadDetails,
+                releaseContinuationPoints: false,
+                timestampsToReturn: TimestampsToReturn.Both
+            })
+        );
         console.log(result.toString());
     });
-
 }

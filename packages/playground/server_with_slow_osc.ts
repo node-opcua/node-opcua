@@ -1,16 +1,10 @@
-import { types } from "util";
+import { types } from "node:util";
 process.env.NODEOPCUADEBUG = process.env.NODEOPCUADEBUG || "SERVER{TRACE}PERF";
-import {
-    DataType,
-    OPCUACertificateManager,
-    OPCUAServer,
-    ServerSecureChannelLayer,
-} from "node-opcua";
+import { DataType, OPCUACertificateManager, OPCUAServer, type ServerSecureChannelLayer } from "node-opcua";
 async function main() {
     try {
-
         const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: "./certificates",
+            rootFolder: "./certificates"
         });
         await serverCertificateManager.initialize();
         const server = new OPCUAServer({
@@ -18,20 +12,16 @@ async function main() {
             serverCertificateManager
         });
 
-
         const delay = parseInt(process.env.DELAY || "1000", 10);
 
         const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
         server.on("newChannel", (channel: ServerSecureChannelLayer) => {
-
             channel.beforeHandleOpenSecureChannelRequest = async () => {
                 console.log("simulating delay in opening channel", delay);
                 await wait(delay);
                 console.log("simulating delay in opening channel");
-             };
-
+            };
         });
-
 
         await server.initialize();
         console.log("certificate", server.certificateFile);
@@ -65,9 +55,9 @@ async function main() {
             dataType: "Double",
             value: {
                 dataType: DataType.Double,
-                value: 0,
+                value: 0
             }
-        })
+        });
         await server.start();
         console.log(" Server started ", server.getEndpointUrl());
     } catch (err) {

@@ -4,13 +4,14 @@ import chalk from "chalk";
 
 import {
     AttributeIds,
-    BrowseResult, ClientMonitoredItemBase,
+    BrowseResult,
+    type ClientMonitoredItemBase,
     ClientMonitoredItemGroup,
-    ConnectionStrategyOptions,
-    DataValue,
+    type ConnectionStrategyOptions,
+    type DataValue,
     MessageSecurityMode,
     OPCUAClient,
-    OPCUAClientOptions,
+    type OPCUAClientOptions,
     resolveNodeId,
     SecurityPolicy,
     TimestampsToReturn,
@@ -20,9 +21,7 @@ import {
 const endpointUri = "opc.tcp://localhost:48010";
 
 (async () => {
-
     try {
-
         const connectionStrategy: ConnectionStrategyOptions = {
             initialDelay: 1000,
             maxDelay: 20000, // retry every 20 seconds
@@ -106,7 +105,12 @@ const endpointUri = "opc.tcp://localhost:48010";
             samplingInterval: 10
         };
 
-        const monitoredItemGroup = ClientMonitoredItemGroup.create(subscription, itemsToMonitor, optionsGroup, TimestampsToReturn.Both);
+        const monitoredItemGroup = ClientMonitoredItemGroup.create(
+            subscription,
+            itemsToMonitor,
+            optionsGroup,
+            TimestampsToReturn.Both
+        );
 
         // subscription.on("item_added",function(monitoredItem){
         monitoredItemGroup.on("initialized", async () => {
@@ -124,7 +128,6 @@ const endpointUri = "opc.tcp://localhost:48010";
         await session.close();
         await client.disconnect();
         console.log(chalk.green("Done !"));
-
     } catch (err) {
         console.log(chalk.red("Error"), err);
     }

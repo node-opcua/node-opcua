@@ -4,19 +4,19 @@ import chalk from "chalk";
 import {
     AttributeIds,
     ClientMonitoredItem,
-    ClientSession,
+    type ClientSession,
     ClientSubscription,
-    ConnectionStrategyOptions,
+    type ConnectionStrategyOptions,
     DataChangeFilter,
     DataChangeTrigger,
-    DataValue,
+    type DataValue,
     DeadbandType,
     EventFilter,
     MessageSecurityMode,
-    MonitoringParametersOptions,
+    type MonitoringParametersOptions,
     OPCUAClient,
-    OPCUAClientOptions,
-    ReadValueIdOptions,
+    type OPCUAClientOptions,
+    type ReadValueIdOptions,
     SecurityPolicy,
     TimestampsToReturn,
     UserTokenType
@@ -196,4 +196,5 @@ async function test2() {
 
     console.log(" ----------- sample2");
     await test2();
-" y"})();
+    (" y");
+})();

@@ -1,28 +1,16 @@
-import {
-    nodesets,
-    OPCUACertificateManager,
-    OPCUAServer,
-} from "node-opcua";
+import { nodesets, OPCUACertificateManager, OPCUAServer } from "node-opcua";
 
 async function main() {
     try {
-
         const serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: "./certificates",
+            rootFolder: "./certificates"
         });
         await serverCertificateManager.initialize();
         const server = new OPCUAServer({
             port: 25000,
             serverCertificateManager,
-            nodeset_filename: [
-                nodesets.standard,
-                nodesets.di,
-                nodesets.irdi,
-                nodesets.padim
-            ]
+            nodeset_filename: [nodesets.standard, nodesets.di, nodesets.irdi, nodesets.padim]
         });
-
-
 
         console.log("server initializing");
         await server.initialize();
@@ -31,12 +19,11 @@ async function main() {
         console.log(" Server started ", server.getEndpointUrl());
 
         console.log("Server running. Press CTRL+C to stop");
-        await new Promise((resolve) => process.once("SIGINT", resolve))
+        await new Promise((resolve) => process.once("SIGINT", resolve));
 
         console.log("Shutting down server");
         await server.shutdown();
         console.log("Server shutdown");
-
     } catch (err) {
         if (err instanceof Error) {
             console.log("Error : ", err.message);

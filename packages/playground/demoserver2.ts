@@ -1,4 +1,4 @@
-import { OPCUAServer, nodesets, UAVariable } from "node-opcua";
+import { OPCUAServer, nodesets, type UAVariable } from "node-opcua";
 
 (async () => {
     const server = new OPCUAServer({
@@ -8,5 +8,4 @@ import { OPCUAServer, nodesets, UAVariable } from "node-opcua";
     const v = server.engine.addressSpace!.findNode("i=1212232")! as UAVariable;
     v.setValueFromSource({ dataType: "Double", value: 123.45 });
     await server.start();
-
 })();

@@ -9,14 +9,13 @@ import {
     TimestampsToReturn,
     ContentFilter,
     MonitoringMode,
-    Variant
+    type Variant
 } from "node-opcua-client";
 
 const endpointUrl = "opc.tcp://185.164.5.140:48401";
 const nodeId = "ns=2;s=179";
 // const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
 // const nodeId1 = "i=2253";
-
 
 async function main() {
     const client = OPCUAClient.create({
@@ -36,8 +35,7 @@ async function main() {
             maxNotificationsPerPublish: 10
         },
         async (session, subscription) => {
-            
-            const dv = await session.read({nodeId: "i=2258", attributeId: AttributeIds.Value});
+            const dv = await session.read({ nodeId: "i=2258", attributeId: AttributeIds.Value });
             console.log("Value = ", dv.toString());
 
             console.log("subscription created", subscription.toString());
@@ -64,8 +62,7 @@ async function main() {
                     console.log("Monitoring  result", m2.result?.toString());
                 }
                 console.log("Connected");
-               
-               
+
                 const fields = await extractConditionFields(session, "AcknowledgeableConditionType");
 
                 const AcknowledgeableConditionType = resolveNodeId("AcknowledgeableConditionType");
@@ -73,7 +70,7 @@ async function main() {
                 //  const eventFilter = constructEventFilter(fields, ofType(AcknowledgeableConditionType));
                 const eventFilter = constructEventFilter(fields, ofType("BaseEventType"));
 
-                // For some reason the Python server does'nt support whereClauses ... 
+                // For some reason the Python server does'nt support whereClauses ...
                 // we should not use them, and let them empty
                 eventFilter.whereClause = new ContentFilter({});
 

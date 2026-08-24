@@ -1,4 +1,4 @@
-import util from "util";
+import util from "node:util";
 import { createLogger, transports, format } from "winston";
 
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -30,7 +30,7 @@ const alignColorsAndTime = format.combine(
     //    //  colorize: process.stdout.isTTY
     // }),
     format.label({
-         label: "[NodeOPCUA]"
+        label: "[NodeOPCUA]"
     }),
     format.printf((info) => ` ${info.label}  ${info.timestamp}  ${info.level} : ${info.message}`)
 );

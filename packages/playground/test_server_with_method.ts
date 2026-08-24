@@ -1,18 +1,18 @@
 // tslint:disable:no-console
-import { types } from "util";
+import { types } from "node:util";
 import {
-    AddressSpace,
+    type AddressSpace,
     DataType,
-    CallMethodResultOptions,
-    NodeIdLike,
+    type CallMethodResultOptions,
+    type NodeIdLike,
     nodesets,
     OPCUAServer,
     SessionContext,
     StatusCodes,
-    UAMethod,
-    UAObject,
+    type UAMethod,
+    type UAObject,
     Variant,
-    ISessionContext,
+    type ISessionContext,
     CallbackT
 } from "node-opcua";
 
@@ -54,10 +54,10 @@ function installObjectWithMethod(addressSpace: AddressSpace): UAObject {
         ]
     });
 
-    methodI.bindMethod(async function(
+    methodI.bindMethod(async function (
         this: UAMethod,
         inputArguments: Variant[],
-        context: ISessionContext,
+        context: ISessionContext
     ): Promise<CallMethodResultOptions> {
         const callMethodResult = {
             outputArguments: [

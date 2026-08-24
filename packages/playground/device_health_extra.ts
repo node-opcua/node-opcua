@@ -1,27 +1,19 @@
 import {
-    Namespace,
+    type Namespace,
     UAEventType,
-    UAObject,
-    UAObjectType,
-    UADiscreteAlarm,
-    ConditionInfo,
-    INamespace,
-    UAAlarmConditionEx
+    type UAObject,
+    type UAObjectType,
+    type UADiscreteAlarm,
+    type ConditionInfo,
+    type INamespace,
+    type UAAlarmConditionEx
 } from "node-opcua-address-space";
-import {
-       StatusCodes
-} from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import {
-    DataValue,
-} from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 
-  import {
-    UAAlarmConditionImpl
-} from "node-opcua-address-space/dist/src/alarms_and_conditions/ua_alarm_condition_impl";
-import {
-    ConditionInfoImpl
-} from "node-opcua-address-space/dist/src/alarms_and_conditions/condition_info_impl";
+import { UAAlarmConditionImpl } from "node-opcua-address-space/dist/src/alarms_and_conditions/ua_alarm_condition_impl";
+import { ConditionInfoImpl } from "node-opcua-address-space/dist/src/alarms_and_conditions/condition_info_impl";
 
 import { EnumDeviceHealth } from "../enum_device_health";
 
@@ -42,7 +34,7 @@ export class UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionImpl {
                 message: "Back to normal",
                 quality: StatusCodes.Good,
                 retain: true,
-                severity: 0,
+                severity: 0
             });
         } else {
             // build-up state string
@@ -50,14 +42,12 @@ export class UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionImpl {
                 message: value,
                 quality: StatusCodes.Good,
                 retain: true,
-                severity: 150,
+                severity: 150
             });
         }
     }
 
     public _updateAlarmState(normalStateValue: number, inputValue: number): void {
-    
-        
         const isActive = normalStateValue === inputValue;
         if (isActive === this.activeState.getValue()) {
             // no change => ignore !
@@ -69,7 +59,7 @@ export class UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionImpl {
 
         // get device node last error info
         if (isActive) {
-            const description =  this.getLastDeviceError();
+            const description = this.getLastDeviceError();
             this._signalNewCondition(stateName, isActive, description.join("\n"));
         } else {
             this._signalNewCondition(stateName, isActive, "");
@@ -113,7 +103,6 @@ function _createXXXXAlarm(
     alarmType: UAObjectType,
     browseName: string
 ): UADiscreteAlarm {
-
     const deviceHealthNode = (deviceNode as any).deviceHealth;
     if (!deviceHealthNode) {
         throw new Error("DeviceHealth must exist");
@@ -126,9 +115,9 @@ function _createXXXXAlarm(
     (alarmType as any).isAbstract = false;
 
     if (alarmType.isAbstract) {
-        throw new Error("Alarm Type cannot be abstract " + alarmType.browseName.toString());
+        throw new Error(`Alarm Type cannot be abstract ${alarmType.browseName.toString()}`);
     }
-    
+
     deviceNode.setEventNotifier(1);
 
     const options = {
@@ -137,7 +126,7 @@ function _createXXXXAlarm(
         inputNode: deviceHealthNode,
         componentOf: deviceHealthAlarms,
         // normalState: normalStateNode,
-        optionals: ["ConfirmedState", "Confirm"],
+        optionals: ["ConfirmedState", "Confirm"]
     };
 
     const n = namespace as Namespace;
@@ -145,7 +134,7 @@ function _createXXXXAlarm(
 
     alarmNode.conditionName.setValueFromSource({
         dataType: DataType.String,
-        value: browseName.replace("Alarm", ""),
+        value: browseName.replace("Alarm", "")
     });
 
     (alarmNode as any)._updateAlarmState = UADeviceHealthDiagnosticAlarmEx.prototype._updateAlarmState;

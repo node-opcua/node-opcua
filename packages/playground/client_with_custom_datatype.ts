@@ -1,21 +1,21 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
 import chalk from "chalk";
-import os from "os";
+import os from "node:os";
 
 import {
     AttributeIds,
-    ConnectionStrategyOptions,
+    type ConnectionStrategyOptions,
     MessageSecurityMode,
-    NodeId,
+    type NodeId,
     OPCUAClient,
-    OPCUAClientOptions,
-    SecurityPolicy} from "node-opcua-client";
+    type OPCUAClientOptions,
+    SecurityPolicy
+} from "node-opcua-client";
 
 const doDebug = false;
 
 async function main() {
-
     const connectionStrategy: ConnectionStrategyOptions = {
         initialDelay: 1000,
         maxRetry: 1
@@ -31,7 +31,7 @@ async function main() {
     const client = OPCUAClient.create(options);
 
     console.log(" about to connect");
-    await client.connect("opc.tcp://" + os.hostname() + ":48010");
+    await client.connect(`opc.tcp://${os.hostname()}:48010`);
     console.log("connected");
 
     client.on("backoff", () => {
@@ -45,7 +45,7 @@ async function main() {
     const dataValueDataType = await session.read({ nodeId: variableNodeID, attributeId: AttributeIds.DataType });
     console.log(" DataType =", dataValueDataType.value.value.toString());
     const dataTypeNodeId = dataValueDataType.value.value as NodeId;
-  
+
     const dataValueDataTypeBrowseName = await session.read({
         attributeId: AttributeIds.BrowseName,
         nodeId: dataValueDataType.value.value
@@ -69,7 +69,6 @@ async function main() {
         promises.push(main());
         promises.push(main());
         await Promise.all(promises);
-
     } catch (e) {
         console.log(chalk.red("Error !"), e);
         process.exit(-1);

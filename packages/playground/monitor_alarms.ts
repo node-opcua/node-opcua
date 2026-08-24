@@ -1,58 +1,55 @@
-import {
-    installAlarmMonitoring,
-    OPCUAClient, uninstallAlarmMonitoring, UserIdentityInfoUserName, UserTokenType,
-} from "node-opcua";
-
+import { installAlarmMonitoring, OPCUAClient, uninstallAlarmMonitoring, type UserIdentityInfoUserName, UserTokenType } from "node-opcua";
 
 const endpointUrl = "opc.tcp://localhost:48010";
 const doDebug = false;
 
-(async ()=>{
-
+(async () => {
     try {
         const client = OPCUAClient.create({
-            endpointMustExist: false,
+            endpointMustExist: false
         });
-        client.on("backoff",()=>{
+        client.on("backoff", () => {
             console.log("backoff");
-        })
+        });
         const subscriptionParameters = {};
         const connectionParameters = {
             endpointUrl,
             userIdentity: <UserIdentityInfoUserName>{
                 type: UserTokenType.UserName,
-                password:(()=>"secret")(),
+                password: (() => "secret")(),
                 userName: "root"
             }
-        }
-        
-        const alarms= await client.withSubscriptionAsync(connectionParameters, subscriptionParameters, async (session, _subscription)=>{
+        };
 
-            console.log("connected");
-            console.log(client.toString());
+        const alarms = await client.withSubscriptionAsync(
+            connectionParameters,
+            subscriptionParameters,
+            async (session, _subscription) => {
+                console.log("connected");
+                console.log(client.toString());
 
-            const alarmList = await installAlarmMonitoring(session);
-            
-            alarmList.on("newAlarm", (alarm) => {
-                /** */
-                console.log(alarm.toString());
-                /** */
-            });
-            alarmList.on("alarmChanged", (alarm) => {
-                /** */
-                console.log(alarm.toString());
-            });
+                const alarmList = await installAlarmMonitoring(session);
 
-            await new Promise((resolve) =>  process.once("SIGINT",resolve));
+                alarmList.on("newAlarm", (alarm) => {
+                    /** */
+                    console.log(alarm.toString());
+                    /** */
+                });
+                alarmList.on("alarmChanged", (alarm) => {
+                    /** */
+                    console.log(alarm.toString());
+                });
 
-            const alarms = alarmList.alarms();
-            await uninstallAlarmMonitoring(session);
+                await new Promise((resolve) => process.once("SIGINT", resolve));
 
-            return alarms;
+                const alarms = alarmList.alarms();
+                await uninstallAlarmMonitoring(session);
 
-        });
+                return alarms;
+            }
+        );
         return alarms;
-    } catch(err) {
+    } catch (err) {
         console.log(err);
         throw err;
     }

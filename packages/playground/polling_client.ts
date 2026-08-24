@@ -1,19 +1,19 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import os from "os";
-import { types } from "util";
+import os from "node:os";
+import { types } from "node:util";
 
 import {
     AttributeIds,
-    ConnectionStrategyOptions,
+    type ConnectionStrategyOptions,
     MessageSecurityMode,
     OPCUAClient,
-    OPCUAClientOptions,
-    SecurityPolicy,
+    type OPCUAClientOptions,
+    SecurityPolicy
 } from "node-opcua-client";
 
 // this test requires UA C++ Demo Server
-const endpointUri = "opc.tcp://" + os.hostname() + ":48010";
+const endpointUri = `opc.tcp://${os.hostname()}:48010`;
 
 const doDebug = false;
 
@@ -63,12 +63,12 @@ async function main() {
 
     const session = await client.createSession();
 
-    session.on("session_restored", ()=>{
+    session.on("session_restored", () => {
         console.log(">> Session restored");
     });
-    session.on("session_closed", ()=>{
+    session.on("session_closed", () => {
         console.log(">> session closed");
-    })
+    });
     // Note: this example demonstrate how polling can be used in OPCUA ,
     // Note that Pooling is **not** the recommended way to monitored
     // change of a UA Variable! Use Subscription instead ....
@@ -92,13 +92,16 @@ async function main() {
         }
     }, 2000);
 
-    setTimeout(async () => {
-        clearInterval(timerId);
+    setTimeout(
+        async () => {
+            clearInterval(timerId);
 
-        await session.close();
-        await client.disconnect();
-        console.log("Done !");
-    }, 10 * 60 * 1000);
+            await session.close();
+            await client.disconnect();
+            console.log("Done !");
+        },
+        10 * 60 * 1000
+    );
 }
 
 main();

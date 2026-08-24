@@ -7,7 +7,7 @@ async function main() {
         const client = OPCUAClient.create({
             securityMode: MessageSecurityMode.None,
             securityPolicy: SecurityPolicy.None,
-            endpointMustExist: false,
+            endpointMustExist: false
             // =>   UNUser rejectUnauthorized: false
         });
 
@@ -27,12 +27,12 @@ async function main() {
         });
         console.log("Subscription created:", subscription.subscriptionId);
         console.log("Subscription object (response):", subscription);
-        subscription.on("terminated", () => { // This line causes the TypeError
+        subscription.on("terminated", () => {
+            // This line causes the TypeError
             console.log("Subscription terminated");
         });
 
         // ... (rest of the code to monitor items)
-
     } catch (err) {
         console.error("Error:", err);
     } finally {

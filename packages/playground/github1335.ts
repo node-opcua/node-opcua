@@ -1,9 +1,4 @@
-import {
-    adjustLimitsWithParameters,
-    type IHelloAckLimits,
-    OPCUAClient,
-    OPCUAServer
-} from "node-opcua";
+import { adjustLimitsWithParameters, type IHelloAckLimits, OPCUAClient, OPCUAServer } from "node-opcua";
 
 const myParameters = {
     minBufferSize: 8192,

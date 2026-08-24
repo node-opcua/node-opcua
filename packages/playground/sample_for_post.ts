@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import { types } from "util";
+import { types } from "node:util";
 import { AttributeIds, OPCUAClient } from "node-opcua";
 
 async function main() {

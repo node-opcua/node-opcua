@@ -1,19 +1,17 @@
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:unused-var
-import { types } from "util";
+import { types } from "node:util";
 import {
     ActivateSessionRequest,
     BrowseRequest,
     BrowseResponse,
     OPCUAServer,
     RegisterServerMethod,
-    Request,
-    Response,
+    type Request,
+    type Response
 } from "node-opcua";
-import {
-    makeBoiler
-} from "../node-opcua-address-space/testHelpers";
+import { makeBoiler } from "../node-opcua-address-space/testHelpers";
 
 async function main() {
     try {
