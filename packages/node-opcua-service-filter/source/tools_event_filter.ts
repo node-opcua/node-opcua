@@ -2,7 +2,7 @@
  * @module node-opcua-service-filter
  */
 import { ObjectTypeIds } from "node-opcua-constants";
-import { AttributeIds, type QualifiedName, type QualifiedNameOptions, coerceQualifiedName } from "node-opcua-data-model";
+import { AttributeIds, coerceQualifiedName, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 
 import { ContentFilter, ContentFilterElement, type ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports";
 

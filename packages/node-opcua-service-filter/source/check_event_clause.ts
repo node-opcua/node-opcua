@@ -1,12 +1,13 @@
 /**
  * @module node-opcua-address-space
  */
+
+import type { BaseNode, UAObjectType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
-import type { SimpleAttributeOperand } from "node-opcua-types";
+import { make_debugLog } from "node-opcua-debug";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import type { BaseNode, UAObjectType } from "node-opcua-address-space-base";
-import { make_debugLog } from "node-opcua-debug";
+import type { SimpleAttributeOperand } from "node-opcua-types";
 
 const debugLog = make_debugLog(__filename);
 

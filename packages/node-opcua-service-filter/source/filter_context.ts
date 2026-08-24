@@ -1,7 +1,6 @@
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
-import { AttributeOperand, type BrowsePath, type NodeClass, SimpleAttributeOperand } from "node-opcua-types";
-import { DataType, type Variant } from "node-opcua-variant";
+import type { BrowsePath, NodeClass } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 
 export interface FilterContext {
     readonly eventSource: NodeId;

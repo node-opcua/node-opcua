@@ -1,7 +1,7 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
-import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import type { FilterContext } from "./filter_context";

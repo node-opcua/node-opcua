@@ -1,9 +1,9 @@
 import { NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
-import { constructBrowsePathFromQualifiedName, makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { SimpleAttributeOperand, AttributeOperand, VariableAttributes } from "node-opcua-types";
+import { AttributeOperand, SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import type { FilterContext } from "./filter_context";
 

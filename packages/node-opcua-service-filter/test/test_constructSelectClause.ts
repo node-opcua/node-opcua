@@ -1,5 +1,5 @@
-import should from "should";
 import { AttributeIds } from "node-opcua-basic-types";
+import should from "should";
 import { constructSelectClause } from "..";
 
 const doDebug = false;

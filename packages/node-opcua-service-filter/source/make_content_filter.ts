@@ -2,10 +2,8 @@
  * @module node-opcua-service-filter
  */
 import { DataType } from "node-opcua-basic-types";
-import { ObjectTypeIds } from "node-opcua-constants";
-import { type AttributeIds, coerceQualifiedName, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
+import { type AttributeIds, coerceQualifiedName } from "node-opcua-data-model";
 import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { ContentFilterElementResult } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 
 import {
@@ -13,9 +11,7 @@ import {
     ContentFilter,
     ContentFilterElement,
     type ContentFilterElementOptions,
-    ContentFilterOptions,
     ElementOperand,
-    EventFilter,
     FilterOperator,
     LiteralOperand,
     SimpleAttributeOperand
@@ -36,10 +32,10 @@ export function ofType(nodeId: NodeIdLike): ContentFilterElement {
     return element;
 }
 
-export function l(dataType: DataType, value: any): LiteralOperand {
+export function l(dataType: DataType, value: unknown): LiteralOperand {
     switch (dataType) {
         case DataType.NodeId:
-            value = resolveNodeId(value);
+            value = resolveNodeId(value as NodeIdLike);
     }
 
     return new LiteralOperand({ value: new Variant({ dataType, value }) });
@@ -114,7 +110,7 @@ export function makeContentFilterElements(o: ContentFilterElement): ContentFilte
                 const op = element.filterOperands[i];
                 if (op instanceof ContentFilterElement) {
                     const index = pushElement(op);
-                    element.filterOperands![i] = new ElementOperand({ index });
+                    element.filterOperands[i] = new ElementOperand({ index });
                 }
             }
         }

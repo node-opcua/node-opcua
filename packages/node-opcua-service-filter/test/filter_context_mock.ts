@@ -1,11 +1,10 @@
-import { NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import type { BrowsePath } from "node-opcua-types";
-import { Variant, DataType, type VariantOptions } from "node-opcua-variant";
-import { NodeClass } from "node-opcua-data-model";
-import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
 import { assert } from "node-opcua-assert";
+import { NodeClass } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
+import { coerceNodeId, NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import type { BrowsePath } from "node-opcua-types";
+import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 
 import type { FilterContext } from "..";
 
@@ -69,7 +68,6 @@ type ErsatzNode =
     | ErsatzNodeVariableType
     | ErsatzNodeReferenceType;
 type ErsatzType = ErsatzNodeDataType | ErsatzNodeObjectType | ErsatzNodeVariableType | ErsatzNodeReferenceType;
-type ErsatzConcrete = ErsatzNodeObject | ErsatzNodeVariable | ErsatzNodeMethod;
 
 const g_nodes: Record<string, ErsatzNode> = {};
 
@@ -190,6 +188,7 @@ function makeMethod(
         browseName,
         nodeId
     };
+    setParent(nodes, node, parent);
     register(nodes, node);
     return node;
 }
@@ -412,7 +411,7 @@ export class FilterContextMock implements FilterContext {
     public eventSource: NodeId;
 
     constructor(private nodes: Record<string, ErsatzNode> = g_nodes) {
-        for (const [k, v] of Object.entries(nodes)) {
+        for (const [_k, v] of Object.entries(nodes)) {
             this._nodeIds[v.nodeId.toString()] = v;
         }
         this.eventSource = NodeId.nullNodeId;

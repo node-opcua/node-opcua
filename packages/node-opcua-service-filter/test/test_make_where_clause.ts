@@ -1,18 +1,18 @@
 import "should";
-import { DataType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-basic-types";
+import { DataType } from "node-opcua-variant";
+import { ElementOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "..";
 import {
-    makeContentFilterElements,
-    ofType,
-    s,
-    or,
     and,
+    greaterThanOrEqual,
     inList,
     l,
     lessThan,
-    greaterThanOrEqual
+    makeContentFilterElements,
+    ofType,
+    or,
+    s
 } from "../source/make_content_filter";
-import { ElementOperand, FilterOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "..";
 
 describe("make where clause", () => {
     it("should createa  simple OfType clause", () => {

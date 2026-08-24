@@ -1,18 +1,18 @@
 import "should";
+import { AttributeIds } from "node-opcua-data-model";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import {
+    ContentFilter,
+    ElementOperand,
     EventFilter,
     FilterOperator,
     LiteralOperand,
-    ContentFilter,
-    SimpleAttributeOperand,
-    ElementOperand
+    SimpleAttributeOperand
 } from "node-opcua-types";
-import { AttributeIds } from "node-opcua-data-model";
-import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, type VariantOptionsT } from "node-opcua-variant";
 
-import { checkFilter, ofType, extractEventFieldsBase } from "..";
-import { FilterContextMock, variableWithAlarm, alarmNode } from "./filter_context_mock";
+import { checkFilter, extractEventFieldsBase, ofType } from "..";
+import { alarmNode, FilterContextMock, variableWithAlarm } from "./filter_context_mock";
 
 // https://reference.opcfoundation.org/v105/Core/docs/Part4/7.7.3/
 
@@ -90,12 +90,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
 
     it("EV02- check Where Clause OfType", () => {
         const contentFilter = new ContentFilter({ elements: [ofType("SystemEventType")] });
-            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("SystemEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("SystemEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV03- check Where Clause InList OfType", () => {
@@ -126,16 +126,16 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 }
             ]
         });
-            filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditCertificateExpiredEvent");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditHistoryDeleteEvent");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.DeviceFailureEvent");
-            checkFilter(filterContext, contentFilter).should.eql(false);
-            filterContext.eventSource = filterContext.findNodeByName("SystemEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
-            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditCertificateExpiredEvent");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditHistoryDeleteEvent");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.DeviceFailureEvent");
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("SystemEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV04- check WhereClause with Not Operand #810", () => {
@@ -152,10 +152,10 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 ofType("GeneralModelChangeEventType") // (ns = 0; i=2133))
             ]
         });
-            filterContext.eventSource = filterContext.findNodeByName("AuditCertificateExpiredEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("AuditCertificateExpiredEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("GeneralModelChangeEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     [
@@ -165,7 +165,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         { op: FilterOperator.GreaterThan, result: [false, false, true] },
         { op: FilterOperator.GreaterThanOrEqual, result: [false, true, true] },
         { op: FilterOperator.Equals, result: [false, true, false] }
-    ].forEach(({ op, result }) =>
+    ].forEach(({ op, result }) => {
         it(`EV05-${op} - check checkFilter with ${FilterOperator[op]} operand`, () => {
             filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.VariableWithAlarm.AlarmNode");
 
@@ -188,14 +188,14 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                     }
                 ]
             });
-                setSeverity({ dataType: DataType.UInt16, value: 2.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[0]);
-                setSeverity({ dataType: DataType.UInt16, value: 10.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[1]);
-                setSeverity({ dataType: DataType.UInt16, value: 100.0 });
-                checkFilter(filterContext, contentFilter).should.eql(result[2]);
-        })
-    );
+            setSeverity({ dataType: DataType.UInt16, value: 2.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[0]);
+            setSeverity({ dataType: DataType.UInt16, value: 10.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[1]);
+            setSeverity({ dataType: DataType.UInt16, value: 100.0 });
+            checkFilter(filterContext, contentFilter).should.eql(result[2]);
+        });
+    });
 
     it("EV06 - checkFilter with Or operand", () => {
         filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.VariableWithAlarm.AlarmNode");
@@ -245,18 +245,18 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 }
             ]
         });
-            setSeverity({ dataType: DataType.UInt16, value: 4.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 5.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 6.0 });
-            checkFilter(filterContext, contentFilter).should.eql(false);
-            setSeverity({ dataType: DataType.UInt16, value: 9.0 });
-            checkFilter(filterContext, contentFilter).should.eql(false);
-            setSeverity({ dataType: DataType.UInt16, value: 10.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 11.0 });
-            checkFilter(filterContext, contentFilter).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 4.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 5.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 6.0 });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        setSeverity({ dataType: DataType.UInt16, value: 9.0 });
+        checkFilter(filterContext, contentFilter).should.eql(false);
+        setSeverity({ dataType: DataType.UInt16, value: 10.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 11.0 });
+        checkFilter(filterContext, contentFilter).should.eql(true);
     });
 
     it("EV07 - checkFilter with Between operand", () => {
@@ -287,18 +287,18 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 }
             ]
         });
-            setSeverity({ dataType: DataType.UInt16, value: 4.0 });
-            checkFilter(filterContext, whereClause).should.eql(false);
-            setSeverity({ dataType: DataType.UInt16, value: 5.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 6.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 9.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 10.0 });
-            checkFilter(filterContext, whereClause).should.eql(true);
-            setSeverity({ dataType: DataType.UInt16, value: 11.0 });
-            checkFilter(filterContext, whereClause).should.eql(false);
+        setSeverity({ dataType: DataType.UInt16, value: 4.0 });
+        checkFilter(filterContext, whereClause).should.eql(false);
+        setSeverity({ dataType: DataType.UInt16, value: 5.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 6.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 9.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 10.0 });
+        checkFilter(filterContext, whereClause).should.eql(true);
+        setSeverity({ dataType: DataType.UInt16, value: 11.0 });
+        checkFilter(filterContext, whereClause).should.eql(false);
     });
 
     it("EV08 - checkFilter with And operand", () => {
@@ -319,13 +319,13 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 }
             ]
         });
-            setEnabledState(true);
-            setAckedState(true);
+        setEnabledState(true);
+        setAckedState(true);
 
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            setEnabledState(false);
-            setAckedState(true);
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        setEnabledState(false);
+        setAckedState(true);
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV09 - checkFilter with (unsupported) Like operand", () => {
@@ -339,13 +339,13 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 }
             ]
         });
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
     it("EV10 - checkFilter empty", () => {
         const contentFilter = new ContentFilter({
             elements: null
         });
-            checkFilter(filterContext, contentFilter).should.eql(true);
+        checkFilter(filterContext, contentFilter).should.eql(true);
     });
 
     it("EV11 - checkFilter OfType with Variable", () => {
@@ -455,7 +455,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const contentFilter = new ContentFilter({
             elements: [ofType("DataItemType")]
         });
-        (filterContext.eventSource as any) = null;
+        filterContext.eventSource = NodeId.nullNodeId;
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
@@ -463,7 +463,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const contentFilter = new ContentFilter({
             elements: [ofType("DataItemType")]
         });
-        filterContext.eventSource = filterContext.findNodeByName("GetMonitoredItems")!;
+        filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.GetMonitoredItems")!;
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
@@ -601,12 +601,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 ofType("SystemEventType")
             ]
         });
-            // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
-            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
-            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
+        filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV27 - checkFilter accepts a valid And-tree referencing forward leaves and evaluates it", () => {
@@ -667,12 +667,12 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }
             ]
         });
-            // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
-            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
-            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        // DeviceFailureEventType is a subtype of SystemEventType => OfType true => result true
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        // EventQueueOverflowEventType is NOT a subtype of SystemEventType => OfType false => result false
+        filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
     it("EV30 - checkFilter accepts a diamond (shared sub-element) reference graph", () => {
@@ -765,9 +765,9 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 { filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 1 })] }
             ]
         });
-            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
-            checkFilter(filterContext, contentFilter).should.eql(true);
-            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
-            checkFilter(filterContext, contentFilter).should.eql(false);
+        filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+        checkFilter(filterContext, contentFilter).should.eql(true);
+        filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+        checkFilter(filterContext, contentFilter).should.eql(false);
     });
 });

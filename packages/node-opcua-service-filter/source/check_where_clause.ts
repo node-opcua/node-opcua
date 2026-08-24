@@ -1,19 +1,19 @@
-import {
-    type ContentFilter,
-    type ContentFilterElement,
-    FilterOperator,
-    LiteralOperand,
-    SimpleAttributeOperand,
-    type FilterOperand,
-    AttributeOperand,
-    ElementOperand
-} from "node-opcua-types";
-import type { ExtensionObject } from "node-opcua-extension-object";
-import { DataType, Variant } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
+import { make_warningLog } from "node-opcua-debug";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, sameNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { make_warningLog } from "node-opcua-debug";
+import {
+    AttributeOperand,
+    type ContentFilter,
+    type ContentFilterElement,
+    ElementOperand,
+    type FilterOperand,
+    FilterOperator,
+    LiteralOperand,
+    SimpleAttributeOperand
+} from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
 //
 import type { FilterContext } from "./filter_context";
 import { resolveOperand } from "./resolve_operand";
@@ -62,24 +62,30 @@ function _coerceToCompareable(value: Variant): string | number {
 function _coerceToEqualable(value: Variant): Variant {
     return value;
 }
-function evaluateOperand<T>(
+// TIn varies by call site: most coerce functions only ever see a Variant (from an
+// AttributeOperand/SimpleAttributeOperand/LiteralOperand), but an ElementOperand resolves
+// through checkFilterAtIndex and produces a boolean instead. Rather than force every coerce
+// function to declare a Variant | boolean | null param it mostly doesn't need, TIn is
+// inferred from whichever coerce function is actually passed, and the casts below make that
+// call-site contract explicit instead of silently typing the whole function `any`.
+function evaluateOperand<TIn, T>(
     filterContext: FilterContext,
     filter: ContentFilter,
     operand: FilterOperand,
-    coerce: (value: any) => T
+    coerce: (value: TIn) => T
 ): T {
     if (operand instanceof AttributeOperand) {
-        return coerce(resolveOperand(filterContext, operand));
+        return coerce(resolveOperand(filterContext, operand) as TIn);
     } else if (operand instanceof SimpleAttributeOperand) {
-        return coerce(resolveOperand(filterContext, operand));
+        return coerce(resolveOperand(filterContext, operand) as TIn);
     } else if (operand instanceof LiteralOperand) {
-        return coerce(operand.value);
+        return coerce(operand.value as TIn);
     } else if (operand instanceof ElementOperand) {
         const index = operand.index;
-        return coerce(checkFilterAtIndex(filterContext, filter, index));
+        return coerce(checkFilterAtIndex(filterContext, filter, index) as TIn);
     }
     // istanbul ignore
-    return coerce(null);
+    return coerce(null as TIn);
 }
 
 function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | null): boolean {
@@ -119,10 +125,11 @@ function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | nul
     let sourceTypeDefinition = filterContext.eventSource;
     const sourceNodeClass = filterContext.getNodeClass(filterContext.eventSource);
     if (sourceNodeClass === NodeClass.Object || sourceNodeClass === NodeClass.Variable) {
-        sourceTypeDefinition = filterContext.getTypeDefinition(filterContext.eventSource)!;
-        if (!sourceTypeDefinition) {
+        const typeDefinition = filterContext.getTypeDefinition(filterContext.eventSource);
+        if (!typeDefinition) {
             return false;
         }
+        sourceTypeDefinition = typeDefinition;
     }
     return filterContext.isSubtypeOf(sourceTypeDefinition, ofTypeNode);
 }
@@ -211,6 +218,7 @@ const isVariantEqual = (a: Variant, b: Variant): boolean => {
             return a.value?.namespaceIndex === b.value?.namespaceIndex && a.value?.name === b.value?.name;
         case DataType.ExtensionObject:
             console.log("isVariantEqual: Not implemented for DataType.ExtensionObject");
+            return false;
         default:
             return false; // not sure how to do
     }
@@ -325,17 +333,9 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
             return checkNot(filterContext, filter, filterOperands);
 
         case FilterOperator.OfType:
-            return checkOfType(filterContext, element.filterOperands![0]);
+            return checkOfType(filterContext, element.filterOperands?.[0] ?? null);
         case FilterOperator.InList:
             return checkInList(filterContext, filterOperands);
-
-        case FilterOperator.RelatedTo:
-        case FilterOperator.Like:
-        case FilterOperator.BitwiseAnd:
-        case FilterOperator.BitwiseOr:
-        case FilterOperator.Cast:
-        case FilterOperator.InView:
-        case FilterOperator.IsNull:
         default:
             // from Spec  OPC Unified Architecture, Part 4 133 Release 1.04
             //  Any basic FilterOperator in Table 119 may be used in the whereClause, however, only the

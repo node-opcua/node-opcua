@@ -10,13 +10,12 @@ import type {
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
-import { make_warningLog } from "node-opcua-debug";
-import { NodeId, sameNodeId, type NodeIdLike, coerceNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import type { BrowsePath } from "node-opcua-types";
-import { Variant, DataType } from "node-opcua-variant";
+import { NodeClass } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
+import { make_warningLog } from "node-opcua-debug";
+import { coerceNodeId, NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import type { BrowsePath } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
 //
 import type { FilterContext } from "../filter_context";
 
@@ -104,8 +103,8 @@ export class FilterContextOnAddressSpace implements FilterContext {
         // delegate to eventData if appropriate
         if (sameNodeId(browsePath.startingNode, this.eventSource)) {
             const browseResult = this.eventData._browse(browsePath);
-            if (browseResult && browseResult.statusCode.isGood() && browseResult.targets && browseResult.targets.length === 1) {
-                return browseResult.targets![0].targetId;
+            if (browseResult?.statusCode.isGood() && browseResult.targets && browseResult.targets.length === 1) {
+                return browseResult.targets?.[0].targetId;
             }
         }
 
