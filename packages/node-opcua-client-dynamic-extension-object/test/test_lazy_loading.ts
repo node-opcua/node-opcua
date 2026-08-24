@@ -1,10 +1,12 @@
 import "should";
-import { ExtraDataTypeManager } from "../source/extra_data_type_manager";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { DataTypeIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-import { DataTypeIds, ObjectIds, VariableIds } from "node-opcua-constants";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { ExtraDataTypeManager } from "../source/extra_data_type_manager";
+
 const { StructureDefinition } = require("node-opcua-types");
 
 enum NodeClass {
@@ -22,8 +24,29 @@ interface MockNode {
     nodeId: NodeId;
     browseName: string;
     nodeClass: number;
-    attributes: Map<number, any>;
+    attributes: Map<number, unknown>;
     references: { referenceTypeId: NodeId; nodeId: NodeId; isForward: boolean; browseName: string; nodeClass: number }[];
+}
+
+interface MockReadResult {
+    statusCode: StatusCode;
+    value: unknown;
+}
+
+interface MockBrowseOptions {
+    referenceTypeId?: NodeId | string;
+    browseDirection?: BrowseDirection;
+}
+
+interface MockBrowseResult {
+    statusCode: StatusCode;
+    references: {
+        nodeId: NodeId;
+        browseName: { name: string };
+        referenceTypeId: NodeId;
+        isForward: boolean;
+        nodeClass: number;
+    }[];
 }
 
 class MockAddressSpace {
@@ -139,7 +162,7 @@ class MockAddressSpace {
         }
     }
 
-    read(nodeId: NodeId, attributeId: AttributeIds): any {
+    read(nodeId: NodeId, attributeId: AttributeIds): MockReadResult {
         if (!nodeId) return { statusCode: StatusCodes.BadNodeIdInvalid, value: null };
         const key = nodeId.toString();
         let node = this.nodes.get(key);
@@ -165,7 +188,7 @@ class MockAddressSpace {
         return { statusCode: StatusCodes.Good, value };
     }
 
-    browse(nodeId: NodeId, options: any): any {
+    browse(nodeId: NodeId, options: MockBrowseOptions): MockBrowseResult {
         if (!nodeId) return { statusCode: StatusCodes.BadNodeIdInvalid, references: [] };
         const key = nodeId.toString();
         let node = this.nodes.get(key);
@@ -215,7 +238,9 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         const session = {
             readCount: 0,
             browseCount: 0,
-            read: async (nodesToRead: any) => {
+            read: async (
+                nodesToRead: { nodeId: NodeId; attributeId: AttributeIds } | { nodeId: NodeId; attributeId: AttributeIds }[]
+            ) => {
                 const results = (Array.isArray(nodesToRead) ? nodesToRead : [nodesToRead]).map((n) => {
                     session.readCount++;
                     const res = addressSpace.read(n.nodeId, n.attributeId);
@@ -233,7 +258,9 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
                 });
                 return Array.isArray(nodesToRead) ? results : results[0];
             },
-            browse: async (nodesToBrowse: any) => {
+            browse: async (
+                nodesToBrowse: (MockBrowseOptions & { nodeId: NodeId }) | (MockBrowseOptions & { nodeId: NodeId })[]
+            ) => {
                 session.browseCount++;
                 const results = (Array.isArray(nodesToBrowse) ? nodesToBrowse : [nodesToBrowse]).map((nodeToBrowse) => {
                     const res = addressSpace.browse(nodeToBrowse.nodeId, nodeToBrowse);
@@ -244,7 +271,7 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
                 });
                 return Array.isArray(nodesToBrowse) ? results : results[0];
             },
-            translateBrowsePath: async (browsePath: any) => {
+            translateBrowsePath: async (_browsePath: unknown) => {
                 return { statusCode: StatusCodes.BadNoMatch, targets: [] };
             }
         };
@@ -263,7 +290,7 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         dataTypeManager.registerDataTypeFactory(testNamespaceIndex, testFactory);
 
         const mockSession = createMockSession(addressSpace);
-        dataTypeManager.setSession(mockSession as any);
+        dataTypeManager.setSession(mockSession as unknown as IBasicSessionAsync2);
 
         const info = await dataTypeManager.getStructureInfoForDataTypeAsync(dataTypeNodeId);
         info.schema.name.should.eql("MyTestDataType");
@@ -284,9 +311,11 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
 
         let readCallCount = 0;
         const originalRead = mockSession.read;
-        mockSession.read = (async (nodeToRead: any): Promise<any> => {
+        mockSession.read = async (
+            nodeToRead: { nodeId: NodeId; attributeId: AttributeIds } | { nodeId: NodeId; attributeId: AttributeIds }[]
+        ) => {
             if (Array.isArray(nodeToRead)) {
-                if (nodeToRead.some((r: any) => r.nodeId.toString() === dataTypeNodeId.toString())) {
+                if (nodeToRead.some((r) => r.nodeId.toString() === dataTypeNodeId.toString())) {
                     readCallCount++;
                 }
             } else {
@@ -295,9 +324,9 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
                 }
             }
             return await originalRead.call(mockSession, nodeToRead);
-        }) as any;
+        };
 
-        dataTypeManager.setSession(mockSession as any);
+        dataTypeManager.setSession(mockSession as unknown as IBasicSessionAsync2);
 
         const promises = [
             dataTypeManager.getStructureInfoForDataTypeAsync(dataTypeNodeId),
@@ -320,7 +349,7 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         addressSpace.addReference(structureRootId, "HasSubtype", customDataTypeNodeId);
 
         const mockSession = createMockSession(addressSpace);
-        const result = await serverImplementsDataTypeDefinition(mockSession as any);
+        const result = await serverImplementsDataTypeDefinition(mockSession as unknown as IBasicSessionAsync2);
         result.should.eql(true);
     });
 
@@ -340,7 +369,7 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         dataTypeManager.registerDataTypeFactory(testNamespaceIndex, testFactory);
 
         const mockSession = createMockSession(addressSpace);
-        dataTypeManager.setSession(mockSession as any);
+        dataTypeManager.setSession(mockSession as unknown as IBasicSessionAsync2);
 
         const Constructor = await dataTypeManager.getExtensionObjectConstructorFromBinaryEncodingAsync(binaryEncodingNodeId);
         Constructor.should.be.a.Function();

@@ -1,16 +1,14 @@
-import { AttributeIds, BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { type IBasicSessionAsync2, browseAll, readNamespaceArray } from "node-opcua-pseudo-session";
 import { DataTypeIds, ObjectIds, VariableIds, VariableTypeIds } from "node-opcua-constants";
-import { DataType } from "node-opcua-variant";
-import { ReferenceDescription } from "node-opcua-types";
+import { AttributeIds, BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { DataTypeFactory } from "node-opcua-factory";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { type IBasicSessionAsync2, readNamespaceArray } from "node-opcua-pseudo-session";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 //
 import type { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103";
 import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104";
-import { DataTypeFactory } from "node-opcua-factory";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 const doDebug = checkDebugFlag("populateDataTypeManager");
 const debugLog = make_debugLog("populateDataTypeManager");
@@ -76,7 +74,7 @@ export async function serverImplementsDataTypeDefinition(session: IBasicSessionA
             return true;
         }
     } else {
-        const standardDataType = references.find((r) => r.nodeId.namespace == 0);
+        const standardDataType = references.find((r) => r.nodeId.namespace === 0);
         if (standardDataType) {
             const dv = await session.read({ nodeId: standardDataType.nodeId, attributeId: AttributeIds.DataTypeDefinition });
             if (dv.statusCode.isGood()) {
@@ -165,11 +163,11 @@ export async function populateDataTypeManager(
         await populateDataTypeManager104(session, dataTypeManager);
         return;
     }
-    if (strategy == DataTypeExtractStrategy.Force103 || strategy == DataTypeExtractStrategy.Both) {
+    if (strategy === DataTypeExtractStrategy.Force103 || strategy === DataTypeExtractStrategy.Both) {
         doDebug && debugLog("populateDataTypeManager: Force103 mode - we will be 103 eager");
         await populateDataTypeManager103(session, dataTypeManager);
     }
-    if (strategy == DataTypeExtractStrategy.Force104 || strategy == DataTypeExtractStrategy.Both) {
+    if (strategy === DataTypeExtractStrategy.Force104 || strategy === DataTypeExtractStrategy.Both) {
         doDebug && debugLog("populateDataTypeManager: Force104 mode - we will be 104 eager");
         await populateDataTypeManager104(session, dataTypeManager);
     }

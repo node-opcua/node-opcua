@@ -1,4 +1,4 @@
-import { type QualifiedName, AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, type QualifiedName } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import type { AnyConstructorFunc } from "node-opcua-schemas";
@@ -25,7 +25,10 @@ export async function getExtensionObjectConstructor(
         attributeId: AttributeIds.BrowseName
     });
     const browseName = dataValue.value.value as QualifiedName;
-    await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, browseName.name!, dataTypeManager, {});
+    if (!browseName.name) {
+        throw new Error(`Unexpected: BrowseName has no name for nodeId ${dataTypeNodeId.toString()}`);
+    }
+    await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, browseName.name, dataTypeManager, {});
 
     return await dataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
 }

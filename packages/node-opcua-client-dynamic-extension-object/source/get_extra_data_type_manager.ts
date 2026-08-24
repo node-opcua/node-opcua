@@ -1,7 +1,7 @@
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-import { type IBasicSessionAsync2, clearSessionCache, readNamespaceArray } from "node-opcua-pseudo-session";
 import type { NodeId } from "node-opcua-nodeid";
+import { clearSessionCache, type IBasicSessionAsync2, readNamespaceArray } from "node-opcua-pseudo-session";
 //
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { DataTypeExtractStrategy, populateDataTypeManager } from "./populate_data_type_manager";
@@ -73,8 +73,8 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
 }
 
 export function hasBoostedSession(session: IBasicSessionAsync2): boolean {
-    const _session: IBasicSessionAsync2Private = session as IBasicSessionAsync2Private;
-    return !!_session.$$getSessionForDataTypeExtraction || !!(_session as any).session;
+    const _session: IBasicSessionAsync2Private & ICascadingSession = session as IBasicSessionAsync2Private & ICascadingSession;
+    return !!_session.$$getSessionForDataTypeExtraction || !!_session.session;
 }
 export function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsync2): IBasicSessionAsync2 {
     const _session: IBasicSessionAsync2Private = session as IBasicSessionAsync2Private;
@@ -102,16 +102,18 @@ export async function getExtraDataTypeManager(
         return sessionPriv.$$extraDataTypeManager;
     }
 
-    if (sessionPriv.$$extraDataTypeManagerToResolve) {
+    const pendingList = sessionPriv.$$extraDataTypeManagerToResolve;
+    if (pendingList) {
         doDebug && debugLog("getExtraDataTypeManager is re-entering !");
         return await new Promise<ExtraDataTypeManager>((resolve, reject) => {
-            sessionPriv.$$extraDataTypeManagerToResolve?.push([resolve, reject]);
+            pendingList.push([resolve, reject]);
         });
     }
-    sessionPriv.$$extraDataTypeManagerToResolve = [];
+    const newPendingList: [(a: ExtraDataTypeManager) => void, (err: Error) => void][] = [];
+    sessionPriv.$$extraDataTypeManagerToResolve = newPendingList;
 
     return await new Promise<ExtraDataTypeManager>((_resolve, _reject) => {
-        sessionPriv.$$extraDataTypeManagerToResolve!.push([_resolve, _reject]);
+        newPendingList.push([_resolve, _reject]);
         (async () => {
             try {
                 strategy = getStrategy(session, strategy);
@@ -121,16 +123,14 @@ export async function getExtraDataTypeManager(
                 const dataTypeManager = await extractDataTypeManagerPrivate(sessionToUse, strategy);
                 // note: reconnection will call invalidateExtraDataTypeManager
                 // if the session is recreated
-                const tmp = sessionPriv.$$extraDataTypeManagerToResolve!;
                 sessionPriv.$$extraDataTypeManagerToResolve = undefined;
-                for (const [resolve] of tmp) {
+                for (const [resolve] of newPendingList) {
                     resolve(dataTypeManager);
                 }
                 sessionPriv.$$extraDataTypeManager = dataTypeManager;
             } catch (err) {
-                const tmp = sessionPriv.$$extraDataTypeManagerToResolve!;
                 sessionPriv.$$extraDataTypeManagerToResolve = undefined;
-                for (const [_resolve, reject] of tmp) {
+                for (const [_resolve, reject] of newPendingList) {
                     reject(err as Error);
                 }
             }

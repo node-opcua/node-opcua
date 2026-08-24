@@ -16,10 +16,6 @@ export class ExtraDataTypeManager {
     private _session: IBasicSessionAsync2 | null = null;
     private _pendingExtractions: Map<string, Promise<StructureInfo>> = new Map();
 
-    constructor() {
-        /* */
-    }
-
     public setSession(session: IBasicSessionAsync2): void {
         this._session = session;
     }
@@ -87,17 +83,19 @@ export class ExtraDataTypeManager {
         }
 
         const key = dataTypeNodeId.toString();
-        if (this._pendingExtractions.has(key)) {
-            return await this._pendingExtractions.get(key)!;
+        const pending = this._pendingExtractions.get(key);
+        if (pending) {
+            return await pending;
         }
 
+        const session = this._session;
         const promise = (async () => {
             // We'll need to make sure it's accessible and correctly used.
             // For now, let's assume we can import it or move it.
             // Actually, populate_data_type_manager_104.ts exports readDataTypeDefinitionAndBuildType
             const { readDataTypeDefinitionAndBuildType } = require("./private/populate_data_type_manager_104");
             const cache = {}; // local cache for this extraction
-            await readDataTypeDefinitionAndBuildType(this._session!, dataTypeNodeId, undefined, this, cache);
+            await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, undefined, this, cache);
 
             const info = this.getStructureInfoForDataType(dataTypeNodeId);
             if (!info) {
@@ -188,7 +186,7 @@ export class ExtraDataTypeManager {
 
     public toString(): string {
         const l: string[] = [];
-        function write(...args: [any, ...any[]]) {
+        function write(...args: [unknown, ...unknown[]]) {
             l.push(format.apply(format, args));
         }
         write("ExtraDataTypeManager");

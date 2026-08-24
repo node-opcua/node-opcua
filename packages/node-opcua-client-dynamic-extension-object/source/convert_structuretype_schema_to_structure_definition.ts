@@ -1,17 +1,18 @@
-import { CommonInterface, FieldCategory, FieldEnumeration, type FieldType, type IStructuredTypeSchema } from "node-opcua-factory";
-import { StructureDefinition, StructureType, type StructureDefinitionOptions, type StructureFieldOptions } from "node-opcua-types";
+import { FieldCategory, type FieldType, type IStructuredTypeSchema } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { DataType } from "node-opcua-variant";
+import { StructureDefinition, type StructureDefinitionOptions, type StructureFieldOptions, StructureType } from "node-opcua-types";
 
 function _getDataType(field: FieldType): NodeId {
     switch (field.category) {
         case FieldCategory.complex:
-            return resolveNodeId((field.schema as any).dataTypeNodeId);
+            return resolveNodeId((field.schema as unknown as IStructuredTypeSchema).dataTypeNodeId);
         case FieldCategory.basic:
             return resolveNodeId(field.fieldType);
-        case FieldCategory.enumeration:
         default:
-            return resolveNodeId(field.dataType!);
+            if (!field.dataType) {
+                throw new Error(`Internal error: expecting dataType to be defined for field ${field.name}`);
+            }
+            return resolveNodeId(field.dataType);
     }
 }
 

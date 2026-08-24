@@ -1,22 +1,30 @@
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-import { NodeId, resolveNodeId, type NodeIdLike } from "node-opcua-nodeid";
+import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import {
+    browseAll,
     type IBasicSessionAsync2,
     type IBasicSessionBrowseAsync,
     type IBasicSessionBrowseNext,
     type IBasicSessionReadAsync,
-    type IBasicSessionTranslateBrowsePathAsync,
-    browseAll
+    type IBasicSessionTranslateBrowsePathAsync
 } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
-import { type ReferenceDescription, type BrowseDescriptionOptions, StructureDefinition, type DataTypeDefinition } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
+import {
+    type BrowseDescriptionOptions,
+    type DataTypeDefinition,
+    type ReferenceDescription,
+    StructureDefinition
+} from "node-opcua-types";
+import {
+    convertDataTypeDefinitionToStructureTypeSchema,
+    type ICache
+} from "../convert_data_type_definition_to_structuretype_schema";
 //
 import type { ExtraDataTypeManager } from "../extra_data_type_manager";
-import { type ICache, convertDataTypeDefinitionToStructureTypeSchema } from "../convert_data_type_definition_to_structuretype_schema";
 import { hasBoostedSession } from "../get_extra_data_type_manager";
-import { StatusCodes } from "node-opcua-status-code";
 
 const errorLog = make_errorLog("populateDataTypeManager");
 const debugLog = make_debugLog("populateDataTypeManager");
@@ -51,7 +59,7 @@ export async function readDataTypeDefinitionAndBuildType(
                 nodeId: dataTypeNodeId
             }
         ]);
-        if (isAbstractDataValue.statusCode == StatusCodes.BadNodeIdUnknown) {
+        if (isAbstractDataValue.statusCode === StatusCodes.BadNodeIdUnknown) {
             // may be model is incomplete and dataTypeNodeId is missing
             debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
             return dependentNamespaces;
@@ -117,7 +125,7 @@ export async function readDataTypeDefinitionAndBuildType(
             // cannot construct an abstract structure
             dataTypeFactory.registerAbstractStructure(dataTypeNodeId, resolvedName, schema);
         } else {
-            const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
+            createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }
     } catch (err) {
         errorLog("Error", (err as Error).message, " while processing dataTypeNodeId =", dataTypeNodeId.toString());
@@ -160,10 +168,13 @@ export async function populateDataTypeManager104(
             // extract it formally
             doDebug &&
                 debugLog("populateDataTypeManager104: processing dataType = ", r.browseName.toString(), dataTypeNodeId.toString());
+            if (!r.browseName.name) {
+                throw new Error(`Unexpected: BrowseName has no name for nodeId ${dataTypeNodeId.toString()}`);
+            }
             const dependentNamespaces = await readDataTypeDefinitionAndBuildType(
                 session,
                 dataTypeNodeId,
-                r.browseName.name!,
+                r.browseName.name,
                 dataTypeManager,
                 cache
             );
@@ -175,7 +186,9 @@ export async function populateDataTypeManager104(
                 dataFactoryDependencies = new Set([0]); // always dependent on UA node set
                 dataFactoriesDependencies.set(dataTypeNodeId.namespace, dataFactoryDependencies);
             }
-            dependentNamespaces.forEach((ns) => dataFactoryDependencies.add(ns));
+            for (const ns of dependentNamespaces) {
+                dataFactoryDependencies.add(ns);
+            }
         } catch (err) {
             errorLog("err=", err);
         }
@@ -212,7 +225,7 @@ async function applyOnReferenceRecursively(
     browseDescriptionTemplate: BrowseDescriptionOptions,
     action: (ref: ReferenceDescription) => Promise<void>
 ): Promise<void> {
-    const hasBoosted = hasBoostedSession(session as any);
+    const hasBoosted = hasBoostedSession(session as unknown as IBasicSessionAsync2);
     const useHeavyParallelization = hasBoosted;
 
     debugLog("applyOnReferenceRecursively = useHeavyParallelization", useHeavyParallelization);
