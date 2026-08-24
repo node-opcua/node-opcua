@@ -4,7 +4,8 @@ import {
     getDefaultCertificateManager,
     type OPCUACertificateManager,
     OPCUAClient,
-    type OPCUAClientOptions
+    type OPCUAClientOptions,
+    type OPCUAServer
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
@@ -13,8 +14,13 @@ const doDebug = false;
 
 interface TestHarness {
     endpointUrl: string;
-    server: any; // Using any to avoid pulling full server types; can be specialized later
+    server: OPCUAServer;
 }
+
+// _serverEndpoints is a protected OPCUAClientImpl field, reused directly here to speed up
+// discovery across clients instead of each one re-fetching endpoints from the server.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 interface ClientSessionTaskData {
     index: number;
@@ -97,12 +103,12 @@ export function t(test: TestHarness): void {
         const client1 = OPCUAClient.create(options);
         const endpointUrl = test.endpointUrl;
 
-        client1.on("send_request", (req: any) => {
+        client1.on("send_request", (req) => {
             if (doDebug) {
                 console.log(data.index, " >> ", req.constructor.name);
             }
         });
-        client1.on("receive_response", (res: any) => {
+        client1.on("receive_response", (res) => {
             if (doDebug) {
                 console.log(data.index, " << ", res.constructor.name, res.responseHeader.serviceResult.toString());
             }
@@ -122,8 +128,8 @@ export function t(test: TestHarness): void {
         if (!first_client) throw new Error("First client not initialized");
 
         // reuse discovered endpoints to speed up
-        (client1 as any)._serverEndpoints = (first_client as any)._serverEndpoints;
-        (client1 as any).knowsServerEndpoint.should.eql(true);
+        (client1 as InternalAny)._serverEndpoints = (first_client as InternalAny)._serverEndpoints;
+        client1.knowsServerEndpoint.should.eql(true);
 
         let the_session: ClientSession | undefined;
         let createSessionError: unknown;
@@ -268,7 +274,7 @@ export function t(test: TestHarness): void {
                         requestedSessionTimeout: 100000,
                         clientCertificateManager: clientCertificateManager
                     });
-                    (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
+                    (client as InternalAny)._serverEndpoints = (first_client as InternalAny)._serverEndpoints;
 
                     await client.connect(test.endpointUrl);
                     clients.push(client);
@@ -289,7 +295,7 @@ export function t(test: TestHarness): void {
                         requestedSessionTimeout: 100000,
                         clientCertificateManager: clientCertificateManager
                     });
-                    (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
+                    (client as InternalAny)._serverEndpoints = (first_client as InternalAny)._serverEndpoints;
 
                     try {
                         await client.connect(test.endpointUrl);
