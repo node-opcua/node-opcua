@@ -183,9 +183,8 @@ export function constructInt64(high: UInt32, low: UInt32): Int64 {
 }
 
 export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UInt64 {
-    let high;
-    let low;
-    let v;
+    let high: number;
+    let low: number;
     if (value === null || value === undefined) {
         return [0, 0];
     }
@@ -195,7 +194,7 @@ export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UI
         return value;
     }
     if (typeof value === "string") {
-        v = value.split(",");
+        const v = value.split(",");
         if (v.length === 1) {
             // was a single string, good news ! BigInt can be used with nodejs >=12
             let a = BigInt(value);

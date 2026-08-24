@@ -1,4 +1,3 @@
-// tslint:disable: no-console
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { type Guid, isValidGuid } from "node-opcua-guid";

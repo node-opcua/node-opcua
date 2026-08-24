@@ -43,7 +43,6 @@ export function randomGuid(): Guid {
 // 00000000-0000-0000-0000-000000000000";
 
 const hexCharToNum = (h: number): number => {
-    // tslint:disable-next-line: no-bitwise
     const l = h & 0x5f;
     const r = l <= 25 ? l - 16 : l - 55;
     // xx assert(r >= 0 && r < 16);
@@ -68,7 +67,6 @@ function write_UInt32(stream: OutputBinaryStream, guid: string, starts: number[]
         const d6 = hexCharToNum(guid.charCodeAt(start + 5));
         const d7 = hexCharToNum(guid.charCodeAt(start + 6));
         const d8 = hexCharToNum(guid.charCodeAt(start + 7));
-        // tslint:disable-next-line: no-bitwise
         const value = (((((((((((((d1 << 4) | d2) << 4) | d3) << 4) | d4) << 4) | d5) << 4) | d6) << 4) | d7) << 4) | d8;
         stream.writeInteger(value);
     }
@@ -82,7 +80,6 @@ function write_UInt16(stream: OutputBinaryStream, guid: string, starts: number[]
         const d2 = hexCharToNum(guid.charCodeAt(start + 1));
         const d3 = hexCharToNum(guid.charCodeAt(start + 2));
         const d4 = hexCharToNum(guid.charCodeAt(start + 3));
-        // tslint:disable-next-line: no-bitwise
         const value = (((((d1 << 4) | d2) << 4) | d3) << 4) | d4;
         stream.writeUInt16(value);
     }
@@ -94,7 +91,6 @@ function write_UInt8(stream: OutputBinaryStream, guid: string, starts: number[])
         const start = starts[i];
         const d1 = hexCharToNum(guid.charCodeAt(start));
         const d2 = hexCharToNum(guid.charCodeAt(start + 1));
-        // tslint:disable-next-line: no-bitwise
         const value = (d1 << 4) | d2;
         stream.writeUInt8(value);
     }

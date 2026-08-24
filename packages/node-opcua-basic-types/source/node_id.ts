@@ -12,8 +12,6 @@ import { decodeUInt32, encodeUInt32 } from "./integers";
 import { decodeString, encodeString } from "./string";
 import { getRandomInt } from "./utils";
 
-// tslint:disable:no-bitwise
-
 enum EnumNodeIdEncoding {
     TwoBytes = 0x00, // A numeric value that fits into the two byte representation.
     FourBytes = 0x01, // A numeric value that fits into the four byte representation.
@@ -136,8 +134,8 @@ export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: Out
 
 function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: NodeId): NodeId {
     let value: number | string | Guid | Buffer;
-    let namespace;
-    let identifierType;
+    let namespace = 0;
+    let identifierType: NodeIdType;
     /*jslint bitwise: true */
     encodingByte &= 0x3f; // 1 to 5
 

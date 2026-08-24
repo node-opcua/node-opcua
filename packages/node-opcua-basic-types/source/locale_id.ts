@@ -13,7 +13,7 @@ export function validateLocaleId(_value: unknown): boolean {
 
 export type LocaleId = UAString;
 export function encodeLocaleId(localeId: LocaleId, stream: OutputBinaryStream): void {
-    return encodeUAString(localeId, stream);
+    encodeUAString(localeId, stream);
 }
 
 export function decodeLocaleId(stream: BinaryStream): LocaleId {
