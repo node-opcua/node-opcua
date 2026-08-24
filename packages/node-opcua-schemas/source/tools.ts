@@ -1,19 +1,17 @@
-/* eslint-disable max-depth */
-/* eslint-disable max-statements */
 import { make_errorLog } from "node-opcua-debug";
 import {
-    ConstructorFuncWithSchema,
-    DataTypeFactory,
+    type ConstructorFuncWithSchema,
+    type DataTypeFactory,
     FieldCategory,
     getBuiltInType,
     hasBuiltInType,
-    IStructuredTypeSchema,
+    type IStructuredTypeSchema,
     StructuredTypeSchema
 } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
 import { createDynamicObjectConstructor } from "./dynamic_extension_object";
-import { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider } from "./parse_binary_xsd";
+import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider } from "./parse_binary_xsd";
 
 const errorLog = make_errorLog(__filename);
 const _doDebug = false; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
@@ -61,7 +59,7 @@ export function getOrCreateStructuredTypeSchema(
         // construct it !
         const structuredType = typeDictionary.getStructuredTypesRawByName(_name);
         if (!structuredType) {
-            throw new Error("Cannot find structuredType " + _name);
+            throw new Error(`Cannot find structuredType ${_name}`);
         }
 
         structuredType.baseType = _removeNamespacePart(structuredType.baseType);
@@ -147,7 +145,12 @@ export function getOrCreateStructuredTypeSchema(
                                 field.schema = _getOrCreateStructuredTypeSchema(fieldTypeName);
                                 // c8 ignore next
                                 if (!field.schema) {
-                                    errorLog("What should I do ??", fieldTypeName, " ", dataTypeFactory.hasStructureByTypeName(fieldTypeName));
+                                    errorLog(
+                                        "What should I do ??",
+                                        fieldTypeName,
+                                        " ",
+                                        dataTypeFactory.hasStructureByTypeName(fieldTypeName)
+                                    );
                                 } else {
                                     if (hasBuiltInType(fieldTypeName)) {
                                         field.category = FieldCategory.basic;
@@ -164,7 +167,7 @@ export function getOrCreateStructuredTypeSchema(
                                 field.fieldType = fieldTypeName;
                             }
                             if (!hasBuiltInType(fieldTypeName)) {
-                                throw new Error("Unknown basic type " + fieldTypeName);
+                                throw new Error(`Unknown basic type ${fieldTypeName}`);
                             }
                             field.category = FieldCategory.basic;
                             break;

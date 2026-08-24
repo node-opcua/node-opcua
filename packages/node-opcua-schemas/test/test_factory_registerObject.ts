@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { BinaryStream } from "node-opcua-binary-stream";
 
 import { redirectToFile } from "node-opcua-debug/nodeJS";

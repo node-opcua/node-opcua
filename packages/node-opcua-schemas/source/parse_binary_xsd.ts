@@ -1,15 +1,17 @@
 /**
  * @module node-opcua-schemas
  */
-// tslint:disable:object-literal-sort-keys
-// tslint:disable:no-empty
 
 import chalk from "chalk";
 
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { EnumerationDefinitionSchema, FieldInterfaceOptions, StructuredTypeOptions } from "node-opcua-factory";
-import { DataTypeFactory } from "node-opcua-factory";
+import {
+    type DataTypeFactory,
+    EnumerationDefinitionSchema,
+    type FieldInterfaceOptions,
+    type StructuredTypeOptions
+} from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { Xml2Json } from "node-opcua-xml2json";
 
@@ -58,7 +60,7 @@ const predefinedType: any = {
     "ua:StringNodeId": 1,
     "ua:TwoByteNodeId": 1,
     "ua:Variant": 1,
-    "ua:XmlElement": 1,
+    "ua:XmlElement": 1
 };
 
 export interface EnumeratedType {
@@ -143,7 +145,6 @@ interface IImportParser extends _IParser {
 interface IStructureTypeFieldParser extends _IParser {
     parent: IStructureTypeParser;
 }
-/* tslint:disable:object-literal-shorthand */
 const state0: any = {
     init: () => {
         const a = 1;
@@ -213,7 +214,9 @@ const state0: any = {
                                 const key = this.attrs.Name;
                                 const value = parseInt(this.attrs.Value, 10);
                                 const _enum = this.parent.enumeratedType.enumeratedValues;
-                                _enum[(_enum[key] = value)] = key;
+                                // bidirectional enum map: name -> value and value -> name
+                                _enum[key] = value;
+                                _enum[value] = key;
                                 this.parent.typescriptDefinition += `\n  ${key} = ${value},`;
                             }
                         }
@@ -442,4 +445,3 @@ export async function parseBinaryXSD(
         getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
     }
 }
-

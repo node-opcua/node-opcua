@@ -2,26 +2,23 @@
  * @module node-opcua-schemas
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { sameNodeId } from "node-opcua-nodeid";
-import { decodeExtensionObject, encodeExtensionObject, ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { DataType } from "node-opcua-variant";
-
+import { decodeExtensionObject, ExtensionObject, encodeExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import {
     BaseUAObject,
+    type ConstructorFuncWithSchema,
     check_options_correctness_against_schema,
-    ConstructorFuncWithSchema,
-    DataTypeFactory,
+    type DataTypeFactory,
     FieldCategory,
-    FieldType,
+    type FieldType,
+    type IStructuredTypeSchema,
     initialize_field,
     initialize_field_array,
-    IStructuredTypeSchema,
-    StructuredTypeField
+    type StructuredTypeField
 } from "node-opcua-factory";
-
-import { coerceNodeId, ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, ExpandedNodeId, type NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -29,6 +26,7 @@ const doDebug = checkDebugFlag(__filename);
 
 function associateEncoding(
     dataTypeFactory: DataTypeFactory,
+    // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
     constructor: AnyConstructorFunc,
     { encodingDefaultBinary, encodingDefaultXml }: { encodingDefaultBinary?: ExpandedNodeId; encodingDefaultXml?: ExpandedNodeId }
 ) {
@@ -56,9 +54,10 @@ export function getOrCreateConstructor(
 
     // c8 ignore next
     if (!schema) {
-        throw new Error("Unknown type in dictionary " + dataTypeName);
+        throw new Error(`Unknown type in dictionary ${dataTypeName}`);
     }
 
+    // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
     const constructor = createDynamicObjectConstructor(schema, dataTypeFactory);
 
     if (!constructor) {
@@ -87,7 +86,7 @@ function encodeElement(
     } else {
         // c8 ignore next
         if (!element.encode) {
-            throw new Error("encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing");
+            throw new Error(`encodeArrayOrElement: object field ${field.name} has no encode method and encodeFunc is missing`);
         }
         if (field.allowSubTypes) {
             encodeExtensionObject(element, stream);
@@ -119,10 +118,7 @@ function encodeArrayOrElement(
     }
 }
 
-function decodeExtensionObject2(
-    stream: BinaryStream,
-    dataTypeFactory: DataTypeFactory
-) {
+function decodeExtensionObject2(stream: BinaryStream, dataTypeFactory: DataTypeFactory) {
     const obj = decodeExtensionObject(stream);
     if (obj === null) {
         return null;
@@ -130,6 +126,7 @@ function decodeExtensionObject2(
     // resolve opaque structure
     if (obj instanceof OpaqueStructure && dataTypeFactory) {
         const binaryEncodingNodeId = obj.nodeId;
+        // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
         const constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
         const binaryStream = new BinaryStream(obj.buffer);
         if (constructor) {
@@ -147,7 +144,7 @@ function decodeElement(
     dataTypeFactory: DataTypeFactory,
     field: FieldType,
     stream: BinaryStream,
-    decodeFunc?: (stream: BinaryStream) => any,
+    decodeFunc?: (stream: BinaryStream) => any
 ): any {
     if (decodeFunc) {
         return decodeFunc(stream);
@@ -159,7 +156,7 @@ function decodeElement(
             // construct an instance
             const structureInfo = dataTypeFactory.getStructureInfoByTypeName(field.fieldType);
             if (!structureInfo.constructor) {
-                throw new Error("Cannot instantiate an abstract dataStructure: " + field.fieldType);
+                throw new Error(`Cannot instantiate an abstract dataStructure: ${field.fieldType}`);
             }
             const element = new structureInfo.constructor({});
             element.decode(stream);
@@ -211,13 +208,13 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
         return;
     }
     if (field.category === "basic") {
-        if (!Object.prototype.hasOwnProperty.call(value, "dataType")) {
+        if (!Object.hasOwn(value, "dataType")) {
             const msg = "initializeField: field that allow subtype must be a Variant like and have a dataType property";
             errorLog(msg);
             throw new Error(msg);
         }
         const c = dataTypeFactory.getBuiltInTypeByDataType(coerceNodeId(`i=${value.dataType}`, 0));
-        if (field.fieldType === "Variant" || field.fieldType == "BaseDataType") {
+        if (field.fieldType === "Variant" || field.fieldType === "BaseDataType") {
             // this is valid, expecting a Variant with any dataType in it
             return;
         }
@@ -238,7 +235,7 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
     } else {
         if (value !== null && !(value instanceof ExtensionObject)) {
             // this may happen in deprecated situations
-            // we have a Pojo 
+            // we have a Pojo
             // errorLog(`initializeField: ${field.name} element is not an ExtensionObject`);
             return;
             // throw new Error(`${field.name}: element must be an ExtensionObject`);
@@ -277,20 +274,19 @@ function coerceExtensionObject(
     value: any,
     options: { allowSubTypes: boolean } = { allowSubTypes: false }
 ): any {
-
     const { allowSubTypes } = options;
 
+    // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
     const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
 
     const adjustValue = (value: any) => {
         if (value instanceof ExtensionObject) {
-
             if (allowSubTypes) {
                 return value.clone();
             } else {
                 // it must be of the exact type
                 if (value.constructor !== constructor) {
-                    errorLog('coerceExtensionObject: value is not of the expected type');
+                    errorLog("coerceExtensionObject: value is not of the expected type");
                 } else {
                     return value.clone();
                 }
@@ -298,12 +294,12 @@ function coerceExtensionObject(
         }
         // we have a POJO and we need to construct an ExtensionObject
         return constructor ? new constructor(value) : null;
-    }
+    };
 
     if (field.isArray) {
         const arr = (value as unknown[]) || [];
         if (!Array.isArray(arr)) {
-            throw new Error("Expecting an array here for field " + field.name + "but got " + arr);
+            throw new Error(`Expecting an array here for field ${field.name}but got ${arr}`);
         }
         return arr.map((x: any) => adjustValue(x));
     } else {
@@ -430,7 +426,7 @@ function _internal_encodeFields(thisAny: any, schema: IStructuredTypeSchema, str
                 break;
             default:
                 /* c8 ignore next*/
-                throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+                throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
         }
     }
 }
@@ -453,13 +449,11 @@ function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldO
         if (thisAny[field.name] === undefined) {
             continue;
         }
-        // tslint:disable-next-line:no-bitwise
-        bitField |= 1 << (field.switchBit);
+        bitField |= 1 << field.switchBit;
     }
     return { bitField, allOptional };
 }
 function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
-
     const hasOptionalFields = hasOptionalFieldsF(schema);
 
     // ============ Deal with switchBits
@@ -495,7 +489,6 @@ function internal_decodeFields(
 
         // ignore fields that have a switch bit when bit is not set
         if (hasOptionalFields && field.switchBit !== undefined) {
-            // tslint:disable-next-line:no-bitwise
             if ((bitField & (1 << field.switchBit)) === 0) {
                 thisAny[field.name] = undefined;
                 continue;
@@ -517,7 +510,7 @@ function internal_decodeFields(
                 break;
             default:
                 /* c8 ignore next*/
-                throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+                throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
         }
     }
 }
@@ -544,7 +537,7 @@ function ___fieldToJson(field: FieldType, value: any): any {
             return value instanceof Date ? new Date(value.getTime()) : value?.toJSON ? value?.toJSON() : value;
         default:
             /* c8 ignore next*/
-            throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+            throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
     }
 }
 function fieldToJSON(field: FieldType, value: any): any {
@@ -616,18 +609,15 @@ export class DynamicExtensionObject extends ExtensionObject {
     }
 }
 
-// tslint:disable:callable-types
 interface AnyConstructable {
     schema: IStructuredTypeSchema;
     possibleFields: string[];
-    new(options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
+    new (options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
 
-// tslint:disable-next-line:max-classes-per-file
 class UnionBaseClass extends BaseUAObject {
-    // eslint-disable-next-line max-statements
     constructor(options: any, schema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory) {
         super();
 
@@ -661,11 +651,11 @@ class UnionBaseClass extends BaseUAObject {
                 debugLog(this.schema);
                 throw new Error(
                     "union must have only one choice in " +
-                    JSON.stringify(options) +
-                    "\n found while investigating " +
-                    field.name +
-                    "\n switchFieldName = " +
-                    switchFieldName
+                        JSON.stringify(options) +
+                        "\n found while investigating " +
+                        field.name +
+                        "\n switchFieldName = " +
+                        switchFieldName
                 );
             }
 
@@ -687,7 +677,7 @@ class UnionBaseClass extends BaseUAObject {
                 case FieldCategory.complex: {
                     const Constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
                     if (!Constructor) {
-                        throw new Error("Cannot instantiate an abstract dataType" + field.fieldType);
+                        throw new Error(`Cannot instantiate an abstract dataType${field.fieldType}`);
                     }
                     // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
                     if (field.isArray) {
@@ -726,9 +716,7 @@ class UnionBaseClass extends BaseUAObject {
                 // +  options[switchFieldName]);
             } else {
                 debugLog(this.schema);
-                throw new Error(
-                    this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options)
-                );
+                throw new Error(`${this.schema.name}: At least one of [ ${r} ] must be specified in ${JSON.stringify(options)}`);
             }
         }
     }
@@ -737,7 +725,7 @@ class UnionBaseClass extends BaseUAObject {
         const switchFieldName = this.schema.fields[0].name;
         const switchValue = (this as any)[switchFieldName];
         if (typeof switchValue !== "number") {
-            throw new Error("Invalid switchValue  " + switchFieldName + " value = " + switchValue);
+            throw new Error(`Invalid switchValue  ${switchFieldName} value = ${switchValue}`);
         }
         stream.writeUInt32(switchValue);
 
@@ -755,7 +743,7 @@ class UnionBaseClass extends BaseUAObject {
                     break;
                 default:
                     /* c8 ignore next*/
-                    throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+                    throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
             }
             break;
         }
@@ -784,7 +772,7 @@ class UnionBaseClass extends BaseUAObject {
                     break;
                 default:
                     /* c8 ignore next*/
-                    throw new Error("Invalid category " + field.category + " " + FieldCategory[field.category]);
+                    throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
             }
             break;
         }
@@ -803,7 +791,7 @@ class UnionBaseClass extends BaseUAObject {
         const switchFieldName = this.schema.fields[0].name;
         const switchValue = (this as any)[switchFieldName];
         if (typeof switchValue !== "number") {
-            throw new Error("Invalid switchValue  " + switchValue);
+            throw new Error(`Invalid switchValue  ${switchValue}`);
         }
 
         pojo[switchFieldName] = switchValue;
@@ -829,7 +817,6 @@ function _createDynamicUnionConstructor(
 ): ConstructorFuncWithSchema {
     const possibleFields = schema.fields.map((x: FieldType) => x.name);
 
-    // tslint:disable-next-line:max-classes-per-file
     class UNION extends UnionBaseClass {
         public static possibleFields = possibleFields;
         public static schema = schema;
@@ -892,7 +879,7 @@ export function createDynamicObjectConstructor(
                     // to do : check this
                     BaseClass = getOrCreateConstructor(schema.baseType, dataTypeFactory);
                     if (!BaseClass) {
-                        throw new Error("Cannot find base class : " + schema.baseType);
+                        throw new Error(`Cannot find base class : ${schema.baseType}`);
                     }
                     if ((BaseClass as any).possibleFields) {
                         possibleFields = (BaseClass as any).possibleFields.concat(possibleFields);
@@ -904,7 +891,6 @@ export function createDynamicObjectConstructor(
         }
     }
 
-    // tslint:disable-next-line:max-classes-per-file
     class EXTENSION extends BaseClass {
         public static encodingDefaultXml = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
         public static encodingDefaultBinary = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
@@ -945,4 +931,3 @@ export function createDynamicObjectConstructor(
 function warningLog(arg0: string, message: string) {
     throw new Error("Function not implemented.");
 }
-

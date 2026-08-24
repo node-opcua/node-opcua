@@ -1,11 +1,10 @@
-import fs from "fs";
-import path from "path";
-
+import fs from "node:fs";
+import path from "node:path";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import "node-opcua-data-model";
 import "node-opcua-variant";
-import { parseBinaryXSD, toTypeScript, InternalTypeDictionary } from "../source";
+import { InternalTypeDictionary, parseBinaryXSD, toTypeScript } from "../source";
 import { MockProvider } from "./mock_id_provider";
 
 function n(i: number): NodeId {
@@ -26,7 +25,7 @@ describe("CTS-1 convert Extension Object definition to Typescript 1", () => {
 
     it("should convert a dynamic object definition to typescript - 1", () => {
         const str = toTypeScript(dataTypeFactory);
-        str.should.eql( 
+        str.should.eql(
             `import {
     ByteString,
     DateTime,

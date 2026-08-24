@@ -1,9 +1,8 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import should from "should";
 
 import { getOrCreateConstructor, parseBinaryXSD } from "..";
 import { MockProvider } from "./mock_id_provider";

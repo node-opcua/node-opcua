@@ -1,13 +1,11 @@
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-
+import { Variant } from "node-opcua-variant";
+import should from "should";
 import { getOrCreateConstructor, parseBinaryXSD } from "../dist/source";
 import { MockProvider } from "./mock_id_provider";
-import { Variant } from "node-opcua-variant";
 
 class MockProvider2 extends MockProvider {
     public getDataTypeAndEncodingId(key: string) {
@@ -23,9 +21,8 @@ describe("Binary schema with recursive", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     let sample: string;
-    let sample2: string
+    let sample2: string;
     before(async () => {
-
         const base_file = path.join(__dirname, "fixtures/sample_ua_base.xsd");
         const base = fs.readFileSync(base_file, "utf-8");
 
@@ -38,10 +35,8 @@ describe("Binary schema with recursive", () => {
         const sample2_file = path.join(__dirname, "fixtures/sample_recursive2.xsd");
         sample2 = fs.readFileSync(sample2_file, "utf-8");
 
-
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSD(base, idProvider, dataTypeFactory);
-
     });
 
     after(() => {
@@ -49,7 +44,6 @@ describe("Binary schema with recursive", () => {
     });
 
     it("should process ISA95ParameterDataType", async () => {
-
         await parseBinaryXSD(sample, idProvider, dataTypeFactory);
 
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName("ISA95ParameterDataType");
@@ -61,10 +55,9 @@ describe("Binary schema with recursive", () => {
             subparameters: [
                 {
                     ID: "2",
-                    value: new Variant({ dataType: "Double", value: 2.0 }),
+                    value: new Variant({ dataType: "Double", value: 2.0 })
                 }
             ]
-
         }) as any;
 
         console.log(a.toString());
@@ -72,7 +65,6 @@ describe("Binary schema with recursive", () => {
     });
 
     it("should process bsd file referencing ISA95ParameterDataType", async () => {
-
         await parseBinaryXSD(sample, idProvider, dataTypeFactory);
         await parseBinaryXSD(sample2, idProvider, dataTypeFactory);
 
@@ -82,12 +74,11 @@ describe("Binary schema with recursive", () => {
             parameters: [
                 {
                     ID: "2",
-                    value: new Variant({ dataType: "Double", value: 2.0 }),
+                    value: new Variant({ dataType: "Double", value: 2.0 })
                 }
             ]
         });
         console.log(a.toString());
         encode_decode_round_trip_test(a);
-
     });
 });

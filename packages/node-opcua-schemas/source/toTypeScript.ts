@@ -1,9 +1,9 @@
 import {
     ConstructorFuncWithSchema,
-    DataTypeFactory,
-    EnumerationDefinitionSchema,
-    IStructuredTypeSchema,
-    StructureInfo
+    type DataTypeFactory,
+    type EnumerationDefinitionSchema,
+    type IStructuredTypeSchema,
+    type StructureInfo
 } from "node-opcua-factory";
 
 export function toTypeScript(dataTypeFactory: DataTypeFactory): string {

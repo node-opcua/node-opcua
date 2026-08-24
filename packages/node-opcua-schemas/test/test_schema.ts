@@ -1,15 +1,13 @@
-// tslint:disable:no-console
-import fs from "fs";
-import path from "path";
-import should from "should";
-
+import fs from "node:fs";
+import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/test_helpers";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 
 import { getOrCreateConstructor, parseBinaryXSD } from "..";
 
