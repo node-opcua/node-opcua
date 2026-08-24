@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable max-statements */
 const fs = require("fs");
 const path = require("path");
 const util = require("util");

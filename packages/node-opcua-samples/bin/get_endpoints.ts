@@ -1,8 +1,7 @@
 #!/usr/bin/env tsx
-// tslint:disable:no-console
-import fs from "fs";
-import path from "path";
-import { types } from "util";
+import fs from "node:fs";
+import path from "node:path";
+import { types } from "node:util";
 import chalk from "chalk";
 import yargs from "yargs";
 
@@ -12,17 +11,15 @@ import {
     coerceSecurityPolicy,
     MessageSecurityMode,
     OPCUAClient,
-    OPCUAClientOptions,
+    type OPCUAClientOptions,
     SecurityPolicy,
     UserTokenType
 } from "node-opcua";
-import { Certificate, toPem } from "node-opcua-crypto";
+import { type Certificate, toPem } from "node-opcua-crypto";
 
-// tslint:disable:no-var-requires
 const Table = require("easy-table");
 const treeify = require("treeify");
 
-// eslint-disable-next-line max-statements
 async function main() {
     // tsx bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const argv = await yargs(process.argv)
@@ -41,7 +38,7 @@ async function main() {
         .option("securityPolicy", {
             alias: "P",
             default: "None",
-            describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
+            describe: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
         })
         .option("discovery", {
             alias: "D",
@@ -116,7 +113,7 @@ async function main() {
 
     let i = 0;
     for (const endpoint of endpoints) {
-        table.cell("endpoint", endpoint.endpointUrl + "");
+        table.cell("endpoint", `${endpoint.endpointUrl}`);
         table.cell("Application URI", endpoint.server.applicationUri);
         table.cell("Product URI", endpoint.server.productUri);
         table.cell("Application Name", endpoint.server.applicationName.text);
@@ -130,7 +127,7 @@ async function main() {
 
         serverCertificate = endpoint.serverCertificate;
 
-        const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
+        const certificate_filename = path.join(__dirname, `../certificates/PKI/server_certificate${i}.pem`);
 
         if (serverCertificate) {
             fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {

@@ -1,13 +1,11 @@
 #!/usr/bin/env tsx
 /* eslint no-process-exit: 0 */
-// tslint:disable:no-console
-import path from "path";
+import path from "node:path";
 import chalk from "chalk";
 import { nodesets, OPCUAServer } from "node-opcua";
 import yargs from "yargs";
 
 Error.stackTraceLimit = Infinity;
-
 
 function constructFilename(filename: string): string {
     return path.join(__dirname, "../", filename);
@@ -16,7 +14,6 @@ function constructFilename(filename: string): string {
 const rootFolder = path.join(__dirname, "../../..");
 
 async function main() {
-
     const argv = await yargs.wrap(132).option("port", {
         alias: "p",
         default: "26543",
@@ -35,8 +32,7 @@ async function main() {
         nodeset_filename: [nodesets.standard, path.join(rootFolder, "modeling/my_data_type.xml")]
     };
 
-    process.title = "Node OPCUA Server on port : " + server_options.port;
-
+    process.title = `Node OPCUA Server on port : ${server_options.port}`;
 
     const server = new OPCUAServer(server_options);
 

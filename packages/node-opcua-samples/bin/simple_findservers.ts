@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
-// tslint:disable:no-console
 // this script queries the discovery server and display the discovery urls
-import { types } from "util";
+import { types } from "node:util";
 import chalk from "chalk";
 import { MessageSecurityMode, ApplicationType, findServers } from "node-opcua";
 
@@ -22,7 +21,7 @@ async function main() {
             console.log("      discoveryUrls:");
 
             for (const discoveryUrl of server.discoveryUrls!) {
-                console.log("                    " + chalk.cyan.bold(discoveryUrl!));
+                console.log(`                    ${chalk.cyan.bold(discoveryUrl!)}`);
             }
             console.log("-------------");
         }

@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable complexity */
-/* eslint-disable no-case-declarations */
 /* eslint no-process-exit: 0 */
 const util = require("node:util");
 const fs = require("node:fs");

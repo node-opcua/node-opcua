@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 /* eslint no-process-exit: 0 */
-// tslint:disable:no-console
-import os from "os";
+import os from "node:os";
 
 import chalk from "chalk";
 import yargs from "yargs";
@@ -11,13 +10,12 @@ import {
     MessageSecurityMode,
     nodesets,
     OPCUAServer,
-    OPCUAServerOptions,
+    type OPCUAServerOptions,
     SecurityPolicy,
-    ServerSession
+    type ServerSession
 } from "node-opcua";
 
 Error.stackTraceLimit = Infinity;
-
 
 const userManager = {
     isValidUser: (userName: string, password: string) => {
@@ -94,7 +92,7 @@ async function main() {
         isAuditing: false
     };
 
-    process.title = "Node OPCUA Server on port : " + server_options.port;
+    process.title = `Node OPCUA Server on port : ${server_options.port}`;
 
     const server = new OPCUAServer(server_options);
 

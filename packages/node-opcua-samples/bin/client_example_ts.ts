@@ -1,9 +1,8 @@
 #!/usr/bin/env tsx
-/* eslint-disable max-statements */
-import fs from "fs";
-import path from "path";
-import util from "util";
-import { types } from "util";
+import fs from "node:fs";
+import path from "node:path";
+import util from "node:util";
+import { types } from "node:util";
 import yargs from "yargs/yargs";
 import chalk from "chalk";
 import Table from "easy-table";
@@ -14,16 +13,16 @@ import {
     BrowseDirection,
     callConditionRefresh,
     ClientMonitoredItem,
-    ClientSession,
-    ClientSubscription,
+    type ClientSession,
+    type ClientSubscription,
     coerceMessageSecurityMode,
     coerceNodeId,
     coerceSecurityPolicy,
     constructEventFilter,
-    DataValue,
+    type DataValue,
     dumpEvent,
     hexDump,
-    IBasicSessionAsync,
+    type IBasicSessionAsync,
     makeExpandedNodeId,
     makeNodeId,
     MessageSecurityMode,
@@ -32,17 +31,17 @@ import {
     ObjectTypeIds,
     ofType,
     OPCUAClient,
-    OPCUAClientOptions,
-    QueryFirstRequestOptions,
+    type OPCUAClientOptions,
+    type QueryFirstRequestOptions,
     resolveNodeId,
     SecurityPolicy,
-    UserIdentityInfo,
+    type UserIdentityInfo,
     UserTokenType,
     VariableIds,
-    Variant
+    type Variant
 } from "node-opcua";
 
-import { Certificate, toPem } from "node-opcua-crypto";
+import { type Certificate, toPem } from "node-opcua-crypto";
 
 const { asTree } = require("treeify");
 
@@ -107,7 +106,7 @@ async function enumerateAllAlarmAndConditionInstances(session: ClientSession): P
     const found: any = [];
 
     function isConditionEventType(nodeId: NodeId): boolean {
-        return Object.prototype.hasOwnProperty.call(conditions, nodeId.toString());
+        return  Object.hasOwn(conditions, nodeId.toString());
     }
 
     async function exploreForObjectOfType(session1: ClientSession, nodeId: NodeId) {
@@ -213,7 +212,7 @@ function getTick() {
         securityPolicy: {
             alias: "P",
             default: "None",
-            describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
+            describe: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
         },
         userName: {
             alias: "u",
@@ -323,7 +322,7 @@ function getTick() {
 
         let i = 0;
         for (const endpoint of endpoints) {
-            table.cell("endpoint", endpoint.endpointUrl + "");
+            table.cell("endpoint", `${endpoint.endpointUrl}`);
             table.cell("Application URI", endpoint.server.applicationUri);
             table.cell("Product URI", endpoint.server.productUri);
             table.cell("Application Name", endpoint.server.applicationName.text);
@@ -336,7 +335,7 @@ function getTick() {
 
             serverCertificate = endpoint.serverCertificate;
 
-            const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
+            const certificate_filename = path.join(__dirname, `../certificates/PKI/server_certificate${i}.pem`);
 
             if (serverCertificate) {
                 fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {
@@ -377,7 +376,6 @@ function getTick() {
         return { endpointUrl: client.endpointUrl, serverCertificate };
     }
 
-    // eslint-disable-next-line max-statements
     async function main() {
         const { endpointUrl, serverCertificate } = await exploreEndpoint(argv.endpoint);
 
@@ -454,7 +452,7 @@ function getTick() {
         console.log(asTree(result, true, true));
         console.log(" -----------------------");
 
-        let t1: number = 0 ;
+        const t1: number = 0;
         let t2: number = 0;
 
         function print_stat() {
@@ -575,19 +573,19 @@ function getTick() {
             "  revised maxKeepAliveCount  ",
             subscription!.maxKeepAliveCount,
             " ( requested ",
-            parameters.requestedMaxKeepAliveCount + ")"
+            `${parameters.requestedMaxKeepAliveCount})`
         );
         console.log(
             "  revised lifetimeCount      ",
             subscription!.lifetimeCount,
             " ( requested ",
-            parameters.requestedLifetimeCount + ")"
+            `${parameters.requestedLifetimeCount})`
         );
         console.log(
             "  revised publishingInterval ",
             subscription!.publishingInterval,
             " ( requested ",
-            parameters.requestedPublishingInterval + ")"
+            `${parameters.requestedPublishingInterval})`
         );
 
         subscription
@@ -645,7 +643,7 @@ function getTick() {
             console.log("monitoredItem initialized");
         });
         monitoredItem.on("changed", (dataValue1: DataValue) => {
-            console.log(monitoredItem.itemToMonitor.nodeId.toString(), " value has changed to " + dataValue1.value.toString());
+            console.log(monitoredItem.itemToMonitor.nodeId.toString(), ` value has changed to ${dataValue1.value.toString()}`);
         });
         monitoredItem.on("err", (err_message: string) => {
             console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);

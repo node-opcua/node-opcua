@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable max-statements */
 "use strict";
 const path = require("path");
 const os = require("os");

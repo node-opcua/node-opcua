@@ -1,22 +1,12 @@
 #!/usr/bin/env tsx
 /* eslint no-process-exit: 0 */
-// tslint:disable:no-console
 import path from "node:path";
 import bcrypt from "bcryptjs";
 import chalk from "chalk";
 import envPaths from "env-paths";
-import { 
-    makeRoles, 
-    nodesets, 
-    OPCUACertificateManager, 
-    OPCUAServer, 
-    type OPCUAServerOptions, 
-    WellKnownRoles 
-} from "node-opcua";
+import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, type OPCUAServerOptions, WellKnownRoles } from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
-import { 
-    installPushCertificateManagement 
-} from "node-opcua-server-configuration";
+import { installPushCertificateManagement } from "node-opcua-server-configuration";
 import yargs from "yargs";
 
 const config = envPaths("node-opcua-default").config;
@@ -83,7 +73,7 @@ async function main() {
         userManager
     };
 
-    process.title = "Node OPCUA Server on port : " + serverOptions.port;
+    process.title = `Node OPCUA Server on port : ${serverOptions.port}`;
     const tmpFolder = path.join(__dirname, "../certificates/myApp");
 
     const applicationGroup = new CertificateManager({

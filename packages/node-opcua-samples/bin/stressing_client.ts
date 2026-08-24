@@ -1,5 +1,4 @@
-// tslint:disable:no-console
-import { types } from "util";
+import { types } from "node:util";
 import { OPCUAClient } from "node-opcua";
 
 const endpointUrl = "opc.tcp://localhost:26543";
