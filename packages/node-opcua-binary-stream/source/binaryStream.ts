@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-binary-stream
  */
-import "util";
+import "node:util";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
