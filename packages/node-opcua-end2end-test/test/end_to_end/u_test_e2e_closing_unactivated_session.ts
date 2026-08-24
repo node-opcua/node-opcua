@@ -1,42 +1,43 @@
 import "should"; // should assertions side-effect
-import { OPCUAClient } from "node-opcua";
+import { type ClientSession, type ConnectionStrategyOptions, OPCUAClient } from "node-opcua";
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server?: any;
-    [k: string]: any;
-}
+// _createSession creates a not-yet-activated session; deliberately not part of the public
+// OPCUAClient surface (activation is normally implicit in createSession/withSessionAsync).
+// _sessions is likewise a private implementation field, reached here only to assert cleanup.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function createNonActivatedSession(endpointUrl: string, connectionStrategy: any) {
+async function createNonActivatedSession(endpointUrl: string, connectionStrategy: ConnectionStrategyOptions) {
     const client = OPCUAClient.create({ connectionStrategy });
     await client.connect(endpointUrl);
-    const session: any = await new Promise((resolve, reject) => {
-        (client as any)._createSession((err: Error, s: any) => (err ? reject(err) : resolve(s)));
+    const session: ClientSession = await new Promise((resolve, reject) => {
+        (client as InternalAny)._createSession((err: Error, s: ClientSession) => (err ? reject(err) : resolve(s)));
     });
     return { client, session };
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Closing a non activated session", () => {
         it("AKQ server shall allow closing a non activated session (historical behaviour)", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const client1 = OPCUAClient.create({ connectionStrategy: { maxRetry: 1 } });
             await client1.connect(endpointUrl);
-            const session: any = await new Promise((resolve, reject) => {
-                (client1 as any)._createSession((err: Error, s: any) => (err ? reject(err) : resolve(s)));
+            const session: ClientSession = await new Promise((resolve, reject) => {
+                (client1 as InternalAny)._createSession((err: Error, s: ClientSession) => (err ? reject(err) : resolve(s)));
             });
             // Attempt to close unactivated session; historical behaviour may be BadSessionNotActivated or succeed silently.
             try {
                 await session.close();
-            } catch (err: any) {
+            } catch (err: unknown) {
                 // Accept BadSessionNotActivated as valid outcome; rethrow others.
-                if (!/BadSessionNotActivated/.test(err.message || "")) {
+                if (!/BadSessionNotActivated/.test((err as Error).message || "")) {
                     throw err;
                 }
             }
@@ -49,7 +50,7 @@ export function t(test: TestHarness) {
             const server = test.server;
             if (!server) throw new Error("Test harness server not provided");
             const engine = server.engine;
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             const maxSessionsForTest = 3;
             const backupMaxSessions = engine.serverCapabilities.maxSessions;
@@ -63,7 +64,7 @@ export function t(test: TestHarness) {
 
                 const connectionStrategy = { maxRetry: 0 }; // fail fast
                 const clients: OPCUAClient[] = [];
-                const sessions: any[] = [];
+                const sessions: ClientSession[] = [];
 
                 async function addOne() {
                     const { client, session } = await createNonActivatedSession(endpointUrl, connectionStrategy);
@@ -92,7 +93,7 @@ export function t(test: TestHarness) {
                     try {
                         await c.disconnect();
                     } finally {
-                        assert((c as any)._sessions.length === 0, "client should have no remaining sessions");
+                        assert((c as InternalAny)._sessions.length === 0, "client should have no remaining sessions");
                     }
                 }
 
