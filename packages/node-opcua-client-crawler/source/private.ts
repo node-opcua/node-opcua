@@ -1,6 +1,13 @@
-import { assert, QualifiedName, ReferenceDescription, BrowseResult, NodeId, make_warningLog } from "node-opcua-client";
-import { CacheNode } from "./cache_node";
-import { Pojo, UserData } from "./node_crawler_base";
+import {
+    assert,
+    type BrowseResult,
+    make_warningLog,
+    type NodeId,
+    QualifiedName,
+    type ReferenceDescription
+} from "node-opcua-client";
+import type { CacheNode } from "./cache_node";
+import type { Pojo, UserData } from "./node_crawler_base";
 
 const warningLog = make_warningLog("CRAWLER");
 
@@ -103,7 +110,8 @@ export function removeCycle(object: Pojo, innerCallback: (err: Error | null, obj
 
     function setVisited(e: any) {
         const key1 = e.nodeId.toString();
-        return (visitedNodeIds[key1] = e);
+        visitedNodeIds[key1] = e;
+        return e;
     }
 
     function mark_array(arr: any[]) {

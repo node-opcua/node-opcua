@@ -1,10 +1,8 @@
-
-import { ReferenceDescription } from "node-opcua-types";
+import { type AccessLevelFlag, coerceLocalizedText, LocalizedText, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
+import type { DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { pendingBrowseName } from "./private";
-import { NodeId } from "node-opcua-nodeid";
-import { AccessLevelFlag, coerceLocalizedText, LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { DataTypeDefinition } from "node-opcua-types";
-import { DataValue } from "node-opcua-data-value";
 
 function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);
@@ -22,7 +20,7 @@ export class CacheNode {
     public displayName: LocalizedText;
     public description: LocalizedText = coerceLocalizedText("")!;
 
-    public _browse? : "planned"|"done";
+    public _browse?: "planned" | "done";
 
     constructor(nodeId: NodeId) {
         /**
@@ -44,9 +42,9 @@ export class CacheNode {
 
     public toString(): string {
         let str = w(this.nodeId.toString(), 20);
-        str += " " + w(this.browseName.toString(), 30);
-        str += " typeDef : " + w(this.typeDefinition ? this.typeDefinition.toString() : "", 30);
-        str += " nodeClass : " + w(NodeClass[this.nodeClass], 12);
+        str += ` ${w(this.browseName.toString(), 30)}`;
+        str += ` typeDef : ${w(this.typeDefinition ? this.typeDefinition.toString() : "", 30)}`;
+        str += ` nodeClass : ${w(NodeClass[this.nodeClass], 12)}`;
         return str;
     }
     public dispose(): void {
@@ -62,7 +60,7 @@ export interface CacheNodeDataType extends CacheNode {
     dataTypeDefinition: DataTypeDefinition;
 }
 
-// tslint:disable: max-classes-per-file
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class CacheNodeVariable extends CacheNode {
     public nodeClass: NodeClass.Variable = NodeClass.Variable;
     public dataValue?: DataValue;
@@ -87,6 +85,7 @@ export interface CacheNodeVariable extends CacheNode {
     valueRank?: number;
 }
 
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class CacheNodeVariableType extends CacheNode {
     public nodeClass: NodeClass.VariableType = NodeClass.VariableType;
     public dataValue?: DataValue;

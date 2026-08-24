@@ -1,17 +1,18 @@
 /**
  * @module node-opcua-client-crawler
  */
-import { EventEmitter } from "events";
+
+import { EventEmitter } from "node:events";
 import async from "async";
 
 import {
-    assert,
     AttributeIds,
-    browseAll,
+    assert,
     BrowseDescription,
     type BrowseDescriptionLike,
     BrowseDirection,
     BrowseResult,
+    browseAll,
     checkDebugFlag,
     coerceLocalizedText,
     coerceQualifiedName,
@@ -32,29 +33,29 @@ import {
     ReferenceDescription,
     ReferenceTypeIds,
     resolveNodeId,
-    sameNodeId,
     StatusCodes,
+    sameNodeId,
     VariableIds
 } from "node-opcua-client";
 
 import {
-    type CacheNodeReferenceType,
-    CacheNodeVariableType,
-    type CacheNodeObjectType,
-    CacheNodeVariable,
     CacheNode,
-    type CacheNodeDataType
+    type CacheNodeDataType,
+    type CacheNodeObjectType,
+    type CacheNodeReferenceType,
+    CacheNodeVariable,
+    CacheNodeVariableType
 } from "./cache_node";
 import {
+    dedup_reference,
+    type EmptyCallback,
     pendingBrowseName,
-    type TaskExtraReference,
     type Task,
     type TaskBase,
     type TaskBrowseNode,
-    type EmptyCallback,
     type TaskCrawl,
-    type TaskProcessBrowseResponse,
-    dedup_reference
+    type TaskExtraReference,
+    type TaskProcessBrowseResponse
 } from "./private";
 
 const debugLog = make_debugLog(__filename);
@@ -77,7 +78,7 @@ function zip<T1, T2>(arrA: T1[], arrB: T2[]): [T1, T2][] {
 }
 
 function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): string {
-    return nodeId.toString() + "_" + AttributeIds[attributeId];
+    return `${nodeId.toString()}_${AttributeIds[attributeId]}`;
 }
 function convertToStandardArray(a: number[] | Uint32Array | undefined | null): number[] | undefined {
     if (a === undefined || a === null) {
@@ -186,7 +187,7 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId): NodeId 
     } else if (referenceType.toString() === "i=31" || referenceType === "References") {
         return NodeId.resolveNodeId("i=31");
     } else {
-        warningLog("Invalid or Unknown reference Type" + referenceType.toString());
+        warningLog(`Invalid or Unknown reference Type${referenceType.toString()}`);
         return null;
     }
 }
@@ -194,7 +195,6 @@ function getReferenceTypeId(referenceType: undefined | string | NodeId): NodeId 
 export type Pojo = Record<string, unknown>;
 export type ObjectMap = { [key: string]: Pojo };
 
-// tslint:disable:max-classes-per-file
 /**
  * @class NodeCrawlerBase
  * @param session
@@ -529,7 +529,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             .read(nodesToRead)
             .then((dataValues) => {
                 for (const [readTask, dataValue] of zip(selectedPendingReadTasks, dataValues)) {
-                    assert(Object.prototype.hasOwnProperty.call(dataValue, "statusCode"));
+                    assert(Object.hasOwn(dataValue, "statusCode"));
                     if (dataValue.statusCode.equals(StatusCodes.Good)) {
                         if (dataValue.value === null) {
                             readTask.action(null, dataValue);
@@ -558,7 +558,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const objectsToBrowse: TaskBrowseNode[] = _fetch_elements(this.pendingBrowseTasks, this.maxNodesPerBrowse);
 
         const nodesToBrowse = objectsToBrowse.map((e: TaskBrowseNode) => {
-            assert(Object.prototype.hasOwnProperty.call(e, "referenceTypeId"));
+            assert(Object.hasOwn(e, "referenceTypeId"));
 
             return new BrowseDescription({
                 browseDirection: BrowseDirection.Forward,
@@ -696,6 +696,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         appendPrepopulatedReference("HasSubtype");
 
         /* c8 ignore next */
+        // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
         if (false) {
             appendPrepopulatedReference("HasTypeDefinition");
             appendPrepopulatedReference("HasChild");
@@ -736,7 +737,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         }
                     } else {
                         debugLog(
-                            "warning: server does not provide a valid dataValue for " + maxNodePerX,
+                            `warning: server does not provide a valid dataValue for ${maxNodePerX}`,
                             dataValue.statusCode.toString()
                         );
                     }
@@ -761,7 +762,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     private has_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds) {
         const key = make_node_attribute_key(nodeId, attributeId);
-        return Object.prototype.hasOwnProperty.call(this.browseNameMap, key);
+        return Object.hasOwn(this.browseNameMap, key);
     }
 
     private get_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds) {
@@ -853,17 +854,16 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     if (dataValue.statusCode.isGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
-                    }
-                    /* c8 ignore next */
-                    else {
+                    } else {
+                        /* c8 ignore next */
                         callback(
                             new Error(
                                 "Error " +
-                                dataValue.statusCode.toString() +
-                                " while reading " +
-                                nodeId.toString() +
-                                " attributeIds " +
-                                AttributeIds[attributeId]
+                                    dataValue.statusCode.toString() +
+                                    " while reading " +
+                                    nodeId.toString() +
+                                    " attributeIds " +
+                                    AttributeIds[attributeId]
                             )
                         );
                     }
@@ -879,7 +879,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _resolve_deferred(comment: string, collection: any[], method: (callback: EmptyCallback) => void) {
         if (collection.length > 0) {
             doDebug1 && debugLog("_resolve_deferred ", comment, collection.length);
-            this._push_task("adding operation " + comment, {
+            this._push_task(`adding operation ${comment}`, {
                 func: (task: Task, callback: EmptyCallback) => {
                     debugLog("executing task", comment);
                     method.call(this, callback);
@@ -910,7 +910,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
         /* c8 ignore next */
         if (cacheNode) {
-            throw new Error("NodeCrawlerBase#_createCacheNode :" + " cache node should not exist already : " + nodeId.toString());
+            throw new Error(`NodeCrawlerBase#_createCacheNode : cache node should not exist already : ${nodeId.toString()}`);
         }
         const nodeClass = (referenceToParent ? referenceToParent!.nodeClass : NodeClass.Unspecified) as NodeClass;
         switch (nodeClass) {
@@ -939,7 +939,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         }
         cacheNode.parent = parentNode;
         cacheNode.referenceToParent = referenceToParent;
-        assert(!Object.prototype.hasOwnProperty.call(this._objectCache, key));
+        assert(!Object.hasOwn(this._objectCache, key));
         this._objectCache[key] = cacheNode;
         return cacheNode;
     }
@@ -1194,7 +1194,6 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
+
 NodeCrawlerBase.prototype.crawl = withCallback(NodeCrawlerBase.prototype.crawl);

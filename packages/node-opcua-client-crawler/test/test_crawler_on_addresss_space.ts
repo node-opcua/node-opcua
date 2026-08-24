@@ -1,14 +1,14 @@
 import sinon from "sinon";
 import "should";
-import { AddressSpace, BaseNode, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { type AddressSpace, type BaseNode, PseudoSession, type UAVariable } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
-import { ObjectIds, DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
+import { DataType, type ReferenceDescription } from "node-opcua-client";
+import { DataTypeIds, ObjectIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { DataType, ReferenceDescription } from "node-opcua-client";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import { CacheNode, NodeCrawlerBase, UserData } from "..";
+import { type CacheNode, NodeCrawlerBase, type UserData } from "..";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -32,7 +32,7 @@ async function makeAddressSpace() {
 
     for (let i = 0; i < 10; i++) {
         addressSpace.getOwnNamespace().addObject({
-            browseName: "Object" + i,
+            browseName: `Object${i}`,
             organizedBy: group
         });
     }
@@ -46,7 +46,7 @@ async function makeAddressSpace() {
     const massVariablesNodeId = massVariables.nodeId;
     for (let i = 0; i < 10000; i++) {
         namespace.addVariable({
-            browseName: "Variable" + i,
+            browseName: `Variable${i}`,
             dataType: "Double",
             organizedBy: massVariables,
             value: { dataType: "Double", value: i }
@@ -66,7 +66,7 @@ async function makeAddressSpace() {
         });
         for (let i = 0; i < 10; i++) {
             const m = namespace.addVariable({
-                browseName: name + "-" + i,
+                browseName: `${name}-${i}`,
                 dataType: "Double",
                 componentOf: subObject,
                 value: { dataType: "Double", value: i }
@@ -83,7 +83,7 @@ async function makeAddressSpace() {
         }
     }
     for (let i = 0; i < 100; i++) {
-        addSubObject(largeVariableWithLinks, "SubObject" + i);
+        addSubObject(largeVariableWithLinks, `SubObject${i}`);
     }
     return { addressSpace, groupNodeId, massVariablesNodeId, strangeObjectNodeId };
 }
@@ -186,7 +186,6 @@ describe("NodeCrawlerBase", function (this: any) {
                     "1:Object8 1:Object9 Organizes"
             );
 
-        // tslint:disable: no-console
         debugLog("browseCounter = ", crawler.browseCounter);
         debugLog("browseNextCounter = ", crawler.browseNextCounter);
         debugLog("readCounter = ", crawler.readCounter);
@@ -360,7 +359,6 @@ describe("NodeCrawlerBase", function (this: any) {
 
         await crawler.crawl($.massVariablesNodeId, data);
 
-        // tslint:disable: no-console
         debugLog("onBrowse(element) count ", onBrowseCallCount);
         debugLog("browse                  ", browse.callCount);
         debugLog("browseNext              ", browseNext.callCount);

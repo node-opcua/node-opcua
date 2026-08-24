@@ -1,14 +1,14 @@
-import chalk from "chalk";
 import async from "async";
-import { make_warningLog } from "node-opcua-debug";
-import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import chalk from "chalk";
 import assert from "node-opcua-assert";
-import { ReferenceDescription } from "node-opcua-types";
-import { lowerFirstLetter } from "node-opcua-utils";
 import { NodeClass } from "node-opcua-data-model";
-import { NodeCrawlerBase, NodeCrawlerClientSession, ObjectMap, Pojo, UserData } from "./node_crawler_base";
-import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
-import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
+import { make_warningLog } from "node-opcua-debug";
+import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import type { ReferenceDescription } from "node-opcua-types";
+import { lowerFirstLetter } from "node-opcua-utils";
+import { type CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
+import { NodeCrawlerBase, type NodeCrawlerClientSession, type ObjectMap, type Pojo, type UserData } from "./node_crawler_base";
+import { type EmptyCallback, removeCycle, type TaskReconstruction } from "./private";
 
 const warningLog = make_warningLog(__filename);
 
@@ -26,8 +26,10 @@ export class NodeCrawler extends NodeCrawlerBase {
         this._objMap = {};
     }
     public override dispose(): void {
-        Object.values(this._objMap).map((obj: any) => {
-            Object.keys(obj as any).map((k) => ((obj as any)[k] = undefined));
+        Object.values(this._objMap).forEach((obj: any) => {
+            Object.keys(obj as any).forEach((k) => {
+                (obj as any)[k] = undefined;
+            });
         });
         (this as any)._objMap = null;
         super.dispose();
@@ -53,7 +55,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         const key = nodeId.toString();
 
         // check if object has already been crawled
-        if (Object.prototype.hasOwnProperty.call(this._objMap, key)) {
+        if (Object.hasOwn(this._objMap, key)) {
             const object = this._objMap[key];
             return callback(null, object);
         }
@@ -68,15 +70,14 @@ export class NodeCrawler extends NodeCrawlerBase {
                 return callback(err);
             }
 
-            if (Object.prototype.hasOwnProperty.call(this._objectCache, key)) {
+            if (Object.hasOwn(this._objectCache, key)) {
                 const cacheNode = this._objectCache[key];
                 assert(cacheNode.browseName.name !== "pending");
 
                 this.simplify_object(this._objMap, cacheNode, callback);
-            }
-            /* c8 ignore next */
-            else {
-                callback(new Error("Cannot find nodeId" + key));
+            } else {
+                /* c8 ignore next */
+                callback(new Error(`Cannot find nodeId${key}`));
             }
         });
     }
@@ -91,7 +92,6 @@ export class NodeCrawler extends NodeCrawlerBase {
             });
         }, 1);
 
-        // tslint:disable:no-empty
         this._add_for_reconstruction(queue, objMap, object, () => {
             /* */
         });
@@ -138,7 +138,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         assert(object.nodeId);
 
         const key2 = object.nodeId.toString();
-        if (Object.prototype.hasOwnProperty.call(objMap, key2)) {
+        if (Object.hasOwn(objMap, key2)) {
             return callback(null, objMap[key2]);
         }
         /* reconstruct a more manageable object
@@ -181,7 +181,7 @@ export class NodeCrawler extends NodeCrawlerBase {
 
         object.references = object.references || [];
 
-        object.references.map((ref: ReferenceDescription) => {
+        object.references.forEach((ref: ReferenceDescription) => {
             assert(ref);
             const refIndex = ref.referenceTypeId.toString();
 
@@ -189,7 +189,7 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             /* c8 ignore next */
             if (!referenceType) {
-                warningLog(chalk.red("Unknown reference type " + refIndex));
+                warningLog(chalk.red(`Unknown reference type ${refIndex}`));
                 // debugLog(util.inspect(object, { colors: true, depth: 10 }));
             }
             const reference = this._objectCache[ref.nodeId.toString()];
@@ -232,7 +232,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         callback(null, obj);
     }
 }
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
+
 import { withCallback } from "thenify-ex";
+
 NodeCrawler.prototype.read = withCallback(NodeCrawler.prototype.read);
