@@ -2,6 +2,9 @@ import "should"; // extends Object with should
 import {
     AnonymousIdentityToken,
     AttributeIds,
+    type ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
     constructEventFilter,
     DataType,
     OPCUAClient,
@@ -13,14 +16,7 @@ import {
     type Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-interface TestHarness {
-    endpointUrl: string;
-    server?: any;
-    backgroundSessionCount?: number;
-    backgroundSubscriptionCount?: number;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 type RecordedEvent = Record<string, Variant>;
 
@@ -35,7 +31,7 @@ async function waitUntil(predicate: () => boolean, timeout: number, interval = 1
     }
 }
 
-export function t(test: TestHarness): void {
+export function t(test: UmbrellaTestContext): void {
     describe("ZZZB Testing AuditSessionEventType", () => {
         // Pre-resolve common event type NodeIds once (string form for easy comparison)
         const auditSessionEventTypeNodeIdStr = resolveNodeId("AuditSessionEventType").toString();
@@ -44,9 +40,9 @@ export function t(test: TestHarness): void {
 
         // Reusable OPC UA client/session/subscription used to monitor server audit events
         let auditingClient: OPCUAClient | null = null;
-        let auditingSession: any = null; // SDK session type (un-exported)
-        let auditingSubscription: any = null;
-        let auditingMonitoredItem: any = null;
+        let auditingSession: ClientSession | null = null;
+        let auditingSubscription: ClientSubscription | null = null;
+        let auditingMonitoredItem: ClientMonitoredItem | null = null;
         let events: RecordedEvent[] = [];
         let previousIsAuditing: boolean | undefined;
 
@@ -100,7 +96,7 @@ export function t(test: TestHarness): void {
                 test.backgroundSessionCount = (test.backgroundSessionCount ?? 0) + 1;
                 test.backgroundSubscriptionCount = (test.backgroundSubscriptionCount ?? 0) + 1;
             }
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             auditingClient = OPCUAClient.create({ keepSessionAlive: true });
             await auditingClient.connect(endpointUrl);
             auditingSession = await auditingClient.createSession();
@@ -145,7 +141,7 @@ export function t(test: TestHarness): void {
                 if (auditingClient) await auditingClient.disconnect();
             } finally {
                 if (test.server) {
-                    test.server.engine.isAuditing = previousIsAuditing;
+                    test.server.engine.isAuditing = previousIsAuditing ?? false;
                     if (typeof test.backgroundSessionCount === "number") test.backgroundSessionCount -= 1;
                     if (typeof test.backgroundSubscriptionCount === "number") test.backgroundSubscriptionCount -= 1;
                 }
@@ -156,10 +152,9 @@ export function t(test: TestHarness): void {
         });
 
         it("EdgeCase Session Timeout: server should raise a Session/CreateSession, Session/ActivateSession , Session/Timeout", async () => {
-            const client1 = OPCUAClient.create({ keepSessionAlive: false });
-            const endpointUrl = test.endpointUrl;
+            const client1 = OPCUAClient.create({ keepSessionAlive: false, requestedSessionTimeout: 1000 });
+            const endpointUrl = test.endpointUrl!;
             await client1.connect(endpointUrl);
-            (client1 as any).requestedSessionTimeout = 1000;
             const session = await client1.createSession();
             await new Promise((r) => setTimeout(r, 2000));
             try {
@@ -188,10 +183,9 @@ export function t(test: TestHarness): void {
         });
 
         it("NominalCase: server should raise a Session/CreateSession, Session/ActivateSession , Session/CloseSession", async () => {
-            const client1 = OPCUAClient.create({ keepSessionAlive: true });
-            const endpointUrl = test.endpointUrl;
+            const client1 = OPCUAClient.create({ keepSessionAlive: true, requestedSessionTimeout: 2000 });
+            const endpointUrl = test.endpointUrl!;
             await client1.connect(endpointUrl);
-            (client1 as any).requestedSessionTimeout = 2000;
             const the_session = await client1.createSession();
             await the_session.close();
             await client1.disconnect();
@@ -217,12 +211,12 @@ export function t(test: TestHarness): void {
 
         it("NominalCase: auditing secure client connections", async () => {
             const client1 = OPCUAClient.create({ keepSessionAlive: true });
-            const sessionId = await (client1 as any).withSessionAsync(
+            const sessionId = await client1.withSessionAsync(
                 {
-                    endpointUrl: test.endpointUrl,
+                    endpointUrl: test.endpointUrl!,
                     userIdentity: { type: UserTokenType.UserName, userName: "user1", password: "password1" }
                 },
-                async (session: any) => {
+                async (session: ClientSession) => {
                     return session.sessionId;
                 }
             );
