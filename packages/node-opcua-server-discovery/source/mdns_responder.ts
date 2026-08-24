@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server-discovery
  */
-import { Service, Bonjour, Browser } from "sterfive-bonjour-service";
+import { type Service, Bonjour, type Browser } from "sterfive-bonjour-service";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
@@ -85,7 +85,7 @@ export class MDNSResponder {
                 .sort();
 
             const path = service_txt.path || "";
-            const discoveryUrl = "opc.tcp://" + service.host + ":" + service.port + path;
+            const discoveryUrl = `opc.tcp://${service.host}:${service.port}${path}`;
 
             this.registeredServers.push(
                 new ServerOnNetwork({
@@ -126,7 +126,6 @@ export class MDNSResponder {
         });
     }
     public async dispose(): Promise<void> {
-        
         if (this.#mDNSBrowser) {
             this.#mDNSBrowser.stop();
             this.#mDNSBrowser = undefined!;
@@ -136,7 +135,7 @@ export class MDNSResponder {
                 this.#bonjour.destroy(() => {
                     resolve();
                 });
-            })
+            });
         });
         registry.unregister(this);
         await new Promise<void>((resolve) => setTimeout(resolve, 100));
