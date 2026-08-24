@@ -1,19 +1,19 @@
 /**
  * @module node-opcua-pseudo-session
  */
-import { ByteString } from "node-opcua-basic-types";
-import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
-import { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
-import { ReadValueIdOptions } from "node-opcua-service-read";
-import { WriteValueOptions } from "node-opcua-service-write";
-import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
-import { DataType, VariantArrayType } from "node-opcua-variant";
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { ByteString } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
-import { BrowsePathOptions, UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
+import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { BrowseDescription, type BrowseDescriptionOptions, type BrowseResult } from "node-opcua-service-browse";
+import type { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
+import { BrowsePath, type BrowsePathResult } from "node-opcua-service-translate-browse-path";
+import type { WriteValueOptions } from "node-opcua-service-write";
+import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { BrowsePathOptions, UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
@@ -260,22 +260,22 @@ export interface IBasicSessionTranslateBrowsePath
 
 // #endregion
 
-export interface IBasicSessionAsyncSimple extends 
-        IBasicSessionBrowseAsyncSimple,
+export interface IBasicSessionAsyncSimple
+    extends IBasicSessionBrowseAsyncSimple,
         IBasicSessionReadAsyncSimple,
         IBasicSessionWriteAsyncSimple,
         IBasicSessionCallAsyncSimple,
         IBasicSessionTranslateBrowsePathAsyncSimple {}
 
-
-export interface IBasicSessionAsyncMultiple extends 
-        IBasicSessionBrowseAsyncMultiple,
+export interface IBasicSessionAsyncMultiple
+    extends IBasicSessionBrowseAsyncMultiple,
         IBasicSessionReadAsyncMultiple,
         IBasicSessionWriteAsyncMultiple,
         IBasicSessionCallAsyncMultiple,
         IBasicSessionTranslateBrowsePathAsyncMultiple {}
 
-export interface IBasicSessionAsync extends  IBasicSessionBrowseAsync,
+export interface IBasicSessionAsync
+    extends IBasicSessionBrowseAsync,
         IBasicSessionReadAsync,
         IBasicSessionWriteAsync,
         IBasicSessionCallAsync,
@@ -293,10 +293,11 @@ export interface IBasicSessionGetArgumentDefinitionCallback {
 export interface IBasicSessionGetArgumentDefinitionAsync {
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
 }
-export interface IBasicSessionGetArgumentDefinition extends IBasicSessionGetArgumentDefinitionAsync, IBasicSessionGetArgumentDefinitionCallback {
+export interface IBasicSessionGetArgumentDefinition
+    extends IBasicSessionGetArgumentDefinitionAsync,
+        IBasicSessionGetArgumentDefinitionCallback {
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
-
 }
 
 export type IBasicSessionCallback = IBasicSessionReadCallback &
@@ -314,8 +315,7 @@ export interface IBasicSession
         IBasicSessionRead,
         IBasicSessionTranslateBrowsePath,
         IBasicSessionWrite,
-        IBasicSessionGetArgumentDefinition {
-}
+        IBasicSessionGetArgumentDefinition {}
 
 export type PrivateKeyPEM = string;
 export interface UserIdentityInfoUserName {
@@ -432,8 +432,7 @@ interface SessionWithCache extends IBasicSessionAsync2 {
     $$namespaceArray?: string[] | null;
 }
 
-
-type ICascadingSession = { session?: IBasicSessionReadAsyncSimple }
+type ICascadingSession = { session?: IBasicSessionReadAsyncSimple };
 function followSession(session: IBasicSessionReadAsyncSimple & ICascadingSession): SessionWithCache {
     if (session.session) {
         return followSession(session.session);
@@ -441,11 +440,9 @@ function followSession(session: IBasicSessionReadAsyncSimple & ICascadingSession
     return session as SessionWithCache;
 }
 
-
 export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {
-
     const sessionHoldingCache = followSession(session) as SessionWithCache;
-    if (sessionHoldingCache.$$namespaceArray)  {
+    if (sessionHoldingCache.$$namespaceArray) {
         return sessionHoldingCache.$$namespaceArray!;
     }
     const nodeId = resolveNodeId(VariableIds.Server_NamespaceArray);

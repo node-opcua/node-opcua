@@ -1,12 +1,12 @@
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { DataValue } from "node-opcua-data-value";
 import assert from "node-opcua-assert";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ReadValueIdOptions } from "node-opcua-types";
 import { AttributeIds, attributeNameById } from "node-opcua-basic-types";
-import { Variant } from "node-opcua-variant";
+import type { DataValue } from "node-opcua-data-value";
+import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { ReadValueIdOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { IBasicSessionAsyncMultiple } from "./basic_session_interface";
+import type { Variant } from "node-opcua-variant";
+import type { IBasicSessionAsyncMultiple } from "./basic_session_interface";
 
 export interface NodeAttributes {
     nodeId: NodeId;
@@ -29,9 +29,6 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
     assert(nodesToRead.length === dataValues.length);
     let c = 0;
     const results = [];
-    let dataValue;
-    let k;
-    let nodeToRead;
 
     for (const node of nodes) {
         const data: NodeAttributes = {
@@ -42,11 +39,11 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
         let addedProperty = 0;
 
         for (const key of attributeNames) {
-            dataValue = dataValues[c];
-            nodeToRead = nodesToRead[c];
+            const dataValue = dataValues[c];
+            const nodeToRead = nodesToRead[c];
             c++;
             if (dataValue.statusCode.equals(StatusCodes.Good)) {
-                k = lowerFirstLetter(key);
+                const k = lowerFirstLetter(key);
                 data[k] = dataValue.value ? dataValue.value.value : null;
                 addedProperty += 1;
             }
@@ -79,7 +76,7 @@ export async function readAllAttributes(session: IBasicSessionAsyncMultiple, arg
 
         /* c8 ignore next */
         if (!nodeId) {
-            throw new Error("cannot coerce " + node + " to a valid NodeId");
+            throw new Error(`cannot coerce ${node} to a valid NodeId`);
         }
 
         for (let attributeId = 1; attributeId <= 22; attributeId++) {

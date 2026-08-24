@@ -1,20 +1,17 @@
 /**
  * @module node-opcua-pseudo-session
  */
-import { resolveNodeId, NodeIdLike } from "node-opcua-nodeid";
+
+import type { UInt32 } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
-import { AttributeIds } from "node-opcua-service-read";
+import type { QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
-import { IBasicSessionReadAsyncMultiple } from "./basic_session_interface";
-import { SignedSoftwareCertificate } from "node-opcua-types";
-import { QualifiedName } from "node-opcua-data-model";
-import { UInt32 } from "node-opcua-basic-types";
+import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { AttributeIds } from "node-opcua-service-read";
+import type { SignedSoftwareCertificate } from "node-opcua-types";
+import type { IBasicSessionReadAsyncMultiple } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
-
-
-
-
 
 export interface IOperationLimits2 {
     maxNodesPerRead?: number;
@@ -54,8 +51,10 @@ export interface IServerCapabilities2 {
     conformanceUnits: QualifiedName[];
 }
 
-
-async function _readMany<T extends Record<string, any>>(session: IBasicSessionReadAsyncMultiple, ids: Record<keyof T, NodeIdLike>): Promise<T> {
+async function _readMany<T extends Record<string, any>>(
+    session: IBasicSessionReadAsyncMultiple,
+    ids: Record<keyof T, NodeIdLike>
+): Promise<T> {
     const entries = Object.entries(ids);
 
     const nodesToRead = entries.map(([key, value]) => ({ nodeId: resolveNodeId(value), attributeId: AttributeIds.Value }));
@@ -86,12 +85,11 @@ export async function readOperationLimits(session: IBasicSessionReadAsyncMultipl
         maxNodesPerHistoryReadEvents: VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
         maxNodesPerHistoryUpdateData: VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
         maxNodesPerHistoryUpdateEvents: VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
-        maxNodesPerTranslateBrowsePathsToNodeIds: VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+        maxNodesPerTranslateBrowsePathsToNodeIds:
+            VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds
     };
 
     return await _readMany(session, ids);
-
-
 }
 
 export const serverCapabilitiesIds = [
@@ -119,7 +117,6 @@ export const serverCapabilitiesIds = [
 ];
 
 export async function readServerCapabilities(session: IBasicSessionReadAsyncMultiple): Promise<IServerCapabilities2> {
-
     const ids: Record<keyof IServerCapabilities2, NodeIdLike> = {
         maxBrowseContinuationPoints: VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
         maxHistoryContinuationPoints: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
@@ -147,5 +144,4 @@ export async function readServerCapabilities(session: IBasicSessionReadAsyncMult
     const limits = await readOperationLimits(session);
     serverCapabilities.operationLimits = limits;
     return serverCapabilities;
-
 }

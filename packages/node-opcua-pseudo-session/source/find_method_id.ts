@@ -1,7 +1,7 @@
-import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+import { BrowseDirection, coerceQualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
+import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { BrowseDirection, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
-import { IBasicSessionAsync } from "./basic_session_interface";
+import type { IBasicSessionAsync } from "./basic_session_interface";
 
 export async function findInTypeOrSuperType(
     session: IBasicSessionAsync,
@@ -43,7 +43,7 @@ export async function findInTypeOrSuperType(
  *     recursively browse up the hierarchy of object typeDefinition Node
  *     until it reaches the root type. and try to find the first method that matches the
  *     provided name.
- * 
+ *
  * @param session
  * @param nodeId     the nodeId of the object to find
  * @param methodName the method name to find prefixed with a namespace index (unless ns=0)
@@ -54,7 +54,7 @@ export async function findMethodId(
     nodeId: NodeIdLike,
     methodName: QualifiedNameLike
 ): Promise<{ methodId: NodeId } | { methodId: null; err: Error }> {
-    const browsePath = makeBrowsePath(nodeId, "/" + coerceQualifiedName(methodName).toString());
+    const browsePath = makeBrowsePath(nodeId, `/${coerceQualifiedName(methodName).toString()}`);
     const result = await session.translateBrowsePath(browsePath);
     if (result.statusCode.isNotGood()) {
         const br = await session.browse({
@@ -71,7 +71,7 @@ export async function findMethodId(
         }
         const typeDefinition = br.references![0].nodeId;
         // need to find method on objectType
-        const browsePath = makeBrowsePath(typeDefinition, "/" + methodName);
+        const browsePath = makeBrowsePath(typeDefinition, `/${methodName}`);
         const result = await findInTypeOrSuperType(session, browsePath);
         if (!result.nodeId) {
             return { err: result.err, methodId: null };
@@ -83,11 +83,10 @@ export async function findMethodId(
     if (result.targets.length > 0) {
         const methodId = result.targets[0].targetId as NodeId;
         return { methodId };
-    }
-    /* c8 ignore next */
-    else {
+    } else {
+        /* c8 ignore next */
         // cannot find objectWithMethodNodeId
-        const err = new Error(" cannot find " + methodName + " Method");
+        const err = new Error(` cannot find ${methodName} Method`);
         return { methodId: null, err };
     }
 }

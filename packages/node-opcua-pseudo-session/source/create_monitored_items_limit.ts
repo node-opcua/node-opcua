@@ -3,7 +3,7 @@
  */
 import { CreateMonitoredItemsRequest, CreateMonitoredItemsResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { IBasicSessionWithSubscription } from "./basic_session_with_subscription";
+import type { IBasicSessionWithSubscription } from "./basic_session_with_subscription";
 
 export async function createMonitoredItemsLimit(
     maxMonitoredItemsPerCall: number,

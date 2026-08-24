@@ -123,6 +123,8 @@ export async function browseAll2(
         }
         browseToRedo.splice(0);
     }
-    browseResults.forEach((b) => ((b as any).continuationPoint = undefined));
+    browseResults.forEach((b) => {
+        (b as any).continuationPoint = undefined;
+    });
     return browseResults;
 }

@@ -1,9 +1,9 @@
-import { makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import { DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
+import { makeResultMask } from "node-opcua-data-model";
+import { makeNodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { BrowseDescription, BrowseDirection, BrowseResult } from "node-opcua-service-browse";
 import { DataType } from "node-opcua-variant";
-import { ReferenceTypeIds, DataTypeIds } from "node-opcua-constants";
-import { makeResultMask } from "node-opcua-data-model";
-import { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface";
+import type { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface";
 
 const resultMask = makeResultMask("ReferenceType");
 

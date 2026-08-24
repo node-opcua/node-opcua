@@ -1,7 +1,11 @@
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { MonitoringMode } from "node-opcua-types";
-import { ReadValueIdOptions, MonitoringParametersOptions, CreateSubscriptionRequestOptions } from "node-opcua-types";
-import { IBasicSessionAsync } from "./basic_session_interface";
+import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import type {
+    CreateSubscriptionRequestOptions,
+    MonitoringMode,
+    MonitoringParametersOptions,
+    ReadValueIdOptions
+} from "node-opcua-types";
+import type { IBasicSessionAsync } from "./basic_session_interface";
 
 export interface IBasicMonitoredItem {
     on(eventName: "changed", eventHandler: (dataValue: DataValue) => void): this;

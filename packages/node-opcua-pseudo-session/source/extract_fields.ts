@@ -1,24 +1,30 @@
-import { AttributeIds, BrowseDirection, NodeClassMask, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescriptionOptions } from "node-opcua-service-browse";
-import { NodeClass } from "node-opcua-types";
+import { AttributeIds, BrowseDirection, NodeClassMask, type QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
-import { IBasicSessionBrowseAsyncMultiple, IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "./basic_session_interface";
+import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import type { BrowseDescriptionOptions } from "node-opcua-service-browse";
+import { NodeClass } from "node-opcua-types";
+import type {
+    IBasicSessionBrowseAsyncMultiple,
+    IBasicSessionBrowseAsyncSimple,
+    IBasicSessionReadAsyncSimple
+} from "./basic_session_interface";
 
 const doDebug = false;
 const debugLog = make_debugLog(__filename);
 
-export type ISessionForExtractField = IBasicSessionBrowseAsyncSimple & IBasicSessionBrowseAsyncMultiple & IBasicSessionReadAsyncSimple;
+export type ISessionForExtractField = IBasicSessionBrowseAsyncSimple &
+    IBasicSessionBrowseAsyncMultiple &
+    IBasicSessionReadAsyncSimple;
 
 /**
- * 
- * recursively work down an node definition and find 
+ *
+ * recursively work down an node definition and find
  * the components and property ...
  * also navigate the sub
  * @param session the session
  * @param nodeId the object to investigate , could be the nodeId of a Object/Variable/ObjectType or VariableType.
  * @returns a array of {path: QualifiedName[], nodeId: NodeId}}
- * 
+ *
  * @private
  */
 export async function extractFields(
@@ -147,7 +153,6 @@ export async function extractFields(
     await _investigateTopLevel([], nodeId);
     return fields1;
 }
-
 
 export function simpleBrowsePathToString(bp: QualifiedName[]): string {
     return bp.map((qn) => qn.toString()).join(".");
