@@ -4,6 +4,7 @@ import {
     DataValue,
     MessageSecurityMode,
     OPCUAClient,
+    type OPCUAServer,
     ReadRequest,
     SecurityPolicy,
     TimestampsToReturn
@@ -15,19 +16,29 @@ import { perform_operation_on_client_session } from "../../test_helpers/perform_
 
 interface TestHarness {
     endpointUrl: string;
-    server: any;
-    [k: string]: any;
+    server: OPCUAServer;
 }
+
+// timedOutRequestCount and performMessageTransaction are private OPCUAClientImpl/ClientSession
+// internals reached here only to make diagnostic assertions on the client's own bookkeeping.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
 
 export function t(test: TestHarness) {
     describe("Testing bug #141 - Client publish timeoutHint and timed_out_request event", () => {
-        const options = { securityMode, securityPolicy, serverCertificate: null as any, requestedSessionTimeout: 20000 };
+        const options = {
+            securityMode,
+            securityPolicy,
+            // biome-ignore lint/suspicious/noExplicitAny: explicit null forces "fetch via GetEndpoints"; the option type only declares undefined
+            serverCertificate: null as any,
+            requestedSessionTimeout: 20000
+        };
         let client: OPCUAClient;
         let endpointUrl: string;
-        let server: any;
+        let server: OPCUAServer;
 
         beforeEach(() => {
             client = OPCUAClient.create(options);
@@ -69,16 +80,16 @@ export function t(test: TestHarness) {
                 });
                 await new Promise((r) => subscription.terminate(r));
                 keepaliveCounter.should.be.greaterThan(1);
-                (client as any).timedOutRequestCount.should.eql(0);
+                (client as InternalAny).timedOutRequestCount.should.eql(0);
             });
         });
 
         it("#141-B client emits timed_out_request when request timeoutHint exhausted", async () => {
-            const node = server.engine.addressSpace.getOwnNamespace().addVariable({
+            const node = server.engine.addressSpace!.getOwnNamespace().addVariable({
                 browseName: "MySlowVariable",
                 dataType: "Int32",
                 value: {
-                    refreshFunc: (callback: any) => {
+                    refreshFunc: (callback) => {
                         const longTime = 10000; // simulate slow read
                         setTimeout(() => {
                             callback(
@@ -104,11 +115,11 @@ export function t(test: TestHarness) {
                         timestampsToReturn: TimestampsToReturn.Neither
                     });
                     request.requestHeader.timeoutHint = 10; // very short
-                    await (session as any).performMessageTransaction(request);
+                    await (session as InternalAny).performMessageTransaction(request);
                 }, /Transaction has timed out/);
 
                 time_out_request_spy.callCount.should.eql(1, "expecting a single timed_out_request event");
-                (client as any).timedOutRequestCount.should.eql(1);
+                (client as InternalAny).timedOutRequestCount.should.eql(1);
             });
         });
     });
