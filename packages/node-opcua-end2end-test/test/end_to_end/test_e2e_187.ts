@@ -9,6 +9,11 @@ const context = SessionContext.defaultContext;
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
+// ProxyManager.getObject() returns a ProxyNode whose actual runtime shape carries dynamic,
+// address-space-defined children (simulation, $methods, ...) beyond the narrow static interface.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type DynamicNode = any;
+
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing monitoring Executable flags on methods", function (this: Mocha.Suite) {
@@ -94,7 +99,7 @@ describe("testing monitoring Executable flags on methods", function (this: Mocha
             if (doDebug) {
                 debugLog(" NodeId = ", nodeId.toString());
             }
-            const boiler = (await proxyManager.getObject(nodeId)) as any;
+            const boiler = (await proxyManager.getObject(nodeId)) as DynamicNode;
             if (doDebug) {
                 debugLog("Current State", boiler.simulation.currentState.toString());
             }
