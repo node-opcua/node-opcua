@@ -10,7 +10,6 @@
 //       Buffer.alloc and Buffer.allocUnsafe have been introduced in nodejs 5.1.0
 //  in node 0.11 new Buffer
 //
-// tslint:disable-next-line:ban-types
 export const createFastUninitializedBuffer = Buffer.allocUnsafe;
 
 /**
