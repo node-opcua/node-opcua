@@ -26,8 +26,14 @@ import should from "should";
 
 const port = 1984;
 
+// This test reads back arbitrary ExtensionObject values (nested field bags, arrays of
+// ExtensionObjects, cloneable Variant payloads) and recursively increments/compares them;
+// their shape is entirely nodeset-defined, not statically knowable here.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type DynamicValue = any;
+
 export function enrichExtensionObjectVariables(node: BaseNode) {
-    type Cache = any;
+    type Cache = Record<string, BaseNode>;
     function _enrichExtensionObjectVariables(node: BaseNode, cache: Cache) {
         const k = node.nodeId.toString();
         if (cache[k]) return;
@@ -73,15 +79,14 @@ export function enrichExtensionObjectVariables(node: BaseNode) {
 /**
  * increment the value  of a arbitrary Variant value
  */
-const incr = (value: any) => {
+const incr = (value: DynamicValue): DynamicValue => {
     if (typeof value === "boolean") {
         return !value;
     } else if (typeof value === "number") {
         return value + 1;
     } else {
         if (Array.isArray(value)) {
-            value = value.map(incr);
-            return value;
+            return value.map(incr);
         } else {
             const newValue = value.clone ? value.clone() : value;
             for (const [k, v] of Object.entries(newValue)) {
@@ -142,7 +147,7 @@ async function getMember(session: IBasicSessionAsync, nodeId: NodeId, name: stri
     }
     return r.nodeId;
 }
-const write = async (session: IBasicSessionAsync, nodeId: NodeId, value: any, dataType?: DataType): Promise<void> => {
+const write = async (session: IBasicSessionAsync, nodeId: NodeId, value: DynamicValue, dataType?: DataType): Promise<void> => {
     const fullPath = await readFullPath(session, nodeId);
     doDebug && console.log("writing ", fullPath);
 
@@ -175,7 +180,7 @@ const write = async (session: IBasicSessionAsync, nodeId: NodeId, value: any, da
         throw new Error("Error in writing , new value !== variantToWrite");
     }
 };
-const read = async (session: IBasicSessionAsync, nodeId: NodeId): Promise<any> => {
+const read = async (session: IBasicSessionAsync, nodeId: NodeId): Promise<DynamicValue> => {
     return (await session.read({ nodeId, attributeId: AttributeIds.Value })).value.value;
 };
 async function waitSubscriptionUpdate(subscription: ClientSubscription) {
@@ -513,16 +518,20 @@ interface Counter {
 function resetCounter(info: Record<string, Counter>) {
     for (const [_k, v] of Object.entries(info)) {
         v.counter = 0;
-        (v.dataValues as any).splice(0);
+        v.dataValues.splice(0);
         if (v.$props) resetCounter(v.$props);
     }
 }
 
+interface DumpEntry {
+    _counter: number;
+    [childKey: string]: unknown;
+}
 function dumpInfo(info: Record<string, Counter>) {
-    const r: any = {};
+    const r: Record<string, DumpEntry> = {};
     for (const [k, v] of Object.entries(info)) {
-        r[k] = r[k] || {};
-        r[k]._counter = v.counter as number;
+        r[k] = r[k] || ({} as DumpEntry);
+        r[k]._counter = v.counter;
         if (v.$props) {
             for (const [kk, vv] of Object.entries(v.$props)) {
                 // console.log("  ", k + "." + kk, vv.counter);
@@ -737,7 +746,7 @@ describe("testing extension object with client residing on a different process t
         ["Array", 1],
         ["Matrix", 2]
     ].forEach(([valueRankName, selectedValueRank]) => {
-        ["TopVariable", "IndexedVariable", "InnerProperty"].forEach((level: any) => {
+        (["TopVariable", "IndexedVariable", "InnerProperty"] as const).forEach((level) => {
             it(`should bind complex extension object - ${valueRankName}-${level}`, async () => {
                 const endpointUrl = server.getEndpointUrl();
                 await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
