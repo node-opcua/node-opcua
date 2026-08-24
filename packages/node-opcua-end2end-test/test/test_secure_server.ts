@@ -10,6 +10,11 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assertThrow } from "../test_helpers/assert_throw";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
+// _serverEndpoints is a protected OPCUAClient implementation field, reached here to
+// inject a fake unsecure endpoint and exercise server-side rejection.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 /*
 Discovery Endpoints shall not require any message security, but it may require transport layer
 security. In production systems, Administrators may disable discovery for security reasons and
@@ -69,16 +74,16 @@ describe("testing behavior of secure Server ( server that only accept Sign or Si
         await client.connect(endpointUrl);
 
         try {
-            (client as any)._serverEndpoints.length.should.eql(1);
+            (client as InternalAny)._serverEndpoints.length.should.eql(1);
             // create session
 
             // server has given us only its valid endpoint that the client will check before
             // establishing a session. Let's inject a fake unsecure endpoint so we can
             // skip the internal client test for invalid endpoint and get to the server
-            const unsecureEndpoint = new EndpointDescription((client as any)._serverEndpoints[0]);
+            const unsecureEndpoint = new EndpointDescription((client as InternalAny)._serverEndpoints[0]);
             unsecureEndpoint.securityMode = MessageSecurityMode.None;
             unsecureEndpoint.securityPolicyUri = SecurityPolicy.None;
-            (client as any)._serverEndpoints.push(unsecureEndpoint);
+            (client as InternalAny)._serverEndpoints.push(unsecureEndpoint);
 
             await assertThrow(async () => {
                 await client.createSession();
