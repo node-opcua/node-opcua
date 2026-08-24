@@ -30,6 +30,19 @@ import {
     tweak_registerServerManager_timeout
 } from "./helpers/index";
 
+// RegisterServer is sent over the client's secure channel directly, without a session,
+// so performMessageTransaction here is deliberately outside the public OPCUAClient surface.
+interface ClientWithTransaction {
+    performMessageTransaction(
+        request: RegisterServerRequest,
+        callback: (err: Error | null, response?: RegisterServerResponse) => void
+    ): void;
+}
+
+interface ErrorWithServiceFaultResponse extends Error {
+    response?: ServiceFault;
+}
+
 const { green } = chalk;
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -85,8 +98,8 @@ export function t(test: TestHarness) {
 
         async function send_registered_server_request(
             discoveryServerEndpointUrl: string,
-            registerServerRequest: any,
-            externalFunc: any
+            registerServerRequest: RegisterServerRequest,
+            externalFunc: (err: Error | null, response?: RegisterServerResponse) => void
         ): Promise<void> {
             const client = OPCUAClient.create({
                 endpointMustExist: false,
@@ -99,17 +112,14 @@ export function t(test: TestHarness) {
             await client.connect(discoveryServerEndpointUrl);
 
             await new Promise<void>((resolve) => {
-                (client as any).performMessageTransaction(
-                    registerServerRequest,
-                    (err: Error | null, response: RegisterServerResponse) => {
-                        if (!err) {
-                            // RegisterServerResponse
-                            assert(response instanceof RegisterServerResponse);
-                        }
-                        externalFunc(err, response);
-                        resolve();
+                (client as unknown as ClientWithTransaction).performMessageTransaction(registerServerRequest, (err, response) => {
+                    if (!err) {
+                        // RegisterServerResponse
+                        assert(response instanceof RegisterServerResponse);
                     }
-                );
+                    externalFunc(err, response);
+                    resolve();
+                });
             });
             await client.disconnect();
         }
@@ -134,11 +144,13 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response: any): void {
+            function check_error_response(err: Error | null, response?: RegisterServerResponse): void {
                 should.exist(err);
                 should.not.exist(response);
-                (err as any).response.should.be.instanceOf(ServiceFault);
-                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadDiscoveryUrlMissing);
+                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
+                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                    StatusCodes.BadDiscoveryUrlMissing
+                );
             }
 
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
@@ -164,12 +176,14 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response: any) {
+            function check_error_response(err: Error | null, response?: RegisterServerResponse) {
                 should.exist(err);
                 should.not.exist(response);
                 //xx debugLog(response.toString());
-                (err as any).response.should.be.instanceOf(ServiceFault);
-                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadInvalidArgument);
+                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
+                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                    StatusCodes.BadInvalidArgument
+                );
             }
 
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
@@ -195,11 +209,13 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response: any) {
+            function check_error_response(err: Error | null, response?: RegisterServerResponse) {
                 should.exist(err);
                 should.not.exist(response);
-                (err as any).response.should.be.instanceOf(ServiceFault);
-                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadServerNameMissing);
+                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
+                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                    StatusCodes.BadServerNameMissing
+                );
             }
 
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
@@ -300,7 +316,7 @@ export function t(test: TestHarness) {
 
             stepLog("6. then I should verify that the the server has been unregistered");
             {
-                const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
+                const { servers } = await findServers(discoveryServerEndpointUrl);
                 servers.length.should.eql(initialServerCount);
             }
             await pause(1000);
@@ -553,7 +569,7 @@ export function t(test: TestHarness) {
         it("DISCO3-2 a discovery server shall be able to expose many registered servers", async () => {
             // ensure that no servers have been regiester yet
             // we may have dangling opcua reservers still pending in the air
-            const { servers: serversBefore, endpoints: endPointsBefore } = await findServers(discoveryServerEndpointUrl);
+            const { servers: serversBefore } = await findServers(discoveryServerEndpointUrl);
             const before = serversBefore.length;
 
             await start_all_servers();
@@ -564,7 +580,7 @@ export function t(test: TestHarness) {
 
             await pause(3000);
 
-            const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
+            const { servers } = await findServers(discoveryServerEndpointUrl);
             if (doDebug) {
                 debugLog(
                     "------- findServersOnNetwork on ",
