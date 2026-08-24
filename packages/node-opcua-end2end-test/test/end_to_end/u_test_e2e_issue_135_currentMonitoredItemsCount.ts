@@ -1,32 +1,27 @@
 import "should";
-import { AttributeIds, DataValue, makeBrowsePath, OPCUAClient, StatusCodes, TimestampsToReturn } from "node-opcua";
+import { AttributeIds, type CallbackT, DataValue, makeBrowsePath, OPCUAClient, StatusCodes, TimestampsToReturn } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const debugLog = make_debugLog("TEST");
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
 
 /**
  * Bug #135 - Server should expose SessionDiagnostics.CurrentMonitoredItemsCount and related counters correctly.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Bug #135 currentMonitoredItemsCount", () => {
         it("verifies monitored/subscription counts and diagnostics", async () => {
-            const server = test.server;
+            const server = test.server!;
             const refreshRate = 500;
             let counter = 1;
-            const namespace = server.engine.addressSpace.getOwnNamespace();
+            const namespace = server.engine.addressSpace!.getOwnNamespace();
             const slowVar = namespace.addVariable({
-                organizedBy: server.engine.addressSpace.rootFolder.objects,
+                organizedBy: server.engine.addressSpace!.rootFolder.objects,
                 browseName: "SlowVariable",
                 dataType: "UInt32",
                 value: {
-                    refreshFunc: (callback: any) => {
+                    refreshFunc: (callback: CallbackT<DataValue>) => {
                         setTimeout(() => {
                             counter += 1;
                             callback(null, new DataValue({ value: { dataType: "UInt32", value: counter } }));
@@ -36,7 +31,7 @@ export function t(test: TestHarness) {
             });
 
             const client = OPCUAClient.create({ clientName: "SomeFancyClientName", requestedSessionTimeout: 60000 });
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             try {
                 const session = await client.createSession();
                 const subscription = await session.createSubscription2({
