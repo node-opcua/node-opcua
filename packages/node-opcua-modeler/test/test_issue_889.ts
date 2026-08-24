@@ -1,16 +1,15 @@
-import path from "node:path";
 import os from "node:os";
-import { spy } from "sinon";
-import should from "should";
+import path from "node:path";
+import { AddressSpace, adjustNamespaceArray, PseudoSession, type UADataType } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 
 import { assert } from "node-opcua-assert";
-import { ExtraDataTypeManager, populateDataTypeManager, DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
-import { NodeId } from "node-opcua-nodeid";
+import { DataTypeExtractStrategy, ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import type { EnumerationDefinitionSchema, StructureInfo } from "node-opcua-factory";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, adjustNamespaceArray, PseudoSession, type UADataType } from "node-opcua-address-space";
 import { BrowseDescription } from "node-opcua-types";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import type { StructureInfo } from "node-opcua-factory";
+import should from "should";
+import { spy } from "sinon";
 
 import {
     addExtensionObjectDataType,
@@ -23,13 +22,13 @@ import {
 } from "..";
 
 interface DataTypeFactoryPriv {
-    _structureInfoByName: Map<any, any>;
-    _structureInfoByDataTypeMap: Map<any, any>;
-    _structureInfoByEncodingMap: Map<any, any>;
-    _enumerations: Map<any, any>;
+    _structureInfoByName: Map<string, StructureInfo>;
+    _structureInfoByDataTypeMap: Map<string, StructureInfo>;
+    _structureInfoByEncodingMap: Map<string, StructureInfo>;
+    _enumerations: Map<string, EnumerationDefinitionSchema>;
 }
 
-describe("loading very large DataType Definitions ", function (this: any) {
+describe("loading very large DataType Definitions ", function (this: Mocha.Suite) {
     this.timeout(Math.max(10000, this.timeout()));
     const namespaceUri = "http://sterfive.org/UA/Demo/";
 
@@ -104,12 +103,10 @@ describe("loading very large DataType Definitions ", function (this: any) {
         }
 
         const xml = namespace.toNodeset2XML();
-        if (true) {
-            const fs = require("node:fs");
-            const tmpFile = path.join(os.tmpdir(), "tmp_1.xml");
-            await fs.promises.writeFile(tmpFile, xml, "utf-8");
-            /* to be completed */
-        }
+        const fs = require("node:fs");
+        const tmpFile = path.join(os.tmpdir(), "tmp_1.xml");
+        await fs.promises.writeFile(tmpFile, xml, "utf-8");
+        /* to be completed */
         return allDataTypes;
     }
 
@@ -133,7 +130,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
     }
 
     async function check(uaDataType: UADataType[], extractor: (uaDataType: UADataType) => Promise<StructureInfo | null>) {
-        const results: any[] = [];
+        const results: StructureInfo[] = [];
         const notFound: UADataType[] = [];
         for (let i = 0; i < uaDataType.length; i++) {
             const structureInfo = await extractor(uaDataType[i]);

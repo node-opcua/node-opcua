@@ -1,29 +1,38 @@
 Error.stackTraceLimit = 100000;
+
 import fs from "node:fs";
+
 // node 14 onward : import {  writeFile } from "fs/promises";
 const { writeFile } = fs.promises;
 
 import os from "node:os";
 import path from "node:path";
-import should from "should";
+import type { BaseNode, UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import {
-    addExtensionObjectDataType,
     AddressSpace,
+    addExtensionObjectDataType,
     addVariableTypeForDataType,
     //
     DataType,
     type ExtensionObjectDefinition,
     getSymbols,
     nodesets,
-    setSymbols,
-    type StructureDefinitionOptions
+    type StructureDefinitionOptions,
+    setSymbols
 } from "..";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
-describe("addExtensionObjectDataType", function (this: any) {
+// reaching into Namespace internals not exposed on the public type, for test diagnostics only
+interface NamespaceWithInternals {
+    nodeIterator(): IterableIterator<BaseNode>;
+    _nodeIdManager: { getSymbolCSV(): string };
+}
+
+describe("addExtensionObjectDataType", function (this: Mocha.Suite) {
     this.timeout(10000);
     const namespaceUri = "http://sterfive.org/UA/Demo/";
 
@@ -77,24 +86,30 @@ describe("addExtensionObjectDataType", function (this: any) {
 
         // c8 ignore next
         if (doDebug) {
-            (ns as any).nodeIterator().forEach((b: any) => {
+            for (const b of (ns as unknown as NamespaceWithInternals).nodeIterator()) {
+                const withTypeDefinition = b as BaseNode & {
+                    typeDefinitionObj?: BaseNode;
+                    typeDefinition?: { toString(): string };
+                };
                 console.log(
                     b.browseName.toString(),
                     b.nodeId.toString(),
-                    b.typeDefinitionObj ? `${b.typeDefinitionObj.browseName.toString()} ... ${b.typeDefinition.toString()}` : ""
+                    withTypeDefinition.typeDefinitionObj
+                        ? `${withTypeDefinition.typeDefinitionObj.browseName.toString()} ... ${withTypeDefinition.typeDefinition?.toString()}`
+                        : ""
                 ); // .nodeId.toString(), b.browseName.toString());
-            });
+            }
         }
 
         const xml = ns.toNodeset2XML();
         await writeFile(tmpFile, xml, "utf-8");
 
         const tmpCSVFile = path.join(os.tmpdir(), "test.NodeSet2.csv");
-        const csv = (ns as any)._nodeIdManager.getSymbolCSV();
+        const csv = (ns as unknown as NamespaceWithInternals)._nodeIdManager.getSymbolCSV();
         await writeFile(tmpCSVFile, csv, "utf-8");
 
         // should be possible to create object
-        const o = addressSpace.constructExtensionObject(dataType, { name: "JoeDoe" });
+        const _o = addressSpace.constructExtensionObject(dataType, { name: "JoeDoe" });
 
         // c8 ignore next
         if (doDebug) {
@@ -146,7 +161,7 @@ describe("addExtensionObjectDataType", function (this: any) {
 */
     });
 });
-describe("addVariableTypeForDataType", function (this: any) {
+describe("addVariableTypeForDataType", function (this: Mocha.Suite) {
     this.timeout(Math.max(12 * 1000, this.timeout()));
     const namespaceUri = "urn:name";
 
@@ -253,7 +268,7 @@ describe("addVariableTypeForDataType", function (this: any) {
         };
         const serverStatusDataType = await addExtensionObjectDataType(ns, serverStatusOptions);
 
-        const buildInfoType = addVariableTypeForDataType(ns, buildInfoDataType);
+        const _buildInfoType = addVariableTypeForDataType(ns, buildInfoDataType);
         const serverStatusType = addVariableTypeForDataType(ns, serverStatusDataType);
 
         const tmpFile = path.join(os.tmpdir(), "test1.NodeSet2.xml");
@@ -263,13 +278,13 @@ describe("addVariableTypeForDataType", function (this: any) {
         const xml = ns.toNodeset2XML();
         await writeFile(tmpFile, xml, "utf-8");
 
-        const csv = (ns as any)._nodeIdManager.getSymbolCSV();
+        const csv = (ns as unknown as NamespaceWithInternals)._nodeIdManager.getSymbolCSV();
         await writeFile(tmpCSVFile, csv, "utf-8");
 
         const statusType = serverStatusType.instantiate({
             browseName: "Test",
             organizedBy: addressSpace.rootFolder.objects.server
-        }) as any;
+        }) as UAVariable & { startTime?: UAVariable };
         should.exist(statusType.startTime);
         const e = statusType.readValue().value.value;
         should.exist(e.startTime);

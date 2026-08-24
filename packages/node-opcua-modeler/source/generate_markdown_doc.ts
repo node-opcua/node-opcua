@@ -214,7 +214,7 @@ function dumpReferenceType(referenceType: UAReferenceType): string {
 
 export function extractTypes(namespace: INamespace, options?: BuildDocumentationOptions) {
     const namespacePriv = namespace as unknown as NamespacePriv2;
-    if (!options || !options.node) {
+    if (!options?.node) {
         const dataTypes = [...namespacePriv._dataTypeIterator()];
         const objectTypes = [...namespacePriv._objectTypeIterator()];
         const variableTypes = [...namespacePriv._variableTypeIterator()];

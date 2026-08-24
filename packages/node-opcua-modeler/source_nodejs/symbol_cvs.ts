@@ -19,8 +19,8 @@ export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symb
     try {
         const data = await readFile(csvFilename, "utf-8");
 
-        const records = await new Promise((resolve) => {
-            const output: any[] = [];
+        const records = await new Promise<Symbols>((resolve) => {
+            const output: Symbols = [];
             parse(data, {
                 cast: (value, context) => {
                     if (context.index === 1) {
@@ -40,7 +40,7 @@ export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symb
                     resolve(output);
                 });
         });
-        return records as Symbols;
+        return records;
     } catch (err) {
         if (types.isNativeError(err)) {
             // tslint:disable-next-line: no-console

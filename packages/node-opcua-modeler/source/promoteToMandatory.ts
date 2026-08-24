@@ -62,7 +62,7 @@ export function getChildInTypeOrBaseType(
     }
 
     const browseResult = addressSpace.browsePath(makeBrowsePath(subtypeOf.nodeId, `.${namespaceIndex}:${propertyName}`));
-    const propNodeId = !browseResult.targets || !browseResult.targets[0] ? null : browseResult.targets[0].targetId;
+    const propNodeId = !browseResult.targets?.[0] ? null : browseResult.targets[0].targetId;
 
     /* c8 ignore next */
     if (!propNodeId) {

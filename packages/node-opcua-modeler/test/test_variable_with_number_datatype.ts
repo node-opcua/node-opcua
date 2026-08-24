@@ -1,24 +1,23 @@
 import "should";
 import fs from "node:fs";
-import path from "node:path";
 import { tmpdir } from "node:os";
-import { DataTypeIds } from "node-opcua-constants";
-import { DataType, Variant } from "node-opcua-variant";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { nodesets } from "node-opcua-nodesets";
+import path from "node:path";
 import {
     AddressSpace,
     dumpToBSD,
     ensureDatatypeExtracted,
     type INamespace,
-    Namespace,
     type UAObject,
     type UAVariable
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/distNodeJS";
-import type { StructureFieldOptions } from "node-opcua-types";
-import { addExtensionObjectDataType } from "..";
+import { DataTypeIds } from "node-opcua-constants";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import type { StructureFieldOptions } from "node-opcua-types";
+import { DataType, Variant } from "node-opcua-variant";
+import { addExtensionObjectDataType } from "..";
 
 describe("A- testing UAVariable with number dataType", () => {
     let addressSpace: AddressSpace;
@@ -72,7 +71,7 @@ describe("A- testing UAVariable with number dataType", () => {
         const objectType = namespace.addObjectType({
             browseName: "MyObjectType"
         });
-        const myVariable = namespace.addVariable({
+        const _myVariable = namespace.addVariable({
             browseName: "MyVariable",
             dataType: resolveNodeId(DataTypeIds.Number),
             modellingRule: "Mandatory",
@@ -170,7 +169,7 @@ async function createModelWithAVariableThatHaveAnExtensionObjectWithAFieldWithDa
     variable1.setValueFromSource({ dataType: DataType.Float, value: 3.14 });
 
     await ensureDatatypeExtracted(addressSpace);
-    const xmlbsd = dumpToBSD(namespace);
+    const _xmlbsd = dumpToBSD(namespace);
 
     const extensionObject = addressSpace.constructExtensionObject(uaDataType, {
         field1: new Variant({ dataType: DataType.Float, value: 3.14 })
@@ -194,7 +193,7 @@ describe("C- testing UAVariable with an extension object with a field as number 
         const obj = addressSpace.rootFolder.objects.getFolderElementByName("MyObject")! as UAObject;
         const v = obj.getPropertyByName("MyVariable")! as UAVariable;
 
-        const currentValue = v.readValue().value.value;
+        const _currentValue = v.readValue().value.value;
 
         const newValue = addressSpace.constructExtensionObject(v.dataType, {
             field1: new Variant({ dataType: DataType.UInt32, value: 42 })

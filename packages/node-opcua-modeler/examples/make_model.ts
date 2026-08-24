@@ -11,13 +11,12 @@ import {
     nodesets,
     promoteToMandatory,
     setNamespaceMetaData,
-    Symbols,
     type UAObject,
     type UAVariable,
     type UAVariableT
 } from "..";
 
-import { getPresetSymbolsFromCSV, saveSymbolsToCSV, buildModel } from "../nodeJS";
+import { buildModel, getPresetSymbolsFromCSV, saveSymbolsToCSV } from "../nodeJS";
 
 // node 14 onward : import { writeFile } from "fs/promises";
 const { writeFile } = fs.promises;
@@ -54,7 +53,7 @@ async function createModel(addressSpace: AddressSpace): Promise<void> {
     }
 
     // construct namespace meta data
-    const metaData = setNamespaceMetaData(addressSpace.getOwnNamespace());
+    const _metaData = setNamespaceMetaData(addressSpace.getOwnNamespace());
 
     const boilerDeviceType = ns.addObjectType({
         browseName: "BoilerDeviceType",

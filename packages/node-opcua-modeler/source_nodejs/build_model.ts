@@ -1,7 +1,6 @@
 import { readNodeSet2XmlFile } from "node-opcua-address-space/nodeJS";
-
-import { buildModelInner, type BuildModelOptionsBase } from "..";
 import type { Symbols } from "..";
+import { type BuildModelOptionsBase, buildModelInner } from "..";
 
 export async function buildModel(data: BuildModelOptionsBase): Promise<{ markdown: string; xmlModel: string; symbols: Symbols }> {
     const option1 = {

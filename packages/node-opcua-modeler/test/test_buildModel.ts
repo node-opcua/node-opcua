@@ -1,12 +1,11 @@
-import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { AddressSpace } from "..";
 import { buildModel } from "../nodeJS";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("buildModel", () => {
     it("should build a empty model", async () => {
-        const { xmlModel, symbols, markdown } = await buildModel({
-            createModel: async (addressSpace: AddressSpace) => {
+        const { xmlModel } = await buildModel({
+            createModel: async (_addressSpace: AddressSpace) => {
                 /* empty */
             },
             namespaceUri: "urn:namespace",
