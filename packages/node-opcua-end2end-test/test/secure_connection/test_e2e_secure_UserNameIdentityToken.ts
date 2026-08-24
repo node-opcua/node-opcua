@@ -1,9 +1,22 @@
 import "should";
 import os from "node:os";
-import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, SecurityPolicy, type UserIdentityInfo } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assertThrow } from "../../test_helpers/assert_throw";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+
+interface ConnectionOptions {
+    securityMode?: MessageSecurityMode;
+    securityPolicy?: SecurityPolicy;
+    endpointMustExist?: boolean;
+}
+
+// missing `type` field is intentional: OPCUAClient#createSession() coerces a
+// {}/{userName,password} shaped object into the right UserIdentityInfo variant.
+interface Credentials {
+    userName?: string;
+    password?: string;
+}
 
 // Synchronous user manager
 const userManager = {
@@ -22,7 +35,7 @@ const userManagerAsync = {
     }
 };
 
-async function perform_simple_connection(endpointUrl: string, connectionOption: any, credentials: any) {
+async function perform_simple_connection(endpointUrl: string, connectionOption: ConnectionOptions, credentials: Credentials) {
     const options = {
         securityMode: connectionOption.securityMode || MessageSecurityMode.None,
         securityPolicy: connectionOption.securityPolicy || SecurityPolicy.None,
@@ -31,7 +44,7 @@ async function perform_simple_connection(endpointUrl: string, connectionOption: 
     const client = OPCUAClient.create(options);
     try {
         await client.connect(endpointUrl);
-        const session = await client.createSession(credentials);
+        const session = await client.createSession(credentials as UserIdentityInfo);
         await session.close();
     } finally {
         await client.disconnect();
@@ -39,7 +52,7 @@ async function perform_simple_connection(endpointUrl: string, connectionOption: 
 }
 
 describe("testing Client-Server with UserName/Password identity token", () => {
-    let server: any;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
     let endpointUrl: string;
     const port = 2239;
 
@@ -109,7 +122,7 @@ describe("testing Client-Server with UserName/Password identity token", () => {
 });
 
 describe("testing Client-Server with UserName/Password identity token - Async", () => {
-    let server: any;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
     let endpointUrl: string;
     const port = 2239;
     before(async () => {
