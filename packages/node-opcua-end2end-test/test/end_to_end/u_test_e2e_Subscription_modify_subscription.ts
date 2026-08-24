@@ -1,6 +1,7 @@
 import { type ClientSubscriptionOptions, OPCUAClient } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -8,7 +9,7 @@ const _doDebug = checkDebugFlag("TEST");
 async function pause(delay: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delay));
 }
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     const _options = {};
     describe("ClientSubscription#modify", function (this: Mocha.Suite) {
         it("should modify subscription parameters", async () => {
@@ -21,7 +22,7 @@ export function t(test: any) {
                 requestedMaxKeepAliveCount: 10,
                 requestedPublishingInterval: 500
             };
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             await client.withSubscriptionAsync(endpointUrl, parameters, async (_session, subscription) => {
                 const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
