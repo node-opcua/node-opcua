@@ -9,15 +9,16 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing ClientMonitoredItem#on('terminated') event", () => {
         let client: OPCUAClient;
         let _endpointUrl: string;
 
         beforeEach(async () => {
-            if ((process as any).gc) {
-                (process as any).gc();
+            if (global.gc) {
+                global.gc();
             }
 
             client = OPCUAClient.create({ endpointMustExist: false });
@@ -25,7 +26,7 @@ export function t(test: any) {
             client.on("backoff", () => {
                 console.log("backoff");
             });
-            _endpointUrl = test.endpointUrl;
+            _endpointUrl = test.endpointUrl!;
 
             client.on("lifetime_75", (token) => console.log("token about to expire", token ? token.toString() : ""));
             // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
@@ -43,7 +44,7 @@ export function t(test: any) {
             preset: (subscription: ClientSubscription) => Promise<void>,
             next: (subscription: ClientSubscription) => Promise<void>
         ) {
-            await client.withSessionAsync(test.endpointUrl, async (session) => {
+            await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 150,
                     requestedLifetimeCount: 10 * 60 * 10,
