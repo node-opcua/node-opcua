@@ -6,26 +6,22 @@ import {
     OPCUAClient,
     resolveNodeId,
     TimestampsToReturn,
+    type UAVariable,
     VariableIds,
     Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { wait, waitUntilCondition } from "../../test_helpers/utils";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing bug #119 - monitored item reports only real value changes", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({ keepSessionAlive: true, requestedSessionTimeout: 40 * 60 * 1000 });
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
         afterEach(async () => {
             if (client) {
@@ -57,7 +53,7 @@ export function t(test: TestHarness) {
                 monitoredItem.result!.revisedSamplingInterval.should.eql(samplingInterval);
 
                 let change_count = 0;
-                monitoredItem.on("changed", (dataValue: any) => {
+                monitoredItem.on("changed", (dataValue) => {
                     dataValue.should.be.ok();
                     change_count += 1;
                 });
@@ -66,10 +62,10 @@ export function t(test: TestHarness) {
                 await wait(500);
                 change_count.should.eql(1);
 
-                const node = test.server.engine.addressSpace.findNode(nodeId);
-                node.should.be.ok();
+                const node = test.server!.engine.addressSpace!.findNode(nodeId);
+                (node as unknown as object).should.be.ok();
                 // mutate productName
-                test.server.engine.serverStatus.buildInfo.productName += "Modified";
+                test.server!.engine.serverStatus.buildInfo.productName += "Modified";
 
                 await waitUntilCondition(() => change_count === 2, 5000);
                 await wait(requestedPublishingInterval * 2);
@@ -90,7 +86,7 @@ export function t(test: TestHarness) {
                 });
                 const nodeId = "ns=2;s=Static_Scalar_Double";
                 let count = 1.0;
-                const v: any = test.server.engine.addressSpace.findNode(nodeId);
+                const v = test.server!.engine.addressSpace!.findNode(nodeId) as UAVariable;
                 v.setValueFromSource(new Variant({ dataType: DataType.Double, value: count }));
 
                 const timerId = setInterval(() => {
@@ -106,7 +102,7 @@ export function t(test: TestHarness) {
                 monitoredItem.result!.revisedSamplingInterval.should.eql(500);
 
                 let change_count = 0;
-                monitoredItem.on("changed", (dataValue: any) => {
+                monitoredItem.on("changed", (dataValue) => {
                     dataValue.should.be.ok();
                     change_count += 1;
                 });
