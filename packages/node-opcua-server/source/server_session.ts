@@ -912,7 +912,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 throw new Error("createSubscriptionDiagnosticsArray: sessionObject is not available");
             }
             this.subscriptionDiagnosticsArray = createExtObjArrayNode<SubscriptionDiagnosticsDataType>(this.sessionObject, {
-                browseName: "SubscriptionDiagnosticsArray",
+                browseName: { namespaceIndex: 0, name: "SubscriptionDiagnosticsArray" },
                 complexVariableType: "SubscriptionDiagnosticsArrayType",
                 indexPropertyName: "subscriptionId",
                 minimumSamplingInterval: 2000, // 2 seconds

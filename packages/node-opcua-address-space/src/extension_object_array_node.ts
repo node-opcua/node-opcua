@@ -4,7 +4,7 @@
 
 import type { BindVariableOptionsVariation1, UADynamicVariableArray, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass, type QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
@@ -73,7 +73,7 @@ function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UA
 }
 
 export interface CreateExtObjArrayNodeOptions {
-    browseName: string;
+    browseName: QualifiedNameLike;
     complexVariableType: string | NodeId;
     variableType: string | NodeId;
     indexPropertyName: string;

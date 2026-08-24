@@ -23,7 +23,7 @@ import type {
     VariableStuff
 } from "node-opcua-address-space-base";
 import type { Int64, UAString, UInt32 } from "node-opcua-basic-types";
-import type { AttributeIds, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import type { AttributeIds, LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
@@ -185,7 +185,7 @@ export declare class VariableHistorian implements IVariableHistorian {
 export type UAClonable = UAObject | UAVariable | UAMethod;
 
 export interface CreateExtObjArrayNodeOptions {
-    browseName: string;
+    browseName: QualifiedNameLike;
     complexVariableType: string | NodeId;
     variableType: string | NodeId;
     indexPropertyName: string;
