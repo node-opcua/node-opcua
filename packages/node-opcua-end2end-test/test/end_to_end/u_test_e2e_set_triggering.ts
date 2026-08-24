@@ -31,6 +31,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -43,17 +44,25 @@ interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
     suspend(suspend: boolean): void;
 }
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEnginePrivate;
+}
 function getInternalPublishEngine(session: ClientSession): ClientSidePublishEnginePrivate {
-    const s: ClientSidePublishEnginePrivate = (session as any).getPublishEngine();
+    const s: ClientSidePublishEnginePrivate = (session as SessionWithPublishEngine).getPublishEngine();
     return s;
 }
-export function t(test: any) {
+
+interface ErrorWithServiceFaultResponse extends Error {
+    response?: ServiceFault;
+}
+
+export function t(test: UmbrellaTestContext) {
     async function createSession() {
         const client = OPCUAClient.create({
             keepSessionAlive: true,
             keepAliveInterval: 1000
         });
-        const endpointUrl = test.endpointUrl;
+        const endpointUrl = test.endpointUrl!;
         await client.connect(endpointUrl);
         const session = await client.createSession();
 
@@ -79,14 +88,14 @@ export function t(test: any) {
         publishEngine: ClientSidePublishEnginePrivate;
     }
     let s: Connection;
-    async function waitForRawNotifications(): Promise<ExtensionObject[]> {
+    async function waitForRawNotifications(): Promise<(ExtensionObject | null)[]> {
         const { publishEngine, subscription } = s;
         publishEngine.internalSendPublishRequest();
-        return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
+        return await new Promise((resolve: (result: (ExtensionObject | null)[]) => void) => {
             // wait for fist notification
-            subscription.once("raw_notification", (notificationMessage: any) => {
+            subscription.once("raw_notification", (notificationMessage: NotificationMessage) => {
                 debugLog("got notification message ", notificationMessage.toString());
-                resolve(notificationMessage.notificationData);
+                resolve(notificationMessage.notificationData ?? []);
             });
         });
     }
@@ -161,8 +170,8 @@ export function t(test: any) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
-            const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
+            const addressSpace = test.server!.engine.addressSpace as AddressSpace;
+            const namespace = test.server!.engine.addressSpace!.getOwnNamespace() as Namespace;
 
             const n = namespace.addAnalogDataItem({
                 browseName: "ValueTriggering",
@@ -190,7 +199,7 @@ export function t(test: any) {
             linkedValue2NodeId.should.eql(n3.nodeId.toString());
         });
         beforeEach(async () => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const addressSpace = test.server!.engine.addressSpace as AddressSpace;
             const n = addressSpace.findNode(valueTriggeringNodeId)! as UAVariable;
             n.setValueFromSource({ dataType: DataType.Double, value: 1 }, StatusCodes.Good);
 
@@ -210,7 +219,7 @@ export function t(test: any) {
 
         const changeSpy = sinon.spy();
         async function createMonitoredItem(nodeId: NodeIdLike, monitoringMode: MonitoringMode): Promise<ClientMonitoredItem> {
-            const { session, subscription, publishEngine } = s as Connection;
+            const { subscription } = s as Connection;
 
             const readValue = {
                 attributeId: AttributeIds.Value,
@@ -229,7 +238,7 @@ export function t(test: any) {
             );
 
             if (monitoringMode === MonitoringMode.Reporting) {
-                await new Promise((resolve: any) => {
+                await new Promise<void>((resolve) => {
                     // wait for fist notification
                     monitoredItem.once("changed", (dataValue) => {
                         debugLog("got initial value !!! ", dataValue.value.value);
@@ -245,7 +254,7 @@ export function t(test: any) {
         }
 
         it("SetTriggering-1 it should return BadNothingToDo if both linksToAdd and linksToRemove are empty", async () => {
-            const { session, subscription, publishEngine } = s;
+            const { subscription } = s;
             const t = await createMonitoredItem(valueTriggeringNodeId, MonitoringMode.Reporting);
             const _l1 = await createMonitoredItem(linkedValue1NodeId, MonitoringMode.Sampling);
             const _l2 = await createMonitoredItem(linkedValue2NodeId, MonitoringMode.Sampling);
@@ -259,7 +268,7 @@ export function t(test: any) {
                 _err = err as Error;
             }
             should.exist(_err, "expecting a ServiceFault exception");
-            const response = (_err as any).response as ServiceFault;
+            const response = (_err as ErrorWithServiceFaultResponse).response!;
             response.should.be.instanceOf(ServiceFault);
             response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
 
@@ -267,7 +276,7 @@ export function t(test: any) {
              */
         });
         it("SetTriggering-2 it should return BadNothingToDo if both linksToAdd and linksToRemove are empty", async () => {
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription } = s;
             const t = await createMonitoredItem(valueTriggeringNodeId, MonitoringMode.Reporting);
 
             let _err!: Error;
@@ -295,7 +304,7 @@ export function t(test: any) {
         });
 
         it("SetTriggering-3 it should return BadNothingToDo if both linksToAdd and linksToRemove are empty", async () => {
-            const { session, subscription, publishEngine } = s;
+            const { subscription, publishEngine } = s;
             const t = await createMonitoredItem(valueTriggeringNodeId, MonitoringMode.Reporting);
             const l1 = await createMonitoredItem(linkedValue1NodeId, MonitoringMode.Sampling);
             const l2 = await createMonitoredItem(linkedValue2NodeId, MonitoringMode.Sampling);
