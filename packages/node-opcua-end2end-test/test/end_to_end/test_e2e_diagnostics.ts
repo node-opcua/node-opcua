@@ -1,5 +1,5 @@
 import "should";
-import { OPCUAClient } from "node-opcua";
+import { OPCUAClient, type ServerSecureChannelLayer, type UAVariable } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
@@ -7,8 +7,17 @@ import { perform_operation_on_client_session } from "../../test_helpers/perform_
 // redirectToFile retained for potential future use
 // import { redirectToFile } from "node-opcua-debug/nodeJS";
 
+// _channels is a private OPCUAServerEndPoint field, reached here to observe raw
+// secure-channel byte counters for the diagnostics assertion below.
+interface ServerEndPointWithChannels {
+    _channels: { [key: string]: ServerSecureChannelLayer };
+}
+
 describe("Testing Server and Client diagnostic facilities", function (this: Mocha.Context) {
-    let server: any, client: OPCUAClient | null, _temperatureVariableId: any, endpointUrl: string;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>,
+        client: OPCUAClient | null,
+        _temperatureVariableId: UAVariable,
+        endpointUrl: string;
 
     const port = 2015;
     before(async () => {
@@ -32,8 +41,8 @@ describe("Testing Server and Client diagnostic facilities", function (this: Moch
         await server.shutdown();
     });
 
-    function extract_server_channel() {
-        const cp = server.endpoints[0];
+    function extract_server_channel(): ServerSecureChannelLayer {
+        const cp = server.endpoints[0] as unknown as ServerEndPointWithChannels;
         const ckey = Object.keys(cp._channels);
         return cp._channels[ckey[0]];
     }
@@ -51,7 +60,7 @@ describe("Testing Server and Client diagnostic facilities", function (this: Moch
                 localClient.transactionsPerformed.should.eql(transactionCounter + 1);
                 transactionCounter += 1;
             });
-            const browseResult = await (session as any).browse("RootFolder");
+            const browseResult = await session.browse("RootFolder");
             (browseResult !== null && browseResult !== undefined).should.be.true();
         });
     });
