@@ -1,21 +1,19 @@
+import type { ContinuationData, ISessionContext, UAVariable } from "node-opcua-address-space";
 import { AggregateFunction } from "node-opcua-constants";
-import { ISessionContext, UAVariable, ContinuationData } from "node-opcua-address-space";
-import { NumericRange } from "node-opcua-numeric-range";
-import { QualifiedNameLike } from "node-opcua-data-model";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { HistoryData, HistoryReadResult, ReadProcessedDetails } from "node-opcua-service-history";
-
-import { getMinData, getMaxData } from "./minmax";
-
-import { getInterpolatedData } from "./interpolate";
+import type { QualifiedNameLike } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import { HistoryData, HistoryReadResult, type ReadProcessedDetails } from "node-opcua-service-history";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { getAverageData } from "./average";
 import { getCountData } from "./count";
+import { getDurationBadData } from "./duration_bad";
+import { getDurationGoodData } from "./duration_good";
+import { getInterpolatedData } from "./interpolate";
+import { getMaxData, getMinData } from "./minmax";
 import { getPercentBadData } from "./percent_bad";
 import { getPercentGoodData } from "./percent_good";
-import { getDurationGoodData } from "./duration_good";
-import { getDurationBadData } from "./duration_bad";
 
 function _buildResult(err: Error | null, dataValues: DataValue[] | undefined, callback2: CallbackT<HistoryReadResult>) {
     if (err) {
@@ -143,12 +141,14 @@ export function readProcessedDetails(
     const startTime = historyReadDetails.startTime;
     const endTime = historyReadDetails.endTime;
     if (!startTime || !endTime) {
-        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
+        callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
+        return;
     }
     if (startTime.getTime() === endTime.getTime()) {
         // Start = End Int = Anything No intervals. Returns a Bad_InvalidArgument StatusCode,
         // regardless of whether there is data at the specified time or not
-        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
+        callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument }));
+        return;
     }
 
     const aggregateTypes: NodeId[] = historyReadDetails.aggregateType || [];
@@ -157,9 +157,9 @@ export function readProcessedDetails(
     // starting at startTime and ending at endTime.
     const processingInterval = historyReadDetails.processingInterval || endTime.getTime() - startTime.getTime();
 
-    // tslint:disable-next-line: prefer-for-of
     if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== 1) {
-        return callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
+        callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
+        return;
     }
-    return applyAggregate(variable, processingInterval, startTime, endTime, aggregateTypes[0], callback);
+    applyAggregate(variable, processingInterval, startTime, endTime, aggregateTypes[0], callback);
 }

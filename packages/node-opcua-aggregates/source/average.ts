@@ -1,10 +1,10 @@
-import { UAVariable } from "node-opcua-address-space";
+import type { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
-import { DataType } from "node-opcua-variant";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions } from "./interval";
+import type { AggregateConfigurationOptions, Interval } from "./interval";
 
 function calculateIntervalAverageValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     const indexStart = interval.index;

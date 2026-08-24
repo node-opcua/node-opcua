@@ -1,33 +1,27 @@
-/* eslint-disable max-statements */
-import should from "should";
-
-import { AddressSpace, BaseNode, UAObject, UAVariable } from "node-opcua-address-space";
-import { DataValue } from "node-opcua-data-value";
-import { nodesets } from "node-opcua-nodesets";
+import { AddressSpace, type BaseNode, type UAObject, type UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import type { DataValue } from "node-opcua-data-value";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-
+import should from "should";
 import {
     AggregateFunction,
-    getInterpolatedData,
-    installAggregateConfigurationOptions,
     addAggregateSupport,
     getAggregateConfiguration,
-    getMaxData,
-    getMinData,
     getAverageData,
     getCountData,
-    getPercentGoodData,
-    getPercentBadData,
     getDurationBadData,
-    getDurationGoodData
+    getDurationGoodData,
+    getInterpolatedData,
+    getMaxData,
+    getMinData,
+    getPercentBadData,
+    getPercentGoodData,
+    installAggregateConfigurationOptions
 } from "..";
-
 import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables";
 import { makeDate } from "./helpers/helpers";
-
-
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Aggregates ", () => {
     let addressSpace: AddressSpace;
@@ -134,7 +128,6 @@ describe("Aggregates - Function ", () => {
         h2 = createHistorian2(addressSpace);
         h3 = createHistorian3(addressSpace);
         h4 = createHistorian4(addressSpace);
-
     });
     after(() => {
         addressSpace.dispose();
@@ -152,10 +145,10 @@ describe("Aggregates - Function ", () => {
 
         const v =
             dataValue.value && dataValue.value.value !== undefined && dataValue.value.value !== null
-                ? n(dataValue.value.value) + " "
+                ? `${n(dataValue.value.value)} `
                 : "";
 
-        const retVal = s + " " + v + dataValue.statusCode.toString().split(" ")[0];
+        const retVal = `${s} ${v}${dataValue.statusCode.toString().split(" ")[0]}`;
         // console.log(retVal);
         return retVal;
     }
@@ -675,7 +668,6 @@ describe("Aggregates - Function ", () => {
         console.log("startDate = ", endDate.toISOString());
 
         getCountData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
-
             if (err) {
                 return done(err);
             }

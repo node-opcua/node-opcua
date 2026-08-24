@@ -1,7 +1,6 @@
-import should from "should";
-
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 
 import { getInterval, interpolatedValue } from "..";
 

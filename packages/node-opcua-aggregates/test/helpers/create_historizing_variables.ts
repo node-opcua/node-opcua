@@ -1,7 +1,7 @@
-import { AddressSpace, IHistoricalDataNodeOptions, UAVariable } from "node-opcua-address-space";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type AddressSpace, IHistoricalDataNodeOptions, type UAVariable } from "node-opcua-address-space";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { AggregateConfigurationOptions, AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
+import { AggregateConfigurationOptions, type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
 import { makeDataValue } from "./helpers";
 
 function addHistory(node: UAVariable, time: string, value: number | boolean | null, statusCode: StatusCode): void {

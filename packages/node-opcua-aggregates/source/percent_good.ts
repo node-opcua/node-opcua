@@ -1,11 +1,10 @@
-import { UAVariable } from "node-opcua-address-space";
+import type { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
-import { DataType } from "node-opcua-variant";
 import { StatusCodes } from "node-opcua-status-code";
-
-import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions } from "./interval";
+import { DataType } from "node-opcua-variant";
 import { calculateBadAndGood } from "./calculate_bad_good";
+import { getAggregateData } from "./common";
+import type { AggregateConfigurationOptions, Interval } from "./interval";
 
 function calculatePercentGood(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     //

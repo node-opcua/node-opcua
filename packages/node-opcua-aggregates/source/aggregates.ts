@@ -1,11 +1,8 @@
 /**
  * @module node-opcua-aggregates
  */
-import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { DataType } from "node-opcua-variant";
-import { lowerFirstLetter } from "node-opcua-utils";
-import {
+
+import type {
     AddressSpace,
     BaseNode,
     IAddressSpace,
@@ -15,11 +12,15 @@ import {
     UAServerCapabilities,
     UAVariable
 } from "node-opcua-address-space";
-import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
-import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
+import type { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
 import { assert } from "node-opcua-assert";
+import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
+import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
+import { coerceNodeId, makeNodeId, type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { lowerFirstLetter } from "node-opcua-utils";
+import { DataType } from "node-opcua-variant";
 
-import { AggregateConfigurationOptionsEx } from "./interval";
+import type { AggregateConfigurationOptionsEx } from "./interval";
 import { readProcessedDetails } from "./read_processed_details";
 
 // import { HistoryServerCapabilities } from "node-opcua-server";
@@ -80,15 +81,15 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
         const lowerCase = lowerFirstLetter(propName);
 
         /* c8 ignore next */
-        if (!Object.prototype.hasOwnProperty.call(defaultProperties, lowerCase)) {
-            throw new Error("cannot find " + lowerCase);
+        if (!Object.hasOwn(defaultProperties, lowerCase)) {
+            throw new Error(`cannot find ${lowerCase}`);
         }
         const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
 
         /* c8 ignore next */
         if (!prop) {
-            throw new Error(" Cannot find property " + propName);
+            throw new Error(` Cannot find property ${propName}`);
         }
         prop.setValueFromSource({ dataType: DataType.Boolean, value });
     }
@@ -96,8 +97,8 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     function setUInt32(propName: string) {
         const lowerCase = lowerFirstLetter(propName);
         /* c8 ignore next */
-        if (!Object.prototype.hasOwnProperty.call(historyServerCapabilities, lowerCase)) {
-            throw new Error("cannot find " + lowerCase);
+        if (!Object.hasOwn(historyServerCapabilities, lowerCase)) {
+            throw new Error(`cannot find ${lowerCase}`);
         }
         const value = defaultProperties[lowerCase];
         const prop = historyServerCapabilities.getChildByName(propName);
@@ -145,7 +146,7 @@ export function addAggregateFunctionSupport(addressSpace: AddressSpace, aggregat
 
     /* c8 ignore next */
     if (!functionNode) {
-        throw new Error("Cannot find node " + aggregateFunctionNodeId.toString() + " in addressSpace");
+        throw new Error(`Cannot find node ${aggregateFunctionNodeId.toString()} in addressSpace`);
     }
     /* c8 ignore next */
     if (functionNode.nodeClass !== NodeClass.Object) {

@@ -1,14 +1,13 @@
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { Interval, AggregateConfigurationOptions, isUncertain } from "./interval";
-
+import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval";
 
 const a = (s: StatusCode | undefined, options: AggregateConfigurationOptions) =>
     !s || s === StatusCodes.BadNoData
         ? StatusCodes.BadNoData
         : s.isBad() || (options.treatUncertainAsBad && isUncertain(s))
-        ? StatusCodes.Bad
-        : StatusCodes.Good;
+          ? StatusCodes.Bad
+          : StatusCodes.Good;
 
 function findLowBound(
     interval: Interval,
@@ -28,7 +27,6 @@ function findLowBound(
     return { previousStatus, previousTime, indexStart };
 }
 
-// eslint-disable-next-line max-statements, complexity
 export function calculateBadAndGood(
     interval: Interval,
     options: AggregateConfigurationOptions

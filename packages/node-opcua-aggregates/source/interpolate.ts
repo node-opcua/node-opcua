@@ -37,18 +37,13 @@
 // Bound Bad                   Does not return a Bad bound except as noted above
 // Bound Uncertain             Returned Uncertain_DataSubNormal if any Bad value(s) was/were skipped to
 //                             calculate the bounding value.
-import { UAVariable } from "node-opcua-address-space";
+import type { UAVariable } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateData, interpolateValue } from "./common";
-import {
-    _findGoodDataValueBefore,
-    adjustProcessingOptions,
-    AggregateConfigurationOptionsEx,
-    Interval,
-} from "./interval";
+import { _findGoodDataValueBefore, type AggregateConfigurationOptionsEx, adjustProcessingOptions, type Interval } from "./interval";
 
 /*
  For any intervals containing regions where the StatusCodes are Bad,
@@ -63,8 +58,8 @@ import {
 export function interpolatedValue(interval: Interval, options: AggregateConfigurationOptionsEx): DataValue {
     options = adjustProcessingOptions(options);
 
-    assert(Object.prototype.hasOwnProperty.call(options, "useSlopedExtrapolation"));
-    assert(Object.prototype.hasOwnProperty.call(options, "treatUncertainAsBad"));
+    assert(Object.hasOwn(options, "useSlopedExtrapolation"));
+    assert(Object.hasOwn(options, "treatUncertainAsBad"));
 
     const bTreatUncertainAsBad = options.treatUncertainAsBad!;
 
@@ -105,7 +100,6 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
         // else interpolate
         const interpVal = interpolateValue(prev2.dataValue, prev1.dataValue, interval.startTime);
 
-        // tslint:disable:no-bitwise
         if (prev2.index + 1 < prev1.index || prev1.index < interval.dataValues.length - 1) {
             // some bad data exist in between = change status code
             const mask = 0x0000ffffff;
@@ -163,7 +157,6 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     const interpolatedDataValue = interpolateValue(before.dataValue, next.dataValue, interval.startTime);
 
     if (before.index + 1 < next.index || !next.dataValue.statusCode.isGood() || !before.dataValue.statusCode.isGood()) {
-        // tslint:disable:no-bitwise
         // some bad data exist in between = change status code
         const mask = 0x0000ffffff;
         const extraBits = interpolatedDataValue.statusCode.value & mask;

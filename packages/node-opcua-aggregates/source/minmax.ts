@@ -52,15 +52,14 @@
 // No End Bound             Not Applicable
 // Bound Bad                Not Applicable
 // Bound Uncertain          Not Applicable
-import { UAVariable } from "node-opcua-address-space";
+import type { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
+import type { Variant } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { AggregateConfigurationOptions, Interval } from "./interval";
+import type { AggregateConfigurationOptions, Interval } from "./interval";
 
-// eslint-disable-next-line max-statements
 function calculateIntervalMinOrMaxValue(
     interval: Interval,
     options: AggregateConfigurationOptions,
@@ -217,7 +216,7 @@ export function getMinData(
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ): void {
-    return getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMinValue, callback);
+    getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMinValue, callback);
 }
 
 export function getMaxData(
@@ -227,5 +226,5 @@ export function getMaxData(
     endDate: Date,
     callback: (err: Error | null, dataValues?: DataValue[]) => void
 ): void {
-    return getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMaxValue, callback);
+    getAggregateData(node, processingInterval, startDate, endDate, calculateIntervalMaxValue, callback);
 }

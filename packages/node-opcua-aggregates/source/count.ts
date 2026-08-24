@@ -1,10 +1,10 @@
-import { UAVariable } from "node-opcua-address-space";
+import type { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isUncertain } from "./interval";
+import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval";
 
 /**
  * The Count Aggregate retrieves a count of all the raw values within an interval.

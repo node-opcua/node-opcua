@@ -2,21 +2,20 @@
  * @module node-opca-aggregates
  */
 import { DataValue } from "node-opcua-data-value";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { AggregateConfigurationOptions } from "node-opcua-types";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { AggregateConfigurationOptions } from "node-opcua-types";
+
 export { AggregateConfigurationOptions } from "node-opcua-types";
 
 export interface AggregateConfigurationOptionsEx extends AggregateConfigurationOptions {
     stepped?: boolean;
 }
 
-
 export function isGoodish2(statusCode: StatusCode, { treatUncertainAsBad }: { treatUncertainAsBad?: boolean }): boolean {
     if (statusCode.isGoodish()) return true;
     if (isUncertain(statusCode)) return !treatUncertainAsBad;
     return false;
 }
-
 
 export function isUncertain(statusCode: StatusCode): boolean {
     return (statusCode.value & 0x40000000) === 0x40000000 && statusCode.value !== StatusCodes.BadNoData.value;
@@ -144,14 +143,14 @@ export class Interval {
 
     public toString(): string {
         let str = "";
-        str += "startTime " + this.startTime.toUTCString() + "\n";
-        str += "start     " + this.index + "  ";
-        str += "count     " + this.count + " ";
-        str += "isPartial " + this.isPartial + "\n";
+        str += `startTime ${this.startTime.toUTCString()}\n`;
+        str += `start     ${this.index}  `;
+        str += `count     ${this.count} `;
+        str += `isPartial ${this.isPartial}\n`;
         if (this.index >= 0) {
             for (let i = this.index; i < this.index + this.count; i++) {
                 const dataValue = this.dataValues[i];
-                str += " " + dataValue.sourceTimestamp!.toUTCString() + dataValue.statusCode.toString();
+                str += ` ${dataValue.sourceTimestamp!.toUTCString()}${dataValue.statusCode.toString()}`;
                 str += dataValue.value ? dataValue.value.toString() : "";
                 str += "\n";
             }
@@ -175,7 +174,7 @@ export class Interval {
     }
 
     /**
-     * 
+     *
      * @returns the interval duration
      */
     duration() {

@@ -1,15 +1,15 @@
 /**
  * @module node-opca-aggregates
  */
-import { SessionContext, UAVariable, ContinuationPointManager, ContinuationPoint } from "node-opcua-address-space";
+import { type ContinuationPoint, ContinuationPointManager, SessionContext, type UAVariable } from "node-opcua-address-space";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { coerceNodeId } from "node-opcua-nodeid";
+import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateConfiguration } from "./aggregates";
-import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interval";
+import { type AggregateConfigurationOptionsEx, getInterval, type Interval } from "./interval";
 
 /**
  * @internal
@@ -63,12 +63,14 @@ export function getAggregateData(
 ): void {
     /* c8 ignore next */
     if (node.nodeClass !== NodeClass.Variable) {
-        return callback(new Error("node must be UAVariable"));
+        callback(new Error("node must be UAVariable"));
+        return;
     }
 
     /* c8 ignore next */
     if (processingInterval <= 0) {
-        return callback(new Error("Invalid processing interval, shall be greater than 0"));
+        callback(new Error("Invalid processing interval, shall be greater than 0"));
+        return;
     }
 
     const continuationPointManager = new ContinuationPointManager();
