@@ -15,10 +15,11 @@ import {
 } from "node-opcua";
 import sinon from "sinon";
 import { waitUntilCondition } from "../../test_helpers/utils";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = false;
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("SDS1 Testing SessionDiagnostics 1/2", () => {
         /** @type {ClientSubscriptionOptions} */
         const subscriptionParameters = {
@@ -29,7 +30,7 @@ export function t(test: any) {
         };
         it("SDS1-A server should expose a ServerDiagnostic object", async () => {
             const client = OPCUAClient.create({});
-            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, _subscription) => {
+            await client.withSubscriptionAsync(test.endpointUrl!, subscriptionParameters, async (session, _subscription) => {
                 const nodesToRead = [
                     {
                         nodeId: makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary),
@@ -67,7 +68,7 @@ export function t(test: any) {
 
         it("SDS1-B server should expose a SessionDiagnostics per Session", async () => {
             const client = OPCUAClient.create({});
-            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+            await client.withSubscriptionAsync(test.endpointUrl!, subscriptionParameters, async (session, subscription) => {
                 await readNamespaceArray(session);
 
                 console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
@@ -182,7 +183,7 @@ export function t(test: any) {
                 monitoredItemGroup.monitoredItems[3].statusCode.should.eql(StatusCodes.Good);
 
                 monitoredItemGroup.on("changed", monitoredItemGroupChangeSpy);
-                const dataValuesMap: any = {};
+                const dataValuesMap: Record<string, unknown[]> = {};
                 monitoredItemGroup.on(
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
@@ -242,7 +243,7 @@ export function t(test: any) {
 
         it("SDS1-C server should expose a SessionDiagnostics in SessionDiagnosticsSummary.SessionDiagnosticsArray", async () => {
             const client = OPCUAClient.create({});
-            await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, _subscription) => {
+            await client.withSubscriptionAsync(test.endpointUrl!, subscriptionParameters, async (session, _subscription) => {
                 //xx console.log("session nodeId = ",session.sessionId);
 
                 const sessionDiagnosticsArrayNodeId = resolveNodeId(
@@ -285,7 +286,7 @@ export function t(test: any) {
             );
             const serverNodeId = resolveNodeId("Server");
             const client = OPCUAClient.create({});
-            return await client.withSessionAsync(test.endpointUrl, async (session) => {
+            return await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 const browsePath = [
                     makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray")
                 ];
@@ -311,7 +312,7 @@ export function t(test: any) {
 
             const client = OPCUAClient.create({});
 
-            const nbSessionDiagnosticsStep = await client.withSessionAsync(test.endpointUrl, async (_session) => {
+            const nbSessionDiagnosticsStep = await client.withSessionAsync(test.endpointUrl!, async (_session) => {
                 return await countNumberOfExposedSessionDiagnostics();
             });
 
