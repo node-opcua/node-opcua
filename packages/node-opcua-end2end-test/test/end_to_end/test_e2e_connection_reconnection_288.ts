@@ -5,27 +5,28 @@ import {
     type ClientMonitoredItem,
     type ClientSession,
     type ClientSubscription,
+    type ConnectionStrategyOptions,
     coerceNodeId,
     DataType,
     MonitoringMode,
     type NodeIdLike,
     OPCUAClient,
+    type ServerState,
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { crash_simple_server, start_simple_server } from "../../test_helpers/external_server_fixture";
+import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture";
 import "should";
 
 const doDebug = false;
 const debugLog = make_debugLog("TEST");
 
-interface ExternalServerData {
-    endpointUrl: string;
-}
+// biome-ignore lint/suspicious/noExplicitAny: reaching into private client/session/subscription implementation internals (isChannelValid, evaluateRemainingLifetime, publishEngine) for diagnostics-only debug logging
+type InternalAny = any;
 
-let server_data: ExternalServerData | null = null;
+let server_data: ServerHandle | null = null;
 const port = 2016;
 
 async function start_external_opcua_server() {
@@ -34,12 +35,12 @@ async function start_external_opcua_server() {
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };
-    server_data = (await start_simple_server(options)) as ExternalServerData;
+    server_data = await start_simple_server(options);
 }
 
 async function crash_external_opcua_server() {
     if (server_data) {
-        await crash_simple_server(server_data as any);
+        await crash_simple_server(server_data);
         server_data = null;
     }
 }
@@ -51,7 +52,7 @@ let intervalId: NodeJS.Timeout | null;
 let monitoredItem: ClientMonitoredItem | null;
 let subscription: ClientSubscription | null; // active subscription
 
-async function start_active_client(connectionStrategy: any | undefined) {
+async function start_active_client(connectionStrategy: ConnectionStrategyOptions | undefined) {
     if (!server_data) throw new Error("Server not started");
     const endpointUrl = server_data.endpointUrl;
 
@@ -75,13 +76,13 @@ async function start_active_client(connectionStrategy: any | undefined) {
     session = await client.createSession();
     debugLog("session timeout = ", session.timeout);
 
-    session.on("keepalive", (state: any) => {
+    session.on("keepalive", (state: ServerState) => {
         if (doDebug && subscription) {
             debugLog(
                 chalk.yellow("KeepAlive state="),
                 state.toString(),
                 " pending request on server = ",
-                (subscription as any).publishEngine.nbPendingPublishRequests
+                (subscription as InternalAny).publishEngine.nbPendingPublishRequests
             );
         }
     });
@@ -110,7 +111,7 @@ async function start_active_client(connectionStrategy: any | undefined) {
                 debugLog(
                     chalk.cyan("keepalive "),
                     chalk.cyan(" pending request on server = "),
-                    (subscription as any).publishEngine.nbPendingPublishRequests
+                    (subscription as InternalAny).publishEngine.nbPendingPublishRequests
                 );
             }
         })
@@ -137,7 +138,7 @@ async function start_active_client(connectionStrategy: any | undefined) {
             " ( requested ",
             `${parameters.requestedPublishingInterval})`
         );
-        debugLog("  suggested timeout hint     ", (subscription as any).publishEngine.timeoutHint);
+        debugLog("  suggested timeout hint     ", (subscription as InternalAny).publishEngine.timeoutHint);
     }
 
     const requestedParameters = { samplingInterval: 250, queueSize: 1, discardOldest: true };
@@ -162,15 +163,15 @@ async function start_active_client(connectionStrategy: any | undefined) {
         if (doDebug && subscription) {
             debugLog(
                 " Session OK ? ",
-                (session as any).isChannelValid(),
+                (session as InternalAny).isChannelValid(),
                 "session will expired in ",
-                (session as any).evaluateRemainingLifetime() / 1000,
+                (session as InternalAny).evaluateRemainingLifetime() / 1000,
                 " seconds",
                 chalk.red("subscription will expire in "),
-                (subscription as any).evaluateRemainingLifetime() / 1000,
+                (subscription as InternalAny).evaluateRemainingLifetime() / 1000,
                 " seconds",
                 chalk.red("subscription?"),
-                (session as any).subscriptionCount
+                session.subscriptionCount
             );
         }
         const nodeToWrite = {
@@ -181,7 +182,7 @@ async function start_active_client(connectionStrategy: any | undefined) {
                 sourceTimestamp: new Date(),
                 value: { dataType: DataType.Int32, value: counter }
             }
-        } as any;
+        };
         session.write(nodeToWrite, (err) => {
             if (err) {
                 if (doDebug) debugLog(chalk.red("       writing Failed "), err.message);
@@ -213,7 +214,7 @@ async function terminate_active_client() {
     monitoredItem = null;
 }
 
-async function f(func: () => Promise<any>) {
+async function f(func: () => Promise<void>) {
     debugLog(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
     return await func();
 }
@@ -241,7 +242,7 @@ describe("Testing client reconnection with crashing server", function (this: Moc
         await when_the_server_restart();
     }
     async function _when_the_client_emit_a_keep_alive_failure() {
-        await new Promise((resolve) => (session as any)?.once("keepalive_failure", () => resolve(undefined)));
+        await new Promise((resolve) => session?.once("keepalive_failure", () => resolve(undefined)));
     }
     async function _when_the_server_restart_after_some_very_long_time_greater_then_session_timeout() {
         await new Promise((resolve) => setTimeout(resolve, 10000));
