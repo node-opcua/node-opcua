@@ -8,11 +8,14 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 import { type AddressSpace, type BaseNode, SessionContext, type UAAlarmConditionEx, type UAObject, type UAVariable } from "../..";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-export function utest_alarm_condition(test: any): void {
+type MochaSuiteExWithEngine = MochaSuiteEx & { engine?: UAObject };
+
+export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
     describe("AlarmConditionType", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
@@ -34,8 +37,8 @@ export function utest_alarm_condition(test: any): void {
             });
             alarm.browseName.toString().should.eql("1:AlarmCondition1");
 
-            should.not.exist((alarm as any).maxTimedShelved);
-            should.not.exist((alarm as any).confirmedState);
+            should.not.exist((alarm as unknown as { maxTimedShelved?: unknown }).maxTimedShelved);
+            should.not.exist((alarm as unknown as { confirmedState?: unknown }).confirmedState);
         });
 
         it("should instantiate AlarmConditionType (variation 2)", () => {
@@ -187,7 +190,7 @@ export function utest_alarm_condition(test: any): void {
 
                 const context = new SessionContext();
 
-                const values: any[] = [];
+                const values: number[] = [];
 
                 // function calling_timedShelve(callback) {
                 const _callMethodResponse1 = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);

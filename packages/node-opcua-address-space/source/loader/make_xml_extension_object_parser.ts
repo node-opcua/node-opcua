@@ -70,18 +70,30 @@ function clamp(value: number, minValue: number, maxValue: number) {
 
 interface Parser<T> extends ReaderStateParserLike {
     value: T | null;
-    parent: any;
+    parent: Parser<unknown>;
     text: string;
+}
+
+// generic loose parser-state shape used by the Xml2Json engine: `this` here is a
+// dynamically-populated reader state whose fields (value/parent/text/...) vary by parser,
+// see the `this: any` justification in ReaderStateParserLike itself (node-opcua-xml2json).
+interface AnyParserState extends ReaderStateParserLike {
+    value: unknown;
+    parent: AnyParserState;
+    text: string;
+    name?: string;
+    obj?: unknown;
+    parser: Record<string, AnyParserState>;
 }
 
 // <StatusCode><Code>2153644032</Code></StatusCode>
 const statusCode_parser: ReaderStateParserLike = {
-    init(this: any) {
+    init(this: AnyParserState) {
         this.value = StatusCodes.Good;
     },
     parser: {
         Code: {
-            finish(this: any) {
+            finish(this: AnyParserState) {
                 this.parent.value = coerceStatusCode(parseInt(this.text, 10));
             }
         }
@@ -92,16 +104,16 @@ const statusCode_parser: ReaderStateParserLike = {
 // created when at least one field is present ( <DiagnosticInfo/> stays empty ).
 function _diagnosticInfoField(name: string, convert: (text: string) => unknown): ReaderStateParserLike {
     return {
-        finish(this: any) {
+        finish(this: AnyParserState) {
             this.parent.value = this.parent.value || {};
-            this.parent.value[name] = convert(this.text);
+            (this.parent.value as Record<string, unknown>)[name] = convert(this.text);
         }
     };
 }
 
 // <DiagnosticInfo><SymbolicId>1</SymbolicId>...<InnerDiagnosticInfo>...</InnerDiagnosticInfo></DiagnosticInfo>
 const diagnosticInfo_parser: ReaderStateParserLike = {
-    init(this: any) {
+    init(this: AnyParserState) {
         this.value = undefined;
     },
     parser: {
@@ -112,20 +124,23 @@ const diagnosticInfo_parser: ReaderStateParserLike = {
         AdditionalInfo: _diagnosticInfoField("additionalInfo", (text) => text),
         InnerStatusCode: {
             ...statusCode_parser,
-            finish(this: any) {
+            finish(this: AnyParserState) {
                 this.parent.value = this.parent.value || {};
-                this.parent.value.innerStatusCode = this.value;
+                (this.parent.value as Record<string, unknown>).innerStatusCode = this.value;
             }
         }
     }
 };
 // InnerDiagnosticInfo is a DiagnosticInfo in turn: the parser is registered after the
 // fact so that it can refer to the reader being built.
-diagnosticInfo_parser.parser!.InnerDiagnosticInfo = {
+if (!diagnosticInfo_parser.parser) {
+    throw new Error("internal error: diagnosticInfo_parser.parser must be defined");
+}
+diagnosticInfo_parser.parser.InnerDiagnosticInfo = {
     ...diagnosticInfo_parser,
-    finish(this: any) {
+    finish(this: AnyParserState) {
         this.parent.value = this.parent.value || {};
-        this.parent.value.innerDiagnosticInfo = this.value;
+        (this.parent.value as Record<string, unknown>).innerDiagnosticInfo = this.value;
     }
 };
 const partials = {
@@ -238,7 +253,7 @@ const partials = {
     },
 
     Variant: {
-        finish(this: any) {
+        finish(this: AnyParserState) {
             /** to do */
             warningLog(" Missing  Implemntation contact sterfive.com!");
         }
@@ -281,7 +296,7 @@ export interface DefinitionMap2 {
     findDefinition(dataTypeNodeId: NodeId): TypeInfo;
 }
 
-function _clone(a: any): any {
+function _clone(a: unknown): unknown {
     if (typeof a === "string" || typeof a === "number" || typeof a === "boolean") {
         return a;
     }
@@ -294,7 +309,7 @@ function _clone(a: any): any {
     if (Array.isArray(a)) {
         return a.map((x) => _clone(x));
     }
-    return { ...a };
+    return { ...(a as Record<string, unknown>) };
 }
 
 function _makeTypeReader(
@@ -302,7 +317,7 @@ function _makeTypeReader(
     definitionMap: DefinitionMap2,
     readerMap: Map<string, ReaderStateParserLike>,
     translateNodeId: (nodeId: string) => NodeId
-): { name: string; reader: ReaderStateParser } {
+): { name: string; reader: ReaderStateParserLike } {
     const n = dataTypeNodeId1 as INodeId;
     if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value === 0) {
         // a generic Extension Object
@@ -311,7 +326,7 @@ function _makeTypeReader(
 
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value < DataType.ExtensionObject) {
         const name = DataType[n.value as number] as string;
-        const reader = partials[name as keyof typeof partials] as ReaderStateParser;
+        const reader = partials[name as keyof typeof partials] as ReaderStateParserLike;
         return { name, reader };
     }
 
@@ -319,26 +334,32 @@ function _makeTypeReader(
 
     const dataTypeName = name;
 
-    let reader: ReaderStateParserLike = readerMap.get(dataTypeName)!;
+    let reader: ReaderStateParserLike | undefined = readerMap.get(dataTypeName);
 
     if (reader) {
         return { name, reader };
     }
 
     reader = {
-        init(this: any) {
+        init(this: AnyParserState) {
             // the same reader instance is used for every element of that data type: the value must be
             // reset here, or the element being read would inherit the fields of the previously read one
             // ( or of the enclosing one, when the structure refers to itself ).
             this.value = undefined;
         },
-        finish(this: any) {
+        finish(this: AnyParserState) {
             /** empty  */
         },
         parser: {
             /** empty  */
         }
     };
+    // `reader.parser` is guaranteed defined: it was just set as a literal above, and the
+    // ReaderStateParserLike interface only declares it optional for other unrelated call sites.
+    const readerParser = reader.parser;
+    if (!readerParser) {
+        throw new Error("internal error: reader.parser must be defined");
+    }
 
     if (definition instanceof StructureDefinition) {
         // the reader must be registered *before* its fields are explored: a structure may refer to
@@ -363,17 +384,17 @@ function _makeTypeReader(
                     throw new Error(`??? ${field.dataType}  ${field.name}`);
                 }
 
-                reader.parser![field.name || ""] = {
+                readerParser[field.name || ""] = {
                     parser: fieldParser.parser,
                     // the field reader borrows the partial's sub-parsers: it must borrow its init
                     // too, or the state those sub-parsers write into is never set up.
-                    init(this: any, elementName: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
+                    init(this: AnyParserState, elementName: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
                         if (fieldParser.init) {
                             fieldParser.init.call(this, elementName, attrs, parent, engine);
                         }
                     },
                     // endElement: fieldReader.endElement,
-                    finish(this: any) {
+                    finish(this: AnyParserState) {
                         const elName = lowerFirstLetter(field.name || "");
                         if (fieldParser.finish) {
                             fieldParser.finish.call(this);
@@ -381,54 +402,56 @@ function _makeTypeReader(
                             debugLog(`xxx check ${fieldTypename}`);
                         }
                         this.parent.value = this.parent.value || Object.create(null);
-                        this.parent.value[elName] = _clone(this.value);
+                        (this.parent.value as Record<string, unknown>)[elName] = _clone(this.value);
                     }
                 };
             } else if (field.valueRank === 1) {
                 const listReader: ReaderStateParserLike = {
-                    init(this: any) {
+                    init(this: AnyParserState) {
                         this.value = [];
                     },
                     parser: {
                         /** empty */
                     },
-                    finish(this: any) {
-                        const elName = lowerFirstLetter(this.name);
+                    finish(this: AnyParserState) {
+                        const elName = lowerFirstLetter(this.name || "");
                         this.parent.value = this.parent.value || Object.create(null);
-                        this.parent.value[elName] = this.value;
+                        (this.parent.value as Record<string, unknown>)[elName] = this.value;
                         this.value = undefined;
                     },
                     startElement(_name: string, _attrs: XmlAttributes) {
                         // empty
                     },
-                    endElement(element: string) {
-                        this.value.push(_clone(this.parser[element].value));
+                    endElement(this: AnyParserState, element: string) {
+                        (this.value as unknown[]).push(_clone(this.parser[element].value));
                     }
                 };
-                listReader.parser![fieldTypename] = fieldParser;
-                reader.parser![field.name!] = listReader;
+                const listReaderParser = listReader.parser;
+                if (!listReaderParser) {
+                    throw new Error("internal error: listReader.parser must be defined");
+                }
+                listReaderParser[fieldTypename] = fieldParser;
+                readerParser[field.name || ""] = listReader;
             } else {
                 throw new Error("Unsupported ValueRank !");
             }
         }
         return { name, reader };
     } else if (definition instanceof EnumDefinition) {
-        const turnToInt = (value: any) => {
+        const turnToInt = (value: string) => {
             // Green_100
             return parseInt(value.split("_")[1], 10);
         };
         return {
             name,
             reader: {
-                finish(this: any) {
+                finish(this: AnyParserState) {
                     this.value = turnToInt(this.text);
                 }
             }
         };
     } else if (definition?.dataType === DataType.Variant) {
         // <Value><String>Foo</String></Value>
-        type Task = (addressSpace: any) => Promise<void>;
-
         let variantOptions: VariantOptions = Object.create(null);
 
         const variantReader = makeVariantReader(
@@ -444,11 +467,11 @@ function _makeTypeReader(
         return {
             name,
             reader: {
-                init(this: any, _name: string, _attrs: XmlAttributes, _parent: IReaderState, _engine: Xml2Json) {
+                init(this: AnyParserState, _name: string, _attrs: XmlAttributes, _parent: IReaderState, _engine: Xml2Json) {
                     this.obj = {};
                 },
                 ...variantReader,
-                finish(this: any & { value: Variant }) {
+                finish(this: AnyParserState) {
                     this.value = new Variant(variantOptions);
                 }
             }
@@ -456,7 +479,7 @@ function _makeTypeReader(
     } else {
         // basic datatype
         const typeName: string = DataType[definition.dataType];
-        const reader = partials[typeName as keyof typeof partials] as ReaderStateParser;
+        const reader = partials[typeName as keyof typeof partials] as ReaderStateParserLike;
         // c8 ignore next
         if (!reader) {
             throw new Error(`missing parse for ${typeName}`);
@@ -478,14 +501,22 @@ export function makeXmlExtensionObjectReader(
         throw new Error("Expecting StructureDefinition");
     }
     //
-    const reader1: ReaderStateParser = {
-        parser: {},
-        endElement(this: any) {
+    interface Reader1State extends IReaderState {
+        _pojo?: unknown;
+        parser: Record<string, AnyParserState>;
+    }
+    const reader1 = {
+        parser: {} as Record<string, AnyParserState>,
+        endElement(this: Reader1State) {
             this._pojo = this.parser[name].value;
         }
     };
     const { reader } = _makeTypeReader(dataTypeNodeId, definitionMap, readerMap, translateNodeId);
-    reader1.parser![name] = reader as ReaderStateParserLike;
+    const reader1Parser = reader1.parser;
+    if (!reader1Parser) {
+        throw new Error("internal error: reader1.parser must be defined");
+    }
+    reader1Parser[name] = reader as unknown as AnyParserState;
 
-    return new ReaderState(reader1);
+    return new ReaderState(reader1 as unknown as ReaderStateParser);
 }

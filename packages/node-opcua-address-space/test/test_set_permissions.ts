@@ -35,6 +35,14 @@ const _keep_should = should;
 
 import { date_add, getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
 
+// canUserXXXHistory methods are implemented on UAVariableImpl but are not part of the public UAVariable interface
+interface UAVariableWithHistoryPermissions {
+    canUserReadHistory(context: ISessionContext): boolean;
+    canUserInsertHistory(context: ISessionContext): boolean;
+    canUserModifyHistory(context: ISessionContext): boolean;
+    canUserDeleteHistory(context: ISessionContext): boolean;
+}
+
 describe("Variable#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
     let _namespace: Namespace;
@@ -277,16 +285,16 @@ describe("Method#setPermissions & checkPermission", () => {
         });
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(true);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(true);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(false);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
 
         const today = new Date();
 
@@ -330,14 +338,14 @@ describe("Method#setPermissions & checkPermission", () => {
         });
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(true);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(true);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
     });
 
     it("checkPermission-ModifyHistory", async () => {
@@ -357,16 +365,16 @@ describe("Method#setPermissions & checkPermission", () => {
         });
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(false);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(true);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(true);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(false);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
     });
     it("checkPermission-DeleteHistory", async () => {
         const _namespace1 = addressSpace.getOwnNamespace();
@@ -385,16 +393,16 @@ describe("Method#setPermissions & checkPermission", () => {
         });
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(false);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(true);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(true);
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
-        (uaVariable as any).canUserReadHistory(context).should.eql(false);
-        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
-        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
-        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserReadHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as unknown as UAVariableWithHistoryPermissions).canUserDeleteHistory(context).should.eql(false);
     });
 });
 

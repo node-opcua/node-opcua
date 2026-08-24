@@ -13,7 +13,15 @@ import { getFixture } from "node-opcua-test-fixtures";
 import { EnumDefinition } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, ensureDatatypeExtracted, PseudoSession, type UADataType, type UAVariable, type UAVariableType } from "..";
+import {
+    AddressSpace,
+    ensureDatatypeExtracted,
+    type INamespace,
+    PseudoSession,
+    type UADataType,
+    type UAVariable,
+    type UAVariableType
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
@@ -24,6 +32,20 @@ interface INamespacePrivate {
     _referenceTypeCount(): number;
     _dataTypeCount(): number;
     _objectTypeCount(): number;
+}
+
+interface PubSubCommunicationLink {
+    field1: number;
+    field2: number;
+    field3: Variant;
+}
+
+interface ConnectionEndpointConfiguration {
+    communicationLinks: (ExtensionObject & PubSubCommunicationLink)[];
+}
+
+interface UAVariableTypeWithValue {
+    value: Variant;
 }
 describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
@@ -49,7 +71,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         await generateAddressSpace(addressSpace, xml_file);
 
-        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        const namespace0 = addressSpace.getDefaultNamespace() as unknown as INamespace & INamespacePrivate;
         namespace0.addressSpace.should.eql(addressSpace);
         namespace0._aliasCount().should.be.greaterThan(10);
         namespace0._variableTypeCount().should.be.greaterThan(3);
@@ -65,7 +87,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         await generateAddressSpace(addressSpace, xml_file);
 
-        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        const namespace0 = addressSpace.getDefaultNamespace() as unknown as INamespace & INamespacePrivate;
         namespace0.addressSpace.should.eql(addressSpace);
 
         namespace0._aliasCount().should.be.greaterThan(10);
@@ -82,7 +104,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         await generateAddressSpace(addressSpace, xml_files);
 
-        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        const namespace0 = addressSpace.getDefaultNamespace() as unknown as INamespace & INamespacePrivate;
         namespace0.namespaceUri.should.eql("http://opcfoundation.org/UA/");
         namespace0.addressSpace.should.eql(addressSpace);
 
@@ -92,7 +114,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         namespace0._dataTypeCount().should.be.greaterThan(10);
         namespace0._objectTypeCount().should.be.greaterThan(10);
 
-        const namespace1 = addressSpace.getNamespace(1) as any;
+        const namespace1 = addressSpace.getNamespace(1) as unknown as INamespace & INamespacePrivate;
         namespace1.namespaceUri.should.eql("http://opcfoundation.org/UA/DI/");
         namespace1.addressSpace.should.eql(addressSpace);
 
@@ -173,7 +195,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         my3x3MatrixType.valueRank.should.eql(2);
         my3x3MatrixType.arrayDimensions?.should.eql([3, 3]);
-        (my3x3MatrixType as any).value.toString().should.eql(
+        (my3x3MatrixType as unknown as UAVariableTypeWithValue).value.toString().should.eql(
             new Variant({
                 dataType: "Float",
                 value: [11, 12, 13, 21, 22, 23, 31, 32, 33]
@@ -184,7 +206,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
         myDoubleArrayType.valueRank.should.eql(1);
         myDoubleArrayType.arrayDimensions?.should.eql([5]);
-        (myDoubleArrayType as any).value
+        (myDoubleArrayType as unknown as UAVariableTypeWithValue).value
             .toString()
             .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
     });
@@ -527,12 +549,12 @@ describe("VVA", () => {
             field1: 1,
             field2: 2,
             field3: new Variant({ dataType: DataType.Int32, value: 3 })
-        });
-        (communicationLink as any).field1.should.eql(1);
-        (communicationLink as any).field2.should.eql(2);
-        (communicationLink as any).field3.dataType.should.eql(DataType.Int32);
-        (communicationLink as any).field3.value.should.eql(3);
-        (communicationLink as any).field3.constructor.name.should.eql("Variant");
+        }) as unknown as ExtensionObject & PubSubCommunicationLink;
+        communicationLink.field1.should.eql(1);
+        communicationLink.field2.should.eql(2);
+        communicationLink.field3.dataType.should.eql(DataType.Int32);
+        communicationLink.field3.value.should.eql(3);
+        communicationLink.field3.constructor.name.should.eql("Variant");
 
         await testEncodeDecode(addressSpace, communicationLink, pubSubcommunicationLinksDatType, session);
     });
@@ -551,11 +573,7 @@ describe("VVA", () => {
             field1: 1,
             field2: 2,
             field3: { dataType: DataType.Int32, value: 3 }
-        }) as unknown as {
-            field1: number;
-            field2: number;
-            field3: Variant;
-        };
+        }) as unknown as ExtensionObject & PubSubCommunicationLink;
 
         console.log("communicationLink =", communicationLink.toString());
         communicationLink.field1.should.eql(1);
@@ -565,17 +583,17 @@ describe("VVA", () => {
         const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
             id: "00000000-0000-0000-0000-000000000000",
             communicationLinks: [communicationLink]
-        });
+        }) as unknown as ExtensionObject & ConnectionEndpointConfiguration;
 
         console.log(object.toString());
 
-        (object as any).constructor.name.should.eql("ConnectionEndpointConfigurationDataType");
-        (object as any).communicationLinks.length.should.eql(1);
-        (object as any).communicationLinks[0].should.be.instanceOf(ExtensionObject);
-        (object as any).communicationLinks[0].constructor.name.should.eql("PubSubCommunicationLinkConfigurationDataType");
-        (object as any).communicationLinks[0].field1.should.eql(1);
-        (object as any).communicationLinks[0].field2.should.eql(2);
-        (object as any).communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
+        object.constructor.name.should.eql("ConnectionEndpointConfigurationDataType");
+        object.communicationLinks.length.should.eql(1);
+        object.communicationLinks[0].should.be.instanceOf(ExtensionObject);
+        object.communicationLinks[0].constructor.name.should.eql("PubSubCommunicationLinkConfigurationDataType");
+        object.communicationLinks[0].field1.should.eql(1);
+        object.communicationLinks[0].field2.should.eql(2);
+        object.communicationLinks[0].field3.dataType.should.eql(DataType.Int32);
 
         await testEncodeDecode(addressSpace, object, connectionEndpointConfigurationDataType, session);
     });
@@ -612,13 +630,13 @@ describe("VVA", () => {
     });
 });
 
-describe("Testing variables loading ", function (this: any) {
+describe("Testing variables loading ", function (this: Mocha.Context) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
-        const namespace0 = addressSpace.getDefaultNamespace() as any;
+        const namespace0 = addressSpace.getDefaultNamespace() as unknown as INamespace & INamespacePrivate;
         namespace0._aliasCount().should.equal(0);
         namespace0._variableTypeCount().should.equal(0);
         namespace0._referenceTypeCount().should.equal(0);
@@ -683,7 +701,7 @@ describe("Testing variables loading ", function (this: any) {
     });
 });
 
-describe("@A@ Testing loading nodeset with custom basic types", function (this: any) {
+describe("@A@ Testing loading nodeset with custom basic types", function (this: Mocha.Context) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

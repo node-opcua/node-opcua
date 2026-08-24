@@ -6,6 +6,10 @@ import should from "should";
 import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
+interface AddressSpaceWithPrivateNamespaceIndex {
+    _private_namespaceIndex: number;
+}
+
 describe("#411 - AddMethod  should not changes namespace of custom datatype", () => {
     const nodesetFilename = nodesets.standard;
 
@@ -18,7 +22,9 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
         namespace = addressSpace.registerNamespace("Private");
         namespace.index.should.eql(1);
 
-        addressSpace.getNamespace("Private").index.should.eql((addressSpace as any)._private_namespaceIndex);
+        addressSpace
+            .getNamespace("Private")
+            .index.should.eql((addressSpace as unknown as AddressSpaceWithPrivateNamespaceIndex)._private_namespaceIndex);
 
         await generateAddressSpace(addressSpace, nodesetFilename);
 

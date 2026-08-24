@@ -8,7 +8,7 @@ import type { UAVariable } from "..";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-describe("Testing loadNodeSet - edge cases", async function (this: any) {
+describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

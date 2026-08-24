@@ -285,7 +285,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                     dataValue01.value.value.y.should.eql(array[1].y);
                     dataValue01.value.value.z.should.eql(array[1].z);
 
-                    const extGlobal = dataValue.value.value as any[];
+                    const extGlobal = dataValue.value.value as ThreeDCartesianCoordinates[];
 
                     extGlobal[0].x.should.eql(array[0].x);
                     extGlobal[0].y.should.eql(array[0].y);
@@ -465,7 +465,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                     dataValue12.value.value.y.should.eql(array[5].y);
                     dataValue12.value.value.z.should.eql(array[5].z);
 
-                    const extGlobal = dataValue.value.value as any[];
+                    const extGlobal = dataValue.value.value as ThreeDCartesianCoordinates[];
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                     dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
 
@@ -700,7 +700,10 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
             dataValue.value.value[1].y.should.eql(14);
             dataValue.value.value[1].z.should.eql(15);
             //
-            const _uaVariable = uaVariable as any;
+            interface UAVariableWithExtensionObjectArray {
+                $$extensionObjectArray: ThreeDCartesianCoordinates[];
+            }
+            const _uaVariable = uaVariable as unknown as UAVariableWithExtensionObjectArray;
             _uaVariable.$$extensionObjectArray.length.should.eql(2);
             _uaVariable.$$extensionObjectArray[0].x.should.eql(10);
             _uaVariable.$$extensionObjectArray[0].y.should.eql(11);

@@ -112,8 +112,6 @@ describe("testing Variables ", () => {
     });
 });
 
-type Done = () => void;
-
 describe("Address Space : add Variable :  testing various variations for specifying dataType", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
@@ -268,7 +266,7 @@ describe("testing Variable#bindVariable", () => {
 
             variable.isWritable(context).should.eql(false);
 
-            (typeof (variable as any).refreshFunc).should.eql("undefined");
+            (typeof (variable as unknown as { refreshFunc?: unknown }).refreshFunc).should.eql("undefined");
 
             const dataValueCheck1 = await variable.readAttribute(context, AttributeIds.Value);
             dataValueCheck1.should.be.instanceOf(DataValue);
@@ -491,7 +489,7 @@ describe("testing Variable#bindVariable", () => {
         dataValueCheck2.value.value.should.eql(2468);
     });
 
-    async function read_double_and_check(variable: UAVariable, expected_value: any, expected_date?: Date): Promise<void> {
+    async function read_double_and_check(variable: UAVariable, expected_value: unknown, expected_date?: Date): Promise<void> {
         const dataValue = await variable.readValueAsync(context);
         dataValue.should.be.instanceOf(DataValue);
         dataValue.statusCode.should.eql(StatusCodes.Good);
@@ -1067,7 +1065,7 @@ describe("testing Variable#writeValue on Integer", () => {
         done();
     });
 
-    async function verify_badTypeMismatch(variable: UAVariable, dataType: DataType, value: any) {
+    async function verify_badTypeMismatch(variable: UAVariable, dataType: DataType, value: unknown) {
         // same as CTT test write582err021 Err-011.js
         const dataValue = new DataValue({
             value: {
@@ -1080,7 +1078,7 @@ describe("testing Variable#writeValue on Integer", () => {
         statusCode.should.eql(StatusCodes.BadTypeMismatch);
     }
 
-    async function verify_writeOK(variable: UAVariable, dataType: DataType, value: any) {
+    async function verify_writeOK(variable: UAVariable, dataType: DataType, value: unknown) {
         // same as CTT test write582err021 Err-011.js
         const dataValue = new DataValue({
             value: {
@@ -1255,7 +1253,7 @@ describe("testing UAVariable ", () => {
             }
         });
 
-        let _err: any;
+        let _err: Error | undefined;
         try {
             const _dataValue = await temperatureVar.readValueAsync(context);
         } catch (err) {
@@ -1313,8 +1311,8 @@ describe("testing UAVariable ", () => {
         let counter = 0;
         let refValue: DataValue;
 
-        let _resolve: any = null;
-        const promise = new Promise((resolve) => {
+        let _resolve: (() => void) | null = null;
+        const promise = new Promise<void>((resolve) => {
             _resolve = resolve;
         });
 

@@ -14,7 +14,10 @@ export function _getBasicDataTypeFromDataTypeNodeId(
     addressSpace: IAddressSpace,
     dataTypeNodeId: { nodeId: NodeIdLike } | NodeIdLike
 ): DataType {
-    const dataTypeNodeId_ = (dataTypeNodeId as any).nodeId ? (dataTypeNodeId as any).nodeId : dataTypeNodeId;
+    const dataTypeNodeId_ =
+        typeof dataTypeNodeId === "object" && dataTypeNodeId !== null && "nodeId" in dataTypeNodeId
+            ? dataTypeNodeId.nodeId
+            : dataTypeNodeId;
     const dataTypeNode = addressSpace.findDataType(dataTypeNodeId_);
     if (!dataTypeNode) {
         return DataType.Null;

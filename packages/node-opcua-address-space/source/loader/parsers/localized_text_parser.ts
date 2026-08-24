@@ -1,7 +1,7 @@
 import { coerceLocalizedText, type LocalizedText, type LocalizedTextOptions } from "node-opcua-data-model";
 import type { ReaderStateParserLike } from "node-opcua-xml2json";
 
-type LocalizedTextParserLikeL1 = ReaderStateParserLike & {
+export type LocalizedTextParserLikeL1 = ReaderStateParserLike & {
     localizedText: LocalizedTextOptions;
     value: LocalizedText | null;
 };

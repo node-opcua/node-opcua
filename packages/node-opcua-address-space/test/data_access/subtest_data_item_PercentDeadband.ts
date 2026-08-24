@@ -6,7 +6,11 @@ import should from "should";
 
 import { AddressSpace, type Namespace, SessionContext } from "../..";
 
-export function subtest_data_item_PercentDeadband(maintest: any): void {
+interface MainTest {
+    addressSpace: AddressSpace;
+}
+
+export function subtest_data_item_PercentDeadband(maintest: MainTest): void {
     describe("PercentDeadband", () => {
         let addressSpace: AddressSpace;
         let namespace: Namespace;

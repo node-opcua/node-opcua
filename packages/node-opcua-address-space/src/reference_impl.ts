@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import chalk from "chalk";
-import type { AddReferenceOpts, BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
+import type { AddReferenceOpts, BaseNode, IAddressSpace, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
@@ -66,7 +66,7 @@ export interface MinimalistAddressSpace {
 export function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode {
     const _reference = reference as ReferenceImpl;
     if (!_reference.node) {
-        _reference.node = addressSpace.findNode(reference.nodeId)!;
+        _reference.node = addressSpace.findNode(reference.nodeId) as BaseNode;
     }
     return _reference.node;
 }
@@ -77,7 +77,7 @@ export function resolveReferenceType(addressSpace: MinimalistAddressSpace, refer
         if (!_reference.referenceType) {
             errorLog(chalk.red("ERROR MISSING reference"), reference);
         }
-        _reference._referenceType = addressSpace.findReferenceType(reference.referenceType)!;
+        _reference._referenceType = addressSpace.findReferenceType(reference.referenceType) as UAReferenceType;
     }
     return _reference._referenceType;
 }
@@ -116,7 +116,7 @@ export class ReferenceImpl implements UAReference {
         this.isForward = options.isForward === undefined ? true : !!options.isForward;
         this.nodeId = _localCoerceToNodeID(options.nodeId);
         // optional to speed up when AddReferenceOpts is in fact a Reference !
-        this._referenceType = (options as any)._referenceType;
+        this._referenceType = (options as Partial<ReferenceImpl>)._referenceType;
         this.node = options.node;
         assert(is_valid_reference(this));
     }
@@ -126,17 +126,19 @@ export class ReferenceImpl implements UAReference {
 
      * @return {String}
      */
-    public toString(options?: { addressSpace?: any }): string {
+    public toString(options?: { addressSpace?: IAddressSpace }): string {
         let infoNode = _w(this.nodeId.toString(), 24);
         let refType = this.referenceType.toString();
 
         if (options?.addressSpace) {
             const node = options.addressSpace.findNode(this.nodeId);
-            infoNode = `[${infoNode}]${_w(node?.browseName.toString(), 40)}`;
+            infoNode = `[${infoNode}]${_w(node?.browseName.toString() || "", 40)}`;
 
             const ref = options.addressSpace.findReferenceType(this.referenceType);
-            const refNode = options.addressSpace.findNode(ref.nodeId);
-            refType = `${refNode.browseName.toString()} (${ref.nodeId.toString()})`;
+            if (ref) {
+                const refNode = options.addressSpace.findNode(ref.nodeId);
+                refType = `${refNode?.browseName.toString() || "<unknown>"} (${ref.nodeId.toString()})`;
+            }
         }
         return _arrow(refType, 40, this.isForward) + infoNode;
     }

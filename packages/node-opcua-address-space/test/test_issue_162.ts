@@ -36,7 +36,7 @@ function findOrCreateCustomObjectType(addressSpace: AddressSpace) {
     return myCustomObjectType;
 }
 
-describe("Issue 162 : demonstrate how to modify an instantiate object variable", function (this: any) {
+describe("Issue 162 : demonstrate how to modify an instantiate object variable", function (this: Mocha.Context) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;

@@ -27,7 +27,7 @@ describe("testing address space namespace", () => {
     });
 });
 
-describe("testing address space namespace loading", function (this: any) {
+describe("testing address space namespace loading", function (this: Mocha.Suite) {
     it("PIO1 should process namespaces and translate namespace index when loading node set xml files", async () => {
         const addressSpace = AddressSpace.create();
         const xml_files = [path.join(__dirname, "../nodesets/mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];

@@ -3,7 +3,7 @@ export type TranslationTable = Map<number, number>;
 export interface XmlWriter {
     translationTable: TranslationTable;
     priorityTable: number[];
-    visitedNode: Set<any>;
+    visitedNode: Set<string>;
 
     startDocument(options: { encoding: string; version: string }): void;
     startElement(elementName: string): this;

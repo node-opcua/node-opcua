@@ -89,7 +89,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         }).throwError();
 
         should(() => {
-            (e as any).writeEnumValue({ value: "invalid type" });
+            e.writeEnumValue({ value: "invalid type" } as unknown as string);
         }).throwError();
     });
 
@@ -116,7 +116,7 @@ describe("AddressSpace : testing add enumeration type", () => {
             resultMask: 0x3f
         });
         const r = enumerationType.browseNode(browseDescription);
-        const names = r.map((x: any) => x.browseName.toString());
+        const names = r.map((x) => x.browseName.toString());
 
         names.filter((x: string) => x === "1:MyEnumType3").length.should.eql(1, "MyEnumType3 should be find in enum");
 
@@ -164,7 +164,7 @@ describe("AddressSpace : testing add enumeration type", () => {
         }).throwError();
 
         should(() => {
-            (e as any).writeEnumValue({ value: "invalid type" });
+            e.writeEnumValue({ value: "invalid type" } as unknown as string);
         }).throwError();
     });
 

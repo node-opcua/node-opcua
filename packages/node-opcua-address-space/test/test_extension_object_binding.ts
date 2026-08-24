@@ -1,10 +1,20 @@
 import "should";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
 
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../distNodeJS";
+
+interface CncPositionExtensionObject extends ExtensionObject {
+    actPos: number;
+    cmdPos: number;
+    remDist: number;
+}
+interface UAVariableWithDataValue {
+    $dataValue: { value: { value: unknown } };
+}
 
 describe("testing extension object binding", () => {
     let addressSpace: AddressSpace;
@@ -32,22 +42,22 @@ describe("testing extension object binding", () => {
         posTcpBcsX.readValue().value.value.cmdPos.should.eql(0);
         posTcpBcsX.readValue().value.value.remDist.should.eql(0);
 
-        const tmp_extObj: any = addressSpace.constructExtensionObject(cncPositionDataType, {
+        const tmp_extObj = addressSpace.constructExtensionObject(cncPositionDataType, {
             actPos: 0,
             cmdPos: 0,
             remDist: 0
-        });
+        }) as unknown as CncPositionExtensionObject;
         tmp_extObj.actPos.should.eql(0);
         tmp_extObj.cmdPos.should.eql(0);
         tmp_extObj.remDist.should.eql(0);
 
         posTcpBcsX.bindExtensionObject(tmp_extObj);
 
-        if (tmp_extObj !== (posTcpBcsX as any).$dataValue.value.value) {
+        if (tmp_extObj !== (posTcpBcsX as unknown as UAVariableWithDataValue).$dataValue.value.value) {
             console.log("Something goes wrong 1");
         }
 
-        if (posTcpBcsX.$extensionObject !== (posTcpBcsX as any).$dataValue.value.value) {
+        if (posTcpBcsX.$extensionObject !== (posTcpBcsX as unknown as UAVariableWithDataValue).$dataValue.value.value) {
             console.log("Something goes wrong 2");
         }
 

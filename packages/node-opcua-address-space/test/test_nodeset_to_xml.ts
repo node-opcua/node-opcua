@@ -3,7 +3,7 @@ import should from "should";
 import "should";
 
 import { DataTypeIds } from "node-opcua-constants";
-import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceQualifiedName, type LocalizedText, makeAccessLevelFlag } from "node-opcua-data-model";
 import { checkDebugFlag } from "node-opcua-debug";
 import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -18,6 +18,10 @@ const XMLWriter = require("xml-writer");
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
 const { createCameraType } = require("./fixture_camera_type");
 
+interface BaseNodeWithDumpXML {
+    dumpXML(xw: unknown): void;
+}
+
 function dumpXml(node: BaseNode): string {
     const xw = new XMLWriter(true);
     xw.translationTable = new Map([
@@ -30,7 +34,7 @@ function dumpXml(node: BaseNode): string {
     ]);
     xw.priorityTable = [0, 1, 2, 3, 4, 5, 6];
     xw.startDocument({ encoding: "utf-8" });
-    (node as any).dumpXML(xw);
+    (node as unknown as BaseNodeWithDumpXML).dumpXML(xw);
     xw.endDocument();
     return xw.toString();
 }
@@ -80,7 +84,7 @@ describe("testing nodeset to xml", () => {
         });
 
         const enumStringNode = myEnumType.getChildByName("EnumStrings")! as UAVariable;
-        const values = enumStringNode.readValue().value.value.map((x: any) => x.toString());
+        const values = enumStringNode.readValue().value.value.map((x: LocalizedText) => x.toString());
         // xx console.log(values.toString());
         values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
 
@@ -561,7 +565,7 @@ describe("Namespace to NodeSet2.xml", () => {
     });
 });
 
-describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
+describe("nodeset2.xml with more than one referenced namespace", function (this: Mocha.Context) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;
@@ -1008,7 +1012,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
 });
 
-describe("toNodeset2XML - cross-namespace references with types and instances", function (this: any) {
+describe("toNodeset2XML - cross-namespace references with types and instances", function (this: Mocha.Context) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;

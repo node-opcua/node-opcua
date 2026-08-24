@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.Private
  */
 
-import type { UADataType, UADynamicVariableArray, UAObject, UAReferenceType, UAVariable } from "node-opcua-address-space-base";
+import type { BindVariableOptionsVariation1, UADynamicVariableArray, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -52,7 +52,11 @@ function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UA
         throw new Error(" cannot find component ");
     }
 
-    const hasComponent = uaArrayVariableNode.addressSpace.findReferenceType("HasComponent")! as UAReferenceType;
+    const hasComponent = uaArrayVariableNode.addressSpace.findReferenceType("HasComponent");
+    // c8 ignore next
+    if (!hasComponent) {
+        throw new Error("cannot find HasComponent reference type: please check your nodeset file");
+    }
 
     // remove the hasComponent reference toward node
     uaArrayVariableNode.removeReference({
@@ -68,11 +72,22 @@ function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UA
     }
 }
 
+export interface CreateExtObjArrayNodeOptions {
+    browseName: string;
+    complexVariableType: string | NodeId;
+    variableType: string | NodeId;
+    indexPropertyName: string;
+    minimumSamplingInterval?: number;
+}
+
 /**
  *
  * create a node Variable that contains a array of ExtensionObject of a given type
  */
-export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: UAObject, options: any): UADynamicVariableArray<T> {
+export function createExtObjArrayNode<T extends ExtensionObject>(
+    parentFolder: UAObject,
+    options: CreateExtObjArrayNodeOptions
+): UADynamicVariableArray<T> {
     assert(typeof options.variableType === "string");
     assert(typeof options.indexPropertyName === "string");
 
@@ -93,7 +108,10 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
     assert(!variableType.nodeId.isEmpty());
 
     const structure = addressSpace.findDataType("Structure");
-    assert(structure, "Structure Type not found: please check your nodeset file");
+    // c8 ignore next
+    if (!structure) {
+        throw new Error("Structure Type not found: please check your nodeset file");
+    }
 
     const dataType = addressSpace.findDataType(variableType.dataType);
 
@@ -103,7 +121,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
         throw new Error("cannot find Data Type");
     }
 
-    assert(dataType.isSubtypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
+    assert(dataType.isSubtypeOf(structure), "expecting a structure (= ExtensionObject) here ");
 
     const inner_options = {
         componentOf: parentFolder,
@@ -116,6 +134,10 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
     };
 
     const uaArrayVariableNode = namespace.addVariable(inner_options) as UADynamicVariableArray<T>;
+
+    if (options.minimumSamplingInterval !== undefined) {
+        uaArrayVariableNode.minimumSamplingInterval = options.minimumSamplingInterval;
+    }
 
     bindExtObjArrayNode(uaArrayVariableNode, options.variableType, options.indexPropertyName);
 
@@ -134,7 +156,7 @@ function _getElementBrowseName<T extends ExtensionObject>(
     }
     // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
     assert(Object.hasOwn(extObj, indexPropertyName1));
-    const browseName = (extObj as any)[indexPropertyName1].toString();
+    const browseName = (extObj as unknown as Record<string, { toString(): string }>)[indexPropertyName1].toString();
     return browseName;
 }
 
@@ -172,18 +194,25 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$variableType = variableType;
 
     // verify that an object with same doesn't already exist
-    dataType = addressSpace.findDataType(variableType.dataType)! as UADataType;
-    assert(dataType?.isSubtypeOf(structure), "expecting a structure (= ExtensionObject) here ");
+    dataType = addressSpace.findDataType(variableType.dataType);
+    // c8 ignore next
+    if (!dataType) {
+        throw new Error(`Cannot find DataType ${variableType.dataType.toString()}`);
+    }
+    assert(dataType.isSubtypeOf(structure), "expecting a structure (= ExtensionObject) here ");
     assert(!uaArrayVariableNode.$$extensionObjectArray, "UAVariable ExtensionObject array already bounded");
     uaArrayVariableNode.$$dataType = dataType;
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
-    uaArrayVariableNode.$$getElementBrowseName = _getElementBrowseName;
+    // _getElementBrowseName actually returns a plain string (used opaquely via .toString() by every
+    // caller), while the base interface declares QualifiedName — cast to preserve exact prior runtime behavior.
+    uaArrayVariableNode.$$getElementBrowseName = _getElementBrowseName as unknown as (obj: T, index: number) => QualifiedName;
     uaArrayVariableNode.$dataValue.value.value = uaArrayVariableNode.$$extensionObjectArray;
     uaArrayVariableNode.$dataValue.value.arrayType = VariantArrayType.Array;
 
-    const bindOptions: any = {
-        get: getExtObjArrayNodeValue,
+    const bindOptions: BindVariableOptionsVariation1 = {
+        // getExtObjArrayNodeValue is generic over `this: UADynamicVariableArray<T>`, narrower than GetFunc's `this: UAVariable`
+        get: getExtObjArrayNodeValue as unknown as BindVariableOptionsVariation1["get"],
         set: undefined // readonly
     };
     // bind the readonly
@@ -286,7 +315,7 @@ export function removeElement<T extends ExtensionObject>(
     } else if (element?.nodeClass) {
         // find element by name
         const browseNameToFind = element.browseName.name?.toString();
-        elementIndex = _array.findIndex((obj: any, _i: number) => {
+        elementIndex = _array.findIndex((obj: T, _i: number) => {
             const browseName = uaArrayVariableNode.$$getElementBrowseName(obj, elementIndex).toString();
             return browseName === browseNameToFind;
         });

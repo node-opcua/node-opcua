@@ -6,7 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace, type ISessionBase, PseudoSession, SessionContext, type UAVariable } from "..";
+import { AddressSpace, type BindVariableOptions, type ISessionBase, PseudoSession, SessionContext, type UAVariable } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 describe("historization and status code Bad #1119", function () {
@@ -33,7 +33,7 @@ describe("historization and status code Bad #1119", function () {
             }
         }));
     };
-    async function test(valueBinding: any, instrumentRange?: { low: number; high: number }) {
+    async function test(valueBinding: BindVariableOptions, instrumentRange?: { low: number; high: number }) {
         const namespace = addressSpace.getOwnNamespace();
 
         const myHistoricalSetPointVar = instrumentRange
@@ -80,7 +80,7 @@ describe("historization and status code Bad #1119", function () {
                 console.log(retStatusCode.toString(), value, statusCode.description.toString());
                 return retStatusCode;
             } catch (err) {
-                console.log("write failed ", (err as any).message);
+                console.log("write failed ", (err as Error).message);
                 return StatusCodes.BadInternalError;
             }
         };

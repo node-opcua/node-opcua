@@ -6,6 +6,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { getExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object/dist/get_extra_data_type_manager";
 import { AttributeIds } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
+import type { IBaseUAObject } from "node-opcua-factory";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
@@ -15,6 +16,14 @@ import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
+
+interface DynamicExtensionObjectLike {
+    toString(): string;
+}
+interface DynamicExtensionObjectWithPets extends IBaseUAObject {
+    id: string;
+    pet: { constructor: { schema: { name: string } } }[];
+}
 
 describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
     this.timeout(20000);
@@ -69,12 +78,12 @@ describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
         const dog = new dogConstructor({
             Breed: "Bulldog",
             IsTrained: true
-        }) as any;
+        }) as unknown as DynamicExtensionObjectLike;
 
         const cat = new catConstructor({
             Color: "Black",
             IsIndoor: false
-        }) as any;
+        }) as unknown as DynamicExtensionObjectLike;
 
         const StructureWithSubtypedValues = dataTypeManager.getExtensionObjectConstructorFromDataType(
             resolveNodeId("ns=1;i=1010")
@@ -84,7 +93,7 @@ describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
         const extObj = new StructureWithSubtypedValues({
             Id: guid,
             Pet: [dog, cat]
-        });
+        }) as unknown as DynamicExtensionObjectWithPets;
 
         debugLog("---- ExtensionObject ----");
         debugLog(dog.toString());
@@ -104,7 +113,7 @@ describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
 
         // decode the object
         binaryStream.rewind();
-        const extObj2 = new StructureWithSubtypedValues({});
+        const extObj2 = new StructureWithSubtypedValues({}) as unknown as DynamicExtensionObjectWithPets;
         extObj2.decode(binaryStream);
 
         debugLog(extObj2.toString());
@@ -123,9 +132,10 @@ describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
         const variant2 = variant.clone();
         variant2.dataType.should.eql(DataType.ExtensionObject);
         variant2.arrayType.should.eql(VariantArrayType.Scalar);
-        (variant2.value as any).id.should.eql(guid);
-        (variant2.value as any).pet.length.should.eql(2);
-        (variant2.value as any).pet[0].constructor.schema.name.should.eql("DogType");
-        (variant2.value as any).pet[1].constructor.schema.name.should.eql("CatType");
+        const clonedValue = variant2.value as unknown as DynamicExtensionObjectWithPets;
+        clonedValue.id.should.eql(guid);
+        clonedValue.pet.length.should.eql(2);
+        clonedValue.pet[0].constructor.schema.name.should.eql("DogType");
+        clonedValue.pet[1].constructor.schema.name.should.eql("CatType");
     });
 });

@@ -241,4 +241,4 @@ registerNodePromoter(ObjectTypeIds.CertificateExpirationAlarmType, promoteToCert
 
 export type UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase & UACertificateExpirationAlarmEx;
 export const UACertificateExpirationAlarmImpl: new () => UACertificateExpirationAlarmImpl =
-    UACertificateExpirationAlarmImplBase as any;
+    UACertificateExpirationAlarmImplBase as unknown as new () => UACertificateExpirationAlarmImpl;

@@ -2,7 +2,7 @@ import { coerceQualifiedName, type QualifiedName, type QualifiedNameOptions } fr
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { ReaderStateParserLike } from "node-opcua-xml2json";
 
-interface QualifiedNameParserL1 extends ReaderStateParserLike {
+export interface QualifiedNameParserL1 extends ReaderStateParserLike {
     value: QualifiedName | null;
     qualifiedName: QualifiedNameOptions;
 }

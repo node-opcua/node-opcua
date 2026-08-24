@@ -12,14 +12,14 @@ const debugLog = make_debugLog(__filename);
 const _errorLog = make_errorLog(__filename);
 
 function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
-    const encodingNode = addressSpace.findNode(encodingNodeId)!;
+    const encodingNode = addressSpace.findNode(encodingNodeId);
 
     // c8 ignore next
     if (!encodingNode) {
         throw new Error(`findDataTypeNode:  Cannot find encoding NodeId${encodingNodeId.toString()}`);
     }
     const refs = encodingNode.findReferences("HasEncoding", false);
-    const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
+    const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj) => obj !== null);
     // c8 ignore next
     if (dataTypes.length !== 1) {
         throw new Error("Internal Error");
@@ -60,7 +60,7 @@ export function decodeXmlExtensionObject(
 ): ExtensionObject | null {
     const definitionMap = makeDefinitionMap(addressSpace);
 
-    const dataType = encodingNodeIdToDataTypeNode(addressSpace, encodingNodeId)!;
+    const dataType = encodingNodeIdToDataTypeNode(addressSpace, encodingNodeId);
 
     //  const { name, definition } = definitionMap.findDefinition(dataType.nodeId);
     // const hasOptionalFields = definition.fields!.some((field) => field.isOptional);

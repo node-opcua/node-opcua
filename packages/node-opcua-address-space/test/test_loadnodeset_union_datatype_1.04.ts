@@ -9,7 +9,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-describe("Testing loadNodeSet - Union DataType", async function (this: any) {
+describe("Testing loadNodeSet - Union DataType", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

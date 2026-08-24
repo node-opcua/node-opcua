@@ -39,7 +39,7 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
     assert(customTypeNode.temperature?.browseName.toString() === "1:Temperature");
     return customTypeNode;
 }
-describe("testing add new DataType ", function (this: any) {
+describe("testing add new DataType ", function (this: Mocha.Context) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;

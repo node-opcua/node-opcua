@@ -2,6 +2,7 @@ import "should";
 import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import type { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
@@ -78,7 +79,7 @@ describe("BrowseNext", function () {
 
         pseudoSession.requestedMaxReferencesPerNode = 1;
 
-        const accumulatedReferences: any[] = [];
+        const accumulatedReferences: ReferenceDescription[] = [];
         const b1 = await pseudoSession.browse(nodeToBrowse);
         should.exist(b1.continuationPoint);
         b1.references?.length.should.eql(1);
@@ -130,7 +131,7 @@ describe("BrowseNext", function () {
 
         pseudoSession.requestedMaxReferencesPerNode = 1;
 
-        const accumulatedReferences: any[] = [];
+        const accumulatedReferences: ReferenceDescription[] = [];
         const b1 = await pseudoSession.browse(nodeToBrowse);
         should.exist(b1.continuationPoint);
         b1.references?.length.should.eql(1);

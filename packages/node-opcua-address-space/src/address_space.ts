@@ -9,6 +9,8 @@ import type {
     IEventData,
     IHistoricalDataNodeOptions,
     ISessionContext,
+    IVariableHistorian,
+    IVariableHistorianOptions,
     MethodCallInterceptor,
     RaiseEventData,
     ShutdownTask,
@@ -151,6 +153,10 @@ function isNodeIdString(str: unknown): boolean {
  *
  *     const addressSpace = AddressSpace.create();
  */
+export interface IHistorizerFactory {
+    create(node: UAVariable, options: IVariableHistorianOptions): IVariableHistorian;
+}
+
 export class AddressSpace implements AddressSpacePrivate {
     public get rootFolder(): UARootFolder {
         const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
@@ -162,7 +168,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
-    public static historizerFactory?: any;
+    public static historizerFactory?: IHistorizerFactory;
 
     public static create(): AddressSpace {
         return new AddressSpace();
@@ -183,6 +189,8 @@ export class AddressSpace implements AddressSpacePrivate {
     private readonly _private_namespaceIndex: number;
     private readonly _namespaceArray: NamespacePrivate[];
     private _shutdownTask?: ShutdownTask[];
+    private _eventIdCounter?: Buffer;
+    public $$extraDataTypeManager?: ExtraDataTypeManager;
     private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
     public _methodCallInterceptors: MethodCallInterceptor[] = [];
@@ -212,12 +220,10 @@ export class AddressSpace implements AddressSpacePrivate {
      * @internal
      */
     public getDataTypeManager(): ExtraDataTypeManager {
-        const addressSpacePriv: any = this as any;
-        assert(
-            addressSpacePriv.$$extraDataTypeManager,
-            "expecting a $$extraDataTypeManager please make sure ensureDatatypeExtracted is called"
-        );
-        return addressSpacePriv.$$extraDataTypeManager;
+        if (!this.$$extraDataTypeManager) {
+            throw new Error("expecting a $$extraDataTypeManager please make sure ensureDatatypeExtracted is called");
+        }
+        return this.$$extraDataTypeManager;
     }
 
     public getNamespaceUri(namespaceIndex: number): string {
@@ -282,7 +288,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public registerNamespace(namespaceUri: string): NamespacePrivate {
         let index = this._namespaceArray.findIndex((ns) => ns.namespaceUri === namespaceUri);
         if (index !== -1) {
-            assert((this._namespaceArray[index].addressSpace as any) === (this as any));
+            assert(this._namespaceArray[index].addressSpace === this);
             return this._namespaceArray[index];
         }
         index = this._namespaceArray.length;
@@ -453,7 +459,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (dataType instanceof UADataTypeImpl) {
             return this.findDataType(dataType.nodeId);
         } else if (dataType instanceof NodeId) {
-            return _find_by_node_id<UADataType>(this, dataType!, namespaceIndex);
+            return _find_by_node_id<UADataType>(this, dataType, namespaceIndex);
         }
         if (typeof dataType === "number") {
             if (DataType[dataType] !== undefined) {
@@ -491,11 +497,12 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         if (dataTypeNode instanceof NodeId) {
-            dataTypeNode = this.findDataType(dataTypeNode)!;
+            const foundDataTypeNode = this.findDataType(dataTypeNode);
             /* c8 ignore next */
-            if (!dataTypeNode) {
+            if (!foundDataTypeNode) {
                 throw Error(`cannot find dataTypeNode ${_orig_dataTypeNode.toString()}`);
             }
+            dataTypeNode = foundDataTypeNode;
         }
         /* c8 ignore next */
         if (!(dataTypeNode instanceof UADataTypeImpl)) {
@@ -668,16 +675,15 @@ export class AddressSpace implements AddressSpacePrivate {
          *
          */
         const offset = 16;
-        const self = this as any;
-        if (!self._eventIdCounter) {
-            self._eventIdCounter = randomBytes(20);
-            self._eventIdCounter.writeInt32BE(0, offset);
+        if (!this._eventIdCounter) {
+            this._eventIdCounter = randomBytes(20);
+            this._eventIdCounter.writeInt32BE(0, offset);
         }
-        self._eventIdCounter.writeInt32BE(self._eventIdCounter.readInt32BE(offset) + 1, offset);
+        this._eventIdCounter.writeInt32BE(this._eventIdCounter.readInt32BE(offset) + 1, offset);
 
         return new Variant({
             dataType: DataType.ByteString,
-            value: Buffer.from(self._eventIdCounter)
+            value: Buffer.from(this._eventIdCounter)
         }) as VariantT<Buffer, DataType.ByteString>;
     }
 
@@ -757,7 +763,7 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("BaseObjectType must be defined in the address space");
         }
 
-        const hasProperty = (data: any, propertyName: string): boolean => Object.hasOwn(data, propertyName);
+        const hasProperty = (data: RaiseEventData, propertyName: string): boolean => Object.hasOwn(data, propertyName);
 
         const visitedProperties: { [key: string]: number } = {};
         const alreadyVisited = (key: string) => Object.hasOwn(visitedProperties, key);
@@ -820,7 +826,7 @@ export class AddressSpace implements AddressSpacePrivate {
             });
         }
 
-        const populate_data = (self: any, eventData1: any) => {
+        const populate_data = (self: UAObjectType, eventData1: EventData) => {
             if (sameNodeId(baseObjectType?.nodeId, self.nodeId)) {
                 return; // nothing to do
             }
@@ -837,7 +843,8 @@ export class AddressSpace implements AddressSpacePrivate {
                 throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeNodeId);
             }
 
-            populate_data(baseType, eventData1);
+            // subtypeOf always points to another node in the ObjectType hierarchy
+            populate_data(baseType as UAObjectType, eventData1);
 
             // get properties and components from base class
             const properties = self.getProperties();
@@ -851,7 +858,7 @@ export class AddressSpace implements AddressSpacePrivate {
 
             for (const node of children) {
                 // only keep those that have a "HasModellingRule"
-                if (!(node as any).modellingRule) {
+                if (!node.modellingRule) {
                     continue;
                 }
                 // ignore also methods
@@ -1020,21 +1027,25 @@ export class AddressSpace implements AddressSpacePrivate {
         const _dataType = dataType as UADataTypeImpl;
 
         // to do verify that dataType is of type "Structure"
+        const structureDataType = this.findDataType("Structure");
         /* c8 ignore next */
-        if (!_dataType.isSubtypeOf(this.findDataType("Structure")!)) {
+        if (!structureDataType) {
+            throw new Error("getExtensionObjectConstructor: cannot find 'Structure' DataType in standard address Space");
+        }
+        /* c8 ignore next */
+        if (!_dataType.isSubtypeOf(structureDataType)) {
             debugLog(_dataType.toString());
         }
-        assert(_dataType.isSubtypeOf(this.findDataType("Structure")!));
+        assert(_dataType.isSubtypeOf(structureDataType));
         if (!_dataType._extensionObjectConstructor) {
-            const addressSpacePriv: any = this as any;
-            if (!addressSpacePriv.$$extraDataTypeManager) {
+            if (!this.$$extraDataTypeManager) {
                 throw new Error(
                     `getExtensionObjectConstructor: cannot build a constructor for ${_dataType.browseName.toString()} (${_dataType.nodeId.toString()}): ` +
                         "the DataType manager is not initialised. " +
                         "Make sure generateAddressSpace() completed successfully and/or that ensureDatatypeExtracted(addressSpace) was awaited before using structured DataTypes."
                 );
             }
-            const dataTypeManager = addressSpacePriv.$$extraDataTypeManager as ExtraDataTypeManager;
+            const dataTypeManager = this.$$extraDataTypeManager;
             _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(
                 _dataType.nodeId
             ) as ExtensionObjectConstructorFuncWithSchema;
@@ -1151,7 +1162,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // check if referenceTypeId is correct
         if (browseDescription.referenceTypeId instanceof NodeId) {
             if (browseDescription.referenceTypeId.value === 0) {
-                (browseDescription as any).referenceTypeId = null;
+                (browseDescription as unknown as { referenceTypeId: NodeId | null }).referenceTypeId = null;
             } else {
                 const rf = this.findNode(browseDescription.referenceTypeId);
                 if (!rf || !(rf instanceof UAReferenceTypeImpl)) {
@@ -1183,7 +1194,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (folder && !_isFolder(this, folder)) {
             throw new Error(`Parent folder must be of FolderType ${folder.typeDefinition.toString()}`);
         }
-        return folder as any as BaseNode;
+        return folder;
     }
 
     /**
@@ -1212,7 +1223,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public extractRootViews(node: UAObject | UAVariable): UAView[] {
         assert(node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable);
 
-        const visitedMap: any = {};
+        const visitedMap: Record<string, BaseNode> = {};
 
         const q = new Dequeue();
         q.push(node);
@@ -1273,9 +1284,9 @@ export class AddressSpace implements AddressSpacePrivate {
 
                 // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
                 // const nodeIds = _.uniq(this._modelChanges.map((c: any) => c.affected));
-                const nodeIds = [...new Set(this._modelChanges.map((c: any) => c.affected))];
+                const nodeIds = [...new Set(this._modelChanges.map((c) => c.affected))];
 
-                const nodes = nodeIds.map((nodeId: NodeId) => this.findNode(nodeId)!);
+                const nodes = nodeIds.map((nodeId: NodeId) => this.findNode(nodeId));
 
                 nodes.forEach(_increase_version_number);
                 // raise events
@@ -1358,8 +1369,9 @@ export class AddressSpace implements AddressSpacePrivate {
         } else {
             let _nodeId = params.nodeId as NodeId;
             assert(!!_nodeId, "missing 'nodeId' in reference");
-            if (_nodeId && (_nodeId as any).nodeId) {
-                _nodeId = (_nodeId as any).nodeId as NodeId;
+            const _nodeIdWithNodeId = _nodeId as unknown as { nodeId?: NodeId };
+            if (_nodeId && _nodeIdWithNodeId.nodeId) {
+                _nodeId = _nodeIdWithNodeId.nodeId;
             }
             _nodeId = resolveNodeId(_nodeId);
             params.nodeId = _nodeId;
@@ -1427,7 +1439,11 @@ export class AddressSpace implements AddressSpacePrivate {
     public _coerceTypeDefinition(typeDefinition: string | NodeId): NodeId {
         if (typeof typeDefinition === "string") {
             // coerce parent folder to an node
-            const typeDefinitionNode = this.findNode(typeDefinition)!;
+            const typeDefinitionNode = this.findNode(typeDefinition);
+            /* c8 ignore next */
+            if (!typeDefinitionNode) {
+                throw new Error(`_coerceTypeDefinition: cannot find node ${typeDefinition}`);
+            }
             typeDefinition = typeDefinitionNode.nodeId;
         }
         assert(typeDefinition instanceof NodeId);
@@ -1460,12 +1476,13 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!baseTypeNode) {
             throw new Error(`Cannot find ObjectType or VariableType for ${baseType.toString()}`);
         }
+        const baseTypeNodeWithIsSubtypeOf = baseTypeNode as unknown as { isSubtypeOf?: (t: BaseNode) => boolean };
         /* c8 ignore next */
-        if (!(baseTypeNode as any).isSubtypeOf) {
+        if (!baseTypeNodeWithIsSubtypeOf.isSubtypeOf) {
             throw new Error(`Cannot find ObjectType or VariableType for ${baseType.toString()}`);
         }
         /* c8 ignore next */
-        if (!(baseTypeNode as any).isSubtypeOf(topMostBaseTypeNode)) {
+        if (!baseTypeNodeWithIsSubtypeOf.isSubtypeOf(topMostBaseTypeNode)) {
             throw new Error("wrong type ");
         }
         return baseTypeNode;
@@ -1492,7 +1509,7 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error(` Cannot find  DataType  ${dataType.toString()} in standard address Space`);
         }
 
-        const enumerationNode = this.findDataType("Enumeration")!;
+        const enumerationNode = this.findDataType("Enumeration");
         if (!enumerationNode) {
             throw new Error(" Cannot find 'Enumeration' DataType in standard address Space");
         }
@@ -1501,9 +1518,9 @@ export class AddressSpace implements AddressSpacePrivate {
 
     private _coerce_Type(
         dataType: BaseNode | string | NodeId | number,
-        typeMap: any,
+        typeMap: Record<string, number | string>,
         typeMapName: string,
-        finderMethod: any
+        finderMethod: (this: AddressSpace, nodeId: NodeId) => BaseNode | null
     ): NodeId {
         if (typeof dataType === "number") {
             return this._coerce_Type(coerceNodeId(dataType), typeMap, typeMapName, finderMethod);

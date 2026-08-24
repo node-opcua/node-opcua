@@ -181,8 +181,8 @@ export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
                 }
             );
 
-            should.not.exist((condition as any).confirmedState);
-            should.not.exist((condition as any).confirm);
+            should.not.exist((condition as unknown as { confirmedState?: unknown }).confirmedState);
+            should.not.exist((condition as unknown as { confirm?: unknown }).confirm);
         });
     });
 }

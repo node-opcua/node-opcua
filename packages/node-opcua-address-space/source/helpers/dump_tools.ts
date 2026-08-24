@@ -15,7 +15,10 @@ export function referenceTypeToString(addressSpace: IAddressSpace, referenceType
     if (!referenceTypeId) {
         return "<null> ";
     } else {
-        const referenceType = addressSpace.findNode(referenceTypeId)! as UAReferenceTypePublic;
+        const referenceType = addressSpace.findNode(referenceTypeId) as UAReferenceTypePublic | null;
+        if (!referenceType) {
+            return `${referenceTypeId.toString()} <unknown reference type>`;
+        }
         return `${referenceTypeId.toString()} ${referenceType.browseName.toString()}/${referenceType.inverseName?.text}`;
     }
 }

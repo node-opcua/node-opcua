@@ -16,6 +16,7 @@ import should from "should";
 import sinon from "sinon";
 import {
     AddressSpace,
+    type DTApplicationDescription,
     type DTServiceCounter,
     type DTSessionDiagnostics,
     type Namespace,
@@ -36,10 +37,18 @@ interface UAServiceCounterVariableEx extends UABaseDataVariable<DTServiceCounter
     totalCount: UAVariableT<UInt32, DataType.UInt32>;
     errorCount: UAVariableT<UInt32, DataType.UInt32>;
 }
+interface ClientDescriptionVariableEx extends UABaseDataVariable<DTApplicationDescription, DataType.ExtensionObject> {
+    applicationUri: UAVariableT<string, DataType.String>;
+}
 interface UASessionDiagnosticsVariableEx extends UASessionDiagnosticsVariable<DTSessionDiagnostics> {
     totalRequestCount: UAServiceCounterVariableEx;
+    clientDescription: ClientDescriptionVariableEx;
 }
-
+interface UASDInternal extends UASessionDiagnosticsVariableEx {
+    getDataTypeNode(): UADataType;
+    updateExtensionObjectPartial(partialExtensionObject?: Record<string, unknown>): DTSessionDiagnostics;
+    incrementExtensionObjectPartial(path: string | string[]): void;
+}
 interface ServerStatusVariable extends UAVariable {
     startTime: UAVariableT<DateTime, DataType.DateTime>;
     currentTime: UAVariableT<DateTime, DataType.DateTime>;
@@ -386,15 +395,15 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZA1- a ExtensionObject variable should have the expected dataType node", () => {
-            const dataTypeNode = (sessionDiagnostics as any).getDataTypeNode();
+            const dataTypeNode = (sessionDiagnostics as unknown as UASDInternal).getDataTypeNode();
 
             dataTypeNode.browseName.toString().should.eql("SessionDiagnosticsDataType");
-            const structure = addressSpace.findDataType("Structure");
+            const structure = addressSpace.findDataType("Structure")!;
             dataTypeNode.isSubtypeOf(structure).should.eql(true);
 
             const definition = dataTypeNode.getStructureDefinition();
-            definition.fields
-                .map((x: StructureField) => x.name)
+            definition
+                .fields!.map((x: StructureField) => x.name)
                 .sort()
                 .should.eql([
                     "ActualSessionTimeout",
@@ -444,7 +453,7 @@ describe("Extension Object binding and sub  components\n", () => {
         });
 
         it("ZA2- sessionDiagnostics should have a dataValue with the expected ExtensionObjectType", () => {
-            const extensionObject = (sessionDiagnostics as any).readValue().value.value;
+            const extensionObject = sessionDiagnostics.readValue().value.value;
             extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
         });
 
@@ -459,14 +468,16 @@ describe("Extension Object binding and sub  components\n", () => {
                     applicationUri: "applicationUri-1"
                 }; /*)*/
 
-                (sessionDiagnostics as any).updateExtensionObjectPartial({ clientDescription: someClientDescription });
+                (sessionDiagnostics as unknown as UASDInternal).updateExtensionObjectPartial({
+                    clientDescription: someClientDescription
+                });
 
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(1);
                 spy_on_sessionDiagnostics_value_changed.callCount.should.eql(1);
 
-                (sessionDiagnostics as any).clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                (sessionDiagnostics as any).clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-                (sessionDiagnostics as any).readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri!.should.eql("applicationUri-1");
+                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri!.should.eql("applicationUri-1");
 
                 _sessionDiagnostics.clientDescription?.applicationUri?.should.eql("applicationUri-1");
 
@@ -474,8 +485,8 @@ describe("Extension Object binding and sub  components\n", () => {
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                const eo = (sessionDiagnostics as any).readValue().value.value;
-                eo.clientDescription.applicationUri.should.eql("applicationUri-1");
+                const eo = sessionDiagnostics.readValue().value.value;
+                eo.clientDescription.applicationUri!.should.eql("applicationUri-1");
 
                 // xx console.log(eo.toString());
             }
@@ -491,23 +502,23 @@ describe("Extension Object binding and sub  components\n", () => {
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
                 const totalRequestCount = /* new Counter( */ {
                     errorCount: 25,
                     totalCount: 130
                 };
-                (sessionDiagnostics as any).updateExtensionObjectPartial({ totalRequestCount });
+                (sessionDiagnostics as unknown as UASDInternal).updateExtensionObjectPartial({ totalRequestCount });
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(130);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(130);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(130);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(130);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(130);
 
                 sessionDiagnostics.totalRequestCount.errorCount.readValue().value.value.should.eql(25);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.errorCount.should.eql(25);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.errorCount.should.eql(25);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.errorCount.should.eql(25);
                 _sessionDiagnostics.totalRequestCount.errorCount.should.eql(25);
             }
         );
@@ -518,25 +529,25 @@ describe("Extension Object binding and sub  components\n", () => {
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(0);
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                (sessionDiagnostics as any).incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                (sessionDiagnostics as unknown as UASDInternal).incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(1);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(1);
 
-                (sessionDiagnostics as any).incrementExtensionObjectPartial("totalRequestCount.totalCount");
+                (sessionDiagnostics as unknown as UASDInternal).incrementExtensionObjectPartial("totalRequestCount.totalCount");
 
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(2);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(2);
-                (sessionDiagnostics as any).readValue().value.value.totalRequestCount.totalCount.should.eql(2);
+                sessionDiagnostics.readValue().value.value.totalRequestCount.totalCount.should.eql(2);
                 _sessionDiagnostics.totalRequestCount.totalCount.should.eql(2);
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(2);
@@ -551,9 +562,9 @@ describe("Extension Object binding and sub  components\n", () => {
             () => {
                 _sessionDiagnostics.clientDescription!.applicationUri = "applicationUri-1";
 
-                (sessionDiagnostics as any).clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                (sessionDiagnostics as any).clientDescription.readValue().value.value.applicationUri.should.eql("applicationUri-1");
-                (sessionDiagnostics as any).readValue().value.value.clientDescription.applicationUri.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
+                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri!.should.eql("applicationUri-1");
+                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri!.should.eql("applicationUri-1");
             }
         );
     });

@@ -10,7 +10,7 @@ import { generateAddressSpace } from "../nodeJS";
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
-describe("Testing PackML custom types", async function (this: any) {
+describe("Testing PackML custom types", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

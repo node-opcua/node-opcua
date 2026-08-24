@@ -1,20 +1,18 @@
+import type { IEventData } from "node-opcua-address-space-base";
 import { nodesets } from "node-opcua-nodesets";
 import type { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import {
-    type AddObjectOptions,
-    AddressSpace,
-    type EventData,
-    type Namespace,
-    type UAObject,
-    type UAProperty,
-    type UAVariable
-} from "..";
+import { type AddObjectOptions, AddressSpace, type Namespace, type UAObject, type UAProperty, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 interface UAObjectWithVersion extends UAObject {
     nodeVersion: UAProperty<string, DataType.String>;
+}
+
+interface AddressSpacePrivate extends AddressSpace {
+    modelChangeTransaction(action: () => void): void;
+    _collectModelChange(view: unknown, data: unknown): void;
 }
 
 function createNodeWithNodeVersion(addressSpace: AddressSpace, options: AddObjectOptions): UAObjectWithVersion {
@@ -26,7 +24,7 @@ function createNodeWithNodeVersion(addressSpace: AddressSpace, options: AddObjec
     return versionableNode as UAObjectWithVersion;
 }
 
-describe("address_space ModelChangeEvent", function (this: any) {
+describe("address_space ModelChangeEvent", function (this: Mocha.Suite) {
     this.timeout(100000);
     // Part 3:
     // 9.32 ModelChangeEvents
@@ -121,13 +119,13 @@ describe("address_space ModelChangeEvent", function (this: any) {
         "MCEVT-1 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
             "its NodeVersion when a object is added as one of its component (componentOf)",
         () => {
-            const addressSpacePriv = addressSpace as any;
+            const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
             const node = createNodeWithNodeVersion(addressSpacePriv, { browseName: "1" });
 
             const nodeVersionBefore = node.nodeVersion.readValue().value.value;
             nodeVersionBefore.toString().should.eql("1");
 
-            sinon.spy(addressSpacePriv, "_collectModelChange");
+            const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
 
             const _n1 = namespace.addObject({
                 browseName: "SomeNode",
@@ -137,25 +135,25 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: IEventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
-            addressSpacePriv._collectModelChange.callCount.should.eql(2);
-            addressSpacePriv._collectModelChange.restore();
+            collectModelChangeSpy.callCount.should.eql(2);
+            collectModelChangeSpy.restore();
         }
     );
     it(
         "MCEVT-2 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
             "its NodeVersion when a object is added as one of its element folder (organizedBy)",
         () => {
-            const addressSpacePriv = addressSpace as any;
+            const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
             const node = createNodeWithNodeVersion(addressSpacePriv, { browseName: "1" });
 
             const nodeVersionBefore = node.nodeVersion.readValue().value.value;
             nodeVersionBefore.toString().should.eql("1");
 
-            sinon.spy(addressSpacePriv, "_collectModelChange");
+            const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
 
             const _n1 = namespace.addObject({
                 browseName: "SomeNode",
@@ -165,12 +163,12 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: IEventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
-            addressSpacePriv._collectModelChange.callCount.should.eql(2);
-            addressSpacePriv._collectModelChange.restore();
+            collectModelChangeSpy.callCount.should.eql(2);
+            collectModelChangeSpy.restore();
         }
     );
 
@@ -178,7 +176,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
         "MCEVT-3 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
             "update its NodeVersion when one of its child object is deleted",
         () => {
-            const addressSpacePriv = addressSpace as any;
+            const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
 
             // -----------------------------------------------------------------------------------------------
             // Given :  a version-able node containing a component
@@ -192,8 +190,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionBefore = node.nodeVersion.readValue().value.value;
             nodeVersionBefore.toString().should.eql("2");
 
-            sinon.spy(addressSpacePriv, "_collectModelChange");
-            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
+            const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: IEventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
@@ -205,7 +203,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
             // -----------------------------------------------------------------------------------------------
             // Then:
             //   1. two model changes are collected
-            addressSpacePriv._collectModelChange.callCount.should.eql(2);
+            collectModelChangeSpy.callCount.should.eql(2);
 
             //   2. node version should increase
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
@@ -213,7 +211,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
 
             // -----------------------------------------------------------------------------------------------
 
-            addressSpacePriv._collectModelChange.restore();
+            collectModelChangeSpy.restore();
         }
     );
 
@@ -221,7 +219,7 @@ describe("address_space ModelChangeEvent", function (this: any) {
         "MCEVT-4 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
             "update its NodeVersion when a reference is added",
         () => {
-            const addressSpacePriv = addressSpace as any;
+            const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
             const n1 = namespace.addObject({
                 browseName: "SomeNode3"
             });
@@ -231,24 +229,24 @@ describe("address_space ModelChangeEvent", function (this: any) {
             const nodeVersionBefore = node.nodeVersion.readValue().value.value;
             nodeVersionBefore.toString().should.eql("1");
 
-            sinon.spy(addressSpacePriv, "_collectModelChange");
+            const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
 
             n1.addReference({ referenceType: "Organizes", isForward: false, nodeId: node });
 
             const nodeVersionAfter = node.nodeVersion.readValue().value.value;
             nodeVersionAfter.toString().should.eql("2");
 
-            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
+            addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: IEventData) => {
                 // xx console.log("xxx eventData",eventData.toString());
             });
 
-            addressSpacePriv._collectModelChange.callCount.should.eql(2);
-            addressSpacePriv._collectModelChange.restore();
+            collectModelChangeSpy.callCount.should.eql(2);
+            collectModelChangeSpy.restore();
         }
     );
 
     it("MCEVT-5 addressSpace#modelChangeTransactions should compress model change events ", () => {
-        const addressSpacePriv = addressSpace as any;
+        const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
 
         // -----------------------------------------------------------------------------------------------
         // Given :  a version-able node containing a component
@@ -258,8 +256,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
         const nodeVersionBefore = node.nodeVersion.readValue().value.value;
         nodeVersionBefore.toString().should.eql("1");
 
-        sinon.spy(addressSpacePriv, "_collectModelChange");
-        addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: EventData) => {
+        const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
+        addressSpacePriv.rootFolder.objects.server.on("event", (_eventData: IEventData) => {
             // xx console.log("xxx eventData",eventData.toString());
         });
 
@@ -286,14 +284,14 @@ describe("address_space ModelChangeEvent", function (this: any) {
         // -----------------------------------------------------------------------------------------------
         // Then:
         //   1. many model changes are collected
-        addressSpacePriv._collectModelChange.callCount.should.eql(8);
+        collectModelChangeSpy.callCount.should.eql(8);
 
         //   2. node version should increase ony by one
         const nodeVersionAfter = node.nodeVersion.readValue().value.value;
         nodeVersionAfter.toString().should.eql("2");
 
         // -----------------------------------------------------------------------------------------------
-        addressSpacePriv._collectModelChange.restore();
+        collectModelChangeSpy.restore();
     });
 
     it("MCEVT-6 model change event and version node added to object in custom namespace ", () => {
@@ -307,15 +305,15 @@ describe("address_space ModelChangeEvent", function (this: any) {
         });
 
         // When I add a child node to this versionable node
-        const addressSpacePriv = addressSpace as any;
-        sinon.spy(addressSpacePriv, "_collectModelChange");
+        const addressSpacePriv = addressSpace as unknown as AddressSpacePrivate;
+        const collectModelChangeSpy = sinon.spy(addressSpacePriv, "_collectModelChange");
         addressSpacePriv.modelChangeTransaction(() => {
             const _subNode = customNamespace.addObject({
                 browseName: "SubNode",
                 componentOf: versionableNode
             });
         });
-        addressSpacePriv._collectModelChange.callCount.should.eql(2);
+        collectModelChangeSpy.callCount.should.eql(2);
         const nodeVersionAfter = (versionableNode.getChildByName("NodeVersion", 0)! as UAVariable).readValue().value.value;
         nodeVersionAfter.toString().should.eql("2");
     });

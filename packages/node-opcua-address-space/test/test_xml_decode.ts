@@ -178,8 +178,8 @@ describe("test xml decode", () => {
         const reader = makeXmlExtensionObjectReader(pairDataTypeNodeId, definitionMap, new Map(), translateNodeId);
         const parser2 = new Xml2Json(reader);
         const pojo = parser2.parseString(xmlBody);
-        (pojo.a as any).value.should.eql("hello");
-        (pojo.b as any).value.should.eql("world");
+        (pojo.a as { value: string }).value.should.eql("hello");
+        (pojo.b as { value: string }).value.should.eql("world");
     });
 
     // the TMC nodeset of issue #1543 has a `MaterialPointType` structure with an ExpandedNodeId field,

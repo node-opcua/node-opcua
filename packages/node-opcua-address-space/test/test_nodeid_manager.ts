@@ -1,10 +1,15 @@
 import "should";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AddressSpace, type ConstructNodeIdOptions, getNodeIdManager, NodeIdManager, setSymbols } from "..";
 import { get_mini_nodeset_filename } from "../distHelpers";
 import { generateAddressSpace } from "../nodeJS";
+
+interface NodeIdManagerWithPrivateCache {
+    _isInCache(nodeId: NodeId): boolean;
+    _cacheSymbolicName: { [key: string]: [number, NodeClass] };
+}
 
 describe("NodeIdManager", () => {
     const namespaceUri = "urn:namespace";
@@ -122,7 +127,7 @@ describe("NodeIdManager", () => {
         const ns = addressSpace.getOwnNamespace();
         setSymbols(ns, [["SomeName", 1000, "Object"]]);
 
-        (nodeIdManager as any)._isInCache(makeNodeId(1000, 1)).should.eql(true);
+        (nodeIdManager as unknown as NodeIdManagerWithPrivateCache)._isInCache(makeNodeId(1000, 1)).should.eql(true);
 
         const s = ns.addObject({
             browseName: "SomeName"
@@ -198,7 +203,10 @@ describe("NodeIdManager", () => {
         // that a (parent2, EngineeringUnits) child resolves to ("Parent2_EngineeringUnits") onto
         // the already-occupied nodeId of firstChild (a child of parent1).
         const collidingKey = "Parent2_EngineeringUnits";
-        (nodeIdManager as any)._cacheSymbolicName[collidingKey] = [firstChild.nodeId.value as number, NodeClass.Variable];
+        (nodeIdManager as unknown as NodeIdManagerWithPrivateCache)._cacheSymbolicName[collidingKey] = [
+            firstChild.nodeId.value as number,
+            NodeClass.Variable
+        ];
 
         const options: ConstructNodeIdOptions = {
             // mirror what internalCreateNode() does for a plain string browseName: it resolves to
@@ -254,7 +262,10 @@ describe("NodeIdManager", () => {
         // that a (parent, InstrumentRange) child resolves to ("Parent1_InstrumentRange") onto the
         // already-occupied nodeId of firstChild ("Parent1_EngineeringUnits" for real).
         const collidingKey = "Parent1_InstrumentRange";
-        (nodeIdManager as any)._cacheSymbolicName[collidingKey] = [firstChild.nodeId.value as number, NodeClass.Variable];
+        (nodeIdManager as unknown as NodeIdManagerWithPrivateCache)._cacheSymbolicName[collidingKey] = [
+            firstChild.nodeId.value as number,
+            NodeClass.Variable
+        ];
 
         const options: ConstructNodeIdOptions = {
             // mirror what internalCreateNode() does for a plain string browseName: it resolves to
@@ -299,7 +310,10 @@ describe("NodeIdManager", () => {
         // (parent, SharedName) child resolves to ("SomeParent_SharedName") onto the
         // already-occupied nodeId of the top-level firstChild.
         const parent = ns.addObject({ browseName: "SomeParent" });
-        (nodeIdManager as any)._cacheSymbolicName.SomeParent_SharedName = [firstChild.nodeId.value as number, NodeClass.Object];
+        (nodeIdManager as unknown as NodeIdManagerWithPrivateCache)._cacheSymbolicName.SomeParent_SharedName = [
+            firstChild.nodeId.value as number,
+            NodeClass.Object
+        ];
 
         const options: ConstructNodeIdOptions = {
             // mirror what internalCreateNode() does for a plain string browseName: it resolves to

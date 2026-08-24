@@ -102,12 +102,12 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
         if (!uaVariable.$dataValue) return;
         const variant = uaVariable.$dataValue.value;
         if (!variant) return;
-        const value: any | any[] = variant.value;
+        const value: unknown = variant.value;
         if (!value) return;
         if (Array.isArray(value)) {
-            value.forEach(exploreExtensionObject);
+            (value as ExtensionObject[]).forEach(exploreExtensionObject);
         } else {
-            exploreExtensionObject(value);
+            exploreExtensionObject(value as ExtensionObject);
         }
     }
     for (const node of namespace_.nodeIterator()) {
@@ -131,7 +131,7 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
         } else if (isInstance !== -1) {
             if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
                 const dataTypeNodeId = (node as UAVariable | UAVariableType).dataType;
-                const dataTypeNode = addressSpace.findDataType(dataTypeNodeId)!;
+                const dataTypeNode = addressSpace.findDataType(dataTypeNodeId);
                 if (dataTypeNode) {
                     consider(dataTypeNode.nodeId.namespace);
                 } else {
@@ -316,14 +316,14 @@ export function constructNamespacePriorityTable(addressSpace: IAddressSpace): { 
     };
 
     for (let i = 0; i < namespaces.length; i++) {
-        const { nbTypes } = map.get(i)!;
-        if (nbTypes) {
+        const entry = map.get(i);
+        if (entry?.nbTypes) {
             h(namespaces[i]);
         }
     }
     for (let i = 0; i < namespaces.length; i++) {
-        const { nbTypes } = map.get(i)!;
-        if (!nbTypes) {
+        const entry = map.get(i);
+        if (!entry?.nbTypes) {
             h(namespaces[i]);
         }
     }

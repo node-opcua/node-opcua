@@ -1,4 +1,4 @@
-import type { IAddressSpace, UAVariable, UAVariableType } from "node-opcua-address-space-base";
+import type { IAddressSpace, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceBoolean, coerceInt64, coerceUInt64, DataType, type Int64, isValidGuid, type UInt64 } from "node-opcua-basic-types";
 import {
@@ -12,15 +12,15 @@ import { make_debugLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { VariantArrayType, type VariantOptions } from "node-opcua-variant";
-import type { ParserLike, ReaderStateParserLike, XmlAttributes } from "node-opcua-xml2json";
+import type { IReaderState, ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
 import {
     createXMLExtensionObjectDecodingTask,
     makeExtensionObjectInnerParser,
     makeExtensionObjectParser
 } from "./extension_object_parser";
-import { localizedText_parser } from "./localized_text_parser";
+import { type LocalizedTextParserLikeL1, localizedText_parser } from "./localized_text_parser";
 import { makeNodeIdParser } from "./nodeid_parser";
-import { makeQualifiedNameParser } from "./qualified_name_parser";
+import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser";
 
 const debugLog = make_debugLog(__dirname);
 
@@ -30,10 +30,11 @@ type IBasicReaderStateParserLike<T> = ReaderStateParserLike & {
     value: T | undefined;
     text: string;
 };
-function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | undefined }, text: string) => any): ParserLike {
+
+function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | undefined }, text: string) => T): ParserLike {
     const _parser: Record<string, ReaderStateParserLike> = {};
     const a = {
-        init(this: IBasicReaderStateParserLike<T>, _name: string, _attrs: XmlAttributes, _parent: any, _endElement: any) {
+        init(this: IBasicReaderStateParserLike<T>, _name: string, _attrs: XmlAttributes, _parent: IReaderState, _engine: Xml2Json) {
             this.value = undefined;
         },
         finish(this: IBasicReaderStateParserLike<T>) {
@@ -44,7 +45,11 @@ function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | un
     return _parser as ParserLike;
 }
 
-function ListOf<T>(_setValue: (data: VariantOptions) => void, dataType: string, parseFunc: any) {
+function ListOf<T>(
+    _setValue: (data: VariantOptions) => void,
+    dataType: string,
+    parseFunc: (this: { value: T | undefined }, text: string) => T
+) {
     return {
         init(this: ListOfTParser<T>) {
             this.listData = [];
@@ -55,29 +60,36 @@ function ListOf<T>(_setValue: (data: VariantOptions) => void, dataType: string, 
         finish(this: ListOfTParser<T>) {
             _setValue({
                 arrayType: VariantArrayType.Array,
-                dataType: (DataType as any)[dataType],
+                dataType: (DataType as unknown as Record<string, number>)[dataType] as DataType,
                 value: this.listData
             });
         },
         endElement(this: ListOfTParser<T>, _element: string) {
-            this.listData.push(this.parser[dataType].value);
+            this.listData.push(this.parser[dataType].value as T);
         }
     };
 }
 
 interface Parser {
-    parent: Parser | any;
+    parent?: Parser;
+    obj?: { nodeId: NodeId };
+}
+
+interface UAVariableTypeWithVariantValue {
+    value: { value: unknown };
 }
 
 function _installExtensionObjectListInitializationPostTask(
     postTasks2_AssignedExtensionObjectToDataValue: Task[],
     element: ListOfExtensionObjectParser
 ) {
-    let listExtensionObject = element.listExtensionObject;
-    let nodeId = element.parent.parent.obj.nodeId;
-    assert(nodeId, "expecting a nodeid");
+    let listExtensionObject: (ExtensionObject | null)[] | undefined = element.listExtensionObject;
+    let nodeId: NodeId | undefined = element.parent.parent?.obj?.nodeId;
+    if (!nodeId) {
+        throw new Error("expecting a nodeid");
+    }
     const task = async (addressSpace2: IAddressSpace) => {
-        const node = addressSpace2.findNode(nodeId)!;
+        const node = nodeId ? addressSpace2.findNode(nodeId) : null;
         if (!node) {
             debugLog(`Cannot find node with nodeId ${nodeId}. may be the node was marked as deprecated`);
         } else if (node.nodeClass === NodeClass.Variable) {
@@ -86,12 +98,11 @@ function _installExtensionObjectListInitializationPostTask(
             v.bindExtensionObject(listExtensionObject as ExtensionObject[], { createMissingProp: false });
         } else if (node.nodeClass === NodeClass.VariableType) {
             // no need to bind a variable type
-            const v = node as UAVariableType;
-            (v as any) /*fix me*/.value.value = listExtensionObject;
+            (node as unknown as UAVariableTypeWithVariantValue) /*fix me*/.value.value = listExtensionObject;
         }
-        listExtensionObject.slice(0);
-        (listExtensionObject as any) = undefined;
-        (nodeId as any) = undefined;
+        listExtensionObject?.slice(0);
+        listExtensionObject = undefined;
+        nodeId = undefined;
     };
     postTasks2_AssignedExtensionObjectToDataValue.push(task);
 }
@@ -100,15 +111,15 @@ export interface ListOfTParser<T> extends Parser {
     listData: T[];
     parent: Parser;
     parser: {
-        [key: string]: Parser | any;
+        [key: string]: ReaderStateParserLike & { value?: T; nodeId?: NodeId | string };
     };
 }
-function parser2<T>(_setValue: (data: VariantOptions) => void, type: string, p: (a: any) => any): any {
+function parser2(_setValue: (data: VariantOptions) => void, type: string, p: (text: string) => unknown): ReaderStateParserLike {
     return {
-        finish(this: T & { text: string }) {
+        finish(this: { text: string }) {
             _setValue({
                 arrayType: VariantArrayType.Scalar,
-                dataType: (DataType as any)[type],
+                dataType: (DataType as unknown as Record<string, number>)[type] as DataType,
                 value: p(this.text)
             });
         }
@@ -144,7 +155,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
         parser: {
             QualifiedName: {
                 ...makeQualifiedNameParser(translateNodeId).QualifiedName,
-                finish(this: any) {
+                finish(this: QualifiedNameParserL1) {
                     setValue2({
                         dataType: DataType.QualifiedName,
                         value: coerceQualifiedName({ ...this.qualifiedName })
@@ -153,7 +164,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             },
             LocalizedText: {
                 ...localizedText_parser.LocalizedText,
-                finish(this: any) {
+                finish(this: LocalizedTextParserLikeL1) {
                     setValue2({
                         dataType: DataType.LocalizedText,
                         value: coerceLocalizedText({ ...this.localizedText })
@@ -161,7 +172,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                 }
             },
             XmlElement: {
-                finish(this: any) {
+                finish(this: { text: string }) {
                     setValue2({
                         dataType: DataType.XmlElement,
                         value: this.text
@@ -169,7 +180,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                 }
             },
             String: {
-                finish(this: any) {
+                finish(this: { text: string }) {
                     setValue2({
                         dataType: DataType.String,
                         value: this.text
@@ -179,7 +190,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             Guid: {
                 parser: {
                     String: {
-                        finish(this: any) {
+                        finish(this: { text: string }) {
                             const guid = this.text;
                             if (!isValidGuid(guid)) {
                                 /* ?*/
@@ -196,7 +207,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             NodeId: {
                 parser: {
                     Identifier: {
-                        finish(this: any) {
+                        finish(this: { text: string }) {
                             const nodeId = this.text;
                             setValue2({
                                 dataType: DataType.NodeId,
@@ -221,10 +232,10 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             Int64: parser2(setValue2, "Int64", parseInt64),
 
             ByteString: {
-                init(this: any) {
+                init(this: { value: Buffer | null; text: string }) {
                     this.value = null;
                 },
-                finish(this: any) {
+                finish(this: { value: Buffer | null; text: string }) {
                     const base64text = this.text;
                     const byteString = Buffer.from(base64text, "base64");
                     setValue2({
@@ -235,7 +246,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                 }
             },
             Float: {
-                finish(this: any) {
+                finish(this: { text: string }) {
                     setValue2({
                         dataType: DataType.Float,
                         value: parseFloat(this.text)
@@ -244,7 +255,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             },
 
             Double: {
-                finish(this: any) {
+                finish(this: { text: string }) {
                     setValue2({
                         dataType: DataType.Double,
                         value: parseFloat(this.text)
@@ -325,7 +336,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                         });
                     } else {
                         // postpone the creation of the extension object
-                        const listExtensionObject: ExtensionObject[] = this.listExtensionObject as any;
+                        const listExtensionObject: ExtensionObject[] = this.listExtensionObject as ExtensionObject[];
                         setDeferredValue(
                             self,
                             {
@@ -348,7 +359,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                     ...localizedText_parser
                 },
                 endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
-                    this.listData.push(this.parser.LocalizedText.value);
+                    this.listData.push(this.parser.LocalizedText.value as QualifiedNameOptions);
                 },
                 finish(this: ListOfTParser<QualifiedNameOptions>) {
                     setValue2({
@@ -364,7 +375,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                 },
                 parser: makeQualifiedNameParser(translateNodeId),
                 endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
-                    this.listData.push(this.parser.QualifiedName.value);
+                    this.listData.push(this.parser.QualifiedName.value as QualifiedNameOptions);
                 },
                 finish(this: ListOfTParser<QualifiedNameOptions>) {
                     setValue2({
@@ -380,7 +391,7 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                 },
                 parser: makeNodeIdParser(translateNodeId),
                 endElement(this: ListOfTParser<NodeIdLike>, _elementName: string) {
-                    this.listData.push(this.parser.NodeId.nodeId);
+                    this.listData.push(this.parser.NodeId.nodeId as NodeIdLike);
                 },
                 finish(this: ListOfTParser<NodeIdLike>) {
                     setValue2({
@@ -416,5 +427,5 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             ListOfXmlElement: ListOf<string>(setValue2, "XmlElement", (value: string) => value)
         }
     };
-    return reader as any as ReaderStateParserLike;
+    return reader as unknown as ReaderStateParserLike;
 }

@@ -15,7 +15,7 @@ import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
 
 describe("DataAccess", () => {
     let addressSpace: AddressSpace;
-    const data = { addressSpace: null as any };
+    const data = { addressSpace: null as unknown as AddressSpace };
     before(async () => {
         addressSpace = AddressSpace.create();
 
@@ -115,7 +115,7 @@ describe("DataAccess", () => {
         xyArrayItemType.arrayDimensions?.should.eql([0, 0, 0]);
     });
 
-    it("should encode and decode a string containing fancy characters", (done: any) => {
+    it("should encode and decode a string containing fancy characters", (done: Mocha.Done) => {
         const engineeringUnits = standardUnits.degree_celsius;
         encode_decode_round_trip_test(engineeringUnits, (buffer: Buffer) => {
             buffer.length.should.equal(82);

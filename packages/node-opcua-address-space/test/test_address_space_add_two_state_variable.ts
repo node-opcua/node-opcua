@@ -8,9 +8,9 @@ import { AddressSpace, type BaseNode, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { UATwoStateVariableImpl } from "../src/state_machine/ua_two_state_variable";
 
-let clock: any = null;
+let clock: sinon.SinonFakeTimers | null = null;
 
-describe("testing add TwoStateVariable ", function (this: any) {
+describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 10000));
 
     let addressSpace: AddressSpace;
@@ -30,11 +30,11 @@ describe("testing add TwoStateVariable ", function (this: any) {
         addressSpace.dispose();
     });
 
-    beforeEach(function (this: any) {
+    beforeEach(function (this: Mocha.Context) {
         clock = sinon.useFakeTimers();
     });
-    afterEach(function (this: any) {
-        clock.restore();
+    afterEach(function (this: Mocha.Context) {
+        clock?.restore();
         clock = null;
     });
 
@@ -131,22 +131,22 @@ describe("testing add TwoStateVariable ", function (this: any) {
         node._falseState.should.eql("Disabled");
     });
 
-    it("should add a TwoStateVariableType with transitionTime", function (this: any) {
+    it("should add a TwoStateVariableType with transitionTime", function (this: Mocha.Context) {
         const node = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["TransitionTime"]
         });
         should.exist(node.transitionTime);
 
-        clock.tick(100);
+        clock?.tick(100);
         node.setValue(true);
         node.transitionTime?.readValue().value.value.getTime().should.eql(100);
 
-        clock.tick(100);
+        clock?.tick(100);
         node.setValue(false);
         node.transitionTime?.readValue().value.value.getTime().should.eql(200);
 
-        clock.tick(100);
+        clock?.tick(100);
         node.setValue(false);
         node.transitionTime?.readValue().value.value.getTime().should.eql(200, "again");
     });
@@ -199,7 +199,7 @@ describe("testing add TwoStateVariable ", function (this: any) {
         subState.getTrueSubStates().length.should.eql(0);
     });
 
-    it("should add a TwoStateVariableType with effectiveTransitionTime", function (this: any) {
+    it("should add a TwoStateVariableType with effectiveTransitionTime", function (this: Mocha.Context) {
         const mainState = namespace.addTwoStateVariable({
             browseName: "TwoStateVariable2",
             optionals: ["EffectiveTransitionTime", "TransitionTime", "EffectiveDisplayName"]
@@ -218,18 +218,18 @@ describe("testing add TwoStateVariable ", function (this: any) {
         mainState.getTrueSubStates().length.should.eql(1);
         mainState.getTrueSubStates()[0].browseName.toString().should.eql("1:TwoStateVariableSub");
 
-        clock.tick(100);
+        clock?.tick(100);
         mainState.setValue(false);
         mainState.effectiveTransitionTime?.readValue().statusCode.should.eql(StatusCodes.Good);
         mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(100);
         mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);
 
-        clock.tick(100);
+        clock?.tick(100);
         subState.setValue(true);
         mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(200);
         mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);
 
-        clock.tick(100);
+        clock?.tick(100);
         subState.setValue(false);
         mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(300);
         mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);

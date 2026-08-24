@@ -5,6 +5,10 @@ import { AddressSpace, type BaseNode } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { type BoilerType, createBoilerType } from "../testHelpers";
 
+interface AddressSpaceWithPrivateNamespaceIndex {
+    _private_namespaceIndex: number;
+}
+
 describe("UANode#removeReference", () => {
     const nodesetFilename = nodesets.standard;
     let addressSpace: AddressSpace;
@@ -14,7 +18,9 @@ describe("UANode#removeReference", () => {
         const namespace = addressSpace.registerNamespace("Private");
         namespace.index.should.eql(1);
 
-        addressSpace.getNamespace("Private").index.should.eql((addressSpace as any)._private_namespaceIndex);
+        addressSpace
+            .getNamespace("Private")
+            .index.should.eql((addressSpace as unknown as AddressSpaceWithPrivateNamespaceIndex)._private_namespaceIndex);
 
         await generateAddressSpace(addressSpace, nodesetFilename);
         boilerType = createBoilerType(namespace);

@@ -36,6 +36,8 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     _condition_refresh_in_progress: boolean;
 
+    $$extraDataTypeManager?: ExtraDataTypeManager;
+
     _coerceNode(node: string | BaseNode | NodeIdLike): BaseNode | null;
 
     _coerceFolder(folder: string | BaseNode | NodeId): BaseNode | null;

@@ -14,6 +14,7 @@ import {
     promoteToStateMachine,
     type UAFiniteStateMachineType,
     type UAObject,
+    type UAState,
     type UAStateMachineEx,
     type UAStateMachineType,
     type UAVariable
@@ -146,7 +147,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         promoteToStateMachine(myStateMachine);
 
         // get the states
-        const a = myStateMachine.getStates().map((e: any) => {
+        const a = myStateMachine.getStates().map((e: UAState) => {
             const stateNumber = e.stateNumber.readValue().value.value;
             return e.browseName.toString() + (stateNumber !== null ? ` ( ${stateNumber} )` : "");
         });
@@ -276,7 +277,7 @@ describe("FSM2 - Finite State Machine with Multiple transition from one state to
     let _output: string[] = [];
     function captureConsoleLog() {
         /* */
-        console.log = (...args: [any, ...any[]]) => {
+        console.log = (...args: unknown[]) => {
             const str = args.map((a) => `${a}`).join(" ");
             if (str.substring(0, 3) !== "XXX") {
                 _output.push(str);
@@ -370,7 +371,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
             now: 1000,
             shouldAdvanceTime: false,
             shouldClearNativeTimers: true
-        } as any);
+        });
     });
     afterEach(() => {
         clock?.restore();

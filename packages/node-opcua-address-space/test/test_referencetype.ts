@@ -22,6 +22,10 @@ import { getMiniAddressSpace } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
+interface UAReferenceTypeWithSlowIsSubtypeOf {
+    _slow_isSubtypeOf(baseType: UAReferenceType): boolean;
+}
+
 describe("testing ReferenceType", () => {
     let addressSpace: AddressSpace;
     let rootFolder: UARootFolder;
@@ -201,7 +205,7 @@ describe("testing ReferenceType", () => {
         serverStatus.parent?.nodeId.should.equal(server.nodeId);
     });
 
-    it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", (done: any) => {
+    it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", (done: (err?: Error) => void) => {
         const serverStatus = rootFolder.objects.server.serverStatus;
 
         const references = serverStatus.browseNode({
@@ -232,7 +236,7 @@ describe("testing ReferenceType", () => {
         );
     });
 
-    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", (done: any) => {
+    it("should return 7 refs for browseNode on ServerStatus (BrowseDirection.Both)", (done: (err?: Error) => void) => {
         const serverStatus = rootFolder.objects.server.serverStatus;
 
         const references = serverStatus.browseNode({
@@ -380,7 +384,7 @@ describe("testing ReferenceType", () => {
         return browseResults;
     }
 
-    it("BaseNode#findReferencesEx should be fast ", function (this: any, done: any) {
+    it("BaseNode#findReferencesEx should be fast ", function (this: Mocha.Context, done: Mocha.Done) {
         this.timeout(Math.max(this.timeout(), 100000));
 
         const bench = new Benchmarker();
@@ -400,7 +404,7 @@ describe("testing ReferenceType", () => {
             .on("cycle", (message: string) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Mocha.Context) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
                 this.fastest.name.should.eql("findReferencesEx fast");
@@ -451,14 +455,16 @@ describe(" improving performance of isSubtypeOf", () => {
     it("should ensure that optimized version of isSubtypeOf produce same result as brute force version", () => {
         referenceTypes.forEach((referenceType) => {
             const flags1 = referenceTypes.map((refType) => referenceType.isSubtypeOf(refType));
-            const flags2 = referenceTypes.map((refType) => (referenceType as any)._slow_isSubtypeOf(refType));
+            const flags2 = referenceTypes.map((refType) =>
+                (referenceType as unknown as UAReferenceTypeWithSlowIsSubtypeOf)._slow_isSubtypeOf(refType)
+            );
             // xx console.log( referenceType.browseName,flags1.map(function(f){return f ? 1 :0;}).join(" - "));
             // xx console.log( referenceType.browseName,flags2.map(function(f){return f ? 1 :0;}).join(" - "));
             flags1.should.eql(flags2);
         });
     });
 
-    it("should ensure that optimized version of isSubtypeOf is really faster that brute force version", function (this: any, done: any) {
+    it("should ensure that optimized version of isSubtypeOf is really faster that brute force version", function (this: Mocha.Context, done: Mocha.Done) {
         this.timeout(Math.max(this.timeout(), 100000));
 
         const bench = new Benchmarker();
@@ -468,7 +474,7 @@ describe(" improving performance of isSubtypeOf", () => {
             .add("isSubtypeOf slow", () => {
                 referenceTypes.forEach((referenceType) => {
                     referenceTypes.map((refType) => {
-                        return (referenceType as any)._slow_isSubtypeOf(refType);
+                        return (referenceType as unknown as UAReferenceTypeWithSlowIsSubtypeOf)._slow_isSubtypeOf(refType);
                     });
                 });
             })
@@ -482,7 +488,7 @@ describe(" improving performance of isSubtypeOf", () => {
             .on("cycle", (message: string) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Mocha.Context) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
                 this.fastest.name.should.eql("isSubtypeOf fast");

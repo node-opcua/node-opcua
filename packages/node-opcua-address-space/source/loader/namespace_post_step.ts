@@ -38,7 +38,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
                 }
                 const before = a.constructor.name;
 
-                promoter.promoter(a as any);
+                promoter.promoter(a as UAVariable & UAObject);
                 const after = a.constructor.name;
                 // c8 ignore next
                 if (doDebug) {

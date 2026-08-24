@@ -150,17 +150,24 @@ export class PseudoSession implements IBasicSession {
     public browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
     public browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
     public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
-    public browse(nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[], callback?: ResponseCallback<any>): any {
+    public browse(
+        nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[],
+        callback?: ResponseCallback<BrowseResult> | ResponseCallback<BrowseResult[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<BrowseResult> | Promise<BrowseResult[]> {
         const isArray = Array.isArray(nodesToBrowse);
         if (!isArray) {
-            return this.browse([nodesToBrowse as BrowseDescriptionLike], (err, results) => {
-                return callback?.(err, results ? results[0] : undefined);
+            const callbackSingle = callback as ResponseCallback<BrowseResult> | undefined;
+            this.browse([nodesToBrowse as BrowseDescriptionLike], (err, results) => {
+                callbackSingle?.(err, results ? results[0] : undefined);
             });
+            return;
         }
+        const callbackArray = callback as ResponseCallback<BrowseResult[]> | undefined;
         const browseAll = (nodesToBrowse: BrowseDescriptionOptions[], callack: ResponseCallback<BrowseResult[]>) => {
             const results: BrowseResult[] = [];
             for (const browseDescription of nodesToBrowse as BrowseDescriptionOptions[]) {
-                browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId!);
+                browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId || NodeId.nullNodeId);
                 const _browseDescription = coerceBrowseDescription(browseDescription);
                 const nodeId = resolveNodeId(_browseDescription.nodeId);
                 const r = this[$addressSpace].browseSingleNode(nodeId, _browseDescription, this[$context]);
@@ -179,7 +186,7 @@ export class PseudoSession implements IBasicSession {
                     maxBrowseContinuationPoints: this.maxBrowseContinuationPoints
                 },
                 nodesToBrowse as BrowseDescriptionOptions[],
-                callback
+                callbackArray
             );
         });
     }
@@ -188,7 +195,11 @@ export class PseudoSession implements IBasicSession {
     public read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
     public read(nodeToRead: ReadValueIdOptions): Promise<DataValue>;
     public read(nodesToRead: ReadValueIdOptions[]): Promise<DataValue[]>;
-    public read(nodesToRead: ReadValueIdOptions[] | ReadValueIdOptions, callback?: ResponseCallback<any>): any {
+    public read(
+        nodesToRead: ReadValueIdOptions[] | ReadValueIdOptions,
+        callback?: ResponseCallback<DataValue> | ResponseCallback<DataValue[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<DataValue> | Promise<DataValue[]> {
         const isArray = Array.isArray(nodesToRead);
         if (!isArray) {
             nodesToRead = [nodesToRead as ReadValueIdOptions];
@@ -197,7 +208,10 @@ export class PseudoSession implements IBasicSession {
         const context = this[$context];
 
         const readV = async (nodeToRead: ReadValueIdOptions): Promise<DataValue> => {
-            const obj = this[$addressSpace].findNode(nodeToRead.nodeId!);
+            if (!nodeToRead.nodeId) {
+                return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+            }
+            const obj = this[$addressSpace].findNode(nodeToRead.nodeId);
             if (!obj) {
                 return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
             }
@@ -206,15 +220,23 @@ export class PseudoSession implements IBasicSession {
                 return await (obj as UAVariable).readValueAsync(context);
             }
             assert(!!nodeToRead.nodeId, "expecting a nodeId");
-            assert(!!nodeToRead.attributeId, "expecting a attributeId");
-            const attributeId = nodeToRead.attributeId!;
+            if (!nodeToRead.attributeId) {
+                throw new Error("expecting a attributeId");
+            }
+            const attributeId = nodeToRead.attributeId;
             const indexRange = nodeToRead.indexRange;
             const dataEncoding = nodeToRead.dataEncoding;
             const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
             return dataValue;
         };
         Promise.all(_nodesToRead.map(async (nodeToRead: ReadValueIdOptions) => await readV(nodeToRead)))
-            .then((dataValues) => callback?.(null, isArray ? dataValues : dataValues[0]))
+            .then((dataValues) => {
+                if (isArray) {
+                    (callback as ResponseCallback<DataValue[]> | undefined)?.(null, dataValues);
+                } else {
+                    (callback as ResponseCallback<DataValue> | undefined)?.(null, dataValues[0]);
+                }
+            })
             .catch((err) => callback?.(err));
     }
 
@@ -236,22 +258,26 @@ export class PseudoSession implements IBasicSession {
     public browseNext(
         continuationPoints: Buffer | Buffer[],
         releaseContinuationPoints: boolean,
-        callback?: ResponseCallback<any>
-    ): any {
+        callback?: ResponseCallback<BrowseResult> | ResponseCallback<BrowseResult[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<BrowseResult> | Promise<BrowseResult[]> {
         setImmediate(() => {
             if (continuationPoints instanceof Buffer) {
-                return this.browseNext([continuationPoints], releaseContinuationPoints, (err, _results) => {
+                const callbackSingle = callback as ResponseCallback<BrowseResult> | undefined;
+                this.browseNext([continuationPoints], releaseContinuationPoints, (err, _results) => {
                     if (err) {
-                        return callback?.(err);
+                        callbackSingle?.(err);
+                        return;
                     }
-                    callback?.(null, _results?.[0]);
+                    callbackSingle?.(null, _results?.[0]);
                 });
+                return;
             }
             innerBrowseNext(
                 { continuationPointManager: this.continuationPointManager },
                 continuationPoints as Buffer[],
                 releaseContinuationPoints,
-                callback
+                callback as ResponseCallback<BrowseResult[]> | undefined
             );
         });
     }
@@ -261,7 +287,11 @@ export class PseudoSession implements IBasicSession {
     public call(methodsToCall: CallMethodRequestLike[], callback: ResponseCallback<CallMethodResult[]>): void;
     public call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
     public call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
-    public call(methodsToCall: CallMethodRequestLike | CallMethodRequestLike[], callback?: ResponseCallback<any>): any {
+    public call(
+        methodsToCall: CallMethodRequestLike | CallMethodRequestLike[],
+        callback?: ResponseCallback<CallMethodResult> | ResponseCallback<CallMethodResult[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<CallMethodResult> | Promise<CallMethodResult[]> {
         const isArray = Array.isArray(methodsToCall);
         if (!isArray) {
             methodsToCall = [methodsToCall as CallMethodRequestLike];
@@ -281,7 +311,11 @@ export class PseudoSession implements IBasicSession {
             })
         )
             .then((callMethodResults) => {
-                callback?.(null, isArray ? callMethodResults : callMethodResults[0]);
+                if (isArray) {
+                    (callback as ResponseCallback<CallMethodResult[]> | undefined)?.(null, callMethodResults);
+                } else {
+                    (callback as ResponseCallback<CallMethodResult> | undefined)?.(null, callMethodResults[0]);
+                }
             })
             .catch((err) => {
                 callback?.(err);
@@ -290,7 +324,11 @@ export class PseudoSession implements IBasicSession {
 
     public getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     public getArgumentDefinition(methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>): void;
-    public getArgumentDefinition(methodId: MethodId, callback?: ResponseCallback<ArgumentDefinition>): any {
+    public getArgumentDefinition(
+        methodId: MethodId,
+        callback?: ResponseCallback<ArgumentDefinition>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<ArgumentDefinition> {
         getArgumentDefinitionHelper(this, methodId)
             .then((result) => {
                 callback?.(null, result);
@@ -304,7 +342,11 @@ export class PseudoSession implements IBasicSession {
     public translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
     public translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
     public translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
-    public translateBrowsePath(browsePaths: BrowsePath[] | BrowsePath, callback?: ResponseCallback<any>): any {
+    public translateBrowsePath(
+        browsePaths: BrowsePath[] | BrowsePath,
+        callback?: ResponseCallback<BrowsePathResult> | ResponseCallback<BrowsePathResult[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<BrowsePathResult> | Promise<BrowsePathResult[]> {
         const isArray = Array.isArray(browsePaths);
         if (!isArray) {
             browsePaths = [browsePaths as BrowsePath];
@@ -312,23 +354,32 @@ export class PseudoSession implements IBasicSession {
         const browsePathResults = (browsePaths as BrowsePath[]).map((browsePath: BrowsePath) => {
             return this[$addressSpace].browsePath(browsePath);
         });
-        callback?.(null, isArray ? browsePathResults : browsePathResults[0]);
+        if (isArray) {
+            (callback as ResponseCallback<BrowsePathResult[]> | undefined)?.(null, browsePathResults);
+        } else {
+            (callback as ResponseCallback<BrowsePathResult> | undefined)?.(null, browsePathResults[0]);
+        }
     }
     public write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
     public write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
     public write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
     public write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
-    public write(nodesToWrite: WriteValueOptions[] | WriteValueOptions, callback?: ResponseCallback<any>): any {
+    public write(
+        nodesToWrite: WriteValueOptions[] | WriteValueOptions,
+        callback?: ResponseCallback<StatusCode> | ResponseCallback<StatusCode[]>
+        // biome-ignore lint/suspicious/noConfusingVoidType: implementation must satisfy both the void (callback) and Promise<T> (thenify-wrapped) overloads; biome's suggested undefined-in-union fix breaks the "not all code paths return a value" check
+    ): void | Promise<StatusCode> | Promise<StatusCode[]> {
         const isArray = Array.isArray(nodesToWrite);
         const _nodesToWrite: WriteValueOptions[] = !isArray ? [nodesToWrite] : nodesToWrite;
         const context = this[$context];
         setImmediate(() => {
             const statusCodesPromises = _nodesToWrite.map((nodeToWrite: WriteValueOptions) => {
-                assert(!!nodeToWrite.nodeId, "expecting a nodeId");
                 assert(!!nodeToWrite.attributeId, "expecting a attributeId");
 
-                const nodeId = nodeToWrite.nodeId!;
-                const obj = this[$addressSpace].findNode(nodeId);
+                if (!nodeToWrite.nodeId) {
+                    return StatusCodes.BadNodeIdUnknown;
+                }
+                const obj = this[$addressSpace].findNode(nodeToWrite.nodeId);
                 if (!obj) {
                     return StatusCodes.BadNodeIdUnknown;
                 }
@@ -340,7 +391,11 @@ export class PseudoSession implements IBasicSession {
             });
             Promise.all(statusCodesPromises)
                 .then((statusCodes) => {
-                    callback?.(null, isArray ? statusCodes : statusCodes[0]);
+                    if (isArray) {
+                        (callback as ResponseCallback<StatusCode[]> | undefined)?.(null, statusCodes as StatusCode[]);
+                    } else {
+                        (callback as ResponseCallback<StatusCode> | undefined)?.(null, statusCodes[0]);
+                    }
                 })
                 .catch((err) => {
                     callback?.(err);

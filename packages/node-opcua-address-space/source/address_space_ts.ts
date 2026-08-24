@@ -70,7 +70,7 @@ export interface AddMultiStateDiscreteOptions extends AddBaseNodeOptions, Variab
 // "Number"                UInt32
 export type AddStateVariableOptionals = "EffectiveDisplayName" | "Name" | "Number" | string;
 export interface AddStateVariableOptions extends AddVariableOptionsWithoutValue {
-    id?: any;
+    id?: NodeIdLike;
     optionals?: AddStateVariableOptionals[];
 }
 
@@ -132,16 +132,18 @@ export interface UATypesFolder extends UAFolder {
     variableTypes: UAFolder;
 }
 
-type LocaleId = string;
-
 export interface AddressSpace extends IAddressSpace {
     getOwnNamespace(): Namespace;
     registerNamespace(namespaceUri: string): Namespace;
     rootFolder: UARootFolder;
 }
+export interface IHistorizerFactory {
+    create(node: UAVariable, options: IVariableHistorianOptions): IVariableHistorian;
+}
+
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class AddressSpace {
-    public static historizerFactory: any;
+    public static historizerFactory?: IHistorizerFactory;
 
     public static create(): AddressSpace {
         return new AddressSpace() as AddressSpace;
@@ -182,9 +184,17 @@ export declare class VariableHistorian implements IVariableHistorian {
 
 export type UAClonable = UAObject | UAVariable | UAMethod;
 
+export interface CreateExtObjArrayNodeOptions {
+    browseName: string;
+    complexVariableType: string | NodeId;
+    variableType: string | NodeId;
+    indexPropertyName: string;
+    minimumSamplingInterval?: number;
+}
+
 export declare function createExtObjArrayNode<T extends ExtensionObject>(
     parentFolder: UAObject,
-    options: any
+    options: CreateExtObjArrayNodeOptions
 ): UADynamicVariableArray<T>;
 
 export declare function bindExtObjArrayNode<T extends ExtensionObject>(
@@ -194,7 +204,7 @@ export declare function bindExtObjArrayNode<T extends ExtensionObject>(
 ): UAVariable;
 
 export declare function addElement<T extends ExtensionObject>(
-    options: any /* ExtensionObjectConstructor | ExtensionObject | UAVariable*/,
+    options: Record<string, unknown> | ExtensionObject | UAVariable,
     uaArrayVariableNode: UADynamicVariableArray<T>
 ): UAVariable;
 
@@ -205,6 +215,6 @@ export declare function removeElement<T extends ExtensionObject>(
 
 // }}
 
-export declare function dumpXml(node: BaseNode, options: any): string;
+export declare function dumpXml(node: BaseNode, options: Record<string, unknown>): string;
 export declare function dumpToBSD(namespace: INamespace): string;
 export declare function adjustNamespaceArray(addressSpace: IAddressSpace): void;

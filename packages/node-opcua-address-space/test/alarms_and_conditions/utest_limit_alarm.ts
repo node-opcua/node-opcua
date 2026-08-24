@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { DataType, type Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
@@ -25,7 +25,7 @@ const fields = [
     "message"
 ];
 
-function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData: any) {
+function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData: Record<string, Variant>) {
     function w(str: string, l: number): string {
         return `${str}                               `.substring(0, l);
     }
@@ -68,7 +68,7 @@ function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData:
 function ellipsis(a: string): string {
     return `${a.substring(0, 10)}...`;
 }
-function _dumpSpy(spyOnEvent: any) {
+function _dumpSpy(spyOnEvent: sinon.SinonSpy) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
         debugLog("call ", i);
         debugLog("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());

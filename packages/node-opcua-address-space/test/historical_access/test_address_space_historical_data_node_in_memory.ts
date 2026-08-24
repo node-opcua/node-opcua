@@ -1,12 +1,17 @@
 import fs from "node:fs";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
+import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 import { nodesets } from "node-opcua-nodesets";
 import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
+
+interface WithHAConfiguration {
+    "hA Configuration": UAHistoricalDataConfiguration;
+}
 
 describe("Testing Historical Data Node", () => {
     const context = new SessionContext({
@@ -39,7 +44,7 @@ describe("Testing Historical Data Node", () => {
             maxOnlineValues: 3 // Only very few values !!!!
         });
 
-        (node as any)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+        (node as unknown as WithHAConfiguration)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
         // let's inject some values into the history
         const today = new Date();
@@ -64,7 +69,9 @@ describe("Testing Historical Data Node", () => {
             date_add(today, { seconds: 0 })
         );
 
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.should.eql(date_add(today, { seconds: 0 }));
 
         const historyReadResult1 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -82,7 +89,9 @@ describe("Testing Historical Data Node", () => {
             StatusCodes.Good,
             date_add(today, { seconds: 1 })
         );
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.should.eql(date_add(today, { seconds: 0 }));
 
         const historyReadResult2 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -101,7 +110,9 @@ describe("Testing Historical Data Node", () => {
             StatusCodes.Good,
             date_add(today, { seconds: 2 })
         );
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 0 }));
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.should.eql(date_add(today, { seconds: 0 }));
 
         const historyReadResult3 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -123,7 +134,9 @@ describe("Testing Historical Data Node", () => {
             StatusCodes.Good,
             date_add(today, { seconds: 3 })
         );
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 1 }));
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.should.eql(date_add(today, { seconds: 1 }));
 
         const historyReadResult4 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -145,7 +158,9 @@ describe("Testing Historical Data Node", () => {
             StatusCodes.Good,
             date_add(today, { seconds: 4 })
         );
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.should.eql(date_add(today, { seconds: 2 }));
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.should.eql(date_add(today, { seconds: 2 }));
 
         const historyReadResult5 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint

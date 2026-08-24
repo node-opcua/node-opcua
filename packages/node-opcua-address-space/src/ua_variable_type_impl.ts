@@ -345,7 +345,7 @@ function hasChildWithBrowseName(parent: BaseNode, childBrowseName: QualifiedName
     );
 }
 
-function getParent(addressSpace: IAddressSpace, options: any) {
+function getParent(addressSpace: IAddressSpace, options: InstantiateVariableOptions) {
     const parent = options.componentOf || options.organizedBy;
     if (parent instanceof NodeId) {
         return addressSpace.findNode(parent as NodeId);

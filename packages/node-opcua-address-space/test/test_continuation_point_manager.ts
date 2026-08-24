@@ -11,7 +11,7 @@ describe("ContinuationPointManager", () => {
         cpm.should.be.instanceOf(ContinuationPointManager);
     });
     const toReferenceDescription = (reference: number): ReferenceDescription =>
-        new ReferenceDescription({ browseName: reference.toString() }) as any;
+        new ReferenceDescription({ browseName: reference.toString() });
     it("ContinuationPointManager#hasReachedMaximum", () => {
         const cpm = new ContinuationPointManager();
         cpm.hasReachedMaximum(0).should.eql(false);

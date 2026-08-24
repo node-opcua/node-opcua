@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-describe("testing loading ExtensionObject value from NodeSet XML file", function (this: any) {
+describe("testing loading ExtensionObject value from NodeSet XML file", function (this: Mocha.Context) {
     this.timeout(Math.max(this.timeout(), 30000)); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

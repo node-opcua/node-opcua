@@ -3,8 +3,13 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
 import sinon from "sinon";
-import type { AddressSpace, Namespace, UAObjectType, UAReferenceType, UARootFolder } from "..";
+import type { AddressSpace, Namespace, UAObject, UAObjectType, UAReferenceType, UARootFolder } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+
+interface UAObjectWithInternals extends UAObject {
+    _clear_caches(): void;
+    node2: UAObject;
+}
 
 describe("Testing UAObject", () => {
     let addressSpace: AddressSpace;
@@ -286,7 +291,8 @@ describe("Testing UAObject", () => {
         // let call a method that caches results
         node2.getComponents().length.should.eql(0);
 
-        sinon.spy(node1 as any, "_clear_caches");
+        const node1Priv = node1 as unknown as UAObjectWithInternals;
+        const clearCachesSpy = sinon.spy(node1Priv, "_clear_caches");
 
         node1.addReference({
             isForward: true,
@@ -294,15 +300,15 @@ describe("Testing UAObject", () => {
             referenceType: "HasComponent"
         });
 
-        (node1 as any)._clear_caches.callCount.should.eql(1);
-        (node1 as any)._clear_caches.restore();
+        clearCachesSpy.callCount.should.eql(1);
+        clearCachesSpy.restore();
 
         // let verify that cache has been cleared by calling method that caches results
         // and verifying that results has changed as expected
         node1.getComponents().length.should.eql(1);
         node2.getComponents().length.should.eql(0);
 
-        (node1 as any).node2.browseName.toString().should.eql("1:Node2");
+        node1Priv.node2.browseName.toString().should.eql("1:Node2");
     });
     it("BaseNode#addReference (Inverse) internal cache must be invalidated", () => {
         const node1 = namespace.addObject({
@@ -325,7 +331,7 @@ describe("Testing UAObject", () => {
         node1.getComponents().length.should.eql(1);
         node2.getComponents().length.should.eql(0);
 
-        (node1 as any).node2.browseName.toString().should.eql("1:Node2");
+        (node1 as unknown as UAObjectWithInternals).node2.browseName.toString().should.eql("1:Node2");
     });
 
     it("BaseNode#namespaceIndex", () => {

@@ -10,7 +10,7 @@ import { generateAddressSpace } from "../nodeJS";
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
-describe("testing NodeSet XML file loading special data structure", function (this: any) {
+describe("testing NodeSet XML file loading special data structure", function (this: Mocha.Context) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

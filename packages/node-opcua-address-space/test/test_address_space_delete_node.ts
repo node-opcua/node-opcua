@@ -3,7 +3,15 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, ensureDatatypeExtracted, type Namespace, type UADiscreteAlarm, type UAObject, type UAObjectType } from "..";
+import {
+    AddressSpace,
+    ensureDatatypeExtracted,
+    type Namespace,
+    type UADiscreteAlarm,
+    type UAObject,
+    type UAObjectType,
+    type UAVariable
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -152,16 +160,20 @@ describe("AddressSpace#deleteNode-b", () => {
     let namespace: Namespace;
 
     function _createXXXXAlarm(deviceNode: UAObject, alarmType: UAObjectType, browseName: string): UADiscreteAlarm {
-        const deviceHealthNode = (deviceNode as any).deviceHealth;
+        const deviceNodeWithHealth = deviceNode as unknown as UAObject & {
+            deviceHealth?: UAVariable;
+            deviceHealthAlarms?: UAObject;
+        };
+        const deviceHealthNode = deviceNodeWithHealth.deviceHealth;
         if (!deviceHealthNode) {
             throw new Error("DeviceHealth must exist");
         }
-        const deviceHealthAlarms = (deviceNode as any).deviceHealthAlarms;
+        const deviceHealthAlarms = deviceNodeWithHealth.deviceHealthAlarms;
         if (!deviceHealthAlarms) {
             throw new Error("deviceHealthAlarms must exist");
         }
 
-        (alarmType as any).isAbstract = false;
+        (alarmType as unknown as { isAbstract: boolean }).isAbstract = false;
 
         if (alarmType.isAbstract) {
             throw new Error(`Alarm Type cannot be abstract ${alarmType.browseName.toString()}`);

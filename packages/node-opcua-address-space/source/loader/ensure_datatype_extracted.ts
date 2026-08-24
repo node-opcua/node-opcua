@@ -23,6 +23,10 @@ interface UADataTypePriv extends UADataType {
     $partialDefinition?: StructureField[];
 }
 
+interface AddressSpacePrivateWithDataTypeManager extends AddressSpacePrivate {
+    $$extraDataTypeManager?: ExtraDataTypeManager;
+}
+
 function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[], dataTypeManager: ExtraDataTypeManager): void {
     // fix datatype _getDefinition();
     for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
@@ -48,7 +52,7 @@ function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[],
 }
 
 export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
-    const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
+    const addressSpacePriv = addressSpace as AddressSpacePrivateWithDataTypeManager;
 
     if (!addressSpacePriv.$$extraDataTypeManager) {
         const dataTypeManager = new ExtraDataTypeManager();
@@ -108,7 +112,7 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
         // turn old <=103 structure to have valid DataTypeDefinition
         fixDefinition103(addressSpace, namespaceArray, dataTypeManager);
     }
-    return addressSpacePriv.$$extraDataTypeManager;
+    return addressSpacePriv.$$extraDataTypeManager as ExtraDataTypeManager;
 }
 
 export function ensureDatatypeExtractedWithCallback(addressSpace: IAddressSpace, callback: CallbackT<ExtraDataTypeManager>): void {

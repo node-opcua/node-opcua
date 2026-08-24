@@ -4,6 +4,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
+import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 import { nodesets } from "node-opcua-nodesets";
 import {
     type HistoryData,
@@ -21,6 +22,10 @@ import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
 
 const sleep = promisify(setTimeout);
+
+interface WithHAConfiguration {
+    "hA Configuration": UAHistoricalDataConfiguration;
+}
 
 describe("Testing Historical Data Node", () => {
     let addressSpace: AddressSpace;
@@ -51,7 +56,7 @@ describe("Testing Historical Data Node", () => {
             dataType: "Double"
         });
         addressSpace.installHistoricalDataNode(node);
-        (node as any)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+        (node as unknown as WithHAConfiguration)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
     });
 
     it("HHH2- should keep values in memory to provide historical reads", async () => {
@@ -63,7 +68,7 @@ describe("Testing Historical Data Node", () => {
 
         addressSpace.installHistoricalDataNode(node);
 
-        (node as any)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+        (node as unknown as WithHAConfiguration)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
         // let's inject some values into the history
         const today = new Date();
@@ -76,7 +81,10 @@ describe("Testing Historical Data Node", () => {
         node.setValueFromSource({ dataType: "Double", value: 5 }, StatusCodes.Good, date_add(today, { seconds: 5 }));
         node.setValueFromSource({ dataType: "Double", value: 6 }, StatusCodes.Good, date_add(today, { seconds: 6 }));
 
-        (node as any)["hA Configuration"].startOfOnlineArchive.readValue().value.value.getTime().should.eql(today.getTime());
+        (node as unknown as WithHAConfiguration)["hA Configuration"].startOfOnlineArchive
+            .readValue()
+            .value.value.getTime()
+            .should.eql(today.getTime());
 
         const historyReadDetails = new ReadRawModifiedDetails({
             endTime: date_add(today, { seconds: 10 }),
@@ -166,7 +174,7 @@ describe("Testing Historical Data Node", () => {
         addressSpace.installHistoricalDataNode(node, {
             maxOnlineValues: 10 // Only very few values !!!!
         });
-        (node as any)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+        (node as unknown as WithHAConfiguration)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
         const today = new Date();
 
@@ -287,7 +295,7 @@ describe("Testing Historical Data Node", () => {
             addressSpace.installHistoricalDataNode(node, {
                 maxOnlineValues: 100 // Only very few values !!!!
             });
-            (node as any)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
+            (node as unknown as WithHAConfiguration)["hA Configuration"].browseName.toString().should.eql("HA Configuration");
 
             node.setValueFromSource(
                 {

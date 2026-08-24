@@ -63,7 +63,10 @@ export async function callMethodHelper(
     if (response1.statusCode.isNotGood()) {
         return { statusCode: response1.statusCode };
     }
-    const methodDeclaration = response1.methodDeclaration!;
+    const methodDeclaration = response1.methodDeclaration;
+    if (!methodDeclaration) {
+        return { statusCode: StatusCodes.BadMethodInvalid };
+    }
 
     // verify input Parameters
     const methodInputArguments = methodDeclaration.getInputArguments();

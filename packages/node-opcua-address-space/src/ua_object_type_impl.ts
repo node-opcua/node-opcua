@@ -16,16 +16,19 @@ import { AttributeIds, type LocalizedTextLike, NodeClass } from "node-opcua-data
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
 import { SessionContext } from "../source/session_context";
 import { initialize_properties_and_components } from "./_instantiate_helpers";
 import type { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl } from "./base_node_impl";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
 import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { assertUnusedChildBrowseName, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl";
+
+export interface UAObjectTypeOptions extends InternalBaseNodeOptions {
+    isAbstract?: boolean | null;
+}
 
 export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UAObjectType {
     public readonly nodeClass = NodeClass.ObjectType;
@@ -48,9 +51,9 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
     /** @deprecated - use  isSubtypeOf instead */
     public isSupertypeOf = construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
 
-    constructor(options: any) {
+    constructor(options: UAObjectTypeOptions) {
         super(options);
-        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
+        this.isAbstract = options.isAbstract ?? false;
     }
 
     public readAttribute(context: ISessionContext, attributeId: AttributeIds): DataValue {

@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import type { TimestampGetFunc, TimestampSetFunc } from "node-opcua-address-space-base";
 import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
 import { DataValue, type DataValueT } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -185,8 +186,8 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
                 minimumSamplingInterval: 100, // minimumSamplingInterval needed when using a getter
 
                 value: {
-                    timestamped_get: timestamped_get as any,
-                    timestamped_set: timestamped_set as any
+                    timestamped_get: timestamped_get as unknown as TimestampGetFunc,
+                    timestamped_set: timestamped_set as unknown as TimestampSetFunc
                 }
             });
             should.exist(myObject.getComponentByName("MyState"));

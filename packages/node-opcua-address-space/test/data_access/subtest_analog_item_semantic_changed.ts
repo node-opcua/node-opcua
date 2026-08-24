@@ -30,7 +30,11 @@ async function modifyEURange<T, DT extends DataType>(analogItem: UAAnalogItem<T,
     await analogItem.euRange.writeAttribute(context, writeValue);
 }
 
-export function subtest_analog_item_semantic_changed(maintest: any): void {
+interface MainTest {
+    addressSpace: AddressSpace;
+}
+
+export function subtest_analog_item_semantic_changed(maintest: MainTest): void {
     describe("AnalogDataItem and semantic changes", () => {
         let addressSpace: AddressSpace;
         let analogItem: UAAnalogItem<number, DataType.Double>;

@@ -15,7 +15,9 @@
  *
  * @internal
  */
-export type OptionalMap = Record<string, string | Record<string, any>>;
+export interface OptionalMap {
+    [key: string]: OptionalMap;
+}
 
 export function makeOptionalsMap(optionals?: string[] | null): OptionalMap {
     // make sure to use Object.create(null); to create a object with no prototype
@@ -24,7 +26,7 @@ export function makeOptionalsMap(optionals?: string[] | null): OptionalMap {
     if (!optionals) {
         return resultMap;
     }
-    function insertInMap(map: Record<string, any>, s: string[]): void {
+    function insertInMap(map: OptionalMap, s: string[]): void {
         const key = s[0];
 
         if (!map[key]) {

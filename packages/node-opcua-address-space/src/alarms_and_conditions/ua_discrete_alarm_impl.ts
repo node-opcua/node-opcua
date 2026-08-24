@@ -32,10 +32,13 @@ export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase {
 
         const discreteAlarmTypeBase = addressSpace.findObjectType("DiscreteAlarmType");
         assert(discreteAlarmTypeBase, "expecting DiscreteAlarmType - please check you nodeset xml file!");
+        if (!discreteAlarmTypeBase) {
+            throw new Error("expecting DiscreteAlarmType - please check you nodeset xml file!");
+        }
 
         /* eventTypeNode should be subtypeOf("DiscreteAlarmType"); */
         /* c8 ignore next */
-        if (!discreteAlarmType.isSubtypeOf(discreteAlarmTypeBase as any)) {
+        if (!discreteAlarmType.isSubtypeOf(discreteAlarmTypeBase)) {
             throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
         }
 

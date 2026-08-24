@@ -68,7 +68,9 @@ function _hash(node: BaseNode | UAReference): string {
 
 function _dumpDisplayName(xw: XmlWriter, node: BaseNode): void {
     if (node.displayName?.[0]) {
-        xw.startElement("DisplayName").text(node.displayName[0].text!).endElement();
+        xw.startElement("DisplayName")
+            .text(node.displayName[0].text || "")
+            .endElement();
     }
 }
 function _dumpDescription(xw: XmlWriter, node: { description?: LocalizedText }): void {
@@ -114,22 +116,36 @@ function _hasHigherPriorityThan(xw: XmlWriter, namespaceIndex1: number, namespac
     return hasHigherPriorityThan(namespaceIndex1, namespaceIndex2, xw.priorityTable);
 }
 
+function _mustFindReferenceType(addressSpace: IAddressSpace, name: string): UAReferenceType {
+    const referenceType = addressSpace.findReferenceType(name);
+    // c8 ignore next
+    if (!referenceType) {
+        throw new Error(`Cannot find standard reference type ${name}: please check your nodeset file`);
+    }
+    return referenceType;
+}
+
 function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.startElement("References");
 
     const addressSpace = node.addressSpace;
 
-    const aggregateReferenceType = addressSpace.findReferenceType("Aggregates")!;
-    // const hasChildReferenceType = addressSpace.findReferenceType("HasChild")!;
-    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype")!;
-    const hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition")!;
-    const nonHierarchicalReferencesType = addressSpace.findReferenceType("NonHierarchicalReferences")!;
-    const organizesReferencesType = addressSpace.findReferenceType("Organizes")!;
-    const connectsToReferenceType = addressSpace.findReferenceType("ConnectsTo")!;
-    const hasEventSourceReferenceType = addressSpace.findReferenceType("HasEventSource")!;
+    const aggregateReferenceType = _mustFindReferenceType(addressSpace, "Aggregates");
+    // const hasChildReferenceType = _mustFindReferenceType(addressSpace, "HasChild");
+    const hasSubtypeReferenceType = _mustFindReferenceType(addressSpace, "HasSubtype");
+    const hasTypeDefinitionReferenceType = _mustFindReferenceType(addressSpace, "HasTypeDefinition");
+    const nonHierarchicalReferencesType = _mustFindReferenceType(addressSpace, "NonHierarchicalReferences");
+    const organizesReferencesType = _mustFindReferenceType(addressSpace, "Organizes");
+    // ConnectsTo is genuinely optional: not every nodeset registers it, and the check
+    // below already tolerates it being absent.
+    const connectsToReferenceType = addressSpace.findReferenceType("ConnectsTo");
+    const hasEventSourceReferenceType = _mustFindReferenceType(addressSpace, "HasEventSource");
 
     function referenceToKeep(reference: UAReference): boolean {
-        const referenceType = (reference as ReferenceImpl)._referenceType!;
+        const referenceType = (reference as ReferenceImpl)._referenceType;
+        if (!referenceType) {
+            return false;
+        }
         const targetedNamespaceIndex = reference.nodeId.namespace;
 
         // get the direct backward reference to a external namespace
@@ -273,7 +289,10 @@ function getPrefix(xw: XmlWriter, namespace: XmlNamespaceUri): XmlNs {
 function restoreDefaultNamespace(xw: XmlWriter) {
     const xwe = xw as XmlWriterEx;
     if (!xwe.map) return;
-    xwe.map = xwe.stackMap.pop()!;
+    const previousMap = xwe.stackMap.pop();
+    if (previousMap) {
+        xwe.map = previousMap;
+    }
 }
 
 function setDefaultNamespace(xw: XmlWriter, namespace: XmlNamespaceUri): void {
@@ -302,7 +321,7 @@ function _dumpNodeId(xw: XmlWriter, v: NodeId) {
     xw.endElement();
 }
 
-function _dumpVariantValue(xw: XmlWriter, dataTypeNodeId: NodeId, dataType: DataType, addressSpace: IAddressSpace, value: any) {
+function _dumpVariantValue(xw: XmlWriter, dataTypeNodeId: NodeId, dataType: DataType, addressSpace: IAddressSpace, value: unknown) {
     if (value === undefined || value === null) {
         return;
     }
@@ -332,7 +351,7 @@ function _dumpVariantInnerExtensionObject(
     for (const field of definition.fields || []) {
         const dataTypeNodeId = field.dataType;
 
-        const fieldName = field.name!;
+        const fieldName = field.name || "";
         const lowerFieldName = lowerFirstLetter(fieldName);
         const v = (value as unknown as Record<string, unknown>)[lowerFieldName];
         if (v !== null && v !== undefined) {
@@ -350,17 +369,20 @@ function _dumpVariantInnerExtensionObject(
             startElementEx(xw, ns, fieldName, namespaceUri);
             //  xw.startElement(fieldName);
 
-            let fun: (value: any) => void = (_value: any) => {
+            let fun: (value: unknown) => void = (_value: unknown) => {
                 /** */
             };
             if (definition instanceof StructureDefinition) {
-                fun = _dumpVariantInnerExtensionObject.bind(null, xw, definitionMap, definition, addressSpace);
+                fun = _dumpVariantInnerExtensionObject.bind(null, xw, definitionMap, definition, addressSpace) as (
+                    value: unknown
+                ) => void;
             } else if (definition instanceof EnumDefinition) {
                 fun = _dumpVariantInnerValueEnum.bind(null, xw, definition);
             } else if (definition?.dataType === DataType.Variant) {
-                fun = (value: Variant) => {
+                fun = (value: unknown) => {
+                    const variantValue = value as Variant;
                     xw.startElement("Value");
-                    _dumpVariantValue(xw, field.dataType, value.dataType, addressSpace, value.value);
+                    _dumpVariantValue(xw, field.dataType, variantValue.dataType, addressSpace, variantValue.value);
                     xw.endElement();
                 };
             } else {
@@ -372,7 +394,7 @@ function _dumpVariantInnerExtensionObject(
                     fun(v);
                 } else {
                     // array
-                    for (const arrayItem of v as any[]) {
+                    for (const arrayItem of v as unknown[]) {
                         xw.startElement(name);
                         fun(arrayItem);
                         xw.endElement();
@@ -399,7 +421,7 @@ function _dumpVariantInnerExtensionObject(
     }
 }
 
-function _dumpVariantInnerValueEnum(xw: XmlWriter, definition: EnumDefinition, value: any): void {
+function _dumpVariantInnerValueEnum(xw: XmlWriter, definition: EnumDefinition, value: unknown): void {
     if (!definition.fields) {
         return;
     }
@@ -413,7 +435,7 @@ function _dumpVariantInnerValue(
     dataTypeNodeId: NodeId,
     definitionMap: DefinitionMap2,
     addressSpace: IAddressSpace,
-    value: any
+    value: unknown
 ): void {
     const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
     switch (dataType) {
@@ -430,11 +452,11 @@ function _dumpVariantInnerValue(
             _dumpNodeId(xw, value as NodeId);
             break;
         case DataType.DateTime:
-            xw.text(value.toISOString());
+            xw.text((value as Date).toISOString());
             break;
         case DataType.Int64:
         case DataType.UInt64:
-            xw.text(value[1].toString());
+            xw.text((value as [number, number])[1].toString());
             break;
         case DataType.Boolean:
         case DataType.SByte:
@@ -446,12 +468,13 @@ function _dumpVariantInnerValue(
         case DataType.UInt16:
         case DataType.UInt32:
         case DataType.String:
-            xw.text(value.toString());
+            xw.text((value as { toString(): string }).toString());
             break;
         case DataType.ByteString:
             {
-                const base64 = value.toString("base64");
-                xw.text(base64.length > 80 ? base64.match(/.{0,80}/g).join("\n") : base64);
+                const base64 = (value as Buffer).toString("base64");
+                const chunks = base64.match(/.{0,80}/g);
+                xw.text(base64.length > 80 && chunks ? chunks.join("\n") : base64);
             }
             break;
         case DataType.Guid:
@@ -463,7 +486,7 @@ function _dumpVariantInnerValue(
             if (value !== undefined && value !== null) {
                 // xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2008/02/Types.xsd");
                 xw.startElement(`${uax}String`);
-                xw.text(value.toString());
+                xw.text((value as { toString(): string }).toString());
                 xw.endElement();
             }
             break;
@@ -477,9 +500,11 @@ function _dumpVariantInnerValue(
         case DataType.StatusCode:
             xw.text((value as StatusCode).value.toString());
             break;
-        case DataType.Variant:
-            _dumpVariantInnerValue(xw, value.dataType, dataTypeNodeId, definitionMap, addressSpace, value.value);
+        case DataType.Variant: {
+            const variantValue = value as Variant;
+            _dumpVariantInnerValue(xw, variantValue.dataType, dataTypeNodeId, definitionMap, addressSpace, variantValue.value);
             break;
+        }
         default:
             errorLog(`_dumpVariantInnerValue incomplete ${value} DataType=${dataType}=${DataType[dataType]}`);
         //  throw new Error("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
@@ -499,7 +524,7 @@ function _dumpVariantExtensionObjectValue_Body(
     name: string,
     definition: StructureDefinition,
     addressSpace: IAddressSpace,
-    value: any
+    value: ExtensionObject
 ) {
     if (value) {
         const namespaceUri = findXsdNamespaceUri(xw, definition.defaultEncodingId);
@@ -553,7 +578,7 @@ function _dumpVariantExtensionObjectValue(
 function _dumpVariantExtensionObjectValue2(xw: XmlWriter, addressSpace: IAddressSpace, value: ExtensionObject) {
     const dataTypeNodeId = value.schema.dataTypeNodeId;
     const definitionMap = makeDefinitionMap(addressSpace);
-    const dataTypeNode = addressSpace.findDataType(dataTypeNodeId)!;
+    const dataTypeNode = addressSpace.findDataType(dataTypeNodeId);
     if (!dataTypeNode) {
         warningLog("_dumpVariantExtensionObjectValue2: Cannot find dataType for  ", dataTypeNodeId.toString());
         return;
@@ -726,7 +751,7 @@ function _visitUANode(node: BaseNode, data: DumpData, forward: boolean) {
         if (!data.index_el[k]) {
             data.index_el[k] = 1;
 
-            const o = addressSpace.findNode(k)! as BaseNode;
+            const o = addressSpace.findNode(k) as BaseNode | null;
             if (o) {
                 _visitUANode(o, data, forward);
             }
@@ -748,7 +773,7 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
             const r = node.findReferencesEx("HasTypeDefinition");
             if (r?.length) {
                 assert(r.length === 1);
-                const typeDefinitionObj = ReferenceImpl.resolveReferenceNode(addressSpace, r[0])! as BaseNode;
+                const typeDefinitionObj = ReferenceImpl.resolveReferenceNode(addressSpace, r[0]) as BaseNode | null;
                 if (!typeDefinitionObj) {
                     warningLog(node.toString());
                     warningLog(
@@ -771,9 +796,9 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
         {
             const r = node.findReferencesEx("HasSubtype", BrowseDirection.Inverse);
             if (r?.length) {
-                const subTypeOf = ReferenceImpl.resolveReferenceNode(addressSpace, r[0])! as BaseNode;
+                const subTypeOf = ReferenceImpl.resolveReferenceNode(addressSpace, r[0]) as BaseNode | null;
                 assert(r.length === 1);
-                if (subTypeOf.nodeId.namespace === node.nodeId.namespace) {
+                if (subTypeOf && subTypeOf.nodeId.namespace === node.nodeId.namespace) {
                     // only output node if it is on the same namespace
                     if (!xw.visitedNode.has(_hash(subTypeOf))) {
                         dumpNodeInXml(xw, subTypeOf);
@@ -820,11 +845,12 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
         }
     }
     if (Object.hasOwn(node, "symbolicName")) {
-        xw.writeAttribute("SymbolicName", (node as any).symbolicName);
+        xw.writeAttribute("SymbolicName", (node as unknown as { symbolicName: string }).symbolicName);
     }
     if (Object.hasOwn(node, "isAbstract")) {
-        if ((node as any).isAbstract) {
-            xw.writeAttribute("IsAbstract", (node as any).isAbstract ? "true" : "false");
+        const isAbstract = (node as unknown as { isAbstract: boolean }).isAbstract;
+        if (isAbstract) {
+            xw.writeAttribute("IsAbstract", isAbstract ? "true" : "false");
         }
     }
     // AccessLevel and UserAccessLevel exist in the XSD on UAVariable only. Gate on the node
@@ -907,7 +933,7 @@ function coerceInt64ToInt32(int64: Int64): number {
 function _dumpEnumDefinition(xw: XmlWriter, enumDefinition: EnumDefinition) {
     enumDefinition.fields = enumDefinition.fields || [];
 
-    for (const defItem of enumDefinition.fields!) {
+    for (const defItem of enumDefinition.fields) {
         xw.startElement("Field");
         xw.writeAttribute("Name", defItem.name as string);
         if (!isNullOrUndefined(defItem.value)) {
@@ -1387,7 +1413,7 @@ interface DumpData extends BuildAliasesData {
     index_el: Record<string, number>;
 }
 
-export type DumpXMLOptions = {};
+export type DumpXMLOptions = Record<string, never>;
 
 UAMethodImpl.prototype.dumpXML = function (xw) {
     dumpUAMethod(xw, this);
@@ -1467,7 +1493,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
 
     // let's sort the dependencies in the same order as the translation table
     const sortedDependencies = dependency.sort((a, b) =>
-        translationTable.get(a.index)! > translationTable.get(b.index)! ? 1 : -1
+        (translationTable.get(a.index) ?? 0) > (translationTable.get(b.index) ?? 0) ? 1 : -1
     );
 
     doDebug && debugLog(sortedDependencies.map((a) => `${a.index} + ${a.namespaceUri}`).join("\n"));
@@ -1555,12 +1581,14 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
             const result = getDataTypeDescription(opcBinaryTypeSystem);
             if (result.length === 1) {
                 xw.writeComment("DataSystem - Binary");
-                const dataSystemType = addressSpace.findNode(result[0].nodeId)! as UAVariable;
-                const types = dataSystemType.getComponents();
-                for (const f of types) {
-                    dumpNodeInXml(xw, f);
+                const dataSystemType = addressSpace.findNode(result[0].nodeId) as UAVariable | null;
+                if (dataSystemType) {
+                    const types = dataSystemType.getComponents();
+                    for (const f of types) {
+                        dumpNodeInXml(xw, f);
+                    }
+                    dumpNodeInXml(xw, dataSystemType);
                 }
-                dumpNodeInXml(xw, dataSystemType);
             }
         }
 
@@ -1568,14 +1596,15 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
             const result = getDataTypeDescription(opcXmlSchemaTypeSystem);
             if (result.length === 1) {
                 xw.writeComment("DataSystem - Xml");
-                const dataSystemType = addressSpace.findNode(result[0].nodeId)! as UAVariable;
+                const dataSystemType = addressSpace.findNode(result[0].nodeId) as UAVariable | null;
+                if (dataSystemType) {
+                    const types = dataSystemType.getComponents();
+                    for (const f of types) {
+                        dumpNodeInXml(xw, f);
+                    }
 
-                const types = dataSystemType.getComponents();
-                for (const f of types) {
-                    dumpNodeInXml(xw, f);
+                    dumpNodeInXml(xw, dataSystemType);
                 }
-
-                dumpNodeInXml(xw, dataSystemType);
             }
         }
     }

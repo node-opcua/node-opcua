@@ -26,7 +26,8 @@ import {
     makeDefaultCloneExtraInfo,
     type SetFunc,
     type VariableDataValueGetterSync,
-    type VariableDataValueSetterWithCallback
+    type VariableDataValueSetterWithCallback,
+    type VariableSetter
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
@@ -213,6 +214,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     public dataType: NodeId;
     private _basicDataType?: DataType;
 
+    // narrowing this to ExtensionObject breaks declaration-merging in ua_two_state_variable.ts and elsewhere
+    // (concrete *T variants bind $extensionObject to a different, more specific shape) — see the matching
+    // comment on UAVariable.$extensionObject in node-opcua-address-space-base for the documented precedent.
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     public $extensionObject?: any;
     public $set_ExtensionObject?: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
 
@@ -233,10 +238,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
     public _timestamped_get_func?: TimestampGetFunc | null;
     public _timestamped_set_func?: VariableDataValueSetterWithCallback | null;
-    public _get_func: any;
-    public _set_func: any;
+    public _get_func?: GetFunc | null;
+    public _set_func?: ((value: Variant, callback: (err: Error | null, statusCode?: StatusCode) => void) => void) | null;
     public refreshFunc?: (callback: CallbackT<DataValue>) => void;
-    public __waiting_callbacks?: any[];
+    public __waiting_callbacks?: CallbackT<DataValue>[];
 
     get typeDefinitionObj(): UAVariableType {
         // c8 ignore next
@@ -492,13 +497,14 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
     public asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>): void;
     public asyncRefresh(oldestDate: PreciseClock): Promise<DataValue>;
-    public asyncRefresh(...args: any[]): any {
+    public asyncRefresh(oldestDate: PreciseClock, callback?: CallbackT<DataValue>): Promise<DataValue> | undefined {
+        // asyncRefresh is always invoked with a callback at runtime: the public overload without
+        // a callback is only reachable through the withCallback() wrapper installed below, which
+        // synthesizes one before calling into this implementation.
+        const cb = callback as CallbackT<DataValue>;
         if (this.$dataValue.statusCode.isGoodish()) {
             this.verifyVariantCompatibility(this.$dataValue.value);
         }
-
-        const oldestDate = args[0] as PreciseClock;
-        const callback = args[1] as CallbackT<DataValue>;
 
         const lessOrEqual = (a: PreciseClock, b: PreciseClock) => {
             return (
@@ -514,10 +520,12 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             dataValue.serverPicoseconds = oldestDate.picoseconds;
             const serverClock = coerceClock(dataValue.serverTimestamp, dataValue.serverPicoseconds);
             if (lessOrEqual(oldestDate, serverClock)) {
-                return callback(null, dataValue);
+                cb(null, dataValue);
+                return;
             } else {
                 // fake
-                return callback(null, dataValue);
+                cb(null, dataValue);
+                return;
             }
         }
 
@@ -525,11 +533,12 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             ? coerceClock(this.$dataValue.serverTimestamp, this.$dataValue.serverPicoseconds)
             : null;
 
-        if (this.$dataValue.serverTimestamp && lessOrEqual(oldestDate, c1!)) {
+        if (c1 && lessOrEqual(oldestDate, c1)) {
             const dataValue = this.readValue().clone();
             dataValue.serverTimestamp = oldestDate.timestamp;
             dataValue.serverPicoseconds = oldestDate.picoseconds;
-            return callback(null, dataValue);
+            cb(null, dataValue);
+            return;
         }
         try {
             this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
@@ -546,15 +555,16 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 if (dataValue && dataValue !== this.$dataValue) {
                     this._internal_set_dataValue(coerceDataValue(dataValue), null);
                 }
-                callback(err, this.$dataValue);
+                cb(err, this.$dataValue);
             });
         } catch (err) {
             errorLog("-------------- refresh call failed 2", this.browseName.toString(), this.nodeId.toString());
             errorLog(err);
             const dataValue = new DataValue({ statusCode: StatusCodes.BadInternalError });
             this._internal_set_dataValue(dataValue, null);
-            callback(err as Error, this.$dataValue);
+            cb(err as Error, this.$dataValue);
         }
+        return undefined;
     }
 
     public readEnumValue(): IEnumItem {
@@ -781,7 +791,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     }
 
     private adjustDataValueStatusCode(dataValue: DataValue): StatusCode {
-        const statusCode = adjustDataValueStatusCode(this, dataValue, (this as any).acceptValueOutOfRange || false);
+        const statusCode = adjustDataValueStatusCode(
+            this,
+            dataValue,
+            (this as unknown as { acceptValueOutOfRange?: boolean }).acceptValueOutOfRange || false
+        );
         return statusCode;
     }
 
@@ -797,7 +811,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         dataValue: DataValue,
         indexRange?: string | NumericRange | null
     ): Promise<StatusCode>;
-    public writeValue(context: ISessionContext, dataValue: DataValue, ...args: any[]): any {
+    public writeValue(context: ISessionContext, dataValue: DataValue, ...args: unknown[]): Promise<StatusCode> | undefined {
         context = context || SessionContext.defaultContext;
         assert(context instanceof SessionContext);
 
@@ -824,10 +838,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         let callback: StatusCodeCallback;
         if (args.length === 1) {
             indexRange = new NumericRange();
-            callback = args[0];
+            callback = args[0] as StatusCodeCallback;
         } else if (args.length === 2) {
-            indexRange = args[0];
-            callback = args[1];
+            indexRange = args[0] as NumericRange;
+            callback = args[1] as StatusCodeCallback;
         } else {
             throw new Error("Invalid Number of args");
         }
@@ -839,14 +853,17 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         // test write permission
         if (!this.isWritable(context)) {
-            return callback?.(null, StatusCodes.BadNotWritable);
+            callback?.(null, StatusCodes.BadNotWritable);
+            return;
         }
         if (!this.checkPermissionPrivate(context, PermissionType.Write)) {
-            return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+            callback?.(null, StatusCodes.BadUserAccessDenied);
+            return;
         }
 
         if (!this.isUserWritable(context)) {
-            return callback?.(null, StatusCodes.BadWriteNotSupported);
+            callback?.(null, StatusCodes.BadWriteNotSupported);
+            return;
         }
 
         // adjust special case
@@ -854,13 +871,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         const statusCode = this.checkVariantCompatibility(variant);
         if (statusCode.isNot(StatusCodes.Good)) {
-            return callback?.(null, statusCode);
+            callback?.(null, statusCode);
+            return;
         }
 
         // adjust dataValue.statusCode based on InstrumentRange and EngineeringUnits
         const statusCode2 = this.adjustDataValueStatusCode(dataValue);
         if (statusCode2.isNotGood()) {
-            return callback?.(null, statusCode2);
+            callback?.(null, statusCode2);
+            return;
         }
 
         const write_func = this._timestamped_set_func || default_func;
@@ -868,7 +887,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         if (!write_func) {
             warningLog(` warning ${this.nodeId.toString()} ${this.browseName.toString()} has no setter. \n`);
             warningLog("Please make sure to bind the variable or to pass a valid value: new Variant({}) during construction time");
-            return callback?.(null, StatusCodes.BadNotWritable);
+            callback?.(null, StatusCodes.BadNotWritable);
+            return;
         }
         assert(write_func);
 
@@ -878,14 +898,16 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
                 if (indexRange && !indexRange.isEmpty()) {
                     if (!indexRange.isValid()) {
-                        return callback?.(null, StatusCodes.BadIndexRangeInvalid);
+                        callback?.(null, StatusCodes.BadIndexRangeInvalid);
+                        return;
                     }
 
                     const newArrayOrMatrix = dataValue.value.value;
 
                     if (dataValue.value.arrayType === VariantArrayType.Array) {
                         if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
-                            return callback(null, StatusCodes.BadTypeMismatch);
+                            callback(null, StatusCodes.BadTypeMismatch);
+                            return;
                         }
                         // check that destination data is also an array
                         assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
@@ -893,7 +915,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                         const result = indexRange.set_values(destArr, newArrayOrMatrix);
 
                         if (result.statusCode.isNot(StatusCodes.Good)) {
-                            return callback?.(null, result.statusCode);
+                            callback?.(null, result.statusCode);
+                            return;
                         }
                         dataValue.value.value = result.array;
 
@@ -903,7 +926,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                         const dimensions = this.$dataValue.value.dimensions;
                         if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
                             // not a matrix !
-                            return callback?.(null, StatusCodes.BadTypeMismatch);
+                            callback?.(null, StatusCodes.BadTypeMismatch);
+                            return;
                         }
                         const matrix = this.$dataValue.value.value;
                         const result = indexRange.set_values_matrix(
@@ -914,7 +938,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                             newArrayOrMatrix
                         );
                         if (result.statusCode.isNot(StatusCodes.Good)) {
-                            return callback?.(null, result.statusCode);
+                            callback?.(null, result.statusCode);
+                            return;
                         }
                         dataValue.value.dimensions = this.$dataValue.value.dimensions;
                         dataValue.value.value = result.matrix;
@@ -922,7 +947,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                         // scrap original array so we detect range
                         this.$dataValue.value.value = null;
                     } else {
-                        return callback?.(null, StatusCodes.BadTypeMismatch);
+                        callback?.(null, StatusCodes.BadTypeMismatch);
+                        return;
                     }
                 }
                 try {
@@ -931,11 +957,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                     if (types.isNativeError(err)) {
                         warningLog(err.message);
                     }
-                    return callback?.(null, StatusCodes.BadInternalError);
+                    callback?.(null, StatusCodes.BadInternalError);
+                    return;
                 }
             }
             callback?.(err || null, statusCode1);
         });
+        return undefined;
     }
 
     public writeAttribute(context: ISessionContext | null, writeValue: WriteValueOptions, callback: StatusCodeCallback): void;
@@ -944,14 +972,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         context: ISessionContext | null,
         writeValueOptions: WriteValueOptions,
         callback?: (err: Error | null, statusCode?: StatusCode) => void
-    ): any {
+    ): Promise<StatusCode> | undefined {
         // c8 ignore next
         if (!callback) {
             throw new Error("Internal error");
         }
 
-        if (!this.canUserWriteAttribute(context, writeValueOptions.attributeId!)) {
-            return callback(null, StatusCodes.BadUserAccessDenied);
+        if (!this.canUserWriteAttribute(context, writeValueOptions.attributeId as AttributeIds)) {
+            callback(null, StatusCodes.BadUserAccessDenied);
+            return;
         }
         const writeValue: WriteValue =
             writeValueOptions instanceof WriteValue ? (writeValueOptions as WriteValue) : new WriteValue(writeValueOptions);
@@ -972,33 +1001,39 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         switch (writeValue.attributeId) {
             case AttributeIds.Value:
-                this.writeValue(context, writeValue.value!, writeValue.indexRange!, callback);
+                this.writeValue(context, writeValue.value as DataValue, writeValue.indexRange, callback);
                 break;
             case AttributeIds.Historizing:
                 if (writeValue.value?.value.dataType !== DataType.Boolean) {
-                    return callback(null, StatusCodes.BadTypeMismatch);
+                    callback(null, StatusCodes.BadTypeMismatch);
+                    break;
                 }
                 if (!this.checkPermissionPrivate(context, PermissionType.WriteHistorizing)) {
-                    return callback(null, StatusCodes.BadUserAccessDenied);
+                    callback(null, StatusCodes.BadUserAccessDenied);
+                    break;
                 }
 
                 if (!this.canUserWriteHistorizingAttribute(context)) {
-                    return callback(null, StatusCodes.BadHistoryOperationUnsupported);
+                    callback(null, StatusCodes.BadHistoryOperationUnsupported);
+                    break;
                 }
 
                 // if the variable has no historizing in place reject
                 if (!this.getChildByName("HA Configuration")) {
-                    return callback(null, StatusCodes.BadNotSupported);
+                    callback(null, StatusCodes.BadNotSupported);
+                    break;
                 }
                 // check if user is allowed to do that !
                 // TODO
                 this.historizing = !!writeValue.value?.value.value; // yes ! indeed !
-                return callback(null, StatusCodes.Good);
+                callback(null, StatusCodes.Good);
+                break;
 
             default:
                 super.writeAttribute(context, writeValue, callback);
                 break;
         }
+        return undefined;
     }
 
     /**
@@ -1186,13 +1221,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      */
     public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
     public readValueAsync(context: ISessionContext | null): Promise<DataValue>;
-    public readValueAsync(context: ISessionContext | null, callback?: CallbackT<DataValue>): any {
+    public readValueAsync(context: ISessionContext | null, callback?: CallbackT<DataValue>): Promise<DataValue> | undefined {
         assert(typeof callback === "function");
 
         context = context || SessionContext.defaultContext;
 
         this.__waiting_callbacks = this.__waiting_callbacks || [];
-        this.__waiting_callbacks.push(callback);
+        this.__waiting_callbacks.push(callback as CallbackT<DataValue>);
 
         const _readValueAsync_in_progress = this.__waiting_callbacks.length >= 2;
         if (_readValueAsync_in_progress) {
@@ -1200,7 +1235,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         }
 
         if (this.isDisposed()) {
-            return callback?.(null, new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown }));
+            callback?.(null, new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown }));
+            return;
         }
 
         const readImmediate = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
@@ -1255,6 +1291,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             }
             satisfy_callbacks(err as Error);
         }
+        return undefined;
     }
 
     public getWriteMask(): number {
@@ -1505,9 +1542,9 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         return null;
     }
 
-    public updateExtensionObjectPartial(partialExtensionObject?: { [key: string]: any }): ExtensionObject {
+    public updateExtensionObjectPartial(partialExtensionObject?: Record<string, unknown>): ExtensionObject {
         setExtensionObjectPartialValue(this, partialExtensionObject);
-        return this.$extensionObject;
+        return this.$extensionObject as ExtensionObject;
     }
 
     public incrementExtensionObjectPartial(path: string | string[]): void {
@@ -1642,14 +1679,23 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         dataEncoding: QualifiedNameLike | null,
         continuationData: ContinuationData,
         callback?: CallbackT<HistoryReadResult>
-    ): any {
+    ): Promise<HistoryReadResult> | undefined {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
         if (typeof this._historyRead !== "function") {
-            return callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
+            callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
+            return;
         }
 
-        this._historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData, callback!);
+        this._historyRead(
+            context,
+            historyReadDetails,
+            indexRange,
+            dataEncoding,
+            continuationData,
+            callback as CallbackT<HistoryReadResult>
+        );
+        return undefined;
     }
 
     public _historyReadRaw(
@@ -1670,7 +1716,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         _dataEncoding: QualifiedNameLike | null,
         _continuationData: ContinuationData,
         _callback?: CallbackT<HistoryReadResult>
-    ): any {
+    ): void {
         throw new Error("");
     }
 
@@ -1705,7 +1751,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         callback(null, result);
     }
 
-    public _historyPush(_newDataValue: DataValue): any {
+    public _historyPush(_newDataValue: DataValue): void {
         throw new Error("");
     }
 
@@ -1715,7 +1761,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         _isReversed: boolean,
         _reverseDataValue: boolean,
         _callback: CallbackT<DataValue[]>
-    ): any {
+    ): void {
         throw new Error("");
     }
 
@@ -1726,7 +1772,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         _dataEncoding: QualifiedNameLike | null,
         _continuationData: ContinuationData,
         _callback: CallbackT<HistoryReadResult>
-    ): any {
+    ): void {
         throw new Error("");
     }
 
@@ -1968,7 +2014,7 @@ export interface UAVariableImplExtArray {
     $$indexPropertyName?: string;
 }
 
-function check_valid_array(dataType: DataType, array: any): boolean {
+function check_valid_array(dataType: DataType, array: unknown): boolean {
     if (Array.isArray(array)) {
         return true;
     }
@@ -2202,7 +2248,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
     this._get_func = options.get;
 
     const timestamped_get_func_from__Variable_bind_with_simple_get = () => {
-        const value: Variant | StatusCode = this._get_func();
+        const value: Variant | StatusCode = (this._get_func as GetFunc)();
 
         /* c8 ignore next */
         if (!is_Variant_or_StatusCode(value)) {
@@ -2248,16 +2294,17 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
     assert(!this._set_func);
 
     //
-    this._set_func = turn_sync_to_async(options.set!, 1);
+    const set_func = turn_sync_to_async<UAVariable, Variant, StatusCode>(options.set as VariableSetter, 1);
+    this._set_func = set_func;
 
-    assert(this._set_func.length === 2, " set function must have 2 arguments ( variant, callback)");
+    assert(set_func.length === 2, " set function must have 2 arguments ( variant, callback)");
 
     this._timestamped_set_func = (
         timestamped_value: DataValue,
         callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
     ) => {
         assert(timestamped_value instanceof DataValue);
-        this._set_func(timestamped_value.value, (err: Error | null, statusCode: StatusCode) => {
+        set_func.call(this, timestamped_value.value, (err: Error | null, statusCode?: StatusCode) => {
             // c8 ignore next
             if (!err && !statusCode) {
                 errorLog(
@@ -2270,7 +2317,7 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
                 // record the value but still record the statusCode !
                 timestamped_value.statusCode = statusCode;
             }
-            callback(err, statusCode, timestamped_value);
+            callback(err, statusCode ?? StatusCodes.BadInternalError, timestamped_value);
         });
     };
 }
@@ -2331,7 +2378,7 @@ interface GetterOptions {
     timestamped_get?: TimestampGetFunc;
     refreshFunc?: RefreshFunc;
     dataType?: DataType | string;
-    value?: any;
+    value?: unknown;
 }
 function bind_getter(this: UAVariableImpl, options: GetterOptions) {
     if (typeof options.get === "function") {
@@ -2348,7 +2395,7 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         if (options.get !== undefined || options.timestamped_get !== undefined) {
             throw new Error("bind_getter : options should not specify both get and timestamped_get ");
         }
-        _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.refreshFunc! });
+        _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.refreshFunc });
     } else {
         assert(!Object.hasOwn(options, "set"), "getter is missing : a getter must be provided if a setter is provided");
         // xx bind_variant.call(this,options);
@@ -2430,9 +2477,9 @@ function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeI
 
     // change uaVariable.dataType
     uaVariable.dataType = newDataTypeNode.nodeId;
-    (uaVariable as any)._basicDataType = null;
-    (uaVariable as any).$dataValue.value.dataType = newDataType;
-    (uaVariable as any).$dataValue.value = value;
+    (uaVariable as unknown as { _basicDataType?: DataType | null })._basicDataType = null;
+    uaVariable.$dataValue.value.dataType = newBaseDataType;
+    uaVariable.$dataValue.value = value;
     // also change the value to ensure that we have a default value with the correct dataType
     uaVariable._internal_set_value(value);
 }

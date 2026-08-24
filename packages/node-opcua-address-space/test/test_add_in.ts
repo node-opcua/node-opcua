@@ -1,8 +1,26 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type UAReferenceType } from "..";
+import { AddressSpace, type UAObject, type UAReferenceType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
+
+interface UAMachineToolWithIdentification extends UAObject {
+    identification: UAObject & {
+        deviceClass: unknown;
+        softwareIdentification: unknown;
+        hardwareRevision: unknown;
+        manufacturer: unknown;
+        monthOfConstruction: unknown;
+        yearOfConstruction: unknown;
+        productCode: unknown;
+        serialNumber: unknown;
+        assetId: unknown;
+        componentName: unknown;
+        location: unknown;
+        initialOperationDate: unknown;
+        productInstanceUri: unknown;
+    };
+}
 
 describe("AddIns", () => {
     let addressSpace: AddressSpace;
@@ -58,7 +76,7 @@ describe("AddIns", () => {
                 "Identification.InitialOperationDate",
                 "Identification.ProductInstanceUri"
             ]
-        }) as any;
+        }) as unknown as UAMachineToolWithIdentification;
 
         console.log(machineTool.toString());
         console.log(machineTool.identification.toString());

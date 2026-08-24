@@ -2,7 +2,7 @@ import type { IAddressSpace, RequiredModel } from "node-opcua-address-space-base
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { CallbackT } from "node-opcua-status-code";
-import { type ReaderStateParser, type ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
+import { type ReaderStateParser, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import type { NamespacePrivate } from "../../src/namespace_private";
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
@@ -41,7 +41,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
                     Models: {
                         parser: {
                             Model: {
-                                init(_elementName: string, attrs: any) {
+                                init(_elementName: string, attrs: XmlAttributes) {
                                     const modelUri = attrs.ModelUri;
                                     const version = attrs.Version;
                                     const publicationDate = new Date(Date.parse(attrs.PublicationDate));
@@ -56,7 +56,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
                                 },
                                 parser: {
                                     RequiredModel: {
-                                        init(_elementName: string, attrs: any) {
+                                        init(_elementName: string, attrs: XmlAttributes) {
                                             const modelUri = attrs.ModelUri;
                                             const version = attrs.Version;
                                             const publicationDate = new Date(Date.parse(attrs.PublicationDate));

@@ -18,7 +18,9 @@ const errorLog = make_errorLog(__filename);
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
-export type OptionalMap = Record<string, string | Record<string, any>>;
+export interface OptionalMap {
+    [key: string]: OptionalMap;
+}
 export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly optionalsMap: OptionalMap;
     private readonly references: UAReference[];

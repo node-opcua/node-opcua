@@ -16,7 +16,7 @@ import { generateAddressSpace } from "../nodeJS";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-describe("Testing AutoID custom types", async function (this: any) {
+describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

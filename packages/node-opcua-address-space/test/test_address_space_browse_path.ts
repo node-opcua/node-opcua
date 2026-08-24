@@ -36,7 +36,7 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            debugLog((result as any).toString(opts));
+            debugLog(result.toString(opts));
         }
     });
     it("should browse Status", () => {
@@ -47,14 +47,14 @@ describe("AddressSpace#browsePath", () => {
 
         if (doDebug) {
             const opts = { addressSpace };
-            debugLog((result as any).toString(opts));
+            debugLog(result.toString(opts));
         }
     });
     it("#QQ browsing a path when a null target name is not in the last element shall return an error ", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/Server/ServerStatus");
         browsePath.relativePath?.elements?.[1]?.targetName.toString().should.eql("Server");
         // set a null target Name in the middle of the path
-        (browsePath.relativePath.elements![1] as any).targetName = null;
+        (browsePath.relativePath.elements![1] as unknown as { targetName: null }).targetName = null;
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
         result.targets?.length.should.eql(0);

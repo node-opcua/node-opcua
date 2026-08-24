@@ -185,7 +185,7 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
                 });
                 const statusCode = await multiStateDiscreteVariable.writeValue(
                     SessionContext.defaultContext,
-                    dataValue as any /* to force wrong value to be sent */
+                    dataValue as unknown as DataValueT<number, DataType.UInt32> /* to force wrong value to be sent */
                 );
                 statusCode.should.eql(StatusCodes.BadTypeMismatch);
             });

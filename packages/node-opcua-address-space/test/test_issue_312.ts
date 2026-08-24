@@ -5,7 +5,7 @@ import { getFixture } from "node-opcua-test-fixtures";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-describe("Issue 132", function (this: any) {
+describe("Issue 132", function (this: Mocha.Context) {
     this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;

@@ -1,8 +1,9 @@
 import "should";
 import { DataType } from "node-opcua-variant";
 import type { AddressSpace, UAObject } from "../..";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions";
 
-export function utest_issue_316(test: any): void {
+export function utest_issue_316(test: MochaSuiteEx): void {
     describe("Alarm&Condition ConditionClassName and ConditionName ", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;

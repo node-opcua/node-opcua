@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
@@ -7,6 +8,15 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+
+interface AddressSpaceWithExtraDataTypeManager {
+    $$extraDataTypeManager: ExtraDataTypeManager | undefined;
+    getDataTypeManager(): ExtraDataTypeManager;
+}
+
+interface UADataTypeWithExtensionObjectConstructor {
+    _extensionObjectConstructor: unknown;
+}
 
 /**
  * A nodeset carrying a single malformed <Value> (declared DataType="UInt32" but the value is a
@@ -51,8 +61,11 @@ describe("generateAddressSpace resilience to malformed <Value> in a nodeset", ()
         bad.readValue().statusCode.should.not.eql(StatusCodes.Good);
 
         // and, crucially, the DataTypeManager must be available
-        should.exist((addressSpace as any).$$extraDataTypeManager, "DataTypeManager must be initialised");
-        should.doesNotThrow(() => (addressSpace as any).getDataTypeManager());
+        should.exist(
+            (addressSpace as unknown as AddressSpaceWithExtraDataTypeManager).$$extraDataTypeManager,
+            "DataTypeManager must be initialised"
+        );
+        should.doesNotThrow(() => (addressSpace as unknown as AddressSpaceWithExtraDataTypeManager).getDataTypeManager());
     });
 
     it("RES-2 should still allow structured values (EURange) to be set after loading such a nodeset", async () => {
@@ -75,13 +88,13 @@ describe("generateAddressSpace resilience to malformed <Value> in a nodeset", ()
         await generateAddressSpace(addressSpace, [nodesets.standard]);
 
         // simulate an address space whose DataType extraction never ran
-        const priv = addressSpace as any;
+        const priv = addressSpace as unknown as AddressSpaceWithExtraDataTypeManager;
         const saved = priv.$$extraDataTypeManager;
         priv.$$extraDataTypeManager = undefined;
         try {
             const range = addressSpace.findDataType("Range")!;
             should.exist(range);
-            (range as any)._extensionObjectConstructor = undefined;
+            (range as unknown as UADataTypeWithExtensionObjectConstructor)._extensionObjectConstructor = undefined;
             should.throws(
                 () => addressSpace.getExtensionObjectConstructor(range),
                 /DataType manager is not initialised.*ensureDatatypeExtracted/

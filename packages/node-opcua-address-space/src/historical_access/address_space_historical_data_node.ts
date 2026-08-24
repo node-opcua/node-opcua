@@ -714,7 +714,7 @@ export function AddressSpace_installHistoricalDataNode(
     };
 
     assert(node.nodeClass === NodeClass.Variable);
-    options = options || Object.create(null);
+    const historianOptions: IVariableHistorianOptions = options || Object.create(null);
 
     const addressSpace = node.addressSpace;
 
@@ -727,7 +727,7 @@ export function AddressSpace_installHistoricalDataNode(
     node._historyReadRaw = _historyReadRaw;
     node._historyReadRawAsync = _historyReadRawAsync;
 
-    node.varHistorian = (options as { historian?: boolean }).historian || AddressSpace.historizerFactory.create(node, options);
+    node.varHistorian = historianOptions.historian || AddressSpace.historizerFactory.create(node, historianOptions);
 
     const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
     if (!historicalDataConfigurationType) {

@@ -563,7 +563,9 @@ export class UAStateMachineImplBase extends UAObjectImpl {
 
         // also update executable flags on methods
         for (const method of this.getMethods()) {
-            (method as any)._notifyAttributeChange(AttributeIds.Executable);
+            (method as unknown as { _notifyAttributeChange(attributeId: AttributeIds): void })._notifyAttributeChange(
+                AttributeIds.Executable
+            );
         }
     }
 

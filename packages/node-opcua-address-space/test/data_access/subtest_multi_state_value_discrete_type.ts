@@ -1,4 +1,4 @@
-import { coerceInt8, coerceInt32, coerceInt64, coerceUInt8, coerceUInt32, coerceUInt64 } from "node-opcua-basic-types";
+import { coerceInt8, coerceInt32, coerceInt64, coerceUInt8, coerceUInt32, coerceUInt64, type Int64 } from "node-opcua-basic-types";
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { DataValue, DataValueT } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -258,12 +258,12 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
         });
 
         interface MyObjectWithMultiStateValueDiscreteType extends UAObjectType {
-            color: UAMultiStateValueDiscreteEx<any, any>;
+            color: UAMultiStateValueDiscreteEx<number | Int64, DataType>;
             // instantiate(options: InstantiateObjectOptions): MyObjectWithMultiStateValueDiscrete;
         }
 
         interface MyObjectWithMultiStateValueDiscrete extends UAObject {
-            color: UAMultiStateValueDiscreteEx<any, any>;
+            color: UAMultiStateValueDiscreteEx<number | Int64, DataType>;
         }
 
         it("ZZ2 should instantiate a DataType containing a MultiStateValueDiscreteType", async () => {
@@ -346,8 +346,8 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             }) as MyObjectWithMultiStateValueDiscrete;
 
             const multiStateValueDiscrete1323 = obj.getChildByName("MultiStateValueDiscrete1323") as UAMultiStateValueDiscreteEx<
-                any,
-                any
+                number | Int64,
+                DataType
             >;
             // verification
             multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
@@ -459,7 +459,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
 
                 const multiStateValueDiscrete1323 = obj.getChildByName(
                     `MultiStateValueDiscrete${suffix}`
-                ) as UAMultiStateValueDiscreteEx<any, any>;
+                ) as UAMultiStateValueDiscreteEx<number | Int64, DataType>;
 
                 const initialValue = values[0];
                 const initialEnumName = toEnumName(initialValue);
@@ -499,7 +499,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             });
         });
 
-        function convertToArray<T>(array: any): T[] {
+        function convertToArray<T>(array: ArrayLike<T>): T[] {
             if (Array.isArray(array)) return array;
             const result: T[] = [];
             for (let i = 0; i < array.length; i++) {
@@ -563,7 +563,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
 
                 const multiStateValueDiscrete1323 = obj.getChildByName(
                     `MultiStateValueDiscrete${suffix}`
-                ) as UAMultiStateValueDiscreteArrayEx<any, any>;
+                ) as UAMultiStateValueDiscreteArrayEx<number | Int64, DataType>;
 
                 // verification
                 multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);

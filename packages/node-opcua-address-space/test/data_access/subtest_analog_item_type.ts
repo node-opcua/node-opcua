@@ -8,7 +8,11 @@ import should from "should";
 
 import { AddressSpace, type Namespace, SessionContext } from "../..";
 
-export function subtest_analog_item_type(maintest: any): void {
+interface MainTest {
+    addressSpace: AddressSpace;
+}
+
+export function subtest_analog_item_type(maintest: MainTest): void {
     describe("AnalogDataItem", () => {
         let addressSpace: AddressSpace;
         let namespace: Namespace;

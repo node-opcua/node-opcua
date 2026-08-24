@@ -1,5 +1,6 @@
 import path from "node:path";
 import { serverImplementsDataTypeDefinition } from "node-opcua-client-dynamic-extension-object";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
@@ -36,7 +37,7 @@ describe("Testing address space with old and new nodeset", () => {
         if (!dataType) {
             throw new Error("Cannot find DataType");
         }
-        const data: any = addressSpace.constructExtensionObject(dataType, {});
+        const data = addressSpace.constructExtensionObject(dataType, {}) as ExtensionObject & Record<string, unknown>;
 
         console.log("data = ", data.toString());
         should.exists(data.charge);
@@ -62,7 +63,8 @@ describe("Testing address space with old and new nodeset", () => {
         if (!ParameterResultDataType) {
             throw new Error("Cannot find ParameterResultDataType");
         }
-        const data: any = addressSpace.constructExtensionObject(ParameterResultDataType, {});
+        const data = addressSpace.constructExtensionObject(ParameterResultDataType, {}) as ExtensionObject &
+            Record<string, unknown>;
 
         // console.log("data = ", data.toString());
         should.exists(data.nodePath);

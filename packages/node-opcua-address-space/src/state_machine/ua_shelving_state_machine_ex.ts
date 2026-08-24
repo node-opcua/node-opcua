@@ -112,7 +112,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     }
     shelvingState.setState("Unshelved");
 
-    (shelvingState as any)._unshelvedTime = new Date(); // now
+    shelvingState._unshelvedTime = new Date(); // now
 
     _clear_timer_if_any(shelvingState);
     assert(!shelvingState._timer);
@@ -196,7 +196,7 @@ function _timedShelve_method(
     if (!context.object) {
         return;
     }
-    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
+    const shelvingState = context.object as UAShelvedStateMachineExImpl;
 
     if (shelvingState.getCurrentState() !== "Unshelved") {
         return callback(null, {
@@ -254,7 +254,7 @@ function _oneShotShelve_method(
     callback: CallbackT<CallMethodResultOptions>
 ) {
     assert(inputArguments.length === 0);
-    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
+    const shelvingState = context.object as UAShelvedStateMachineExImpl;
     if (shelvingState.getCurrentState() === "OneShotShelved") {
         return callback(null, {
             statusCode: StatusCodes.BadConditionAlreadyShelved

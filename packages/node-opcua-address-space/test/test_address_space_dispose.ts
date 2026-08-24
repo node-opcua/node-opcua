@@ -31,7 +31,7 @@ function callGarbageCollector() {
     }
 }
 
-describe("Testing AddressSpace memory Leaks", function (this: any) {
+describe("Testing AddressSpace memory Leaks", function (this: Mocha.Suite) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
 
     const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
@@ -50,7 +50,7 @@ describe("Testing AddressSpace memory Leaks", function (this: any) {
             addressSpace.dispose();
         }
 
-        let memBefore: any;
+        let memBefore: NodeJS.MemoryUsage | undefined;
 
         function snapshot() {
             callGarbageCollector();
@@ -62,6 +62,7 @@ describe("Testing AddressSpace memory Leaks", function (this: any) {
             callGarbageCollector();
             dumpMemoryUse();
             const memAfter = process.memoryUsage();
+            if (!memBefore) throw new Error("snapshot() must be called before compare()");
             memAfter.heapUsed.should.be.lessThan(Math.ceil(memBefore.heapUsed * 3.0));
         }
 

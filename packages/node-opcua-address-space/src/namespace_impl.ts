@@ -15,6 +15,7 @@ import type {
     AddViewOptions,
     AddYArrayItemOptions,
     BaseNode,
+    BaseNodeEvents,
     CreateDataTypeOptions,
     CreateNodeOptions,
     EnumerationItem,
@@ -1016,7 +1017,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
             instrumentRange.on("value_changed", handler);
         }
-        (variable as any).acceptValueOutOfRange = options.acceptValueOutOfRange;
+        (variable as unknown as { acceptValueOutOfRange?: boolean }).acceptValueOutOfRange = options.acceptValueOutOfRange;
 
         if (Object.hasOwn(options, "engineeringUnits")) {
             const engineeringUnits = new EUInformation(options.engineeringUnits);
@@ -1206,7 +1207,7 @@ export class NamespaceImpl implements NamespacePrivate {
             })
         );
 
-        return variable as any;
+        return variable as unknown as UAYArrayItemEx<DT>;
     }
 
     // - Methods ----------------------------------------------------------------------------------------------------
@@ -1421,7 +1422,7 @@ export class NamespaceImpl implements NamespacePrivate {
             //   or OptionSet DataType. It is derived from the DataType EnumValueType. If used for an
             //   OptionSet, the corresponding Value in the base type contains the number of the bit associated
             //   with the field. The EnumField is formally defined in Table 37.
-            (enumType as any).$fullDefinition = new EnumDefinition({
+            (enumType as unknown as { $fullDefinition?: EnumDefinition }).$fullDefinition = new EnumDefinition({
                 fields: enumeration.map(
                     (x: string, index: number) =>
                         new EnumField({
@@ -1460,7 +1461,7 @@ export class NamespaceImpl implements NamespacePrivate {
             });
             assert(enumValues.browseName.toString() === "EnumValues");
 
-            (enumType as any).$fullDefinition = new EnumDefinition({
+            (enumType as unknown as { $fullDefinition?: EnumDefinition }).$fullDefinition = new EnumDefinition({
                 fields: enumeration.map(
                     (x: EnumerationItem, _index: number) =>
                         new EnumField({
@@ -1881,8 +1882,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         options.addressSpace = this.addressSpace as AddressSpacePrivate;
 
-        // biome-ignore lint/suspicious/noExplicitAny: to fix later
-        const node = new Constructor(options as any);
+        const node = new Constructor(options);
         this._register(node);
 
         // object shall now be registered
@@ -1943,15 +1943,23 @@ export class NamespaceImpl implements NamespacePrivate {
         }
         const references: UAReference[] = [];
 
-        function process_subtypeOf_options(this: NamespaceImpl, options2: any, references1: AddReferenceOpts[]) {
+        function process_subtypeOf_options(this: NamespaceImpl, options2: CreateNodeOptions, references1: AddReferenceOpts[]) {
             // check common misspelling mistake
-            assert(!options2.subTypeOf, "misspell error : it should be 'subtypeOf' instead");
+            assert(
+                !(options2 as unknown as Record<string, unknown>).subTypeOf,
+                "misspell error : it should be 'subtypeOf' instead"
+            );
             if (Object.hasOwn(options2, "hasTypeDefinition")) {
                 throw new Error("hasTypeDefinition option is invalid. Do you mean typeDefinition instead ?");
             }
             assert(!options2.typeDefinition, " do you mean subtypeOf ?");
 
-            const subtypeOfNodeId = addressSpace._coerceType(options2.subtypeOf, topMostBaseType, nodeClass);
+            // subtypeOf is optional: _coerceType defaults to topMostBaseType when it's falsy.
+            const subtypeOfNodeId = addressSpace._coerceType(
+                options2.subtypeOf as unknown as string | NodeId | BaseNode,
+                topMostBaseType,
+                nodeClass
+            );
 
             assert(subtypeOfNodeId);
             references1.push({
@@ -2137,7 +2145,7 @@ export class NamespaceImpl implements NamespacePrivate {
     /**
      * @private
      */
-    private _addMethod(options: any): UAMethod {
+    private _addMethod(options: AddMethodOptions & { eventNotifier?: number }): UAMethod {
         const addressSpace = this.addressSpace;
 
         assert(isNonEmptyQualifiedName(options.browseName));
@@ -2153,7 +2161,7 @@ export class NamespaceImpl implements NamespacePrivate {
             browseName: options.browseName,
             description: options.description || "",
             displayName: options.displayName,
-            eventNotifier: +options.eventNotifier,
+            eventNotifier: +(options.eventNotifier || 0),
             isAbstract: false,
             nodeClass: NodeClass.Method,
             nodeId: options.nodeId,
@@ -2168,7 +2176,11 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 }
 
-const _constructors_map: Record<keyof Omit<typeof NodeClass, "Unspecified">, new (options: any) => BaseNodeImpl<any>> = {
+// each concrete constructor below takes a different, incompatible options type (UADataTypeOptions,
+// UAVariableOptions, ...) — the map is only ever indexed by nodeClass and invoked with the matching
+// options shape by the caller, so a wider `new (options: any) => ...` signature is required here.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+const _constructors_map: Record<keyof Omit<typeof NodeClass, "Unspecified">, new (options: any) => BaseNodeImpl<BaseNodeEvents>> = {
     DataType: UADataTypeImpl,
     Method: UAMethodImpl,
     Object: UAObjectImpl,

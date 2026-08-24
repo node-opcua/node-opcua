@@ -9,7 +9,7 @@ import { generateAddressSpace } from "../nodeJS";
 const _debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-describe("Testing EURange Issue", async function (this: any) {
+describe("Testing EURange Issue", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;

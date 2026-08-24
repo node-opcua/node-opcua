@@ -31,7 +31,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: Map<number, string
     if (!node) {
         throw new Error(`Cannot find Node for${nodeId?.toString()}`);
     }
-    const typeName = node.browseName.name!;
+    const typeName = node.browseName.name || "";
 
     const n = node.nodeId as INodeId;
     const prefix =
@@ -108,7 +108,7 @@ function dumpDataTypeStructure(
 
         if (isArray) {
             xw.startElement("opc:Field");
-            xw.writeAttribute("Name", `NoOf${f.name!}`);
+            xw.writeAttribute("Name", `NoOf${f.name || ""}`);
             xw.writeAttribute("TypeName", "opc:Int32");
             if (f.isOptional) {
                 xw.writeAttribute("SwitchField", `${f.name}Specified`);

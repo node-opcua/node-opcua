@@ -23,7 +23,7 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
             chalk.green(
                 referenceType
                     .getAllSubtypes()
-                    .map((x: any) => x.browseName.toString())
+                    .map((x: UAReferenceType) => x.browseName.toString())
                     .join(" ")
             ),
             ")"
@@ -35,7 +35,10 @@ function dumpReferencesHierarchy(_addressSpace: AddressSpace) {
         }
     }
 
-    const references = addressSpace.findReferenceType(ReferenceTypeIds.References)!;
+    const references = addressSpace.findReferenceType(ReferenceTypeIds.References);
+    if (!references) {
+        throw new Error("Cannot find References reference type");
+    }
 
     _dump(references, " ");
 }
@@ -57,7 +60,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
             inverseName,
             isAbstract,
             nodeClass: NodeClass.ReferenceType,
-            nodeId: resolveNodeId((ReferenceTypeIds as any)[browseName]),
+            nodeId: resolveNodeId((ReferenceTypeIds as unknown as Record<string, number>)[browseName]),
             references: [] as AddReferenceOpts[],
             subtypeOf
         };
@@ -140,7 +143,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         isAbstract: true,
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseVariableType)
-    }) as any as UAVariableType;
+    }) as unknown as UAVariableType;
 
     const _propertyType = namespace0.addVariableType({
         browseName: "PropertyType",
@@ -153,19 +156,19 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
         nodeClass: NodeClass.VariableType,
         nodeId: resolveNodeId(VariableTypeIds.BaseDataVariableType),
         subtypeOf: baseVariableType.nodeId
-    }) as any as UAVariableType;
+    }) as unknown as UAVariableType;
 
     const _modellingRule_Optional = namespace0.internalCreateNode({
         browseName: "Optional",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Optional)
-    }) as any as UAObject;
+    }) as unknown as UAObject;
 
     const _modellingRule_Mandatory = namespace0.internalCreateNode({
         browseName: "Mandatory",
         nodeClass: NodeClass.Object,
         nodeId: resolveNodeId(ObjectIds.ModellingRule_Mandatory)
-    }) as any as UAObject;
+    }) as unknown as UAObject;
 
     // add the root folder
     {
@@ -173,7 +176,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
             browseName: "RootFolder",
             nodeClass: NodeClass.Object,
             nodeId: resolveNodeId(ObjectIds.RootFolder)
-        }) as any as UAObject;
+        }) as unknown as UAObject;
 
         {
             const _objectsFolder = namespace0.addObject({

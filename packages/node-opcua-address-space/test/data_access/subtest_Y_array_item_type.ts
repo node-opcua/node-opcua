@@ -6,7 +6,11 @@ import should from "should";
 
 import { AddressSpace, type Namespace, type UAFolder } from "../..";
 
-export function subtest_Y_array_item_type(maintest: any): void {
+interface MainTest {
+    addressSpace: AddressSpace;
+}
+
+export function subtest_Y_array_item_type(maintest: MainTest): void {
     describe("YArrayItemType", () => {
         let addressSpace: AddressSpace;
         let namespace: Namespace;

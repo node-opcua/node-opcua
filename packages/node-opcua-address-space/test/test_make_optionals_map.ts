@@ -1,7 +1,7 @@
 import "should";
 import { makeOptionalsMap } from "..";
 
-const j = (o: any) => JSON.parse(JSON.stringify(o));
+const j = <T>(o: T) => JSON.parse(JSON.stringify(o));
 describe("Testing makeOptionalsMap", () => {
     it("should create an optional map from a single string", () => {
         const map = makeOptionalsMap(["Hello"]);
@@ -13,14 +13,14 @@ describe("Testing makeOptionalsMap", () => {
     });
     it("should not polute prototype", () => {
         var _someObj = {};
-        console.log("Before Attack: ", JSON.stringify(({} as any).__proto__));
+        console.log("Before Attack: ", JSON.stringify(Object.getPrototypeOf({})));
         try {
-            makeOptionalsMap(["__proto__.pollutedKey", "pollutedValue"] as any);
+            makeOptionalsMap(["__proto__.pollutedKey", "pollutedValue"]);
         } catch (_e) {}
 
-        var evidence = JSON.stringify(({} as any).__proto__);
+        var evidence = JSON.stringify(Object.getPrototypeOf({}));
         console.log("After Attack: ", evidence);
-        delete (Object.prototype as any).pollutedKey;
+        delete (Object.prototype as unknown as Record<string, unknown>).pollutedKey;
 
         evidence.should.equal("{}");
     });

@@ -3,8 +3,8 @@ import { assert } from "node-opcua-assert";
 import { NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
-import { resolveReferenceType } from "./reference_impl";
+import { BaseNodeImpl } from "./base_node_impl";
+import { type ReferenceImpl, resolveReferenceType } from "./reference_impl";
 
 const _debugLog = make_debugLog(__filename);
 const _warningLog = make_warningLog(__filename);
@@ -13,7 +13,7 @@ export const NamespaceOptions = {
     nodeIdNameSeparator: "-"
 };
 function _isValidNodeClass(nodeClass: NodeClass) {
-    return typeof (NodeClass as any)[nodeClass] === "string";
+    return typeof NodeClass[nodeClass] === "string";
 }
 
 const regExp1 = /^(s|i|b|g)=/;
@@ -56,12 +56,13 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
         return null;
     }
     for (const ref of options.references) {
-        (ref as any)._referenceType = addressSpace.findReferenceType(ref.referenceType);
+        const _ref = ref as ReferenceImpl;
+        _ref._referenceType = addressSpace.findReferenceType(ref.referenceType) ?? undefined;
         /* c8 ignore next */
-        if (!getReferenceType(ref)) {
+        if (!_ref._referenceType) {
             throw new Error(`Cannot find referenceType ${JSON.stringify(ref)}`);
         }
-        (ref as any).referenceType = (ref as any)._referenceType.nodeId;
+        _ref.referenceType = _ref._referenceType.nodeId;
     }
     // find HasComponent, or has Property reverse
     return _filterAggregates(addressSpace, options.references);
@@ -102,7 +103,7 @@ export class NodeIdManager {
 
     public setSymbols(symbols: NodeEntry1[]): void {
         function convertNodeClass(nodeClass: string): NodeClass {
-            return (NodeClass as any)[nodeClass as any] as NodeClass;
+            return (NodeClass as unknown as Record<string, NodeClass>)[nodeClass];
         }
         const symbols2 = symbols.map((e: [string, number, string]) => [e[0] as string, e[1] as number, convertNodeClass(e[2])]) as [
             string,

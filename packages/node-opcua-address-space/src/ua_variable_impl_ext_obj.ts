@@ -24,31 +24,32 @@ function _w(str: string, n: number): string {
     return str.padEnd(n).substring(n);
 }
 
-function isProxy(ext: any) {
-    return !!ext.$isProxy;
+function isProxy(ext: unknown): boolean {
+    return !!(ext as Record<string, unknown> | null)?.$isProxy;
 }
-function getProxyVariable(ext: any): UAVariable | null {
+function getProxyVariable(ext: Record<string, unknown>): UAVariable | null {
     assert(isProxy(ext));
     return ext.$variable as UAVariable | null;
 }
 
-function getProxyVariableForProp(ext: any, prop: string) {
+function getProxyVariableForProp(ext: Record<string, unknown>, prop: string) {
     const uaVariable = getProxyVariable(ext);
     if (!uaVariable) return undefined;
-    return (uaVariable as any)[prop] as UAVariableImpl | undefined;
+    return (uaVariable as unknown as Record<string, unknown>)[prop] as UAVariableImpl | undefined;
 }
 
-export function getProxyTarget(ext: any): any {
+export function getProxyTarget(ext: Record<string, unknown>): unknown {
     assert(isProxy(ext));
     const target = ext.$proxyTarget;
-    if (target && isProxy(target)) {
-        return getProxyTarget(target);
+    if (target && isProxy(target as Record<string, unknown>)) {
+        return getProxyTarget(target as Record<string, unknown>);
     }
     return target;
 }
 
-function unProxy(ext: ExtensionObject) {
-    return isProxy(ext) ? getProxyTarget(ext) : ext;
+function unProxy(ext: ExtensionObject): ExtensionObject {
+    const extAsRecord = ext as unknown as Record<string, unknown>;
+    return isProxy(extAsRecord) ? (getProxyTarget(extAsRecord) as ExtensionObject) : ext;
 }
 
 function getExtensionObjectArray(uaVariable: UAVariableImpl): ExtensionObject[] {
@@ -61,7 +62,7 @@ function getExtensionObjectArray(uaVariable: UAVariableImpl): ExtensionObject[] 
     return arr;
 }
 
-function _extensionObjectFieldGetter(getVariable: () => UAVariable | null, target: any, key: string /*, receiver*/) {
+function _extensionObjectFieldGetter(getVariable: () => UAVariable | null, target: ExtensionObject, key: string /*, receiver*/) {
     if (key === "$isProxy") {
         return true;
     }
@@ -72,24 +73,26 @@ function _extensionObjectFieldGetter(getVariable: () => UAVariable | null, targe
         return getVariable();
     }
 
-    if (target[key] === undefined) {
+    const targetAsRecord = target as unknown as Record<string, unknown>;
+    if (targetAsRecord[key] === undefined) {
         return undefined;
     }
-    return target[key];
+    return targetAsRecord[key];
 }
 function _extensionObjectFieldSetter(
     getVariable: () => UAVariable | null,
-    target: any,
+    target: ExtensionObject,
     key: string,
-    value: any /*, receiver*/
+    value: unknown /*, receiver*/
 ): boolean {
-    target[key] = value;
-    if (isProxy(target)) {
+    const targetAsRecord = target as unknown as Record<string, unknown>;
+    targetAsRecord[key] = value;
+    if (isProxy(targetAsRecord)) {
         return true;
     }
     const uaVariable = getVariable();
     if (!uaVariable) return true;
-    const child = (uaVariable as any)[key] as UAVariable | null;
+    const child = (uaVariable as unknown as Record<string, UAVariable | null>)[key];
     if (child?.touchValue) {
         child.touchValue();
     }
@@ -157,7 +160,11 @@ export function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseCl
     }
 }
 
-export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObject: any, sourceTimestamp?: PreciseClock) {
+export function setExtensionObjectPartialValue(
+    node: UAVariableImpl,
+    partialObject: Record<string, unknown> | undefined,
+    sourceTimestamp?: PreciseClock
+) {
     const variablesToUpdate: Set<UAVariableImpl> = new Set();
 
     const extensionObject = node.$extensionObject;
@@ -177,19 +184,19 @@ export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObje
      * DiagnosticInfo, arrays, etc.) is a terminal value and should be
      * assigned directly — even if it has a `schema` property.
      */
-    function _shouldRecurseIntoExisting(value: any): boolean {
+    function _shouldRecurseIntoExisting(value: unknown): boolean {
         if (value === null || value === undefined) return false;
         if (typeof value !== "object") return false;
         if (Array.isArray(value)) return false;
         // proxied sub-structures: installed by bindExtensionObject for nested structs
-        if (isProxy(value)) return true;
+        if (isProxy(value as Record<string, unknown>)) return true;
         // plain objects (unlikely on the existing side but safe fallback)
         const proto = Object.getPrototypeOf(value);
         if (proto === Object.prototype || proto === null) return true;
         return false;
     }
 
-    function _shouldRecurseIntoNew(value: any): boolean {
+    function _shouldRecurseIntoNew(value: unknown): boolean {
         if (value === null || value === undefined) return false;
         if (typeof value !== "object") return false;
         if (Array.isArray(value)) return false;
@@ -201,26 +208,30 @@ export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObje
         // checking the *existing* side with isProxy, not here.
         // Instead, only recurse if it's a schema'd type AND has
         // Extension-Object-like characteristics (constructor with schema.name)
+        const valueRecord = value as Record<string, unknown>;
         if (
-            value.schema !== undefined &&
-            value.constructor?.name !== "QualifiedName" &&
-            value.constructor?.name !== "LocalizedText" &&
-            value.constructor?.name !== "DiagnosticInfo"
+            valueRecord.schema !== undefined &&
+            (valueRecord.constructor as { name?: string })?.name !== "QualifiedName" &&
+            (valueRecord.constructor as { name?: string })?.name !== "LocalizedText" &&
+            (valueRecord.constructor as { name?: string })?.name !== "DiagnosticInfo"
         ) {
             return true;
         }
         return false;
     }
 
-    function _update_extension_object(extObject: any, partialObject1: any) {
+    function _update_extension_object(extObject: Record<string, unknown>, partialObject1: Record<string, unknown>) {
         const keys = Object.keys(partialObject1);
         for (const prop of keys) {
             if (_shouldRecurseIntoExisting(extObject[prop]) && _shouldRecurseIntoNew(partialObject1[prop])) {
-                _update_extension_object(extObject[prop], partialObject1[prop]);
+                _update_extension_object(
+                    extObject[prop] as Record<string, unknown>,
+                    partialObject1[prop] as Record<string, unknown>
+                );
             } else {
                 if (isProxy(extObject)) {
                     // collect element we have to update
-                    const target = getProxyTarget(extObject);
+                    const target = getProxyTarget(extObject) as Record<string, unknown>;
                     assert(!isProxy(target), "something wierd!");
                     target[prop] = partialObject1[prop];
                     const variable = getProxyVariableForProp(extObject, prop);
@@ -231,7 +242,7 @@ export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObje
             }
         }
     }
-    _update_extension_object(extensionObject, partialObject);
+    _update_extension_object(extensionObject as unknown as Record<string, unknown>, partialObject as Record<string, unknown>);
 
     const now = sourceTimestamp || getCurrentClock();
     const cache: Set<UAVariable> = new Set();
@@ -298,21 +309,24 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
 
     const addressSpace = uaVariable.addressSpace;
     const definition = uaVariable.dataTypeObj.getStructureDefinition();
-    const structure = addressSpace.findDataType("Structure")!;
+    const structure = addressSpace.findDataType("Structure");
+    if (!structure) {
+        throw new Error("Cannot find 'Structure' DataType in standard address Space");
+    }
     for (const field of definition.fields || []) {
         if (field.dataType) {
             const dataTypeNode = addressSpace.findDataType(field.dataType);
             // c8 ignore next
             if (dataTypeNode?.isSubtypeOf(structure)) {
                 // sub structure .. let make an handler too
-                const camelCaseName = lowerFirstLetter(field.name!);
+                const camelCaseName = lowerFirstLetter(field.name || "");
 
                 const subExtObj = uaVariable.$extensionObject[camelCaseName];
                 if (subExtObj) {
                     uaVariable.$extensionObject[camelCaseName] = new Proxy(
                         subExtObj,
                         makeHandler(() => {
-                            return uaVariable.getComponentByName(field.name!) as UAVariable | null;
+                            return uaVariable.getComponentByName(field.name || "") as UAVariable | null;
                         })
                     );
                 } else {
@@ -360,8 +374,8 @@ function _installFields2(
         get,
         set
     }: {
-        get: (fieldName: string) => any;
-        set: (fieldName: string, value: any, sourceTime: PreciseClock) => void;
+        get: (fieldName: string) => unknown;
+        set: (fieldName: string, value: unknown, sourceTime: PreciseClock) => void;
     },
     options?: BindExtensionObjectOptions
 ) {
@@ -399,14 +413,14 @@ function _installFields2(
                   : VariantArrayType.Matrix;
         propertyNode.$dataValue.value.dimensions = propertyNode.valueRank > 1 ? propertyNode.arrayDimensions : null;
 
-        const fieldName = field.name!;
+        const fieldName = field.name || "";
         installDataValueGetter(propertyNode, () => get(fieldName));
         assert(propertyNode._inner_replace_dataValue);
         propertyNode._inner_replace_dataValue = (dataValue: DataValue, _indexRange?: NumericRange | null) => {
             /** */
             const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
             const value = dataValue.value.value;
-            set(field.name!, value, sourceTime);
+            set(field.name || "", value, sourceTime);
             propertyNode.touchValue(sourceTime);
         };
 
@@ -415,12 +429,12 @@ function _installFields2(
                 propertyNode,
                 {
                     get: (fieldName: string) => {
-                        const mainFieldName = field.name!;
-                        return get(mainFieldName)[lowerFirstLetter(fieldName)];
+                        const mainFieldName = field.name || "";
+                        return (get(mainFieldName) as Record<string, unknown>)[lowerFirstLetter(fieldName)];
                     },
-                    set: (fieldName: string, value: any, _sourceTime: PreciseClock) => {
-                        const mainFieldName = field.name!;
-                        get(mainFieldName)[lowerFirstLetter(fieldName)] = value;
+                    set: (fieldName: string, value: unknown, _sourceTime: PreciseClock) => {
+                        const mainFieldName = field.name || "";
+                        (get(mainFieldName) as Record<string, unknown>)[lowerFirstLetter(fieldName)] = value;
                     }
                 },
                 options
@@ -429,7 +443,7 @@ function _installFields2(
     }
 }
 
-function installDataValueGetter(propertyNode: UAVariableImpl, get: () => any) {
+function installDataValueGetter(propertyNode: UAVariableImpl, get: () => unknown) {
     Object.defineProperty(propertyNode.$dataValue.value, "value", { get });
     const $ = propertyNode.$dataValue;
     Object.defineProperty(propertyNode, "$dataValue", {
@@ -470,7 +484,7 @@ function _innerBindExtensionObjectScalar(
     }: {
         get: () => ExtensionObject;
         set: (value: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
-        setField: (fieldName: string, value: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => void;
+        setField: (fieldName: string, value: unknown, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => void;
     },
     options?: BindExtensionObjectOptions
 ) {
@@ -489,10 +503,10 @@ function _innerBindExtensionObjectScalar(
         uaVariable,
         {
             get: (fieldName: string) => {
-                const extObj = get() as any;
+                const extObj = get() as unknown as Record<string, unknown>;
                 return extObj[lowerFirstLetter(fieldName)];
             },
-            set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
+            set: (fieldName: string, value: unknown, sourceTime: PreciseClock) => {
                 setField(fieldName, value, sourceTime);
             }
         },
@@ -539,9 +553,9 @@ export function _bindExtensionObject(
     ) {
         const parentDataType = (uaVariable.parent as UAVariable | UAVariableType).dataType;
         const dataTypeNode = addressSpace.findNode(parentDataType) as UADataType;
-        const structure = addressSpace.findDataType("Structure")!;
+        const structure = addressSpace.findDataType("Structure");
         // c8 ignore next
-        if (dataTypeNode?.isSubtypeOf(structure)) {
+        if (structure && dataTypeNode?.isSubtypeOf(structure)) {
             // warningLog(
             //     "Ignoring bindExtensionObject on sub extension object",
             //     "child=",
@@ -556,7 +570,7 @@ export function _bindExtensionObject(
     // -------------------- make sure we do not bind a variable twice ....
     if (uaVariable.$extensionObject && !optionalExtensionObject) {
         // c8 ignore next
-        if (!uaVariable.checkExtensionObjectIsCorrect(uaVariable.$extensionObject!)) {
+        if (!uaVariable.checkExtensionObjectIsCorrect(uaVariable.$extensionObject)) {
             warningLog(
                 "on node : ",
                 uaVariable.browseName.toString(),
@@ -611,11 +625,11 @@ export function _bindExtensionObject(
                 _innerBindExtensionObjectScalar(
                     uaVariable,
                     {
-                        get: () => uaVariable.$extensionObject,
+                        get: () => uaVariable.$extensionObject as ExtensionObject,
                         set: (value: ExtensionObject) => installExt(uaVariable, value),
-                        setField: (fieldName: string, value: any) => {
-                            const extObj = uaVariable.$extensionObject;
-                            getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
+                        setField: (fieldName: string, value: unknown) => {
+                            const extObj = uaVariable.$extensionObject as unknown as Record<string, unknown>;
+                            (getProxyTarget(extObj) as Record<string, unknown>)[lowerFirstLetter(fieldName)] = value;
                         }
                     },
                     options
@@ -634,11 +648,11 @@ export function _bindExtensionObject(
             _innerBindExtensionObjectScalar(
                 uaVariable,
                 {
-                    get: () => uaVariable.$extensionObject,
+                    get: () => uaVariable.$extensionObject as ExtensionObject,
                     set: (value: ExtensionObject) => installExt(uaVariable, value),
-                    setField: (fieldName: string, value: any) => {
-                        const extObj = uaVariable.$extensionObject;
-                        getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
+                    setField: (fieldName: string, value: unknown) => {
+                        const extObj = uaVariable.$extensionObject as unknown as Record<string, unknown>;
+                        (getProxyTarget(extObj) as Record<string, unknown>)[lowerFirstLetter(fieldName)] = value;
                     }
                 },
                 options
@@ -785,10 +799,15 @@ export function _bindExtensionObjectArrayOrMatrix(
                         propagateTouchValueDownward(capturedUaElement, sourceTimestamp, cache);
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
                     },
-                    setField: (fieldName: string, newValue: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => {
+                    setField: (
+                        fieldName: string,
+                        newValue: unknown,
+                        sourceTimestamp: PreciseClock,
+                        cache?: Set<UAVariableImpl>
+                    ) => {
                         // c8 ignore next doDebug && debugLog("setField", fieldName, newValue, sourceTimestamp, cache);
                         const extObj = getExtensionObjectArray(uaVariable)[capturedIndex];
-                        unProxy(extObj)[lowerFirstLetter(fieldName)] = newValue;
+                        (unProxy(extObj) as unknown as Record<string, unknown>)[lowerFirstLetter(fieldName)] = newValue;
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
                     }
                 },
@@ -799,29 +818,32 @@ export function _bindExtensionObjectArrayOrMatrix(
     return uaVariable.$$extensionObjectArray;
 }
 
-export function getElement(path: string | string[], data: any) {
+export function getElement(path: string | string[], data: Record<string, unknown>): unknown {
     if (typeof path === "string") {
         path = path.split(".");
     }
-    let a = data;
+    let a: Record<string, unknown> = data;
     for (const e of path) {
-        a = a[e];
+        a = a[e] as Record<string, unknown>;
     }
     return a;
 }
-export function setElement(path: string | string[], data: any, value: any) {
+export function setElement(path: string | string[], data: Record<string, unknown>, value: unknown): void {
     if (typeof path === "string") {
         path = path.split(".");
     }
-    const last: string = path.pop()!;
-    let a = data;
+    const last = path.pop();
+    if (last === undefined) {
+        return;
+    }
+    let a: Record<string, unknown> = data;
     for (const e of path) {
-        a = a[e];
+        a = a[e] as Record<string, unknown>;
     }
     a[last] = value;
 }
-export function incrementElement(path: string | string[], data: any) {
-    const value = getElement(path, data);
+export function incrementElement(path: string | string[], data: Record<string, unknown>): void {
+    const value = getElement(path, data) as number;
     setElement(path, data, value + 1);
 }
 export function extractPartialData(path: string | string[], extensionObject: ExtensionObject) {
@@ -831,23 +853,23 @@ export function extractPartialData(path: string | string[], extensionObject: Ext
     }
     let i: number;
     // read partial value
-    const partialData: any = {};
-    let p: any = partialData;
+    const partialData: Record<string, unknown> = {};
+    let p: Record<string, unknown> = partialData;
     for (i = 0; i < path.length - 1; i++) {
         name = path[i];
         p[name] = {};
-        p = p[name];
+        p = p[name] as Record<string, unknown>;
     }
     name = path[path.length - 1];
     p[name] = 0;
 
-    let c1 = partialData;
-    let c2: any = extensionObject;
+    let c1: Record<string, unknown> = partialData;
+    let c2: Record<string, unknown> = extensionObject as unknown as Record<string, unknown>;
 
     for (i = 0; i < path.length - 1; i++) {
         name = path[i];
-        c1 = partialData[name];
-        c2 = (extensionObject as any)[name];
+        c1 = partialData[name] as Record<string, unknown>;
+        c2 = (extensionObject as unknown as Record<string, unknown>)[name] as Record<string, unknown>;
     }
     name = path[path.length - 1];
     c1[name] = c2[name];
@@ -863,7 +885,7 @@ export function propagateTouchValueDownwardArray(uaVariable: UAVariableImpl, now
     for (let i = 0; i < totalLength; i++) {
         const index = indexIterator.next();
 
-        const { browseName, nodeId } = composeBrowseNameAndNodeId(uaVariable, index);
+        const { browseName } = composeBrowseNameAndNodeId(uaVariable, index);
         const uaElement = uaVariable.getComponentByName(browseName) as UAVariableImpl | null;
         if (uaElement?.nodeClass === NodeClass.Variable) {
             uaElement.touchValue(now);

@@ -100,7 +100,7 @@ function _getEffectiveDisplayName<_T, _DT extends DataType>(
     } else {
         subStateNodes = node.findReferencesExAsObject("HasFalseSubState", BrowseDirection.Forward);
     }
-    const _states = subStateNodes.forEach((_n: any) => {
+    const _states = subStateNodes.forEach((_n: BaseNode) => {
         // todo happen
     });
 
@@ -114,7 +114,7 @@ function _getHumanReadableString(node: UATwoStateVariableImpl): DataValueT<Local
         const _c = dataValue.clone() as DataValueT<LocalizedText, DataType.LocalizedText>;
         _c.value = new Variant({
             dataType: DataType.LocalizedText,
-            value: coerceLocalizedText("")!
+            value: coerceLocalizedTextStrict("")
         }) as VariantT<LocalizedText, DataType.LocalizedText>;
 
         return _c;
@@ -307,10 +307,11 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         // EffectiveDisplayName will be constructed by adding the EnabledState
         // and the State of the addTrue state
         if (this.effectiveDisplayName) {
+            const effectiveDisplayName = this.effectiveDisplayName as UAVariableImpl;
             this.id.on("value_changed", () => {
-                (this.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(this));
+                effectiveDisplayName._internal_set_dataValue(_getEffectiveDisplayName(this));
             });
-            (this.effectiveDisplayName! as UAVariableImpl)._internal_set_dataValue(_getEffectiveDisplayName(this));
+            effectiveDisplayName._internal_set_dataValue(_getEffectiveDisplayName(this));
         }
     }
     /**
@@ -346,10 +347,10 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         return dataValue.value.value.text?.toString() || "";
     }
     public getTrueState(): LocalizedText {
-        return this.trueState ? this.trueState.readValue().value.value : coerceLocalizedText(this._trueState || "TRUE")!;
+        return this.trueState ? this.trueState.readValue().value.value : coerceLocalizedTextStrict(this._trueState || "TRUE");
     }
     public getFalseState(): LocalizedText {
-        return this.falseState ? this.falseState.readValue().value.value : coerceLocalizedText(this._falseState || "FALSE")!;
+        return this.falseState ? this.falseState.readValue().value.value : coerceLocalizedTextStrict(this._falseState || "FALSE");
     }
     // TODO : shall we care about overloading the remove_backward_reference method ?
     // some TrueSubState and FalseSubState relationship may be added later

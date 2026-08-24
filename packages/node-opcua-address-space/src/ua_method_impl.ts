@@ -157,7 +157,7 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
         inputArguments: VariantLike[] | null,
         context: ISessionContext,
         callback?: CallbackT<CallMethodResultOptions>
-    ): any {
+    ): Promise<CallMethodResultOptions> | undefined {
         // c8 ignore next
         if (!callback) {
             throw new Error("execute need to be promisified");
@@ -174,7 +174,8 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
         // c8 ignore next
         if (!object) {
             errorLog("UAMethod#execute expects a valid object");
-            return callback(null, { statusCode: StatusCodes.BadInternalError });
+            callback(null, { statusCode: StatusCodes.BadInternalError });
+            return;
         }
 
         if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
@@ -186,24 +187,29 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
                     " called for a node that is not a Object/ObjectType but " +
                     NodeClass[context.object?.nodeClass as number]
             );
-            return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+            callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+            return;
         }
         if (!this._asyncExecutionFunction) {
             warningLog(`Method ${this.nodeId.toString()} ${this.browseName.toString()} has not been bound`);
-            return callback(null, { statusCode: StatusCodes.BadInternalError });
+            callback(null, { statusCode: StatusCodes.BadInternalError });
+            return;
         }
 
         if (!this.getExecutableFlag(context)) {
             warningLog(`Method ${this.nodeId.toString()} ${this.browseName.toString()} is not executable`);
-            return callback(null, { statusCode: StatusCodes.BadNotExecutable });
+            callback(null, { statusCode: StatusCodes.BadNotExecutable });
+            return;
         }
 
         if (context.isAccessRestricted(this)) {
-            return callback(null, { statusCode: StatusCodes.BadSecurityModeInsufficient });
+            callback(null, { statusCode: StatusCodes.BadSecurityModeInsufficient });
+            return;
         }
 
         if (!context.checkPermission(this, PermissionType.Call)) {
-            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
+            callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
+            return;
         }
 
         // verify that input arguments are correct
@@ -240,7 +246,8 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
                         inputArgumentResults: coercedInputArguments?.map(() => status) || [],
                         inputArgumentDiagnosticInfos
                     };
-                    return callback?.(null, callMethodResult);
+                    callback?.(null, callMethodResult);
+                    return;
                 }
             }
 
@@ -296,6 +303,7 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
             const callMethodResponse = { statusCode: StatusCodes.BadInternalError };
             callback?.(err as Error, callMethodResponse);
         });
+        return undefined;
     }
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAMethod {

@@ -2,12 +2,19 @@ import assert from "node:assert";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { Range } from "node-opcua-data-access";
-import { coerceLocalizedText, LocalizedText, type LocalizedTextOptions } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceLocalizedTextStrict, LocalizedText, type LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument, EnumValueType, EUInformation, type EUInformationOptions } from "node-opcua-types";
-import { InternalFragmentClonerReaderState, type ParserLike, type ReaderStateParserLike } from "node-opcua-xml2json";
+import {
+    InternalFragmentClonerReaderState,
+    type IReaderState,
+    type ParserLike,
+    type ReaderStateParserLike,
+    type Xml2Json,
+    type XmlAttributes
+} from "node-opcua-xml2json";
 import { decodeXmlExtensionObject } from "../decode_xml_extension_object";
 import { localizedText_parser } from "./localized_text_parser";
 
@@ -15,10 +22,6 @@ const debugLog = make_debugLog("ExtensionObjectParser");
 const errorLog = make_debugLog("ExtensionObjectParser");
 const _doDebug = false;
 export type Task = (addressSpace: IAddressSpace) => Promise<void>;
-
-interface PostExtensionObjectData {
-    postponedExtensionObject: ExtensionObject | null;
-}
 
 // #region Argument parser
 type ArgumentParser = ParserLike & { argument: Argument };
@@ -61,11 +64,11 @@ const makeArgumentParser = (_translateNodeId: (nodeId: string) => NodeId) => ({
             Description: {
                 ...localizedText_parser.LocalizedText,
                 finish(this: ArgumentParserL2L) {
-                    this.parent.argument.description = coerceLocalizedText({ ...this.localizedText })!;
+                    this.parent.argument.description = coerceLocalizedTextStrict({ ...this.localizedText });
                 }
             }
         },
-        finish(this: any) {
+        finish(this: ArgumentParser) {
             // xx this.argument = new Argument(this.argument);
         }
     }
@@ -102,14 +105,14 @@ const Range_parser = {
 
 type EUInformationParser = ReaderStateParserLike & {
     euInformation: EUInformationOptions;
-    parser: any;
+    parser: ParserLike;
 };
 type EUInformationParserLevel2 = { parent: EUInformationParser } & { text: string };
 type EUInformationParserLevel2L = { parent: EUInformationParser } & { localizedText: LocalizedTextOptions };
 
 const EUInformation_parser: ParserLike = {
-    EUInformation: <EUInformationParser>{
-        init(this: EUInformationParser, _name, _attrs, _parent, _engine) {
+    EUInformation: <EUInformationParser>(<unknown>{
+        init(this: EUInformationParser, _name: string, _attrs: XmlAttributes, _parent: IReaderState, _engine: Xml2Json) {
             this.euInformation = new EUInformation({});
         },
         parser: {
@@ -141,7 +144,7 @@ const EUInformation_parser: ParserLike = {
         finish(this: EUInformationParser) {
             this.euInformation = new EUInformation(this.euInformation);
         }
-    }
+    })
 };
 // #endregion
 
@@ -208,11 +211,11 @@ export interface ExtensionObjectTypeIdIdentifierParser {
 export interface ExtensionObjectParserInner {
     typeDefinitionId: NodeId;
 }
-type ExtensionObjectParser = ExtensionObjectParserInner & any;
+type ExtensionObjectParser = ExtensionObjectParserInner & ReaderStateParserLike & { parent?: unknown };
 export interface ExtensionObjectBodyParser {
     parent: ExtensionObjectParser;
     _cloneFragment: InternalFragmentClonerReaderState;
-    engine: any;
+    engine: Xml2Json;
     parser: {
         Argument: ArgumentParser;
         EUInformation: EUInformationParser;
@@ -236,7 +239,7 @@ export function makeExtensionObjectParser<T>(
     setExtensionObjectPojo: (typeDefinition: NodeId, xmlData: string, data: T) => void
 ): ParserLike {
     return {
-        ExtensionObject: <ExtensionObjectParser>{
+        ExtensionObject: <ExtensionObjectParser>(<unknown>{
             init(this: ExtensionObjectParser) {
                 this.typeDefinitionId = NodeId.nullNodeId;
             },
@@ -261,7 +264,7 @@ export function makeExtensionObjectParser<T>(
                         EnumValueType: enumValueType_parser.EnumValueType,
                         Range: Range_parser.Range
                     },
-                    startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: any) {
+                    startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: XmlAttributes) {
                         if (!Object.hasOwn(this.parser, elementName)) {
                             // treat it as a opaque XML bloc for the time being
                             // until we find the definition of this object, so we know how to interpret the fields
@@ -321,8 +324,8 @@ export function makeExtensionObjectParser<T>(
                                     );
                                     break;
                                 }
-                                const bodyXML = this._cloneFragment?.value;
-                                this._cloneFragment!.value = null;
+                                const bodyXML = this._cloneFragment.value;
+                                this._cloneFragment.value = null;
 
                                 // the "Default Xml" encoding  nodeId
                                 const xmlEncodingNodeId = typeDefinitionId;
@@ -340,7 +343,7 @@ export function makeExtensionObjectParser<T>(
             finish(this: ExtensionObjectParser) {
                 /* empty */
             }
-        }
+        })
     };
 }
 
@@ -359,7 +362,10 @@ export function createXMLExtensionObjectDecodingTask(
             capturedXmlBody,
             translateNodeId
         );
-        withDecoded(extensionObject!);
+        if (!extensionObject) {
+            throw new Error("decodeXmlExtensionObject returned null");
+        }
+        withDecoded(extensionObject);
     };
     return task;
 }

@@ -149,7 +149,10 @@ export interface Boiler extends UAObject {
 }
 
 function myGetExecutableFlag(method: UAMethod, toState: string, _methodName: string) {
-    const stateMachineW = promoteToStateMachine(method.parent!);
+    if (!method.parent) {
+        throw new Error("method has no parent");
+    }
+    const stateMachineW = promoteToStateMachine(method.parent);
     return stateMachineW.isValidTransition(toState);
 }
 
@@ -250,12 +253,20 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         subtypeOf: "NonHierarchicalReferences"
     }) as SignalToReference;
 
+    function findReferenceTypeOrThrow(browseName: string, namespaceIndex?: number): UAReferenceType {
+        const refType = addressSpace.findReferenceType(browseName, namespaceIndex);
+        if (!refType) {
+            throw new Error(`Cannot find reference type ${browseName}`);
+        }
+        return refType;
+    }
+
     const addressSpace = namespace.addressSpace;
-    flowTo.isSubtypeOf(addressSpace.findReferenceType("References")!);
-    flowTo.isSubtypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("References")!);
-    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
+    flowTo.isSubtypeOf(findReferenceTypeOrThrow("References"));
+    flowTo.isSubtypeOf(findReferenceTypeOrThrow("NonHierarchicalReferences"));
+    hotFlowTo.isSubtypeOf(findReferenceTypeOrThrow("References"));
+    hotFlowTo.isSubtypeOf(findReferenceTypeOrThrow("NonHierarchicalReferences"));
+    hotFlowTo.isSubtypeOf(findReferenceTypeOrThrow("FlowTo", namespace.index));
 
     const _NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
     _NonHierarchicalReferences;
@@ -476,7 +487,10 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     }) as LevelIndicator;
     assert(levelIndicator.eventNotifier === EventNotifierFlags.SubscribeToEvents);
 
-    const programFiniteStateMachineType = addressSpace.findObjectType("ProgramStateMachineType")!;
+    const programFiniteStateMachineType = addressSpace.findObjectType("ProgramStateMachineType");
+    if (!programFiniteStateMachineType) {
+        throw new Error("Cannot find ProgramStateMachineType");
+    }
 
     // --------------------------------------------------------
     // define boiler State Machine
@@ -484,14 +498,17 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     const boilerStateMachineType = namespace.addObjectType({
         browseName: "BoilerStateMachineType",
         postInstantiateFunc: implementProgramStateMachine,
-        subtypeOf: programFiniteStateMachineType!
+        subtypeOf: programFiniteStateMachineType
     }) as BoilerStateMachineType;
 
     // programStateMachineType has Optional placeHolder for method "Halt", "Reset","Start","Suspend","Resume")
 
     function addMethod(baseType: UAObjectType, objectType: UAObjectType, methodName: string) {
         assert(!objectType.getMethodByName(methodName));
-        const method = baseType.getMethodByName(methodName)!;
+        const method = baseType.getMethodByName(methodName);
+        if (!method) {
+            throw new Error(`Cannot find method ${methodName} on base type`);
+        }
         const _m = method.clone({
             namespace,
             componentOf: objectType,
@@ -615,7 +632,10 @@ export function makeBoiler(
     // c8 ignore next
     if (!boilerType) {
         createBoilerType(namespace);
-        boilerType = namespace.findObjectType("BoilerType")!;
+        boilerType = namespace.findObjectType("BoilerType");
+        if (!boilerType) {
+            throw new Error("Cannot find BoilerType after createBoilerType");
+        }
     }
     // now instantiate boiler
     const boiler1 = boilerType.instantiate({
@@ -626,7 +646,10 @@ export function makeBoiler(
     promoteToStateMachine(boiler1.simulation);
 
     const boilerStateMachine = boiler1.simulation;
-    const readyState = boilerStateMachine.getStateByName("Ready")!;
+    const readyState = boilerStateMachine.getStateByName("Ready");
+    if (!readyState) {
+        throw new Error("Cannot find Ready state");
+    }
     boilerStateMachine.setState(readyState);
 
     return boiler1;

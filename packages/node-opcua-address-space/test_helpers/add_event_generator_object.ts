@@ -46,7 +46,10 @@ export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UA
         const message = inputArguments[0].value || "Hello from Event Generator Object";
         const severity = inputArguments[1].value || 0;
 
-        const myEventType = namespace.addressSpace.findEventType("MyEventType", namespace.index)!;
+        const myEventType = namespace.addressSpace.findEventType("MyEventType", namespace.index);
+        if (!myEventType) {
+            throw new Error("Cannot find MyEventType");
+        }
         (context.object as UAObject).raiseEvent(myEventType, {
             message: {
                 dataType: DataType.LocalizedText,

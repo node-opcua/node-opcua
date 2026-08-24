@@ -161,7 +161,11 @@ describe("test convertStructureTypeSchemaToStructureDefinition", () => {
 
         const _e = dataTypeFactory.getEnumeration("MyEnumeration");
 
-        const s = dataTypeFactory.constructObject(binaryEncodingNodeId) as any;
+        interface MyStructLike {
+            shape: number;
+            toString(): string;
+        }
+        const s = dataTypeFactory.constructObject(binaryEncodingNodeId) as unknown as MyStructLike;
         s.shape.should.eql(1);
         doDebug && console.log(s.toString());
         //       console.log(s.toString());

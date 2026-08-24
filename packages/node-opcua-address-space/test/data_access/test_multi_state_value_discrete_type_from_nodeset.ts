@@ -16,7 +16,7 @@ import { generateAddressSpace } from "../../nodeJS";
 
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;
-    const data = { addressSpace: null as any };
+    const data = { addressSpace: null as unknown as AddressSpace };
     before(async () => {
         addressSpace = AddressSpace.create();
 

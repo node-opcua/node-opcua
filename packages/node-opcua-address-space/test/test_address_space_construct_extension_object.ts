@@ -29,7 +29,15 @@ import { generateAddressSpace } from "../nodeJS";
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
-describe("testing address space namespace loading", function (this: any) {
+interface MyStructureExtensionObject extends ExtensionObject {
+    lowValue: number;
+}
+interface MyOtherStructureExtensionObject extends ExtensionObject {
+    names: string[];
+    values: Array<{ highValue: number; lowValue: number }>;
+}
+
+describe("testing address space namespace loading", function (this: Mocha.Suite) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
@@ -95,7 +103,7 @@ describe("testing address space namespace loading", function (this: any) {
         // ------------------------------------------------------------------------------
         // create an extension object
         // ------------------------------------------------------------------------------
-        const op = addressSpace.constructExtensionObject(myStructureDataType) as any;
+        const op = addressSpace.constructExtensionObject(myStructureDataType) as unknown as MyStructureExtensionObject;
 
         op.constructor.name.should.eql("MyStructureDataType");
         op.should.be.instanceof(ExtensionObject);
@@ -186,7 +194,10 @@ describe("testing address space namespace loading", function (this: any) {
                 }
             ]
         };
-        const op = addressSpace.constructExtensionObject(myOtherStructureDataType, options) as any;
+        const op = addressSpace.constructExtensionObject(
+            myOtherStructureDataType,
+            options
+        ) as unknown as MyOtherStructureExtensionObject;
 
         op.constructor.name.should.eql("MyOtherStructureDataType");
         debugLog(op.toString());
@@ -317,7 +328,7 @@ describe("testing address space namespace loading", function (this: any) {
             const _t6 = get_clock_tick();
             const _sessionDiagnostics = addressSpace.constructExtensionObject(sessionDiagnosticsDataType);
             const _t7 = get_clock_tick();
-            const sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
+            const _sessionDiagnosticsVar = sessionDiagnosticsVariableType.instantiate({
                 browseName: { name: "SessionDiagnostics", namespaceIndex: 0 },
                 componentOf: sessionObject,
                 value: new Variant({ dataType: DataType.ExtensionObject, value: _sessionDiagnostics })
