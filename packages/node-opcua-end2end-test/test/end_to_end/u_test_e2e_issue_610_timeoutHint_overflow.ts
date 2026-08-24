@@ -2,14 +2,15 @@ import "should";
 import { ClientSubscription, OPCUAClient } from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing bug #610 - TimeoutHint overflow", () => {
         it("using a  large value for requestedPublishingInterval should not cause node-opcua to crash", async () => {
             const client = OPCUAClient.create({
                 requestedSessionTimeout: 2e9
             });
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 ClientSubscription.ignoreNextWarning = true;
