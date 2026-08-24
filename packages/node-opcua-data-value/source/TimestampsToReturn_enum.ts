@@ -38,7 +38,7 @@ function clamp(min: number, a: number, max: number) {
 /**
  * @private
  */
-export function decodeTimestampsToReturn(stream: BinaryStream, value?: TimestampsToReturn): TimestampsToReturn {
+export function decodeTimestampsToReturn(stream: BinaryStream, _value?: TimestampsToReturn): TimestampsToReturn {
     return clamp(TimestampsToReturn.Source, stream.readUInt32(), TimestampsToReturn.Invalid) as TimestampsToReturn;
 }
 

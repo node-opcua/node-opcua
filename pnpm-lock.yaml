@@ -1438,6 +1438,9 @@ importers:
       node-opcua-factory:
         specifier: 2.177.0
         version: link:../node-opcua-factory
+      node-opcua-numeric-range:
+        specifier: 2.177.0
+        version: link:../node-opcua-numeric-range
       node-opcua-status-code:
         specifier: 2.176.0
         version: link:../node-opcua-status-code
@@ -1448,9 +1451,6 @@ importers:
       node-opcua-extension-object:
         specifier: 2.177.0
         version: link:../node-opcua-extension-object
-      node-opcua-numeric-range:
-        specifier: 2.177.0
-        version: link:../node-opcua-numeric-range
       node-opcua-packet-analyzer:
         specifier: 2.177.0
         version: link:../node-opcua-packet-analyzer

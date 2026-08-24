@@ -25,10 +25,10 @@ import {
     type DecodeDebugOptions,
     FieldCategory,
     type IStructuredTypeSchema,
-    initialize_field,
     parameters,
     registerSpecialVariantEncoder
 } from "node-opcua-factory";
+import type { ExtractResult, NumericRange } from "node-opcua-numeric-range";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     DataType,
@@ -44,7 +44,7 @@ import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
 const errorLog = make_errorLog(__filename);
 
-type NumericalRange = any;
+type NumericalRange = NumericRange;
 
 function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte {
     let encodingMask = 0;
@@ -55,7 +55,7 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
     if (dataValue.statusCode !== null && typeof dataValue.statusCode === "object" && dataValue.statusCode.value !== 0) {
         encodingMask |= DataValueEncodingByte.StatusCode;
     }
-    if (dataValue.sourceTimestamp && (dataValue.sourceTimestamp as any) !== "null") {
+    if (dataValue.sourceTimestamp) {
         encodingMask |= DataValueEncodingByte.SourceTimestamp;
     }
     // the number of picoseconds that can be encoded are
@@ -64,7 +64,7 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
     if (dataValue.sourcePicoseconds ? dataValue.sourcePicoseconds % 100000 : false) {
         encodingMask |= DataValueEncodingByte.SourcePicoseconds;
     }
-    if (dataValue.serverTimestamp && (dataValue.serverTimestamp as any) !== "null") {
+    if (dataValue.serverTimestamp) {
         encodingMask |= DataValueEncodingByte.ServerTimestamp;
     }
     if (dataValue.serverPicoseconds ? dataValue.serverPicoseconds % 100000 : false) {
@@ -80,7 +80,7 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
  */
 export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
     const encodingMask = getDataValue_EncodingByte(dataValue);
-    assert(isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3f);
+    assert(Number.isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3f);
     // write encoding byte
     encodeUInt8(encodingMask, stream);
 
@@ -411,7 +411,6 @@ export function apply_timestamps(
             cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
             cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;
-        case TimestampsToReturn.Both:
         default:
             assert(timestampsToReturn === TimestampsToReturn.Both);
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
@@ -466,7 +465,6 @@ export function apply_timestamps_no_copy(
             break;
         case TimestampsToReturn.Source:
             break;
-        case TimestampsToReturn.Both:
         default:
             assert(timestampsToReturn === TimestampsToReturn.Both);
             if (!dataValue.serverTimestamp) {
@@ -483,47 +481,6 @@ export function apply_timestamps_no_copy(
     return dataValue;
 }
 
-/**
- * @deprecated
- */
-function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsToReturn, attributeId: AttributeIds): DataValue {
-    assert(attributeId > 0);
-    assert(Object.hasOwn(dataValue, "serverTimestamp"));
-    assert(Object.hasOwn(dataValue, "sourceTimestamp"));
-    const cloneDataValue = new DataValue({});
-    cloneDataValue.value = dataValue.value;
-    cloneDataValue.statusCode = dataValue.statusCode;
-    const now = getCurrentClock();
-    // apply timestamps
-    switch (timestampsToReturn) {
-        case TimestampsToReturn.Server:
-            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
-            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-            break;
-        case TimestampsToReturn.Source:
-            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
-            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
-            break;
-        case TimestampsToReturn.Both:
-            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
-            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-
-            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
-            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
-            break;
-    }
-
-    // unset sourceTimestamp unless AttributeId is Value
-    if (attributeId !== AttributeIds.Value) {
-        cloneDataValue.sourceTimestamp = null;
-    }
-    return cloneDataValue;
-}
-
 /*
 
  * @param dataValue
@@ -532,7 +489,7 @@ function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsT
  * @private
  * @static
  */
-function _clone_with_array_replacement(dataValue: DataValue, result: any): DataValue {
+function _clone_with_array_replacement(dataValue: DataValue, result: ExtractResult<unknown>): DataValue {
     const statusCode = result.statusCode.isGood() ? dataValue.statusCode : result.statusCode;
 
     const clonedDataValue = new DataValue({
@@ -552,7 +509,7 @@ function _clone_with_array_replacement(dataValue: DataValue, result: any): DataV
     });
     clonedDataValue.value.dataType = dataValue.value.dataType;
     clonedDataValue.value.arrayType = dataValue.value.arrayType;
-    clonedDataValue.value.dimensions = result.dimensions;
+    clonedDataValue.value.dimensions = result.dimensions ?? null;
 
     if (Array.isArray(result.array)) {
         clonedDataValue.value.value = [...result.array];
@@ -577,7 +534,7 @@ function canRange(dataValue: DataValue): boolean {
  * @param indexRange {NumericalRange}
  * @return {DataValue}
  */
-export function extractRange(dataValue: DataValue, indexRange: NumericalRange): DataValue {
+export function extractRange(dataValue: DataValue, indexRange: NumericalRange | undefined): DataValue {
     const variant = dataValue.value;
     if (indexRange && canRange(dataValue)) {
         if (!indexRange.isValid()) {
@@ -719,4 +676,5 @@ export declare interface DataValueT<T, DT extends DataType> extends DataValue {
 // The interface above narrows `value` to VariantT for this specialization.
 // Merging is the whole point — the class carries no extra runtime state.
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: deliberate API shaping
+// biome-ignore lint/correctness/noUnusedVariables: T/DT are consumed by the merged interface above, not the empty class body
 export class DataValueT<T, DT extends DataType> extends DataValue {}

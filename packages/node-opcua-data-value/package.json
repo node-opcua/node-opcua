@@ -20,6 +20,7 @@
         "node-opcua-debug": "2.175.6",
         "node-opcua-enum": "2.176.0",
         "node-opcua-factory": "2.177.0",
+        "node-opcua-numeric-range": "2.177.0",
         "node-opcua-status-code": "2.176.0",
         "node-opcua-variant": "2.177.0"
     },
