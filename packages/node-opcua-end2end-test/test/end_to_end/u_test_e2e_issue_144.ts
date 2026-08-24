@@ -11,21 +11,22 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+// _secureChannel (private client impl field) and its transport's underlying raw socket (not
+// part of the public IClientTransport surface) are reached here only to simulate an abrupt
+// connection drop for fault injection.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
 
 function simulate_connection_lost(client: OPCUAClient) {
-    const secureChannel: any = (client as any)._secureChannel;
+    const secureChannel = (client as InternalAny)._secureChannel;
     if (!secureChannel) return;
     const transport = secureChannel.getTransport();
-    const socket: any = transport?._socket;
+    const socket = transport?._socket;
     if (socket) {
         try {
             socket.end();
@@ -58,7 +59,7 @@ function simulate_connection_lost(client: OPCUAClient) {
 /**
  * Bug #144 - Ensure no data lost after short connection loss: subscription resumes and notifications continue.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Bug #144 reconnection keeps data (no loss)", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
@@ -67,10 +68,11 @@ export function t(test: TestHarness) {
             client = OPCUAClient.create({
                 securityMode,
                 securityPolicy,
+                // biome-ignore lint/suspicious/noExplicitAny: explicit null forces "fetch via GetEndpoints"; the option type only declares undefined
                 serverCertificate: null as any,
                 endpointMustExist: false
             });
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         afterEach(async () => {
