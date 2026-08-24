@@ -302,8 +302,6 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const opts = { multiArgs: false };
