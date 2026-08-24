@@ -1,20 +1,17 @@
+import type { EventEmitter } from "node:events";
 import "should";
 import {
     AttributeIds,
     ClientMonitoredItem,
     ClientMonitoredItemGroup,
+    type DataValue,
     OPCUAClient,
     resolveNodeId,
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = false;
 
@@ -30,14 +27,14 @@ const doDebug = false;
  *  - AA15: explicit toString call path.
  *  - AA16 (#534): group with invalid nodes still initializes; group length asserted (all attempted items retained) then terminates.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing ClientMonitoredItemGroup", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(async () => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         afterEach(async () => {
@@ -46,7 +43,8 @@ export function t(test: TestHarness) {
             client = null;
         });
 
-        const waitEvent = <T = any>(emitter: any, event: string) => new Promise<T>((resolve) => emitter.once(event, resolve));
+        const waitEvent = <T = void>(emitter: EventEmitter, event: string) =>
+            new Promise<T>((resolve) => emitter.once(event, resolve));
         const terminatePromise = (obj: { terminate: (cb: (err?: Error) => void) => void }) =>
             new Promise<void>((res, rej) => obj.terminate((e) => (e ? rej(e) : res())));
 
@@ -151,7 +149,7 @@ export function t(test: TestHarness) {
                 group.monitoredItems.length.should.eql(1);
                 let count = 0;
                 await new Promise<void>((resolve, reject) => {
-                    group.on("changed", async (_monitoredItem: ClientMonitoredItem, _dataValue: any, _index: number) => {
+                    group.on("changed", async (_monitoredItem: ClientMonitoredItem, _dataValue: DataValue, _index: number) => {
                         count++;
                         if (count === 10) {
                             try {
