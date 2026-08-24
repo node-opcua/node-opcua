@@ -86,7 +86,7 @@ export async function browseAll2(
             continue;
         }
         const continuationPoint = result.continuationPoint;
-        (result as any).continuationPoint = undefined;
+        result.continuationPoint = Buffer.alloc(0);
         if (continuationPoint && continuationPoint.length > 0) {
             browseToContinue.push({ references: result.references || [], continuationPoint });
         }
@@ -124,7 +124,7 @@ export async function browseAll2(
         browseToRedo.splice(0);
     }
     browseResults.forEach((b) => {
-        (b as any).continuationPoint = undefined;
+        b.continuationPoint = Buffer.alloc(0);
     });
     return browseResults;
 }

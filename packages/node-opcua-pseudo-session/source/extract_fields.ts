@@ -31,7 +31,7 @@ export async function extractFields(
     session: ISessionForExtractField,
     nodeId: NodeIdLike
 ): Promise<{ path: QualifiedName[]; nodeId: NodeId }[]> {
-    const _duplicateMap: any = {};
+    const _duplicateMap: Record<string, QualifiedName[]> = {};
 
     const fields1: { path: QualifiedName[]; nodeId: NodeId }[] = [];
 
@@ -65,7 +65,7 @@ export async function extractFields(
         }
         const extracted = stack.splice(0);
         const nodesToBrowse = extracted.map((e: IStackElement) => {
-            const { parent, nodeId } = e;
+            const { nodeId } = e;
             const b: BrowseDescriptionOptions = {
                 browseDirection: BrowseDirection.Forward,
                 includeSubtypes: true,
@@ -122,7 +122,7 @@ export async function extractFields(
         const browseResults = await session.browse(nodesToBrowse);
         const [browseResultForInverseSubType, browseResultForChildren] = browseResults;
 
-        if (browseResultForChildren && browseResultForChildren.references) {
+        if (browseResultForChildren?.references) {
             for (const ref of browseResultForChildren.references) {
                 if (ref.nodeClass === NodeClass.Variable) {
                     addField(parent, ref.browseName, ref.nodeId);
@@ -132,7 +132,7 @@ export async function extractFields(
         }
         await _flushPendingInvestigations();
 
-        if (browseResultForInverseSubType && browseResultForInverseSubType.references) {
+        if (browseResultForInverseSubType?.references) {
             const promises = [];
             for (const reference of browseResultForInverseSubType.references) {
                 // c8 ignore next

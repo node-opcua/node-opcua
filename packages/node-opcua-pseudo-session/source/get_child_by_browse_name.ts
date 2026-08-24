@@ -23,7 +23,7 @@ export async function getChildByBrowseName(
         throw new Error(`Cannot browse node ${name} ${browseResult.statusCode.toString()} nodeId = ${nodeId.toString()}`);
     }
     const selectedReference = browseResult.references.find(
-        (r) => r.browseName.name?.match(name) || r.displayName.text!.match(name)
+        (r) => r.browseName.name?.match(name) || r.displayName.text?.match(name)
     );
     if (!selectedReference) {
         warningLog("getChildByBrowseName error", browseResult.toString());

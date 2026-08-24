@@ -10,7 +10,7 @@ export async function findInTypeOrSuperType(
     const nodeId = browsePath.startingNode;
     const result = await session.translateBrowsePath(browsePath);
     if (result.statusCode.isGood()) {
-        return { nodeId: result.targets![0].targetId as NodeId };
+        return { nodeId: result.targets?.[0].targetId as NodeId };
     }
     // cannot be found here, go one step up
     const br = await session.browse({
@@ -21,11 +21,11 @@ export async function findInTypeOrSuperType(
         nodeClassMask: 0,
         resultMask: 0
     });
-    if (br.statusCode.isNotGood()) {
+    if (br.statusCode.isNotGood() || !br.references?.[0]) {
         // cannot find typeDefinition
         return { nodeId: null, err: new Error("cannot find typeDefinition") };
     }
-    const typeDefinition = br.references![0].nodeId;
+    const typeDefinition = br.references[0].nodeId;
     browsePath = new BrowsePath({
         startingNode: typeDefinition,
         relativePath: browsePath.relativePath
@@ -65,11 +65,11 @@ export async function findMethodId(
             nodeClassMask: 0,
             resultMask: 0
         });
-        if (br.statusCode.isNotGood()) {
+        if (br.statusCode.isNotGood() || !br.references?.[0]) {
             // cannot find typeDefinition
             return { methodId: null, err: new Error("cannot find typeDefinition") };
         }
-        const typeDefinition = br.references![0].nodeId;
+        const typeDefinition = br.references[0].nodeId;
         // need to find method on objectType
         const browsePath = makeBrowsePath(typeDefinition, `/${methodName}`);
         const result = await findInTypeOrSuperType(session, browsePath);

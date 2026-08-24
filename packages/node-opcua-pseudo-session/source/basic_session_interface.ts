@@ -9,9 +9,9 @@ import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, type BrowseDescriptionOptions, type BrowseResult } from "node-opcua-service-browse";
 import type { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
 import type { ReadValueIdOptions } from "node-opcua-service-read";
-import { BrowsePath, type BrowsePathResult } from "node-opcua-service-translate-browse-path";
+import type { BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import type { WriteValueOptions } from "node-opcua-service-write";
-import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { CallbackT, StatusCode } from "node-opcua-status-code";
 import type { BrowsePathOptions, UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 
@@ -390,7 +390,7 @@ export async function getArgumentDefinitionHelper(
     let outputArguments: Argument[] = [];
 
     const nodesToRead = [];
-    const actions: any[] = [];
+    const actions: Array<(result: DataValue) => void> = [];
 
     if (inputArgumentRef) {
         nodesToRead.push({
@@ -443,7 +443,7 @@ function followSession(session: IBasicSessionReadAsyncSimple & ICascadingSession
 export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {
     const sessionHoldingCache = followSession(session) as SessionWithCache;
     if (sessionHoldingCache.$$namespaceArray) {
-        return sessionHoldingCache.$$namespaceArray!;
+        return sessionHoldingCache.$$namespaceArray;
     }
     const nodeId = resolveNodeId(VariableIds.Server_NamespaceArray);
 
@@ -456,7 +456,7 @@ export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple):
         return [];
     }
     sessionHoldingCache.$$namespaceArray = dataValue.value.value; // keep a cache
-    return sessionHoldingCache.$$namespaceArray!;
+    return sessionHoldingCache.$$namespaceArray || [];
 }
 
 export async function clearSessionCache(session: IBasicSessionAsync2) {

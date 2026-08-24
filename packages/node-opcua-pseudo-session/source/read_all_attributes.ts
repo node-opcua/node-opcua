@@ -1,5 +1,5 @@
 import assert from "node-opcua-assert";
-import { AttributeIds, attributeNameById } from "node-opcua-basic-types";
+import { attributeNameById } from "node-opcua-basic-types";
 import type { DataValue } from "node-opcua-data-value";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -15,8 +15,6 @@ export interface NodeAttributes {
     [key: string]: Variant | NodeId | StatusCode;
 }
 
-const keys = Object.keys(AttributeIds).filter((k: any) => (AttributeIds as any)[k] !== AttributeIds.INVALID);
-
 const attributeNames: string[] = ((): string[] => {
     const r: string[] = [];
     for (let i = 1; i <= 22; i++) {
@@ -25,7 +23,7 @@ const attributeNames: string[] = ((): string[] => {
     return r;
 })();
 
-function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValues: DataValue[]): NodeAttributes[] {
+function composeResult(nodes: NodeIdLike[], nodesToRead: ReadValueIdOptions[], dataValues: DataValue[]): NodeAttributes[] {
     assert(nodesToRead.length === dataValues.length);
     let c = 0;
     const results = [];
@@ -40,7 +38,7 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
 
         for (const key of attributeNames) {
             const dataValue = dataValues[c];
-            const nodeToRead = nodesToRead[c];
+            const _nodeToRead = nodesToRead[c];
             c++;
             if (dataValue.statusCode.equals(StatusCodes.Good)) {
                 const k = lowerFirstLetter(key);
@@ -61,9 +59,12 @@ function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValu
     return results;
 }
 
-export async function readAllAttributes(session: IBasicSessionAsyncMultiple, nodeId: NodeIdLike): Promise<NodeAttributes[]>;
-export async function readAllAttributes(session: IBasicSessionAsyncMultiple, nodeId: NodeIdLike[]): Promise<NodeAttributes>;
-export async function readAllAttributes(session: IBasicSessionAsyncMultiple, arg1: NodeIdLike[] | NodeIdLike): Promise<any> {
+export async function readAllAttributes(session: IBasicSessionAsyncMultiple, nodeId: NodeIdLike): Promise<NodeAttributes>;
+export async function readAllAttributes(session: IBasicSessionAsyncMultiple, nodeId: NodeIdLike[]): Promise<NodeAttributes[]>;
+export async function readAllAttributes(
+    session: IBasicSessionAsyncMultiple,
+    arg1: NodeIdLike[] | NodeIdLike
+): Promise<NodeAttributes[] | NodeAttributes> {
     const isArray = Array.isArray(arg1);
     const nodes = isArray ? arg1 : [arg1];
     if (!isArray) {

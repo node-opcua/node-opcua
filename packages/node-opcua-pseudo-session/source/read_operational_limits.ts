@@ -51,17 +51,17 @@ export interface IServerCapabilities2 {
     conformanceUnits: QualifiedName[];
 }
 
-async function _readMany<T extends Record<string, any>>(
-    session: IBasicSessionReadAsyncMultiple,
-    ids: Record<keyof T, NodeIdLike>
-): Promise<T> {
+async function _readMany<T extends object>(session: IBasicSessionReadAsyncMultiple, ids: Record<keyof T, NodeIdLike>): Promise<T> {
     const entries = Object.entries(ids);
 
-    const nodesToRead = entries.map(([key, value]) => ({ nodeId: resolveNodeId(value), attributeId: AttributeIds.Value }));
+    const nodesToRead = entries.map(([_key, value]) => ({
+        nodeId: resolveNodeId(value as NodeIdLike),
+        attributeId: AttributeIds.Value
+    }));
 
     const dataValues = await session.read(nodesToRead);
 
-    const results: Record<keyof T, any> = {} as any;
+    const results = {} as Partial<Record<keyof T, unknown>>;
     entries.forEach(([key], index) => {
         const dataValue = dataValues[index];
         if (dataValue.statusCode.value === 0x00) {
@@ -89,7 +89,7 @@ export async function readOperationLimits(session: IBasicSessionReadAsyncMultipl
             VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds
     };
 
-    return await _readMany(session, ids);
+    return await _readMany<IOperationLimits2>(session, ids);
 }
 
 export const serverCapabilitiesIds = [
@@ -140,7 +140,7 @@ export async function readServerCapabilities(session: IBasicSessionReadAsyncMult
         conformanceUnits: VariableIds.Server_ServerCapabilities_ConformanceUnits,
         operationLimits: 0
     };
-    const serverCapabilities = await _readMany(session, ids);
+    const serverCapabilities = await _readMany<IServerCapabilities2>(session, ids);
     const limits = await readOperationLimits(session);
     serverCapabilities.operationLimits = limits;
     return serverCapabilities;

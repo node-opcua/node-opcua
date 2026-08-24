@@ -50,8 +50,8 @@ export async function createMonitoredItemsLimit(
             itemsToCreate: c
         });
         const r = await _session2.createMonitoredItems(cmi);
-        for (const i of r.results!) {
-            response.results!.push(i);
+        for (const i of r.results || []) {
+            response.results?.push(i);
         }
     } while (n.length);
     return response;
