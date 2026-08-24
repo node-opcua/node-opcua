@@ -12,7 +12,6 @@ export function assert(cond: boolean | unknown | null | undefined | func, messag
         const err = new Error(message);
         // c8 ignore next
         if (displayAssert) {
-            // tslint:disable:no-console
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
             console.log(chalk.whiteBright.bgRed(message!));
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
