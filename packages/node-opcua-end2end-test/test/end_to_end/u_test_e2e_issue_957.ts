@@ -1,26 +1,23 @@
 import "should";
 import type { EventEmitter } from "node:events";
-import { OPCUAClient } from "node-opcua";
+import { type ClientSession, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { waitForEvent } from "../../test_helpers/utils";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing bug #957 - ServerCertificate is an empty buffer", () => {
         const RENEWAL_TIMEOUT_MS = 10_000; // safety timeout for event wait
 
         it("should create a client session when server certificate is an empty buffer (not null)", async () => {
             const client = OPCUAClient.create({ defaultSecureTokenLifetime: 1000 });
 
-            // Emulate empty certificate condition (certificate provided but zero length per original bug)
-            (client as any).serverCertificate = Buffer.alloc(0);
+            // Emulate empty certificate condition (certificate provided but zero length per original bug).
+            // serverCertificate is readonly on the public OPCUAClient interface; bypass it here for the injection.
+            (client as { serverCertificate?: Buffer }).serverCertificate = Buffer.alloc(0);
 
-            await client.connect(test.endpointUrl);
-            let session: any = null;
+            await client.connect(test.endpointUrl!);
+            let session: ClientSession | null = null;
             try {
                 session = await client.createSession();
 
