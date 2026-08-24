@@ -15,7 +15,7 @@ import { OpaqueStructure } from "node-opcua-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const port = 2024; // use a unit port number to allow test serialization
-describe("issue_1436", function (this: any) {
+describe("issue_1436", function (this: Mocha.Suite) {
     this.timeout(50 * 1000);
 
     let server: OPCUAServer;

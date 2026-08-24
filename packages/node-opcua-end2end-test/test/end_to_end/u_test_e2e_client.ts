@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
 export function t(test: any) {
-    describe("Testing Client Connection ", function (this: any) {
+    describe("Testing Client Connection ", function (this: Mocha.Suite) {
         it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {
             const client = OPCUAClient.create({});
 

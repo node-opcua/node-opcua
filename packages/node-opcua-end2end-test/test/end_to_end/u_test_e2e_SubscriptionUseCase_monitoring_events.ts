@@ -393,13 +393,11 @@ export function t(test: TestHarness): void {
                     const monitoredItem = await subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both);
                     monitoredItem.on("changed", (eventFields: Variant[]) => {
                         eventNotificationCount += 1;
-                        if (true) {
-                            // debug output
-                            console.log("Changed !!!  ");
-                            eventFields.forEach((variant, index) => {
-                                console.log(chalk.yellow(w(fields[index], 15)), chalk.cyan(variant.toString()));
-                            });
-                        }
+                        // debug output
+                        console.log("Changed !!!  ");
+                        eventFields.forEach((variant, index) => {
+                            console.log(chalk.yellow(w(fields[index], 15)), chalk.cyan(variant.toString()));
+                        });
                     });
                     await callEventGeneratorMethod(session);
                     await new Promise((resolve) => setTimeout(resolve, 1000));

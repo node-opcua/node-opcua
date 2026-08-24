@@ -157,7 +157,7 @@ export function t(test: any) {
     const linkedValue1NodeId = "ns=1;s=LinkedValue1";
     const linkedValue2NodeId = "ns=1;s=LinkedValue2";
 
-    describe("SetTriggering", function (this: any) {
+    describe("SetTriggering", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {
@@ -496,7 +496,11 @@ export function t(test: any) {
                 const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+                const notificationData0 = notification.notificationData?.[0] as DataChangeNotification | undefined;
+                if (!notificationData0?.monitoredItems) {
+                    throw new Error("expecting monitoredItems in notification");
+                }
+                const monitoredItems = notificationData0.monitoredItems;
 
                 monitoredItems.length.should.eql(3);
 
@@ -557,7 +561,11 @@ export function t(test: any) {
                 const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
                 doDebug && console.log(notification.toString());
 
-                const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+                const notificationData0 = notification.notificationData?.[0] as DataChangeNotification | undefined;
+                if (!notificationData0?.monitoredItems) {
+                    throw new Error("expecting monitoredItems in notification");
+                }
+                const monitoredItems = notificationData0.monitoredItems;
 
                 if (successes[i]) {
                     monitoredItems.length.should.eql(3);

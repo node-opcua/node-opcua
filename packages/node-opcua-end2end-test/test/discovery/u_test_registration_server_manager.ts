@@ -15,7 +15,7 @@ const port = 1435;
 const port_discovery = 1436;
 
 export function t(_test: TestHarness) {
-    describe("DISCO7 - Discovery server", function (this: any) {
+    describe("DISCO7 - Discovery server", function (this: Mocha.Suite) {
         this.timeout(Math.max(50000, this.timeout()));
 
         let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
@@ -283,7 +283,7 @@ export function t(_test: TestHarness) {
         });
     });
 
-    describe("DISCO8 - Discovery Server 2", function (this: any) {
+    describe("DISCO8 - Discovery Server 2", function (this: Mocha.Suite) {
         this.timeout(Math.max(50000, this.timeout()));
 
         it("DISCO8-A server shall not struggle to start if discovery server is not available", async () => {

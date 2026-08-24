@@ -7,7 +7,7 @@ const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
 export function t(test: any) {
-    describe("Verifying #1375", function (this: any) {
+    describe("Verifying #1375", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {});

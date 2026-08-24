@@ -55,7 +55,6 @@ import {
     StatusCodes,
     Subscription,
     type SubscriptionId,
-    s,
     TimestampsToReturn,
     type UAVariable,
     VariableIds,
@@ -1633,6 +1632,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     );
                 }
                 await wait(timeToWaitBeforeResendingPublishInterval);
+                // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                 if (true || doDebug) {
                     tracelog(" Restoring default Publishing behavior");
                 }
@@ -1649,6 +1649,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 // --------------------------------------------
                 stepLog("terminate short life subscription");
                 const timeout = shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
+                // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                 if (true || doDebug) {
                     tracelog("timeout = ", timeout);
                 }
@@ -2154,9 +2155,13 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             const forcedMinimumInterval = 1;
             const nodeId = "ns=2;s=Static_Scalar_Int16";
 
-            const _node = server.engine.addressSpace?.findNode(nodeId)!;
+            const _node = server.engine.addressSpace?.findNode(nodeId);
             //xx tracelog(chalk.cyan("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"),node.toString());
-            const objectsFolder = test.server.engine.addressSpace?.rootFolder.objects!;
+            const addressSpace = test.server.engine.addressSpace;
+            if (!addressSpace) {
+                throw new Error("addressSpace should be initialized");
+            }
+            const objectsFolder = addressSpace.rootFolder.objects;
             const server_node = (objectsFolder as any).simulation.static["all Profiles"].scalars.int16;
             //xx tracelog("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
@@ -2168,7 +2173,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             const _subscriptionId = -1;
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 await f<DataValue>(async function read_minimumSamplingInterval(): Promise<DataValue> {
-                    let minimumSamplingIntervalOnNode;
+                    let minimumSamplingIntervalOnNode: number;
                     const nodeToRead = {
                         nodeId: nodeId,
                         attributeId: AttributeIds.MinimumSamplingInterval
@@ -2424,8 +2429,10 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
                 const publishResponse1 = await sendPublishRequest(session);
-                const _notification1 = (publishResponse1.notificationMessage?.notificationData?.[0] as DataChangeNotification)
-                    .monitoredItems?.[0];
+                const notificationData1 = publishResponse1.notificationMessage?.notificationData?.[0] as
+                    | DataChangeNotification
+                    | undefined;
+                const _notification1 = notificationData1?.monitoredItems?.[0];
 
                 await writeValue(nodeId, session, 1);
                 await writeValue(nodeId, session, 2);

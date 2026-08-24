@@ -67,7 +67,9 @@ describe("ReverseConnect - reconnection end-to-end (RC-E2E-2)", function (this: 
         if (reverseConnect) {
             await reverseConnect.stop();
         }
-        proxySockets.forEach((s) => s.destroy());
+        proxySockets.forEach((s) => {
+            s.destroy();
+        });
         if (proxyServer) {
             await new Promise<void>((resolve) => proxyServer.close(() => resolve()));
         }
@@ -104,7 +106,9 @@ describe("ReverseConnect - reconnection end-to-end (RC-E2E-2)", function (this: 
             // drop the reverse channel by destroying the proxy tunnel
             const dropped = proxySockets;
             proxySockets = []; // new tunnel sockets (from the redial) get tracked separately
-            dropped.forEach((s) => s.destroy());
+            dropped.forEach((s) => {
+                s.destroy();
+            });
 
             // the server re-dials through the proxy and the client re-accepts; the session must recover.
             // We prove recovery with a successful read (no dependence on internal event names).

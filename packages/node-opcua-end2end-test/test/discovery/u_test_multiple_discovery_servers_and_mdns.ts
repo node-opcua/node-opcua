@@ -14,7 +14,7 @@ const doDebug = checkDebugFlag("TEST");
 // add the tcp/ip endpoint with no security
 
 export function t(_test: TestHarness) {
-    describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
+    describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: Mocha.Suite) {
         this.timeout(Math.max(40000, this.timeout()));
 
         let discoveryServer1: OPCUADiscoveryServer;

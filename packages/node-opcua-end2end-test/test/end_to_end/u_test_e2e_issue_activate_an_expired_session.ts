@@ -66,7 +66,7 @@ export function t(test: any) {
             const client1 = OPCUAClient.create({});
             await client1.connect(endpointUrl);
 
-            let err;
+            let err: unknown;
             try {
                 await client1.reactivateSession(session);
                 await session.close();

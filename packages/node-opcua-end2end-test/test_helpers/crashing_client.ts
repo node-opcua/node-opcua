@@ -33,14 +33,14 @@ async function main() {
         console.log("connected !");
 
         // step 2 : createSession
-        const session = await client.createSession();
+        const _session = await client.createSession();
 
         // wait
         console.log("About to CRASH !!!!");
         await new Promise<void>((resolve) => setTimeout(resolve, 3000));
         console.log(" CRASHING !!!!");
         process.exit(-1);
-    } catch (err) {
+    } catch (_err) {
         console.log(" cannot connect to endpoint :", endpointUrl);
     }
 }

@@ -10,7 +10,7 @@ async function pause(delay: number): Promise<void> {
 }
 export function t(test: any) {
     const _options = {};
-    describe("ClientSubscription#modify", function (this: any) {
+    describe("ClientSubscription#modify", function (this: Mocha.Suite) {
         it("should modify subscription parameters", async () => {
             const client = OPCUAClient.create({});
 

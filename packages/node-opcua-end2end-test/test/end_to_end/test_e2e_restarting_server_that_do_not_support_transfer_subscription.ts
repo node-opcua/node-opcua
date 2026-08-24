@@ -69,7 +69,7 @@ const wait = (timeout: number) => new Promise((resolve) => setTimeout(resolve, t
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
+describe("Test dataTypeManager lifecycle during client reconnection ", function (this: Mocha.Suite) {
     this.timeout(Math.max(300000, this.timeout()));
 
     it("client should recreate subscription and monitoredItem when the server doesn't support TransferSubscription or Republish Requests is restarted #1059", async () => {

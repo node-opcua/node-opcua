@@ -28,6 +28,7 @@ export function t(test: any) {
             _endpointUrl = test.endpointUrl;
 
             client.on("lifetime_75", (token) => console.log("token about to expire", token ? token.toString() : ""));
+            // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
             if (false) {
                 client.on("send_chunk", (buf) => console.log("chunk =>", buf.length));
                 client.on("receive_chunk", (buf) => console.log("chunk <= ", buf.length));

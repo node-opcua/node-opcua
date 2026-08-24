@@ -1,14 +1,6 @@
 import chalk from "chalk";
 import { DataType, DataValue, type NodeId, StatusCodes, standardUnits, Variant } from "node-opcua";
-import {
-    type IAddressSpace,
-    type ISessionContext,
-    SessionContext,
-    type UAAnalogItem,
-    type UAMethod,
-    type UAObject,
-    type UAVariableT
-} from "node-opcua-address-space";
+import type { IAddressSpace, ISessionContext, UAAnalogItem, UAMethod, UAObject, UAVariableT } from "node-opcua-address-space";
 import { adjustDataValueStatusCode } from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
 import { assert } from "node-opcua-assert";
 
@@ -165,7 +157,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
     myHVAC.targetTemperature.setValueFromSource({ dataType: DataType.Double, value: 16 });
 
     // bind the method
-    myHVAC.enable.bindMethod(async (inputArguments: Variant[], sessionContext: ISessionContext) => {
+    myHVAC.enable.bindMethod(async (_inputArguments: Variant[], sessionContext: ISessionContext) => {
         sessionContext;
         return { statusCode: StatusCodes.Good };
     });
@@ -203,7 +195,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         const variable = myHVAC.targetTemperature;
 
         if (doDebug) {
-            console.log("instrumentRange=", myHVAC.targetTemperature.instrumentRange!.readValue().value.toString());
+            console.log("instrumentRange=", myHVAC.targetTemperature.instrumentRange?.readValue().value.toString());
             console.log("instrumentRange=", HVACModuleType.targetTemperature.instrumentRange.readValue().value.toString());
         }
         const s = (variable as any).checkVariantCompatibility(targetTemperature);

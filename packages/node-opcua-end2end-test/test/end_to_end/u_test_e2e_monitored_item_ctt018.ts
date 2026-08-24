@@ -111,7 +111,7 @@ export function t(test: any) {
         }
     }
 
-    describe("Monitoring item tests", function (this: any) {
+    describe("Monitoring item tests", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
         const items: NodeId[] = [];

@@ -450,7 +450,7 @@ export function t(test: TestHarness) {
         });
     });
 
-    describe("DISCO3 - DiscoveryServer3 - many server", function (this: any) {
+    describe("DISCO3 - DiscoveryServer3 - many server", function (this: Mocha.Suite) {
         this.timeout(200000);
 
         let discoveryServer: OPCUADiscoveryServer;

@@ -3,47 +3,55 @@ import {
     BrowseDescription,
     BrowseDirection,
     BrowseNextRequest,
+    type BrowseNextResponse,
     BrowseRequest,
+    type BrowseResponse,
+    type ClientSession,
     OPCUAClient,
     resolveNodeId,
     StatusCodes
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
+interface SessionWithTransaction {
+    performMessageTransaction(
+        request: BrowseRequest | BrowseNextRequest,
+        callback: (err: Error | null, response?: BrowseResponse | BrowseNextResponse) => void
+    ): void;
 }
 
-function performMessageTransaction(session: any, request: any): Promise<any> {
+function performMessageTransaction<T extends BrowseResponse | BrowseNextResponse>(
+    session: ClientSession,
+    request: BrowseRequest | BrowseNextRequest
+): Promise<T> {
     return new Promise((resolve, reject) => {
-        session.performMessageTransaction(request, (err: any, response: any) => {
+        (session as unknown as SessionWithTransaction).performMessageTransaction(request, (err, response) => {
             if (err) return reject(err);
-            resolve(response);
+            resolve(response as T);
         });
     });
 }
 
-async function expectErrorMessage(re: RegExp, fn: () => Promise<any>) {
+async function expectErrorMessage(re: RegExp, fn: () => Promise<unknown>) {
     let ok = false;
     try {
         await fn();
-    } catch (err: any) {
-        err.message.should.match(re);
+    } catch (err: unknown) {
+        (err as Error).message.should.match(re);
         ok = true;
     }
     if (!ok) throw new Error(`Expected error matching ${re}`);
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Test Browse Request", () => {
-        let client: any;
-        let session: any;
+        let client: OPCUAClient;
+        let session: ClientSession;
         let endpointUrl: string;
 
         beforeEach(async () => {
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
             client = OPCUAClient.create({});
             await client.connect(endpointUrl);
             session = await client.createSession();
@@ -96,29 +104,27 @@ export function t(test: TestHarness) {
 
             // large limit
             const browseRequest1 = new BrowseRequest({
-                view: null as any,
                 requestedMaxReferencesPerNode: 10,
                 nodesToBrowse: [browseDesc]
             });
-            let response: any = await performMessageTransaction(session, browseRequest1);
-            response.results[0].statusCode.should.eql(StatusCodes.Good);
-            response.results[0].references.length.should.be.greaterThan(3);
-            (response.results[0].continuationPoint === null).should.eql(true);
+            let response = await performMessageTransaction<BrowseResponse>(session, browseRequest1);
+            response.results![0].statusCode.should.eql(StatusCodes.Good);
+            response.results![0].references!.length.should.be.greaterThan(3);
+            (response.results![0].continuationPoint === null).should.eql(true);
 
             // small limit -> continuation point expected
             const browseRequest2 = new BrowseRequest({
-                view: null as any,
                 requestedMaxReferencesPerNode: 1,
                 nodesToBrowse: [browseDesc]
             });
-            response = await performMessageTransaction(session, browseRequest2);
-            response.results[0].statusCode.should.eql(StatusCodes.Good);
-            response.results[0].references.length.should.eql(1);
-            (response.results[0].continuationPoint !== null).should.eql(true);
+            response = await performMessageTransaction<BrowseResponse>(session, browseRequest2);
+            response.results![0].statusCode.should.eql(StatusCodes.Good);
+            response.results![0].references!.length.should.eql(1);
+            (response.results![0].continuationPoint !== null).should.eql(true);
         });
 
         it("T5 - BrowseNext with no continuationPoints -> BadNothingToDo", async () => {
-            const browseNextRequest = new BrowseNextRequest({ continuationPoints: null as any });
+            const browseNextRequest = new BrowseNextRequest({ continuationPoints: null });
             await expectErrorMessage(/BadNothingToDo/, async () => {
                 await performMessageTransaction(session, browseNextRequest);
             });
@@ -134,54 +140,52 @@ export function t(test: TestHarness) {
             };
             // full browse to capture references
             const fullReq = new BrowseRequest({
-                view: null as any,
                 requestedMaxReferencesPerNode: 10,
                 nodesToBrowse: [browseDesc]
             });
-            let resp: any = await performMessageTransaction(session, fullReq);
-            resp.results[0].statusCode.should.eql(StatusCodes.Good);
-            resp.results[0].references.length.should.be.greaterThan(3);
-            const allReferences = resp.results[0].references;
+            let resp = await performMessageTransaction<BrowseResponse>(session, fullReq);
+            resp.results![0].statusCode.should.eql(StatusCodes.Good);
+            resp.results![0].references!.length.should.be.greaterThan(3);
+            const allReferences = resp.results![0].references!;
 
             // limited browse to receive continuation point
             const limitedReq = new BrowseRequest({
-                view: null as any,
                 requestedMaxReferencesPerNode: 2,
                 nodesToBrowse: [browseDesc]
             });
-            resp = await performMessageTransaction(session, limitedReq);
-            resp.results.length.should.eql(1);
-            resp.results[0].statusCode.should.eql(StatusCodes.Good);
-            resp.results[0].references.length.should.eql(2);
-            resp.results[0].references[0].should.eql(allReferences[0]);
-            resp.results[0].references[1].should.eql(allReferences[1]);
-            const continuationPoint = resp.results[0].continuationPoint;
+            resp = await performMessageTransaction<BrowseResponse>(session, limitedReq);
+            resp.results!.length.should.eql(1);
+            resp.results![0].statusCode.should.eql(StatusCodes.Good);
+            resp.results![0].references!.length.should.eql(2);
+            resp.results![0].references![0].should.eql(allReferences[0]);
+            resp.results![0].references![1].should.eql(allReferences[1]);
+            const continuationPoint = resp.results![0].continuationPoint;
             (continuationPoint !== null).should.eql(true);
 
             // BrowseNext to get next chunk
             const browseNextRequest1 = new BrowseNextRequest({ continuationPoints: [continuationPoint] });
-            let respNext: any = await performMessageTransaction(session, browseNextRequest1);
+            let respNext = await performMessageTransaction<BrowseNextResponse>(session, browseNextRequest1);
             respNext.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            respNext.results[0].references.length.should.eql(2);
-            respNext.results[0].references[0].should.eql(allReferences[2]);
-            respNext.results[0].references[1].should.eql(allReferences[3]);
-            (respNext.results[0].continuationPoint === null).should.eql(true);
+            respNext.results![0].references!.length.should.eql(2);
+            respNext.results![0].references![0].should.eql(allReferences[2]);
+            respNext.results![0].references![1].should.eql(allReferences[3]);
+            (respNext.results![0].continuationPoint === null).should.eql(true);
 
             // reusing exhausted continuationPoint should yield BadContinuationPointInvalid
             const browseNextRequest2 = new BrowseNextRequest({
                 continuationPoints: [continuationPoint],
                 releaseContinuationPoints: true
             });
-            respNext = await performMessageTransaction(session, browseNextRequest2);
+            respNext = await performMessageTransaction<BrowseNextResponse>(session, browseNextRequest2);
             respNext.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            respNext.results[0].statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
+            respNext.results![0].statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
         });
 
         const IT = test.server ? it : xit;
         IT("T7 - BrowseNext releaseContinuationPoints toggle behavior", async () => {
             async function test_5_7_2__9(nodeIdStr: string) {
                 const nodeId = resolveNodeId(nodeIdStr);
-                const obj = test.server.engine.addressSpace.findNode(nodeId);
+                const obj = test.server!.engine!.addressSpace!.findNode(nodeId)!;
                 obj.should.be.ok();
                 const browseDesc = new BrowseDescription({
                     nodeId,
@@ -192,39 +196,39 @@ export function t(test: TestHarness) {
                 });
 
                 // browse all references
-                const respAll = await performMessageTransaction(
+                const respAll = await performMessageTransaction<BrowseResponse>(
                     session,
-                    new BrowseRequest({ view: null as any, requestedMaxReferencesPerNode: 10, nodesToBrowse: [browseDesc] })
+                    new BrowseRequest({ requestedMaxReferencesPerNode: 10, nodesToBrowse: [browseDesc] })
                 );
-                respAll.results[0].references.length.should.be.greaterThan(3);
-                const allReferences = respAll.results[0].references;
+                respAll.results![0].references!.length.should.be.greaterThan(3);
+                const allReferences = respAll.results![0].references!;
 
                 // first limited browse (max 1)
-                const resp1 = await performMessageTransaction(
+                const resp1 = await performMessageTransaction<BrowseResponse>(
                     session,
-                    new BrowseRequest({ view: null as any, requestedMaxReferencesPerNode: 1, nodesToBrowse: [browseDesc] })
+                    new BrowseRequest({ requestedMaxReferencesPerNode: 1, nodesToBrowse: [browseDesc] })
                 );
-                resp1.results[0].references.length.should.eql(1);
-                resp1.results[0].references[0].should.eql(allReferences[0]);
-                const continuationPoint = resp1.results[0].continuationPoint;
+                resp1.results![0].references!.length.should.eql(1);
+                resp1.results![0].references![0].should.eql(allReferences[0]);
+                const continuationPoint = resp1.results![0].continuationPoint;
                 (continuationPoint !== null).should.eql(true);
 
                 // BrowseNext keep continuation
-                const bn1 = await performMessageTransaction(
+                const bn1 = await performMessageTransaction<BrowseNextResponse>(
                     session,
                     new BrowseNextRequest({ releaseContinuationPoints: false, continuationPoints: [continuationPoint] })
                 );
-                bn1.results[0].references.length.should.eql(1);
-                bn1.results[0].references[0].should.eql(allReferences[1]);
-                (bn1.results[0].continuationPoint !== null).should.eql(true);
+                bn1.results![0].references!.length.should.eql(1);
+                bn1.results![0].references![0].should.eql(allReferences[1]);
+                (bn1.results![0].continuationPoint !== null).should.eql(true);
 
                 // BrowseNext release continuation (now empty)
-                const bn2 = await performMessageTransaction(
+                const bn2 = await performMessageTransaction<BrowseNextResponse>(
                     session,
                     new BrowseNextRequest({ releaseContinuationPoints: true, continuationPoints: [continuationPoint] })
                 );
-                bn2.results[0].references.length.should.eql(0);
-                (bn2.results[0].continuationPoint === null).should.eql(true);
+                bn2.results![0].references!.length.should.eql(0);
+                (bn2.results![0].continuationPoint === null).should.eql(true);
             }
             await test_5_7_2__9("ns=0;i=2253");
         });

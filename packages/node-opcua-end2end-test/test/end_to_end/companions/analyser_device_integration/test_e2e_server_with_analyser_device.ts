@@ -34,23 +34,38 @@ function create_analyser_device(addressSpace: any) {
     return myAnalyser;
 }
 
-function dumpObjectType(objectType: any) {
+interface DumpableComponent {
+    browseName: { toString(): string };
+    nodeId: { toString(): string };
+    modellingRule: string;
+}
+interface DumpableObjectType {
+    getComponents(): DumpableComponent[];
+    subtypeOfObj: DumpableObjectType;
+}
+function dumpObjectType(objectType: DumpableObjectType) {
     function w(s: string, l: number) {
         return `${s}                       `.substring(0, l);
     }
-    function f(c: any) {
+    function f(c: DumpableComponent) {
         return `${w(c.browseName.toString(), 25)} ${w(c.nodeId.toString(), 25)}${w(c.modellingRule, 25)}`;
     }
     if (doDebug) {
-        objectType.getComponents().forEach((c: any) => console.log(f(c)));
+        objectType.getComponents().forEach((c) => {
+            console.log(f(c));
+        });
     }
     let baseType = objectType.subtypeOfObj;
     if (doDebug) {
-        baseType.getComponents().forEach((c: any) => console.log(f(c)));
+        baseType.getComponents().forEach((c) => {
+            console.log(f(c));
+        });
     }
     baseType = baseType.subtypeOfObj;
     if (doDebug) {
-        baseType.getComponents().forEach((c: any) => console.log(f(c)));
+        baseType.getComponents().forEach((c) => {
+            console.log(f(c));
+        });
     }
 }
 
@@ -73,7 +88,9 @@ function _dumpStateMachine(stateMachineType: any) {
     });
     const results = stateMachineType.browseNode(bd);
     if (doDebug) {
-        results.forEach((r: any) => console.log(r.toString()));
+        results.forEach((r: { toString(): string }) => {
+            console.log(r.toString());
+        });
     }
 }
 
@@ -143,7 +160,9 @@ describe("ADI - Testing a server that exposes Analyser Devices", function (this:
 
         if (doDebug) {
             console.log(channel2.toString());
-            channel2.getComponents().forEach((c: any) => console.log(c.browseName.toString()));
+            channel2.getComponents().forEach((c: DumpableComponent) => {
+                console.log(c.browseName.toString());
+            });
         }
         channel2.getComponentByName("ParameterSet").browseName.toString().should.eql("2:ParameterSet");
 

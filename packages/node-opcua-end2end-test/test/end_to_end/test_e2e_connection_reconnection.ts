@@ -810,15 +810,18 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     function get_server_side_subscription() {
-        const channels = (server?.endpoints[0] as any)._channels;
+        if (!server) {
+            throw new Error("server is not initialized");
+        }
+        const channels = (server.endpoints[0] as any)._channels;
         debugLog("channels keys = ", Object.keys(channels).join(" "));
 
         //xxx var channelKey = Object.keys(channels)[0];
         //xx var channel = channels[channelKey];
         //xx assert(Object.keys(server.engine._sessions).length === 1);
 
-        const sessionKey = Object.keys((server?.engine as any)._sessions)[0];
-        const session = (server?.engine as any)._sessions[sessionKey];
+        const sessionKey = Object.keys((server.engine as any)._sessions)[0];
+        const session = (server.engine as any)._sessions[sessionKey];
 
         const subscriptionKeys = Object.keys(session.publishEngine._subscriptions);
         subscriptionKeys.length.should.eql(1);

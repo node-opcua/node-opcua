@@ -346,7 +346,7 @@ describe("Testing user change security", () => {
     });
 });
 
-describe("Testing subscription and  security", function (this: any) {
+describe("Testing subscription and  security", function (this: Mocha.Suite) {
     this.timeout(1000000);
 
     let server: OPCUAServer;
@@ -400,7 +400,9 @@ describe("Testing subscription and  security", function (this: any) {
         // return dataValue;
         dataValues[0].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
         if (dataValues.length >= 1) {
-            dataValues.forEach((d) => console.log(d.toString()));
+            dataValues.forEach((d) => {
+                console.log(d.toString());
+            });
         }
         if (dataValues.length > 1) {
             dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
@@ -467,7 +469,9 @@ describe("Testing subscription and  security", function (this: any) {
         );
         // return dataValue;
         if (dataValues.length >= 1) {
-            dataValues.forEach((d) => console.log(d.toString()));
+            dataValues.forEach((d) => {
+                console.log(d.toString());
+            });
         }
         if (dataValues.length > 1) {
             dataValues[dataValues.length - 1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
@@ -534,7 +538,9 @@ describe("Testing subscription and  security", function (this: any) {
         );
         // return dataValue;
         if (dataValues.length >= 1) {
-            dataValues.forEach((d) => console.log(d.toString()));
+            dataValues.forEach((d) => {
+                console.log(d.toString());
+            });
         }
         if (dataValues.length > 1) {
             dataValues[1].statusCode.should.eql(StatusCodes.Good);

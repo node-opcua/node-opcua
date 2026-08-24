@@ -90,7 +90,10 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
 
         await client.disconnect();
 
-        const userToken = activeSessionRequest?.userIdentityToken! as UserNameIdentityToken;
+        if (!activeSessionRequest) {
+            throw new Error("expecting activeSessionRequest to have been captured");
+        }
+        const userToken = activeSessionRequest.userIdentityToken as UserNameIdentityToken;
         userToken.policyId?.should.eql("UserName_Basic256Sha256_Token");
     });
 });

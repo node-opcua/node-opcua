@@ -17,7 +17,7 @@ const schemaServerSideUnimplementedRequest = buildStructuredType({
 export class ServerSideUnimplementedRequest extends BaseUAObject {
     static schema: any;
     requestHeader: RequestHeader;
-    constructor(options: {}) {
+    constructor(_options: {}) {
         super();
         this.requestHeader = new RequestHeader();
     }

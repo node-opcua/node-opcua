@@ -114,7 +114,7 @@ async function createServerVersion3() {
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
+describe("Test dataTypeManager lifecycle during client reconnection ", function (this: Mocha.Suite) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let server: OPCUAServer;
@@ -256,18 +256,16 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
             await waitNextChange();
             await waitNextChange();
 
-            if (true) {
-                await server.shutdown();
-                (async () => {
-                    server = await createServerVersion3();
-                })();
+            await server.shutdown();
+            (async () => {
+                server = await createServerVersion3();
+            })();
 
-                await waitSessionRestore();
+            await waitSessionRestore();
 
-                await waitNextChange();
-                await waitNextChange();
-                await waitNextChange();
-            }
+            await waitNextChange();
+            await waitNextChange();
+            await waitNextChange();
 
             errorLog("done");
             return dataValues;

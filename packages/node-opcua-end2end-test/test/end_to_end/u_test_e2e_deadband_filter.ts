@@ -178,7 +178,7 @@ export function t(test: any) {
         }
     }
 
-    describe("DBF0", function (this: any) {
+    describe("DBF0", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
         let range: Range;

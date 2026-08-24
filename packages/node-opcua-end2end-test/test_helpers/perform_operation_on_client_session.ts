@@ -6,10 +6,8 @@ import {
     type CreateSubscriptionRequestLike,
     type CreateSubscriptionResponse,
     type EndpointWithUserIdentity,
-    IBasicSessionAsync2,
     MonitoringMode,
     type OPCUAClient,
-    ReadValueId,
     type ReadValueIdOptions,
     resolveNodeId,
     TimestampsToReturn
@@ -169,7 +167,7 @@ export async function perform_operation_on_monitoredItem<T>(
     monitoredItemId: string | ReadValueIdOptions,
     func: (session: ClientSession, subscription: ClientSubscription, monitoredItem: ClientMonitoredItem) => Promise<T>
 ): Promise<T> {
-    let itemToMonitor;
+    let itemToMonitor: ReadValueIdOptions;
     if (typeof monitoredItemId === "string") {
         itemToMonitor = {
             nodeId: resolveNodeId(monitoredItemId),

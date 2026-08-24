@@ -56,7 +56,7 @@ async function startServerWithExpiredCertificate() {
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("Security: verifying some security use cases", function (this: any) {
+describe("Security: verifying some security use cases", function (this: Mocha.Suite) {
     this.timeout(100000);
     let server: OPCUAServer;
     before(async () => {

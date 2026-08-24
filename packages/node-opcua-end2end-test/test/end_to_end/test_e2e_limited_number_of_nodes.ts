@@ -61,7 +61,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                     maxNodesPerHistoryUpdateEvents: 8,
                     maxNodesPerTranslateBrowsePathsToNodeIds: 9
                 }
-            } as any
+            }
         });
         client = OPCUAClient.create({});
         await server.start();
@@ -71,11 +71,11 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     after(async () => {
         await client.disconnect();
         await server.shutdown();
-        (OPCUAServer as any).registry.count().should.eql(0);
+        OPCUAServer.registry.count().should.eql(0);
     });
 
     it("should be possible to customize serverCapabilities.operationLimits at construction time", () => {
-        const caps: any = (server as any).engine.serverCapabilities;
+        const caps = server.engine.serverCapabilities;
         caps.minSupportedSampleRate.should.eql(222);
         caps.maxMonitoredItemsQueueSize.should.eql(11);
         caps.operationLimits.maxNodesPerRead.should.eql(10);
@@ -94,18 +94,18 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     it("server should provide OperationLimits_MaxNodesPerRead node", async () => {
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
-            const caps: any = (server as any).engine.serverCapabilities;
+            const caps = server.engine.serverCapabilities;
             caps.operationLimits.maxNodesPerRead.should.eql(10);
             const nodeId1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
             const nodeToRead = { nodeId: nodeId1, attributeId: AttributeIds.Value };
-            const dataValue = await (session as any).read(nodeToRead);
+            const dataValue = await session.read(nodeToRead);
             dataValue.value.value.should.eql(caps.operationLimits.maxNodesPerRead);
         });
     });
 
     it("server should return BadTooManyOperations when nodesToRead exceed MaxNodesPerRead", async () => {
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
-            const caps: any = (server as any).engine.serverCapabilities;
+            const caps = server.engine.serverCapabilities;
             const nodeId1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
             const nodeId2 = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
             const nodesToRead = Array.from({ length: 12 }, (_, i) => ({
@@ -114,7 +114,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             }));
             nodesToRead.length.should.be.greaterThan(caps.operationLimits.maxNodesPerRead);
             await new Promise<void>((resolve) => {
-                (session as any).read(nodesToRead, (err: Error | null) => {
+                session.read(nodesToRead, (err: Error | null) => {
                     should.exist(err);
                     (err as Error).message.should.match(/BadTooManyOperations/);
                     resolve();
@@ -124,7 +124,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     });
 
     it("server should return BadTooManyOperations when browseRequest exceed MaxNodesPerBrowse", async () => {
-        const caps: any = (server as any).engine.serverCapabilities;
+        const caps = server.engine.serverCapabilities;
         caps.operationLimits.maxNodesPerBrowse.should.equal(2);
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
             const bad_referenceid_node = "ns=3;i=3500";
@@ -136,7 +136,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             const browseRequest = Array.from({ length: 5 }, () => browseDesc);
             browseRequest.length.should.be.greaterThan(caps.operationLimits.maxNodesPerBrowse);
             await new Promise<void>((resolve) => {
-                (session as any).browse(browseRequest, (err: Error | null) => {
+                session.browse(browseRequest, (err: Error | null) => {
                     should.exist(err);
                     (err as Error).message.should.match(/BadTooManyOperations/);
                     resolve();
@@ -146,13 +146,13 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     });
 
     it("server should return BadTooManyOperations when translate exceeds limit", async () => {
-        const caps: any = (server as any).engine.serverCapabilities;
+        const caps = server.engine.serverCapabilities;
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
             const translateBrowsePath = Array.from({ length: 10 }, () => makeBrowsePath("RootFolder", "/Objects/Server"));
             caps.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.be.greaterThan(1);
             translateBrowsePath.length.should.be.greaterThan(caps.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds);
             await new Promise<void>((resolve) => {
-                (session as any).translateBrowsePath(translateBrowsePath, (err: Error | null) => {
+                session.translateBrowsePath(translateBrowsePath, (err: Error | null) => {
                     should.exist(err);
                     (err as Error).message.should.match(/BadTooManyOperations/);
                     resolve();
@@ -163,7 +163,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
 
     it("crawler shall work even with low read/browse limits", async () => {
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
-            const crawler = new NodeCrawler(session as any);
+            const crawler = new NodeCrawler(session);
             crawler.on("browsed", (_element) => {
                 /* hook retained for potential debug */
             });
@@ -178,9 +178,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     });
 
     xit("should crawl a server cyclic-node", async () => {
-        const namespace = (server as any).engine.addressSpace.getOwnNamespace();
+        const namespace = server.engine.addressSpace!.getOwnNamespace();
         // TODO: implement cyclic node creation test scenario
-        (server as any).subFolder1 = namespace.addFolder("ObjectsFolder", "SubFolder1");
-        (server as any).subFolder2 = namespace.addFolder((server as any).subFolder1, "SubFolder2");
+        const subFolder1 = namespace.addFolder("ObjectsFolder", "SubFolder1");
+        const _subFolder2 = namespace.addFolder(subFolder1, "SubFolder2");
     });
 });

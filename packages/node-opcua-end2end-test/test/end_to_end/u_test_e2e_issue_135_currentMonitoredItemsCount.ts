@@ -68,7 +68,9 @@ export function t(test: TestHarness) {
                     makeBrowsePath(sessionId, ".SessionDiagnostics")
                 ];
                 const browsePathResults = await session.translateBrowsePath(browsePaths);
-                browsePathResults.forEach((r) => r.statusCode.should.eql(StatusCodes.Good));
+                browsePathResults.forEach((r) => {
+                    r.statusCode.should.eql(StatusCodes.Good);
+                });
 
                 const nodesToRead = browsePathResults.map((r) => {
                     if (!r.targets || r.targets.length === 0) {

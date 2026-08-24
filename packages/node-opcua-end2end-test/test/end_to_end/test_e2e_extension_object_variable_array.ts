@@ -77,7 +77,7 @@ const incr = (value: any) => {
     if (typeof value === "boolean") {
         return !value;
     } else if (typeof value === "number") {
-        return (value += 1);
+        return value + 1;
     } else {
         if (Array.isArray(value)) {
             value = value.map(incr);
@@ -673,7 +673,7 @@ async function withClient(
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("testing extension object variable enrichment", function (this: any) {
+describe("testing extension object variable enrichment", function (this: Mocha.Suite) {
     let server: OPCUAServer;
     beforeEach(async () => {
         server = new OPCUAServer({
@@ -703,7 +703,7 @@ describe("testing extension object variable enrichment", function (this: any) {
     });
 });
 
-describe("testing extension object with client residing on a different process than the server process", function (this: any) {
+describe("testing extension object with client residing on a different process than the server process", function (this: Mocha.Suite) {
     this.timeout(Math.max(600000, this.timeout()));
 
     let server: OPCUAServer;

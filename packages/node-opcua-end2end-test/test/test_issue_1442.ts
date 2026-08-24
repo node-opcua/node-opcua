@@ -15,7 +15,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
 const port = 2025;
-describe("issue_1442", function (this: any) {
+describe("issue_1442", function (this: Mocha.Suite) {
     this.timeout(60 * 10 * 1000);
 
     let server: OPCUAServer;

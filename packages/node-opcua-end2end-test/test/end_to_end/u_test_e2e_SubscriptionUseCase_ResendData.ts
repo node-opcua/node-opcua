@@ -252,7 +252,7 @@ export function t(test: TestHarness) {
                         }
                     }
 
-                    let ref;
+                    let ref: DataValue;
                     {
                         messages.length.should.eql(1);
                         messages[0].notificationData?.length.should.eql(1);

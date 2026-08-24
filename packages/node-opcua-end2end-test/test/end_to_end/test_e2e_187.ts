@@ -11,7 +11,7 @@ const doDebug = checkDebugFlag("TEST");
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("testing monitoring Executable flags on methods", function (this: any) {
+describe("testing monitoring Executable flags on methods", function (this: Mocha.Suite) {
     this.timeout(Math.max(60000, this.timeout()));
 
     let server: OPCUAServer;
@@ -69,7 +69,7 @@ describe("testing monitoring Executable flags on methods", function (this: any) 
     });
 
     it("#187 ...... ", async () => {
-        let proxyManager;
+        let proxyManager: UAProxyManager;
         if (!client) return;
         await client.withSessionAsync(endpointUrl, async (session) => {
             proxyManager = new UAProxyManager(session);

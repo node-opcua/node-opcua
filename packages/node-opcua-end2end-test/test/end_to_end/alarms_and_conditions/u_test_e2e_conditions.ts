@@ -36,6 +36,7 @@ async function wait_a_little_bit_to_let_events_to_be_processed() {
 }
 
 const stepInfo = (str: string) => {
+    // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
     if (doDebug || true) {
         console.log(chalk.yellow("   --> ") + chalk.cyan(str));
     }
@@ -468,7 +469,7 @@ export function t(test: any) {
                 await wait_a_little_bit_to_let_events_to_be_processed();
 
                 await (async function we_should_verify_that_an_event_has_been_raised() {
-                    let dataValues;
+                    let dataValues: Variant[];
                     // we are expecting 2 events here :
                     // * a new event for the main branch because spec says:
                     //     Comment, severity and quality are important elements of Conditions and any change to them
@@ -631,7 +632,7 @@ export function t(test: any) {
 
             let branch2_NodeId: NodeId | null = null;
             let branch2_EventId: Buffer | null = null;
-            let dataValues;
+            let dataValues: Variant[];
 
             await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
                 async function initial_state_of_condition() {

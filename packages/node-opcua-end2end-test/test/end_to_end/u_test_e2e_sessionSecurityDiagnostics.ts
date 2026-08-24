@@ -5,6 +5,7 @@ import {
     MessageSecurityMode,
     makeBrowsePath,
     makeNodeId,
+    type NodeId,
     OPCUAClient,
     resolveNodeId,
     SecurityPolicy,
@@ -181,7 +182,7 @@ export function t(test: any) {
                     "Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray"
                 );
                 const serverNodeId = resolveNodeId("Server");
-                let sessionDiagnosticsNodeId;
+                let sessionDiagnosticsNodeId: NodeId | undefined;
 
                 const browsePath = [
                     makeBrowsePath(serverNodeId, ".ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsArray")
@@ -220,7 +221,7 @@ export function t(test: any) {
             );
             const serverNodeId = resolveNodeId("Server");
 
-            let _sessionDiagnosticsNodeId;
+            let _sessionDiagnosticsNodeId: NodeId | undefined;
             let nbSessionDiagnostics = -1;
             const client = OPCUAClient.create(clientOptions);
             return await perform_operation_on_subscription_async(client, connectionPoint, async (session, _subscription) => {
@@ -251,7 +252,7 @@ export function t(test: any) {
         }
 
         it("SDS2-D server should remove SessionSecurityDiagnostic when session is closed", async () => {
-            let _nbSessionDiagnosticsStep2;
+            let _nbSessionDiagnosticsStep2: number;
 
             // count_before
             const nbSessionDiagnosticsStep1 = await count_number_of_exposed_sessionDiagnostics();

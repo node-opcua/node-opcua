@@ -13,9 +13,9 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
-const empty_nodeset_filename = get_empty_nodeset_filename();
+const _empty_nodeset_filename = get_empty_nodeset_filename();
 
 export interface ClientServerSession {
     g_session: ClientSession;
@@ -24,7 +24,7 @@ export interface ClientServerSession {
 }
 export async function build_client_server_session(options: OPCUAServerOptions & { port: number }): Promise<ClientServerSession> {
     assert(options.port, "must provide a port number");
-    let endpointUrl;
+    let endpointUrl: string;
     const server = new OPCUAServer(options);
     const client = OPCUAClient.create({});
 

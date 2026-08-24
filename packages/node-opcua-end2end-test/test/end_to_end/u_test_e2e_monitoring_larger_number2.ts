@@ -93,7 +93,7 @@ export function t(test: any) {
         }
     }
 
-    describe("Monitoring Large number of node", function (this: any) {
+    describe("Monitoring Large number of node", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {

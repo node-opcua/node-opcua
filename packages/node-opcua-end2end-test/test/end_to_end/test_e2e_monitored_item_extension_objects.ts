@@ -42,7 +42,10 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
     });
 
     function raiseRfidScanEvent() {
-        const addressSpace = server.engine.addressSpace!;
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized");
+        }
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
 
@@ -82,7 +85,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
             }
         });
 
-        const s = server.engine.addressSpace?.rootFolder.objects.server!;
+        const s = addressSpace.rootFolder.objects.server;
 
         s.raiseEvent(rfidScanEventType, {
             scanResult: {

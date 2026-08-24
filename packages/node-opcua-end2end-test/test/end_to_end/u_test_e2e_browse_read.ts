@@ -2,25 +2,26 @@ import "should";
 import {
     AttributeIds,
     BrowseDirection,
+    type BrowseResult,
+    type ClientSession,
     coerceNodeId,
     DataType,
     DataValue,
     makeNodeId,
+    type NodeId,
     OPCUAClient,
+    type OPCUAServer,
     ReadRequest,
     ReferenceTypeIds,
+    type StatusCode,
     StatusCodes,
     TimestampsToReturn,
+    type UAVariable,
     VariableIds,
     VariantArrayType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -30,37 +31,50 @@ const fail_fast_connectivity_strategy = {
 };
 
 // simple helper to promisify node-style callbacks
-function call<T>(fn: Function, ...args: any[]): Promise<T> {
+// biome-ignore lint/complexity/noBannedTypes: fn is any bound node-style callback method (browse/read/write/...)
+function call<T>(fn: Function, ...args: unknown[]): Promise<T> {
     return new Promise((resolve, reject) => {
-        fn(...args, (err: any, result: T) => (err ? reject(err) : resolve(result)));
+        fn(...args, (err: Error | null, result: T) => (err ? reject(err) : resolve(result)));
     });
 }
 
-async function expectErrorMessage(regex: RegExp, fn: () => Promise<any>) {
+interface NodeAttributesLike {
+    nodeId: NodeId;
+    statusCode: StatusCode;
+    browseName: { toString(): string };
+}
+
+interface SessionExtra {
+    readAllAttributes(node: string): Promise<NodeAttributesLike>;
+    readAllAttributes(nodes: string[]): Promise<NodeAttributesLike[]>;
+    performMessageTransaction(request: ReadRequest): Promise<unknown>;
+}
+
+async function expectErrorMessage(regex: RegExp, fn: () => Promise<unknown>) {
     let failed = false;
     try {
         await fn();
-    } catch (err: any) {
+    } catch (err: unknown) {
         failed = true;
-        err.message.should.match(regex);
+        (err as Error).message.should.match(regex);
     }
     if (!failed) {
         throw new Error(`Expected error matching ${regex}`);
     }
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Browse-Read-Write Services", () => {
-        let session: any; // ClientSession
-        let client: any;
+        let session: ClientSession;
+        let client: OPCUAClient;
         let endpointUrl: string;
-        let temperatureVariableId: any;
+        let temperatureVariableId: UAVariable;
 
         const options = { connectionStrategy: fail_fast_connectivity_strategy };
 
         beforeEach(async () => {
-            endpointUrl = test.endpointUrl;
-            temperatureVariableId = test.server.temperatureVariableId;
+            endpointUrl = test.endpointUrl!;
+            temperatureVariableId = (test.server as OPCUAServer & { temperatureVariableId: UAVariable }).temperatureVariableId;
             client = OPCUAClient.create(options);
             await client.connect(endpointUrl);
             session = await client.createSession();
@@ -76,13 +90,13 @@ export function t(test: TestHarness) {
         });
 
         it("T8-1 - should browse RootFolder", async () => {
-            const browseResult: any = await call(session.browse.bind(session), "RootFolder");
+            const browseResult = await call<BrowseResult>(session.browse.bind(session), "RootFolder");
             browseResult.schema.name.should.equal("BrowseResult");
             browseResult.statusCode.should.eql(StatusCodes.Good);
-            browseResult.references.length.should.eql(3);
-            browseResult.references[0].browseName.toString().should.eql("Objects");
-            browseResult.references[1].browseName.toString().should.eql("Types");
-            browseResult.references[2].browseName.toString().should.eql("Views");
+            browseResult.references!.length.should.eql(3);
+            browseResult.references![0].browseName.toString().should.eql("Objects");
+            browseResult.references![1].browseName.toString().should.eql("Types");
+            browseResult.references![2].browseName.toString().should.eql("Views");
         });
 
         it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid", async () => {
@@ -91,13 +105,13 @@ export function t(test: TestHarness) {
                 referenceTypeId: "ns=3;i=3500", // invalid
                 browseDirection: BrowseDirection.Forward
             };
-            const browseResult: any = await call(session.browse.bind(session), nodeToBrowse);
+            const browseResult = await call<BrowseResult>(session.browse.bind(session), nodeToBrowse);
             browseResult.schema.name.should.equal("BrowseResult");
             browseResult.statusCode.should.eql(StatusCodes.BadReferenceTypeIdInvalid);
         });
 
         it("T8-3 - should read a Variable", async () => {
-            const dataValues: any[] = await call(session.readVariableValue.bind(session), ["RootFolder"]);
+            const dataValues = await call<DataValue[]>(session.readVariableValue.bind(session), ["RootFolder"]);
             dataValues.length.should.equal(1);
             dataValues[0].schema.name.should.equal("DataValue");
         });
@@ -105,7 +119,7 @@ export function t(test: TestHarness) {
         it("T8-11 - ReadRequest empty nodesToRead -> BadNothingToDo", async () => {
             const request = new ReadRequest({ nodesToRead: [], maxAge: 0, timestampsToReturn: TimestampsToReturn.Both });
             await expectErrorMessage(/BadNothingToDo/, async () => {
-                await call(session.performMessageTransaction.bind(session), request);
+                await call((session as unknown as SessionExtra).performMessageTransaction.bind(session), request);
             });
         });
 
@@ -116,31 +130,39 @@ export function t(test: TestHarness) {
                 timestampsToReturn: TimestampsToReturn.Invalid
             });
             await expectErrorMessage(/BadTimestampsToReturnInvalid/, async () => {
-                await call(session.performMessageTransaction.bind(session), request);
+                await call((session as unknown as SessionExtra).performMessageTransaction.bind(session), request);
             });
         });
 
         it("T8-13 - readAllAttributes single element", async () => {
-            const data: any = await call(session.readAllAttributes.bind(session), "RootFolder");
+            const data = await call<NodeAttributesLike>(
+                (session as unknown as SessionExtra).readAllAttributes.bind(session),
+                "RootFolder"
+            );
             data.nodeId.toString().should.eql("ns=0;i=84");
             data.statusCode.should.eql(StatusCodes.Good);
             data.browseName.toString().should.eql("Root");
         });
 
         it("T8-13b - readAllAttributes two elements", async () => {
-            const data: any[] = await call(session.readAllAttributes.bind(session), ["RootFolder", "ObjectsFolder"]);
+            const data = await call<NodeAttributesLike[]>((session as unknown as SessionExtra).readAllAttributes.bind(session), [
+                "RootFolder",
+                "ObjectsFolder"
+            ]);
             data.length.should.eql(2);
             data[0].browseName.toString().should.eql("Root");
             data[1].browseName.toString().should.eql("Objects");
         });
 
         it("T8-14a - readVariableValue single unknown node => BadNodeIdUnknown", async () => {
-            const dataValue: any = await call(session.readVariableValue.bind(session), "ns=1;s=this_node_id_does_not_exist");
+            const dataValue = await call<DataValue>(session.readVariableValue.bind(session), "ns=1;s=this_node_id_does_not_exist");
             dataValue.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
         });
 
         it("T8-14b - readVariableValue array unknown node => BadNodeIdUnknown", async () => {
-            const dataValues: any[] = await call(session.readVariableValue.bind(session), ["ns=1;s=this_node_id_does_not_exist"]);
+            const dataValues = await call<DataValue[]>(session.readVariableValue.bind(session), [
+                "ns=1;s=this_node_id_does_not_exist"
+            ]);
             dataValues[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
         });
 
@@ -153,7 +175,7 @@ export function t(test: TestHarness) {
         it("T8-15b - ReadRequest empty nodesToRead -> BadNothingToDo", async () => {
             const readRequest = new ReadRequest({ maxAge: 0, timestampsToReturn: TimestampsToReturn.Both, nodesToRead: [] });
             await expectErrorMessage(/BadNothingToDo/, async () => {
-                await call(session.performMessageTransaction.bind(session), readRequest);
+                await call((session as unknown as SessionExtra).performMessageTransaction.bind(session), readRequest);
             });
         });
 
@@ -161,11 +183,11 @@ export function t(test: TestHarness) {
             const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
-                nodesToRead: null as any
+                nodesToRead: null
             });
-            (readRequest as any).nodesToRead = null; // ensure
+            readRequest.nodesToRead = null; // ensure
             await expectErrorMessage(/BadNothingToDo/, async () => {
-                await call(session.performMessageTransaction.bind(session), readRequest);
+                await call((session as unknown as SessionExtra).performMessageTransaction.bind(session), readRequest);
             });
         });
 
@@ -176,14 +198,14 @@ export function t(test: TestHarness) {
         });
 
         it("T8-17 - readVariableValue TemperatureTarget", async () => {
-            const dataValues: any[] = await call(session.readVariableValue.bind(session), [temperatureVariableId.nodeId]);
+            const dataValues = await call<DataValue[]>(session.readVariableValue.bind(session), [temperatureVariableId.nodeId]);
             dataValues.length.should.equal(1);
             dataValues[0].schema.name.should.equal("DataValue");
             dataValues[0].value.schema.name.should.equal("Variant");
         });
 
         it("T8-20 - writeSingleNode TemperatureTarget", async () => {
-            const statusCode: any = await call(session.write.bind(session), {
+            const statusCode = await call<StatusCode>(session.write.bind(session), {
                 nodeId: temperatureVariableId.nodeId,
                 attributeId: AttributeIds.Value,
                 value: { value: { dataType: DataType.Double, value: 37.5 } }
@@ -196,18 +218,18 @@ export function t(test: TestHarness) {
             const nodesToBrowse = [
                 { nodeId: "ObjectsFolder", referenceTypeId: Organizes, browseDirection: BrowseDirection.Forward, resultMask: 0x3f }
             ];
-            const browseResults: any[] = await call(session.browse.bind(session), nodesToBrowse);
+            const browseResults = await call<BrowseResult[]>(session.browse.bind(session), nodesToBrowse);
             browseResults.length.should.equal(1);
             browseResults[0].schema.name.should.equal("BrowseResult");
-            const foundNode = browseResults[0].references.filter((r: any) => r.browseName.name === "Server");
+            const foundNode = browseResults[0].references!.filter((r) => r.browseName.name === "Server");
             foundNode.length.should.equal(1);
-            foundNode[0].browseName.name.should.equal("Server");
+            foundNode[0].browseName.name!.should.equal("Server");
             foundNode[0].nodeId.toString().should.equal("ns=0;i=2253");
         });
 
         it("T9-2 - Server_NamespaceArray variable", async () => {
             const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
-            const dataValue: any = await call(session.readVariableValue.bind(session), server_NamespaceArray_Id);
+            const dataValue = await call<DataValue>(session.readVariableValue.bind(session), server_NamespaceArray_Id);
             dataValue.should.be.instanceOf(DataValue);
             dataValue.statusCode.should.eql(StatusCodes.Good);
             dataValue.value.dataType.should.eql(DataType.String);
@@ -217,7 +239,7 @@ export function t(test: TestHarness) {
 
         it("T9-3 - ServerStatus as ExtensionObject", async () => {
             const server_ServerStatus_Id = makeNodeId(VariableIds.Server_ServerStatus);
-            const dataValue: any = await call(session.readVariableValue.bind(session), server_ServerStatus_Id);
+            const dataValue = await call<DataValue>(session.readVariableValue.bind(session), server_ServerStatus_Id);
             dataValue.should.be.instanceOf(DataValue);
             dataValue.statusCode.should.eql(StatusCodes.Good);
             dataValue.value.dataType.should.eql(DataType.ExtensionObject);

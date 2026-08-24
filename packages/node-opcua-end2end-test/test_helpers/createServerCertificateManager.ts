@@ -7,7 +7,7 @@ export async function createServerCertificateManager(port: number): Promise<OPCU
     const tmpFolder = path.join(os.tmpdir(), "node-opcua-tmp");
     try {
         fs.mkdirSync(tmpFolder);
-    } catch (err) {
+    } catch (_err) {
         /** */
     }
     const rootFolder = path.join(tmpFolder, `server${port}`);

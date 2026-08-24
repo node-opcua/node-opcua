@@ -13,7 +13,7 @@ import * as net from "node:net";
 const realServerPort = 2254;
 const proxyPort = 2255;
 
-describe("Testing keepSessionAlive and Reconnection", function (this: any) {
+describe("Testing keepSessionAlive and Reconnection", function (this: Mocha.Suite) {
     this.timeout(40 * 1000); // Extended timeout for reconnection testing
 
     let server: OPCUAServer;
@@ -64,7 +64,9 @@ describe("Testing keepSessionAlive and Reconnection", function (this: any) {
         }
         await server.shutdown();
 
-        proxySockets.forEach((s) => s.destroy());
+        proxySockets.forEach((s) => {
+            s.destroy();
+        });
         proxyServer.close();
     });
 

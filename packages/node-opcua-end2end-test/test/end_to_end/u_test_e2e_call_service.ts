@@ -161,7 +161,7 @@ export function t(test: any) {
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
                 results.length.should.eql(many_calls);
-                results.map((result) => {
+                results.forEach((result) => {
                     result.inputArgumentResults?.length.should.eql(1);
                     result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
                 });

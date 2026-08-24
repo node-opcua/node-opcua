@@ -172,6 +172,7 @@ export function t(test: TestHarness): void {
             });
             if (createSessionError) {
                 // rethrow after disconnect so Promise.allSettled records rejection
+                // biome-ignore lint/correctness/noUnsafeFinally: deliberate - this rethrow is the intended outcome of the function
                 throw createSessionError;
             }
         }

@@ -172,7 +172,7 @@ async function createClient(
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: any) {
+describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: Mocha.Suite) {
     this.timeout(120 * 1000);
 
     async function test(
