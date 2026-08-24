@@ -1,7 +1,7 @@
-import { QualifiedName, AttributeIds } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { AnyConstructorFunc } from "node-opcua-schemas";
+import { type QualifiedName, AttributeIds } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import type { AnyConstructorFunc } from "node-opcua-schemas";
 //
 import { getExtraDataTypeManager } from "./get_extra_data_type_manager";
 import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type_manager_104";
@@ -9,8 +9,10 @@ import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type
 /**
  *
  */
-export async function getExtensionObjectConstructor(session: IBasicSessionAsync2, dataTypeNodeId: NodeId): Promise<AnyConstructorFunc> {
-   
+export async function getExtensionObjectConstructor(
+    session: IBasicSessionAsync2,
+    dataTypeNodeId: NodeId
+): Promise<AnyConstructorFunc> {
     const dataTypeManager = await getExtraDataTypeManager(session);
 
     const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);

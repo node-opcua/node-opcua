@@ -1,14 +1,14 @@
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
-import { format } from "util";
+import { format } from "node:util";
 
 import { assert } from "node-opcua-assert";
 import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
-import { ConstructorFunc, DataTypeFactory, getStandardDataTypeFactory, StructureInfo } from "node-opcua-factory";
-import { NodeId } from "node-opcua-nodeid";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { AnyConstructorFunc } from "node-opcua-schemas";
+import { type ConstructorFunc, type DataTypeFactory, getStandardDataTypeFactory, type StructureInfo } from "node-opcua-factory";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import type { AnyConstructorFunc } from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {
     public namespaceArray: string[] = [];
@@ -32,7 +32,7 @@ export class ExtraDataTypeManager {
         if (namespaceIndex === 0) {
             return true;
         }
-        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace, namespaceIndex);
+        return !!Object.hasOwn(this.dataTypeFactoryMapByNamespace, namespaceIndex);
     }
 
     public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory): void {
@@ -64,13 +64,15 @@ export class ExtraDataTypeManager {
         if (standardDataTypeFactory.hasBuiltInType(fieldTypeName)) {
             return standardDataTypeFactory.getBuiltInType(fieldTypeName);
         }
-        throw new Error("Cannot find built-in type " + fieldTypeName);
+        throw new Error(`Cannot find built-in type ${fieldTypeName}`);
     }
 
     public getStructureInfoForDataType(dataTypeNodeId: NodeId): StructureInfo | null {
         const dataTypeFactory = this.getDataTypeFactory(dataTypeNodeId.namespace);
         if (!dataTypeFactory) {
-            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace + " when requested for " + dataTypeNodeId.toString());
+            throw new Error(
+                `cannot find dataFactory for namespace=${dataTypeNodeId.namespace} when requested for ${dataTypeNodeId.toString()}`
+            );
         }
         return dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId);
     }
@@ -99,7 +101,7 @@ export class ExtraDataTypeManager {
 
             const info = this.getStructureInfoForDataType(dataTypeNodeId);
             if (!info) {
-                throw new Error("Failed to extract data type structure for " + dataTypeNodeId.toString());
+                throw new Error(`Failed to extract data type structure for ${dataTypeNodeId.toString()}`);
             }
             return info;
         })();
@@ -115,7 +117,9 @@ export class ExtraDataTypeManager {
     public getExtensionObjectConstructorFromDataType(dataTypeNodeId: NodeId): AnyConstructorFunc {
         const dataTypeFactory = this.getDataTypeFactory(dataTypeNodeId.namespace);
         if (!dataTypeFactory) {
-            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace + " when requested for " + dataTypeNodeId.toString());
+            throw new Error(
+                `cannot find dataFactory for namespace=${dataTypeNodeId.namespace} when requested for ${dataTypeNodeId.toString()}`
+            );
         }
         // find schema corresponding to dataTypeNodeId in typeDictionary
         const structureInfo = dataTypeFactory.findStructureInfoForDataType(dataTypeNodeId);
@@ -130,7 +134,7 @@ export class ExtraDataTypeManager {
         const structureInfo = await this.getStructureInfoForDataTypeAsync(dataTypeNodeId);
         const Constructor = structureInfo.constructor;
         if (!Constructor) {
-            throw new Error("Cannot find Extension Object Constructor for Abstract dataType " + dataTypeNodeId.toString());
+            throw new Error(`Cannot find Extension Object Constructor for Abstract dataType ${dataTypeNodeId.toString()}`);
         }
         return Constructor;
     }
@@ -141,7 +145,7 @@ export class ExtraDataTypeManager {
         if (!Constructor) {
             throw new Error(
                 "getExtensionObjectConstructorFromBinaryEncoding cannot find constructor for binaryEncoding " +
-                binaryEncodingNodeId.toString()
+                    binaryEncodingNodeId.toString()
             );
         }
         return Constructor;
@@ -169,7 +173,7 @@ export class ExtraDataTypeManager {
         });
 
         if (browseResult.statusCode.isNotGood() || !browseResult.references || browseResult.references.length !== 1) {
-            throw new Error("Cannot find DataType for binary encoding " + binaryEncodingNodeId.toString());
+            throw new Error(`Cannot find DataType for binary encoding ${binaryEncodingNodeId.toString()}`);
         }
 
         const dataTypeNodeId = browseResult.references[0].nodeId;
@@ -177,7 +181,7 @@ export class ExtraDataTypeManager {
 
         Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
         if (!Constructor) {
-            throw new Error("Cannot find constructor for binary encoding " + binaryEncodingNodeId.toString() + " after extraction");
+            throw new Error(`Cannot find constructor for binary encoding ${binaryEncodingNodeId.toString()} after extraction`);
         }
         return Constructor;
     }

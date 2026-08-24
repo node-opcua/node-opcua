@@ -1,6 +1,6 @@
-import { CommonInterface, FieldCategory, FieldEnumeration, FieldType, IStructuredTypeSchema } from "node-opcua-factory";
-import { StructureDefinition, StructureType, StructureDefinitionOptions, StructureFieldOptions } from "node-opcua-types";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { CommonInterface, FieldCategory, FieldEnumeration, type FieldType, type IStructuredTypeSchema } from "node-opcua-factory";
+import { StructureDefinition, StructureType, type StructureDefinitionOptions, type StructureFieldOptions } from "node-opcua-types";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 
 function _getDataType(field: FieldType): NodeId {
@@ -16,14 +16,13 @@ function _getDataType(field: FieldType): NodeId {
 }
 
 export function convertStructureTypeSchemaToStructureDefinition(st: IStructuredTypeSchema): StructureDefinition {
-
     let structureType = StructureType.Invalid;
     let isUnion = false;
     if (st.baseType === "Union") {
         structureType = StructureType.Union;
         isUnion = true;
     } else {
-        structureType =  StructureType.Structure;
+        structureType = StructureType.Structure;
     }
     // convert partial field (not including base class)
     const structureDefinition: StructureDefinitionOptions = {
@@ -42,7 +41,7 @@ export function convertStructureTypeSchemaToStructureDefinition(st: IStructuredT
             arrayDimensions: f.isArray ? [] : undefined,
             valueRank: f.isArray ? 1 : -1,
             dataType,
-            isOptional: isUnion ? undefined: f.switchValue !== undefined,
+            isOptional: isUnion ? undefined : f.switchValue !== undefined,
             description: f.documentation || undefined,
             name: f.originalName
         });

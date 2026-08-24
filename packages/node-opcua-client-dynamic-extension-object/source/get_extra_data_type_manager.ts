@@ -1,15 +1,10 @@
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
-import {
-    IBasicSessionAsync2,
-    clearSessionCache,
-    readNamespaceArray
-} from "node-opcua-pseudo-session";
-import { NodeId } from "node-opcua-nodeid";
+import { type IBasicSessionAsync2, clearSessionCache, readNamespaceArray } from "node-opcua-pseudo-session";
+import type { NodeId } from "node-opcua-nodeid";
 //
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { DataTypeExtractStrategy, populateDataTypeManager } from "./populate_data_type_manager";
-
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -26,7 +21,6 @@ export interface IBasicSessionAsync2Private extends IBasicSessionAsync2 {
     on?: (this: IBasicSessionAsync2Private, event: "session_restored", func: () => void) => void;
 
     sessionId?: NodeId;
-
 }
 export async function invalidateExtraDataTypeManager(session: IBasicSessionAsync2): Promise<void> {
     const sessionPriv = session as IBasicSessionAsync2Private;
@@ -38,7 +32,10 @@ export async function invalidateExtraDataTypeManager(session: IBasicSessionAsync
     }
 }
 
-async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2, strategy: DataTypeExtractStrategy): Promise<ExtraDataTypeManager> {
+async function extractDataTypeManagerPrivate(
+    session: IBasicSessionAsync2,
+    strategy: DataTypeExtractStrategy
+): Promise<ExtraDataTypeManager> {
     const namespaceArray = await readNamespaceArray(session);
     // c8 ignore next
     if (namespaceArray.length === 0) {
@@ -64,7 +61,6 @@ async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2, strat
     return dataTypeManager;
 }
 
-
 function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStrategy): DataTypeExtractStrategy {
     if (strategy !== undefined) {
         return strategy;
@@ -75,7 +71,6 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
     }
     return DataTypeExtractStrategy.Auto;
 }
-
 
 export function hasBoostedSession(session: IBasicSessionAsync2): boolean {
     const _session: IBasicSessionAsync2Private = session as IBasicSessionAsync2Private;
@@ -89,7 +84,7 @@ export function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsy
     return session;
 }
 
-type ICascadingSession = { session?: IBasicSessionAsync2; }
+type ICascadingSession = { session?: IBasicSessionAsync2 };
 function followSession(session: IBasicSessionAsync2Private & ICascadingSession): IBasicSessionAsync2Private {
     if (session.session) {
         return followSession(session.session);
@@ -97,8 +92,10 @@ function followSession(session: IBasicSessionAsync2Private & ICascadingSession):
     return session;
 }
 
-export async function getExtraDataTypeManager(session: IBasicSessionAsync2, strategy?: DataTypeExtractStrategy): Promise<ExtraDataTypeManager> {
-
+export async function getExtraDataTypeManager(
+    session: IBasicSessionAsync2,
+    strategy?: DataTypeExtractStrategy
+): Promise<ExtraDataTypeManager> {
     const sessionPriv: IBasicSessionAsync2Private = followSession(session) as IBasicSessionAsync2Private;
 
     if (sessionPriv.$$extraDataTypeManager) {

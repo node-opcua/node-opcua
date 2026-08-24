@@ -23,7 +23,7 @@ interface MockNode {
     browseName: string;
     nodeClass: number;
     attributes: Map<number, any>;
-    references: { referenceTypeId: NodeId, nodeId: NodeId, isForward: boolean, browseName: string, nodeClass: number }[];
+    references: { referenceTypeId: NodeId; nodeId: NodeId; isForward: boolean; browseName: string; nodeClass: number }[];
 }
 
 class MockAddressSpace {
@@ -31,9 +31,21 @@ class MockAddressSpace {
 
     constructor() {
         // Essential nodes for node-opcua-pseudo-session and browseAll
-        this.addNode({ nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints), browseName: "MaxBrowseContinuationPoints", nodeClass: NodeClass.Variable });
-        this.addNode({ nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse), browseName: "MaxNodesPerBrowse", nodeClass: NodeClass.Variable });
-        this.addNode({ nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_ServerProfileArray), browseName: "ServerProfileArray", nodeClass: NodeClass.Variable });
+        this.addNode({
+            nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints),
+            browseName: "MaxBrowseContinuationPoints",
+            nodeClass: NodeClass.Variable
+        });
+        this.addNode({
+            nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse),
+            browseName: "MaxNodesPerBrowse",
+            nodeClass: NodeClass.Variable
+        });
+        this.addNode({
+            nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_ServerProfileArray),
+            browseName: "ServerProfileArray",
+            nodeClass: NodeClass.Variable
+        });
 
         // Add DataType and Value for these nodes
         const nodes = [
@@ -47,10 +59,18 @@ class MockAddressSpace {
             node.attributes.set(AttributeIds.Value, nid === VariableIds.Server_ServerCapabilities_ServerProfileArray ? [] : 0);
         }
 
-        this.addNode({ nodeId: resolveNodeId(ObjectIds.OPCBinarySchema_TypeSystem), browseName: "OPCBinarySchema", nodeClass: NodeClass.Object });
+        this.addNode({
+            nodeId: resolveNodeId(ObjectIds.OPCBinarySchema_TypeSystem),
+            browseName: "OPCBinarySchema",
+            nodeClass: NodeClass.Object
+        });
 
         // Basic DataType hierarchy
-        this.addNode({ nodeId: resolveNodeId(DataTypeIds.BaseDataType), browseName: "BaseDataType", nodeClass: NodeClass.DataType });
+        this.addNode({
+            nodeId: resolveNodeId(DataTypeIds.BaseDataType),
+            browseName: "BaseDataType",
+            nodeClass: NodeClass.DataType
+        });
         this.addNode({ nodeId: resolveNodeId(DataTypeIds.Structure), browseName: "Structure", nodeClass: NodeClass.DataType });
         this.addNode({ nodeId: resolveNodeId(DataTypeIds.UInt32), browseName: "UInt32", nodeClass: NodeClass.DataType });
 
@@ -78,7 +98,7 @@ class MockAddressSpace {
         }
     }
 
-    addNode(node: { nodeId: NodeId, browseName: string, nodeClass?: number }): MockNode {
+    addNode(node: { nodeId: NodeId; browseName: string; nodeClass?: number }): MockNode {
         const mockNode: MockNode = {
             nodeId: node.nodeId,
             browseName: node.browseName,
@@ -102,8 +122,20 @@ class MockAddressSpace {
         const t = this.nodes.get(target.toString());
         const refId = typeof referenceTypeId === "string" ? resolveNodeId(referenceTypeId) : referenceTypeId;
         if (s && t) {
-            s.references.push({ referenceTypeId: refId, nodeId: target, isForward, browseName: t.browseName, nodeClass: t.nodeClass });
-            t.references.push({ referenceTypeId: refId, nodeId: source, isForward: !isForward, browseName: s.browseName, nodeClass: s.nodeClass });
+            s.references.push({
+                referenceTypeId: refId,
+                nodeId: target,
+                isForward,
+                browseName: t.browseName,
+                nodeClass: t.nodeClass
+            });
+            t.references.push({
+                referenceTypeId: refId,
+                nodeId: source,
+                isForward: !isForward,
+                browseName: s.browseName,
+                nodeClass: s.nodeClass
+            });
         }
     }
 
@@ -113,9 +145,9 @@ class MockAddressSpace {
         let node = this.nodes.get(key);
         if (!node) {
             if (key.startsWith("i=")) {
-                node = this.nodes.get("ns=0;" + key);
+                node = this.nodes.get(`ns=0;${key}`);
             } else if (!key.startsWith("ns=")) {
-                node = this.nodes.get("i=" + key) || this.nodes.get("ns=0;i=" + key);
+                node = this.nodes.get(`i=${key}`) || this.nodes.get(`ns=0;i=${key}`);
             }
         }
 
@@ -139,27 +171,31 @@ class MockAddressSpace {
         let node = this.nodes.get(key);
         if (!node) {
             if (key.startsWith("i=")) {
-                node = this.nodes.get("ns=0;" + key);
+                node = this.nodes.get(`ns=0;${key}`);
             } else if (!key.startsWith("ns=")) {
-                node = this.nodes.get("i=" + key) || this.nodes.get("ns=0;i=" + key);
+                node = this.nodes.get(`i=${key}`) || this.nodes.get(`ns=0;i=${key}`);
             }
         }
 
         if (!node) return { statusCode: StatusCodes.BadNodeIdUnknown, references: [] };
-        const refTypeId = options.referenceTypeId ? (typeof options.referenceTypeId === "string" ? resolveNodeId(options.referenceTypeId) : options.referenceTypeId) : null;
+        const refTypeId = options.referenceTypeId
+            ? typeof options.referenceTypeId === "string"
+                ? resolveNodeId(options.referenceTypeId)
+                : options.referenceTypeId
+            : null;
 
         let filteredRefs = node.references;
         if (refTypeId) {
-            filteredRefs = filteredRefs.filter(r => r.referenceTypeId.toString() === refTypeId.toString());
+            filteredRefs = filteredRefs.filter((r) => r.referenceTypeId.toString() === refTypeId.toString());
         }
         if (options.browseDirection === BrowseDirection.Forward) {
-            filteredRefs = filteredRefs.filter(r => r.isForward);
+            filteredRefs = filteredRefs.filter((r) => r.isForward);
         } else if (options.browseDirection === BrowseDirection.Inverse) {
-            filteredRefs = filteredRefs.filter(r => !r.isForward);
+            filteredRefs = filteredRefs.filter((r) => !r.isForward);
         }
 
         return {
-            references: filteredRefs.map(r => ({
+            references: filteredRefs.map((r) => ({
                 nodeId: r.nodeId,
                 browseName: { name: r.browseName },
                 referenceTypeId: r.referenceTypeId,
@@ -172,7 +208,6 @@ class MockAddressSpace {
 }
 
 describe("ExtraDataTypeManager Lazy Loading Robust", () => {
-
     const namespaceArray = ["http://opcfoundation.org/UA/", "urn:Test"];
     const testNamespaceIndex = 1;
 
@@ -181,15 +216,18 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
             readCount: 0,
             browseCount: 0,
             read: async (nodesToRead: any) => {
-                const results = (Array.isArray(nodesToRead) ? nodesToRead : [nodesToRead]).map(n => {
+                const results = (Array.isArray(nodesToRead) ? nodesToRead : [nodesToRead]).map((n) => {
                     session.readCount++;
                     const res = addressSpace.read(n.nodeId, n.attributeId);
                     const dv = {
                         statusCode: res.statusCode,
-                        value: res.value !== null && res.value !== undefined ? {
-                            value: res.value,
-                            toString: () => "Variant(" + JSON.stringify(res.value) + ")"
-                        } : undefined
+                        value:
+                            res.value !== null && res.value !== undefined
+                                ? {
+                                      value: res.value,
+                                      toString: () => `Variant(${JSON.stringify(res.value)})`
+                                  }
+                                : undefined
                     };
                     return dv;
                 });
@@ -197,7 +235,7 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
             },
             browse: async (nodesToBrowse: any) => {
                 session.browseCount++;
-                const results = (Array.isArray(nodesToBrowse) ? nodesToBrowse : [nodesToBrowse]).map(nodeToBrowse => {
+                const results = (Array.isArray(nodesToBrowse) ? nodesToBrowse : [nodesToBrowse]).map((nodeToBrowse) => {
                     const res = addressSpace.browse(nodeToBrowse.nodeId, nodeToBrowse);
                     return {
                         statusCode: res.statusCode,

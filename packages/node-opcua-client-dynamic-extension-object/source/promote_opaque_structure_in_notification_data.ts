@@ -1,6 +1,6 @@
-import { NotificationData, DataChangeNotification, EventNotificationList } from "node-opcua-types";
-import { Variant, DataType } from "node-opcua-variant";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { type NotificationData, DataChangeNotification, EventNotificationList } from "node-opcua-types";
+import { type Variant, DataType } from "node-opcua-variant";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { promoteOpaqueStructure } from "./promote_opaque_structure";
 
 export async function promoteOpaqueStructureInNotificationData(
@@ -24,9 +24,7 @@ export async function promoteOpaqueStructureInNotificationData(
             if (notification.events) {
                 for (const events of notification.events) {
                     if (events.eventFields) {
-                        // eslint-disable-next-line max-depth
                         for (const eventField of events.eventFields) {
-                            // eslint-disable-next-line max-depth
                             if (eventField.dataType === DataType.ExtensionObject) {
                                 dataValuesToPromote.push({ value: eventField });
                             }

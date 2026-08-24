@@ -1,36 +1,28 @@
 import { AttributeIds, BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
-import {
-    IBasicSessionAsync2,
-    browseAll,
-    readNamespaceArray
-} from "node-opcua-pseudo-session";
+import { type IBasicSessionAsync2, browseAll, readNamespaceArray } from "node-opcua-pseudo-session";
 import { DataTypeIds, ObjectIds, VariableIds, VariableTypeIds } from "node-opcua-constants";
 import { DataType } from "node-opcua-variant";
 import { ReferenceDescription } from "node-opcua-types";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 //
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import type { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103";
 import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104";
 import { DataTypeFactory } from "node-opcua-factory";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-
 
 const doDebug = checkDebugFlag("populateDataTypeManager");
 const debugLog = make_debugLog("populateDataTypeManager");
 
 const ComplexTypes2017 = "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017";
 
-export async function serverImplementsDataTypeDefinition(
-    session: IBasicSessionAsync2
-): Promise<boolean> {
-
+export async function serverImplementsDataTypeDefinition(session: IBasicSessionAsync2): Promise<boolean> {
     const dataValueServerCapabilities = await session.read({
         nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_ServerProfileArray),
         attributeId: AttributeIds.Value
     });
-    const serverCapabilities = dataValueServerCapabilities.value?.value as string[] ?? [];
+    const serverCapabilities = (dataValueServerCapabilities.value?.value as string[]) ?? [];
 
     if (serverCapabilities.indexOf(ComplexTypes2017) >= 0) {
         doDebug && debugLog("server implements ComplexTypes2017");
@@ -76,7 +68,7 @@ export async function serverImplementsDataTypeDefinition(
     });
 
     const references = browseResult2.references || [];
-    const customDataType = references.find(r => r.nodeId.namespace !== 0);
+    const customDataType = references.find((r) => r.nodeId.namespace !== 0);
     if (customDataType) {
         const dv = await session.read({ nodeId: customDataType.nodeId, attributeId: AttributeIds.DataTypeDefinition });
         if (dv.statusCode.isGood()) {
@@ -84,7 +76,7 @@ export async function serverImplementsDataTypeDefinition(
             return true;
         }
     } else {
-        const standardDataType = references.find(r => r.nodeId.namespace == 0);
+        const standardDataType = references.find((r) => r.nodeId.namespace == 0);
         if (standardDataType) {
             const dv = await session.read({ nodeId: standardDataType.nodeId, attributeId: AttributeIds.DataTypeDefinition });
             if (dv.statusCode.isGood()) {
@@ -103,7 +95,7 @@ export async function serverImplementsDataTypeDefinition(
         referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: 63
     });
-    const customDataType2 = (browseResult3.references || []).find(r => r.nodeId.namespace !== 0);
+    const customDataType2 = (browseResult3.references || []).find((r) => r.nodeId.namespace !== 0);
     if (customDataType2) {
         const dv = await session.read({ nodeId: customDataType2.nodeId, attributeId: AttributeIds.DataTypeDefinition });
         if (dv.statusCode.isGood()) {
@@ -122,7 +114,7 @@ export enum DataTypeExtractStrategy {
     Force104 = 2,
     Both = 3,
     Lazy = 4
-};
+}
 
 export async function populateDataTypeManager(
     session: IBasicSessionAsync2,
@@ -130,7 +122,6 @@ export async function populateDataTypeManager(
     strategy: DataTypeExtractStrategy
 ): Promise<void> {
     dataTypeManager.setSession(session);
-
 
     if (strategy === DataTypeExtractStrategy.Lazy) {
         doDebug && debugLog("populateDataTypeManager: Lazy mode");
@@ -165,7 +156,10 @@ export async function populateDataTypeManager(
             await populateDataTypeManager104(session, dataTypeManager);
             return;
         }
-        doDebug && debugLog("populateDataTypeManager: Auto mode - server does not implement 1.04 dictionary - we will be 103 eager and 104 eager");
+        doDebug &&
+            debugLog(
+                "populateDataTypeManager: Auto mode - server does not implement 1.04 dictionary - we will be 103 eager and 104 eager"
+            );
         // old way for 1.03 and early 1.04 prototype
         await populateDataTypeManager103(session, dataTypeManager);
         await populateDataTypeManager104(session, dataTypeManager);

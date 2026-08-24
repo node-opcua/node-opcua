@@ -1,6 +1,6 @@
 import { OpaqueStructure } from "node-opcua-extension-object";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { DataType, VariantArrayType, type Variant } from "node-opcua-variant";
 //
 import { getExtraDataTypeManager } from "./get_extra_data_type_manager";
 import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_object";
@@ -24,7 +24,7 @@ export function extractDataValueToPromote(dataValues: PseudoDataValue[]): Pseudo
     return dataValuesToFix;
 }
 /**
- * 
+ *
  * @private
  */
 export async function promoteOpaqueStructure(session: IBasicSessionAsync2, dataValues: PseudoDataValue[]) {

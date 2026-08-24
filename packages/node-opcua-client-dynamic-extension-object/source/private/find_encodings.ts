@@ -1,7 +1,7 @@
 import { BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { BrowseDescriptionLike, browseAll, ISessionForBrowseAll } from "node-opcua-pseudo-session";
-import { DataTypeAndEncodingId } from "node-opcua-schemas";
+import { type BrowseDescriptionLike, browseAll, type ISessionForBrowseAll } from "node-opcua-pseudo-session";
+import type { DataTypeAndEncodingId } from "node-opcua-schemas";
 
 export async function _findEncodings(session: ISessionForBrowseAll, dataTypeNodeId: NodeId): Promise<DataTypeAndEncodingId> {
     const nodeToBrowse: BrowseDescriptionLike = {

@@ -1,32 +1,30 @@
-/* eslint-disable max-statements */
-// tslint:disable: no-console
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { AttributeIds, makeNodeClassMask, makeResultMask, NodeClassMask, QualifiedName } from "node-opcua-data-model";
+import { AttributeIds, makeNodeClassMask, makeResultMask, NodeClassMask, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
+import { type ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { browseAll, BrowseDescriptionLike, IBasicSessionAsync, IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { browseAll, type BrowseDescriptionLike, type IBasicSessionAsync, type IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import {
     createDynamicObjectConstructor,
-    DataTypeAndEncodingId,
-    MapDataTypeAndEncodingIdProvider,
+    type DataTypeAndEncodingId,
+    type MapDataTypeAndEncodingIdProvider,
     parseBinaryXSD
 } from "node-opcua-schemas";
-import { BrowseDescriptionOptions, BrowseDirection, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
+import { type BrowseDescriptionOptions, BrowseDirection, type BrowseResult, type ReferenceDescription } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
+import { type ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
 
-import { ExtraDataTypeManager } from "../extra_data_type_manager";
+import type { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
-    CacheForFieldResolution,
+    type CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -58,7 +56,7 @@ async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictiona
     /* c8 ignore next */
     if (!a.targets || a.targets.length === 0) {
         // the server is probably version < 1.04.
-        debugLog("Cannot find Deprecated property for dataTypeDictionary " + dataTypeDictionary.toString());
+        debugLog(`Cannot find Deprecated property for dataTypeDictionary ${dataTypeDictionary.toString()}`);
         return false;
     }
     const deprecatedFlagNodeId = a.targets[0].targetId;
@@ -107,17 +105,15 @@ async function _enrichWithDescriptionOf(
     session: IBasicSessionAsync2,
     dataTypeDescriptions: IDataTypeDescription[]
 ): Promise<NodeId[]> {
-    const nodesToBrowse3: BrowseDescriptionOptions[] =
-        dataTypeDescriptions.map((dataTypeDescription) => ({
-            browseDirection: BrowseDirection.Inverse,
-            includeSubtypes: false,
-            nodeClassMask: makeNodeClassMask("Object"),
-            nodeId: dataTypeDescription.nodeId.toString(),
-            referenceTypeId: resolveNodeId("HasDescription"),
-            //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
-            resultMask: makeResultMask("NodeId")
-        }))
-        ;
+    const nodesToBrowse3: BrowseDescriptionOptions[] = dataTypeDescriptions.map((dataTypeDescription) => ({
+        browseDirection: BrowseDirection.Inverse,
+        includeSubtypes: false,
+        nodeClassMask: makeNodeClassMask("Object"),
+        nodeId: dataTypeDescription.nodeId.toString(),
+        referenceTypeId: resolveNodeId("HasDescription"),
+        //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
+        resultMask: makeResultMask("NodeId")
+    }));
 
     /* c8 ignore next */
     if (nodesToBrowse3.length === 0) {
@@ -306,7 +302,6 @@ async function _extractDataTypeDictionaryFromDefinition(
         const dataTypeNodeId = dataTypeNodeIds[index];
         const dataTypeDescription = dataTypeDescriptions[index];
 
-
         if (dataValue.statusCode.isGood()) {
             const dataTypeDefinition = dataValue.value.value;
 
@@ -319,9 +314,8 @@ async function _extractDataTypeDictionaryFromDefinition(
                     })()
                 );
             }
-        }
+        } else {
         /* c8 ignore next */
-        else {
             debugLog(
                 "dataTypeNodeId ",
                 dataTypeNodeId.toString(),
@@ -337,7 +331,7 @@ async function _extractDataTypeDictionaryFromDefinition(
     const dataTypeDefinitionsSorted = sortStructure(dataTypeDefinitions);
     // c8 ignore next
     if (doDebug) {
-        debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
+        debugLog("order ", dataTypeDefinitionsSorted.map((a) => `${a.className} ${a.dataTypeNodeId}`).join(" ->  "));
     }
 
     const promises2: Promise<void>[] = [];
@@ -345,7 +339,6 @@ async function _extractDataTypeDictionaryFromDefinition(
     for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
         promises2.push(
             (async () => {
-
                 const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
                 // c8 ignore next
                 if (doDebug) {
@@ -358,7 +351,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                 try {
                     const dataTypeDescription = dataTypeDescriptions.find((a) => a.nodeId.toString() === dataTypeNodeId.toString());
                     if (!dataTypeDefinition) {
-                        throw new Error("cannot find dataTypeDefinition for " + dataTypeNodeId.toString());
+                        throw new Error(`cannot find dataTypeDefinition for ${dataTypeNodeId.toString()}`);
                     }
                     const schema = await convertDataTypeDefinitionToStructureTypeSchema(
                         session,
@@ -393,7 +386,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                     }
                 } catch (err) {
                     errorLog("Constructor verification err: ", (<Error>err).message);
-                    errorLog("For this reason class " + className + " has not been registered");
+                    errorLog(`For this reason class ${className} has not been registered`);
                     errorLog(err);
                 }
             })()
@@ -465,7 +458,7 @@ async function _extractDataTypeDictionary(
         // dataType definition in store directly in UADataType under the definition attribute
         const dataTypeFactory2 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
         if (!dataTypeFactory2) {
-            throw new Error("cannot find dataTypeFactory for namespace " + dataTypeDictionaryNodeId.namespace);
+            throw new Error(`cannot find dataTypeFactory for namespace ${dataTypeDictionaryNodeId.namespace}`);
         }
         await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeManager);
     } else {
@@ -558,8 +551,8 @@ async function _exploreDataTypeDefinition(
                 const testObject = new Constructor();
                 debugLog(testObject.toString());
             } catch (err) {
-                debugLog("         Error cannot construct Extension Object " + name);
-                debugLog("         " + (<Error>err).message);
+                debugLog(`         Error cannot construct Extension Object ${name}`);
+                debugLog(`         ${(<Error>err).message}`);
             }
         }
     }
@@ -613,7 +606,7 @@ export async function populateDataTypeManager103(
 
     // c8 ignore next
     if (doDebug) {
-        debugLog("namespaceArray ", namespaceArray.map((a, index) => " " + index.toString().padEnd(3) + ":" + a).join(" "));
+        debugLog("namespaceArray ", namespaceArray.map((a, index) => ` ${index.toString().padEnd(3)}:${a}`).join(" "));
     }
 
     if (dataValueNamespaceArray.statusCode.isGood() && namespaceArray && namespaceArray.length > 0) {
@@ -673,11 +666,11 @@ export async function populateDataTypeManager103(
             const dataTypeDictionaryNodeId = reference.nodeId;
 
             const promises: [Promise<boolean>, Promise<DataValue>] = [
-                    /* isDictionaryDeprecated: bool = await */ _readDeprecatedFlag(session, dataTypeDictionaryNodeId),
-                    /* rawSchemaDataValue!: DataValue = await */ session.read({
-                attributeId: AttributeIds.Value,
-                nodeId: dataTypeDictionaryNodeId
-            })
+                /* isDictionaryDeprecated: bool = await */ _readDeprecatedFlag(session, dataTypeDictionaryNodeId),
+                /* rawSchemaDataValue!: DataValue = await */ session.read({
+                    attributeId: AttributeIds.Value,
+                    nodeId: dataTypeDictionaryNodeId
+                })
             ];
 
             const [isDictionaryDeprecated, rawSchemaDataValue] = await Promise.all(promises);
@@ -872,7 +865,6 @@ export async function populateDataTypeManager103(
         }
     }
 
-
     // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
     if (false) {
         // we need to read sequentially the dataTypeDictionaryInfo
@@ -897,10 +889,9 @@ export async function populateDataTypeManager103(
                 s = s.substring(0, s.length - 1);
             }
             return s;
-        }
+        };
         // check if all dependencies have been processed for this dataTypeDictionary
         const allDependenciesAlreadyProcessed = (typeDictionaryInfo: TypeDictionaryInfo) => {
-
             for (const [key, namespace1] of Object.entries(typeDictionaryInfo.dependencies)) {
                 // codesys may add quotes around the namespace
                 const namespace = unquote(namespace1);
@@ -913,11 +904,11 @@ export async function populateDataTypeManager103(
                 }
             }
             return true;
-        }
+        };
 
         const queue: TypeDictionaryInfo[] = [...dataTypeDictionaryInfo];
 
-        // we load typeDictionary in parallel by processing all 
+        // we load typeDictionary in parallel by processing all
         // typeDictionary that have all their dependencies resolved
         const extractIndependantTypeInfo = (queue: TypeDictionaryInfo[]): TypeDictionaryInfo[] => {
             const toProcess = queue.splice(0);
@@ -932,7 +923,7 @@ export async function populateDataTypeManager103(
                 }
             }
             return result;
-        }
+        };
         const processFunc = async (typeDictionaryInfo: TypeDictionaryInfo) => {
             try {
                 doDebug && debugLog("processing ", typeDictionaryInfo.targetNamespace);
@@ -941,9 +932,8 @@ export async function populateDataTypeManager103(
                 errorLog("Error in processReferenceOnDataTypeDictionaryType", err);
             }
             alreadyProcessed.add(unquote(typeDictionaryInfo.targetNamespace));
-        }
+        };
         while (queue.length > 0) {
-
             // c8 ignore next
             if (doDebug) {
                 for (const d of queue) {
@@ -959,8 +949,7 @@ export async function populateDataTypeManager103(
                 errorLog("Cannot process any more dataTypeDictionary");
                 break;
             }
-            const promises: Promise<void>[] =
-                readyToProcess.map((typeDictionaryInfo) => processFunc(typeDictionaryInfo));
+            const promises: Promise<void>[] = readyToProcess.map((typeDictionaryInfo) => processFunc(typeDictionaryInfo));
             await Promise.all(promises);
         }
     }

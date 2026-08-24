@@ -2,10 +2,10 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { make_warningLog } from "node-opcua-debug";
-import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { StructuredTypeField } from "node-opcua-factory";
+import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import type { StructuredTypeField } from "node-opcua-factory";
 //
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
+import type { ExtraDataTypeManager } from "./extra_data_type_manager";
 
 const warningLog = make_warningLog(__filename);
 
@@ -15,7 +15,6 @@ export async function resolveOpaqueStructureInExtensionObject(
     object: ExtensionObject,
     visited?: Set<any>
 ): Promise<void> {
-
     visited = visited || new Set();
     if (visited.has(object)) {
         return;
@@ -27,14 +26,7 @@ export async function resolveOpaqueStructureInExtensionObject(
         promises: Promise<void>[];
         visited: Set<any>;
     }
-    async function fixOpaqueStructureOnElement(
-        element: any,
-        field: StructuredTypeField,
-        data: D,
-        args?: any
-    ): Promise<unknown> {
-
-
+    async function fixOpaqueStructureOnElement(element: any, field: StructuredTypeField, data: D, args?: any): Promise<unknown> {
         if (!element) {
             return element;
         }
@@ -56,7 +48,6 @@ export async function resolveOpaqueStructureInExtensionObject(
         return element;
     }
     function fixOpaqueStructure(object: any, field: StructuredTypeField, data: D, args?: any) {
-
         const a = object[field.name];
         if (!a) {
             return;
@@ -128,7 +119,7 @@ export async function resolveDynamicExtensionObject(
             return value;
         }
         return value;
-    }
+    };
 
     if (variant.arrayType !== VariantArrayType.Scalar) {
         if (Array.isArray(variant.value)) {
