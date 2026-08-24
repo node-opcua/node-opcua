@@ -3,10 +3,9 @@
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import {
     BaseUAObject,
-    DataTypeFactory,
     getStandardDataTypeFactory,
     type IStructuredTypeSchema,
     is_internal_id,
@@ -29,7 +28,7 @@ export class ExtensionObject extends BaseUAObject {
         dataTypeFactory: getStandardDataTypeFactory()
     });
 
-    constructor(options?: null | Record<string, any>) {
+    constructor(_options?: unknown) {
         super();
     }
 }
@@ -85,7 +84,7 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
             debugLog(" object = ", object);
             throw new Error(`object has no schema ${object.constructor.name}`);
         }
-        const encodingDefaultBinary = object.schema.encodingDefaultBinary!;
+        const encodingDefaultBinary = object.schema.encodingDefaultBinary;
         /* c8 ignore next */
         if (!encodingDefaultBinary) {
             debugLog(chalk.yellow("encoding ExtObj "), object);
@@ -93,16 +92,12 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         }
         /* c8 ignore next */
         if (encodingDefaultBinary.isEmpty()) {
-            debugLog(chalk.yellow("encoding ExtObj "), (object.constructor as any).encodingDefaultBinary.toString());
+            debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString());
             throw new Error(`Cannot find encodingDefaultBinary for this object : ${object.schema.name}`);
         }
         /* c8 ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
-            debugLog(
-                chalk.yellow("encoding ExtObj "),
-                (object.constructor as any).encodingDefaultBinary.toString(),
-                object.schema.name
-            );
+            debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString(), object.schema.name);
             throw new Error(`Cannot find valid OPCUA encodingDefaultBinary for this object : ${object.schema.name}`);
         }
 
@@ -159,7 +154,15 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
     // let verify that  decode will use the expected number of bytes
     const streamLengthBefore = stream.length;
 
-    let object: any;
+    function readByteStreamOrThrow(): Buffer {
+        const byteStream = stream.readByteStream();
+        if (!byteStream) {
+            throw new Error("decodeExtensionObject: expecting a non-empty byte stream for an opaque structure");
+        }
+        return byteStream;
+    }
+
+    let object: BaseUAObject | OpaqueStructure | null;
     if (nodeId.namespace !== 0) {
         // this is a extension object define in a other namespace
         // we can only threat it as an opaque object for the time being
@@ -168,18 +171,19 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         // structure
         // lets rewind before the length
         stream.length -= 4;
-        object = new OpaqueStructure(nodeId, stream.readByteStream()!);
+        object = new OpaqueStructure(nodeId, readByteStreamOrThrow());
     } else {
         try {
             object = getStandardDataTypeFactory().constructObject(nodeId);
-        } catch (err) {
+        } catch (_err) {
             warningLog("cannot construct object with dataType nodeId", nodeId.toString());
+            object = null;
         }
         /* c8 ignore next */
         if (object === null) {
             // this object is unknown to us ..
             stream.length -= 4;
-            object = new OpaqueStructure(nodeId, stream.readByteStream()!);
+            object = new OpaqueStructure(nodeId, readByteStreamOrThrow());
         } else {
             try {
                 object.decode(stream);
