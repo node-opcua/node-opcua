@@ -20,6 +20,7 @@ import {
     makeBrowsePath,
     type Namespace,
     type NodeIdLike,
+    type NotificationMessage,
     OPCUAClient,
     Range,
     type StatusCode,
@@ -30,6 +31,7 @@ import {
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -70,8 +72,11 @@ interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
     suspend(suspend: boolean): void;
 }
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEnginePrivate;
+}
 function getInternalPublishEngine(session: ClientSession): ClientSidePublishEnginePrivate {
-    const s: ClientSidePublishEnginePrivate = (session as any).getPublishEngine();
+    const s: ClientSidePublishEnginePrivate = (session as SessionWithPublishEngine).getPublishEngine();
     return s;
 }
 
@@ -119,12 +124,12 @@ async function pause(delay: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delay));
 }
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     const options = {};
 
     async function createSession() {
         const client = OPCUAClient.create(options);
-        const endpointUrl = test.endpointUrl;
+        const endpointUrl = test.endpointUrl!;
         await client.connect(endpointUrl);
         const session = await client.createSession();
 
@@ -155,9 +160,9 @@ export function t(test: any) {
         publishEngine.internalSendPublishRequest();
         return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
             // wait for fist notification
-            subscription.once("raw_notification", (notificationMessage: any) => {
+            subscription.once("raw_notification", (notificationMessage: NotificationMessage) => {
                 debugLog("got notification message ", notificationMessage.toString());
-                resolve(notificationMessage.notificationData);
+                resolve((notificationMessage.notificationData ?? []) as ExtensionObject[]);
             });
         });
     }
@@ -186,8 +191,8 @@ export function t(test: any) {
         const nodeIdBool = "ns=1;s=SomeBoolean";
 
         before(() => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
-            const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
+            const addressSpace = test.server!.engine.addressSpace as AddressSpace;
+            const namespace = test.server!.engine.addressSpace!.getOwnNamespace() as Namespace;
             const n = namespace.addAnalogDataItem({
                 browseName: "SomeAnalogDataItem2",
                 componentOf: addressSpace.rootFolder.objects.server,
@@ -205,7 +210,7 @@ export function t(test: any) {
             nodeIdBool.should.eql(n2.nodeId.toString());
         });
         beforeEach(async () => {
-            const addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const addressSpace = test.server!.engine.addressSpace as AddressSpace;
             const n = addressSpace.findNode(nodeId)! as UAVariable;
             n.setValueFromSource({ dataType: "Double", value: 145.0 }, StatusCodes.Good);
 
@@ -225,7 +230,7 @@ export function t(test: any) {
             nodeId: NodeIdLike,
             requestedParameters: MonitoringParametersOptions
         ): Promise<ClientMonitoredItem> {
-            const { session, subscription, publishEngine } = s as Connection;
+            const { subscription } = s as Connection;
 
             const readValue = {
                 attributeId: AttributeIds.Value,
@@ -234,7 +239,7 @@ export function t(test: any) {
             // const monitoredItem = ClientMonitoredItem.create(subscription, readValue, requestedParameters, TimestampsToReturn.Both);
             const monitoredItem = await subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both);
 
-            await new Promise((resolve: any) => {
+            await new Promise<void>((resolve) => {
                 // wait for fist notification
                 monitoredItem.once("changed", (dataValue) => {
                     debugLog("got initial value !!! ", dataValue.value.value);
@@ -280,7 +285,7 @@ export function t(test: any) {
             });
         }
         it("DBF1: DeadBandFilter filter: none, trigger: Status - it should not received notification when trigger is status and value change", async () => {
-            const { session, subscription, publishEngine } = s;
+            const { subscription, publishEngine } = s;
 
             const requestedParameters = {
                 discardOldest: true,
