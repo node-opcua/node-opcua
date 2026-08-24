@@ -2,33 +2,27 @@
  * @module node-opcua-service-secure-channel
  */
 import { assert } from "node-opcua-assert";
-import {
-    _enumerationMessageSecurityMode,
-    ChannelSecurityToken,
-    RequestHeader,
-    ResponseHeader,
-    SignatureData
-} from "node-opcua-types";
+import { ChannelSecurityToken, RequestHeader, ResponseHeader, SignatureData } from "node-opcua-types";
 
 export {
+    _enumerationMessageSecurityMode,
     ChannelSecurityToken,
-    OpenSecureChannelRequest,
-    OpenSecureChannelResponse,
     CloseSecureChannelRequest,
     CloseSecureChannelResponse,
-    ServiceFault,
-    SecurityTokenRequestType,
-    ResponseHeader,
-    RequestHeader,
-    SignatureData,
     MessageSecurityMode,
-    _enumerationMessageSecurityMode,
+    OpenSecureChannelRequest,
+    OpenSecureChannelResponse,
+    RequestHeader,
+    ResponseHeader,
+    SecurityTokenRequestType,
+    ServiceFault,
+    SignatureData,
     UserTokenPolicy
 } from "node-opcua-types";
 
 export { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader";
-export { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
 export * from "./message_security_mode";
+export { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
 
 // createdAt
 ChannelSecurityToken.schema.fields[2].defaultValue = () => new Date();

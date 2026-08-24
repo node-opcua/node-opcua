@@ -58,6 +58,12 @@ const schemaAsymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStru
     ]
 });
 
+export interface AsymmetricAlgorithmSecurityHeaderOptions {
+    securityPolicyUri?: UAString;
+    senderCertificate?: ByteString | null;
+    receiverCertificateThumbprint?: ByteString | null;
+}
+
 export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
     public static possibleFields: string[] = ["securityPolicyUri", "senderCertificate", "receiverCertificateThumbprint"];
     public static schema = schemaAsymmetricAlgorithmSecurityHeader;
@@ -65,7 +71,7 @@ export class AsymmetricAlgorithmSecurityHeader extends BaseUAObject {
     public senderCertificate: ByteString;
     public receiverCertificateThumbprint: ByteString;
 
-    constructor(options?: any) {
+    constructor(options?: AsymmetricAlgorithmSecurityHeaderOptions) {
         options = options || {};
         super();
         const schema = schemaAsymmetricAlgorithmSecurityHeader;

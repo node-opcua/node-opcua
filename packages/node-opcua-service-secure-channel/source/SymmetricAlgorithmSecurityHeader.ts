@@ -5,7 +5,7 @@
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39
 import { decodeUInt32, encodeUInt32, type UInt32 } from "node-opcua-basic-types";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { BaseUAObject, buildStructuredType, initialize_field, type IStructuredTypeSchema } from "node-opcua-factory";
+import { BaseUAObject, buildStructuredType, type IStructuredTypeSchema, initialize_field } from "node-opcua-factory";
 
 const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStructuredType({
     name: "SymmetricAlgorithmSecurityHeader",
@@ -21,13 +21,17 @@ const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStruc
     ]
 });
 
+export interface SymmetricAlgorithmSecurityHeaderOptions {
+    tokenId?: UInt32;
+}
+
 export class SymmetricAlgorithmSecurityHeader extends BaseUAObject {
     public static possibleFields: string[] = ["tokenId"];
 
     public static schema = schemaSymmetricAlgorithmSecurityHeader;
     public tokenId: UInt32;
 
-    constructor(options?: any) {
+    constructor(options?: SymmetricAlgorithmSecurityHeaderOptions) {
         options = options || {};
         super();
 
