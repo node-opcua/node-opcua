@@ -1,9 +1,9 @@
 import path from "node:path";
 import "should";
+import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
 import { AddressSpace, SessionContext, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
@@ -93,7 +93,10 @@ describe("ExtensionObject - consistency when writing a sub-portion of a bound ex
             innerInt32: 777
         });
 
-        const sc = await fieldInner.writeValue(context, new DataValue({ value: { dataType: DataType.ExtensionObject, value: newInner } }));
+        const sc = await fieldInner.writeValue(
+            context,
+            new DataValue({ value: { dataType: DataType.ExtensionObject, value: newInner } })
+        );
         sc.name.should.eql("Good");
 
         // grandchild reflects

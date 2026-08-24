@@ -1,4 +1,3 @@
-// tslint:disable:no-bitwise
 import "should";
 
 import { AccessRestrictionsFlag, AttributeIds, makeAccessRestrictionsFlag } from "node-opcua-data-model";

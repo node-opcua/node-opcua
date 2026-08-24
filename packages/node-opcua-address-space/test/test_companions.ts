@@ -16,14 +16,7 @@ describe("Companion ", () => {
     it("LADS", async () => {
         const addressSpace = AddressSpace.create();
 
-        const xmlFiles = [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.ia,
-            nodesets.machinery,
-            nodesets.amb,
-            nodesets.lads
-        ];
+        const xmlFiles = [nodesets.standard, nodesets.di, nodesets.ia, nodesets.machinery, nodesets.amb, nodesets.lads];
         await generateAddressSpace(addressSpace, xmlFiles);
 
         const nsIndex = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/LADS/");
@@ -47,14 +40,7 @@ describe("Companion ", () => {
     it("Weihenstephan", async () => {
         const addressSpace = AddressSpace.create();
 
-        const xmlFiles = [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.ia,
-            nodesets.machinery,
-            nodesets.packML,
-            nodesets.weihenstephan
-        ];
+        const xmlFiles = [nodesets.standard, nodesets.di, nodesets.ia, nodesets.machinery, nodesets.packML, nodesets.weihenstephan];
         await generateAddressSpace(addressSpace, xmlFiles);
 
         const nsIndex = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Weihenstephan/");

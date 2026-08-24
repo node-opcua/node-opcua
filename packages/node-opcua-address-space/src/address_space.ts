@@ -75,7 +75,6 @@ const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 
-// tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
@@ -781,7 +780,6 @@ export class AddressSpace implements AddressSpacePrivate {
                 // c8 ignore next
                 if (doDebug) {
                     if (node.modellingRule === "Mandatory") {
-                        // tslint:disable:no-console
                         errorLog(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
                                 self.browseName.toString() +

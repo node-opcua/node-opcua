@@ -26,11 +26,7 @@ function _filterSubType(reference: UAReference) {
 
 export type BaseNodeConstructor<T extends BaseNode> = new () => T;
 
-function _slow_isSubtypeOf<T extends UAType>(
-    this: T,
-    Class: typeof BaseNodeImpl,
-    baseType: T | NodeIdLike
-): boolean {
+function _slow_isSubtypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl, baseType: T | NodeIdLike): boolean {
     if (!(baseType instanceof Class)) {
         const node = this.addressSpace.findNode(baseType as NodeIdLike);
         if (!node || !(node instanceof Class)) {
@@ -117,9 +113,7 @@ export type IsSubtypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolea
 
 export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableType;
 
-export function construct_isSubtypeOf<T extends UAType>(
-    Class: typeof BaseNodeImpl
-): IsSubtypeOfFunc<T> {
+export function construct_isSubtypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSubtypeOfFunc<T> {
     return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
         if (!(baseType instanceof Class)) {
             throw new Error(

@@ -5,7 +5,6 @@ const { DataType } = require("node-opcua-variant");
 const { AddressSpace } = require("..");
 const { getMiniAddressSpace } = require("../distHelpers");
 
-// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing issue 1045", () => {
     it("should browse a node with referenceTypeId: ReferenceTypeIds.References", async () => {

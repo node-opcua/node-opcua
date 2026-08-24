@@ -15,7 +15,7 @@ import {
     type MethodFunctorC,
     makeDefaultCloneExtraInfo,
     type UAMethod,
-    type UAMethodEvents, 
+    type UAMethodEvents,
     type UAObject,
     type UAObjectType,
     type UAVariable
@@ -345,8 +345,6 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 UAMethodImpl.prototype.execute = withCallback(UAMethodImpl.prototype.execute);

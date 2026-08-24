@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:max-classes-per-file
-// tslint:disable:no-console
 import chalk from "chalk";
 import {
     CloneHelper,
@@ -26,7 +24,6 @@ import { _clone_hierarchical_references } from "./base_node_private";
 const warningLog = make_warningLog("INSTANTIATE");
 const errorLog = make_errorLog("INSTANTIATE");
 
-// eslint-disable-next-line prefer-const
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 

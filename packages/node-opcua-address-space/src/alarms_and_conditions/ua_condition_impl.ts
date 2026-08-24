@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
@@ -44,7 +43,7 @@ import type { UAConditionType } from "../ua_condition_type";
 import { UAObjectImpl } from "../ua_object_impl";
 import type { UAVariableImpl } from "../ua_variable_impl";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
-import {  UABaseEventImplBase } from "./ua_base_event_impl";
+import { UABaseEventImplBase } from "./ua_base_event_impl";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -76,7 +75,9 @@ const warningLog = make_warningLog(__filename);
 
 const $ = (a: UAConditionImplBase): UAConditionEx => a as unknown as UAConditionEx;
 
-export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents> extends UABaseEventImplBase<T> {
+export class UAConditionImplBase<
+    T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents
+> extends UABaseEventImplBase<T> {
     public static defaultSeverity = 250;
     public static typeDefinition = resolveNodeId("ConditionType");
 
@@ -239,9 +240,8 @@ export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature
         assert(!sameNodeId(branch.getBranchId(), NodeId.nullNodeId), "cannot delete branch zero");
         assert(this._branches.has(key));
         this._branches.delete(key);
-        (this as UAConditionImplBase        ).emit("branch_deleted", key);
+        (this as UAConditionImplBase).emit("branch_deleted", key);
     }
-
 
     private get $() {
         return this as unknown as UAConditionEx;
@@ -643,7 +643,7 @@ export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature
         throw new Error("Unimplemented , please override");
     }
 }
-export type  UAConditionImpl = UAConditionImplBase & UAConditionEx;
+export type UAConditionImpl = UAConditionImplBase & UAConditionEx;
 export const UAConditionImpl = UAConditionImplBase as unknown as new () => UAConditionImpl;
 
 /**²
@@ -1210,7 +1210,6 @@ function _create_new_branch_id() {
     return makeNodeId(randomGuid(), 1);
 }
 
-// tslint:disable:no-console
 function _install_condition_variable_type<T, DT extends DataType>(node: UAConditionVariable<T, DT>) {
     // from spec 1.03 : 5.3 condition variables
     // However,  a change in their value is considered important and supposed to trigger

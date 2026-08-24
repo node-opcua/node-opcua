@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
@@ -197,14 +196,13 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
  *  indicates if the history of the Variable is available via the OPC UA server.
  *
  */
-export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>    = UAVariableEvents>
+export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = UAVariableEvents>
     extends BaseNodeImpl<T>
     implements UAVariable<T>, UAVariableImplExtArray
 {
-    
     // -------------- UAvaraibleImplExArray
     $$variableType?: UAVariableType;
-    $$dataType?: UADataType  = undefined;
+    $$dataType?: UADataType = undefined;
     $$getElementBrowseName?: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
     $$extensionObjectArray?: ExtensionObject[];
     $$indexPropertyName?: string;
@@ -417,7 +415,6 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>   
                     if (dataValueOrPromise !== this.$dataValue) {
                         // we may have a problem here if we use a getter that returns a dataValue that is a ExtensionObject
                         if (dataValueOrPromise.value?.dataType === DataType.ExtensionObject) {
-                            // eslint-disable-next-line max-depth
                             if (this.$extensionObject || this.$$extensionObjectArray) {
                                 // we have an extension object already bound to this node
                                 // the client is asking us to replace the object entirely by a new one
@@ -1954,9 +1951,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T>   
     }
 }
 
-
 import type { IStructuredTypeSchema } from "node-opcua-factory";
-// tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
 
 UAVariableImpl.prototype.asyncRefresh = withCallback(UAVariableImpl.prototype.asyncRefresh);
@@ -1972,8 +1967,6 @@ export interface UAVariableImplExtArray {
     $$extensionObjectArray?: ExtensionObject[];
     $$indexPropertyName?: string;
 }
-
-
 
 function check_valid_array(dataType: DataType, array: any): boolean {
     if (Array.isArray(array)) {
@@ -2136,7 +2129,7 @@ function _Variable_bind_with_async_refresh(
     assert(!this.refreshFunc);
 
     this.refreshFunc = options.refreshFunc;
-/*
+    /*
     // TO DO : REVISIT THIS ASSUMPTION
     if (false && this.minimumSamplingInterval === 0) {
         // when a getter /timestamped_getter or async_getter is provided

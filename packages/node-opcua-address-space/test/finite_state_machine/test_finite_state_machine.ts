@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-// tslint:disable:no-console
 import path from "node:path";
 import "should";
 import { LocalizedText, type QualifiedName } from "node-opcua-data-model";
@@ -278,7 +276,6 @@ describe("FSM2 - Finite State Machine with Multiple transition from one state to
     let _output: string[] = [];
     function captureConsoleLog() {
         /* */
-        // tslint:disable-next-line: only-arrow-functions
         console.log = (...args: [any, ...any[]]) => {
             const str = args.map((a) => `${a}`).join(" ");
             if (str.substring(0, 3) !== "XXX") {
@@ -658,9 +655,9 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
             const lastTransition = stateMachine.getComponentByName("LastTransition");
             should.exist(lastTransition);
 
-            const lastTransitionEffectiveTransitionTime = lastTransition?.getPropertyByName(
+            const lastTransitionEffectiveTransitionTime = lastTransition!.getPropertyByName(
                 "EffectiveTransitionTime"
-            )! as UAVariable;
+            ) as UAVariable;
             should.exist(lastTransitionEffectiveTransitionTime);
 
             stateMachine.setState("Maintenance");

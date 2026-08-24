@@ -3,7 +3,7 @@ import path from "node:path";
 import { readCertificateChain } from "node-opcua-crypto";
 import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { NodeId } from "node-opcua-nodeid";
+import type { NodeId } from "node-opcua-nodeid";
 import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import "should";

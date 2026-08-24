@@ -82,7 +82,7 @@ export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl {
     }
 }
 export type UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase & UAShelvedStateMachineEx;
-export const  UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase as unknown as new () => UAShelvedStateMachineExImpl;
+export const UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase as unknown as new () => UAShelvedStateMachineExImpl;
 
 // The Unshelve Method sets the AlarmCondition to the Unshelved state. Normally, the MethodId found
 // the Shelving child of the Condition instance and the NodeId of the Shelving object as the ObjectId

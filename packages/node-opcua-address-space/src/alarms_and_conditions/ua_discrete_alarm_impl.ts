@@ -15,7 +15,7 @@ import { UAAlarmConditionImplBase } from "./ua_alarm_condition_impl.js";
  * Alarm may take on only a certain number of possible values (e.g. true/false,
  * running/stopped/terminating).
  */
-export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase  {
+export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase {
     public static instantiate(
         namespace: INamespace,
         discreteAlarmTypeId: UAEventType | NodeId | string,
@@ -44,10 +44,10 @@ export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase  {
             discreteAlarmType.nodeId,
             options,
             data
-        ) as  unknown as UADiscreteAlarm;
+        ) as unknown as UADiscreteAlarm;
         Object.setPrototypeOf(alarmNode, UADiscreteAlarmImplBase.prototype);
 
-        return alarmNode as unknown as  UADiscreteAlarmImpl;
+        return alarmNode as unknown as UADiscreteAlarmImpl;
     }
 }
 export type UADiscreteAlarmImpl = UADiscreteAlarmImplBase & UADiscreteAlarmEx;

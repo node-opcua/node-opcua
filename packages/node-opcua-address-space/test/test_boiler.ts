@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 import chalk from "chalk";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
@@ -75,7 +74,6 @@ describe("Testing Boiler System", () => {
             ]);
     });
 
-    // eslint-disable-next-line max-statements
     it("should create a boiler system", async () => {
         const context = SessionContext.defaultContext;
 

@@ -1,9 +1,6 @@
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
-// tslint:disable:max-line-length
 
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";

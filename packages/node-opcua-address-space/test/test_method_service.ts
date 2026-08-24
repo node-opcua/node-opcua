@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 /* global: describe it before after beforeEach afterEach require*/
 import fs from "node:fs";
 import path from "node:path";

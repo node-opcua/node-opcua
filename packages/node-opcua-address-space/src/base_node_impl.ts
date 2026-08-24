@@ -7,7 +7,7 @@ import chalk from "chalk";
 import {
     type AddReferenceOpts,
     type AttributeEventName,
-    type BaseNode, 
+    type BaseNode,
     type BaseNodeEvents,
     type BrowseDescriptionOptions2,
     type IAddressSpace,
@@ -23,7 +23,7 @@ import {
     type UAReference,
     type UAReferenceType,
     type UAVariable,
-    type UAVariableType 
+    type UAVariableType
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { UAString } from "node-opcua-basic-types";
@@ -85,9 +85,6 @@ import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl";
 import { coerceRolePermissions } from "./role_permissions";
 
 type ApplyFunc = { apply: (...args: unknown[]) => void };
-// tslint:disable:no-var-requires
-// tslint:disable:no-bitwise
-// tslint:disable:no-console
 
 const doDebug = false;
 const warningLog = make_warningLog(__filename);
@@ -156,8 +153,10 @@ export function makeAttributeEventName(attributeId: AttributeIds): AttributeEven
  *
  */
 
-export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<T> = BaseNodeEvents> 
-extends TypedEventEmitter<T> implements BaseNode<T> {
+export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<T> = BaseNodeEvents>
+    extends TypedEventEmitter<T>
+    implements BaseNode<T>
+{
     public static makeAttributeEventName(attributeId: AttributeIds): AttributeEventName {
         return makeAttributeEventName(attributeId);
     }
@@ -614,7 +613,7 @@ extends TypedEventEmitter<T> implements BaseNode<T> {
         const methods = this.getMethods();
         const select = _filter_by_browse_name(methods, methodName, namespaceIndex);
         assert(select.length <= 1, "BaseNode#getMethodByName found duplicated reference");
-        return select.length === 1 ? select[0]  as UAMethod: null;
+        return select.length === 1 ? (select[0] as UAMethod) : null;
     }
 
     public getWriteMask(): number {
@@ -1018,7 +1017,6 @@ extends TypedEventEmitter<T> implements BaseNode<T> {
         if (Object.hasOwn(reservedNames, name)) {
             // c8 ignore next
             if (doDebug) {
-                // tslint:disable-next-line:no-console
                 debugLog(chalk.bgWhite.red(`Ignoring reserved keyword  ${name}`));
             }
             return;
@@ -1613,11 +1611,7 @@ function _is_massively_used_reference(referenceType: UAReferenceType): boolean {
     return name === "HasTypeDefinition" || name === "HasModellingRule";
 }
 
-function _propagate_ref(
-    this: BaseNode,
-    addressSpace: MinimalistAddressSpace,
-    reference: UAReference
-): void {
+function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, reference: UAReference): void {
     // filter out non  Hierarchical References
     const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
@@ -1769,20 +1763,12 @@ function _filter_by_context(node: BaseNode, references: Reference[], context: Se
     return [];
 }
 */
-function _filter_by_context(
-    node: BaseNode,
-    references: UAReference[],
-    context: ISessionContext
-): UAReference[] {
+function _filter_by_context(node: BaseNode, references: UAReference[], context: ISessionContext): UAReference[] {
     const addressSpace = node.addressSpace;
     return references.filter((reference) => !context.isBrowseAccessRestricted(resolveReferenceNode(addressSpace, reference)));
 }
 
-function _filter_by_nodeClass(
-    this: BaseNode,
-    references: UAReference[],
-    nodeClassMask: number
-): UAReference[] {
+function _filter_by_nodeClass(this: BaseNode, references: UAReference[], nodeClassMask: number): UAReference[] {
     assert(Number.isFinite(nodeClassMask));
     if (nodeClassMask === 0) {
         return references;
@@ -1802,11 +1788,7 @@ function _filter_by_nodeClass(
     });
 }
 
-function _filter_by_userFilter(
-    this: BaseNode,
-    references: UAReference[],
-    context?: ISessionContext
-): UAReference[] {
+function _filter_by_userFilter(this: BaseNode, references: UAReference[], context?: ISessionContext): UAReference[] {
     const addressSpace = this.addressSpace;
     return references.filter((reference: UAReference) => {
         const obj = resolveReferenceNode(addressSpace, reference) as BaseNode;

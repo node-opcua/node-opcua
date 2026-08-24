@@ -14,7 +14,11 @@ import type { ConditionInfo } from "../../source/interfaces/alarms_and_condition
 import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 import type { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
 import type { AddressSpacePrivate } from "../address_space_private";
-import { _clear_timer_if_any, type UAShelvedStateMachineExImpl, UAShelvedStateMachineExImplBase } from "../state_machine/ua_shelving_state_machine_ex";
+import {
+    _clear_timer_if_any,
+    type UAShelvedStateMachineExImpl,
+    UAShelvedStateMachineExImplBase
+} from "../state_machine/ua_shelving_state_machine_ex";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { ConditionInfoImpl } from "./condition_info_impl";
 import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl";
@@ -28,7 +32,7 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     });
 }
 
-const  $ = (a: UAAlarmConditionImplBase): UAAlarmConditionEx =>  a as unknown as UAAlarmConditionEx;
+const $ = (a: UAAlarmConditionImplBase): UAAlarmConditionEx => a as unknown as UAAlarmConditionEx;
 export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase {
     public static MaxDuration = 2 ** 31;
 
@@ -178,7 +182,6 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         return alarmNode;
     }
 
-
     public dispose(): void {
         if ($(this).shelvingState) {
             _clear_timer_if_any($(this).shelvingState as unknown as UAShelvedStateMachineExImpl);
@@ -240,7 +243,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         if (duration < 10 || duration >= 2 ** 31) {
             throw new Error(` Invalid maxTimeShelved duration: ${duration}  must be [10,2**31] `);
         }
-       $(this).maxTimeShelved?.setValueFromSource({
+        $(this).maxTimeShelved?.setValueFromSource({
             dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
             value: duration
         });
@@ -271,7 +274,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
      *       whose node id is stored in alarm.inputNode
      */
     public getInputNodeNode(): UAVariable | null {
-        const nodeId =$(this).inputNode.readValue().value.value;
+        const nodeId = $(this).inputNode.readValue().value.value;
         assert(nodeId instanceof NodeId || nodeId === null);
         return this.addressSpace.findNode(nodeId) as UAVariable | null;
     }
@@ -321,12 +324,12 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
         if (inputNode instanceof NodeId) {
-           $(this).inputNode.setValueFromSource({
+            $(this).inputNode.setValueFromSource({
                 dataType: DataType.NodeId,
                 value: inputNode as NodeId
             });
         } else {
-           $(this).inputNode.setValueFromSource({
+            $(this).inputNode.setValueFromSource({
                 dataType: "NodeId",
                 value: (inputNode as BaseNode).nodeId
             });
@@ -336,7 +339,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
                 debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
-               $(this).inputNode.setValueFromSource({
+                $(this).inputNode.setValueFromSource({
                     dataType: DataType.NodeId,
                     value: _node.nodeId
                 });
@@ -433,7 +436,6 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 
         // detect potential internal bugs due to misused of _signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
-            // tslint:disable-next-line:no-console
             debugLog("oldConditionInfo", oldConditionInfo);
             debugLog("oldConditionInfo", newConditionInfo);
             throw new Error(

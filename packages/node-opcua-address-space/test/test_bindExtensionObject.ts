@@ -1,6 +1,3 @@
-/* eslint-disable max-statements */
-// tslint:disable: no-console
-
 import { assert } from "node-opcua-assert";
 import type { DateTime, UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
@@ -562,9 +559,7 @@ describe("Extension Object binding and sub  components\n", () => {
     });
 });
 
-// tslint:disable-next-line: no-empty-interface
 interface UAMeasIdDataType extends UAVariable {}
-// tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;
     $description: UAVariableT<LocalizedText, DataType.LocalizedText>;

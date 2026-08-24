@@ -381,8 +381,6 @@ describe("testing ReferenceType", () => {
     }
 
     it("BaseNode#findReferencesEx should be fast ", function (this: any, done: any) {
-        // tslint:disable:no-console
-
         this.timeout(Math.max(this.timeout(), 100000));
 
         const bench = new Benchmarker();

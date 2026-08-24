@@ -1,7 +1,7 @@
 import { type DataType, Variant } from "node-opcua-variant";
-import type { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariableT } from "../..";
 import should from "should";
-import { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariableT } from "../..";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions";
 
 export function utest_non_exclusive_deviation_alarm(test: MochaSuiteEx): void {
     describe("Deviation Alarms : Non ExclusiveDeviationAlarms", () => {

@@ -11,7 +11,7 @@ describe("#411 - AddMethod  should not changes namespace of custom datatype", ()
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let _analogItem;
+    let _analogItem: ReturnType<Namespace["addAnalogDataItem"]>;
 
     before(async () => {
         addressSpace = AddressSpace.create();

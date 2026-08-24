@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */

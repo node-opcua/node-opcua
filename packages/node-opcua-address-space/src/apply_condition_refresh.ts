@@ -8,7 +8,7 @@ export function apply_condition_refresh(this: UAObject | UAVariable, cache?: Con
     cache = cache || new Map();
     const notifiers = this.getNotifiers();
     const eventSources = this.getEventSources();
-    
+
     const conditions = this.findReferencesAsObject("HasCondition", true);
     for (const condition of conditions) {
         if (condition instanceof UAConditionImpl) {

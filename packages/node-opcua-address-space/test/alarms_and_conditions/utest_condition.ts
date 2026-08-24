@@ -5,9 +5,16 @@ import { type CallMethodResultOptions, NodeClass } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { type AddressSpace, SessionContext, type UACondition_Base, type UAConditionEx, type UAEventType, type UAObject } from "../..";
+import {
+    type AddressSpace,
+    SessionContext,
+    type UACondition_Base,
+    type UAConditionEx,
+    type UAEventType,
+    type UAObject
+} from "../..";
 import { mockSession } from "../../testHelpers";
-import { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions";
 
 export function utest_condition(test: MochaSuiteEx): void {
     describe("AddressSpace : Conditions 2", () => {
@@ -62,8 +69,8 @@ export function utest_condition(test: MochaSuiteEx): void {
                 // xx                should.not.exist(condition.enabledState.effectiveTransitionTime);
             });
 
-            interface II  {
-evaluateConditionsAfterEnabled?: ()=>void;
+            interface II {
+                evaluateConditionsAfterEnabled?: () => void;
             }
             it(
                 "should be possible to enable and disable a condition using the enable & disable methods" +

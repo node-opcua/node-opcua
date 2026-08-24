@@ -2,8 +2,8 @@ import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataType } from "node-opcua-variant";
 import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
+import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
     type ContinuationPoint,

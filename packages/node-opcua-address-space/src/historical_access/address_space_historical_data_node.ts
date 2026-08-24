@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 
 import chalk from "chalk";
 import type {
@@ -35,7 +34,6 @@ import { UAVariableImpl } from "../ua_variable_impl";
 
 const warningLog = make_warningLog(__filename);
 
-// tslint:disable:no-var-requires
 interface DequeueItem<T> {
     data: T | null;
     next: DequeueItem<T>;
@@ -737,7 +735,6 @@ export function AddressSpace_installHistoricalDataNode(
     }
     node.historizing = true;
 
-    // tslint:disable:no-bitwise
     node.accessLevel = node.accessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;
     if (node.userAccessLevel !== undefined) {
         node.userAccessLevel = node.userAccessLevel | AccessLevelFlag.CurrentRead | AccessLevelFlag.HistoryRead;

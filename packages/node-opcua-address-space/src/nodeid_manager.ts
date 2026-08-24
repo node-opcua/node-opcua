@@ -1,6 +1,3 @@
-/* eslint-disable max-depth */
-/* eslint-disable max-statements */
-
 import type { BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
@@ -243,7 +240,6 @@ export class NodeIdManager {
     }
 
     private _constructNodeId(options: ConstructNodeIdOptions): NodeId {
-
         const resolveNodeIdEx = (nodeId: BaseNode | NodeIdLike) =>
             nodeId && typeof nodeId === "object" && nodeId instanceof BaseNodeImpl
                 ? nodeId.nodeId

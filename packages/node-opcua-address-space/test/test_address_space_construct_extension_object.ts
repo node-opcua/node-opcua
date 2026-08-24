@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-// tslint:disable:no-bitwise
 // =====================================================================================================================
 // the purpose of this test is to check the ability to create a extension object from it's node
 // id out of the address_space

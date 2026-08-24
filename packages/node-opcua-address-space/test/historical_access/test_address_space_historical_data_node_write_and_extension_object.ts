@@ -1,17 +1,11 @@
+import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataValue } from "node-opcua-data-value";
-import { DataType } from "node-opcua-variant";
 import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
-import {
-    AddressSpace,
-    type ContinuationPoint,
-    ContinuationPointManager,
-    SessionContext,
-    type UAVariable
-} from "../..";
+import { DataType } from "node-opcua-variant";
+import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext, type UAVariable } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
 
@@ -113,7 +107,11 @@ describe("Testing Historical Data Node - write path and ExtensionObject", () => 
         for (let i = 0; i < 3; i++) {
             const range = addressSpace.constructExtensionObject(rangeDataType, { low: i, high: 10 + i });
             // NOTE: no touchValue() here - setValueFromSource must historize on its own
-            node.setValueFromSource({ dataType: DataType.ExtensionObject, value: range }, StatusCodes.Good, date_add(today, { seconds: i }));
+            node.setValueFromSource(
+                { dataType: DataType.ExtensionObject, value: range },
+                StatusCodes.Good,
+                date_add(today, { seconds: i })
+            );
         }
 
         const dataValues = await readAllHistory(node, today);

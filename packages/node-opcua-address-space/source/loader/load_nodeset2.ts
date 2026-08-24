@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space
  */
@@ -806,13 +805,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 this.obj.value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
             }
             */
-            // eslint-disable-next-line prefer-const
             let capturedVariable: UAVariable | undefined;
             if (this.obj.value && this.obj.value.dataType !== DataType.Null) {
                 let capturedValue: VariantOptions | undefined = this.obj.value;
                 const task = async (_addressSpace2: IAddressSpace) => {
                     if (!capturedVariable) return;
                     const cv = capturedVariable;
+                    // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                     if (false && doDebug) {
                         debugLog("1 setting value to ", cv.nodeId.toString(), new Variant(capturedValue).toString());
                     }
@@ -836,6 +835,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank, arrayDimensions);
                     if (value) {
+                        // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                         if (false && doDebug) {
                             debugLog("2 setting value to ", cv.nodeId.toString(), value);
                         }
@@ -1178,7 +1178,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     await task(addressSpace1);
                 } catch (err) {
                     // c8 ignore next
-                    // tslint:disable:no-console
                     if (types.isNativeError(err)) {
                         errorLog(
                             `[NODE-OPCUA-W36] generateAddressSpace: post-loading task failed during "${stage}" and was skipped: ${err.message}`

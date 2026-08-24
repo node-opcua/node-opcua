@@ -15,8 +15,9 @@ export interface UAAcknowledgeableConditionEvents extends UAConditionEvents {
     confirmed: (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
 }
 
-export interface UAAcknowledgeableConditionEx<T extends UAAcknowledgeableConditionEvents & ListenerSignature<T> = UAAcknowledgeableConditionEvents>
-    extends UAAcknowledgeableCondition_Base,
+export interface UAAcknowledgeableConditionEx<
+    T extends UAAcknowledgeableConditionEvents & ListenerSignature<T> = UAAcknowledgeableConditionEvents
+> extends UAAcknowledgeableCondition_Base,
         UAAcknowledgeableConditionHelper,
         UAConditionEx<T> {
     enabledState: UATwoStateVariableEx;

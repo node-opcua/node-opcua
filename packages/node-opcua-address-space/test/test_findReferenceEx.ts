@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 import chalk from "chalk";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";

@@ -39,7 +39,6 @@ export declare interface UAOffNormalAlarmEx
     setNormalStateValue(value: NodeIdLike): void;
 }
 
-
 const $ = (instance: UAOffNormalAlarmImplBase): UAOffNormalAlarmEx => instance as unknown as UAOffNormalAlarmEx;
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a

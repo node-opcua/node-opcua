@@ -1,9 +1,6 @@
-/* eslint-disable complexity */
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-address-space.Private
  */
-// tslint:disable:no-bitwise
 import chalk from "chalk";
 import type {
     BaseNode,
@@ -44,7 +41,6 @@ import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf";
 
-// eslint-disable-next-line prefer-const
 const errorLog = make_errorLog("address-space:BaseNode");
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
@@ -618,7 +614,6 @@ function _clone_collection_new(
 
         // c8 ignore next
         if (typeof node.clone !== "function") {
-            // tslint:disable-next-line:no-console
             warningLog(
                 chalk.red("Warning : cannot clone node ") +
                     fullPath2(node) +
@@ -1278,7 +1273,6 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
         warningLog("    ", reference.toString(opts));
         warningLog(" already found in ===>");
         warningLog([..._private._back_referenceIdx.values()].map((c: UAReference) => c.toString(opts)).join("\n"));
-        // tslint:disable-next-line:no-console
         warningLog("===>");
         throw new Error("reference exists already in _back_references");
     }

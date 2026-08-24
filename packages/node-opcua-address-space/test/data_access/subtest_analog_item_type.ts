@@ -225,9 +225,9 @@ export function subtest_analog_item_type(maintest: any): void {
             analogItem.euRange.readValue().value.value.low.should.eql(0);
             analogItem.euRange.readValue().value.value.high.should.eql(100);
             analogItem.instrumentRange?.readValue().value.value.low.should.eql(0);
-            analogItem.engineeringUnits?.readValue().value.value.displayName.text?.should.eql(
-                standardUnits.degree_celsius.displayName?.text
-            );
+            analogItem.engineeringUnits
+                ?.readValue()
+                .value.value.displayName.text?.should.eql(standardUnits.degree_celsius.displayName?.text);
 
             const browseDescription = new BrowseDescription({
                 browseDirection: BrowseDirection.Forward,

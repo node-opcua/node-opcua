@@ -1041,7 +1041,7 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         namespace.createDataType({
             browseName: "MyCustomDataType",
             subtypeOf: "Structure",
-            isAbstract: false,
+            isAbstract: false
         });
 
         const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
@@ -1056,34 +1056,27 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         // is higher than ours.
         const myInstance = namespace.addObject({
             browseName: "MyMachine",
-            organizedBy: addressSpace.rootFolder.objects,
+            organizedBy: addressSpace.rootFolder.objects
         });
 
         myInstance.addReference({
             referenceType: "HasInterface",
-            nodeId: iVendorNameplateType!.nodeId,
+            nodeId: iVendorNameplateType!.nodeId
         });
 
         const xml = namespace.toNodeset2XML();
 
         // DI namespace must appear in NamespaceUris
-        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
-            "DI namespace URI must be in NamespaceUris");
+        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//, "DI namespace URI must be in NamespaceUris");
 
         // HasInterface reference must be serialized with a valid namespace-qualified NodeId
-        xml.should.match(/HasInterface/,
-            "HasInterface reference must be serialized");
+        xml.should.match(/HasInterface/, "HasInterface reference must be serialized");
 
         // The HasInterface target must NOT be ns=0 (would mean DI was dropped)
-        const machineSection = xml.substring(
-            xml.indexOf("MyMachine {{{{"),
-            xml.indexOf("MyMachine }}}}")
-        );
-        machineSection.should.match(/HasInterface/,
-            "MyMachine must have HasInterface reference");
+        const machineSection = xml.substring(xml.indexOf("MyMachine {{{{"), xml.indexOf("MyMachine }}}}"));
+        machineSection.should.match(/HasInterface/, "MyMachine must have HasInterface reference");
         // Verify the target uses ns=2 (DI), not i= (bare, which would imply ns=0)
-        machineSection.should.match(/HasInterface.*>ns=\d+;i=\d+</,
-            "HasInterface target must have an explicit namespace prefix");
+        machineSection.should.match(/HasInterface.*>ns=\d+;i=\d+</, "HasInterface target must have an explicit namespace prefix");
     });
 
     it("NSXML-PRIO-2 should include DI namespace as dependency when instance is organizedBy a DI folder", () => {
@@ -1093,7 +1086,7 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         namespace.createDataType({
             browseName: "MyCustomDataType",
             subtypeOf: "Structure",
-            isAbstract: false,
+            isAbstract: false
         });
 
         const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
@@ -1110,27 +1103,24 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         // (namespace 0), which doesn't exist.
         const myInstance = namespace.addObject({
             browseName: "MyMachine",
-            organizedBy: deviceSet,
+            organizedBy: deviceSet
         });
 
         const xml = namespace.toNodeset2XML();
 
         // DI namespace must appear in NamespaceUris
-        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//,
-            "DI namespace URI must be in NamespaceUris");
+        xml.should.match(/http:\/\/opcfoundation\.org\/UA\/DI\//, "DI namespace URI must be in NamespaceUris");
 
         // Organizes inverse reference must be serialized
-        xml.should.match(/Organizes/,
-            "Organizes reference must be serialized");
+        xml.should.match(/Organizes/, "Organizes reference must be serialized");
 
         // The Organizes target must reference the DI namespace (ns=2),
         // NOT bare i=5001 which would mean namespace 0
-        const machineSection = xml.substring(
-            xml.indexOf("MyMachine {{{{"),
-            xml.indexOf("MyMachine }}}}")
+        const machineSection = xml.substring(xml.indexOf("MyMachine {{{{"), xml.indexOf("MyMachine }}}}"));
+        machineSection.should.match(
+            /Organizes.*IsForward="false".*>ns=\d+;i=5001</,
+            "Organizes inverse reference must use namespace-qualified NodeId for DeviceSet"
         );
-        machineSection.should.match(/Organizes.*IsForward="false".*>ns=\d+;i=5001</,
-            "Organizes inverse reference must use namespace-qualified NodeId for DeviceSet");
     });
 
     it("NSXML-PRIO-3 should produce XML that can be reloaded when instance is organizedBy a cross-namespace folder", async () => {
@@ -1141,7 +1131,7 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         namespace.createDataType({
             browseName: "MyCustomDataType",
             subtypeOf: "Structure",
-            isAbstract: false,
+            isAbstract: false
         });
 
         const diNamespace = addressSpace.getNamespace("http://opcfoundation.org/UA/DI/");
@@ -1159,12 +1149,12 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         //   - forward HasInterface to di:IVendorNameplateType (NonHierarchicalReference)
         const myInstance = namespace.addObject({
             browseName: "MyMachine",
-            organizedBy: deviceSet,
+            organizedBy: deviceSet
         });
 
         myInstance.addReference({
             referenceType: "HasInterface",
-            nodeId: iVendorNameplateType!.nodeId,
+            nodeId: iVendorNameplateType!.nodeId
         });
 
         // Export the namespace to XML

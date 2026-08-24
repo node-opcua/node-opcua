@@ -1,4 +1,3 @@
-// tslint:disable:no-bitwise
 import fs from "node:fs";
 import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -711,7 +710,6 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
         const struct = addressSpace.constructExtensionObject(myStructDataTypeNode, {
             id: "Hello"
         });
-        // tslint:disable-next-line: no-console
         debugLog(struct.toString());
     });
 });

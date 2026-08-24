@@ -187,7 +187,6 @@ describe("testing UAVariableType", () => {
         postInstantiateFunc.callCount.should.eql(1);
     });
 
-    // tslint:disable:no-console
     it("UAVariableType#toString()", () => {
         const variableType = addressSpace.getOwnNamespace().addVariableType({
             arrayDimensions: [3, 3],
@@ -236,7 +235,6 @@ describe("testing UAVariableType", () => {
         });
         instance2.displayName.toString().should.eql("locale=null text=Instance2 DisplayName");
 
-        // tslint:disable:no-console
         debugLog(varType.toString());
     });
     it("UAVariableType: create should handle description - type 1", () => {

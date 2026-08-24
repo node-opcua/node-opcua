@@ -113,7 +113,6 @@ describe("verifyArguments_ArgumentList", () => {
         const args = [new Variant({ dataType: DataType.UInt32, value: 1 })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, args);
 
-        // tslint:disable: no-console
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
 
@@ -125,7 +124,6 @@ describe("verifyArguments_ArgumentList", () => {
     it("verifyArguments_ArgumentList - One UInt32 - TypeMismatch", () => {
         const argsBad = [new Variant({ dataType: DataType.String, value: "Bad" })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, argsBad);
-        // tslint:disable: no-console
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
@@ -183,7 +181,6 @@ describe("verifyArguments_ArgumentList", () => {
             })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsGood1);
-        // tslint:disable: no-console
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
@@ -201,7 +198,6 @@ describe("verifyArguments_ArgumentList", () => {
             })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
-        // tslint:disable: no-console
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
@@ -218,7 +214,6 @@ describe("verifyArguments_ArgumentList", () => {
             })
         ];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
-        // tslint:disable: no-console
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({

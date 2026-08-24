@@ -29,7 +29,6 @@ import { create_minimalist_address_space_nodeset } from "../testHelpers";
 const context = SessionContext.defaultContext;
 
 describe("testing Variables ", () => {
-    // eslint-disable-next-line max-statements
     it("ZZ1- a variable should return attributes with  the expected data type ", () => {
         const addressSpace = AddressSpace.create();
         create_minimalist_address_space_nodeset(addressSpace);
@@ -44,7 +43,7 @@ describe("testing Variables ", () => {
             userAccessLevel: "CurrentRead"
         });
 
-        let value;
+        let value: DataValue;
 
         value = v.readAttribute(context, AttributeIds.AccessLevel);
         value.value.dataType.should.eql(DataType.Byte);
@@ -523,8 +522,9 @@ describe("testing Variable#bindVariable", () => {
 
         const _d1 = await variable.readValueAsync(context);
 
+        innerValue = 20;
         const dataValue = new DataValue({
-            value: { dataType: DataType.Double, value: (innerValue = 20) }
+            value: { dataType: DataType.Double, value: innerValue }
         });
         const s = await variable.writeValue(context, dataValue);
         const d2 = await variable.readValueAsync(context);

@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { Benchmarker } from "node-opcua-benchmarker";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";

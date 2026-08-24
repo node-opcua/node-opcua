@@ -1,4 +1,3 @@
-// tslint:disable:max-line-length
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";

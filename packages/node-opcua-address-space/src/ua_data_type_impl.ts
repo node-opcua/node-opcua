@@ -272,7 +272,6 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         return definition as EnumDefinition;
     }
 
-    // eslint-disable-next-line complexity
     public _getDefinition(): DataTypeDefinition | null {
         if (this.$fullDefinition !== undefined) {
             return this.$fullDefinition;
@@ -314,7 +313,6 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             this.$fullDefinition = makeStructureDefinition(basicDataType, defaultEncodingId, definitionFields, isUnion);
         } else if (isEnumeration) {
             const allPartialDefinitions: StructureFieldOptions[][] = [];
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
             let dataTypeNode: UADataTypeImpl | null = this;
             while (dataTypeNode && !isRootDataType(dataTypeNode)) {
                 if (dataTypeNode.$partialDefinition) {

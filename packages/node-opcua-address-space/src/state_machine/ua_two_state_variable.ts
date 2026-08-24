@@ -15,6 +15,7 @@ import { VariableTypeIds } from "node-opcua-constants";
 import {
     BrowseDirection,
     coerceLocalizedText,
+    coerceLocalizedTextStrict,
     type LocalizedText,
     type LocalizedTextLike,
     type QualifiedNameLike
@@ -93,7 +94,7 @@ function _getEffectiveDisplayName<_T, _DT extends DataType>(
     }
     const boolValue = node.getValue();
 
-    let subStateNodes;
+    let subStateNodes: BaseNode[];
     if (boolValue) {
         subStateNodes = node.findReferencesExAsObject("HasTrueSubState", BrowseDirection.Forward);
     } else {
@@ -199,6 +200,7 @@ export declare interface UATwoStateVariableImpl extends UATwoStateVariableEx {
 /***
  * @class UATwoStateVariable
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataType.LocalizedText> implements UATwoStateVariableEx {
     private _trueState?: string;
     private _falseState?: string;
@@ -222,7 +224,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                     value: coerceLocalizedText(options.trueState)
                 });
             } else {
-                this._trueState = coerceLocalizedText(options.trueState)?.text!;
+                this._trueState = coerceLocalizedTextStrict(options.trueState).text ?? undefined;
             }
             if (this.falseState) {
                 this.falseState.setValueFromSource({
@@ -230,7 +232,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
                     value: coerceLocalizedText(options.falseState)
                 });
             } else {
-                this._falseState = coerceLocalizedText(options.falseState)?.text!;
+                this._falseState = coerceLocalizedTextStrict(options.falseState).text ?? undefined;
             }
         }
 

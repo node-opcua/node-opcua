@@ -45,7 +45,7 @@ describe("testing UAObjectType", () => {
             isAbstract: true
         });
 
-        let value;
+        let value: DataValue;
         value = objType.readAttribute(context, AttributeIds.IsAbstract);
         value.value.dataType.should.eql(DataType.Boolean);
         value.statusCode.should.eql(StatusCodes.Good);
@@ -102,7 +102,6 @@ describe("testing UAObjectType", () => {
             dataType: "Double",
             modellingRule: "Mandatory"
         });
-        // tslint:disable:no-console
         debugLog(objType.toString());
         debugLog(variable.toString());
     });
@@ -129,7 +128,6 @@ describe("testing UAObjectType", () => {
         });
         instance2.displayName.toString().should.eql("locale=null text=Instance2 DisplayName");
 
-        // tslint:disable:no-console
         debugLog(objType.toString());
     });
 

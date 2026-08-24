@@ -1,4 +1,3 @@
-// tslint:disable:max-line-length
 import { resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
 import { AddressSpace } from "..";

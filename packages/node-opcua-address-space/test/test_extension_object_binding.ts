@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";

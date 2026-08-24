@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */

@@ -23,16 +23,14 @@ import { type UAConditionImpl, UAConditionImplBase } from "./ua_condition_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = false;
 
-
 const $ = (a: UAAcknowledgeableConditionImplBase): UAAcknowledgeableConditionEx => a as unknown as UAAcknowledgeableConditionEx;
 
-
-export interface UAAcknowegeableConditionEvents extends UAConditionEvents  {
+export interface UAAcknowegeableConditionEvents extends UAConditionEvents {
     acknowledged: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
     confirmed: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
 }
 export class UAAcknowledgeableConditionImplBase<
-    T extends UAAcknowegeableConditionEvents & ListenerSignature<T>  = UAAcknowegeableConditionEvents
+    T extends UAAcknowegeableConditionEvents & ListenerSignature<T> = UAAcknowegeableConditionEvents
 > extends UAConditionImplBase<T> {
     /**
      */
@@ -201,7 +199,7 @@ export class UAAcknowledgeableConditionImplBase<
         this.raiseNewBranchState(branch);
 
         this._raiseAuditConditionAcknowledgeEvent(branch);
-        
+
         /**
          * @event acknowledged
          * @param  eventId   {Buffer|null}
@@ -240,7 +238,7 @@ export class UAAcknowledgeableConditionImplBase<
 
         this.raiseNewBranchState(branch);
 
-       /**
+        /**
          * @event confirmed
          * @param  eventId
          * @param  comment
@@ -251,7 +249,7 @@ export class UAAcknowledgeableConditionImplBase<
     }
 
     /**
-     * 
+     *
      */
     public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
         assert(branch instanceof ConditionSnapshotImpl);

@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */
@@ -56,7 +55,6 @@ import {
     constructNamespacePriorityTable
 } from "./construct_namespace_dependency";
 
-// tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
 
 const debugLog = make_debugLog(__filename);
@@ -381,7 +379,6 @@ function _dumpVariantInnerExtensionObject(
                     }
                 }
             } catch (err) {
-                // eslint-disable-next-line max-depth
                 if (types.isNativeError(err)) {
                     errorLog("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                 }
@@ -410,7 +407,6 @@ function _dumpVariantInnerValueEnum(xw: XmlWriter, definition: EnumDefinition, v
     xw.text(`${field?.name}_${field?.value[1]}`);
 }
 
-// eslint-disable-next-line complexity
 function _dumpVariantInnerValue(
     xw: XmlWriter,
     dataType: DataType,
@@ -565,7 +561,6 @@ function _dumpVariantExtensionObjectValue2(xw: XmlWriter, addressSpace: IAddress
     _dumpVariantExtensionObjectValue(xw, dataTypeNode.nodeId, definitionMap, addressSpace, value);
 }
 
-// eslint-disable-next-line complexity
 function _isDefaultValue(value: Variant): boolean {
     // detect default value
     if (value.arrayType === VariantArrayType.Scalar) {
@@ -631,7 +626,6 @@ function _isDefaultValue(value: Variant): boolean {
     }
 }
 
-// eslint-disable-next-line max-statements
 function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: Variant) {
     const addressSpace = node.addressSpace;
 
@@ -1426,7 +1420,6 @@ function makeTypeXsd(namespaceUri: string): string {
     return `${namespaceUri.replace(/\/$/, "")}/Type.xsd`;
 }
 
-// eslint-disable-next-line max-statements
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
     const namespaceArray: string[] = namespaceArrayNode

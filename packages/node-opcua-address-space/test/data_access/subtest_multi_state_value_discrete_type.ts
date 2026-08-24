@@ -1,5 +1,3 @@
-// tslint:disable:no-bitwise
-
 import { coerceInt8, coerceInt32, coerceInt64, coerceUInt8, coerceUInt32, coerceUInt64 } from "node-opcua-basic-types";
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { DataValue, DataValueT } from "node-opcua-data-value";

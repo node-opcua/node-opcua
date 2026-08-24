@@ -7,7 +7,6 @@ import type { AddressSpacePrivate } from "../address_space_private";
 import type { NamespacePrivate } from "../namespace_private";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
 
-// tslint:disable-next-line: no-var-requires
 const XMLWriter = require("xml-writer");
 
 function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): void {
@@ -16,7 +15,7 @@ function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): voi
     xw.writeAttribute("LengthInBits", "32");
     for (const f of e.fields || []) {
         xw.startElement("opc:EnumeratedValue");
-        xw.writeAttribute("Name", f.name|| "");
+        xw.writeAttribute("Name", f.name || "");
         assert(f.value[0] === 0, "unsupported 64 bit value !");
         xw.writeAttribute("Value", f.value[1].toString());
         xw.endElement();
@@ -44,7 +43,6 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: Map<number, string
     return `${prefix}:${typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName}`;
 }
 
-// eslint-disable-next-line max-statements
 function dumpDataTypeStructure(
     xw: XmlWriter,
     addressSpace: IAddressSpace,
@@ -119,15 +117,15 @@ function dumpDataTypeStructure(
         }
 
         xw.startElement("opc:Field");
-        xw.writeAttribute("Name", f.name|| "");
+        xw.writeAttribute("Name", f.name || "");
 
         const typeName = buildXmlName(addressSpace as AddressSpacePrivate, map, f.dataType);
         xw.writeAttribute("TypeName", typeName);
         if (isArray) {
-            xw.writeAttribute("LengthField", `NoOf${f.name|| ""}`);
+            xw.writeAttribute("LengthField", `NoOf${f.name || ""}`);
         }
         if (f.isOptional) {
-            xw.writeAttribute("SwitchField", `${f.name|| ""}Specified`);
+            xw.writeAttribute("SwitchField", `${f.name || ""}Specified`);
         }
         xw.endElement();
     }

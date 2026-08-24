@@ -88,7 +88,7 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
     if (f) {
         console.log(conditionName, conditionTypeDefinition, conditionJavascriptClass);
     }
-  
+
     // ----------------------------------------------------------------
     // tripAlarm that signals that the "Tank lid" is opened
     const _tripAlarmType = addressSpace.findEventType("TripAlarmType");

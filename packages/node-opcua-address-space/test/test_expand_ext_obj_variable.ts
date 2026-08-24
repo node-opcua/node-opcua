@@ -1,6 +1,3 @@
-/* eslint-disable max-statements */
-/* eslint-disable no-inner-declarations */
-
 import { AttributeIds, type DateTime } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
 import { makeAccessLevelFlag } from "node-opcua-data-model";
@@ -220,7 +217,6 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
     });
     [addVariable_setValueFromSource_installExtensionObjectVariable_array, addVariable_bindExtensionObject_array].forEach(
         (build, index) => {
-            // eslint-disable-next-line max-statements
             it(`D1-${index} ${build.name}- should expand a array extension object variable`, async () => {
                 const uaVariable = build();
 
@@ -416,7 +412,6 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                 const el11 = uaVariable.getComponentByName("1,1") as UAVariable;
                 const el12 = uaVariable.getComponentByName("1,2") as UAVariable;
 
-                // eslint-disable-next-line max-statements
                 const verify = (array: { x: number; y: number; z: number }[]) => {
                     const dataValue = uaVariable.readValue();
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);

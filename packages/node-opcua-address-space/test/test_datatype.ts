@@ -1,4 +1,5 @@
 import { AttributeIds } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
@@ -30,7 +31,7 @@ describe("testing UADataype -  Attribute", () => {
             subtypeOf: "BaseDataType"
         });
 
-        let value;
+        let value: DataValue;
 
         value = dataType.readAttribute(context, AttributeIds.IsAbstract);
         value.statusCode.should.eql(StatusCodes.Good);

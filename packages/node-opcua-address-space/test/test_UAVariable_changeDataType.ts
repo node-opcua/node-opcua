@@ -25,7 +25,7 @@ describe("Testing UAVariable changeDataType", () => {
         { from: "UInt32", to: "Int32", value: [42, 23] },
         { from: DataType.Null, to: DataType.ExtensionObject, value: null },
         { from: "i=0", to: "i=22", value: null }
-    ].map((test, index) => {
+    ].forEach((test, index) => {
         it(`test-${index} should change dataType of a UAVariable from ${test.from} to ${test.to}`, () => {
             const fromDataTypeNode = addressSpace.findDataType(test.from)!;
             fromDataTypeNode && should(fromDataTypeNode).be.instanceOf(Object);

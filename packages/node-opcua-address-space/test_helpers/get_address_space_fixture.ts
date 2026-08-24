@@ -23,7 +23,6 @@ export function getAddressSpaceFixture(pathname: string): string {
 
             // c8 ignore next
             if (!fs.existsSync(folder)) {
-                // tslint:disable:no-console
                 console.log(" cannot find test_fixtures folder ");
             }
         }

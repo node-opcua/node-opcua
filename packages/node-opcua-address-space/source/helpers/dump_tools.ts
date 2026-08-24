@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 import type { BaseNode, IAddressSpace, UAReference, UAReferenceType as UAReferenceTypePublic } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
@@ -40,7 +39,9 @@ export function dumpReferenceDescription(addressSpace: IAddressSpace, referenceD
 }
 
 export function dumpReferenceDescriptions(addressSpace: IAddressSpace, referenceDescriptions: ReferenceDescription[]): void {
-    referenceDescriptions.forEach((r: ReferenceDescription) => dumpReferenceDescription(addressSpace, r));
+    referenceDescriptions.forEach((r: ReferenceDescription) => {
+        dumpReferenceDescription(addressSpace, r);
+    });
 }
 
 export function dumpBrowseDescription(node: BaseNode, _browseDescription: BrowseDescriptionOptions): void {

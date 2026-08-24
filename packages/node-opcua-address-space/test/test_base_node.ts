@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";

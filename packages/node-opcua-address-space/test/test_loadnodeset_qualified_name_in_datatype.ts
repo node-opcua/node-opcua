@@ -1,4 +1,3 @@
-// tslint:disable:no-bitwise
 import fs from "node:fs";
 import path from "node:path";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

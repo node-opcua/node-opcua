@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -213,8 +211,6 @@ export function utest_alarm_condition(test: any): void {
                 let previous = timeShelvedDuration + 1;
 
                 const _timer = setInterval(() => {
-
-                   
                     const variant = alarm.shelvingState?.unshelveTime.readValue().value;
                     should(variant?.dataType).eql(DataType.Double);
 
@@ -410,7 +406,7 @@ export function utest_alarm_condition(test: any): void {
             condition.findBranchForEventId(null)?.should.eql(branch);
 
             const acknowledged_spy = sinon.spy();
-            
+
             condition.on("acknowledged", acknowledged_spy);
 
             const confirmed_spy = sinon.spy();

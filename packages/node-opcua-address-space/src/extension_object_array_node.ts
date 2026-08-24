@@ -4,7 +4,7 @@
 
 import type { UADataType, UADynamicVariableArray, UAObject, UAReferenceType, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { BrowseDirection, NodeClass } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
@@ -217,7 +217,7 @@ export function addElement<T extends ExtensionObject>(
 
     let extensionObject: T;
     let elVar = null;
-    let browseName;
+    let browseName: QualifiedName;
 
     if (options instanceof UAVariableImpl) {
         elVar = options;
@@ -298,5 +298,5 @@ export function removeElement<T extends ExtensionObject>(
     if (elementIndex < 0) {
         throw new Error(`removeElement: cannot find element matching ${element.toString()}`);
     }
-    return removeElementByIndex(uaArrayVariableNode, elementIndex);
+    removeElementByIndex(uaArrayVariableNode, elementIndex);
 }

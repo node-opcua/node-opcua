@@ -70,6 +70,7 @@ function getUserName(userIdentityToken: AnyUserIdentityToken): string {
 // The canonical definition now lives in node-opcua-constants so that
 // client-side packages can use it without pulling in address-space.
 import { WellKnownRoles } from "node-opcua-constants";
+
 export { WellKnownRoles } from "node-opcua-constants";
 
 /** @deprecated Use WellKnownRoles instead */

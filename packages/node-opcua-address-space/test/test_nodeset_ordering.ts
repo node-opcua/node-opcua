@@ -13,7 +13,9 @@ describe("Ordering NodeSet2 files", () => {
         const xmlFiles = [nodesets.standard, nodesets.adi, nodesets.di];
         const nodesetDescArray = await preLoad(xmlFiles, readNodeSet2XmlFile);
 
-        nodesetDescArray.forEach((x) => (x.xmlData = ""));
+        nodesetDescArray.forEach((x) => {
+            x.xmlData = "";
+        });
         doDebug && console.log(JSON.stringify(nodesetDescArray, null, " "));
 
         const order = findOrder(nodesetDescArray);

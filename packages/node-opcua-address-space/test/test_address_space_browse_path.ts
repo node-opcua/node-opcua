@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { coerceQualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
@@ -56,7 +54,7 @@ describe("AddressSpace#browsePath", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/Server/ServerStatus");
         browsePath.relativePath?.elements?.[1]?.targetName.toString().should.eql("Server");
         // set a null target Name in the middle of the path
-        (browsePath.relativePath.elements?.[1]! as any).targetName = null;
+        (browsePath.relativePath.elements![1] as any).targetName = null;
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
         result.targets?.length.should.eql(0);
@@ -140,7 +138,6 @@ describe("AddressSpace#browsePath 2/2", () => {
         addressSpace.dispose();
     });
 
-    // tslint:disable: object-literal-sort-keys
     it("XSXS should explore browse path and only return one target", () => {
         const browsePath = new BrowsePath({
             startingNode /* NodeId              */: "i=84",

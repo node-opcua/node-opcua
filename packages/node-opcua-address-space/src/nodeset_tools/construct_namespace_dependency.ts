@@ -18,7 +18,6 @@ interface RequiredModel {
     requiredNamespaceIndexes: number[];
     nbTypes: number;
 }
-// eslint-disable-next-line max-statements, complexity
 export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?: Map<number, RequiredModel>): RequiredModel {
     if (namespace.index === 0) {
         return { requiredNamespaceIndexes: [], nbTypes: 1 };
@@ -236,9 +235,11 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
                         // always include the target namespace as a dependency
                         // regardless of priority, since the current node owns
                         // this relationship.
-                        if (reference.isForward
-                            && nonHierarchicalReferencesType
-                            && referenceType.isSubtypeOf(nonHierarchicalReferencesType)) {
+                        if (
+                            reference.isForward &&
+                            nonHierarchicalReferencesType &&
+                            referenceType.isSubtypeOf(nonHierarchicalReferencesType)
+                        ) {
                             consider(namespaceIndexOfTargetNode);
                         }
                         // For inverse HierarchicalReferences (e.g. Organizes),
@@ -246,9 +247,11 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
                         // regardless of priority, since the reference is
                         // stored on this node (organizedBy pattern).
                         const hierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
-                        if (!reference.isForward
-                            && hierarchicalReferencesType
-                            && referenceType.isSubtypeOf(hierarchicalReferencesType)) {
+                        if (
+                            !reference.isForward &&
+                            hierarchicalReferencesType &&
+                            referenceType.isSubtypeOf(hierarchicalReferencesType)
+                        ) {
                             consider(namespaceIndexOfTargetNode);
                         }
                     }

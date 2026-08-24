@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import path from "node:path";
 import sinon from "sinon";
 import "should";
@@ -36,7 +35,6 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         }
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let addressSpace: AddressSpace;
     this.timeout(Math.max(this.timeout(), 100000));
 

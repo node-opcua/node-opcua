@@ -32,14 +32,13 @@ import { UAObjectTypeImpl } from "../ua_object_type_impl";
 const warningLog = make_warningLog(__filename);
 
 const doDebug = false;
-const debugLog = make_debugLog(__filename); 
+const debugLog = make_debugLog(__filename);
 
 export class UATransitionImplBase extends BaseNodeImpl {
     /* intentionnaly empty */
 }
 export type UATransitionImpl = UATransitionImplBase & UATransitionEx;
-export const  UATransitionImpl = UATransitionImplBase as unknown as new () => UATransitionImpl;
-
+export const UATransitionImpl = UATransitionImplBase as unknown as new () => UATransitionImpl;
 
 function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType): UAObject[] {
     const get = (typeDef: UAObjectType) =>
@@ -61,8 +60,6 @@ function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType)
     }
     return components_parts as UAObject[];
 }
-
-
 
 const defaultPredicate = (transitions: UATransition[], fromState: UAState, toState: UAState) => {
     if (transitions.length === 0) {
@@ -122,10 +119,10 @@ export function getFiniteStateMachineTypeStateByName(uaFiniteStateMachineType: U
         return s.browseName.name === stateName;
     });
     assert(states.length <= 1);
-    return states.length === 1 ? (states[0]) : null;
+    return states.length === 1 ? states[0] : null;
 }
 
-const $ = (uaObject: UAStateMachineImplBase) =>  uaObject as  unknown as UAStateMachineEx;
+const $ = (uaObject: UAStateMachineImplBase) => uaObject as unknown as UAStateMachineEx;
 /*
  *
  * @class StateMachine
@@ -302,7 +299,10 @@ export class UAStateMachineImplBase extends UAObjectImpl {
     public setState(toStateNode: string | UAState | null, predicate?: TransitionSelector): void {
         if (!toStateNode) {
             this.currentStateNode = null;
-            $(this).currentState.setValueFromSource({ dataType: DataType.LocalizedText, value: null }, StatusCodes.BadStateNotActive);
+            $(this).currentState.setValueFromSource(
+                { dataType: DataType.LocalizedText, value: null },
+                StatusCodes.BadStateNotActive
+            );
             return;
         }
 
@@ -322,7 +322,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         $(this).currentState.setValueFromSource(
             {
                 dataType: DataType.LocalizedText,
-                value: coerceLocalizedText(toStateNode.displayName[0] || toStateNode.browseName.name  || "")
+                value: coerceLocalizedText(toStateNode.displayName[0] || toStateNode.browseName.name || "")
             },
             StatusCodes.Good
         );

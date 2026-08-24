@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 import type {
     AddBaseNodeOptions,
@@ -16,7 +15,6 @@ import type {
     AddViewOptions,
     AddYArrayItemOptions,
     BaseNode,
-
     CreateDataTypeOptions,
     CreateNodeOptions,
     EnumerationItem,
@@ -1804,7 +1802,6 @@ export class NamespaceImpl implements NamespacePrivate {
             case NodeClass.View:
                 break;
             default:
-                // tslint:disable-next-line:no-console
                 errorLog("Invalid class Name", node.nodeClass);
                 throw new Error("Invalid class name specified");
         }
@@ -1918,7 +1915,6 @@ export class NamespaceImpl implements NamespacePrivate {
             case NodeClass.View:
                 break;
             default:
-                // tslint:disable:no-console
                 warningLog("Invalid class Name", node.nodeClass);
                 throw new Error("Invalid class name specified");
         }

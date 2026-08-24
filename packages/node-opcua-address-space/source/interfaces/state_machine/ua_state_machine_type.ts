@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-empty-interface
 
 import type {
     InstantiateObjectOptions,

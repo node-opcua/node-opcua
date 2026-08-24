@@ -40,12 +40,11 @@ export interface UAConditionHelper extends UABaseEventHelper {
     findBranchForEventId(eventId: Buffer | null): ConditionSnapshot | null;
 }
 
-export interface UAConditionEx<T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents> extends 
-UABaseEventEx,
- UACondition_Base, 
- UAObject<T>, 
- UAConditionHelper 
- {
+export interface UAConditionEx<T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents>
+    extends UABaseEventEx,
+        UACondition_Base,
+        UAObject<T>,
+        UAConditionHelper {
     enabledState: UATwoStateVariableEx;
     // these are declared as optional in UABaseEvent_Base but required in UACondition_Base;
     // re-state them here to disambiguate the two parent interfaces.

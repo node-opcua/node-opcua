@@ -56,7 +56,6 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
     return machineTypeNode;
 }
 
-// tslint:disable:no-empty-interface
 interface SpecialTemperatureSensor extends TemperatureSensor {
     //
 }

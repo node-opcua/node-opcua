@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-// tslint:disable:max-statements
 import chalk from "chalk";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -9,7 +7,7 @@ import should from "should";
 import sinon from "sinon";
 
 import type { AddressSpace, UAObject, UAVariable } from "../..";
-import { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -33,7 +31,7 @@ function dumpEvent(addressSpace: AddressSpace, eventFields: string[], eventData:
     }
 
     debugLog("-----------------------");
-    eventFields.map((key: string) => {
+    eventFields.forEach((key: string) => {
         const variant = eventData[key];
         if (!variant || variant.dataType === DataType.Null) {
             return;
@@ -100,7 +98,6 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             });
         }
 
-        // eslint-disable-next-line max-statements
         it("should instantiate a ExclusiveLimitAlarm", () => {
             /* eslint max-statements: ["error", 60] */
             const alarm = addressSpace.getOwnNamespace().instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {

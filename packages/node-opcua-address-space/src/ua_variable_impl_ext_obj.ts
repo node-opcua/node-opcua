@@ -500,7 +500,6 @@ function _innerBindExtensionObjectScalar(
     );
 }
 
-// eslint-disable-next-line complexity
 export function _bindExtensionObject(
     uaVariable: UAVariableImpl,
     optionalExtensionObject?: ExtensionObject,
@@ -662,7 +661,6 @@ const composeBrowseNameAndNodeId = (uaVariable: UAVariable, indexes: number[]) =
     return { browseName, nodeId };
 };
 
-// eslint-disable-next-line max-statements, complexity
 export function _bindExtensionObjectArrayOrMatrix(
     uaVariable: UAVariableImpl,
     optionalExtensionObjectArray?: ExtensionObject[],
@@ -827,11 +825,11 @@ export function incrementElement(path: string | string[], data: any) {
     setElement(path, data, value + 1);
 }
 export function extractPartialData(path: string | string[], extensionObject: ExtensionObject) {
-    let name : string;
+    let name: string;
     if (typeof path === "string") {
         path = path.split(".");
     }
-    let i : number;
+    let i: number;
     // read partial value
     const partialData: any = {};
     let p: any = partialData;

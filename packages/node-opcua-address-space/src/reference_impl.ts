@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 import type { AddReferenceOpts, BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
@@ -52,7 +51,7 @@ function _w(str: string, width: number): string {
 }
 
 function _localCoerceToNodeID(nodeIdLike: string | NodeIdLike | { nodeId: NodeId }): NodeId {
-    if (typeof nodeIdLike === "object" &&  Object.hasOwn(nodeIdLike, "nodeId")) {
+    if (typeof nodeIdLike === "object" && Object.hasOwn(nodeIdLike, "nodeId")) {
         return (nodeIdLike as { nodeId: NodeId }).nodeId;
     }
     return coerceNodeId(nodeIdLike);

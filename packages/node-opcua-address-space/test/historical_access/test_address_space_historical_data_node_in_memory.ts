@@ -29,7 +29,6 @@ describe("Testing Historical Data Node", () => {
         addressSpace.dispose();
     });
 
-    // eslint-disable-next-line max-statements
     it("HHM3- should keep values up to options.maxOnlineValues to provide historical reads", async () => {
         const node = addressSpace.getOwnNamespace().addVariable({
             browseName: "MyVar2",

@@ -31,8 +31,8 @@ function normalizeName(str: string): string {
 
 const disabledVar = new Variant({
     dataType: "StatusCode",
-    value: StatusCodes.BadConditionDisabled,
-    // statusCode: StatusCodes.BadConditionDisabled    
+    value: StatusCodes.BadConditionDisabled
+    // statusCode: StatusCodes.BadConditionDisabled
 });
 
 // list of Condition variables that should not be published as BadConditionDisabled when the condition

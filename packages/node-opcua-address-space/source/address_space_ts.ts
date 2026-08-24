@@ -1,4 +1,3 @@
-// tslint:disable:max-classes-per-file
 /**
  * @module node-opcua-address-space
  */
@@ -140,6 +139,7 @@ export interface AddressSpace extends IAddressSpace {
     registerNamespace(namespaceUri: string): Namespace;
     rootFolder: UARootFolder;
 }
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class AddressSpace {
     public static historizerFactory: any;
 

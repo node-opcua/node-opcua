@@ -1,11 +1,11 @@
 import path from "node:path";
-import { nodesets } from "node-opcua-nodesets";
-import should from "should";
-import { encodeVariant, decodeVariant } from "node-opcua-variant";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-import { AddressSpace } from "..";
+import { decodeVariant, encodeVariant } from "node-opcua-variant";
+import should from "should";
 import type { UAVariable } from "..";
+import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 describe("Testing loadNodeSet - edge cases", async function (this: any) {

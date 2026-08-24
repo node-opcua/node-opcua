@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import "should";
 import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";

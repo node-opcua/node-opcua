@@ -349,8 +349,6 @@ export class PseudoSession implements IBasicSession {
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 PseudoSession.prototype.read = withCallback(PseudoSession.prototype.read);

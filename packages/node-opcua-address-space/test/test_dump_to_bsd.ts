@@ -24,7 +24,6 @@ describe("converting DataType to BSD schema files", () => {
             subtypeOf: "Structure"
         });
         const xml = dumpToBSD(namespace);
-        // tslint:disable-next-line: no-console
         // console.log(xml);
         xml.should.eql(`<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:tns="PRIVATE" DefaultByteOrder="LittleEndian" TargetNamespace="PRIVATE">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
@@ -59,7 +58,6 @@ describe("converting DataType to BSD schema files", () => {
         //  const definition = namespace.getStructureDefinition();
 
         const xml = dumpToBSD(namespace);
-        // tslint:disable-next-line: no-console
         // console.log(xml);
         xml.should.eql(`<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:tns="PRIVATE" DefaultByteOrder="LittleEndian" TargetNamespace="PRIVATE">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
@@ -79,7 +77,6 @@ describe("converting DataType to BSD schema files", () => {
         });
 
         const xml = dumpToBSD(namespace);
-        // tslint:disable-next-line: no-console
         // console.log(xml);
         xml.should.eql(`<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:tns="PRIVATE" DefaultByteOrder="LittleEndian" TargetNamespace="PRIVATE">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
@@ -133,7 +130,6 @@ describe("converting DataType to BSD schema files", () => {
         });
 
         const xml = dumpToBSD(namespace);
-        // tslint:disable-next-line: no-console
         // console.log(xml);
         xml.should.eql(`<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:tns="PRIVATE" DefaultByteOrder="LittleEndian" TargetNamespace="PRIVATE">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>
@@ -197,7 +193,6 @@ describe("converting DataType to BSD schema files", () => {
         });
 
         const xml = dumpToBSD(namespace);
-        // tslint:disable-next-line: no-console
         // console.log(xml);
         xml.should.eql(`<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ua="http://opcfoundation.org/UA/" xmlns:tns="PRIVATE" DefaultByteOrder="LittleEndian" TargetNamespace="PRIVATE">
     <opc:Import Namespace="http://opcfoundation.org/UA/"/>

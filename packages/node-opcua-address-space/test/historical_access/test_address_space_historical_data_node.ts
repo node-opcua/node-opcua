@@ -1,5 +1,3 @@
-// tslint:disable:max-line-length
-
 import fs from "node:fs";
 import { promisify } from "node:util";
 import { AttributeIds } from "node-opcua-data-model";
