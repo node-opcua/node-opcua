@@ -372,7 +372,7 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
 
             const jointResultMetaDataTypeNodeId = resolveNodeId(`ns=${ijt};i=3020`);
 
-            const extObj = await session.constructExtensionObject(jointResultMetaDataTypeNodeId, (<DTJoiningResultMeta>{
+            const jointResultMetaDataInfo: DTJoiningResultMeta = {
                 resultId: "DB751F14-76CE-D949-A557-384FCC8126D5",
                 hasTransferableDataOnFile: false,
                 isPartial: false,
@@ -434,7 +434,13 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
                 interventionType: 0,
                 isGeneratedOffline: false,
                 extendedMetaData: undefined
-            }) as any);
+            };
+            // constructExtensionObject expects a plain field bag (Record<string, unknown>);
+            // DTJoiningResultMeta's structural type lacks an index signature so a cast is needed.
+            const extObj = await session.constructExtensionObject(
+                jointResultMetaDataTypeNodeId,
+                jointResultMetaDataInfo as unknown as Record<string, unknown>
+            );
 
             const statusCode = await session.write({
                 nodeId: "ns=1;s=TestMeta",
