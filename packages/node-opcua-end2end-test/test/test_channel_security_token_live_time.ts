@@ -1,9 +1,21 @@
 import fs from "node:fs";
 import path from "node:path";
 import "should";
-import { is_valid_endpointUrl, OPCUAClient, OPCUAServer, ServerSecureChannelLayer } from "node-opcua";
+import {
+    type ClientSecureChannelLayer,
+    is_valid_endpointUrl,
+    OPCUAClient,
+    OPCUAServer,
+    ServerSecureChannelLayer
+} from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+
+// _secureChannel is public on the client implementation but not exposed on the public
+// OPCUAClient interface; reached here to observe secure-channel lifetime events.
+interface ClientWithSecureChannel extends OPCUAClient {
+    _secureChannel: ClientSecureChannelLayer | null;
+}
 
 function getFixture(file: string) {
     file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
@@ -61,7 +73,7 @@ describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable
         await client.connect(endpointUrl);
 
         await new Promise<void>((resolve) => {
-            (client as any)._secureChannel.once("lifetime_75", resolve);
+            (client as ClientWithSecureChannel)._secureChannel!.once("lifetime_75", () => resolve());
         });
         await client.disconnect();
     });
@@ -70,7 +82,7 @@ describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable
         await client.connect(endpointUrl);
 
         await new Promise<void>((resolve) => {
-            (client as any)._secureChannel.on("security_token_renewed", () => {
+            (client as ClientWithSecureChannel)._secureChannel!.on("security_token_renewed", () => {
                 debugLog(" received security_token_renewed");
                 resolve();
             });
@@ -88,7 +100,7 @@ describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable
         await new Promise<void>((resolve, reject) => {
             const id = setTimeout(() => reject(new Error("security token not renewed")), waitingTime);
 
-            (client as any)._secureChannel.on("security_token_renewed", () => {
+            (client as ClientWithSecureChannel)._secureChannel!.on("security_token_renewed", () => {
                 debugLog(" received security_token_renewed");
                 security_token_renewed_counter += 1;
                 if (security_token_renewed_counter > 3) {
