@@ -1,10 +1,8 @@
 /**
  * @module node-opcua-debug
  */
-// tslint:disable:no-console
-// tslint:disable:ban-types
-import fs from "fs";
-import { format } from "util";
+import fs from "node:fs";
+import { format } from "node:util";
 
 import { assert } from "node-opcua-assert";
 import { getTempFilename } from "./get_temp_filename";
@@ -30,7 +28,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
 
     function _write_to_file(...args: [any, ...any[]]) {
         const msg = format.call(null, ...args);
-        f.write(msg + "\n");
+        f.write(`${msg}\n`);
         if (typeof process === "object" && process.env.DEBUG) {
             oldConsoleLog.call(console, msg);
         }

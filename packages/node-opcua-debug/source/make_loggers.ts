@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-debug
  */
-// tslint:disable:no-console
 import { EventEmitter } from "node:events";
 import { format } from "node:util";
 import chalk from "chalk";
@@ -37,12 +36,11 @@ if (_process.env && _activateDebug) {
             return true;
         }
     };
-    _process.env = (new Proxy(old, handler)) as Record<string, string>;
+    _process.env = new Proxy(old, handler) as Record<string, string>;
 }
-const maxLines =
-    _process.env?.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
-        ? parseInt(_process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
-        : 25;
+const maxLines = _process.env?.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE
+    ? parseInt(_process.env.NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE, 10)
+    : 25;
 let g_logLevel: LogLevel = process.env.NODEOPCUA_LOG_LEVEL
     ? (parseInt(process.env.NODEOPCUA_LOG_LEVEL, 10) as LogLevel)
     : LogLevel.Warning;
@@ -200,13 +198,11 @@ function dump(ctx: Context, mode: "E" | "D" | "W" | "T", args1: [unknown?, ...un
     let i = 0;
     for (const line of output.split("\n")) {
         const lineArguments = ([] as string[]).concat(a1, [line]);
-        // eslint-disable-next-line prefer-spread
         console.log(...lineArguments);
         a1 = [continuation];
         i = i + 1;
         if (i > maxLines) {
             const a3 = a1.concat([` .... TRUNCATED ..... (NODEOPCUA_DEBUG_MAXLINE_PER_MESSAGE=${maxLines}`]);
-            // eslint-disable-next-line prefer-spread
             console.log(...a3);
             break;
         }

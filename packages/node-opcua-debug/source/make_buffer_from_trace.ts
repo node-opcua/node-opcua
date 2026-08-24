@@ -14,7 +14,7 @@ function makeBuffer(listOfBytes: string): Buffer {
     return b;
 }
 
-export function inlineText(f: { toString(): string}): string {
+export function inlineText(f: { toString(): string }): string {
     let k = f
         .toString()
         .replace(/^[^/]+\/\*!?/, "")
@@ -36,27 +36,26 @@ function hexString(str: string): string {
         lines = lines.splice(1);
     }
     // find prefix
-    const m =  lines[0]!.match(/[0-9a-fA-F:]* +/);
-    if (!m)  return hexLine;
+    const m = lines[0]!.match(/[0-9a-fA-F:]* +/);
+    if (!m) return hexLine;
     const prefixLength = m[0].length;
 
     for (let line of lines) {
         line = line.trim();
         if (line.length > 80) {
-            line = line.substring(10, 98 + 10 ).trim();
-            hexLine = hexLine ? hexLine + " " + line : line;
+            line = line.substring(10, 98 + 10).trim();
+            hexLine = hexLine ? `${hexLine} ${line}` : line;
         } else if (line.length > 60) {
             line = line.substring(7, 48 + 7).trim();
-            hexLine = hexLine ? hexLine + " " + line : line;
+            hexLine = hexLine ? `${hexLine} ${line}` : line;
         } else if (line.length > prefixLength) {
             line = line.substring(prefixLength, prefixLength + 48).trim();
-            hexLine = hexLine ? hexLine + " " + line : line;
+            hexLine = hexLine ? `${hexLine} ${line}` : line;
         }
     }
     return hexLine;
 }
 
-// tslint:disable:ban-types
 export function makeBufferFromTrace(func: string): Buffer {
     if (typeof func === "string") {
         return makeBuffer(hexString(func as string));

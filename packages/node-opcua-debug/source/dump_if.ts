@@ -1,8 +1,7 @@
 /**
  * @module node-opcua-debug
  */
-// tslint:disable:no-console
-import { inspect } from "util";
+import { inspect } from "node:util";
 
 export function dump(obj: unknown): void {
     console.log("\n", inspect(JSON.parse(JSON.stringify(obj)), { colors: true, depth: 10 }));

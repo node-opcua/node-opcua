@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-debug
  */
-// tslint:disable:no-var-requires
 const hexy = require("hexy");
 export function hexDump(buffer: Buffer | null, width = 32, maxSize = 1024): string {
     if (!buffer) {
@@ -9,7 +8,7 @@ export function hexDump(buffer: Buffer | null, width = 32, maxSize = 1024): stri
     }
     width = width || 32;
     if (buffer.length > maxSize) {
-        return hexy.hexy(buffer.subarray(0, maxSize), { width, format: "twos" }) + "\n .... ( " + buffer.length + ")";
+        return `${hexy.hexy(buffer.subarray(0, maxSize), { width, format: "twos" })}\n .... ( ${buffer.length})`;
     } else {
         return hexy.hexy(buffer, { width, format: "twos" });
     }

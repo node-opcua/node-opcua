@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-debug
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 
 export function traceFromThisProjectOnly(err?: Error): string {
