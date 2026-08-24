@@ -19,6 +19,12 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
+// _secureChannel (private impl field) and its transport's underlying raw socket (not part of
+// the public IClientTransport surface) are reached here only to simulate an abrupt connection
+// drop for fault injection.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
@@ -34,7 +40,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
     let server: OPCUAServer;
     let endpointUrl: string;
     let clients: OPCUAClient[] = [];
-    let sessions: any[] = [];
+    let sessions: ClientSession[] = [];
     let rejected_connections = 0;
 
     beforeEach(async () => {
@@ -100,6 +106,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
                 defaultSecureTokenLifetime: 5_000_000,
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: SecurityPolicy.None,
+                // biome-ignore lint/suspicious/noExplicitAny: explicit null forces "fetch via GetEndpoints"; the option type only declares undefined
                 serverCertificate: null as any,
                 connectionStrategy: { maxRetry: 0 }
             });
@@ -127,10 +134,8 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         nbError.should.eql(nbExtra);
     });
 
-    let clientCounter = 1;
     async function createClientAndSession(_index: number) {
         const client = OPCUAClient.create({ connectionStrategy: fail_fast_connectionStrategy });
-        (client as any).name = `client${clientCounter++}`;
         clients.push(client);
         // small stagger
         await new Promise((r) => setTimeout(r, 10));
@@ -184,10 +189,10 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         }
         // abruptly terminate existing channels
         for (const client of clients) {
-            const sc: any = (client as any)._secureChannel;
+            const sc = (client as InternalAny)._secureChannel;
             if (sc) {
                 try {
-                    const socket = sc.getTransport()._socket;
+                    const socket = (sc.getTransport() as InternalAny)._socket;
                     socket.end();
                     socket.destroy();
                     socket.emit("error", new Error("Terminate"));
@@ -220,7 +225,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
     });
 
     it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2", async () => {
-        const serverEndpoint: any = (server as any).endpoints[0];
+        const serverEndpoint = server.endpoints[0];
         const spyCloseChannel = sinon.spy();
         const spyNewChannel = sinon.spy();
         serverEndpoint.on("closeChannel", spyCloseChannel);
