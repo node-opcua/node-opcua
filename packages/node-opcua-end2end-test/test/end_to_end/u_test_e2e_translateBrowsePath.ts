@@ -11,15 +11,16 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-export function t(test: any) {
+import type { UmbrellaTestContext } from "./_helper_umbrella";
+export function t(test: UmbrellaTestContext) {
     describe("testing session#translateBrowsePath", () => {
-        let _server: OPCUAServer;
+        let _server: OPCUAServer | undefined;
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
             _server = test.server;
         });
 
