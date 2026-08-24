@@ -1,12 +1,18 @@
 import chalk from "chalk";
 import "should";
-import { AttributeIds, type ErrorCallback, type NodeIdLike, ObjectIds, OPCUAClient } from "node-opcua";
+import { AttributeIds, type ErrorCallback, type NodeIdLike, ObjectIds, OPCUAClient, type ReferenceDescription } from "node-opcua";
 import { assert } from "node-opcua-assert";
 import { NodeCrawler, type UserData } from "node-opcua-client-crawler";
 import { make_debugLog } from "node-opcua-debug";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
+
+// NodeCrawler.read() returns a Pojo (Record<string, unknown>): the crawled tree's shape is
+// entirely address-space-defined, not statically knowable here.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type DynamicNode = any;
 
 async function redirectToFileAsync(filename: string, f: () => Promise<void>) {
     await new Promise<void>((resolve, reject) => {
@@ -24,7 +30,7 @@ async function redirectToFileAsync(filename: string, f: () => Promise<void>) {
     });
 }
 const debugLog = make_debugLog("TEST");
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("NodeCrawler", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
@@ -35,12 +41,12 @@ export function t(test: any) {
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         afterEach(() => {});
 
-        function MyDumpReference(reference: any) {
+        function MyDumpReference(reference: ReferenceDescription) {
             function f(text: string, width: number) {
                 return `${text}                                                     `.substring(0, width);
             }
@@ -56,7 +62,7 @@ export function t(test: any) {
             );
         }
 
-        function myDumpReferences(_index: any, references: any[]) {
+        function myDumpReferences(_index: unknown, references: ReferenceDescription[]) {
             //xxx debugLog(" xxxxxxxxxxxxxxxxx ",references);
             references.forEach(MyDumpReference);
         }
@@ -138,8 +144,8 @@ export function t(test: any) {
 
                 const nodeId = "RootFolder";
 
-                const obj: any = await crawler.read(nodeId);
-                obj.organizes.forEach((_o: any) => {
+                const obj: DynamicNode = await crawler.read(nodeId);
+                obj.organizes.forEach((_o: DynamicNode) => {
                     // debugLog(o.browseName.toString());
                 });
 
