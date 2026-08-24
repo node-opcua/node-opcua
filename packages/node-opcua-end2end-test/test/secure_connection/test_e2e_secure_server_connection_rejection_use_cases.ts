@@ -1,10 +1,12 @@
 import "should";
 import {
     CreateSessionRequest,
+    type CreateSessionResponse,
     get_empty_nodeset_filename,
     MessageSecurityMode,
     OPCUAClient,
     OPCUAClientBase,
+    type OPCUAClientOptions,
     OPCUAServer,
     SecurityPolicy,
     StatusCodes
@@ -20,10 +22,13 @@ const empty_nodeset_filename = get_empty_nodeset_filename();
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
+// biome-ignore lint/suspicious/noExplicitAny: monkey-patching private client/server implementation internals (computeClientSignature, makeServerNonce, performMessageTransaction) for fault injection
+type InternalAny = any;
+
 describe("testing the server ability to deny client session request (server with maxSessions = 1)", () => {
     let server: OPCUAServer;
     let endpointUrl: string;
-    let clientOptions: any;
+    let clientOptions: OPCUAClientOptions;
 
     before(async () => {
         server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
@@ -64,9 +69,9 @@ describe("testing the server ability to deny client session request (server with
     });
 
     it("B-Server shall reject secure client connection if ActiveSession.clientSignature has wrong algorithm", async () => {
-        const client = OPCUAClient.create(clientOptions) as any;
+        const client = OPCUAClient.create(clientOptions) as InternalAny;
         const old_compute = client.computeClientSignature;
-        client.computeClientSignature = function (...args: any[]) {
+        client.computeClientSignature = function (...args: unknown[]) {
             const res = old_compute.apply(this, args);
             res.algorithm = "<bad algorithm>";
             //  return res;
@@ -76,7 +81,7 @@ describe("testing the server ability to deny client session request (server with
     });
 
     it("C-Server shall reject secure client connection if ActiveSession.clientSignature is missing", async () => {
-        const client = OPCUAClient.create(clientOptions) as any;
+        const client = OPCUAClient.create(clientOptions) as InternalAny;
         const stub = sinon.stub();
         stub.returns(null);
         client.computeClientSignature = stub;
@@ -86,9 +91,9 @@ describe("testing the server ability to deny client session request (server with
     });
 
     it("D-Server shall reject secure client connection if ActiveSession.clientSignature is tampered", async () => {
-        const client = OPCUAClient.create(clientOptions) as any;
+        const client = OPCUAClient.create(clientOptions) as InternalAny;
         const old_compute = client.computeClientSignature;
-        client.computeClientSignature = function (...args: any[]) {
+        client.computeClientSignature = function (...args: unknown[]) {
             const res = old_compute.apply(this, args);
             res.should.be.instanceOf(SignatureData);
             // alter 10th word
@@ -101,7 +106,7 @@ describe("testing the server ability to deny client session request (server with
 
     it("E-Client shall deny server session if server nonce is too small", async () => {
         let bad_nonce = 0;
-        (server as any).makeServerNonce = () => {
+        (server as InternalAny).makeServerNonce = () => {
             bad_nonce += 1;
             return randomBytes(31); // instead of 32!
         };
@@ -113,15 +118,18 @@ describe("testing the server ability to deny client session request (server with
 
     it("TA - server shall return error if requestHeader.clientNonce has less than 32 bytes", async () => {
         const client = OPCUAClient.create(clientOptions);
-        (client as any).endpointMustExist = true;
+        (client as InternalAny).endpointMustExist = true;
         await client.connect(endpointUrl);
         try {
             const createSessionRequest = new CreateSessionRequest({ requestHeader: {}, clientNonce: Buffer.alloc(31) });
-            const result: any = await new Promise((resolve) => {
-                (client as any).performMessageTransaction(createSessionRequest, (err: Error, response: any) => {
-                    if (err) return resolve({ err });
-                    resolve({ response });
-                });
+            const result: { err?: Error; response?: CreateSessionResponse } = await new Promise((resolve) => {
+                (client as InternalAny).performMessageTransaction(
+                    createSessionRequest,
+                    (err: Error, response: CreateSessionResponse) => {
+                        if (err) return resolve({ err });
+                        resolve({ response });
+                    }
+                );
             });
             should.exist(result.err);
             (result.err as Error).message.should.match(/BadNonceInvalid/);
@@ -137,12 +145,13 @@ describe("testing the server ability to deny client session request (server with
         const client = OPCUAClient.create({
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
+            // biome-ignore lint/suspicious/noExplicitAny: explicit null (not the same as omitting the field) forces the "not yet fetched" state; the option type only declares undefined
             serverCertificate: null as any,
             defaultSecureTokenLifetime: 2000
         });
         try {
             should(client.serverCertificate).eql(null);
-            (client as any).endpointMustExist = true;
+            (client as InternalAny).endpointMustExist = true;
             await client.connect(endpointUrl);
             should.exist(client.serverCertificate);
         } finally {
