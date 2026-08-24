@@ -1,5 +1,5 @@
 import { DataValue } from "node-opcua-data-value";
-import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { StatusCode } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
 const year = 2018;

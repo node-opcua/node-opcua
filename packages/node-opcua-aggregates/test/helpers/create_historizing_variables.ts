@@ -1,11 +1,16 @@
-import { type AddressSpace, IHistoricalDataNodeOptions, type UAVariable } from "node-opcua-address-space";
+import type { AddressSpace, UAVariable } from "node-opcua-address-space";
+import type { DataValue } from "node-opcua-data-value";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { AggregateConfigurationOptions, type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
+import { type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
 import { makeDataValue } from "./helpers";
 
+interface UAVariableWithHistoryPush extends UAVariable {
+    _historyPush(dataValue: DataValue): unknown;
+}
+
 function addHistory(node: UAVariable, time: string, value: number | boolean | null, statusCode: StatusCode): void {
-    (node as any)._historyPush(makeDataValue(time, value, statusCode));
+    (node as UAVariableWithHistoryPush)._historyPush(makeDataValue(time, value, statusCode));
 }
 
 /// Example 1 : Example Aggregate data – Historian 1

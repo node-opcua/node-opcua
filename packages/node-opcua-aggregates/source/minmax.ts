@@ -62,7 +62,7 @@ import type { AggregateConfigurationOptions, Interval } from "./interval";
 
 function calculateIntervalMinOrMaxValue(
     interval: Interval,
-    options: AggregateConfigurationOptions,
+    _options: AggregateConfigurationOptions,
     predicate: (a: Variant, b: Variant) => "equal" | "select" | "reject"
 ): DataValue {
     //   debugLog(interval.toString());
@@ -93,7 +93,7 @@ function calculateIntervalMinOrMaxValue(
         if (!selectedValue) {
             selectedValue = dataValue.value;
             counter = 1;
-            if (i === indexStart && dataValue.sourceTimestamp!.getTime() === interval.startTime.getTime()) {
+            if (i === indexStart && dataValue.sourceTimestamp?.getTime() === interval.startTime.getTime()) {
                 isRaw = true;
             }
             continue;
@@ -137,7 +137,7 @@ function calculateIntervalMinOrMaxValue(
     return new DataValue({
         sourceTimestamp: interval.startTime,
         statusCode: statusCode as StatusCode,
-        value: selectedValue!
+        value: selectedValue
     });
 }
 

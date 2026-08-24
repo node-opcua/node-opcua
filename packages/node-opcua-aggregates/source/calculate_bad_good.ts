@@ -16,7 +16,7 @@ function findLowBound(
     const indexStart: number = interval.index;
 
     const initialValue = interval.dataValues[indexStart];
-    if (initialValue.sourceTimestamp!.getTime() === interval.startTime.getTime()) {
+    if (initialValue.sourceTimestamp?.getTime() === interval.startTime.getTime()) {
         return { previousStatus: initialValue.statusCode, previousTime: interval.startTime.getTime(), indexStart: indexStart + 1 };
     }
     const previousStatus =
@@ -80,7 +80,10 @@ export function calculateBadAndGood(
         if (currentStatus === StatusCodes.BadNoData) {
             partialFlag = extraStatusCodeBits.HistorianPartial;
         }
-        const currentTime = dataValue.sourceTimestamp!.getTime();
+        if (!dataValue.sourceTimestamp) {
+            throw new Error("calculateBadAndGood: dataValue is missing a sourceTimestamp");
+        }
+        const currentTime = dataValue.sourceTimestamp.getTime();
 
         // debugLog(" ", dataValue.sourceTimestamp?.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
 
@@ -123,12 +126,10 @@ export function calculateBadAndGood(
     const percentGood = (durationGood / effectiveProcessingInterval) * 100;
     const percentBad = (durationBad / effectiveProcessingInterval) * 100;
 
-    let percentDataGood = options.percentDataGood === undefined ? 100 : options.percentDataGood;
     const percentDataBad = options.percentDataBad === undefined ? 100 : options.percentDataBad;
 
     if (percentBad >= percentDataBad || (nbGood === 0 && nbUncertain === 0)) {
         durationGood = 0; // BAD
-        percentDataGood = -1;
         // const statusCode = StatusCodes.Bad;
         //return { durationGood, durationBad, durationUnknown, percentBad, percentGood, statusCode };
     }

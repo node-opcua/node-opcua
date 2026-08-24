@@ -20,6 +20,13 @@ export function isGoodish2(statusCode: StatusCode, { treatUncertainAsBad }: { tr
 export function isUncertain(statusCode: StatusCode): boolean {
     return (statusCode.value & 0x40000000) === 0x40000000 && statusCode.value !== StatusCodes.BadNoData.value;
 }
+function sourceTimestampMs(dataValue: DataValue): number {
+    if (!dataValue.sourceTimestamp) {
+        throw new Error("expecting dataValue to have a sourceTimestamp");
+    }
+    return dataValue.sourceTimestamp.getTime();
+}
+
 export interface IntervalOptions {
     startTime: Date;
     dataValues: DataValue[];
@@ -85,9 +92,9 @@ export function adjustProcessingOptions(options: AggregateConfigurationOptionsEx
     options = options || {};
     options.treatUncertainAsBad = options.treatUncertainAsBad || false;
     options.useSlopedExtrapolation = options.useSlopedExtrapolation || false;
-    options.stepped = options.stepped! || false;
-    options.percentDataBad = parseInt(options.percentDataBad as any, 10);
-    options.percentDataGood = parseInt(options.percentDataGood as any, 10);
+    options.stepped = options.stepped || false;
+    options.percentDataBad = parseInt(String(options.percentDataBad ?? 0), 10);
+    options.percentDataGood = parseInt(String(options.percentDataGood ?? 0), 10);
     return options;
 }
 
@@ -125,7 +132,7 @@ export class Interval {
             return false;
         }
         const dataValue1 = this.dataValues[index];
-        return this.startTime.getTime() === dataValue1!.sourceTimestamp!.getTime();
+        return this.startTime.getTime() === sourceTimestampMs(dataValue1);
     }
 
     /**
@@ -150,7 +157,7 @@ export class Interval {
         if (this.index >= 0) {
             for (let i = this.index; i < this.index + this.count; i++) {
                 const dataValue = this.dataValues[i];
-                str += ` ${dataValue.sourceTimestamp!.toUTCString()}${dataValue.statusCode.toString()}`;
+                str += ` ${dataValue.sourceTimestamp?.toUTCString()}${dataValue.statusCode.toString()}`;
                 str += dataValue.value ? dataValue.value.toString() : "";
                 str += "\n";
             }
@@ -169,8 +176,8 @@ export class Interval {
         if (i < 0) {
             return e;
         }
-        const lastTimestamp = this.dataValues[i].sourceTimestamp!;
-        return Math.min(e, lastTimestamp.getTime() + 1);
+        const lastTimestamp = this.dataValues[i].sourceTimestamp;
+        return lastTimestamp ? Math.min(e, lastTimestamp.getTime() + 1) : e;
     }
 
     /**
@@ -178,7 +185,7 @@ export class Interval {
      * @returns the interval duration
      */
     duration() {
-        const t1 = this.dataValues[this.index].sourceTimestamp!.getTime();
+        const t1 = sourceTimestampMs(this.dataValues[this.index]);
         const e = this.getEffectiveEndTime();
         return e - t1;
     }
@@ -187,9 +194,9 @@ export class Interval {
      * returns the region duration starting at index and finishing at index+1 or end limit of the interval
      */
     regionDuration(index: number): number {
-        const t1 = this.dataValues[index].sourceTimestamp!.getTime();
+        const t1 = sourceTimestampMs(this.dataValues[index]);
         const e = this.getEffectiveEndTime();
-        const t2 = index < this.dataValues.length - 1 ? Math.min(this.dataValues[index + 1].sourceTimestamp!.getTime(), e) : e;
+        const t2 = index < this.dataValues.length - 1 ? Math.min(sourceTimestampMs(this.dataValues[index + 1]), e) : e;
         return t2 - t1;
     }
 }
@@ -198,7 +205,7 @@ export function getInterval(startTime: Date, processingInterval: number, indexHi
     let count = 0;
     let index = -1;
     for (let i = indexHint; i < dataValues.length; i++) {
-        if (dataValues[i].sourceTimestamp!.getTime() < startTime.getTime()) {
+        if (sourceTimestampMs(dataValues[i]) < startTime.getTime()) {
             continue;
         }
         index = i;
@@ -207,7 +214,7 @@ export function getInterval(startTime: Date, processingInterval: number, indexHi
 
     if (index >= 0) {
         for (let i = index; i < dataValues.length; i++) {
-            if (dataValues[i].sourceTimestamp!.getTime() >= startTime.getTime() + processingInterval) {
+            if (sourceTimestampMs(dataValues[i]) >= startTime.getTime() + processingInterval) {
                 break;
             }
             count++;
@@ -218,11 +225,11 @@ export function getInterval(startTime: Date, processingInterval: number, indexHi
     let isPartial = false;
     if (
         index + count >= dataValues.length &&
-        dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < startTime.getTime() + processingInterval
+        sourceTimestampMs(dataValues[dataValues.length - 1]) < startTime.getTime() + processingInterval
     ) {
         isPartial = true;
     }
-    if (index <= 0 && dataValues[0].sourceTimestamp!.getTime() > startTime.getTime()) {
+    if (index <= 0 && sourceTimestampMs(dataValues[0]) > startTime.getTime()) {
         isPartial = true;
     }
 

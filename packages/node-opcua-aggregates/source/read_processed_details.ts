@@ -83,11 +83,11 @@ function applyAggregate(
 }
 export function readProcessedDetails(
     variable: UAVariable,
-    context: ISessionContext,
+    _context: ISessionContext,
     historyReadDetails: ReadProcessedDetails,
-    indexRange: NumericRange | null,
-    dataEncoding: QualifiedNameLike | null,
-    continuationData: ContinuationData,
+    _indexRange: NumericRange | null,
+    _dataEncoding: QualifiedNameLike | null,
+    _continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ): void {
     // OPC Unified Architecture, Part 11 27 Release 1.03
@@ -157,7 +157,7 @@ export function readProcessedDetails(
     // starting at startTime and ending at endTime.
     const processingInterval = historyReadDetails.processingInterval || endTime.getTime() - startTime.getTime();
 
-    if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== 1) {
+    if (historyReadDetails.aggregateType?.length !== 1) {
         callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadInternalError }));
         return;
     }

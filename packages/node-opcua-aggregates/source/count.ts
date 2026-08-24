@@ -22,7 +22,7 @@ function calculateCountValue(interval: Interval, options: AggregateConfiguration
     let nbUncertain = 0;
     let badDuration = 0;
     let uncertainDuration = 0;
-    let goodDuration = 0;
+    let _goodDuration = 0;
     for (let i = indexStart; i < indexStart + interval.count; i++) {
         const dataValue = interval.dataValues[i];
         if (dataValue.statusCode.equals(StatusCodes.BadNoData)) {
@@ -38,7 +38,7 @@ function calculateCountValue(interval: Interval, options: AggregateConfiguration
             uncertainDuration += regionDuration;
         } else if (dataValue.statusCode.isGoodish()) {
             nbGood++;
-            goodDuration += regionDuration;
+            _goodDuration += regionDuration;
         }
     }
 

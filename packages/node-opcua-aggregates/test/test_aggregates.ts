@@ -152,7 +152,7 @@ describe("Aggregates - Function ", () => {
         // console.log(retVal);
         return retVal;
     }
-    function getValue(dataValue: DataValue, dataType: DataType): number | DataType.Null {
+    function _getValue(dataValue: DataValue, dataType: DataType): number | DataType.Null {
         if (dataValue.value.dataType !== dataType) {
             throw new Error("Wrong value dataType");
         }

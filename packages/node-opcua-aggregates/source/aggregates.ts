@@ -13,7 +13,6 @@ import type {
     UAVariable
 } from "node-opcua-address-space";
 import type { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
-import { assert } from "node-opcua-assert";
 import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -64,7 +63,7 @@ export function createHistoryServerCapabilities(addressSpace: AddressSpace, serv
         throw new Error("Expecting server Capabilities");
     }
 
-    const historyServerCapabilitiesType = addressSpace.getNamespace(0).findObjectType("HistoryServerCapabilitiesType")!;
+    const historyServerCapabilitiesType = addressSpace.getNamespace(0).findObjectType("HistoryServerCapabilitiesType");
 
     /* c8 ignore next */
     if (!historyServerCapabilitiesType) {
@@ -76,7 +75,7 @@ export function createHistoryServerCapabilities(addressSpace: AddressSpace, serv
     });
 }
 
-function setHistoricalServerCapabilities(historyServerCapabilities: any, defaultProperties: any) {
+function setHistoricalServerCapabilities(historyServerCapabilities: UAObject, defaultProperties: Record<string, boolean | number>) {
     function setBoolean(propName: string) {
         const lowerCase = lowerFirstLetter(propName);
 
@@ -85,7 +84,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
             throw new Error(`cannot find ${lowerCase}`);
         }
         const value = defaultProperties[lowerCase];
-        const prop = historyServerCapabilities.getChildByName(propName);
+        const prop = historyServerCapabilities.getChildByName(propName) as UAVariable | null;
 
         /* c8 ignore next */
         if (!prop) {
@@ -101,7 +100,11 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
             throw new Error(`cannot find ${lowerCase}`);
         }
         const value = defaultProperties[lowerCase];
-        const prop = historyServerCapabilities.getChildByName(propName);
+        const prop = historyServerCapabilities.getChildByName(propName) as UAVariable | null;
+        /* c8 ignore next */
+        if (!prop) {
+            throw new Error(` Cannot find property ${propName}`);
+        }
         prop.setValueFromSource({ dataType: DataType.UInt32, value });
     }
 
@@ -206,10 +209,15 @@ export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFuncti
     }
     // xx serverObject.
 
-    const serverCapabilities = serverObject.getChildByName("ServerCapabilities")! as UAServerCapabilities;
+    const serverCapabilities = serverObject.getChildByName("ServerCapabilities") as UAServerCapabilities | null;
+
+    /* c8 ignore next */
+    if (!serverCapabilities) {
+        throw new Error("addressSpace do not expose a ServerCapabilities object");
+    }
 
     // Let see if HistoryServer Capabilities object exists
-    let historyServerCapabilities = serverCapabilities.getChildByName("HistoryServerCapabilities");
+    let historyServerCapabilities = serverCapabilities.getChildByName("HistoryServerCapabilities") as UAObject | null;
 
     /* c8 ignore next */
     if (!historyServerCapabilities) {
@@ -310,7 +318,7 @@ export function installAggregateConfigurationOptions(
 
     const referenceType = resolveNodeId(ReferenceTypeIds.Organizes);
     for (const nodeId of aggregateFunctions) {
-        uaAggregateFunctions!.addReference({
+        uaAggregateFunctions?.addReference({
             nodeId,
             referenceType,
             isForward: true

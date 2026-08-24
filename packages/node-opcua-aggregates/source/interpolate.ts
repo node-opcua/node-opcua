@@ -61,7 +61,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     assert(Object.hasOwn(options, "useSlopedExtrapolation"));
     assert(Object.hasOwn(options, "treatUncertainAsBad"));
 
-    const bTreatUncertainAsBad = options.treatUncertainAsBad!;
+    const bTreatUncertainAsBad = options.treatUncertainAsBad || false;
 
     const steppedValue = (previousDataValue: DataValue): DataValue => {
         if (!previousDataValue.statusCode) {

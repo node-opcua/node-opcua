@@ -6,10 +6,10 @@ import { DataType } from "node-opcua-variant";
 import { getAggregateData } from "./common";
 import type { AggregateConfigurationOptions, Interval } from "./interval";
 
-function calculateIntervalAverageValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
+function calculateIntervalAverageValue(interval: Interval, _options: AggregateConfigurationOptions): DataValue {
     const indexStart = interval.index;
     let statusCode: StatusCode;
-    let isPartial = interval.isPartial;
+    let _isPartial = interval.isPartial;
 
     const isRaw = false;
     let hasBad = false;
@@ -20,7 +20,7 @@ function calculateIntervalAverageValue(interval: Interval, options: AggregateCon
         const dataValue = interval.dataValues[i];
 
         if (dataValue.statusCode.equals(StatusCodes.BadNoData)) {
-            isPartial = true;
+            _isPartial = true;
             continue;
         }
 

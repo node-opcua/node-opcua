@@ -6,7 +6,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCode } from "node-opcua-status-code";
 
 import { getAggregateConfiguration } from "./aggregates";
 import { type AggregateConfigurationOptionsEx, getInterval, type Interval } from "./interval";
@@ -40,7 +40,7 @@ function processAggregateData(
         const dataValue = lambda(interval, aggregateConfiguration);
 
         /* c8 ignore next */
-        if (!dataValue || !dataValue.sourceTimestamp) {
+        if (!dataValue?.sourceTimestamp) {
             // const dataValue = interval.interpolatedValue(aggregateConfiguration);
             throw Error("invalid DataValue");
         }
@@ -101,7 +101,10 @@ export function getAggregateData(
             if (err) {
                 return callback(err);
             }
-            const historyData = result!.historyData as HistoryData;
+            if (!result) {
+                return callback(new Error("getAggregateData: expecting a result when err is null"));
+            }
+            const historyData = result.historyData as HistoryData;
 
             const dataValues = historyData.dataValues || [];
 
@@ -111,9 +114,12 @@ export function getAggregateData(
 }
 
 export function interpolateValue(dataValue1: DataValue, dataValue2: DataValue, date: Date): DataValue {
-    const t0 = dataValue1.sourceTimestamp!.getTime();
+    if (!dataValue1.sourceTimestamp || !dataValue2.sourceTimestamp) {
+        throw new Error("interpolateValue: both dataValues must have a sourceTimestamp");
+    }
+    const t0 = dataValue1.sourceTimestamp.getTime();
     const t = date.getTime();
-    const t1 = dataValue2.sourceTimestamp!.getTime();
+    const t1 = dataValue2.sourceTimestamp.getTime();
     const coef1 = (t - t0) / (t1 - t0);
     const coef2 = (t1 - t) / (t1 - t0);
     const value = dataValue1.value.clone();
