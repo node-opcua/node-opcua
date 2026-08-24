@@ -185,7 +185,10 @@ export class MessageBuilderBase extends EventEmitter {
             }
             return true;
         } catch (err) {
-            return this._report_error(StatusCodes2.BadTcpInternalError, `_read_headers error ${err instanceof Error ? err.message : String(err)}`);
+            return this._report_error(
+                StatusCodes2.BadTcpInternalError,
+                `_read_headers error ${err instanceof Error ? err.message : String(err)}`
+            );
         }
     }
 
@@ -250,7 +253,6 @@ export class MessageBuilderBase extends EventEmitter {
 
         // verify message chunk length
         if (this.messageHeader?.length !== chunk.length) {
-            // tslint:disable:max-line-length
             return this._report_error(
                 StatusCodes2.BadTcpInternalError,
                 `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${
@@ -331,10 +333,7 @@ export class MessageBuilderBase extends EventEmitter {
                 const errMessage = err instanceof Error ? err.message : String(err);
                 warningLog(hexDump(chunk));
                 warningLog("Cannot interpret message chunk: ", errMessage);
-                return this._report_error(
-                    StatusCodes2.BadTcpInternalError,
-                    `Error decoding message header ${errMessage}`
-                );
+                return this._report_error(StatusCodes2.BadTcpInternalError, `Error decoding message header ${errMessage}`);
             }
         } else if (messageHeader.isFinal === "C") {
             return this.#_append(chunk);

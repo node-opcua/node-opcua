@@ -1,5 +1,5 @@
-import { readMessageHeader } from "node-opcua-chunkmanager";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { readMessageHeader } from "node-opcua-chunkmanager";
 import { packTcpMessage, ReverseHelloMessage } from "..";
 
 describe("testing that the transport tools accept the RHE message type", () => {

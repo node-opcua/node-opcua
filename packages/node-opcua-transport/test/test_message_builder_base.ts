@@ -1,5 +1,3 @@
-/* eslint-disable import/order */
-
 import "should";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -136,6 +134,5 @@ describe("MessageBuilderBase", () => {
         onFullMessageBodySpy.callCount.should.eql(0);
 
         onErrorSpy.getCall(0).args[0].should.match(/maxMessageSize/);
-
     });
 });

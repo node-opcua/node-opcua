@@ -1,4 +1,4 @@
-import net from "node:net";
+import type net from "node:net";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -475,26 +475,29 @@ describe("testing ClientTCP_transport", function (this: any) {
         let endCalled = false;
 
         const origOnAckResponse = (ClientTCP_transport.prototype as any)._on_ACK_response;
-        const stub = sinon
-            .stub(ClientTCP_transport.prototype as any, "_on_ACK_response")
-            .callsFake(function patchedOnAck(this: any, externalCallback: any, err: Error | null, data?: Buffer) {
-                if (err || !data) {
-                    const sock: net.Socket | null = this._socket;
-                    if (sock) {
-                        const origEnd = sock.end.bind(sock);
-                        const origDestroy = sock.destroy.bind(sock);
-                        (sock as any).end = (...args: any[]) => {
-                            endCalled = true;
-                            return origEnd(...args);
-                        };
-                        (sock as any).destroy = (...args: any[]) => {
-                            destroyCalled = true;
-                            return origDestroy(...args);
-                        };
-                    }
+        const stub = sinon.stub(ClientTCP_transport.prototype as any, "_on_ACK_response").callsFake(function patchedOnAck(
+            this: any,
+            externalCallback: any,
+            err: Error | null,
+            data?: Buffer
+        ) {
+            if (err || !data) {
+                const sock: net.Socket | null = this._socket;
+                if (sock) {
+                    const origEnd = sock.end.bind(sock);
+                    const origDestroy = sock.destroy.bind(sock);
+                    (sock as any).end = (...args: any[]) => {
+                        endCalled = true;
+                        return origEnd(...args);
+                    };
+                    (sock as any).destroy = (...args: any[]) => {
+                        destroyCalled = true;
+                        return origDestroy(...args);
+                    };
                 }
-                return origOnAckResponse.call(this, externalCallback, err, data);
-            });
+            }
+            return origOnAckResponse.call(this, externalCallback, err, data);
+        });
 
         let restored = false;
         const restoreStub = () => {
@@ -512,7 +515,10 @@ describe("testing ClientTCP_transport", function (this: any) {
                 try {
                     should.exist(err);
                     err!.message.should.containEql("Timeout");
-                    should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket, "_socket reference must be cleared after failure");
+                    should.not.exist(
+                        (clientTransport as unknown as { _socket: net.Socket | null })._socket,
+                        "_socket reference must be cleared after failure"
+                    );
                     endCalled.should.eql(false, "socket.end() must not be called");
                     destroyCalled.should.eql(true, "socket.destroy() must be called");
                     spyOnConnect.callCount.should.eql(0);

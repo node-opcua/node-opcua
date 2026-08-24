@@ -27,7 +27,7 @@ export type { TransportSettingsOptions };
 function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {
     // create a socket based on Url
     const ep = parseEndpointUrl(endpointUrl);
-    const port = parseInt(ep.port  || "4840", 10);
+    const port = parseInt(ep.port || "4840", 10);
     const hostname = ep.hostname;
 
     let socket: ISocketLike;

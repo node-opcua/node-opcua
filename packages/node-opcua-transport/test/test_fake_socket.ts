@@ -202,7 +202,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
         it("FS-11 client should timeout if server doesn't send data fast enough - destroy with error", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.setTimeout(100);
-            const {  spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
+            const { spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
             transportPair.client.on("timeout", () => {
                 transportPair?.client.destroy(new Error("somme error"));
                 //     done();
@@ -217,7 +217,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
         it("FS-12 client should timeout if server doesn't send data fast enough - close", (done) => {
             if (!transportPair) throw new Error("internal error");
             transportPair.client.setTimeout(100);
-            const {  spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
+            const { spyOnTimeOut, spyOnEnd, spyOnError } = decorateSocket(transportPair.client);
             transportPair.client.on("timeout", () => {
                 transportPair?.client.end(); /// will raise end and close
                 //     done();

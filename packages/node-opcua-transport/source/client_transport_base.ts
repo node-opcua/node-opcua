@@ -208,8 +208,8 @@ export abstract class ClientTransportBase extends TCP_transport {
         /* c8 ignore next */
         if (messageHeader.isFinal !== "F") {
             err = new Error(" invalid ACK message");
-             callback(err);
-             return;
+            callback(err);
+            return;
         }
 
         let responseClass: typeof AcknowledgeMessage | typeof TCPErrorMessage;

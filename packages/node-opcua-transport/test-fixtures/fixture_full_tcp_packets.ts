@@ -1,5 +1,3 @@
-// tslint:disable:variable-name
-// tslint:disable:max-line-length
 import { makeBufferFromTrace } from "node-opcua-debug";
 
 export const helloMessage1 = makeBufferFromTrace(`

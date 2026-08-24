@@ -67,7 +67,8 @@ export class ReverseClientTCP_transport extends ClientTransportBase {
                 this.serverUri = accepted.serverUri || this.serverUri;
 
                 /* c8 ignore next */
-                doDebug && debugLog(chalk.cyan(`ReverseClientTCP_transport#connect adopting socket (endpointUrl = ${this.endpointUrl})`));
+                doDebug &&
+                    debugLog(chalk.cyan(`ReverseClientTCP_transport#connect adopting socket (endpointUrl = ${this.endpointUrl})`));
 
                 const socket = accepted.socket;
 

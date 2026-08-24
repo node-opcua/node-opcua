@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import type { ISocketLike } from "../source";

@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-transport
  */
-// tslint:disable:class-name
 // system
 
 import chalk from "chalk";

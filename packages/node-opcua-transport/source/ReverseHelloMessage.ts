@@ -129,7 +129,10 @@ export function decodeReverseHello(messageChunk: Buffer): ReverseHelloMessage {
         );
     }
     if (header.isFinal !== "F") {
-        throw makeTaggedError(StatusCodes2.BadTcpMessageTypeInvalid, `ReverseHello: expecting a final chunk but got '${header.isFinal}'`);
+        throw makeTaggedError(
+            StatusCodes2.BadTcpMessageTypeInvalid,
+            `ReverseHello: expecting a final chunk but got '${header.isFinal}'`
+        );
     }
     if (header.length !== messageChunk.length) {
         throw makeTaggedError(
