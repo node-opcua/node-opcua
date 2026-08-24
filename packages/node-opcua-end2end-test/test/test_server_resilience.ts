@@ -8,6 +8,19 @@ import { createServerCertificateManager } from "../test_helpers/createServerCert
 import { ServerSideUnimplementedRequest } from "../test_helpers/unimplementedRequest";
 import { wait } from "../test_helpers/utils";
 
+// performMessageTransaction() is public on the session implementation but deliberately
+// excluded from the public ClientSession interface; reached here to send a raw
+// unsupported request. _secureChannel/requestedSessionTimeout are private OPCUAClient
+// implementation fields, reached here only for fault-injection / assertion purposes.
+interface SessionWithTransaction {
+    performMessageTransaction(
+        request: ServerSideUnimplementedRequest,
+        callback: (err: Error | null, response?: unknown) => void
+    ): void;
+}
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 // Initialize variables
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -53,7 +66,7 @@ describe("testing Server resilience to unsupported request", function (this: Moc
     it("server should return a ServiceFault if receiving a unsupported MessageType", (done) => {
         const bad_request = new ServerSideUnimplementedRequest({}); // intentionally send a bad request
 
-        (g_session as any).performMessageTransaction(bad_request, (err: Error | null, _response: any) => {
+        (g_session as unknown as SessionWithTransaction).performMessageTransaction(bad_request, (err: Error | null) => {
             err?.should.be.instanceOf(Error);
             done();
         });
@@ -62,7 +75,7 @@ describe("testing Server resilience to unsupported request", function (this: Moc
 
 async function abruptly_disconnect_client(client: OPCUAClient) {
     await new Promise<void>((resolve) => {
-        (client as any)._secureChannel.getTransport().disconnect((err: Error) => {
+        (client as InternalAny)._secureChannel.getTransport().disconnect((err: Error) => {
             err ? resolve() : resolve();
         });
     });
@@ -104,7 +117,7 @@ describe("testing Server resilience with bad internet connection", function (thi
         try {
             // create session
             const session = await client.createSession();
-            session.timeout.should.eql((client as any).requestedSessionTimeout);
+            session.timeout.should.eql((client as InternalAny).requestedSessionTimeout);
 
             // assert that server has 1 sessions
 

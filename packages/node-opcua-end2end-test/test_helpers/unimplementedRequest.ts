@@ -1,5 +1,5 @@
 import { ObjectIds } from "node-opcua-constants";
-import { BaseUAObject, buildStructuredType } from "node-opcua-factory";
+import { BaseUAObject, buildStructuredType, type IStructuredTypeSchema } from "node-opcua-factory";
 import { makeExpandedNodeId } from "node-opcua-nodeid";
 
 import { RequestHeader } from "node-opcua-service-secure-channel";
@@ -15,9 +15,9 @@ const schemaServerSideUnimplementedRequest = buildStructuredType({
 });
 
 export class ServerSideUnimplementedRequest extends BaseUAObject {
-    static schema: any;
+    static schema: IStructuredTypeSchema;
     requestHeader: RequestHeader;
-    constructor(_options: {}) {
+    constructor(_options: Record<string, never>) {
         super();
         this.requestHeader = new RequestHeader();
     }
