@@ -12,7 +12,7 @@ import type {
     UAReference
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, type LocalizedTextLike, NodeClass } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -123,7 +123,10 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
             browseName: options.browseName,
             componentOf: options.componentOf,
             displayName: options.displayName || "",
-            description: options.description === undefined ? this.description?.clone() : options.description,
+            description:
+                options.description === undefined
+                    ? (this.description?.clone() as LocalizedTextLike | undefined)
+                    : options.description,
             encodingOf: options.encodingOf,
             eventSourceOf: options.eventSourceOf,
             notifierOf: options.notifierOf,

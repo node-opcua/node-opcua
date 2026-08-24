@@ -17,7 +17,14 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { UInt32 } from "node-opcua-basic-types";
-import { AttributeIds, BrowseDirection, coerceQualifiedName, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import {
+    AttributeIds,
+    BrowseDirection,
+    coerceQualifiedName,
+    type LocalizedTextLike,
+    NodeClass,
+    type QualifiedName
+} from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
@@ -267,7 +274,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
             browseName: options.browseName,
             componentOf: options.componentOf,
             dataType,
-            description: options.description === undefined ? this.description?.clone() : options.description,
+            description:
+                options.description === undefined
+                    ? (this.description?.clone() as LocalizedTextLike | undefined)
+                    : options.description,
             displayName: options.displayName || "",
             eventSourceOf: options.eventSourceOf,
             minimumSamplingInterval: options.minimumSamplingInterval,
