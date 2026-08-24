@@ -1,7 +1,5 @@
-/* eslint-disable complexity */
-
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { readFile, utils } from "xlsx-ugnis";
 
 const j = (s: string) => s.replace(/ /gm, "_");
@@ -12,7 +10,7 @@ const a = (s: string) =>
 const makeU = (s: string) => {
     const r = a(s.replace(/ /gm, "_").replace("_[", "[").replace("_(", "(")).replace(/_-_/gm, "-");
     if (/,_/.test(r)) {
-        return r.replace(/,_/, "(") + ")";
+        return `${r.replace(/,_/, "(")})`;
     }
     return r;
 };
@@ -45,7 +43,7 @@ function makeDescription(u: Entry | EntryAnnexeII_III) {
     const desc = a(u.Description || "");
     let str = name;
     if (desc) {
-        str += " - " + desc;
+        str += ` - ${desc}`;
     }
     if (cf) {
         str += ` (${cf})`;
@@ -53,7 +51,6 @@ function makeDescription(u: Entry | EntryAnnexeII_III) {
     return str;
 }
 
-// eslint-disable-next-line max-statements
 async function main() {
     // Reading our test file
     const file = readFile(path.join(__dirname, "./rec20_Rev17e-2021.xlsx"));
