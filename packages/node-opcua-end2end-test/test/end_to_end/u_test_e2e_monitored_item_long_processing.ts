@@ -1,12 +1,13 @@
-import { OPCUAClient, TimestampsToReturn } from "node-opcua-client";
+import { type DataValue, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 import { messageLogger } from "node-opcua-debug";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = false;
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("testing long operation detection", () => {
         it("should warning the user about long operations in monitoredItem.on('change', eventHandler)", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const client = OPCUAClient.create({});
 
             const warningMessageSpyFunc = sinon.spy();
@@ -32,7 +33,7 @@ export function t(test: any) {
                         TimestampsToReturn.Both
                     );
 
-                    monitoredItem.on("changed", (dataValue: any) => {
+                    monitoredItem.on("changed", (dataValue: DataValue) => {
                         notificationCount++;
                         // simulate a long blocking operation > 150 ms
                         const start = Date.now();
