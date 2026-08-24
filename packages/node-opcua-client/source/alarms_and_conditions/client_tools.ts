@@ -19,55 +19,98 @@ ClientSessionImpl.prototype.enableCondition = () => {
     /** */
 };
 
-ClientSessionImpl.prototype.addCommentCondition = function (
+function addCommentConditionImpl(
     conditionId: NodeIdLike,
     eventId: Buffer,
     comment: LocalizedTextLike,
     callback: Callback<StatusCode>
-) {
+): void;
+function addCommentConditionImpl(conditionId: NodeIdLike, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
+function addCommentConditionImpl(
+    this: ClientSessionImpl,
+    conditionId: NodeIdLike,
+    eventId: Buffer,
+    comment: LocalizedTextLike,
+    callback?: Callback<StatusCode>
+): Promise<StatusCode> | undefined {
+    if (!callback) {
+        return callMethodCondition(this, "AddComment", conditionId, eventId, comment);
+    }
     callbackify(callMethodCondition)(this, "AddComment", conditionId, eventId, comment, callback);
-};
+    return undefined;
+}
+ClientSessionImpl.prototype.addCommentCondition = addCommentConditionImpl;
 
 /** @deprecated */
-ClientSessionImpl.prototype.findMethodId = function (nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>) {
-    findMethodId(this, nodeId, methodName)
-        .then((data) => {
-            if (data.methodId) {
-                callback(null, data.methodId);
-            } else {
-                callback(data.err);
-            }
-        })
+function findMethodIdImpl(nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>): void;
+function findMethodIdImpl(nodeId: NodeIdLike, methodName: string): Promise<NodeId>;
+function findMethodIdImpl(
+    this: ClientSessionImpl,
+    nodeId: NodeIdLike,
+    methodName: string,
+    callback?: ResponseCallback<NodeId>
+): Promise<NodeId> | undefined {
+    const promise = findMethodId(this, nodeId, methodName).then((data) => {
+        if (data.methodId) {
+            return data.methodId;
+        }
+        throw data.err || new Error("findMethodId: method not found");
+    });
+    if (!callback) {
+        return promise;
+    }
+    promise
+        .then((methodId) => callback(null, methodId))
         .catch((err) => {
             callback(err);
         });
-};
+    return undefined;
+}
+ClientSessionImpl.prototype.findMethodId = findMethodIdImpl;
 
-ClientSessionImpl.prototype.confirmCondition = function (
+function confirmConditionImpl(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
     callback: Callback<StatusCode>
-) {
+): void;
+function confirmConditionImpl(conditionId: NodeId, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
+function confirmConditionImpl(
+    this: ClientSessionImpl,
+    conditionId: NodeId,
+    eventId: Buffer,
+    comment: LocalizedTextLike,
+    callback?: Callback<StatusCode>
+): Promise<StatusCode> | undefined {
     // ns=0;i=9113 AcknowledgeableConditionType#Confirm
     // note that confirm method is Optionals on condition
+    if (!callback) {
+        return confirmCondition(this, conditionId, eventId, comment);
+    }
     callbackify(confirmCondition)(this, conditionId, eventId, comment, callback);
-};
+    return undefined;
+}
+ClientSessionImpl.prototype.confirmCondition = confirmConditionImpl;
 
-ClientSessionImpl.prototype.acknowledgeCondition = function (
+function acknowledgeConditionImpl(
     conditionId: NodeId,
     eventId: Buffer,
     comment: LocalizedTextLike,
     callback: Callback<StatusCode>
-) {
+): void;
+function acknowledgeConditionImpl(conditionId: NodeId, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
+function acknowledgeConditionImpl(
+    this: ClientSessionImpl,
+    conditionId: NodeId,
+    eventId: Buffer,
+    comment: LocalizedTextLike,
+    callback?: Callback<StatusCode>
+): Promise<StatusCode> | undefined {
     // ns=0;i=9111 AcknowledgeableConditionType#Acknowledge
+    if (!callback) {
+        return acknowledgeCondition(this, conditionId, eventId, comment);
+    }
     callbackify(acknowledgeCondition)(this, conditionId, eventId, comment, callback);
-};
-
-import { withCallback } from "thenify-ex";
-
-const opts = { multiArgs: false };
-ClientSessionImpl.prototype.addCommentCondition = withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
-ClientSessionImpl.prototype.findMethodId = withCallback(ClientSessionImpl.prototype.findMethodId, opts);
-ClientSessionImpl.prototype.confirmCondition = withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
-ClientSessionImpl.prototype.acknowledgeCondition = withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);
+    return undefined;
+}
+ClientSessionImpl.prototype.acknowledgeCondition = acknowledgeConditionImpl;

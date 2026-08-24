@@ -6,6 +6,7 @@ import { assert } from "node-opcua-assert";
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { PublishRequest, type PublishResponse } from "node-opcua-service-subscription";
+import type { SubscriptionAcknowledgementOptions } from "node-opcua-types";
 
 import type { ClientSession, SubscriptionId } from "../client_session";
 import type { ClientSubscription } from "../client_subscription";
@@ -35,7 +36,7 @@ export class ClientSidePublishEngine {
     public nbMaxPublishRequestsAcceptedByServer: number;
     public isSuspended: boolean;
     public session: ClientSession | null;
-    private subscriptionAcknowledgements: any[];
+    private subscriptionAcknowledgements: SubscriptionAcknowledgementOptions[];
 
     /**
      * @internal
@@ -139,11 +140,10 @@ export class ClientSidePublishEngine {
         debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
         const _subscription = subscription as ClientSubscriptionImpl;
-        assert(arguments.length === 1);
-        assert(isFinite(subscription.subscriptionId));
+        assert(Number.isFinite(subscription.subscriptionId));
         assert(!Object.hasOwn(this.subscriptionMap, subscription.subscriptionId)); // already registered ?
         assert(typeof _subscription.onNotificationMessage === "function");
-        assert(isFinite(subscription.timeoutHint));
+        assert(Number.isFinite(subscription.timeoutHint));
 
         this.activeSubscriptionCount += 1;
         this.subscriptionMap[subscription.subscriptionId] = _subscription;
@@ -181,7 +181,7 @@ export class ClientSidePublishEngine {
     public unregisterSubscription(subscriptionId: SubscriptionId): void {
         debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
 
-        assert(isFinite(subscriptionId) && subscriptionId > 0);
+        assert(Number.isFinite(subscriptionId) && subscriptionId > 0);
         this.activeSubscriptionCount -= 1;
         // note : it is possible that we get here while the server has already requested
         //        a session shutdown ... in this case it is possible that subscriptionId is already
@@ -201,18 +201,21 @@ export class ClientSidePublishEngine {
      * get the client subscription from Id
      */
     public getSubscription(subscriptionId: SubscriptionId): ClientSubscription {
-        assert(isFinite(subscriptionId) && subscriptionId > 0);
+        assert(Number.isFinite(subscriptionId) && subscriptionId > 0);
         assert(Object.hasOwn(this.subscriptionMap, subscriptionId));
         return this.subscriptionMap[subscriptionId];
     }
 
     public hasSubscription(subscriptionId: SubscriptionId): boolean {
-        assert(isFinite(subscriptionId) && subscriptionId > 0);
+        assert(Number.isFinite(subscriptionId) && subscriptionId > 0);
         return Object.hasOwn(this.subscriptionMap, subscriptionId);
     }
 
     public internalSendPublishRequest(): void {
         assert(this.session, "ClientSidePublishEngine terminated ?");
+        if (!this.session) {
+            throw new Error("ClientSidePublishEngine terminated ?");
+        }
 
         this.nbPendingPublishRequests += 1;
 
@@ -260,7 +263,7 @@ export class ClientSidePublishEngine {
 
         let active = true;
 
-        const session = this.session! as ClientSessionImpl;
+        const session = this.session as ClientSessionImpl;
         session.publish(publishRequest, (err: Error | null, response?: PublishResponse) => {
             this.nbPendingPublishRequests -= 1;
 
@@ -339,17 +342,17 @@ export class ClientSidePublishEngine {
                     );
                     active = false;
                 }
-            } else {
+            } else if (response) {
                 // c8 ignore next
                 if (doDebug) {
                     debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
-                this._receive_publish_response(response!);
+                this._receive_publish_response(response);
             }
 
             // feed the server with a new publish Request to the server
             if (!this.isSuspended && active && this.activeSubscriptionCount > 0) {
-                if (err && err.message.match(/Connection Break/)) {
+                if (err?.message.match(/Connection Break/)) {
                     // do not renew when connection is broken
                 } else {
                     this.send_publish_request();

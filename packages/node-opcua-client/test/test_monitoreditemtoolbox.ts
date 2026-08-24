@@ -9,20 +9,20 @@ import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl
 
 describe("Testing the Monitored Items Group", () => {
     let sandbox: SinonSandbox;
-    let monitoredItemGroup: any;
-    let fakeSubscription: any;
+    let monitoredItemGroup: ClientMonitoredItemGroup;
+    let fakeSubscription: sinon.SinonStubbedInstance<ClientSubscriptionImpl>;
 
     before(() => {
         sandbox = sinon.createSandbox();
 
         fakeSubscription = sandbox.createStubInstance(ClientSubscriptionImpl);
-        fakeSubscription._wait_for_subscription_to_be_ready.callsFake((cb: any) => setTimeout(() => cb(null), 500));
+        fakeSubscription._wait_for_subscription_to_be_ready.callsFake((cb: (err?: Error) => void) => setTimeout(() => cb(), 500));
 
         const fakeEngine = sandbox.createStubInstance(ClientSidePublishEngine);
-        fakeSubscription.publishEngine = fakeEngine as any;
+        fakeSubscription.publishEngine = fakeEngine as unknown as ClientSidePublishEngine;
 
         const fakeSession = sandbox.createStubInstance(ClientSessionImpl);
-        fakeEngine.session = fakeSession as any;
+        fakeEngine.session = fakeSession as unknown as ClientSessionImpl;
 
         fakeSession.createMonitoredItems.yields(new Error("something bad happened"));
 

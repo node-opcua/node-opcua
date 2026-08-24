@@ -17,7 +17,7 @@ import type { ClientMonitoredItem } from "../client_monitored_item";
 import type { ClientSession } from "../client_session";
 import type { ClientSubscription } from "../client_subscription";
 
-const doDebug = checkDebugFlag("A&E");
+const _doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");
 const warningLog = make_warningLog("A&E");
 

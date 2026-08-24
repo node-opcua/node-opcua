@@ -608,7 +608,6 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
      *
      * const create
      */
-    // biome-ignore lint/suspicious/useAdjacentOverloadSignatures: static vs instance method
     public static async createSession(
         endpointUrl: string,
         userIdentity?: UserIdentityInfo,
@@ -1073,7 +1072,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             return;
         }
         const currentDer = Array.isArray(current) ? combine_der(current) : current;
-        if (session.serverCertificate && session.serverCertificate.equals(currentDer)) {
+        if (session.serverCertificate?.equals(currentDer)) {
             return;
         }
         doDebug &&

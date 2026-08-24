@@ -237,8 +237,10 @@ export interface ClientSubscription extends EventEmitter {
 }
 
 export declare interface ClientSubscription {
+    // biome-ignore lint/suspicious/noExplicitAny: matches Node's EventEmitter catch-all signature; narrowing to unknown[] breaks assignability of specifically-typed listener handlers at call sites
     once(event: string | symbol, listener: (...args: any[]) => void): this;
 
+    // biome-ignore lint/suspicious/noExplicitAny: matches Node's EventEmitter catch-all signature; narrowing to unknown[] breaks assignability of specifically-typed listener handlers at call sites
     on(event: string | symbol, listener: (...args: any[]) => void): this;
     /**
      * notify the observers that the subscription has now started
@@ -298,8 +300,9 @@ export declare interface ClientSubscription {
 }
 
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
+// biome-ignore lint/complexity/noStaticOnlyClass: class identity is required for the `implements IBasicSubscription` contract; static factory + static flag can't be expressed as a namespace
 export class ClientSubscription implements IBasicSubscription {
-    public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {
+    public static create(_clientSession: ClientSession, _options: ClientSubscriptionOptions): ClientSubscription {
         /* c8 ignore next*/
         throw new Error("Not Implemented");
     }

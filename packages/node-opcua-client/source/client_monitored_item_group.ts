@@ -4,6 +4,7 @@
 
 import type { EventEmitter } from "node:events";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
 import type { MonitoringParametersOptions } from "node-opcua-types";
 
 import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
@@ -23,15 +24,17 @@ export interface ClientMonitoredItemGroup {
     monitoredItems: ClientMonitoredItemBase[];
 }
 
-// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
-export class ClientMonitoredItemGroup {
-    public static create(
-        subscription: ClientSubscription,
-        itemsToMonitor: any[],
-        monitoringParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn
-    ): ClientMonitoredItemGroup {
+export namespace ClientMonitoredItemGroup {
+    // reassigned in private/client_monitored_item_group_impl.ts to install the real
+    // implementation; biome's useConst can't see that cross-module write.
+    // biome-ignore lint/style/useConst: intentionally mutable, see above
+    export let create = (
+        _subscription: ClientSubscription,
+        _itemsToMonitor: ReadValueIdOptions[],
+        _monitoringParameters: MonitoringParametersOptions,
+        _timestampsToReturn: TimestampsToReturn
+    ): ClientMonitoredItemGroup => {
         /* c8 ignore next*/
         throw new Error("Not implemented");
-    }
+    };
 }

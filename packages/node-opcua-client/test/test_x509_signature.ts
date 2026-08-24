@@ -24,11 +24,16 @@ import type {
     CreateSessionResponse,
     SignatureData,
     SignatureDataOptions,
-    UserIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
 
 const doDebug = false;
+
+/** minimal shape used by verifyX509UserIdentity below: only policyId + toString are read */
+interface FakeUserTokenPolicy {
+    policyId: string;
+    toString(): string;
+}
 
 function readMessage(name: string): Buffer {
     const filename = path.join(__dirname, "./fixtures", name);
@@ -67,7 +72,7 @@ function verifyX509UserIdentity(
     serverCertificate: Certificate,
     sessionNonce: Buffer,
     securityPolicy: SecurityPolicy,
-    userTokenPolicy: UserIdentityToken,
+    userTokenPolicy: FakeUserTokenPolicy,
     userIdentityToken: X509IdentityToken,
     userTokenSignature: SignatureData,
     callback: (err: null, statusCode: StatusCode) => void
@@ -77,7 +82,7 @@ function verifyX509UserIdentity(
         return callback(null, StatusCodes.BadSecurityPolicyRejected);
     }
 
-    if (!userTokenSignature || !userTokenSignature.signature) {
+    if (!userTokenSignature?.signature) {
         return callback(null, StatusCodes.BadUserSignatureInvalid);
     }
 
@@ -140,7 +145,10 @@ describe("X509 - Wireshark Analysis", () => {
         const userIdentityToken = activateSessionRequest.userIdentityToken as X509IdentityToken;
 
         // create a fake server userTokenPolicy
-        const userTokenPolicy: any = {
+        const userTokenPolicy: FakeUserTokenPolicy = {
+            toString() {
+                return `UserTokenPolicy(policyId=${this.policyId})`;
+            },
             policyId: userIdentityToken.policyId
         };
 

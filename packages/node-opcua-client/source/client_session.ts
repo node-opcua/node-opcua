@@ -185,7 +185,7 @@ export interface ClientSession extends ClientSessionBase {
 export interface ClientSession extends EventEmitter {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
-    on(event: "keepalive_failure", eventHandler: (state: any) => void): this;
+    on(event: "keepalive_failure", eventHandler: () => void): this;
 
     on(event: "session_closed", eventHandler: (statusCode: StatusCode) => void): this;
 
@@ -195,6 +195,7 @@ export interface ClientSession extends EventEmitter {
      */
     on(event: "session_restored", eventHandler: () => void): this;
 
+    // biome-ignore lint/suspicious/noExplicitAny: matches Node's EventEmitter.on catch-all signature; narrowing to unknown[] breaks assignability of specifically-typed listener handlers at call sites
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 

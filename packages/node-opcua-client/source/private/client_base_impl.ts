@@ -493,7 +493,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         // we need to delay _applicationUri initialization
         this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
 
-        this.clientCertificateManager = options.clientCertificateManager!;
+        if (!options.clientCertificateManager) {
+            throw new Error("internal error: clientCertificateManager should have been set above");
+        }
+        this.clientCertificateManager = options.clientCertificateManager;
         this.clientCertificateManager.referenceCounter++;
 
         this._secureChannel = null;

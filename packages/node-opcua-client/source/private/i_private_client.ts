@@ -15,7 +15,7 @@ export interface IClientBase {
         callback: (err: Error | null, session?: ClientSessionImpl) => void
     ): void;
     _removeSession(session: ClientSessionImpl): void;
-    closeSession(session: ClientSession, deleteSubscription: any, arg2: (err?: Error | undefined) => void): void;
+    closeSession(session: ClientSession, deleteSubscription: boolean, arg2: (err?: Error | undefined) => void): void;
 
     performMessageTransaction(request: Request, callback: ResponseCallback<Response>): void;
     endpoint?: EndpointDescription;

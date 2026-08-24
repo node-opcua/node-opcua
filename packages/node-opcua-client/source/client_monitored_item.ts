@@ -26,10 +26,10 @@ export namespace ClientMonitoredItem {
     // implementation; biome's useConst can't see that cross-module write.
     // biome-ignore lint/style/useConst: intentionally mutable, see above
     export let create = (
-        subscription: ClientSubscription,
-        itemToMonitor: ReadValueIdOptions,
-        monitoringParameters: MonitoringParametersOptions,
-        timestampsToReturn: TimestampsToReturn = TimestampsToReturn.Neither
+        _subscription: ClientSubscription,
+        _itemToMonitor: ReadValueIdOptions,
+        _monitoringParameters: MonitoringParametersOptions,
+        _timestampsToReturn: TimestampsToReturn = TimestampsToReturn.Neither
     ): ClientMonitoredItem => {
         /* c8 ignore next*/
         throw new Error("unimplemented");

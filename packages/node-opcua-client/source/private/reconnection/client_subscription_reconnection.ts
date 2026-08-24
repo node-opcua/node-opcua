@@ -13,13 +13,13 @@ import {
     type CreateMonitoredItemsResponse,
     type MonitoredItemCreateRequestOptions
 } from "node-opcua-types";
-import type { ClientSubscription } from "../../client_subscription";
+import type { ClientMonitoredItemBaseMap, ClientSubscription } from "../../client_subscription";
 import type { ClientMonitoredItemImpl } from "../client_monitored_item_impl";
 import { __create_subscription, type ClientSubscriptionImpl, TERMINATED_SUBSCRIPTION_ID } from "../client_subscription_impl";
 import { _shouldNotContinue } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
-const doDebug = checkDebugFlag("RECONNECTION");
+const _doDebug = checkDebugFlag("RECONNECTION");
 const warningLog = make_warningLog("RECONNECTION");
 
 async function createMonitoredItemsAndRespectOperationalLimits(
@@ -35,7 +35,7 @@ async function createMonitoredItemsAndRespectOperationalLimits(
     return createMonitoredItemResponse;
 }
 
-async function adjustMonitoredItemNodeIds(subscription: ClientSubscription, oldMonitoredItems: any) {
+async function adjustMonitoredItemNodeIds(_subscription: ClientSubscription, _oldMonitoredItems: ClientMonitoredItemBaseMap) {
     // to Do
 }
 /**
@@ -63,7 +63,7 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
         throw _err;
     }
 
-    const test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
+    const _test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
     debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
     // re-create monitored items
@@ -101,7 +101,7 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     monitoredItemResults.forEach((monitoredItemResult, index) => {
         const itemToCreate = itemsToCreate[index];
         /* c8 ignore next */
-        if (!itemToCreate || !itemToCreate.requestedParameters) {
+        if (!itemToCreate?.requestedParameters) {
             _errCount++;
             return;
         }

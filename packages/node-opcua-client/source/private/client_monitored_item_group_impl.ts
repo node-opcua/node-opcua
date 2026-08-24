@@ -4,7 +4,7 @@
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { coerceTimestampsToReturn, type DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MonitoringMode, type MonitoringParametersOptions } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
@@ -32,6 +32,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     private readonly subscription: ClientSubscription;
     private timestampsToReturn: TimestampsToReturn;
     private readonly monitoringMode: MonitoringMode;
+    private _terminated = false;
 
     constructor(
         subscription: ClientSubscription,
@@ -89,11 +90,11 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
      */
     public async terminate(): Promise<void>;
     public terminate(done: ErrorCallback): void;
-    public terminate(...args: any[]): any {
+    public terminate(...args: unknown[]): unknown {
         const done = args[0] as ErrorCallback;
         assert(!done || typeof done === "function");
         const subscription = this.subscription as ClientSubscriptionImpl;
-        subscription._delete_monitored_items(this.monitoredItems, (err?: Error) => {
+        return subscription._delete_monitored_items(this.monitoredItems, (err?: Error) => {
             subscription._removeGroup(this);
 
             if (done) {
@@ -116,15 +117,15 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         timestampsToReturn: TimestampsToReturn | null,
         callback: Callback<MonitoredItemModifyResult>
     ): void;
-    public modify(...args: any[]): any {
+    public modify(...args: unknown[]): unknown {
         if (args.length === 2) {
-            return this.modify(args[0], null, args[1]);
+            return this.modify(args[0] as MonitoringParametersOptions, null, args[1] as Callback<MonitoredItemModifyResult>);
         }
         const parameters = args[0] as MonitoringParametersOptions;
         const timestampsToReturn = args[1] as TimestampsToReturn;
         const callback = args[2] as ErrorCallback;
         this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
-        ClientMonitoredItemToolbox._toolbox_modify(
+        return ClientMonitoredItemToolbox._toolbox_modify(
             this.subscription,
             this.monitoredItems,
             parameters,
@@ -137,16 +138,16 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
 
     public async setMonitoringMode(monitoringMode: MonitoringMode): Promise<StatusCode>;
     public setMonitoringMode(monitoringMode: MonitoringMode, callback: Callback<StatusCode>): void;
-    public setMonitoringMode(...args: any[]): any {
+    public setMonitoringMode(...args: unknown[]): unknown {
         const monitoringMode = args[0] as MonitoringMode;
         const callback = args[1] as Callback<StatusCode>;
-        ClientMonitoredItemToolbox._toolbox_setMonitoringMode(
+        return ClientMonitoredItemToolbox._toolbox_setMonitoringMode(
             this.subscription,
             this.monitoredItems,
             monitoringMode,
             (err: Error | null, statusCode?: StatusCode[]) => {
                 // todo fix me
-                callback(err, statusCode![0]);
+                callback(err, statusCode?.[0]);
             }
         );
     }
@@ -201,8 +202,8 @@ Please investigate the code of the event handler function to fix the error.`
         );
     }
     public _terminate_and_emit(err?: Error): void {
-        assert(!(this as any)._terminated);
-        (this as any)._terminated = true;
+        assert(!this._terminated);
+        this._terminated = true;
         if (err) {
             this.emit("err", err.message);
         }
@@ -212,7 +213,7 @@ Please investigate the code of the event handler function to fix the error.`
 
 import { withCallback } from "thenify-ex";
 
-const opts = { multiArgs: false };
+const _opts = { multiArgs: false };
 
 ClientMonitoredItemGroupImpl.prototype.terminate = withCallback(ClientMonitoredItemGroupImpl.prototype.terminate);
 ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = withCallback(ClientMonitoredItemGroupImpl.prototype.setMonitoringMode);

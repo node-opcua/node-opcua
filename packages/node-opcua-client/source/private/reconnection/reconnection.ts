@@ -157,7 +157,10 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
         if (err) {
             warningLog("republish has failed with error :", err.message);
             doDebug && debugLog("_ask_for_subscription_republish has :  recreating subscription");
-            return repair_client_session_by_recreating_a_new_session(session._client!, session, callback);
+            if (!session._client) {
+                return callback(new Error("_ask_for_subscription_republish: session has no client"));
+            }
+            return repair_client_session_by_recreating_a_new_session(session._client, session, callback);
         }
 
         // Republish has completed: resume normal Publish handling. During the connection break the
@@ -205,7 +208,11 @@ function activate_session(client: IClientBase, session: ClientSessionImpl, newSe
 
         doDebug && debugLog(chalk.bgWhite.red("    => activating a new session ...."));
 
-        client._activateSession(newSession, newSession.userIdentityInfo!, (err: Error | null, _session1?: ClientSessionImpl) => {
+        if (!newSession.userIdentityInfo) {
+            reject(new Error("activate_session: newSession has no userIdentityInfo"));
+            return;
+        }
+        client._activateSession(newSession, newSession.userIdentityInfo, (err: Error | null, _session1?: ClientSessionImpl) => {
             // c8 ignore next
             doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
             if (err) {
@@ -471,7 +478,11 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
         }
     }
 
-    client._activateSession(session, session.userIdentityInfo!, (err: Error | null, _session2?: ClientSessionImpl) => {
+    if (!session.userIdentityInfo) {
+        callback(new Error("_repair_client_session: session has no userIdentityInfo"));
+        return;
+    }
+    client._activateSession(session, session.userIdentityInfo, (err: Error | null, _session2?: ClientSessionImpl) => {
         // prettier-ignore
         {
             const err = _shouldNotContinue(session);

@@ -1,19 +1,26 @@
+import type { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
 import { StatusCodes } from "node-opcua-status-code";
-import should from "should";
 import sinon from "sinon";
 
 import { ClientSessionKeepAliveManager } from "../dist/client_session_keepalive_manager";
 import type { ClientSessionImpl } from "../dist/private/client_session_impl";
 
-function makeSession(readImpl: (nodeToRead: any, callback: any) => void): ClientSessionImpl {
-    const client = { _secureChannel: { forceConnectionBreak: sinon.spy() } };
+type ReadCallback = (err: Error | null, dataValue?: DataValue) => void;
+
+interface FakeSecureChannel {
+    forceConnectionBreak: sinon.SinonSpy;
+}
+
+function makeSession(readImpl: (nodeToRead: ReadValueIdOptions, callback: ReadCallback) => void): ClientSessionImpl {
+    const client = { _secureChannel: { forceConnectionBreak: sinon.spy() } as FakeSecureChannel };
     return {
         timeout: 10_000,
         isReconnecting: false,
         hasBeenClosed: () => false,
         lastResponseReceivedTime: new Date(0),
-        read: (_nodeToRead: any, callback: any) => readImpl(_nodeToRead, callback),
+        read: (nodeToRead: ReadValueIdOptions, callback: ReadCallback) => readImpl(nodeToRead, callback),
         _client: client
     } as unknown as ClientSessionImpl;
 }
@@ -37,7 +44,8 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
     it("KAL-1 should emit failure and reconnect when session.read returns a transport error", () => {
         const transportErr = new Error("ECONNRESET");
         const session = makeSession((_n, cb) => cb(transportErr, undefined));
-        const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
+        const terminateSpy = (session._client as unknown as { _secureChannel: FakeSecureChannel })._secureChannel
+            .forceConnectionBreak;
 
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
@@ -64,7 +72,8 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         // The keepalive round-trip succeeded — treat it as a successful keepalive.
         const serviceFaultErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
         const session = makeSession((_n, cb) => cb(serviceFaultErr, undefined));
-        const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
+        const terminateSpy = (session._client as unknown as { _secureChannel: FakeSecureChannel })._secureChannel
+            .forceConnectionBreak;
 
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
@@ -93,7 +102,8 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
     it("KAL-3 should emit failure and reconnect when session.read returns BadSessionIdInvalid", () => {
         const sessionGoneErr = makeServiceFaultError(StatusCodes.BadSessionIdInvalid);
         const session = makeSession((_n, cb) => cb(sessionGoneErr, undefined));
-        const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
+        const terminateSpy = (session._client as unknown as { _secureChannel: FakeSecureChannel })._secureChannel
+            .forceConnectionBreak;
 
         const mgr = new ClientSessionKeepAliveManager(session);
         let failureFired = false;
@@ -151,7 +161,8 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         // Expected: "keepalive" is emitted, no backoff accumulates, no reconnect ever fires.
         const clockSkewErr = makeServiceFaultError(StatusCodes.BadInvalidTimestamp);
         const session = makeSession((_n, cb) => cb(clockSkewErr, undefined));
-        const terminateSpy = (session._client as any)._secureChannel.forceConnectionBreak as sinon.SinonSpy;
+        const terminateSpy = (session._client as unknown as { _secureChannel: FakeSecureChannel })._secureChannel
+            .forceConnectionBreak;
 
         const mgr = new ClientSessionKeepAliveManager(session);
         let keepaliveCount = 0;

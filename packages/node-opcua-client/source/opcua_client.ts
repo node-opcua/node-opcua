@@ -233,6 +233,7 @@ export interface OPCUAClient<Events extends OPCUAClientBaseEvents = OPCUAClientB
  * });
  * ```
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: interface merges instance-side typings; static factory + static accessors can't be expressed as a namespace (get/set)
 export class OPCUAClient {
     /**
      * Create a new OPC UA client instance.

@@ -49,6 +49,8 @@ import type {
     SetMonitoringModeResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse,
+    SetTriggeringRequest,
+    SetTriggeringResponse,
     TransferSubscriptionsRequest,
     TransferSubscriptionsResponse
 } from "node-opcua-service-subscription";
@@ -80,6 +82,7 @@ export type Request =
     | RepublishRequest
     | DeleteMonitoredItemsRequest
     | SetPublishingModeRequest
+    | SetTriggeringRequest
     | FindServersOnNetworkRequest
     | FindServersRequest
     | HistoryReadRequest
@@ -110,6 +113,7 @@ export type Response =
     | RepublishResponse
     | DeleteMonitoredItemsResponse
     | SetPublishingModeResponse
+    | SetTriggeringResponse
     | FindServersOnNetworkResponse
     | FindServersResponse
     | HistoryReadResponse

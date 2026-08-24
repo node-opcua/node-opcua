@@ -28,7 +28,7 @@ interface ServiceFaultAnnotatedError extends Error {
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
 const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
 export interface ClientSessionKeepAliveManagerEvents {
@@ -224,7 +224,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                         }
                         return;
                     }
-                    if (!dataValue || !dataValue.value) {
+                    if (!dataValue?.value) {
                         /**
                          * @event failure
                          * raised when the server is not responding or is responding with en error to
@@ -264,7 +264,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 function terminateConnection(client: IClientBase | null) {
     if (!client) return;
 
-    const channel: ClientSecureChannelLayer = (client as any)._secureChannel;
+    const channel: ClientSecureChannelLayer | null = client._secureChannel;
     if (!channel) {
         return;
     }

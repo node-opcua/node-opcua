@@ -137,15 +137,15 @@ import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import type { IClientBase } from "./i_private_client";
 import { repair_client_session } from "./reconnection/reconnection";
 
-const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
+const helpAPIChange = process.env.DEBUG?.match(/API/);
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+const _errorLog = make_errorLog(__filename);
 
 let pendingTransactionMessageDisplayed = false;
 
-function coerceBrowseDescription(data: any): BrowseDescription {
+function coerceBrowseDescription(data: BrowseDescriptionLike | NodeId): BrowseDescription {
     if (typeof data === "string" || data instanceof NodeId) {
         return coerceBrowseDescription({
             browseDirection: BrowseDirection.Forward,
@@ -156,13 +156,14 @@ function coerceBrowseDescription(data: any): BrowseDescription {
             resultMask: 63
         });
     } else {
-        data.nodeId = resolveNodeId(data.nodeId);
-        data.referenceTypeId = data.referenceTypeId ? resolveNodeId(data.referenceTypeId) : null;
-        return new BrowseDescription(data);
+        const options = data as { nodeId: NodeIdLike; referenceTypeId?: NodeIdLike | null };
+        options.nodeId = resolveNodeId(options.nodeId);
+        options.referenceTypeId = options.referenceTypeId ? resolveNodeId(options.referenceTypeId) : null;
+        return new BrowseDescription(options);
     }
 }
 
-function coerceReadValueId(node: any): ReadValueId {
+function coerceReadValueId(node: unknown): ReadValueId {
     if (typeof node === "string" || node instanceof NodeId) {
         return new ReadValueId({
             attributeId: AttributeIds.Value,
@@ -172,13 +173,18 @@ function coerceReadValueId(node: any): ReadValueId {
         });
     } else {
         assert(node instanceof Object);
-        return new ReadValueId(node);
+        return new ReadValueId(node as ReadValueIdOptions);
     }
 }
 
 const emptyUint32Array = new Uint32Array(0);
 
 type EmptyCallback = (err?: Error) => void;
+
+interface ServiceFaultAnnotatedError extends Error {
+    serviceDiagnostics?: unknown;
+    diagnosticsInfo?: unknown;
+}
 
 export interface Reconnectable {
     _reconnecting: {
@@ -212,7 +218,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public _reconnecting: {
         reconnecting: boolean;
         pendingCallbacks: EmptyCallback[];
-        pendingTransactions: any[];
+        pendingTransactions: { request: Request; callback: (err: Error | null, response?: Response) => void }[];
     };
 
     /**
@@ -250,7 +256,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     getTransportSettings(): IBasicTransportSettings {
-        return this._client!.getTransportSettings();
+        if (!this._client) {
+            throw new Error("session has been closed - no transport settings available");
+        }
+        return this._client.getTransportSettings();
     }
     /**
      * the endpoint on which this session is operating
@@ -258,7 +267,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @type {EndpointDescription}
      */
     get endpoint(): EndpointDescription {
-        return this._client!.endpoint!;
+        if (!this._client?.endpoint) {
+            throw new Error("session has been closed - no endpoint available");
+        }
+        return this._client.endpoint;
     }
 
     get subscriptionCount(): number {
@@ -290,31 +302,32 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         if (!this._publishEngine) {
             this._publishEngine = new ClientSidePublishEngine(this);
         }
-        return this._publishEngine!;
+        return this._publishEngine;
     }
 
     public changeUser(userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
     public changeUser(userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
-    public changeUser(userIdentityInfo: UserIdentityInfo, callback?: CallbackT<StatusCode>): any {
+    public changeUser(userIdentityInfo: UserIdentityInfo, callback?: CallbackT<StatusCode>): unknown {
         userIdentityInfo = userIdentityInfo || {
             type: UserTokenType.Anonymous
         };
         if (!this._client || !this.userIdentityInfo) {
             warningLog("changeUser: invalid session");
-            return callback!(null, StatusCodes.BadInternalError);
+            return callback?.(null, StatusCodes.BadInternalError);
         }
 
         const old_userIdentity: UserIdentityInfo = this.userIdentityInfo;
 
-        this._client._activateSession(this, userIdentityInfo, (err1: Error | null, session2?: ClientSessionImpl) => {
+        this._client._activateSession(this, userIdentityInfo, (err1: Error | null, _session2?: ClientSessionImpl) => {
             if (err1) {
                 this.userIdentityInfo = old_userIdentity;
                 warningLog("activate session error = ", err1.message);
-                return callback!(null, StatusCodes.BadUserAccessDenied);
+                return callback?.(null, StatusCodes.BadUserAccessDenied);
             }
             this.userIdentityInfo = userIdentityInfo;
-            callback!(null, StatusCodes.Good);
+            callback?.(null, StatusCodes.Good);
         });
+        return undefined;
     }
     /**
      *
@@ -385,22 +398,24 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public browse(...args: any[]): any {
+    public browse(...args: unknown[]): unknown {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
-        const callback: ResponseCallback<BrowseResult[] | BrowseResult> = args[1];
+        const callback = args[1] as ResponseCallback<BrowseResult[] | BrowseResult>;
         assert(typeof callback === "function");
 
-        assert(isFinite(this.requestedMaxReferencesPerNode));
+        assert(Number.isFinite(this.requestedMaxReferencesPerNode));
 
-        const nodesToBrowse: BrowseDescription[] = (isArray ? arg0 : [arg0 as BrowseDescription]).map(coerceBrowseDescription);
+        const nodesToBrowse: BrowseDescription[] = (
+            isArray ? (arg0 as BrowseDescriptionLike[]) : [arg0 as BrowseDescriptionLike]
+        ).map(coerceBrowseDescription);
 
         const request = new BrowseRequest({
             nodesToBrowse,
             requestedMaxReferencesPerNode: this.requestedMaxReferencesPerNode
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (err) {
                 return callback(err);
             }
@@ -451,21 +466,21 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public async browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
     public async browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
-    public browseNext(...args: any[]): any {
+    public browseNext(...args: unknown[]): unknown {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
         const releaseContinuationPoints = args[1] as boolean;
-        const callback: any = args[2];
+        const callback = args[2] as ResponseCallback<BrowseResult[] | BrowseResult>;
         assert(typeof callback === "function", "expecting a callback function here");
 
-        const continuationPoints: Buffer[] = isArray ? arg0 : [arg0 as Buffer];
+        const continuationPoints: Buffer[] = isArray ? (arg0 as Buffer[]) : [arg0 as Buffer];
 
         const request = new BrowseNextRequest({
             continuationPoints,
             releaseContinuationPoints
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -525,13 +540,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public readVariableValue(...args: any[]): any {
-        const callback = args[1];
+    public readVariableValue(...args: unknown[]): unknown {
+        const callback = args[1] as ResponseCallback<DataValue[] | DataValue>;
         assert(typeof callback === "function");
 
         const isArray = Array.isArray(args[0]);
 
-        const nodes = isArray ? args[0] : [args[0]];
+        const nodes: unknown[] = isArray ? (args[0] as unknown[]) : [args[0]];
 
         const nodesToRead = nodes.map(coerceReadValueId);
 
@@ -540,7 +555,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             timestampsToReturn: TimestampsToReturn.Neither
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -631,33 +646,34 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         end: DateTime,
         parameters: ExtraReadHistoryValueParameters
     ): Promise<HistoryReadResult>;
-    public readHistoryValue(...args: any[]): any {
-        const startTime = args[1];
-        const endTime = args[2];
+    public readHistoryValue(...args: unknown[]): unknown {
+        const startTime = args[1] as DateTime;
+        const endTime = args[2] as DateTime;
 
         let options: ExtraReadHistoryValueParameters = {};
         let callback = args[3];
         if (typeof callback !== "function") {
-            options = args[3];
+            options = args[3] as ExtraReadHistoryValueParameters;
             callback = args[4];
         }
         assert(typeof callback === "function");
+        const cb = callback as (err: Error | null, results?: HistoryReadResult[] | HistoryReadResult) => void;
 
         // adjust parameters
         options.numValuesPerNode = options.numValuesPerNode || 0;
-        options.returnBounds = options.returnBounds || options.returnBounds === undefined ? true : false;
+        options.returnBounds = !!(options.returnBounds || options.returnBounds === undefined);
         options.isReadModified = options.isReadModified || false;
         options.timestampsToReturn = options.timestampsToReturn ?? TimestampsToReturn.Both;
 
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
 
-        const nodes = isArray ? arg0 : [arg0];
+        const nodes: unknown[] = isArray ? (arg0 as unknown[]) : [arg0];
 
         const nodesToRead: HistoryReadValueIdOptions[] = [];
 
-        for (const node of nodes) {
-            if (!node.nodeId) {
+        for (const node of nodes as (NodeIdLike | HistoryReadValueIdOptions2)[]) {
+            if (!(node as HistoryReadValueIdOptions2).nodeId) {
                 nodesToRead.push({
                     continuationPoint: undefined,
                     dataEncoding: undefined, // {namespaceIndex: 0, name: undefined},
@@ -687,30 +703,30 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         request.nodesToRead = request.nodesToRead || [];
 
         assert(nodes.length === request.nodesToRead.length);
-        this.historyRead(request, (err: Error | null, response?: HistoryReadResponse) => {
+        return this.historyRead(request, (err: Error | null, response?: HistoryReadResponse) => {
             /* c8 ignore next */
             if (err) {
-                return callback(err);
+                return cb(err);
             }
             /* c8 ignore next */
             if (!response || !(response instanceof HistoryReadResponse)) {
-                return callback(new Error("Internal Error"));
+                return cb(new Error("Internal Error"));
             }
             response.results = response.results || [];
             assert(nodes.length === response.results.length);
-            callback(null, isArray ? response.results : response.results[0]);
+            cb(null, isArray ? response.results : response.results[0]);
         });
     }
 
     public historyRead(request: HistoryReadRequest, callback: Callback<HistoryReadResponse>): void;
     public historyRead(request: HistoryReadRequest): Promise<HistoryReadResponse>;
-    public historyRead(request: HistoryReadRequest, callback?: CallbackT<HistoryReadResponse>): any {
+    public historyRead(request: HistoryReadRequest, callback?: CallbackT<HistoryReadResponse>): unknown {
         /* c8 ignore next */
         if (!callback) {
             throw new Error("expecting a callback");
         }
 
-        this.performMessageTransaction(request, (err: Error | null, response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -814,9 +830,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         endTime: DateTime,
         aggregateFn: AggregateFunction[] | AggregateFunction,
         processingInterval: number,
-        ...args: any[]
-    ): any {
-        const callback = typeof args[0] === "function" ? args[0] : args[1];
+        ...args: unknown[]
+    ): unknown {
+        const callback = (typeof args[0] === "function" ? args[0] : args[1]) as Callback<HistoryReadResult[] | HistoryReadResult>;
         assert(typeof callback === "function");
         const defaultAggregateFunction = {
             percentDataBad: 100,
@@ -825,7 +841,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             useServerCapabilitiesDefaults: true,
             useSlopedExtrapolation: false
         };
-        const aggregateConfiguration = typeof args[0] === "function" ? defaultAggregateFunction : args[0];
+        const aggregateConfiguration = (
+            typeof args[0] === "function" ? defaultAggregateFunction : args[0]
+        ) as AggregateConfigurationOptions;
 
         const isArray = Array.isArray(arg0);
 
@@ -854,8 +872,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             timestampsToReturn: TimestampsToReturn.Both
         });
 
-        assert(nodesToRead.length === request.nodesToRead!.length);
-        this.performMessageTransaction(request, (err: Error | null, response) => {
+        assert(nodesToRead.length === request.nodesToRead?.length);
+        return this.performMessageTransaction(request, (err: Error | null, response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -984,17 +1002,17 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public write(...args: any[]): any {
+    public write(...args: unknown[]): unknown {
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
-        const nodesToWrite = isArray ? arg0 : [arg0];
+        const nodesToWrite: WriteValueOptions[] = isArray ? (arg0 as WriteValueOptions[]) : [arg0 as WriteValueOptions];
 
-        const callback = args[1];
+        const callback = args[1] as (err: Error | null, results?: StatusCode[] | StatusCode | Response) => void;
         assert(typeof callback === "function");
 
         const request = new WriteRequest({ nodesToWrite });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err, response);
@@ -1051,10 +1069,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public writeSingleNode(nodeId: NodeIdLike, value: VariantLike): Promise<StatusCode>;
 
-    public writeSingleNode(...args: any[]): any {
+    public writeSingleNode(...args: unknown[]): unknown {
         const nodeId = args[0] as NodeIdLike;
         const value = args[1] as VariantLike;
-        const callback = args[2];
+        const callback = args[2] as ResponseCallback<StatusCode>;
 
         assert(typeof callback === "function");
 
@@ -1065,7 +1083,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             value: new DataValue({ value })
         });
 
-        this.write(nodeToWrite, (err, statusCode) => {
+        return this.write(nodeToWrite, (err, statusCode) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1100,11 +1118,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public readAllAttributes(nodes: NodeIdLike[], callback: (err: Error | null, data?: NodeAttributes[]) => void): void;
 
-    public readAllAttributes(...args: any[]): void {
+    public readAllAttributes(...args: unknown[]): void {
         const nodes = args[0] as NodeIdLike[];
         const callback = args[1] as (err: Error | null, data?: NodeAttributes[]) => void;
         readAllAttributes(this, nodes)
-            .then((data: any) => callback(null, data))
+            .then((data: NodeAttributes[]) => callback(null, data))
             .catch((err: Error) => callback(err));
     }
 
@@ -1172,28 +1190,31 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public read(...args: any[]): any {
+    public read(...args: unknown[]): unknown {
         if (args.length === 2) {
-            return this.read(args[0], 0, args[1]);
+            return this.read(args[0] as ReadValueIdOptions, 0, args[1] as ResponseCallback<DataValue>);
         }
         assert(args.length === 3);
 
         const isArray = Array.isArray(args[0]);
 
-        const nodesToRead = isArray ? args[0] : [args[0]];
+        const nodesToRead: ReadValueIdOptions[] = isArray ? (args[0] as ReadValueIdOptions[]) : [args[0] as ReadValueIdOptions];
 
         assert(Array.isArray(nodesToRead));
 
-        const maxAge = args[1];
+        const maxAge = args[1] as number;
 
-        const callback = args[2];
+        const callback = args[2] as (err: Error | null, results?: DataValue[] | DataValue | Response) => void;
         assert(typeof callback === "function");
 
         /* c8 ignore next */
         if (helpAPIChange) {
             // the read method deprecation detection and warning
             if (
-                !(getFunctionParameterNames(callback)[1] === "dataValues" || getFunctionParameterNames(callback)[1] === "dataValue")
+                !(
+                    getFunctionParameterNames(callback as unknown as (...args: unknown[]) => void)[1] === "dataValues" ||
+                    getFunctionParameterNames(callback as unknown as (...args: unknown[]) => void)[1] === "dataValue"
+                )
             ) {
                 warningLog(chalk.red("[NODE-OPCUA-E04] the ClientSession#read  API has changed !!, please fix the client code"));
                 warningLog(chalk.red("   replace ..:"));
@@ -1215,7 +1236,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         // coerce nodeIds
         for (const node of nodesToRead) {
-            node.nodeId = this.resolveNodeId(node.nodeId);
+            if (node.nodeId) {
+                node.nodeId = this.resolveNodeId(node.nodeId);
+            }
         }
 
         const request = new ReadRequest({
@@ -1224,7 +1247,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             timestampsToReturn: TimestampsToReturn.Both
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err, response);
@@ -1236,7 +1259,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             }
 
             // perform ExtensionObject resolution
-            promoteOpaqueStructure(this, response.results!)
+            promoteOpaqueStructure(this, response.results || [])
                 .then(() => {
                     response.results = response.results || /* c8 ignore next */ [];
                     callback(null, isArray ? response.results : response.results[0]);
@@ -1255,11 +1278,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
     }
 
+    public createSubscription(options: CreateSubscriptionRequestLike, callback: ResponseCallback<CreateSubscriptionResponse>): void;
+    public createSubscription(options: CreateSubscriptionRequestLike): Promise<CreateSubscriptionResponse>;
     public createSubscription(
         options: CreateSubscriptionRequestLike,
         callback?: ResponseCallback<CreateSubscriptionResponse>
-    ): any {
-        this._defaultRequest(CreateSubscriptionRequest, CreateSubscriptionResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(CreateSubscriptionRequest, CreateSubscriptionResponse, options, callback);
     }
 
     /**
@@ -1279,9 +1304,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         createSubscriptionRequest: CreateSubscriptionRequestLike,
         callback: (err: Error | null, subscription?: ClientSubscription) => void
     ): void;
-    public createSubscription2(...args: any[]): any {
+    public createSubscription2(...args: unknown[]): unknown {
         const createSubscriptionRequest = args[0] as CreateSubscriptionRequestLike;
-        let callback = args[1];
+        let callback = args[1] as ((err: Error | null, subscription?: ClientSubscription) => void) | null;
         const subscription = new ClientSubscriptionImpl(this, createSubscriptionRequest);
 
         subscription.on("error", (err) => {
@@ -1297,17 +1322,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 callback = null;
             }
         });
+        return undefined;
     }
 
     public deleteSubscriptions(
         options: DeleteSubscriptionsRequestLike,
         callback?: ResponseCallback<DeleteSubscriptionsResponse>
-    ): any {
-        this._defaultRequest(DeleteSubscriptionsRequest, DeleteSubscriptionsResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(DeleteSubscriptionsRequest, DeleteSubscriptionsResponse, options, callback);
     }
 
-    public setTriggering(request: SetTriggeringRequestOptions, callback?: ResponseCallback<SetTriggeringResponse>): any {
-        this._defaultRequest(SetTriggeringRequest, SetTriggeringResponse, request, callback);
+    public setTriggering(request: SetTriggeringRequestOptions, callback?: ResponseCallback<SetTriggeringResponse>): unknown {
+        return this._defaultRequest(SetTriggeringRequest, SetTriggeringResponse, request, callback);
     }
 
     /**
@@ -1315,22 +1341,27 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public transferSubscriptions(
         options: TransferSubscriptionsRequestLike,
         callback?: ResponseCallback<TransferSubscriptionsResponse>
-    ): any {
-        this._defaultRequest(TransferSubscriptionsRequest, TransferSubscriptionsResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(TransferSubscriptionsRequest, TransferSubscriptionsResponse, options, callback);
     }
 
     public createMonitoredItems(
         options: CreateMonitoredItemsRequestLike,
+        callback: ResponseCallback<CreateMonitoredItemsResponse>
+    ): void;
+    public createMonitoredItems(options: CreateMonitoredItemsRequestLike): Promise<CreateMonitoredItemsResponse>;
+    public createMonitoredItems(
+        options: CreateMonitoredItemsRequestLike,
         callback?: ResponseCallback<CreateMonitoredItemsResponse>
-    ): any {
-        this._defaultRequest(CreateMonitoredItemsRequest, CreateMonitoredItemsResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(CreateMonitoredItemsRequest, CreateMonitoredItemsResponse, options, callback);
     }
 
     public modifyMonitoredItems(
         options: ModifyMonitoredItemsRequestLike,
         callback?: ResponseCallback<ModifyMonitoredItemsResponse>
-    ): any {
-        this._defaultRequest(ModifyMonitoredItemsRequest, ModifyMonitoredItemsResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(ModifyMonitoredItemsRequest, ModifyMonitoredItemsResponse, options, callback);
     }
 
     /**
@@ -1339,12 +1370,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public modifySubscription(
         options: ModifySubscriptionRequestLike,
         callback?: ResponseCallback<ModifySubscriptionResponse>
-    ): any {
-        this._defaultRequest(ModifySubscriptionRequest, ModifySubscriptionResponse, options, callback);
+    ): unknown {
+        return this._defaultRequest(ModifySubscriptionRequest, ModifySubscriptionResponse, options, callback);
     }
 
-    public setMonitoringMode(options: SetMonitoringModeRequestLike, callback?: ResponseCallback<SetMonitoringModeResponse>): any {
-        this._defaultRequest(SetMonitoringModeRequest, SetMonitoringModeResponse, options, callback);
+    public setMonitoringMode(
+        options: SetMonitoringModeRequestLike,
+        callback?: ResponseCallback<SetMonitoringModeResponse>
+    ): unknown {
+        return this._defaultRequest(SetMonitoringModeRequest, SetMonitoringModeResponse, options, callback);
     }
 
     /**
@@ -1388,11 +1422,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     /**
      * @internal
      */
-    public setPublishingMode(...args: any[]): any {
-        const publishingEnabled = args[0];
+    public setPublishingMode(...args: unknown[]): unknown {
+        const publishingEnabled = args[0] as boolean;
         const isArray = Array.isArray(args[1]);
-        const subscriptionIds = isArray ? args[1] : [args[1]];
-        const callback = args[2];
+        const subscriptionIds: SubscriptionId[] = isArray ? (args[1] as SubscriptionId[]) : [args[1] as SubscriptionId];
+        const callback = args[2] as (err: Error | null, statusCode?: StatusCode[] | StatusCode) => void;
 
         assert(typeof callback === "function");
         assert(publishingEnabled === true || publishingEnabled === false);
@@ -1402,7 +1436,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             subscriptionIds
         });
 
-        this._defaultRequest(
+        return this._defaultRequest(
             SetPublishingModeRequest,
             SetPublishingModeResponse,
             options,
@@ -1433,16 +1467,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public translateBrowsePath(...args: any[]): any {
+    public translateBrowsePath(...args: unknown[]): unknown {
         const isArray = Array.isArray(args[0]);
-        const browsePaths = isArray ? args[0] : [args[0]];
+        const browsePaths: BrowsePath[] = isArray ? (args[0] as BrowsePath[]) : [args[0] as BrowsePath];
 
-        const callback = args[1];
+        const callback = args[1] as (err: Error | null, results?: BrowsePathResult[] | BrowsePathResult | Response) => void;
         assert(typeof callback === "function");
 
         const request = new TranslateBrowsePathsToNodeIdsRequest({ browsePaths });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err, response);
@@ -1458,9 +1492,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     public channelId(): number {
-        return this._client !== null && this._client._secureChannel !== null && this._client._secureChannel.isOpened()
-            ? this._client._secureChannel!.channelId
-            : -1;
+        const secureChannel = this._client?._secureChannel;
+        return secureChannel?.isOpened() ? secureChannel.channelId : -1;
     }
     public isChannelValid(): boolean {
         /* c8 ignore next */
@@ -1468,7 +1501,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             debugLog(chalk.red("Warning SessionClient is null ?"));
         }
 
-        return this._client !== null && this._client._secureChannel !== null && this._client._secureChannel.isOpened();
+        return !!this._client?._secureChannel?.isOpened();
     }
 
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
@@ -1494,7 +1527,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     warningLog(
                         "[NODE-OPCUA-W21]",
                         "Pending transactions: ",
-                        this._reconnecting.pendingTransactions.map((a: any) => a.request.constructor.name).join(" ")
+                        this._reconnecting.pendingTransactions.map((a) => a.request.constructor.name).join(" ")
                     );
                     warningLog(
                         "[NODE-OPCUA-W22]",
@@ -1523,7 +1556,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         attemptCount > 0 &&
             warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
-            if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
+            if (err?.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
                 warningLog(
                     "Transaction on Invalid Session ",
                     request.constructor.name,
@@ -1548,8 +1581,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             const length = this._reconnecting.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
                 debugLog("reprocessRequest => ", this._reconnecting.pendingTransactions.length, " transaction(s) left in queue");
-                const { request, callback } = this._reconnecting.pendingTransactions.shift();
-                this.#reprocessRequest(0, request, callback);
+                const pending = this._reconnecting.pendingTransactions.shift();
+                if (pending) {
+                    this.#reprocessRequest(0, pending.request, pending.callback);
+                }
             }
         });
     }
@@ -1575,7 +1610,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         // is this stuff useful?
         if (request.requestHeader) {
-            request.requestHeader.authenticationToken = this.authenticationToken!;
+            if (!this.authenticationToken) {
+                throw new Error("internal error: authenticationToken should be set on an active session");
+            }
+            request.requestHeader.authenticationToken = this.authenticationToken;
         }
 
         this.lastRequestSentTime = new Date();
@@ -1585,11 +1623,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
             /* c8 ignore next */
             if (err) {
-                if (response && response.responseHeader.serviceDiagnostics) {
-                    (err as any).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
+                if (response?.responseHeader.serviceDiagnostics) {
+                    (err as ServiceFaultAnnotatedError).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
                 }
-                if (response && (response as any).diagnosticInfos) {
-                    (err as any).diagnosticsInfo = (response as any).diagnosticInfos;
+                const responseWithDiagnosticInfos = response as unknown as { diagnosticInfos?: unknown } | undefined;
+                if (responseWithDiagnosticInfos?.diagnosticInfos) {
+                    (err as ServiceFaultAnnotatedError).diagnosticsInfo = responseWithDiagnosticInfos.diagnosticInfos;
                 }
                 return callback(err);
             }
@@ -1608,11 +1647,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                         request.constructor.name
                 );
 
-                if (response && response.responseHeader.serviceDiagnostics) {
-                    (err as any).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
+                if (response?.responseHeader.serviceDiagnostics) {
+                    (err as ServiceFaultAnnotatedError).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
                 }
-                if (response && (response as any).diagnosticInfos) {
-                    (err as any).diagnosticsInfo = (response as any).diagnosticInfos;
+                const responseWithDiagnosticInfos = response as unknown as { diagnosticInfos?: unknown } | undefined;
+                if (responseWithDiagnosticInfos?.diagnosticInfos) {
+                    (err as ServiceFaultAnnotatedError).diagnosticsInfo = responseWithDiagnosticInfos.diagnosticInfos;
                 }
                 return callback(err, response);
             }
@@ -1670,13 +1710,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public close(...args: any[]): any {
-        if (arguments.length === 1) {
-            return this.close(true, args[0]);
+    public close(...args: unknown[]): unknown {
+        if (args.length === 1) {
+            return this.close(true, args[0] as ErrorCallback);
         }
 
         const deleteSubscription = args[0];
-        const callback = args[1];
+        const callback = args[1] as ErrorCallback;
 
         assert(typeof callback === "function");
         assert(typeof deleteSubscription === "boolean");
@@ -1689,10 +1729,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         assert(this._client);
 
         this._terminatePublishEngine();
-        this._client.closeSession(this, deleteSubscription, (err?: Error) => {
+        this._client.closeSession(this, deleteSubscription as boolean, (err?: Error) => {
             debugLog("session Close err ", err ? err.message : "null");
             callback();
         });
+        return undefined;
     }
 
     /**
@@ -1711,12 +1752,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @internal
      * @param args
      */
-    public call(...args: any[]): any {
+    public call(...args: unknown[]): unknown {
         const isArray = Array.isArray(args[0]);
-        const methodsToCall = isArray ? args[0] : [args[0]];
+        const methodsToCall: CallMethodRequestLike[] = isArray
+            ? (args[0] as CallMethodRequestLike[])
+            : [args[0] as CallMethodRequestLike];
         assert(Array.isArray(methodsToCall));
 
-        const callback = args[1];
+        const callback = args[1] as ResponseCallback<CallMethodResult[] | CallMethodResult>;
 
         // Note : The client has no explicit address space and therefore will struggle to
         //        access the method arguments signature.
@@ -1726,7 +1769,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         // const request = this._client.factory.constructObjectId("CallRequest",{ methodsToCall: methodsToCall});
         const request = new CallRequest({ methodsToCall });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1736,11 +1779,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (!response || !(response instanceof CallResponse)) {
                 return callback(new Error("internal error"));
             }
-            response.results = response.results || [];
+            const results: CallMethodResult[] = response.results || [];
+            response.results = results;
 
-            promoteOpaqueStructureForCall(this, response.results)
+            promoteOpaqueStructureForCall(this, results)
                 .then(() => {
-                    callback(null, isArray ? response.results : response.results![0]);
+                    callback(null, isArray ? results : results[0]);
                 })
                 .catch((err) => {
                     callback(err);
@@ -1759,9 +1803,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public async getMonitoredItems(subscriptionId: SubscriptionId): Promise<MonitoredItemData>;
     public getMonitoredItems(subscriptionId: SubscriptionId, callback: ResponseCallback<MonitoredItemData>): void;
-    public getMonitoredItems(...args: any[]): any {
+    public getMonitoredItems(...args: unknown[]): unknown {
         const subscriptionId = args[0] as SubscriptionId;
-        const callback = args[1];
+        const callback = args[1] as ResponseCallback<MonitoredItemData>;
         // <UAObject NodeId="i=2253"  BrowseName="Server">
         // <UAMethod NodeId="i=11492" BrowseName="GetMonitoredItems"
         //                                         ParentNodeId="i=2253" MethodDeclarationId="i=11489">
@@ -1775,7 +1819,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             objectId: coerceNodeId("ns=0;i=2253") // ObjectId.Server
         });
 
-        this.call(methodsToCall, (err?: Error | null, result?: CallMethodResult) => {
+        return this.call(methodsToCall, (err?: Error | null, result?: CallMethodResult) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1818,13 +1862,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     /**
      * @internal
      */
-    public getArgumentDefinition(...args: any[]): any {
+    public getArgumentDefinition(...args: unknown[]): unknown {
         const methodId = args[0] as MethodId;
         const callback = args[1] as ResponseCallback<ArgumentDefinition>;
         assert(typeof callback === "function");
         return getArgumentDefinitionHelper(this, methodId)
             .then((result) => {
-                callback!(null, result);
+                callback?.(null, result);
             })
             .catch((err) => {
                 callback(err);
@@ -1833,7 +1877,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public async registerNodes(nodesToRegister: NodeIdLike[]): Promise<NodeId[]>;
     public registerNodes(nodesToRegister: NodeIdLike[], callback: (err: Error | null, registeredNodeIds?: NodeId[]) => void): void;
-    public registerNodes(...args: any[]): any {
+    public registerNodes(...args: unknown[]): unknown {
         const nodesToRegister = args[0] as NodeIdLike[];
         const callback = args[1] as (err: Error | null, registeredNodeIds?: NodeId[]) => void;
 
@@ -1844,7 +1888,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             nodesToRegister: nodesToRegister.map((n) => this.resolveNodeId(n))
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1862,7 +1906,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public async unregisterNodes(nodesToUnregister: NodeIdLike[]): Promise<void>;
     public unregisterNodes(nodesToUnregister: NodeIdLike[], callback: (err?: Error) => void): void;
-    public unregisterNodes(...args: any[]): any {
+    public unregisterNodes(...args: unknown[]): unknown {
         const nodesToUnregister = args[0] as NodeIdLike[];
         const callback = args[1] as (err?: Error) => void;
 
@@ -1873,7 +1917,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             nodesToUnregister: nodesToUnregister.map((n) => this.resolveNodeId(n))
         });
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1889,14 +1933,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public async queryFirst(queryFirstRequest: QueryFirstRequestLike): Promise<QueryFirstResponse>;
 
     public queryFirst(queryFirstRequest: QueryFirstRequestLike, callback: ResponseCallback<QueryFirstResponse>): void;
-    public queryFirst(...args: any[]): any {
+    public queryFirst(...args: unknown[]): unknown {
         const queryFirstRequest = args[0] as QueryFirstRequestLike;
         const callback = args[1] as ResponseCallback<QueryFirstResponse>;
 
         assert(typeof callback === "function");
         const request = new QueryFirstRequest(queryFirstRequest);
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
                 return callback(err);
@@ -1946,8 +1990,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this.stopKeepAliveManager();
         this.removeAllListeners();
         //
-        const privateThis = this as any;
-        if (!(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0)) {
+        if (this._reconnecting.pendingTransactions.length !== 0) {
             warningLog("dispose when pendingTransactions is not empty ");
         }
     }
@@ -1966,9 +2009,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         let str = "";
         str += ` name..................... ${this.name}`;
         str += `\n sessionId................ ${this.sessionId.toString()}`;
-        str += `\n authenticationToken...... ${this.authenticationToken ? this.authenticationToken!.toString() : ""}`;
+        str += `\n authenticationToken...... ${this.authenticationToken ? this.authenticationToken?.toString() : ""}`;
         str += `\n timeout.................. ${this.timeout}ms${timeoutInfo}`;
-        str += `\n serverNonce.............. ${this.serverNonce ? this.serverNonce!.toString("hex") : ""}`;
+        str += `\n serverNonce.............. ${this.serverNonce ? this.serverNonce?.toString("hex") : ""}`;
         str += `\n serverCertificate........ ${buffer_ellipsis(this.serverCertificate)}`;
         str += `\n serverSignature.......... ${this.serverSignature}`;
         str += `\n lastRequestSentTime...... ${new Date(this.lastRequestSentTime).toISOString()}  (${lap1})`;
@@ -1978,7 +2021,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         str += `\n channelId................ ${this.channelId()}`;
         str += `\n remaining life time...... ${this.evaluateRemainingLifetime()}`;
         str += `\n subscription count....... ${this.subscriptionCount}`;
-        if (this._client && this._client._secureChannel) {
+        if (this._client?._secureChannel) {
             if (this._client._secureChannel.activeSecurityToken) {
                 str += `\n reviseTokenLifetime...... ${this._client._secureChannel.activeSecurityToken.revisedLifetime}`;
             }
@@ -1992,9 +2035,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         return str;
     }
 
-    public getBuiltInDataType(...args: any[]): any {
-        const nodeId = args[0];
-        const callback = args[1];
+    public getBuiltInDataType(nodeId: NodeId): Promise<DataType>;
+    public getBuiltInDataType(nodeId: NodeId, callback: (err: Error | null, dataType?: DataType) => void): void;
+    public getBuiltInDataType(...args: unknown[]): unknown {
+        const nodeId = args[0] as NodeId;
+        const callback = args[1] as (err: Error | null, dataType?: DataType) => void;
         return getBuiltInDataType(this, nodeId)
             .then((dataType: DataType) => callback(null, dataType))
             .catch(callback);
@@ -2002,18 +2047,22 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public async readNamespaceArray(): Promise<string[]>;
     public readNamespaceArray(callback: (err: Error | null, namespaceArray?: string[]) => void): void;
-    public readNamespaceArray(...args: any[]): any {
-        const callback = args[0];
+    public readNamespaceArray(...args: unknown[]): unknown {
+        const callback = args[0] as (err: Error | null, namespaceArray?: string[]) => void;
         readNamespaceArray(this)
             .then((namespaceArray) => callback(null, namespaceArray))
             .catch((err) => {
                 callback(err);
             });
+        return undefined;
     }
 
     public getNamespaceIndex(namespaceUri: string): number {
         assert(this.$$namespaceArray, "please make sure that readNamespaceArray has been called");
-        return this.$$namespaceArray!.indexOf(namespaceUri);
+        if (!this.$$namespaceArray) {
+            throw new Error("please make sure that readNamespaceArray has been called");
+        }
+        return this.$$namespaceArray.indexOf(namespaceUri);
     }
 
     // ---------------------------------------- Alarm & condition stub
@@ -2026,38 +2075,65 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     public addCommentCondition(
+        conditionId: NodeIdLike,
+        eventId: Buffer,
+        comment: LocalizedTextLike,
+        callback: Callback<StatusCode>
+    ): void;
+    public addCommentCondition(conditionId: NodeIdLike, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
+    public addCommentCondition(
         _conditionId: NodeIdLike,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {
+    ): unknown {
         /** empty */
+        return undefined;
     }
 
+    public confirmCondition(
+        conditionId: NodeIdLike,
+        eventId: Buffer,
+        comment: LocalizedTextLike,
+        callback: Callback<StatusCode>
+    ): void;
+    public confirmCondition(conditionId: NodeIdLike, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
     public confirmCondition(
         _conditionId: NodeIdLike,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {
+    ): unknown {
         /** empty */
+        return undefined;
     }
 
+    public acknowledgeCondition(
+        conditionId: NodeId,
+        eventId: Buffer,
+        comment: LocalizedTextLike,
+        callback: Callback<StatusCode>
+    ): void;
+    public acknowledgeCondition(conditionId: NodeId, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
     public acknowledgeCondition(
         _conditionId: NodeId,
         _eventId: Buffer,
         _comment: LocalizedTextLike,
         _callback?: Callback<StatusCode>
-    ): any {
+    ): unknown {
         /** empty */
+        return undefined;
     }
 
     /**
      * @deprecated
      * @private
      */
-    public findMethodId(_nodeId: NodeIdLike, _methodName: string, _callback?: ResponseCallback<NodeId>): any {
+    public findMethodId(nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>): void;
+    public findMethodId(nodeId: NodeIdLike, methodName: string): Promise<NodeId>;
+    public findMethodId(_nodeId: NodeIdLike, _methodName: string, _callback?: ResponseCallback<NodeId>): unknown {
         /** empty */
+        return undefined;
     }
 
     public _callMethodCondition(
@@ -2081,19 +2157,27 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @param dataType
      * @param pojo
      */
-    public async constructExtensionObject(dataType: NodeId, pojo: Record<string, any>): Promise<ExtensionObject> {
+    public async constructExtensionObject(dataType: NodeId, pojo: Record<string, unknown>): Promise<ExtensionObject> {
         const Constructor = await this.getExtensionObjectConstructor(dataType);
         return new Constructor(pojo);
     }
 
-    private _defaultRequest(requestClass: any, _responseClass: any, options: any, callback: any) {
+    private _defaultRequest<TRequestOptions, TResponse extends Response>(
+        requestClass: new (options: TRequestOptions) => Request,
+        _responseClass: unknown,
+        options: TRequestOptions,
+        callback?: (err: Error | null, response?: TResponse) => void
+    ): unknown {
         assert(typeof callback === "function");
+        if (!callback) {
+            throw new Error("_defaultRequest: expecting a callback function here");
+        }
 
-        const request = options instanceof requestClass ? options : new requestClass(options);
+        const request: Request = options instanceof requestClass ? options : new requestClass(options);
 
         /* c8 ignore next */
         if (doDebug) {
-            request.trace = new Error("").stack;
+            (request as unknown as { trace?: string }).trace = new Error("").stack;
         }
 
         /* c8 ignore next */
@@ -2102,10 +2186,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             setImmediate(() => {
                 callback(new Error("ClientSession is closed !"));
             });
-            return;
+            return undefined;
         }
 
-        this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
+        return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (this._closeEventHasBeenEmitted) {
                 debugLog(
                     "ClientSession#_defaultRequest ... err =",
@@ -2153,9 +2237,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                         this.emitCloseEvent(StatusCodes.BadSessionClosed);
                     }
                 }
-                return callback(err, response);
+                return callback(err, response as TResponse | undefined);
             }
-            callback(null, response);
+            callback(null, response as TResponse | undefined);
         });
     }
     #_recreate_session_and_reperform_transaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
@@ -2164,9 +2248,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             warningLog("recreate_session_and_reperform_transaction => Already in Progress");
             return callback(new Error("Cannot recreate session"));
         }
+        if (!this._client) {
+            return callback(new Error("Cannot recreate session: session has no client"));
+        }
         this.recursive_repair_detector += 1;
         warningLog(chalk.red("----------------> Repairing Client Session as Server believes it is invalid now "));
-        repair_client_session(this._client!, this, (err?: Error) => {
+        repair_client_session(this._client, this, (err?: Error) => {
             this.recursive_repair_detector -= 1;
             if (err) {
                 warningLog(chalk.red("----------------> session Repaired has failed with error", err.message));
@@ -2182,7 +2269,7 @@ async function promoteOpaqueStructureForCallMethodResult(
     session: IBasicSessionAsync2,
     callMethodResult: CallMethodResult
 ): Promise<void> {
-    if (!callMethodResult || !callMethodResult.outputArguments || callMethodResult.outputArguments.length === 0) {
+    if (!callMethodResult?.outputArguments || callMethodResult.outputArguments.length === 0) {
         return;
     }
     await promoteOpaqueStructure(

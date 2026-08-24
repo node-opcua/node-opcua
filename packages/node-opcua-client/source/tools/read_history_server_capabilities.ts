@@ -8,14 +8,13 @@ import type { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import type { ReadValueIdOptions } from "node-opcua-service-read";
 import { type BrowsePath, type BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import type { Variant } from "node-opcua-variant";
 
 import type { ClientSession } from "../client_session";
 
 export interface HistoryServerCapabilities {
-    [key: string]: any;
+    [key: string]: Variant;
 }
 
 export function readHistoryServerCapabilities(session: ClientSession): Promise<HistoryServerCapabilities>;
@@ -26,21 +25,24 @@ export function readHistoryServerCapabilities(
 export function readHistoryServerCapabilities(
     session: ClientSession,
     callback?: (err: Error | null, capabilities?: HistoryServerCapabilities) => void
-): any {
+): unknown {
     if (!callback) {
         return new Promise<HistoryServerCapabilities>((resolve, reject) => {
             readHistoryServerCapabilities(session, (err, capabilities) => {
                 if (err) {
                     return reject(err);
                 }
-                resolve(capabilities!);
+                if (!capabilities) {
+                    return reject(new Error("readHistoryServerCapabilities: internal error - no capabilities"));
+                }
+                resolve(capabilities);
             });
         });
     }
     // display HistoryCapabilities of server
     const browsePath: BrowsePath = makeBrowsePath(ObjectIds.ObjectsFolder, "/Server/ServerCapabilities.HistoryServerCapabilities");
 
-    session.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
+    return session.translateBrowsePath(browsePath, (err: Error | null, result?: BrowsePathResult) => {
         if (err) {
             return callback(err);
         }
