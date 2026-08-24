@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
 
 // Types and interfaces
 interface Package {
@@ -17,7 +17,6 @@ interface PackageJson {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     peerDependencies?: Record<string, string>;
-    [key: string]: any;
 }
 
 // New type for missing dependency info with file tracking
@@ -34,7 +33,7 @@ const fixMode = args.includes("--fix");
 const verbose = args.includes("--verbose");
 const removeExtraneous = args.includes("--remove-extraneous");
 
-function log(...args: any[]): void {
+function log(...args: unknown[]): void {
     if (verbose) {
         console.log(...args);
     }
@@ -145,8 +144,7 @@ function extractImports(filePath: string): string[] {
     ];
 
     for (const pattern of importPatterns) {
-        let match: RegExpExecArray | null;
-        while ((match = pattern.exec(content)) !== null) {
+        for (let match = pattern.exec(content); match !== null; match = pattern.exec(content)) {
             const moduleName = match[1];
 
             // Skip relative imports and absolute paths
@@ -194,39 +192,19 @@ function readPackageJson(packageJsonPath: string): PackageJson | null {
 }
 
 function getDependencies(packageJson: PackageJson): Set<string> {
-    const deps = new Set<string>();
-
-    if (packageJson.dependencies) {
-        Object.keys(packageJson.dependencies).forEach((dep) => deps.add(dep));
-    }
-
-    return deps;
+    return new Set(Object.keys(packageJson.dependencies ?? {}));
 }
 
 function getDevDependencies(packageJson: PackageJson): Set<string> {
-    const deps = new Set<string>();
-
-    if (packageJson.devDependencies) {
-        Object.keys(packageJson.devDependencies).forEach((dep) => deps.add(dep));
-    }
-
-    return deps;
+    return new Set(Object.keys(packageJson.devDependencies ?? {}));
 }
 
 function getAllDependencies(packageJson: PackageJson): Set<string> {
-    const deps = new Set<string>();
-
-    if (packageJson.dependencies) {
-        Object.keys(packageJson.dependencies).forEach((dep) => deps.add(dep));
-    }
-
-    if (packageJson.devDependencies) {
-        Object.keys(packageJson.devDependencies).forEach((dep) => deps.add(dep));
-    }
-
-    if (packageJson.peerDependencies) {
-        Object.keys(packageJson.peerDependencies).forEach((dep) => deps.add(dep));
-    }
+    const deps = new Set<string>([
+        ...Object.keys(packageJson.dependencies ?? {}),
+        ...Object.keys(packageJson.devDependencies ?? {}),
+        ...Object.keys(packageJson.peerDependencies ?? {})
+    ]);
 
     return deps;
 }
@@ -460,7 +438,7 @@ function getLatestVersion(packageName: string): string {
 
         if (fs.existsSync(packageJsonPath)) {
             const pkg = readPackageJson(packageJsonPath);
-            if (pkg && pkg.version) {
+            if (pkg?.version) {
                 return pkg.version;
             }
         }
@@ -468,7 +446,7 @@ function getLatestVersion(packageName: string): string {
         // Fallback to npm view
         const output = execSync(`npm view ${packageName} version`, { encoding: "utf8" }).trim();
         return output;
-    } catch (error) {
+    } catch (_error) {
         log(`Warning: Could not determine version for ${packageName}`);
         return "latest";
     }
@@ -493,11 +471,12 @@ function fixPackageJson(packageJsonPath: string, missingDependencies: string[]):
 
     if (modified) {
         // Sort dependencies alphabetically
-        packageJson.dependencies = Object.keys(packageJson.dependencies)
+        const dependencies = packageJson.dependencies;
+        packageJson.dependencies = Object.keys(dependencies)
             .sort()
             .reduce(
                 (obj, key) => {
-                    obj[key] = packageJson.dependencies![key];
+                    obj[key] = dependencies[key];
                     return obj;
                 },
                 {} as Record<string, string>
@@ -529,11 +508,12 @@ function fixDevDependencies(packageJsonPath: string, missingDevDependencies: str
 
     if (modified) {
         // Sort devDependencies alphabetically
-        packageJson.devDependencies = Object.keys(packageJson.devDependencies)
+        const devDependencies = packageJson.devDependencies;
+        packageJson.devDependencies = Object.keys(devDependencies)
             .sort()
             .reduce(
                 (obj, key) => {
-                    obj[key] = packageJson.devDependencies![key];
+                    obj[key] = devDependencies[key];
                     return obj;
                 },
                 {} as Record<string, string>
@@ -635,7 +615,7 @@ function main(): void {
                     if (!sourceFileImports.has(imp)) {
                         sourceFileImports.set(imp, []);
                     }
-                    sourceFileImports.get(imp)!.push(file);
+                    sourceFileImports.get(imp)?.push(file);
                 });
             }
 
@@ -650,7 +630,7 @@ function main(): void {
                     if (!testFileImports.has(imp)) {
                         testFileImports.set(imp, []);
                     }
-                    testFileImports.get(imp)!.push(file);
+                    testFileImports.get(imp)?.push(file);
                 });
             }
         }
@@ -769,13 +749,17 @@ function main(): void {
             // Display dependencies section
             if (bySection.dependencies && bySection.dependencies.length > 0) {
                 console.log(`  Dependencies (not used in source files):`);
-                bySection.dependencies.forEach((dep) => console.log(`    - ${dep}`));
+                for (const dep of bySection.dependencies) {
+                    console.log(`    - ${dep}`);
+                }
             }
 
             // Display devDependencies section
             if (bySection.devDependencies && bySection.devDependencies.length > 0) {
                 console.log(`  DevDependencies (not used in test files):`);
-                bySection.devDependencies.forEach((dep) => console.log(`    - ${dep}`));
+                for (const dep of bySection.devDependencies) {
+                    console.log(`    - ${dep}`);
+                }
             }
 
             totalExtraneous += extraneousDependencies.length;
@@ -824,18 +808,18 @@ function main(): void {
 
 // Export functions for testing
 export {
+    type ExtraneousDependency,
+    extractImports,
+    findExtraneousDependencies,
+    findMissingDependenciesDetailed,
     findPackages,
     findSourceDirectories,
     findSourceFiles,
-    extractImports,
-    findMissingDependenciesDetailed,
-    findExtraneousDependencies,
+    getAllDependencies,
     getDependencies,
     getDevDependencies,
-    getAllDependencies,
     type Package,
-    type PackageJson,
-    type ExtraneousDependency
+    type PackageJson
 };
 
 // Run main function if this file is executed directly

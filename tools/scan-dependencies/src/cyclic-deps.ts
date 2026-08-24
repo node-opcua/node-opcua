@@ -16,6 +16,14 @@ interface Cycle {
     packages: string[];
 }
 
+interface PackageJson {
+    name?: string;
+    version?: string;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+}
+
 function findPackages(): Package[] {
     const packages: Package[] = [];
     const packagesDir = path.join(__dirname, "..", "..", "..", "packages");
@@ -45,17 +53,17 @@ function findPackages(): Package[] {
     return packages;
 }
 
-function readPackageJson(packageJsonPath: string): any {
+function readPackageJson(packageJsonPath: string): PackageJson | null {
     try {
         const content = fs.readFileSync(packageJsonPath, "utf8");
-        return JSON.parse(content);
+        return JSON.parse(content) as PackageJson;
     } catch (error) {
         console.error(`Error reading package.json: ${packageJsonPath}`, (error as Error).message);
         return null;
     }
 }
 
-function extractNodeOpcuaDependencies(packageJson: any): string[] {
+function extractNodeOpcuaDependencies(packageJson: PackageJson): string[] {
     const dependencies: string[] = [];
 
     // Check dependencies
@@ -208,7 +216,9 @@ function main(): void {
     for (const [pkg, deps] of Object.entries(graph)) {
         if (deps.length > 0) {
             console.log(`${pkg}:`);
-            deps.forEach((dep) => console.log(`  - ${dep}`));
+            for (const dep of deps) {
+                console.log(`  - ${dep}`);
+            }
             console.log("");
         }
     }
@@ -219,4 +229,4 @@ if (require.main === module) {
     main();
 }
 
-export { findPackages, buildDependencyGraph, findCycles, analyzeCycles };
+export { analyzeCycles, buildDependencyGraph, findCycles, findPackages };
