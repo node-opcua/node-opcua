@@ -22,14 +22,14 @@ export enum NodeClassMask {
 }
 
 interface Enum {
-    [id: string]: number;
+    [id: string]: number | string;
 }
 
 function makeFlagFromString<Type>(type: Enum, str: string): Type {
     const flags = str.split(" | ");
-    let result: any = 0;
+    let result = 0;
     for (const flag of flags) {
-        result |= type[flag];
+        result |= Number(type[flag]);
     }
     return result as Type;
 }
@@ -37,7 +37,7 @@ function makeFlagFromString<Type>(type: Enum, str: string): Type {
 // @example
 //      makeNodeClassMask("Method | Object").should.eql(5);
 export function makeNodeClassMask(str: string): NodeClassMask {
-    const classMask = makeFlagFromString<NodeClassMask>(NodeClassMask as any, str);
+    const classMask = makeFlagFromString<NodeClassMask>(NodeClassMask, str);
     /* c8 ignore next */
     if (!classMask) {
         throw new Error(` cannot find class mask for ${str}`);

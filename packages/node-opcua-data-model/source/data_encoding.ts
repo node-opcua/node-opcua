@@ -1,10 +1,10 @@
 /**
  * @module node-opcua-data-model
  */
-import { QualifiedName, type QualifiedNameLike, type QualifiedNameOptions } from "./qualified_name";
+import type { QualifiedNameLike, QualifiedNameOptions } from "./qualified_name";
 
 export function isDataEncoding(dataEncoding: unknown): boolean {
-    return !!dataEncoding && typeof dataEncoding === "object" && typeof (dataEncoding as any).name === "string";
+    return !!dataEncoding && typeof dataEncoding === "object" && typeof (dataEncoding as { name?: unknown }).name === "string";
 }
 
 const validEncoding = ["DefaultBinary", "DefaultXml", "DefaultJson"];
@@ -13,7 +13,7 @@ export function isValidDataEncoding(dataEncoding?: string | null | QualifiedName
         return true;
     }
 
-    if (Object.hasOwn(dataEncoding as any, "name")) {
+    if (typeof dataEncoding === "object" && Object.hasOwn(dataEncoding, "name")) {
         dataEncoding = (dataEncoding as QualifiedNameOptions).name;
     }
     if (!dataEncoding) {

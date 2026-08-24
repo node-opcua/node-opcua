@@ -28,7 +28,7 @@ export function makeResultMask(str: string): ResultMask {
     const flags = str.split(" | ");
     let r = 0;
     for (const flag of flags) {
-        r |= (ResultMask as any)[flag];
+        r |= Number((ResultMask as unknown as Record<string, number>)[flag]);
     }
     return r as ResultMask;
 }

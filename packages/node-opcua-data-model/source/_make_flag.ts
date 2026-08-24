@@ -15,7 +15,7 @@ export function _make_flag(str: string | number | null, noneValue: number, T: Re
         const flags = str.split(" | ");
         accessFlag = 0;
         for (const flag of flags) {
-            accessFlag |= (T as any)[flag];
+            accessFlag |= Number(T[flag]);
         }
     }
     return accessFlag;

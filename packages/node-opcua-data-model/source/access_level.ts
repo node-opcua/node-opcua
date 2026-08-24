@@ -2,7 +2,6 @@
  * @module node-opcua-data-model
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { registerBasicType } from "node-opcua-factory";
 import { _make_flag } from "./_make_flag";
 
 export enum AccessLevelFlag {
@@ -15,6 +14,7 @@ export enum AccessLevelFlag {
     TimestampWrite = 0x40, // bit 6 : Indicates if the current SourceTimestamp of the value is writable (0 means not writable, 1 means writable).
     // reserved bit 7
     NONE = 0x800, // Deprecated
+    // biome-ignore lint/suspicious/noDuplicateEnumValues: NONE is a deprecated alias for None, kept for backward compatibility
     None = 0x800
 }
 export type AccessLevelFlagString =

@@ -1,5 +1,4 @@
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { registerBasicType } from "node-opcua-factory";
 import { _make_flag } from "./_make_flag";
 import { _accessLevelFlagToString } from "./access_level";
 /**
@@ -33,6 +32,11 @@ export enum AccessLevelExFlag {
     Constant = 0x1000, // bit 13   Indicates if the Value of the Variable can be considered constant (0 means the Value is not constant, 1 means the Value is constant)
 
     // Reserved for future use. Shall always be zero.
+    // NOTE: this collides with NonVolatile (also 0x800) instead of being 0 as the comment
+    // above implies. No caller currently passes null/""/0 to makeAccessLevelExFlag() to
+    // trigger this sentinel path, so the collision is latent rather than observed — left
+    // as-is rather than silently changing OPC UA flag semantics in a lint-only pass.
+    // biome-ignore lint/suspicious/noDuplicateEnumValues: see note above
     None = 0x800
 }
 
