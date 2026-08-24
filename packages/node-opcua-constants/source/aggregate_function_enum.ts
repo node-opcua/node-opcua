@@ -1,5 +1,8 @@
 import { ObjectIds } from "./opcua_node_ids";
 
+// Values are computed references into the generated ObjectIds table (not literals) so this
+// mapping can never drift from the generated node ids as they're regenerated over time.
+// biome-ignore-start lint/style/useLiteralEnumMembers: see comment above
 export enum AggregateFunction {
     AnnotationCount = ObjectIds.AggregateFunction_AnnotationCount,
     Average = ObjectIds.AggregateFunction_Average,
@@ -9,7 +12,8 @@ export enum AggregateFunction {
     DurationBad = ObjectIds.AggregateFunction_DurationBad,
     DurationGood = ObjectIds.AggregateFunction_DurationGood,
     DurationInStateNonZero = ObjectIds.AggregateFunction_DurationInStateNonZero,
-    DurationInStateZero = ObjectIds.AggregateFunction_End,
+    DurationInStateZero = ObjectIds.AggregateFunction_DurationInStateZero,
+    End = ObjectIds.AggregateFunction_End,
     EndBound = ObjectIds.AggregateFunction_EndBound,
     Interpolative = ObjectIds.AggregateFunction_Interpolative,
     Maximum = ObjectIds.AggregateFunction_Maximum,
@@ -38,3 +42,4 @@ export enum AggregateFunction {
     WorstQuality = ObjectIds.AggregateFunction_WorstQuality,
     WorstQuality2 = ObjectIds.AggregateFunction_WorstQuality2
 }
+// biome-ignore-end lint/style/useLiteralEnumMembers: see comment above
