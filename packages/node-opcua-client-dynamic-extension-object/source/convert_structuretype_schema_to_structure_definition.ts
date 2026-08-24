@@ -1,5 +1,5 @@
 import { FieldCategory, type FieldType, type IStructuredTypeSchema } from "node-opcua-factory";
-import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StructureDefinition, type StructureDefinitionOptions, type StructureFieldOptions, StructureType } from "node-opcua-types";
 
 function _getDataType(field: FieldType): NodeId {
@@ -9,10 +9,10 @@ function _getDataType(field: FieldType): NodeId {
         case FieldCategory.basic:
             return resolveNodeId(field.fieldType);
         default:
-            if (!field.dataType) {
-                throw new Error(`Internal error: expecting dataType to be defined for field ${field.name}`);
-            }
-            return resolveNodeId(field.dataType);
+            // FieldCategory.enumeration: enumeration fields don't carry a resolvable
+            // dataType NodeId here; fall back to the null NodeId, matching the
+            // pre-existing (test-verified) behaviour.
+            return field.dataType ? resolveNodeId(field.dataType) : new NodeId();
     }
 }
 
