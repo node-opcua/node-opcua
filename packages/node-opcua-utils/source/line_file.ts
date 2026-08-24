@@ -11,7 +11,6 @@ export class LineFile {
 
     public write(...args: string[]): void {
         let str = "";
-        // tslint:disable:prefer-for-of
         for (let i = 0; i < args.length; i++) {
             str += args[i];
         }

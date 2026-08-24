@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-utils
  */
-// tslint:disable:no-console
 
 function formatLine(buffer: Buffer): string {
     const hex: string[] = [];

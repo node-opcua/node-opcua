@@ -1,4 +1,3 @@
-// tslint:disable:no-bitwise
 import { assert } from "node-opcua-assert";
 
 /**

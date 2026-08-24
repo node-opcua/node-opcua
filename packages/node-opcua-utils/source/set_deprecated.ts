@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-utils
  */
-// tslint:disable:ban-types
 import { assert } from "node-opcua-assert";
 
 import type { FunctionVariadic } from "./function_variadic";
@@ -15,7 +14,6 @@ export function setDeprecated(constructorFunc: FunctionVariadic, methodName: str
     let counter = 0;
     constructorFunc.prototype[methodName] = function (...args: unknown[]) {
         if (counter % 1000 === 0) {
-            // tslint:disable:no-console
             console.log("Warning !", `${constructorFunc.name}#${methodName}`, " is now deprecated");
             console.log("         ", helpString);
         }
