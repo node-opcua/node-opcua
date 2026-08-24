@@ -1,5 +1,5 @@
-import type { Announcement } from "./Announcement";
 import type { ServiceConfig } from "sterfive-bonjour-service";
+import type { Announcement } from "./Announcement";
 
 /**
  * Convert an OPCUA mDNS Announcement into a ServiceConfig

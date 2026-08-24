@@ -23,6 +23,6 @@ export const serviceToString = (service: ServiceConfig) => {
         "\n   ttl=" +
         service.ttl +
         "\n   ip=" +
-        service.ip!
+        service.ip
     );
 };

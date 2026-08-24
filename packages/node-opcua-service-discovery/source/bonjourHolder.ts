@@ -13,7 +13,7 @@ import { announcementToServiceConfig } from "./announcement_to_service_config";
 import { isSameService, serviceToString } from "./tools";
 
 const debugLog = make_debugLog("Bonjour");
-const doDebug = checkDebugFlag("Bonjour");
+const _doDebug = checkDebugFlag("Bonjour");
 const errorLog = make_errorLog("Bonjour");
 const warningLog = make_warningLog("Bonjour");
 
@@ -21,12 +21,12 @@ const registry = new ObjectRegistry();
 
 async function releaseMulticastDNS(bonjour: Bonjour) {
     await new Promise<void>((resolve) => {
-        bonjour!.unpublishAll(() => {
+        bonjour?.unpublishAll(() => {
             resolve();
         });
     });
     await new Promise<void>((resolve) => {
-        bonjour!.destroy(() => {
+        bonjour?.destroy(() => {
             resolve();
         });
     });
@@ -45,7 +45,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         assert(typeof port === "number");
         assert(multicastDNS, "bonjour must have been initialized?");
 
-        let timer: NodeJS.Timeout;
+        let timer: NodeJS.Timeout | undefined;
         debugLog(chalk.cyan("  announceServerOnMulticastSubnet", serviceToString(serviceConfig)));
 
         // waitServiceUp(serviceConfig, () => {
@@ -60,7 +60,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         function onError(err: Error) {
             if (timer) {
                 clearTimeout(timer);
-                timer = undefined!;
+                timer = undefined;
             }
             errorLog(" error during announcement ", err.message);
             service.removeListener("up", onUp);
@@ -72,7 +72,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         const onUp = () => {
             if (timer) {
                 clearTimeout(timer);
-                timer = undefined!;
+                timer = undefined;
             }
             debugLog("_announceServerOnMulticastSubnet: bonjour UP received ! ", serviceToString(serviceConfig));
             service.removeListener("error", onError);
@@ -83,7 +83,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
 
         // set a timer to ensure that "up" or "error" event is raised within a reasonable time period
         timer = setTimeout(() => {
-            timer = undefined!;
+            timer = undefined;
             service.removeListener("error", onError);
             service.removeListener("up", onUp);
             const err = new Error(`Timeout waiting for bonjour to announce service ${serviceConfig.name}`);
@@ -113,7 +113,7 @@ export class BonjourHolder {
         const serviceConfig = announcementToServiceConfig(announcement);
         if (this.#_service && this.serviceConfig) {
             // verify that Announcement has changed
-            if (isSameService(serviceConfig, this.serviceConfig!)) {
+            if (isSameService(serviceConfig, this.serviceConfig)) {
                 debugLog(" Announcement ignored as it has been already made", announcement.name);
                 debugLog("exiting announcedOnMulticastSubnet-2", false);
                 return false; // nothing changed
@@ -160,7 +160,7 @@ export class BonjourHolder {
         // due to a wrong declaration of Service.stop in the d.ts file we
         // need to use a workaround here
         const that_service = this.#_service;
-        const that_multicastDNS = this.#_multicastDNS!;
+        const that_multicastDNS = this.#_multicastDNS;
         this.#_service = undefined;
         this.#_multicastDNS = undefined;
 

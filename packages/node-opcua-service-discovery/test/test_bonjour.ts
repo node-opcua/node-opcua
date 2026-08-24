@@ -1,9 +1,10 @@
-import { type Announcement, BonjourHolder, announcementToServiceConfig, serviceToString } from "..";
-import should from "should";
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import Bonjour from "sterfive-bonjour-service";
 import { make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
+import Bonjour from "sterfive-bonjour-service";
+import { type Announcement, announcementToServiceConfig, BonjourHolder, serviceToString } from "..";
+
 const debugLog = make_debugLog("Bonjour")!;
 
 describe("Bonjour", () => {
