@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import {
     AttributeIds,
+    type ClientMonitoredItemBase,
     type ClientSubscription,
     callConditionRefresh,
     coerceNodeId,
@@ -17,7 +18,7 @@ import {
     type UAVariable,
     Variant
 } from "node-opcua";
-import { construct_demo_alarm_in_address_space } from "node-opcua-address-space/testHelpers";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -27,6 +28,16 @@ import sinon from "sinon";
 import { perform_operation_on_subscription } from "../../../test_helpers/perform_operation_on_client_session";
 import { wait, waitUntilCondition } from "../../../test_helpers/utils";
 import { f } from "../../discovery/helpers/_helper";
+import type { UmbrellaTestContext } from "../_helper_umbrella";
+
+// the fixture attaches these fields dynamically once the event monitored item is installed
+// (see given_an_installed_event_monitored_item below); they're not part of UmbrellaTestContext
+// or IAlarmTestData.
+type AlarmConditionsTestContext = UmbrellaTestContext &
+    IAlarmTestData & {
+        spy_monitored_item1_changes: sinon.SinonSpy;
+        monitoredItem1: ClientMonitoredItemBase;
+    };
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -41,7 +52,7 @@ const stepInfo = (str: string) => {
         console.log(chalk.yellow("   --> ") + chalk.cyan(str));
     }
 };
-export function t(test: any) {
+export function t(test: AlarmConditionsTestContext) {
     describe("A&C monitoring conditions", () => {
         let client: OPCUAClient;
 
@@ -49,7 +60,7 @@ export function t(test: any) {
             // add a condition to the server
             // Server - HasNotifier -> Tank -> HasEventSource -> TankLevel -> HasCondition -> TankLevelCondition
 
-            const addressSpace = test.server.engine.addressSpace;
+            const addressSpace = test.server!.engine.addressSpace!;
 
             construct_demo_alarm_in_address_space(test, addressSpace);
 
@@ -65,7 +76,7 @@ export function t(test: any) {
                 .forEach(([field, value]) => {
                     let str = "";
                     if (value.dataType === DataType.NodeId) {
-                        const node = test.server.engine.addressSpace.findNode(value?.value || "null");
+                        const node = test.server!.engine.addressSpace!.findNode(value?.value || "null");
                         str = node ? node.browseName.toString() : " Unknown Node";
                     }
                     console.log(chalk.yellow(field.padEnd(50)), `${(value || "").toString()} ${chalk.white.bold(str)}`);
@@ -128,7 +139,7 @@ export function t(test: any) {
 
         const eventFilter = constructEventFilter(fields, ofType("BaseEventType"));
 
-        async function given_an_installed_event_monitored_item(test: any, subscription: ClientSubscription) {
+        async function given_an_installed_event_monitored_item(test: AlarmConditionsTestContext, subscription: ClientSubscription) {
             stepInfo("given an installed event monitored item ...");
             // A spy to detect event when they are raised by the sever
             test.spy_monitored_item1_changes = sinon.spy();
@@ -155,12 +166,12 @@ export function t(test: any) {
         }
 
         it("A&C-01 -  Limit Alarm should trigger Event when ever the input node goes out of limit", async () => {
-            await perform_operation_on_subscription(client, test.endpointUrl, async (_session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (_session, subscription) => {
                 await given_an_installed_event_monitored_item(test, subscription);
 
                 assert(test.tankLevelCondition.raiseNewCondition);
-                test.tankLevelCondition.raiseNewCondition = sinon.spy(test.tankLevelCondition, "raiseNewCondition");
-                test.tankLevelCondition.raiseNewCondition.calledOnce.should.eql(false);
+                const raiseNewConditionSpy = sinon.spy(test.tankLevelCondition, "raiseNewCondition");
+                raiseNewConditionSpy.calledOnce.should.eql(false);
 
                 stepInfo("when tank level is overfilled ...");
                 // let's simulate the tankLevel going to 99%
@@ -171,8 +182,8 @@ export function t(test: any) {
                 });
 
                 stepInfo("... the alarm should be raised ...");
-                test.tankLevelCondition.raiseNewCondition.calledOnce.should.eql(true);
-                test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
+                raiseNewConditionSpy.calledOnce.should.eql(true);
+                test.tankLevelCondition.limitState!.getCurrentState()!.should.eql("HighHigh");
 
                 stepInfo("      then we should check that alarm is raised ...");
                 await new Promise<void>((resolve) => {
@@ -238,7 +249,7 @@ export function t(test: any) {
                 });
             }
 
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 stepInfo("initialization... tank level set to 90%");
                 test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.9 });
 
@@ -334,7 +345,7 @@ export function t(test: any) {
                 {
                     const tankLevelCondition = test.tankLevelCondition;
                     tankLevelCondition.currentBranch().setRetain(false);
-                    tankLevelCondition.raiseNewCondition();
+                    tankLevelCondition.raiseNewCondition({});
                 }
             });
         });
@@ -349,7 +360,7 @@ export function t(test: any) {
        should report the properties as NULL or with a status of Bad_ConditionDisabled.
        */
             it("A&C-03 should raise an event when a Condition get disabled", async () => {
-                await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                     await f(async function given_a_enabled_condition() {
                         test.tankLevelCondition.enabledState.setValue(true);
                         test.tankLevelCondition.enabledState.getValue().should.eql(true);
@@ -431,7 +442,7 @@ export function t(test: any) {
             const levelNode = test.tankLevel;
             const alarmNode = test.tankLevelCondition;
 
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 await (async function given_a_enabled_condition() {
                     alarmNode.enabledState.setValue(true);
                     alarmNode.enabledState.getValue().should.eql(true);
@@ -521,7 +532,7 @@ export function t(test: any) {
             alarmNode.on("addComment", addCommentSpy);
             const the_new_comment = " The NEW COMMENT !!!";
 
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, _subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, _subscription) => {
                 // given_a_enabled_condition
                 alarmNode.enabledState.setValue(true);
                 alarmNode.enabledState.getValue().should.eql(true);
@@ -634,7 +645,7 @@ export function t(test: any) {
             let branch2_EventId: Buffer | null = null;
             let dataValues: Variant[];
 
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 async function initial_state_of_condition() {
                     levelNode.setValueFromSource({ dataType: "Double", value: 0.5 });
 
@@ -787,7 +798,8 @@ export function t(test: any) {
                 test.spy_monitored_item1_changes.resetHistory();
 
                 // 3.  Alarm goes inactive.
-                await alarm_goes_inactive(), await wait_a_little_bit_to_let_events_to_be_processed();
+                await alarm_goes_inactive();
+                await wait_a_little_bit_to_let_events_to_be_processed();
 
                 //  we_should_verify_that_a_third_event_has_been_raised()
                 // showing that alarm has been Acknowledged
