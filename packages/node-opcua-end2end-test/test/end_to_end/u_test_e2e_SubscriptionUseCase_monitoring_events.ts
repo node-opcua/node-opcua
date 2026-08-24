@@ -1,6 +1,8 @@
 import chalk from "chalk";
 import {
     AttributeIds,
+    type ClientSession,
+    type ClientSessionRawSubscriptionService,
     ContentFilter,
     ContentFilterResult,
     CreateMonitoredItemsRequest,
@@ -13,9 +15,11 @@ import {
     FilterOperator,
     LiteralOperand,
     ModifyMonitoredItemsRequest,
+    type ModifyMonitoredItemsResponse,
     MonitoredItemModifyRequest,
     MonitoringMode,
     makeNodeId,
+    type NodeId,
     OPCUAClient,
     ReadValueId,
     resolveNodeId,
@@ -28,15 +32,17 @@ import {
 import should from "should";
 import { assertThrow } from "../../test_helpers/assert_throw";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-// assertThrow helper has no TypeScript declarations; import via require and type as any
+// createMonitoredItems/modifyMonitoredItems are deliberately excluded from the public
+// ClientSession type (superseded by subscription.monitor/monitorItems), but these tests
+// exercise the raw low-level service directly. modifyMonitoredItems is re-declared
+// Promise-only because its optional-callback overload otherwise wins overload resolution.
+type RawSession = Omit<ClientSession & ClientSessionRawSubscriptionService, "modifyMonitoredItems"> & {
+    modifyMonitoredItems(options: ModifyMonitoredItemsRequest): Promise<ModifyMonitoredItemsResponse>;
+};
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any; // Narrow later if desired
-}
-
-export function t(test: TestHarness): void {
+export function t(test: UmbrellaTestContext): void {
     describe("Client Subscription with Event monitoring", () => {
         let client: OPCUAClient | null;
 
@@ -50,7 +56,7 @@ export function t(test: TestHarness): void {
         it("ZZ1 CreateMonitoredItemsRequest: server should not accept an Event filter if node attribute to monitor is not EventNotifier", async () => {
             if (!client) throw new Error("client not initialized");
             const filter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 const itemToMonitor = new ReadValueId({
                     nodeId: resolveNodeId("Server_ServerStatus"),
                     attributeId: AttributeIds.Value // << Value instead of EventNotifier
@@ -72,10 +78,10 @@ export function t(test: TestHarness): void {
                         }
                     ]
                 });
-                const res = await (session as any).createMonitoredItems(req);
+                const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results[0].statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
-                should(res.results[0].filterResult).eql(null);
+                res.results![0].statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
+                should(res.results![0].filterResult).eql(null);
             });
         });
 
@@ -85,7 +91,7 @@ export function t(test: TestHarness): void {
 
         it("ZY2 should create a monitoredItem on an event without an Event Filter", async () => {
             if (!client) throw new Error("client not initialized");
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 const itemToMonitor = new ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
@@ -107,10 +113,10 @@ export function t(test: TestHarness): void {
                         }
                     ]
                 });
-                const res = await (session as any).createMonitoredItems(req);
+                const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results[0].statusCode.should.eql(StatusCodes.Good);
-                should(res.results[0].filterResult).eql(null, "no filter result expected");
+                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results![0].filterResult).eql(null, "no filter result expected");
             });
         });
 
@@ -118,7 +124,7 @@ export function t(test: TestHarness): void {
             if (!client) throw new Error("client not initialized");
             const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
             eventFilter.selectClauses?.length.should.eql(3);
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 const itemToMonitor = new ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
@@ -140,11 +146,11 @@ export function t(test: TestHarness): void {
                         }
                     ]
                 });
-                const res = await (session as any).createMonitoredItems(req);
+                const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results[0].statusCode.should.eql(StatusCodes.Good);
-                should(res.results[0].filterResult).not.eql(null, "filter result expected");
-                const filterResult = res.results[0].filterResult as EventFilterResult;
+                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results![0].filterResult).not.eql(null, "filter result expected");
+                const filterResult = res.results![0].filterResult as EventFilterResult;
                 filterResult.should.be.instanceof(EventFilterResult);
                 eventFilter.selectClauses?.length.should.eql(3);
                 filterResult.selectClauseResults?.length.should.eql(eventFilter.selectClauses?.length);
@@ -158,7 +164,7 @@ export function t(test: TestHarness): void {
         it("ZZ2B should modify parameters of a monitoredItem on an event (Modify Event)", async () => {
             if (!client) throw new Error("client not initialized");
             const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 const itemToMonitor = new ReadValueId({
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
@@ -180,9 +186,9 @@ export function t(test: TestHarness): void {
                         }
                     ]
                 });
-                const res = await (session as any).createMonitoredItems(req);
-                const monitoredItemId = res.results[0].monitoredItemId;
-                should(res.results[0].filterResult).not.eql(null, "filter result expected");
+                const res = await (session as RawSession).createMonitoredItems(req);
+                const monitoredItemId = res.results![0].monitoredItemId;
+                should(res.results![0].filterResult).not.eql(null, "filter result expected");
                 const modifyReq = new ModifyMonitoredItemsRequest({
                     subscriptionId: subscription.subscriptionId,
                     timestampsToReturn: TimestampsToReturn.Neither,
@@ -193,7 +199,7 @@ export function t(test: TestHarness): void {
                         })
                     ]
                 });
-                const modifyRes = await (session as any).modifyMonitoredItems(modifyReq);
+                const modifyRes = await (session as RawSession).modifyMonitoredItems(modifyReq);
                 modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             });
         });
@@ -201,7 +207,9 @@ export function t(test: TestHarness): void {
         // A whereClause ContentFilter that exceeds the server's MaxWhereClauseParameters (default 100).
         // Built as an InList carrying one SimpleAttributeOperand + 101 literal operands (102 operands).
         function makeOversizedWhereClause(): ContentFilter {
-            const operands: any[] = [new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })];
+            const operands: (SimpleAttributeOperand | LiteralOperand)[] = [
+                new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })
+            ];
             for (let i = 0; i < 101; i++) {
                 operands.push(
                     new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) })
@@ -210,7 +218,7 @@ export function t(test: TestHarness): void {
             return new ContentFilter({ elements: [{ filterOperator: FilterOperator.InList, filterOperands: operands }] });
         }
 
-        function makeCreateRequest(subscriptionId: number, filter: any): CreateMonitoredItemsRequest {
+        function makeCreateRequest(subscriptionId: number, filter: EventFilter): CreateMonitoredItemsRequest {
             return new CreateMonitoredItemsRequest({
                 subscriptionId,
                 timestampsToReturn: TimestampsToReturn.Neither,
@@ -234,12 +242,12 @@ export function t(test: TestHarness): void {
             eventFilter.whereClause = new ContentFilter({
                 elements: [{ filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 0 })] }]
             });
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const res = await (session as RawSession).createMonitoredItems(
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results[0].statusCode.should.eql(StatusCodes.BadFilterElementInvalid);
+                res.results![0].statusCode.should.eql(StatusCodes.BadFilterElementInvalid);
             });
         });
 
@@ -247,12 +255,12 @@ export function t(test: TestHarness): void {
             if (!client) throw new Error("client not initialized");
             const eventFilter = constructEventFilter(["SourceName", "EventId"]);
             eventFilter.whereClause = makeOversizedWhereClause();
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const res = await (session as RawSession).createMonitoredItems(
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+                res.results![0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
             });
         });
 
@@ -260,12 +268,12 @@ export function t(test: TestHarness): void {
             if (!client) throw new Error("client not initialized");
             // create a valid event monitored item first ...
             const eventFilter = constructEventFilter(["SourceName", "EventId"]);
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const res = await (session as RawSession).createMonitoredItems(
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
-                res.results[0].statusCode.should.eql(StatusCodes.Good);
-                const monitoredItemId = res.results[0].monitoredItemId;
+                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                const monitoredItemId = res.results![0].monitoredItemId;
 
                 // ... then attempt to modify it to an oversized whereClause -> must be rejected (modify path)
                 const oversized = constructEventFilter(["SourceName", "EventId"]);
@@ -280,9 +288,9 @@ export function t(test: TestHarness): void {
                         })
                     ]
                 });
-                const modifyRes = await (session as any).modifyMonitoredItems(modifyReq);
+                const modifyRes = await (session as RawSession).modifyMonitoredItems(modifyReq);
                 modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                modifyRes.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+                modifyRes.results![0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
             });
         });
 
@@ -298,21 +306,21 @@ export function t(test: TestHarness): void {
                     }
                 ]
             });
-            await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const res = await (session as RawSession).createMonitoredItems(
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 // the monitored item is still created; the faulty select clause is reported per-clause
-                res.results[0].statusCode.should.eql(StatusCodes.Good);
-                const filterResult = res.results[0].filterResult as EventFilterResult;
+                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                const filterResult = res.results![0].filterResult as EventFilterResult;
                 filterResult.selectClauseResults?.[0].should.eql(StatusCodes.BadNodeIdUnknown);
             });
         });
 
         it("ZZ3 Client: should raise an error if a filter is specified when monitoring attributes which are not Value or EventNotifier", async () => {
             if (!client) throw new Error("client not initialized");
-            await perform_operation_on_subscription(client, test.endpointUrl, async (_session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (_session, subscription) => {
                 const readValue = {
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.BrowseName // NOT Value nor EventNotifier
@@ -321,7 +329,7 @@ export function t(test: TestHarness): void {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1,
-                    filter: new DataChangeFilter({} as any) // invalid usage
+                    filter: new DataChangeFilter({}) // invalid usage
                 };
                 await assertThrow(async () => {
                     await subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both);
@@ -331,7 +339,7 @@ export function t(test: TestHarness): void {
 
         it("ZZ4 Client: should raise an error if filter is not of type EventFilter when monitoring an event", async () => {
             if (!client) throw new Error("client not initialized");
-            await perform_operation_on_subscription(client, test.endpointUrl, async (_session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (_session, subscription) => {
                 const readValue = {
                     nodeId: resolveNodeId("Server"),
                     attributeId: AttributeIds.EventNotifier
@@ -340,7 +348,7 @@ export function t(test: TestHarness): void {
                     samplingInterval: 10,
                     discardOldest: true,
                     queueSize: 1,
-                    filter: new DataChangeFilter({} as any) // intentionally wrong
+                    filter: new DataChangeFilter({}) // intentionally wrong
                 };
                 await assertThrow(async () => {
                     await subscription.monitor(readValue, requestedParameters, TimestampsToReturn.Both);
@@ -348,9 +356,16 @@ export function t(test: TestHarness): void {
             });
         });
 
+        interface SimulationFolder {
+            simulation: {
+                eventGeneratorObject: { nodeId: NodeId; eventGeneratorMethod: { nodeId: NodeId } };
+            };
+        }
+
         describe("ZZA-1 Testing Server generating Event and client receiving Event Notification", () => {
-            async function callEventGeneratorMethod(session: any) {
-                const eventGeneratorObject = test.server.engine.addressSpace.rootFolder.objects.simulation.eventGeneratorObject;
+            async function callEventGeneratorMethod(session: ClientSession) {
+                const eventGeneratorObject = (test.server!.engine.addressSpace!.rootFolder.objects as unknown as SimulationFolder)
+                    .simulation.eventGeneratorObject;
                 should.exist(eventGeneratorObject);
                 // console.log(eventGeneratorObject.browseName.toString());
                 const methodsToCall = [
@@ -372,7 +387,7 @@ export function t(test: TestHarness): void {
                 if (!client) throw new Error("client not initialized");
                 const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message"] as const;
                 const eventFilter = constructEventFilter(fields as unknown as string[]);
-                await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
+                await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                     let eventNotificationCount = 0;
                     async function createOtherMonitorItem() {
                         const itemToMonitor = {
