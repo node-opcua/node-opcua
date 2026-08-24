@@ -9,10 +9,19 @@
 
 import * as browserModule from "../../source/index";
 
+declare global {
+    interface Window {
+        __opcuaReady?: {
+            loaded: boolean;
+            exports: string[];
+        };
+    }
+}
+
 const status = document.querySelector("#status");
 
 // Expose the loaded module for Playwright to introspect.
-(window as any).__opcuaReady = {
+window.__opcuaReady = {
     loaded: true,
     exports: Object.keys(browserModule).sort()
 };
