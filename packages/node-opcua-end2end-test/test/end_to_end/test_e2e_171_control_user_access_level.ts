@@ -3,11 +3,14 @@ import {
     AccessLevelFlag,
     AttributeIds,
     allPermissions,
+    type ClientSession,
     DataType,
     makeRoles,
+    type NodeId,
     OPCUAClient,
     PermissionType,
     StatusCodes,
+    type UAVariable,
     type UserIdentityInfo,
     UserTokenType,
     WellKnownRoles
@@ -17,7 +20,7 @@ import { build_server_with_temperature_device } from "../../test_helpers/build_s
 interface TestUser {
     username: string;
     password: string;
-    roles: any;
+    roles: NodeId[];
 }
 const users: TestUser[] = [
     {
@@ -48,8 +51,9 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 
 describe("issue171- testing Client-Server with UserName/Password identity token", function (this: Mocha.Context) {
-    let server: any, endpointUrl: string;
-    let node1: any;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
+    let endpointUrl: string;
+    let node1: UAVariable;
 
     const port = 2224;
 
@@ -81,7 +85,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         endpointUrl = server.getEndpointUrl();
         // replace user manager with our custom one
 
-        const addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace!;
         const namespace = addressSpace.getOwnNamespace();
 
         // create a variable that can only be read and written by admin
@@ -100,7 +104,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         await server.shutdown();
     });
 
-    async function read(session: any) {
+    async function read(session: ClientSession) {
         const nodeToRead = {
             nodeId: node1.nodeId.toString(),
             attributeId: AttributeIds.Value
@@ -111,7 +115,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
 
     let _the_value = 45;
 
-    async function write(session: any) {
+    async function write(session: ClientSession) {
         _the_value = _the_value + 1.12;
         const nodesToWrite = [
             {
