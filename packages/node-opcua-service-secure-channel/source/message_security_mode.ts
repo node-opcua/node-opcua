@@ -8,8 +8,8 @@ export function coerceMessageSecurityMode(value?: number | string): MessageSecur
         return MessageSecurityMode.None;
     }
     if (typeof value === "string") {
-        const e =  _enumerationMessageSecurityMode.get(value);
-        if (!e)  {
+        const e = _enumerationMessageSecurityMode.get(value);
+        if (!e) {
             return MessageSecurityMode.Invalid;
         }
         return e.value as MessageSecurityMode;

@@ -3,13 +3,9 @@
  */
 // Symmetric algorithms are used to secure all messages other than the OpenSecureChannel messages
 // OPC UA Secure Conversation Message Header Release 1.02 Part 6 page 39
-import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import {
-    BaseUAObject,
-    buildStructuredType,
-    initialize_field, IStructuredTypeSchema
-} from "node-opcua-factory";
+import { decodeUInt32, encodeUInt32, type UInt32 } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { BaseUAObject, buildStructuredType, initialize_field, type IStructuredTypeSchema } from "node-opcua-factory";
 
 const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStructuredType({
     name: "SymmetricAlgorithmSecurityHeader",
@@ -21,12 +17,11 @@ const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStruc
         // This identifier is returned by the server in an OpenSecureChannel response message. If a
         // Server receives a TokenId which it does not recognize it shall return an appropriate
         // transport layer error.
-        {name: "TokenId", fieldType: "UInt32", defaultValue: 0xDEADBEEF}
+        { name: "TokenId", fieldType: "UInt32", defaultValue: 0xdeadbeef }
     ]
 });
 
 export class SymmetricAlgorithmSecurityHeader extends BaseUAObject {
-
     public static possibleFields: string[] = ["tokenId"];
 
     public static schema = schemaSymmetricAlgorithmSecurityHeader;
