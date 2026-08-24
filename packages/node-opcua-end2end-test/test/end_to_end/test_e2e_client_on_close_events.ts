@@ -17,7 +17,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
     async function start_server() {
         server = new OPCUAServer({
             port,
-            nodeset_filename: (nodesets as any).ua, // original test used nodesets.ua
+            nodeset_filename: nodesets.standard,
             serverCapabilities: { maxSessions: 10 }
         });
         await server.start();
@@ -90,7 +90,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
         client.on("close", closeSpy);
         client.on("backoff", backoffSpy);
         client.on("backoff", () => {
-            debugLog("client.on('backoff'): attempting reconnect isReconnecting=", (client as any).isReconnecting);
+            debugLog("client.on('backoff'): attempting reconnect isReconnecting=", client.isReconnecting);
         });
         client.on("close", (err?: Error | null) => {
             debugLog("client 'close' event", err ? err.message : null);
@@ -111,7 +111,7 @@ describe("testing Client-Server - Event", function (this: Mocha.Context) {
         });
         debugLog(" 6 --> client detected server shutdown; waiting for reconnect attempts");
         await new Promise((r) => setTimeout(r, 10000));
-        (client as any).isReconnecting.should.eql(true);
+        client.isReconnecting.should.eql(true);
         debugLog(" 7 --> disconnecting client (while reconnecting)");
         await client.disconnect();
         debugLog(" 8 --> client disconnected");
