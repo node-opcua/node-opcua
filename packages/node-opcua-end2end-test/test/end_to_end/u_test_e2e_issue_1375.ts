@@ -2,11 +2,12 @@ import { type ClientSession, OPCUAClient, readServerCapabilities } from "node-op
 import "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("Verifying #1375", function (this: Mocha.Suite) {
         this.timeout(Math.max(200000, this.timeout()));
 
@@ -17,7 +18,7 @@ export function t(test: any) {
         it("Should read MinSupportedSampleRate", async () => {
             const client = OPCUAClient.create({ endpointMustExist: false });
 
-            const serverCapabilities = await client.withSessionAsync(test.endpointUrl, async (session: ClientSession) => {
+            const serverCapabilities = await client.withSessionAsync(test.endpointUrl!, async (session: ClientSession) => {
                 const serverCapabilities = await readServerCapabilities(session);
                 return serverCapabilities;
             });
