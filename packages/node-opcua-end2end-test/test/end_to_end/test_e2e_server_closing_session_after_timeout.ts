@@ -1,15 +1,23 @@
 import "should";
 import {
     AttributeIds,
+    type ClientSecureChannelLayer,
     get_empty_nodeset_filename,
     OPCUAClient,
     OPCUAServer,
     ReadRequest,
+    type Response,
     resolveNodeId,
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+// _secureChannel is public on the client implementation but not exposed on the public
+// OPCUAClient interface; reached here to send a raw request outside any session.
+interface ClientWithSecureChannel extends OPCUAClient {
+    _secureChannel: ClientSecureChannelLayer | null;
+}
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 const port = 2230;
@@ -47,8 +55,8 @@ describe("testing server dropping session after timeout if no activity has been 
     it("should not be able to read a node if no session has been opened", async () => {
         const client = OPCUAClient.create(options);
         await client.connect(endpointUrl);
-        const [err, response] = await new Promise<any[]>((resolve) => {
-            (client as any)._secureChannel.performMessageTransaction(readRequest, (err: Error, response: any) => {
+        const [err, response] = await new Promise<[Error | null | undefined, Response | undefined]>((resolve) => {
+            (client as ClientWithSecureChannel)._secureChannel!.performMessageTransaction(readRequest, (err, response) => {
                 resolve([err, response]);
             });
         });
