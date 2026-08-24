@@ -5,7 +5,7 @@ export enum OpenFileModeMask {
     ReadBit = 0x01,
     WriteBit = 0x02,
     EraseExistingBit = 0x04,
-    AppendBit = 0x08,
+    AppendBit = 0x08
 }
 
 export enum OpenFileMode {
@@ -37,5 +37,5 @@ export enum OpenFileMode {
      *                        The SetPosition Method can be used to change the position.
      */
     WriteAppend = OpenFileModeMask.AppendBit + OpenFileModeMask.WriteBit,
-    ReadWriteAppend = OpenFileModeMask.AppendBit + OpenFileModeMask.WriteBit + OpenFileModeMask.ReadBit,
+    ReadWriteAppend = OpenFileModeMask.AppendBit + OpenFileModeMask.WriteBit + OpenFileModeMask.ReadBit
 }

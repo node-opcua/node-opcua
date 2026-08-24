@@ -1,6 +1,6 @@
-import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs";
+import type { NoParamCallback, OpenMode, PathLike, Stats, WriteFileOptions } from "node:fs";
 
-export interface ReadStreamOptions {}
+export type ReadStreamOptions = {};
 export interface AbstractFs {
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
 
@@ -43,5 +43,4 @@ export interface AbstractFs {
     // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
 
     existsSync(filename: string): boolean;
-
- }
+}

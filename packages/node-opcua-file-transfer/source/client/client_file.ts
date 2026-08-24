@@ -1,21 +1,21 @@
 /**
  * @module node-opcua-file-transfer
  */
-import { Byte, coerceInt32, Int32, Int64, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
-import { AttributeIds, QualifiedName } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
-import { ReadValueIdOptions } from "node-opcua-service-read";
-import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { type Byte, coerceInt32, type Int32, type Int64, type UInt16, type UInt32, type UInt64 } from "node-opcua-basic-types";
 import { MethodIds } from "node-opcua-constants";
-
+import { AttributeIds, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
+import { type BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 const debugLog = make_debugLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 import { OpenFileMode } from "../open_mode";
+
 export { OpenFileMode } from "../open_mode";
 
 export interface IClientFile {
@@ -83,7 +83,7 @@ export class ClientFile implements IClientFile {
 
     public async open(mode: OpenFileMode): Promise<number> {
         if (mode === null || mode === undefined) {
-            throw new Error("expecting a validMode " + OpenFileMode[mode]);
+            throw new Error(`expecting a validMode ${OpenFileMode[mode]}`);
         }
         if (this.fileHandle) {
             throw new Error("File has already be opened");
@@ -97,7 +97,7 @@ export class ClientFile implements IClientFile {
         });
         if (result.statusCode.isNotGood()) {
             debugLog("Cannot open file : ");
-            throw new Error("cannot open file statusCode = " + result.statusCode.toString() + " mode = " + OpenFileMode[mode]);
+            throw new Error(`cannot open file statusCode = ${result.statusCode.toString()} mode = ${OpenFileMode[mode]}`);
         }
 
         this.fileHandle = result.outputArguments![0].value;
@@ -118,7 +118,7 @@ export class ClientFile implements IClientFile {
         });
         if (result.statusCode.isNotGood()) {
             debugLog("Cannot close file : ");
-            throw new Error("cannot close file statusCode = " + result.statusCode.toString());
+            throw new Error(`cannot close file statusCode = ${result.statusCode.toString()}`);
         }
 
         this.fileHandle = 0;
@@ -136,7 +136,7 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            throw new Error("Error " + result.statusCode.toString());
+            throw new Error(`Error ${result.statusCode.toString()}`);
         }
         return result.outputArguments![0].value as UInt64;
     }
@@ -162,7 +162,7 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            throw new Error("Error " + result.statusCode.toString());
+            throw new Error(`Error ${result.statusCode.toString()}`);
         }
         return;
     }
@@ -185,7 +185,7 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            throw new Error("Error " + result.statusCode.toString());
+            throw new Error(`Error ${result.statusCode.toString()}`);
         }
         if (!result.outputArguments || result.outputArguments[0].dataType !== DataType.ByteString) {
             throw new Error("Error invalid output");
@@ -211,7 +211,7 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            throw new Error("Error " + result.statusCode.toString());
+            throw new Error(`Error ${result.statusCode.toString()}`);
         }
         return;
     }
@@ -235,7 +235,6 @@ export class ClientFile implements IClientFile {
         return dataValue.value.value;
     }
 
-    // eslint-disable-next-line max-statements
     protected async extractMethodsIds(): Promise<void> {
         if (ClientFile.useGlobalMethod) {
             debugLog("Using GlobalMethodId");
@@ -295,6 +294,7 @@ export class ClientFile implements IClientFile {
             throw new Error("fileType object does not expose mandatory Size Variable");
         }
 
+        // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
         if (false && doDebug) {
             results.map((x: any) => debugLog(x.toString()));
         }

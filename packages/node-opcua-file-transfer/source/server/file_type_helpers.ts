@@ -2,30 +2,21 @@
  * @module node-opcua-file-transfer
  */
 
-import { promisify, types } from "util";
-import fsOrig from "fs";
-
-import { assert } from "node-opcua-assert";
+import fsOrig from "node:fs";
+import { promisify, types } from "node:util";
+import type { IAddressSpace, ISessionContext, UAFile, UAFile_Base, UAMethod, UAObjectType } from "node-opcua-address-space";
 import { getContextMaxMessageSize } from "node-opcua-address-space-base";
-import {
-    IAddressSpace,
-    ISessionContext,
-    UAFile,
-    UAFile_Base,
-    UAMethod,
-    UAObjectType
-} from "node-opcua-address-space";
-import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
+import { assert } from "node-opcua-assert";
+import type { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import { CallMethodResultOptions } from "node-opcua-service-call";
+import { NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
-
+import type { AbstractFs } from "../common/abstract_fs";
 import { OpenFileMode, OpenFileModeMask } from "../open_mode";
-import { AbstractFs } from "../common/abstract_fs";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
@@ -63,7 +54,7 @@ export interface FileOptions {
     refreshFileContentFunc?: () => Promise<void>;
 }
 
-export interface UAFileType extends UAObjectType, UAFile_Base { }
+export interface UAFileType extends UAObjectType, UAFile_Base {}
 /**
  *
  */
@@ -102,30 +93,30 @@ export class FileTypeData {
         );
         file.openCount.minimumSamplingInterval = 0; // changes immediately
 
-        const readFileSize =  ():{ size: number, timestamp: Date } => {
+        const readFileSize = (): { size: number; timestamp: Date } => {
             const stat = (this._fs as AbstractFs).statSync(this.filename);
 
             const size = stat.size;
             const timestamp = stat.mtime;
             return { size, timestamp };
-        }
+        };
 
         const data = this;
         file.size.bindVariable(
             {
-                timestamped_get():  DataValue {
+                timestamped_get(): DataValue {
                     try {
                         const { size, timestamp } = readFileSize();
                         data.fileSize = size;
                         return new DataValue({
                             sourceTimestamp: timestamp,
-                            serverTimestamp: (new Date()),
+                            serverTimestamp: new Date(),
                             value: new Variant({ dataType: DataType.UInt64, value: data._fileSize }),
                             statusCode: StatusCodes.Good
                         });
                     } catch (err) {
                         return new DataValue({
-                            serverTimestamp: (new Date()),
+                            serverTimestamp: new Date(),
                             statusCode: StatusCodes.BadDataUnavailable
                         });
                     }
@@ -249,7 +240,7 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends IAddressSpace, FileTypeM { }
+interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
 function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
@@ -373,7 +364,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
 
     const flags = toNodeJSMode(mode);
     if (flags === "?") {
-        errorLog("Invalid mode " + OpenFileMode[mode] + " (" + mode + ")");
+        errorLog(`Invalid mode ${OpenFileMode[mode]} (${mode})`);
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
@@ -412,7 +403,6 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         const fileLength = (await promisify(abstractFs.stat)(filename)).size;
         _fileInfo.size = fileLength;
 
-        // tslint:disable-next-line:no-bitwise
         if ((mode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit) {
             _fileInfo.position[1] = fileLength;
         }
@@ -513,7 +503,6 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
     if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidState };
     }
-    // tslint:disable-next-line:no-bitwise
     if ((_fileInfo.openMode & OpenFileModeMask.ReadBit) === 0x0) {
         // open mode did not specify Read Flag
         return { statusCode: StatusCodes.BadInvalidState };
@@ -585,7 +574,6 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    // tslint:disable-next-line:no-bitwise
     if ((_fileInfo.openMode & OpenFileModeMask.WriteBit) === 0x00) {
         // File has not been open with write mode
         return { statusCode: StatusCodes.BadInvalidState };

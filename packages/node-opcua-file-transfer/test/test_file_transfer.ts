@@ -1,34 +1,30 @@
 // make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
-import fsOrigin from "fs";
-import os from "os";
-import path from "path";
-import { promisify } from "util";
+import fsOrigin from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { promisify } from "node:util";
+import { fs as fsMemory } from "memfs";
+import { AddressSpace, PseudoSession, SessionContext, type UAFile } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
+import { coerceNodeId, coerceUInt64, type UInt64 } from "node-opcua-basic-types";
+import { type CallMethodRequestOptions, MethodIds } from "node-opcua-client";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
 import { randomBytes } from "node-opcua-utils";
+import should from "should";
 import sinon from "sinon";
 
-import { fs as fsMemory } from "memfs";
-
-import should from "should";
-
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { AddressSpace, PseudoSession, SessionContext, UAFile } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { UInt64, coerceUInt64, coerceNodeId } from "node-opcua-basic-types";
-import { CallMethodRequestOptions, MethodIds } from "node-opcua-client";
-import { nodesets } from "node-opcua-nodesets";
-import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
-
 import {
+    type AbstractFs,
     ClientFile,
     getFileData,
-    OpenFileMode,
+    type IClientFilePriv,
     installFileType,
-    AbstractFs,
+    OpenFileMode,
     readFile,
-    IClientFilePriv,
-    writeOPCUAFile,
-    readOPCUAFile
+    readOPCUAFile,
+    writeOPCUAFile
 } from "..";
 
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
@@ -36,9 +32,8 @@ import {
     const withMemFS = message.match(/memory/);
     const m1 = useGlobalMethod ? "Global" : "Local";
     const m2 = withMemFS ? "MemFS" : "FileFS";
-    const m = m1 + "-" + m2 + "-";
-    describe("FileTransfer " + message, function (this: Mocha.Suite) {
-
+    const m = `${m1}-${m2}-`;
+    describe(`FileTransfer ${message}`, function (this: Mocha.Suite) {
         this.timeout(6 * 60 * 1000);
 
         let addressSpace: AddressSpace;
@@ -47,9 +42,7 @@ import {
             if (useGlobalMethod) {
                 ClientFile.useGlobalMethod = true;
             }
-
         });
-
 
         after(() => {
             if (useGlobalMethod) {
@@ -88,7 +81,6 @@ import {
 
             fileSystem = withMemFS ? (fsMemory as any as AbstractFs) : fsOrigin;
 
-
             const filename = path.join(tempFolder, "tempFile1.txt");
             console.log("filename=", filename);
             await promisify(fileSystem.writeFile)(filename, "content", {});
@@ -105,22 +97,20 @@ import {
             installFileType(opcuaFile2, { filename: filename2, fileSystem: withMemFS ? fileSystem : undefined });
         });
         async function readFile2(): Promise<Buffer> {
-            const ret = await promisify(fileSystem.readFile)(filename2, "binary") as unknown as Buffer;
+            const ret = (await promisify(fileSystem.readFile)(filename2, "binary")) as unknown as Buffer;
             return ret;
         }
         async function resetFile2() {
             await promisify(fileSystem.writeFile)(filename2, "HelloWorld", "ascii");
-
         }
         after(() => {
             /* empty */
         });
         beforeEach(async () => {
-            if (filename2)
-                await resetFile2();
+            if (filename2) await resetFile2();
         });
 
-        it(m + "should expose a File Transfer node and open/close", async () => {
+        it(`${m}should expose a File Transfer node and open/close`, async () => {
             const session = new PseudoSession(addressSpace);
 
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -137,7 +127,7 @@ import {
             }
         });
 
-        it(m + "should expose a File Transfer node", async () => {
+        it(`${m}should expose a File Transfer node`, async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -153,7 +143,7 @@ import {
             await clientFile.close();
         });
 
-        it(m + "should read a file ", async () => {
+        it(`${m}should read a file `, async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -165,7 +155,7 @@ import {
             buf.toString("utf-8").should.eql("content");
         });
 
-        it(m + "should increase openCount when a file is opened and decrease it when it's closed", async () => {
+        it(`${m}should increase openCount when a file is opened and decrease it when it's closed`, async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -181,7 +171,7 @@ import {
             const countAfter2 = await clientFile.openCount();
             countAfter2.should.eql(countBefore);
         });
-        it(m + "should expose the size of the current file", async () => {
+        it(`${m}should expose the size of the current file`, async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -189,7 +179,7 @@ import {
             size.should.eql([0, 7]); // 7 bytes file
         });
 
-        it(m + "should not be possible to write to a file if Write Bit is not set in open mode", async () => {
+        it(`${m}should not be possible to write to a file if Write Bit is not set in open mode`, async () => {
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -214,7 +204,7 @@ import {
             hasSucceeded.should.eql(false);
         });
 
-        it(m + "should preserve existing file contents when opened in ReadWrite mode", async () => {
+        it(`${m}should preserve existing file contents when opened in ReadWrite mode`, async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             const originalContent = "!!! ORIGINAL CONTENT !!!";
@@ -238,7 +228,7 @@ import {
             content.should.eql(replacement + originalContent.substring(replacement.length));
         });
 
-        it(m + "should erase existing file contents when opened in ReadWriteEraseExisting mode", async () => {
+        it(`${m}should erase existing file contents when opened in ReadWriteEraseExisting mode`, async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             const replacement = "#### REPLACE ####";
@@ -260,7 +250,7 @@ import {
             content.should.eql(replacement);
         });
 
-        it(m + "should be possible to write to a file - in append mode", async () => {
+        it(`${m}should be possible to write to a file - in append mode`, async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
@@ -293,7 +283,7 @@ import {
             content.should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
         });
 
-        it(m + "should not allow read method if Read bit is not set in open mode", async () => {
+        it(`${m}should not allow read method if Read bit is not set in open mode`, async () => {
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -319,7 +309,7 @@ import {
             hasSucceeded.should.eql(false);
         });
 
-        it(m + "should allow file to grow", async () => {
+        it(`${m}should allow file to grow`, async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
@@ -343,7 +333,7 @@ import {
             await clientFile.write(Buffer.from(extraData));
             // and I should verify that the file on the server side contains the expected data
             const content = await promisify(fileSystem.readFile)(fileData.filename, "utf-8");
-            content.should.eql("!!! ORIGINAL CONTENT !!!" + extraData);
+            content.should.eql(`!!! ORIGINAL CONTENT !!!${extraData}`);
 
             // When I re-read file size and check that it has grown accordingly
             const newFileSize = await clientFile.size();
@@ -354,7 +344,7 @@ import {
             await clientFile.close();
         });
 
-        it(m + "file size must change on client size if file changes on server side", async () => {
+        it(`${m}file size must change on client size if file changes on server side`, async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "1", "utf-8");
             await fileData.refresh();
@@ -373,23 +363,21 @@ import {
             size2.should.eql(coerceUInt64(2));
         });
 
-
-        it(m + "readFile", async () => {
+        it(`${m}readFile`, async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "1234567890", "utf-8");
             await fileData.refresh();
 
             const session = new PseudoSession(addressSpace);
-            const clientFile = (new ClientFile(session, opcuaFile2.nodeId)) as unknown as IClientFilePriv;
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
             await (clientFile as any).ensureInitialized();
-
 
             const callSpy = sinon.spy(session, "call");
             const buf = await readFile(clientFile);
             callSpy.callCount.should.equal(3);
 
             const openMethod = clientFile.openMethodNodeId!;
-            const readMethod = clientFile.readNodeId!
+            const readMethod = clientFile.readNodeId!;
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
@@ -400,9 +388,7 @@ import {
             buf.toString("utf-8").should.eql("1234567890");
         });
 
-        it(m + "readFile with large file", async () => {
-
-
+        it(`${m}readFile with large file`, async () => {
             const randomData = randomBytes(3 * 1024).toString("hex");
 
             randomData.length.should.equal(6 * 1024);
@@ -416,20 +402,17 @@ import {
             await promisify(fileSystem.writeFile)(fileData.filename, randomData, "utf-8");
             await fileData.refresh();
 
-
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
             await clientFile.ensureInitialized();
-
 
             const callSpy = sinon.spy(session, "call");
 
             console.log("--start reading");
             const buf = await readFile(clientFile);
 
-
             const openMethod = clientFile.openMethodNodeId!;
-            const readMethod = clientFile.readNodeId!
+            const readMethod = clientFile.readNodeId!;
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
@@ -447,11 +430,9 @@ import {
             buf.toString("utf-8").should.eql(randomData);
 
             fileData.maxChunkSizeBytes = oldMaxSize;
-
         });
 
-        it(m + "writeOPCUAFile with large file", async () => {
-
+        it(`${m}writeOPCUAFile with large file`, async () => {
             console.log("writeOPCUAFile");
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
@@ -463,7 +444,7 @@ import {
             await writeOPCUAFile(clientFile, filepath, { chunkSize: 102 });
 
             const openMethod = clientFile.openMethodNodeId!;
-            const writeMethod = clientFile.writeNodeId!
+            const writeMethod = clientFile.writeNodeId!;
             const setPosition = clientFile.setPositionNodeId!;
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
@@ -483,9 +464,7 @@ import {
             const buffer = await readOPCUAFile(clientFile);
 
             content.toString("ascii").should.eql(buffer.toString("ascii"));
-
         });
-
 
         function swapHandle(c1: ClientFile, c2: ClientFile) {
             const b = (c2 as any).fileHandle;
@@ -493,7 +472,7 @@ import {
             (c1 as any).fileHandle = b;
         }
 
-        it(m + "should not be possible to reuse filehandle generated by one session with an other session", async () => {
+        it(`${m}should not be possible to reuse filehandle generated by one session with an other session`, async () => {
             // Given client 1$
             const contextA = new SessionContext({
                 session: {

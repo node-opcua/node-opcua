@@ -1,13 +1,12 @@
-import path from "path";
-import os from "os";
-import fs from "fs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import "should";
 
-import { NodeId, OPCUAClient, OPCUAServer, TransportSettings, UAFile } from "node-opcua";
+import { type NodeId, OPCUAClient, OPCUAServer, type TransportSettings, type UAFile } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
-
 
 describe("FileType: Testing with very large file end-to-end", function (this: any) {
     this.timeout(100000);
@@ -51,7 +50,7 @@ describe("FileType: Testing with very large file end-to-end", function (this: an
         console.log("large file created: at", filename, veryLargeBuffer.length);
 
         const transportSettings: TransportSettings = {
-            maxMessageSize: 1024 * 1024 * 8,
+            maxMessageSize: 1024 * 1024 * 8
         };
         const client = OPCUAClient.create({ transportSettings });
 

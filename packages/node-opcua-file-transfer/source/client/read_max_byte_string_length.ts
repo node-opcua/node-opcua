@@ -2,11 +2,10 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { VariableIds } from "node-opcua-constants";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import type { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { StatusCodes } from "node-opcua-status-code";
 
-
-export async  function readMaxByteStringLength(session: IBasicSessionReadAsyncSimple): Promise<number> {
+export async function readMaxByteStringLength(session: IBasicSessionReadAsyncSimple): Promise<number> {
     const dataValue = await session.read({
         nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_MaxByteStringLength),
         attributeId: AttributeIds.Value
@@ -16,5 +15,3 @@ export async  function readMaxByteStringLength(session: IBasicSessionReadAsyncSi
     }
     return dataValue.value.value || BinaryStream.maxByteStringLength;
 }
-
-

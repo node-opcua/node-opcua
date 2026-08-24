@@ -4,16 +4,14 @@ import { pipeline } from "node:stream/promises";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { IClientFile, OpenFileMode } from "./client_file";
+import { type IClientFile, OpenFileMode } from "./client_file";
+import { getTransportMaxMessageSize, type ISessionWithTransportSettings } from "./get_transport_max_size";
 import { readMaxByteStringLength } from "./read_max_byte_string_length";
-import { ISessionWithTransportSettings, getTransportMaxMessageSize } from "./get_transport_max_size";
 
 const debugLog = make_debugLog("FileType");
 // const errorLog = make_errorLog("FileType");
 // const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
-
-
 
 export async function writeOPCUAFile(clientFile: IClientFile, filePath: string, { chunkSize }: { chunkSize?: number }) {
     const maxMessageSize = getTransportMaxMessageSize(clientFile.session as ISessionWithTransportSettings);
