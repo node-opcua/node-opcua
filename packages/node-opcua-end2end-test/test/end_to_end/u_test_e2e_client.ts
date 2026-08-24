@@ -1,9 +1,18 @@
 import { types } from "node:util";
-import { AttributeIds, DataType, DataValue, OPCUAClient, type ReadValueIdOptions, type WriteValueOptions } from "node-opcua";
+import {
+    AttributeIds,
+    DataType,
+    DataValue,
+    OPCUAClient,
+    type ReadValueIdOptions,
+    type Response,
+    type WriteValueOptions
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-export function t(test: any) {
+import type { UmbrellaTestContext } from "./_helper_umbrella";
+export function t(test: UmbrellaTestContext) {
     describe("Testing Client Connection ", function (this: Mocha.Suite) {
         it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {
             const client = OPCUAClient.create({});
@@ -53,12 +62,12 @@ export function t(test: any) {
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
 
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             closeSpy.callCount.should.eql(0);
 
             let _err: Error | undefined;
             try {
-                await client.connect(test.endpointUrl);
+                await client.connect(test.endpointUrl!);
             } catch (err) {
                 _err = err as Error;
             } finally {
@@ -75,11 +84,11 @@ export function t(test: any) {
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
 
-            const p1 = client.connect(test.endpointUrl);
+            const p1 = client.connect(test.endpointUrl!);
 
             let _err: Error | undefined;
             try {
-                await client.connect(test.endpointUrl);
+                await client.connect(test.endpointUrl!);
             } catch (err) {
                 _err = err as Error;
             } finally {
@@ -107,7 +116,7 @@ export function t(test: any) {
             const closeSpy = sinon.spy();
             client.on("close", closeSpy);
 
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
 
             closeSpy.callCount.should.eql(0);
 
@@ -123,7 +132,7 @@ export function t(test: any) {
             const client = OPCUAClient.create({
                 requestedSessionTimeout: 1000
             });
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             const session = await client.createSession();
 
             try {
@@ -167,7 +176,7 @@ export function t(test: any) {
             // When I try to connect to the server
             let _err: Error | undefined;
             try {
-                await client.connect(test.endpointUrl);
+                await client.connect(test.endpointUrl!);
             } catch (err) {
                 _err = err as Error;
             }
@@ -226,7 +235,7 @@ export function t(test: any) {
             const nodesToWrite = makeLargeDataWrite();
 
             let _err: Error | undefined;
-            await client.withSessionAsync(test.endpointUrl, async (session) => {
+            await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 try {
                     const _statusCode = await session.write(nodesToWrite);
                 } catch (err) {
@@ -236,8 +245,9 @@ export function t(test: any) {
                 }
             });
             should.exist(_err);
-            console.log("err.response", (_err! as any).response.toString());
-            (_err! as any).response.responseHeader.stringTable[0].should.match(/BadTcpMessageTooLarge/);
+            const errResponse = (_err as unknown as { response: Response }).response;
+            console.log("err.response", errResponse.toString());
+            errResponse!.responseHeader!.stringTable![0]!.should.match(/BadTcpMessageTooLarge/);
         });
 
         const immenseWriteNoProblem = async (nodeId: string) => {
@@ -261,7 +271,7 @@ export function t(test: any) {
                 return nodesToWrite;
             }
             const nodesToWrite = makeSingleLargeDataWrite();
-            await client.withSessionAsync(test.endpointUrl, async (session) => {
+            await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 const statusCode = await session.write(nodesToWrite);
                 console.log("statusCode", statusCode.toString());
             });
@@ -308,7 +318,7 @@ export function t(test: any) {
             const nodesToRead = makeLargeDataRead();
 
             let _err: Error | undefined;
-            await client.withSessionAsync(test.endpointUrl, async (session) => {
+            await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 try {
                     const _dataValues = await session.read(nodesToRead);
                 } catch (err) {
