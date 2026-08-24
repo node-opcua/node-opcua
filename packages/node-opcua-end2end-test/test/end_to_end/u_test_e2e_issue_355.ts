@@ -1,24 +1,19 @@
 import "should";
-import { AttributeIds, DataType, OPCUAClient, TimestampsToReturn, Variant } from "node-opcua";
+import { AttributeIds, DataType, OPCUAClient, TimestampsToReturn, type UAVariable, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import Sinon from "sinon";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
 import { waitUntilCondition } from "../../test_helpers/utils";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server?: any;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Issue #355 - client monitoredItem handler throwing errors shouldn't crash", () => {
         it("#355 protected against exception in user handler", async () => {
             if (!test.server) return; // skip if no embedded server
 
             const client = OPCUAClient.create({});
 
-            await perform_operation_on_subscription(client, test.endpointUrl, async (_session, subscription) => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (_session, subscription) => {
                 // await redirectToFileAsync("issue_355", async () => {
 
                 const monitoredItem = await subscription.monitor(
@@ -39,7 +34,7 @@ export function t(test: TestHarness) {
                 });
 
                 const interval = setInterval(() => {
-                    const node = test.server.engine.addressSpace.findNode("ns=1;s=FanSpeed");
+                    const node = test.server!.engine.addressSpace!.findNode("ns=1;s=FanSpeed") as UAVariable;
                     node.setValueFromSource(new Variant({ value: Math.random(), dataType: DataType.Double }));
                 }, 100);
 
