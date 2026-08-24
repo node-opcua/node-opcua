@@ -10,11 +10,22 @@ import {
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
 
-export function t(test: any) {
+interface ClientData {
+    client: OPCUAClient;
+    session: ClientSession;
+}
+
+// userIdentityInfo is a private ClientSessionImpl field, reached here only to reuse the
+// original identity when re-activating a session with a tampered authenticationToken.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
+export function t(test: UmbrellaTestContext) {
     describe("SDS3 Testing SessionDiagnostics 2/2", () => {
         async function readServerDiagnostics(session: ClientSession) {
             const nodesToRead = [
@@ -53,10 +64,10 @@ export function t(test: any) {
                 currentSubscriptionCount: dataValues[3].value.value
             };
         }
-        let data: any;
+        let data: ClientData;
         beforeEach(async () => {
             const client = OPCUAClient.create({ endpointMustExist: false });
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             const session = await client.createSession();
             data = { client, session };
         });
@@ -67,14 +78,14 @@ export function t(test: any) {
         });
 
         it("SDS3-A - should increase securityRejectedSessionCount and rejectedSessionCount if session is created with invalid credential", async () => {
-            const { session, client } = data;
+            const { session } = data;
 
             const dataBefore = await readServerDiagnostics(session);
 
             //  create a session with invalid  userIdentity
             {
                 const client2 = OPCUAClient.create({ endpointMustExist: false });
-                await client2.connect(test.endpointUrl);
+                await client2.connect(test.endpointUrl!);
                 try {
                     const _session2 = await client2.createSession({
                         type: UserTokenType.UserName,
@@ -110,7 +121,7 @@ export function t(test: any) {
             ): void;
         }
         it("SDS3-B - should not increase securityRejectedSessionCount but increase rejectedSessionCount if session is created with invalid session ID", async () => {
-            const { session, client } = data;
+            const { session } = data;
 
             const dataBefore = await readServerDiagnostics(session);
 
@@ -119,7 +130,7 @@ export function t(test: any) {
                 const client2 = OPCUAClient.create({
                     endpointMustExist: false
                 });
-                await client2.connect(test.endpointUrl);
+                await client2.connect(test.endpointUrl!);
 
                 try {
                     await new Promise<void>((resolve, reject) => {
@@ -129,7 +140,7 @@ export function t(test: any) {
                             const original = session2?.authenticationToken;
                             session2!.authenticationToken = randomNodeId();
 
-                            const userIdentityInfo = (session2! as any).userIdentityInfo;
+                            const userIdentityInfo = (session2! as InternalAny).userIdentityInfo;
 
                             (client2 as OpcuaCientPriv)._activateSession(session2!, userIdentityInfo, (err) => {
                                 if (err) {
