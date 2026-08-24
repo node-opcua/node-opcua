@@ -1,6 +1,6 @@
-import { type NodesetName, nodesetCatalog, type NodesetMeta } from "./nodeset_catalog";
+import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog";
 
-export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({ name, packageName, uri, xmlFile, dependencies, licence }) => ({
+export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({ name, uri, dependencies, licence }) => ({
     name,
     packageName: `<not implemented>`,
     uri,
@@ -10,8 +10,8 @@ export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({ name, package
 }));
 
 export const nodesets = <Record<NodesetName, string>>{};
-for (const array in nodesetCatalog) {
-    const [name] = array;
-    nodesets[name as NodesetName] = `nodeset:${name}`;
+for (const { name } of nodesetCatalog) {
+    nodesets[name] = `nodeset:${name}`;
 }
+
 export * from "./nodeset_catalog";
