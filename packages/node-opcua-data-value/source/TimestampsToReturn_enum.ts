@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-value
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerEnumeration } from "node-opcua-factory";
 
 /**

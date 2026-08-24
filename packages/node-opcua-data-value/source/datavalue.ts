@@ -2,35 +2,43 @@
  * @module node-opcua-data-value
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { coerceDateTime, getCurrentClock, PreciseClock } from "node-opcua-date-time";
+import {
+    type DateTime,
+    decodeHighAccuracyDateTime,
+    decodeStatusCode,
+    decodeUInt8,
+    decodeUInt16,
+    encodeHighAccuracyDateTime,
+    encodeStatusCode,
+    encodeUInt8,
+    encodeUInt16,
+    type UInt16
+} from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { AttributeIds } from "node-opcua-data-model";
+import { coerceDateTime, getCurrentClock, type PreciseClock } from "node-opcua-date-time";
+import { make_errorLog } from "node-opcua-debug";
 import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
-    DecodeDebugOptions,
+    type DecodeDebugOptions,
+    FieldCategory,
+    type IStructuredTypeSchema,
     initialize_field,
     parameters,
-    registerSpecialVariantEncoder,
-    IStructuredTypeSchema,
-    FieldCategory
+    registerSpecialVariantEncoder
 } from "node-opcua-factory";
-import { coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
-    DateTime,
-    decodeHighAccuracyDateTime,
-    decodeStatusCode,
-    decodeUInt16,
-    decodeUInt8,
-    encodeHighAccuracyDateTime,
-    encodeStatusCode,
-    encodeUInt16,
-    encodeUInt8,
-    UInt16
-} from "node-opcua-basic-types";
-import { make_errorLog } from "node-opcua-debug";
-import { AttributeIds } from "node-opcua-data-model";
+    DataType,
+    sameVariant,
+    Variant,
+    VariantArrayType,
+    type VariantOptions,
+    type VariantOptionsT,
+    type VariantT
+} from "node-opcua-variant";
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
@@ -38,7 +46,6 @@ const errorLog = make_errorLog(__filename);
 
 type NumericalRange = any;
 
-// tslint:disable:no-bitwise
 function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte {
     let encodingMask = 0;
     if (dataValue.value && dataValue.value.dataType !== DataType.Null) {
@@ -68,8 +75,8 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
 
 /**
  * @internal
- * @param dataValue 
- * @param stream 
+ * @param dataValue
+ * @param stream
  */
 export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
     const encodingMask = getDataValue_EncodingByte(dataValue);
@@ -121,7 +128,7 @@ function decodeDebugDataValue(dataValue: DataValue, stream: BinaryStream, option
     const encodingMask = decodeUInt8(stream);
     assert(encodingMask <= 0x3f);
 
-    tracer.trace("member", "encodingByte", "0x" + encodingMask.toString(16), cur, stream.length, "Mask");
+    tracer.trace("member", "encodingByte", `0x${encodingMask.toString(16)}`, cur, stream.length, "Mask");
     tracer.encoding_byte(encodingMask, DataValueEncodingByte, cur, stream.length);
 
     if (encodingMask & DataValueEncodingByte.Value) {
@@ -185,7 +192,7 @@ function decodeDataValueInternal(dataValue: DataValue, stream: BinaryStream) {
     // read sourceTimestamp
     if (encodingMask & DataValueEncodingByte.SourceTimestamp) {
         const [d, picoseconds] = decodeHighAccuracyDateTime(stream);
-        dataValue.sourceTimestamp = d
+        dataValue.sourceTimestamp = d;
         dataValue.sourcePicoseconds += picoseconds | 0;
     }
     // read sourcePicoseconds
@@ -248,11 +255,11 @@ export interface DataValueOptions {
 }
 
 function toMicroNanoPico(picoseconds: number): string {
-    return "" + w((picoseconds / 1000000) >> 0) + "." + w(((picoseconds % 1000000) / 1000) >> 0) + "." + w(picoseconds % 1000 >> 0);
+    return `${w((picoseconds / 1000000) >> 0)}.${w(((picoseconds % 1000000) / 1000) >> 0)}.${w((picoseconds % 1000) >> 0)}`;
     //    + " (" + picoseconds+ ")";
 }
 function d(timestamp: Date | null, picoseconds: number): string {
-    return timestamp ? timestamp.toISOString() + " $ " + toMicroNanoPico(picoseconds) : "null"; // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
+    return timestamp ? `${timestamp.toISOString()} $ ${toMicroNanoPico(picoseconds)}` : "null"; // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
 }
 const emptyObject = {};
 
@@ -330,13 +337,13 @@ export class DataValue extends BaseUAObject {
     public toString(): string {
         let str = "{ /* DataValue */";
         if (this.value) {
-            str += "\n" + "   value: " + Variant.prototype.toString.apply(this.value); // this.value.toString();
+            str += `\n   value: ${Variant.prototype.toString.apply(this.value)}`; // this.value.toString();
         } else {
             str += "\n" + "   value:            <null>";
         }
-        str += "\n" + "   statusCode:      " + (this.statusCode ? this.statusCode.toString() : "null");
-        str += "\n" + "   serverTimestamp: " + d(this.serverTimestamp, this.serverPicoseconds);
-        str += "\n" + "   sourceTimestamp: " + d(this.sourceTimestamp, this.sourcePicoseconds);
+        str += `\n   statusCode:      ${this.statusCode ? this.statusCode.toString() : "null"}`;
+        str += `\n   serverTimestamp: ${d(this.serverTimestamp, this.serverPicoseconds)}`;
+        str += `\n   sourceTimestamp: ${d(this.sourceTimestamp, this.sourcePicoseconds)}`;
         str += "\n" + "}";
         return str;
     }
@@ -372,10 +379,10 @@ function _partial_clone(dataValue: DataValue): DataValue {
 /**
  * apply the provided timestampsToReturn flag to the dataValue and return a cloned dataValue
  * with the specified timestamps.
- * @param dataValue 
- * @param timestampsToReturn 
- * @param attributeId 
- * @returns 
+ * @param dataValue
+ * @param timestampsToReturn
+ * @param attributeId
+ * @returns
  */
 export function apply_timestamps(
     dataValue: DataValue,
@@ -428,12 +435,12 @@ export function apply_timestamps(
 }
 
 /**
- * 
+ *
  * @param dataValue a DataValue
  * @param timestampsToReturn  a TimestampsToReturn flag to determine which timestamp should be kept
  * @param attributeId if attributeId is not Value, sourceTimestamp will forcefully be set to null
  * @param now an optional current clock to be used to set the serverTimestamp
- * @returns 
+ * @returns
  */
 export function apply_timestamps_no_copy(
     dataValue: DataValue,
@@ -481,8 +488,8 @@ export function apply_timestamps_no_copy(
  */
 function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsToReturn, attributeId: AttributeIds): DataValue {
     assert(attributeId > 0);
-    assert(Object.prototype.hasOwnProperty.call(dataValue, "serverTimestamp"));
-    assert(Object.prototype.hasOwnProperty.call(dataValue, "sourceTimestamp"));
+    assert(Object.hasOwn(dataValue, "serverTimestamp"));
+    assert(Object.hasOwn(dataValue, "sourceTimestamp"));
     const cloneDataValue = new DataValue({});
     cloneDataValue.value = dataValue.value;
     cloneDataValue.statusCode = dataValue.statusCode;
@@ -604,9 +611,9 @@ function sameDate(date1: DateTime, date2: DateTime): boolean {
 
 /**
  * returns true if the sourceTimestamp and sourcePicoseconds of the two dataValue are different
- * @param dataValue1 
- * @param dataValue2 
- * @returns 
+ * @param dataValue1
+ * @param dataValue2
+ * @returns
  */
 export function sourceTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return (
@@ -617,9 +624,9 @@ export function sourceTimestampHasChanged(dataValue1: DataValue, dataValue2: Dat
 
 /**
  * returns true if the serverTimestamp and serverPicoseconds of the two dataValue are different
- * @param dataValue1 
- * @param dataValue2 
- * @returns 
+ * @param dataValue1
+ * @param dataValue2
+ * @returns
  */
 export function serverTimestampHasChanged(dataValue1: DataValue, dataValue2: DataValue): boolean {
     return (
@@ -628,20 +635,19 @@ export function serverTimestampHasChanged(dataValue1: DataValue, dataValue2: Dat
     );
 }
 
-
 /**
  * return if the timestamps of the two dataValue are different
- * 
+ *
  * - if timestampsToReturn is not specified, both sourceTimestamp are compared
  * - if timestampsToReturn is **Neither**, the function returns false
  * - if timestampsToReturn is **Both**, both sourceTimestamp and serverTimestamp are compared
  * - if timestampsToReturn is **Source**, only sourceTimestamp are compared
  * - if timestampsToReturn is **Server**, only serverTimestamp are compared
- * 
- * @param dataValue1 
- * @param dataValue2 
- * @param timestampsToReturn 
- * @returns 
+ *
+ * @param dataValue1
+ * @param dataValue2
+ * @param timestampsToReturn
+ * @returns
  */
 
 export function timestampHasChanged(
@@ -667,8 +673,8 @@ export function timestampHasChanged(
 }
 
 /**
- * @param statusCode1 
- * @param statusCode2 
+ * @param statusCode1
+ * @param statusCode2
  * @returns true if the two statusCodes are identical, i.e have the same value
  */
 export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode): boolean {
@@ -710,4 +716,7 @@ export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOpti
 export declare interface DataValueT<T, DT extends DataType> extends DataValue {
     value: VariantT<T, DT>;
 }
+// The interface above narrows `value` to VariantT for this specialization.
+// Merging is the whole point — the class carries no extra runtime state.
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: deliberate API shaping
 export class DataValueT<T, DT extends DataType> extends DataValue {}

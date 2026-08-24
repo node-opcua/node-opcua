@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-value
  */
-import { Enum } from "node-opcua-enum";
+import type { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
 /**
