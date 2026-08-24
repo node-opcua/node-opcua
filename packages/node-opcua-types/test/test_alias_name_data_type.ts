@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { QualifiedName } from "node-opcua-data-model";
-import { ExpandedNodeId, NodeId, NodeIdType, coerceExpandedNodeId, resolveNodeId } from "node-opcua-nodeid";
+import { coerceExpandedNodeId, ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { AliasNameDataType, AliasNameVerboseDataType } from "..";
 import "should";
 
