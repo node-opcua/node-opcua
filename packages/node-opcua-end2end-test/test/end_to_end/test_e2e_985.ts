@@ -30,6 +30,9 @@ import { createServerCertificateManager } from "../../test_helpers/createServerC
 
 const warningLog = make_warningLog("TEST");
 
+// biome-ignore lint/suspicious/noExplicitAny: monkey-patching the private createUserIdentityToken client implementation method for fault injection (T5/T6)
+type InternalAny = any;
+
 const doDebug = !!process.env.DEBUG;
 // Given an established secure connection between a client and server
 // Given a userName/password session.
@@ -299,16 +302,16 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         await client.connect(endpointUrl);
 
-        const p = (client as any).createUserIdentityToken;
+        const p = (client as InternalAny).createUserIdentityToken;
 
         let hacked = false;
-        (client as any).createUserIdentityToken = function (
-            this: any,
-            context: any,
+        (client as InternalAny).createUserIdentityToken = function (
+            this: InternalAny,
+            context: InternalAny,
             userIdentityInfo: UserIdentityInfo,
-            callback: (err: Error | null, data?: any /*TokenAndSignature*/) => void
+            callback: (err: Error | null, data?: InternalAny /*TokenAndSignature*/) => void
         ) {
-            p.call(this, context, userIdentityInfo, (err: Error | null, data: any) => {
+            p.call(this, context, userIdentityInfo, (err: Error | null, data: InternalAny) => {
                 if (data) {
                     if (userIdentityInfo.type === UserTokenType.UserName) {
                         console.log("Hacking with the password token");
@@ -356,20 +359,20 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         await client.connect(endpointUrl);
 
-        const p = (client as any).createUserIdentityToken;
+        const p = (client as InternalAny).createUserIdentityToken;
 
         let hacked = false;
-        (client as any).createUserIdentityToken = function (
-            this: any,
-            context: any,
+        (client as InternalAny).createUserIdentityToken = function (
+            this: InternalAny,
+            context: InternalAny,
             userIdentityInfo: UserIdentityInfo,
-            callback: (err: Error | null, data?: any /*TokenAndSignature*/) => void
+            callback: (err: Error | null, data?: InternalAny /*TokenAndSignature*/) => void
         ) {
-            p.call(this, context, userIdentityInfo, (err: Error | null, data: any) => {
+            p.call(this, context, userIdentityInfo, (err: Error | null, data: InternalAny) => {
                 if (data) {
                     if (userIdentityInfo.type === UserTokenType.Certificate) {
                         console.log("Hacking the X509 certificate signature");
-                        const userTokenSignature: any /*SignatureDataOptions */ = data.userTokenSignature!;
+                        const userTokenSignature: InternalAny /*SignatureDataOptions */ = data.userTokenSignature!;
 
                         if (userTokenSignature?.signature) {
                             console.log(userTokenSignature);
