@@ -32,7 +32,7 @@ function defaultValue(identifierType: NodeIdType): string | 0 | Buffer {
         case NodeIdType.GUID:
             return emptyGuid;
         case NodeIdType.BYTESTRING:
-            return null as any as Buffer; // Buffer.alloc(0);
+            return null as unknown as Buffer; // Buffer.alloc(0);
         case NodeIdType.STRING:
             return "";
         case NodeIdType.NUMERIC:
@@ -74,6 +74,15 @@ export interface INodeIdString extends NodeId {
  * `NodeId` specialization for all possible types of NodeIds.
  */
 export type INodeId = INodeIdNumeric | INodeIdGuid | INodeIdString | INodeIdByteString;
+
+/**
+ * the minimal shape of an AddressSpace needed by NodeId.toString() to decorate
+ * a nodeId with its BrowseName. The real AddressSpace lives in node-opcua-address-space,
+ * a downstream package that depends on this one, so it cannot be imported here.
+ */
+interface AddressSpaceLike {
+    findNode(nodeId: NodeId): { browseName: { toString(): string } } | null;
+}
 
 /**
  *
@@ -185,7 +194,7 @@ export class NodeId {
      * @param [options.addressSpace] {AddressSpace}
      * @return {String}
      */
-    public toString(options?: { addressSpace?: any; namespaceArray?: string[] }): string {
+    public toString(options?: { addressSpace?: AddressSpaceLike; namespaceArray?: string[] }): string {
         const addressSpace = options ? options.addressSpace : null;
 
         const namespacePart: string = options?.namespaceArray
@@ -271,7 +280,7 @@ export class NodeId {
  */
 NodeId.nullNodeId = new Proxy(new NodeId(NodeIdType.NUMERIC, 0, 0), {
     get: (target: NodeId, prop: string) => {
-        return (target as any)[prop];
+        return (target as unknown as Record<string, unknown>)[prop];
     },
     set: () => {
         throw new Error("Cannot assign a value to constant NodeId.nullNodeId");
@@ -384,13 +393,13 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | Resolve
         identifierType = NodeIdType.BYTESTRING;
     } else if (value instanceof Object) {
         // it could be a Enum or a NodeId Like object
-        const tmp = value as any;
+        const tmp = value as { value?: unknown; namespace?: number; identifierType?: NodeIdType };
         value = tmp.value;
-        namespace = namespace || tmp.namespace;
+        namespace = namespace || tmp.namespace || 0;
         identifierType = tmp.identifierType || identifierType;
-        return new NodeId(identifierType, value as any, namespace);
+        return new NodeId(identifierType, value as number | string | Buffer | Guid, namespace);
     }
-    return new NodeId(identifierType, value as any, namespace);
+    return new NodeId(identifierType, value as number | string | Buffer | Guid, namespace);
 }
 
 const regEx1 = /^(s|g|b|i|ns)=/;
@@ -428,13 +437,13 @@ export function makeNodeId(value: string | Buffer | number, namespace?: number):
 }
 
 // reverse maps
-let _nodeIdToNameIndex: any = {};
-let _nameToNodeIdIndex: any = {};
+let _nodeIdToNameIndex: Record<string, string> = {};
+let _nameToNodeIdIndex: Record<string, NodeId> = {};
 
 const regName = /[a-zA-Z_].*/;
 
 (function build_standard_nodeid_indexes() {
-    function expand_map(directIndex: any) {
+    function expand_map(directIndex: { [key: string]: number | string }) {
         for (const name in directIndex) {
             if (Object.hasOwn(directIndex, name) && regName.exec(name) !== null) {
                 const value = directIndex[name];

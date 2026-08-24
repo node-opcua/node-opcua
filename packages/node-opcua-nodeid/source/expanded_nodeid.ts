@@ -80,7 +80,7 @@ export class ExpandedNodeId extends NodeId {
     /**
      * convert nodeId to a JSON string. same as {@link toString }
      */
-    public toJSON(): any {
+    public toJSON(): string {
         return this.toString();
     }
 }
