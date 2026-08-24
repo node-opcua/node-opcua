@@ -1,10 +1,9 @@
 /**
  * @module node-opcua-data-model
  */
-// tslint:disable:no-bitwise
 // Specifies the fields in the ReferenceDescription structure that should be
 // returned. The fields are assigned the following bits:
-import { Enum } from "node-opcua-enum";
+import type { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
 export enum ResultMask {

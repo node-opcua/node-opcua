@@ -1,5 +1,3 @@
-// tslint:disable:variable-name
-
 // OPCUA 1.03 : Part 3  $ 8.40 page 65
 
 // This Structured DataType is used to represent a human-readable representation of an Enumeration.
@@ -21,7 +19,8 @@ export const Deprecated_EnumValueType_schema = {
         {
             name: "description",
             fieldType: "LocalizedText",
-            documentation: "A localized description of the enumeration value. This field can contain an empty string if no description is available"
+            documentation:
+                "A localized description of the enumeration value. This field can contain an empty string if no description is available"
         }
     ]
 };

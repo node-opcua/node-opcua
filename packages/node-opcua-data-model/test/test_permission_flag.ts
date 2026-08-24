@@ -1,7 +1,7 @@
-import { PermissionFlag, makePermissionFlag, permissionFlagToString, allPermissions } from "..";
+import { allPermissions, makePermissionFlag, PermissionFlag, permissionFlagToString } from "..";
 import "should";
 
-describe("Testing PermissionFlag", function () {
+describe("Testing PermissionFlag", () => {
     it("should create a permission level flags from a string", () => {
         makePermissionFlag("DeleteNode | RemoveReference").should.eql(PermissionFlag.RemoveReference + PermissionFlag.DeleteNode);
 

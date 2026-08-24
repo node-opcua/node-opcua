@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-data-model
  */
-// tslint:disable:no-bitwise
 
 // Specifies the NodeClasses of the TargetNodes. Only TargetNodes with the
 // selected NodeClasses are returned. The NodeClasses are assigned the
@@ -41,7 +40,7 @@ export function makeNodeClassMask(str: string): NodeClassMask {
     const classMask = makeFlagFromString<NodeClassMask>(NodeClassMask as any, str);
     /* c8 ignore next */
     if (!classMask) {
-        throw new Error(" cannot find class mask for " + str);
+        throw new Error(` cannot find class mask for ${str}`);
     }
     return classMask;
 }

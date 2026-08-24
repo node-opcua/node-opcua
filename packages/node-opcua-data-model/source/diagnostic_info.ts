@@ -2,18 +2,6 @@
  * @module node-opcua-data-model
  */
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import {
-    BaseUAObject,
-    buildStructuredType,
-    DecodeDebugOptions,
-    parameters,
-    registerSpecialVariantEncoder,
-    IStructuredTypeSchema,
-    FieldCategory
-} from "node-opcua-factory";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-
 import {
     decodeByte,
     decodeInt32,
@@ -23,10 +11,22 @@ import {
     encodeInt32,
     encodeStatusCode,
     encodeString,
-    Int32,
-    UAString
+    type Int32,
+    type UAString
 } from "node-opcua-basic-types";
-import { check_options_correctness_against_schema, initialize_field } from "node-opcua-factory";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import {
+    BaseUAObject,
+    buildStructuredType,
+    check_options_correctness_against_schema,
+    type DecodeDebugOptions,
+    FieldCategory,
+    type IStructuredTypeSchema,
+    initialize_field,
+    parameters,
+    registerSpecialVariantEncoder
+} from "node-opcua-factory";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 // --------------------------------------------------------------------------------------------
 export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
@@ -140,16 +140,23 @@ export class DiagnosticInfo extends BaseUAObject {
         decodeDebug_DiagnosticInfo(this, stream, options);
     }
 
-    public static filterForResponse(diagnostic: DiagnosticInfo, requestedDiagnostics: number, diagnosticInfoMask: DiagnosticInfo_Mask): DiagnosticInfo {
+    public static filterForResponse(
+        diagnostic: DiagnosticInfo,
+        requestedDiagnostics: number,
+        diagnosticInfoMask: DiagnosticInfo_Mask
+    ): DiagnosticInfo {
         const options: DiagnosticInfoOptions = {
-            symbolicId: (requestedDiagnostics & diagnosticInfoMask.SymbolicId) ? diagnostic.symbolicId: undefined,
-            localizedText: (requestedDiagnostics & diagnosticInfoMask.LocalizedText) ? diagnostic.localizedText: undefined,
-            additionalInfo: (requestedDiagnostics & diagnosticInfoMask.AdditionalInfo) ? diagnostic.additionalInfo: undefined,
-            innerStatusCode: (requestedDiagnostics & diagnosticInfoMask.InnerStatusCode) ? diagnostic.innerStatusCode: undefined,
-            innerDiagnosticInfo: (requestedDiagnostics & diagnosticInfoMask.InnerDiagnostics) ? diagnostic.innerDiagnosticInfo : (
-                diagnostic.innerDiagnosticInfo ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, requestedDiagnostics, diagnosticInfoMask) : undefined
-            ),
-        }
+            symbolicId: requestedDiagnostics & diagnosticInfoMask.SymbolicId ? diagnostic.symbolicId : undefined,
+            localizedText: requestedDiagnostics & diagnosticInfoMask.LocalizedText ? diagnostic.localizedText : undefined,
+            additionalInfo: requestedDiagnostics & diagnosticInfoMask.AdditionalInfo ? diagnostic.additionalInfo : undefined,
+            innerStatusCode: requestedDiagnostics & diagnosticInfoMask.InnerStatusCode ? diagnostic.innerStatusCode : undefined,
+            innerDiagnosticInfo:
+                requestedDiagnostics & diagnosticInfoMask.InnerDiagnostics
+                    ? diagnostic.innerDiagnosticInfo
+                    : diagnostic.innerDiagnosticInfo
+                      ? DiagnosticInfo.filterForResponse(diagnostic.innerDiagnosticInfo, requestedDiagnostics, diagnosticInfoMask)
+                      : undefined
+        };
         return new DiagnosticInfo(options);
     }
 }
@@ -186,9 +193,13 @@ export enum DiagnosticInfo_OperationLevelMask {
 
 type DiagnosticInfo_Mask = typeof DiagnosticInfo_ServiceLevelMask | typeof DiagnosticInfo_OperationLevelMask;
 
-export const RESPONSE_DIAGNOSTICS_MASK_ALL = 0x3FF;
+export const RESPONSE_DIAGNOSTICS_MASK_ALL = 0x3ff;
 
-export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null, diagnosticInfoMask: DiagnosticInfo_Mask): DiagnosticInfo | null {
+export function filterDiagnosticInfoLevel(
+    returnDiagnostics: number,
+    diagnostic: DiagnosticInfo | null,
+    diagnosticInfoMask: DiagnosticInfo_Mask
+): DiagnosticInfo | null {
     if (!diagnostic) {
         return null;
     }
@@ -196,7 +207,10 @@ export function filterDiagnosticInfoLevel(returnDiagnostics: number, diagnostic:
     return DiagnosticInfo.filterForResponse(diagnostic, returnDiagnostics, diagnosticInfoMask);
 }
 
-export function filterDiagnosticOperationLevel(returnDiagnostics: number, diagnostic: DiagnosticInfo | null): DiagnosticInfo | null {
+export function filterDiagnosticOperationLevel(
+    returnDiagnostics: number,
+    diagnostic: DiagnosticInfo | null
+): DiagnosticInfo | null {
     return filterDiagnosticInfoLevel(returnDiagnostics, diagnostic, DiagnosticInfo_OperationLevelMask);
 }
 
@@ -214,7 +228,6 @@ export enum DiagnosticInfo_EncodingByte {
     InnerDiagnosticInfo = 0x40
 }
 
-// tslint:disable:no-bitwise
 function getDiagnosticInfoEncodingByte(diagnosticInfo: DiagnosticInfo): DiagnosticInfo_EncodingByte {
     assert(diagnosticInfo);
 
@@ -286,12 +299,12 @@ function encode_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: OutputBin
 function decodeDebug_DiagnosticInfo(diagnosticInfo: DiagnosticInfo, stream: BinaryStream, options: DecodeDebugOptions): void {
     const tracer = options.tracer;
 
-    tracer.trace("start", options.name + "(" + "DiagnosticInfo" + ")", stream.length, stream.length);
+    tracer.trace("start", `${options.name}(DiagnosticInfo)`, stream.length, stream.length);
 
     let cursorBefore = stream.length;
     const encodingMask = decodeByte(stream);
 
-    tracer.trace("member", "encodingByte", "0x" + encodingMask.toString(16), cursorBefore, stream.length, "Mask");
+    tracer.trace("member", "encodingByte", `0x${encodingMask.toString(16)}`, cursorBefore, stream.length, "Mask");
     tracer.encoding_byte(encodingMask, DiagnosticInfo_EncodingByte, cursorBefore, stream.length);
 
     cursorBefore = stream.length;

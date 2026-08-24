@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-data-model
  */
-// tslint:disable:no-bitwise
 
 /*
  *  This Structured DataType defines the local time that may or may not take daylight saving time

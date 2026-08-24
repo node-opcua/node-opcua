@@ -1,7 +1,7 @@
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
-import { _accessLevelFlagToString } from "./access_level";
 import { _make_flag } from "./_make_flag";
+import { _accessLevelFlagToString } from "./access_level";
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part3/8.58/:
  *

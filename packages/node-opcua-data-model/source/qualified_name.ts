@@ -2,14 +2,7 @@
  * @module node-opcua-data-model
  */
 import { assert } from "node-opcua-assert";
-import { 
-    decodeUAString,
-    decodeUInt16, 
-    encodeUAString, 
-    encodeUInt16,
-    type UAString,
-    type UInt16, 
-}  from "node-opcua-basic-types";
+import { decodeUAString, decodeUInt16, encodeUAString, encodeUInt16, type UAString, type UInt16 } from "node-opcua-basic-types";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
@@ -18,10 +11,9 @@ import {
     FieldCategory,
     type IStructuredTypeSchema,
     parameters,
-    registerSpecialVariantEncoder,
+    registerSpecialVariantEncoder
 } from "node-opcua-factory";
 import { type ExpandedNodeId, makeExpandedNodeId } from "node-opcua-nodeid";
-
 
 export const schemaQualifiedName = buildStructuredType({
     baseType: "BaseUAObject",

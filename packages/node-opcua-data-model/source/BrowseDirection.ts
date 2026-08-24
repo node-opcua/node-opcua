@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-data-model
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Enum } from "node-opcua-enum";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { Enum } from "node-opcua-enum";
 import { registerEnumeration } from "node-opcua-factory";
 
 export enum BrowseDirection {

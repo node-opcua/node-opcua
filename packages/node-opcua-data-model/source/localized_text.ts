@@ -1,33 +1,23 @@
 /**
  * @module node-opcua-data-model
  */
-import { 
-    decodeByte, 
-    decodeString, 
-    encodeByte, 
-    encodeString, 
-    type  LocaleId, 
-    type UAString 
-} from "node-opcua-basic-types";
-import type { 
-    BinaryStream, 
-    OutputBinaryStream 
-} from "node-opcua-binary-stream";
+import { decodeByte, decodeString, encodeByte, encodeString, type LocaleId, type UAString } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
-    type  DecodeDebugOptions,
+    type DecodeDebugOptions,
     FieldCategory,
-    type  IStructuredTypeSchema,
+    type IStructuredTypeSchema,
     parameters,
-    registerSpecialVariantEncoder,
+    registerSpecialVariantEncoder
 } from "node-opcua-factory";
 
 /**
- * 
- * @param value 
- * @returns 
+ *
+ * @param value
+ * @returns
  */
 export function coerceLocalizedText(value?: null | string | LocalizedTextOptions): LocalizedText | null {
     if (value === undefined || value === null) {
@@ -39,7 +29,7 @@ export function coerceLocalizedText(value?: null | string | LocalizedTextOptions
     return new LocalizedText(value);
 }
 export function coerceLocalizedTextStrict(value?: null | string | LocalizedTextOptions): LocalizedText {
-   let result = coerceLocalizedText(value);
+    let result = coerceLocalizedText(value);
     if (!result) {
         result = new LocalizedText({ locale: null, text: null });
     }
@@ -120,7 +110,6 @@ export class LocalizedText extends BaseUAObject {
 
     // OPCUA Part 6 $ 5.2.2.14 : localizedText have a special encoding
     public encode(stream: OutputBinaryStream): void {
-        // tslint:disable:no-bitwise
         const encodingMask = getLocalizeText_EncodingByte(this);
 
         encodeByte(encodingMask, stream);
@@ -134,7 +123,7 @@ export class LocalizedText extends BaseUAObject {
     }
 
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {
-        let cursorBefore: number= 0;
+        let cursorBefore: number = 0;
         const tracer = options.tracer;
         tracer.trace("start", `${options.name}(LocalizedText)`, stream.length, stream.length);
         cursorBefore = stream.length;

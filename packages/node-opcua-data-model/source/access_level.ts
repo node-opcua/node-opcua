@@ -1,9 +1,7 @@
-// tslint:disable:no-bitwise
-// tslint:disable:max-line-length
 /**
  * @module node-opcua-data-model
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { _make_flag } from "./_make_flag";
 
@@ -67,7 +65,6 @@ export function _accessLevelFlagToString(accessLevelFlag: number): string[] {
     }
     return retVal;
 }
-// tslint:disable:no-bitwise
 export function accessLevelFlagToString(accessLevelFlag: AccessLevelFlag): string {
     const retVal = _accessLevelFlagToString(accessLevelFlag);
     if (retVal.length === 0) {

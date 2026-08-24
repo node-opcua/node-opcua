@@ -9,10 +9,10 @@
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  *   The above copyright notice and this permission notice shall be included in all
  *   copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -26,13 +26,13 @@
 export * from "./access_level";
 export * from "./access_level_ex";
 export * from "./access_restrictions";
-export * from "./localized_text";
-export * from "./qualified_name";
-export * from "./diagnostic_info";
-export * from "./nodeclass";
 export * from "./attributeIds";
-export * from "./node_class_mask";
-export * from "./result_mask";
 export * from "./BrowseDirection";
 export * from "./data_encoding";
+export * from "./diagnostic_info";
+export * from "./localized_text";
+export * from "./node_class_mask";
+export * from "./nodeclass";
 export * from "./permission_flag";
+export * from "./qualified_name";
+export * from "./result_mask";
