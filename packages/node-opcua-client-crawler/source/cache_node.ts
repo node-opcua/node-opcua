@@ -1,4 +1,10 @@
-import { type AccessLevelFlag, coerceLocalizedText, LocalizedText, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import {
+    type AccessLevelFlag,
+    coerceLocalizedTextStrict,
+    LocalizedText,
+    NodeClass,
+    type QualifiedName
+} from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
@@ -16,9 +22,9 @@ export class CacheNode {
     public browseName: QualifiedName;
     public references: ReferenceDescription[];
     public nodeClass: NodeClass;
-    public typeDefinition: any;
+    public typeDefinition: NodeId | string | undefined;
     public displayName: LocalizedText;
-    public description: LocalizedText = coerceLocalizedText("")!;
+    public description: LocalizedText = coerceLocalizedTextStrict("");
 
     public _browse?: "planned" | "done";
 
@@ -64,10 +70,6 @@ export interface CacheNodeDataType extends CacheNode {
 export class CacheNodeVariable extends CacheNode {
     public nodeClass: NodeClass.Variable = NodeClass.Variable;
     public dataValue?: DataValue;
-
-    constructor(nodeId: NodeId) {
-        super(nodeId);
-    }
     public dispose(): void {
         super.dispose();
         if (this.dataValue) {
@@ -89,10 +91,6 @@ export interface CacheNodeVariable extends CacheNode {
 export class CacheNodeVariableType extends CacheNode {
     public nodeClass: NodeClass.VariableType = NodeClass.VariableType;
     public dataValue?: DataValue;
-
-    constructor(nodeId: NodeId) {
-        super(nodeId);
-    }
     public dispose(): void {
         super.dispose();
         if (this.dataValue) {

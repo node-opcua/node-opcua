@@ -17,7 +17,7 @@ export const pendingBrowseName = new QualifiedName({ name: "pending" });
 
 export function dedup_reference(parentNode: CacheNode, references: ReferenceDescription[]): ReferenceDescription[] {
     const results: ReferenceDescription[] = [];
-    const dedup: any = {};
+    const dedup: Record<string, ReferenceDescription> = {};
     const duplicatedReferences: ReferenceDescription[] = [];
 
     for (const reference of references) {
@@ -44,7 +44,7 @@ export function dedup_reference(parentNode: CacheNode, references: ReferenceDesc
 
 export interface TaskBase {
     name?: string;
-    func: (task: any, callback: EmptyCallback) => void;
+    func(task: unknown, callback: EmptyCallback): void;
 }
 
 export interface TaskBrowseNode {
@@ -68,7 +68,7 @@ export interface TaskCrawl extends TaskBase {
 
 export interface Task2 extends TaskBase {
     param: {
-        childCacheNode?: any;
+        childCacheNode?: CacheNode;
         parentNode?: CacheNode;
         reference?: ReferenceDescription;
     };
@@ -87,7 +87,7 @@ export interface TaskExtraReference extends TaskBase {
     param: {
         childCacheNode: CacheNode;
         parentNode: CacheNode;
-        reference: any;
+        reference: ReferenceDescription;
         userData: UserData;
     };
     func: (task: TaskExtraReference, callback: EmptyCallback) => void;
@@ -100,21 +100,21 @@ export interface TaskReconstruction extends TaskBase {
 
 export type Task = TaskCrawl | Task2 | TaskProcessBrowseResponse | TaskExtraReference;
 
-export function removeCycle(object: Pojo, innerCallback: (err: Error | null, object?: any) => void): void {
-    const visitedNodeIds: any = {};
+export function removeCycle(object: Pojo, innerCallback: (err: Error | null, object?: Pojo) => void): void {
+    const visitedNodeIds: Record<string, Pojo> = {};
 
-    function hasBeenVisited(e: any) {
-        const key1 = e.nodeId.toString();
+    function hasBeenVisited(e: Pojo) {
+        const key1 = (e.nodeId as { toString(): string }).toString();
         return visitedNodeIds[key1];
     }
 
-    function setVisited(e: any) {
-        const key1 = e.nodeId.toString();
+    function setVisited(e: Pojo) {
+        const key1 = (e.nodeId as { toString(): string }).toString();
         visitedNodeIds[key1] = e;
         return e;
     }
 
-    function mark_array(arr: any[]) {
+    function mark_array(arr: Pojo[] | undefined) {
         if (!arr) {
             return;
         }
@@ -130,11 +130,11 @@ export function removeCycle(object: Pojo, innerCallback: (err: Error | null, obj
         }
     }
 
-    function explorerObject(obj: any) {
-        mark_array(obj.organizes);
-        mark_array(obj.hasComponent);
-        mark_array(obj.hasNotifier);
-        mark_array(obj.hasProperty);
+    function explorerObject(obj: Pojo) {
+        mark_array(obj.organizes as Pojo[] | undefined);
+        mark_array(obj.hasComponent as Pojo[] | undefined);
+        mark_array(obj.hasNotifier as Pojo[] | undefined);
+        mark_array(obj.hasProperty as Pojo[] | undefined);
     }
 
     explorerObject(object);

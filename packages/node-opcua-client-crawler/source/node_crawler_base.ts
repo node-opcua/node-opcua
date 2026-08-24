@@ -14,7 +14,7 @@ import {
     BrowseResult,
     browseAll,
     checkDebugFlag,
-    coerceLocalizedText,
+    coerceLocalizedTextStrict,
     coerceQualifiedName,
     type DataTypeDefinition,
     DataValue,
@@ -84,7 +84,7 @@ function convertToStandardArray(a: number[] | Uint32Array | undefined | null): n
     if (a === undefined || a === null) {
         return undefined;
     }
-    if (a instanceof Array) {
+    if (Array.isArray(a)) {
         return a;
     }
     if (a instanceof Buffer) {
@@ -135,13 +135,18 @@ const hasTypeDefinitionNodeId = resolveNodeId("HasTypeDefinition");
 function _setExtraReference(task: TaskExtraReference, callback: ErrorCallback) {
     const param = task.param;
     assert(param.userData.setExtraReference);
-    param.userData.setExtraReference!(param.parentNode, param.reference, param.childCacheNode, param.userData);
+    param.userData.setExtraReference?.(param.parentNode, param.reference, param.childCacheNode, param.userData);
     callback();
 }
 
 export interface UserData {
     onBrowse: (crawler: NodeCrawlerBase, cacheNode: CacheNode, userData: UserData) => void;
-    setExtraReference?: (parentNode: CacheNode, reference: any, childCacheNode: CacheNode, userData: UserData) => void;
+    setExtraReference?: (
+        parentNode: CacheNode,
+        reference: ReferenceDescription,
+        childCacheNode: CacheNode,
+        userData: UserData
+    ) => void;
 }
 
 interface NodeCrawlerEvents {
@@ -154,7 +159,7 @@ export interface NodeCrawlerClientSession {
     browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
 }
 
-type ReadNodeAction = (value: any, dataValue: DataValue) => void;
+type ReadNodeAction = (value: unknown, dataValue: DataValue) => void;
 
 interface TaskReadNode {
     nodeToRead: {
@@ -215,10 +220,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const referenceTypeNodeId = getReferenceTypeId(referenceType);
 
         for (const reference of cacheNode.references) {
-            if (browseDirection! === BrowseDirection.Forward && !reference.isForward) {
+            if (browseDirection === BrowseDirection.Forward && !reference.isForward) {
                 continue;
             }
-            if (browseDirection! === BrowseDirection.Inverse && reference.isForward) {
+            if (browseDirection === BrowseDirection.Inverse && reference.isForward) {
                 continue;
             }
 
@@ -240,7 +245,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     public browseNextCounter = 0;
     public transactionCounter = 0;
     private readonly session: NodeCrawlerClientSession;
-    private readonly browseNameMap: ObjectMap;
+    private readonly browseNameMap: Record<string, unknown>;
     private readonly taskQueue: async.QueueObject<TaskBase>;
     private readonly pendingReadTasks: TaskReadNode[];
     private readonly pendingBrowseTasks: TaskBrowseNode[];
@@ -308,13 +313,22 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         Object.values(this._objectCache).map((cache) => (cache as CacheNode).dispose());
         this.taskQueue.kill();
 
-        (this as any).session = null;
-        (this as any).browseNameMap = null;
-        (this as any).taskQueue = null;
-        (this as any)._objectCache = {};
-        (this as any)._crawled = null;
-        (this as any)._visitedNode = null;
-        (this as any)._prePopulatedSet = null;
+        const mutableThis = this as unknown as {
+            session: NodeCrawlerClientSession | null;
+            browseNameMap: Record<string, unknown> | null;
+            taskQueue: async.QueueObject<TaskBase> | null;
+            _objectCache: { [key: string]: CacheNode };
+            _crawled: Set<string> | null;
+            _visitedNode: Set<string> | null;
+            _prePopulatedSet: WeakSet<object> | null;
+        };
+        mutableThis.session = null;
+        mutableThis.browseNameMap = null;
+        mutableThis.taskQueue = null;
+        mutableThis._objectCache = {};
+        mutableThis._crawled = null;
+        mutableThis._visitedNode = null;
+        mutableThis._prePopulatedSet = null;
     }
 
     public toString(): string {
@@ -328,7 +342,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     public crawl(nodeId: NodeIdLike, userData: UserData): Promise<void>;
     public crawl(nodeId: NodeIdLike, userData: UserData, endCallback: ErrorCallback): void;
-    public crawl(nodeId: NodeIdLike, userData: UserData, ...args: any[]): any {
+    public crawl(nodeId: NodeIdLike, userData: UserData, ...args: unknown[]): Promise<void> | undefined {
         const endCallback = args[0] as ErrorCallback;
         assert(typeof endCallback === "function", "expecting callback");
         nodeId = resolveNodeId(nodeId) as NodeId;
@@ -340,6 +354,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             }
             this._inner_crawl(nodeId as NodeId, userData, endCallback);
         });
+        return undefined;
     }
 
     /**
@@ -400,10 +415,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                 task2: (callback: ErrorCallback) => {
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.NodeClass, (err: Error | null, value?: NodeClass) => {
                         /* c8 ignore next */
-                        if (err) {
-                            return callback(err);
+                        if (err || value === undefined) {
+                            return callback(err || new Error("cannot read nodeClass"));
                         }
-                        cacheNode.nodeClass = value!;
+                        cacheNode.nodeClass = value;
                         setImmediate(callback);
                     });
                 },
@@ -420,7 +435,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                             }
                             if (!(value instanceof LocalizedText)) {
                                 warningLog(" node ", cacheNode.nodeId.toString(), " has a invalid displayName", value);
-                                cacheNode.displayName = coerceLocalizedText("<INVALID LOCALIZED NAME>")!;
+                                cacheNode.displayName = coerceLocalizedTextStrict("<INVALID LOCALIZED NAME>");
                             } else {
                                 cacheNode.displayName = value;
                             }
@@ -433,7 +448,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     this._resolve_deferred_readNode(callback);
                 }
             },
-            (err?: Error | null, data?: any) => {
+            (_err?: Error | null, _data?: unknown) => {
                 this._add_crawl_task(cacheNode, userData);
             }
         );
@@ -574,7 +589,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
         browseAll(this.session as IBasicSessionAsync2, nodesToBrowse)
             .then((browseResults?: BrowseResult[]) => {
-                assert(browseResults!.length === nodesToBrowse.length);
+                assert(browseResults?.length === nodesToBrowse.length);
                 browseResults = browseResults || [];
                 const task: TaskProcessBrowseResponse = {
                     func: NodeCrawlerBase.prototype._process_browse_response_task,
@@ -673,7 +688,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     private _initialize_referenceTypeId() {
         const appendPrepopulatedReference = (browseName: string) => {
-            const nodeId = makeNodeId((ReferenceTypeIds as any)[browseName], 0);
+            const nodeId = makeNodeId((ReferenceTypeIds as unknown as Record<string, number>)[browseName], 0);
             assert(nodeId);
             const cacheNode = this._createCacheNode(nodeId);
             cacheNode.browseName = new QualifiedName({ name: browseName });
@@ -722,8 +737,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.session
             .read(nodesToRead)
             .then((dataValues): void => {
-                dataValues = dataValues!;
-                const fix = (self: any, maxNodePerX: string, dataValue: DataValue) => {
+                const fix = (self: NodeCrawlerBase, maxNodePerX: "maxNodesPerRead" | "maxNodesPerBrowse", dataValue: DataValue) => {
                     if (dataValue.statusCode.equals(StatusCodes.Good)) {
                         const value = dataValue.value.value;
                         // if this.maxNodesPerRead has been set (<>0) by the user before call is made,
@@ -755,7 +769,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             });
     }
 
-    private set_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds, value: any) {
+    private set_cache_NodeAttribute(nodeId: NodeId, attributeId: AttributeIds, value: unknown) {
         const key = make_node_attribute_key(nodeId, attributeId);
         this.browseNameMap[key] = value;
     }
@@ -826,34 +840,34 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         callback: (err: Error | null, value?: number) => void
     ): void;
 
-    private _defer_readNode(nodeId: NodeId, attributeId: AttributeIds, callback: (err: Error | null, value?: any) => void): void {
+    private _defer_readNode<T>(nodeId: NodeId, attributeId: AttributeIds, callback: (err: Error | null, value?: T) => void): void {
         nodeId = resolveNodeId(nodeId);
-        const key = make_node_attribute_key(nodeId, attributeId);
+        const _key = make_node_attribute_key(nodeId, attributeId);
         if (this.has_cache_NodeAttribute(nodeId, attributeId)) {
-            callback(null, this.get_cache_NodeAttribute(nodeId, attributeId));
+            callback(null, this.get_cache_NodeAttribute(nodeId, attributeId) as T);
         } else {
             //   this.browseNameMap[key] = { "?": 1 };
             this.pendingReadTasks.push({
-                action: (value: any, dataValue: DataValue) => {
+                action: (value: unknown, dataValue: DataValue) => {
                     if (attributeId === AttributeIds.Value) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
-                        callback(null, dataValue);
+                        callback(null, dataValue as T);
                         return;
                     }
                     if (attributeId === AttributeIds.ArrayDimensions) {
                         value = dataValue.statusCode.isNotGood() ? null : value;
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
-                        callback(null, value);
+                        callback(null, value as T);
                         return;
                     }
                     if (dataValue.statusCode.isNotGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
-                        callback(null, null);
+                        callback(null, null as T);
                         return;
                     }
                     if (dataValue.statusCode.isGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
-                        callback(null, value);
+                        callback(null, value as T);
                     } else {
                         /* c8 ignore next */
                         callback(
@@ -876,11 +890,11 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         }
     }
 
-    private _resolve_deferred(comment: string, collection: any[], method: (callback: EmptyCallback) => void) {
+    private _resolve_deferred(comment: string, collection: unknown[], method: (callback: EmptyCallback) => void) {
         if (collection.length > 0) {
             doDebug1 && debugLog("_resolve_deferred ", comment, collection.length);
             this._push_task(`adding operation ${comment}`, {
-                func: (task: Task, callback: EmptyCallback) => {
+                func: (_task: Task, callback: EmptyCallback) => {
                     debugLog("executing task", comment);
                     method.call(this, callback);
                 },
@@ -912,7 +926,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         if (cacheNode) {
             throw new Error(`NodeCrawlerBase#_createCacheNode : cache node should not exist already : ${nodeId.toString()}`);
         }
-        const nodeClass = (referenceToParent ? referenceToParent!.nodeClass : NodeClass.Unspecified) as NodeClass;
+        const nodeClass = (referenceToParent ? referenceToParent?.nodeClass : NodeClass.Unspecified) as NodeClass;
         switch (nodeClass) {
             case NodeClass.Method:
                 cacheNode = new CacheNode(nodeId);
@@ -959,7 +973,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         actionOnBrowse: (err: Error | null, cacheNode?: CacheNode) => void
     ) {
         this.pendingBrowseTasks.push({
-            action: (object: CacheNode) => actionOnBrowse(null, cacheNode),
+            action: (_object: CacheNode) => actionOnBrowse(null, cacheNode),
             cacheNode,
             nodeId: cacheNode.nodeId,
             referenceTypeId
@@ -969,7 +983,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     private _process_single_browseResult(_objectToBrowse: TaskBrowseNode, browseResult: BrowseResult) {
         const cacheNode = _objectToBrowse.cacheNode as CacheNode;
         assert(this._visitedNode.has(cacheNode.nodeId.toString()));
-        cacheNode.references = cacheNode.references.concat(browseResult.references!);
+        cacheNode.references = cacheNode.references.concat(browseResult.references ?? []);
         this._process_single_browseResult2(_objectToBrowse);
     }
 
@@ -1006,8 +1020,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     this._defer_readNode(
                         cacheNode.nodeId,
                         AttributeIds.BrowseName,
-                        (err: Error | null, browseName?: QualifiedName) => {
-                            cacheNode.browseName = browseName!;
+                        (_err: Error | null, browseName?: QualifiedName) => {
+                            cacheNode.browseName = browseName ?? coerceQualifiedName("<INVALID BROWSE NAME>");
                             callback();
                         }
                     );
@@ -1021,7 +1035,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         if (err) {
                             return callback(err);
                         }
-                        cacheNode.displayName = value!;
+                        cacheNode.displayName = value ?? coerceLocalizedTextStrict("");
                         callback();
                     });
                 },
@@ -1031,7 +1045,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                             // description may not be defined and this is OK !
                             return callback();
                         }
-                        cacheNode.description = coerceLocalizedText(value)!;
+                        cacheNode.description = coerceLocalizedTextStrict(value);
                         callback();
                     });
                 },
@@ -1042,7 +1056,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeWithDataTypeField;
                     // read dataType and DataType if node is a variable
-                    this._defer_readNode(cacheNode.nodeId, AttributeIds.DataType, (err: Error | null, dataType?: NodeId) => {
+                    this._defer_readNode(cacheNode.nodeId, AttributeIds.DataType, (_err: Error | null, dataType?: NodeId) => {
                         if (!(dataType instanceof NodeId)) {
                             return callback();
                         }
@@ -1057,9 +1071,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.Value, (err: Error | null, value?: DataValue) => {
-                        if (!err) {
-                            assert(value instanceof DataValue);
-                            cache.dataValue = value!;
+                        if (!err && value instanceof DataValue) {
+                            cache.dataValue = value;
                         }
                         callback();
                     });
@@ -1089,8 +1102,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeVariable | CacheNodeVariableType;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.ValueRank, (err: Error | null, value?: number) => {
-                        if (!err) {
-                            cache.valueRank = value!;
+                        if (!err && value !== undefined) {
+                            cache.valueRank = value;
                         }
                         callback();
                     });
@@ -1103,8 +1116,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     this._defer_readNode(
                         cacheNode.nodeId,
                         AttributeIds.MinimumSamplingInterval,
-                        (err: Error | null, value?: number) => {
-                            cache.minimumSamplingInterval = value!;
+                        (_err: Error | null, value?: number) => {
+                            if (value !== undefined) {
+                                cache.minimumSamplingInterval = value;
+                            }
                             callback();
                         }
                     );
@@ -1115,10 +1130,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeWithAccessLevelField;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.AccessLevel, (err: Error | null, value?: number) => {
-                        if (err) {
-                            return callback(err);
+                        if (err || value === undefined) {
+                            return callback(err || new Error("cannot read accessLevel"));
                         }
-                        cache.accessLevel = value!;
+                        cache.accessLevel = value;
                         callback();
                     });
                 },
@@ -1128,10 +1143,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeVariable;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.UserAccessLevel, (err: Error | null, value?: number) => {
-                        if (err) {
-                            return callback(err);
+                        if (err || value === undefined) {
+                            return callback(err || new Error("cannot read userAccessLevel"));
                         }
-                        cache.userAccessLevel = value!;
+                        cache.userAccessLevel = value;
                         callback();
                     });
                 },
@@ -1141,10 +1156,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeReferenceType;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.InverseName, (err: Error | null, value?: LocalizedText) => {
-                        if (err) {
-                            return callback(err);
+                        if (err || value === undefined) {
+                            return callback(err || new Error("cannot read inverseName"));
                         }
-                        cache.inverseName = value!;
+                        cache.inverseName = value;
                         callback();
                     });
                 },
@@ -1154,10 +1169,10 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                     const cache = cacheNode as CacheNodeWithAbstractField;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.IsAbstract, (err: Error | null, value?: boolean) => {
-                        if (err) {
-                            return callback(err);
+                        if (err || value === undefined) {
+                            return callback(err || new Error("cannot read isAbstract"));
                         }
-                        cache.isAbstract = value!;
+                        cache.isAbstract = value;
                         callback();
                     });
                 },
@@ -1168,11 +1183,11 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     // dataTypeDefinition is new in 1.04
                     const cache = cacheNode as CacheNodeDataType;
                     this._defer_readNode(cacheNode.nodeId, AttributeIds.DataTypeDefinition, (err, value?: DataTypeDefinition) => {
-                        if (err) {
+                        if (err || value === undefined) {
                             // may be we are crawling a 1.03 server => DataTypeDefinition was not defined yet
                             return callback();
                         }
-                        cache.dataTypeDefinition = value!;
+                        cache.dataTypeDefinition = value;
                         callback();
                     });
                 }

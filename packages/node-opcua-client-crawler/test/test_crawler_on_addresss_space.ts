@@ -11,7 +11,7 @@ import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { type CacheNode, NodeCrawlerBase, type UserData } from "..";
 
 const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const _doDebug = checkDebugFlag("TEST");
 
 async function makeAddressSpace() {
     const addressSpace = await getMiniAddressSpace();
@@ -87,7 +87,7 @@ async function makeAddressSpace() {
     }
     return { addressSpace, groupNodeId, massVariablesNodeId, strangeObjectNodeId };
 }
-describe("NodeCrawlerBase", function (this: any) {
+describe("NodeCrawlerBase", function (this: Mocha.Context) {
     this.timeout(200000);
 
     let $: { addressSpace: AddressSpace; groupNodeId: NodeId; massVariablesNodeId: NodeId; strangeObjectNodeId: NodeId };
@@ -95,7 +95,7 @@ describe("NodeCrawlerBase", function (this: any) {
         $ = await makeAddressSpace();
     });
     after(() => {
-        if ($ && $.addressSpace) {
+        if ($?.addressSpace) {
             $.addressSpace.dispose();
         }
     });
@@ -158,9 +158,9 @@ describe("NodeCrawlerBase", function (this: any) {
     it("CRAWL2 should crawl a very large number of nodes", async () => {
         const session = new PseudoSession($.addressSpace);
 
-        (session as any).browse = sinon.spy(session, "browse");
-        (session as any).browseNext = sinon.spy(session, "browseNext");
-        (session as any).read = sinon.spy(session, "read");
+        sinon.spy(session, "browse");
+        sinon.spy(session, "browseNext");
+        sinon.spy(session, "read");
 
         const crawler = new NodeCrawlerBase(session);
         crawler.maxNodesPerBrowse = 5;
@@ -428,9 +428,9 @@ describe("NodeCrawlerBase", function (this: any) {
     }
     it("CRAWL7 - ", async () => {
         const session = new PseudoSession($.addressSpace);
-        (session as any).browse = sinon.spy(session, "browse");
-        (session as any).browseNext = sinon.spy(session, "browseNext");
-        (session as any).read = sinon.spy(session, "read");
+        const browse = sinon.spy(session, "browse");
+        const browseNext = sinon.spy(session, "browseNext");
+        const read = sinon.spy(session, "read");
 
         const crawler = new NodeCrawlerBase(session);
 
@@ -452,13 +452,13 @@ describe("NodeCrawlerBase", function (this: any) {
         session.requestedMaxReferencesPerNode = 10;
         await crawler.crawl($.strangeObjectNodeId, data);
         crawler.dispose();
-        for (const r of results) {
+        for (const _r of results) {
             //    console.log(r.browseName.toString(), r.nodeId.toString(), r.references.length);
         }
         results.length.should.eql(1103);
 
-        console.log("read      ", (session as any).read.callCount);
-        console.log("browse    ", (session as any).browse.callCount);
-        console.log("browseNext", (session as any).browseNext.callCount);
+        console.log("read      ", read.callCount);
+        console.log("browse    ", browse.callCount);
+        console.log("browseNext", browseNext.callCount);
     });
 });

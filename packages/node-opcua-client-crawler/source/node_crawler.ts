@@ -26,12 +26,12 @@ export class NodeCrawler extends NodeCrawlerBase {
         this._objMap = {};
     }
     public override dispose(): void {
-        Object.values(this._objMap).forEach((obj: any) => {
-            Object.keys(obj as any).forEach((k) => {
-                (obj as any)[k] = undefined;
+        Object.values(this._objMap).forEach((obj: Pojo) => {
+            Object.keys(obj).forEach((k) => {
+                obj[k] = undefined;
             });
         });
-        (this as any)._objMap = null;
+        (this as unknown as { _objMap: ObjectMap | null })._objMap = null;
         super.dispose();
     }
     /**
@@ -39,7 +39,7 @@ export class NodeCrawler extends NodeCrawlerBase {
      */
     public read(nodeId: NodeIdLike): Promise<Pojo>;
     public read(nodeId: NodeIdLike, callback: (err: Error | null, obj?: Pojo) => void): void;
-    public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: Pojo) => void): any {
+    public read(nodeId: NodeIdLike, callback?: (err: Error | null, obj?: Pojo) => void): Promise<Pojo> | undefined {
         /* c8 ignore next */
         if (!callback) {
             throw new Error("Invalid Error");
@@ -57,7 +57,8 @@ export class NodeCrawler extends NodeCrawlerBase {
         // check if object has already been crawled
         if (Object.hasOwn(this._objMap, key)) {
             const object = this._objMap[key];
-            return callback(null, object);
+            callback(null, object);
+            return;
         }
 
         const userData: UserData = {
@@ -80,6 +81,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                 callback(new Error(`Cannot find nodeId${key}`));
             }
         });
+        return;
     }
 
     private simplify_object(objMap: ObjectMap, object: CacheNode, finalCallback: (err: Error | null, obj?: Pojo) => void) {
@@ -109,7 +111,7 @@ export class NodeCrawler extends NodeCrawlerBase {
         object: CacheNode,
         extraFunc: (err: Error | null, obj?: Pojo) => void
     ) {
-        if (!object || !object.nodeId) {
+        if (!object?.nodeId) {
             return;
         }
         assert(typeof extraFunc === "function");
@@ -117,10 +119,10 @@ export class NodeCrawler extends NodeCrawlerBase {
 
         const task: TaskReconstruction = {
             data: object,
-            func: (data, callback: ErrorCallback) => {
+            func: (_data, callback: EmptyCallback) => {
                 this._reconstruct_manageable_object(queue, objMap, object, (err: Error | null, obj?: Pojo) => {
                     extraFunc(err, obj);
-                    callback(err as any);
+                    callback();
                 });
             }
         };
@@ -155,7 +157,7 @@ export class NodeCrawler extends NodeCrawlerBase {
          *    ]
          * }
          */
-        const obj: any = {
+        const obj: Pojo = {
             browseName: object.browseName.name,
             nodeId: object.nodeId.toString(),
             displayName: object.displayName?.text,
@@ -210,7 +212,7 @@ export class NodeCrawler extends NodeCrawlerBase {
 
             if (reference) {
                 // Extract nodeClass so it can be appended
-                reference.nodeClass = (ref as any).$nodeClass;
+                reference.nodeClass = ref.nodeClass;
             }
             if (referenceType) {
                 const refName = lowerFirstLetter(referenceType?.browseName?.name || "");
@@ -223,7 +225,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                     }
                     this._add_for_reconstruction(queue, objMap, reference, (err: Error | null, mObject?: Pojo) => {
                         if (!err) {
-                            referenceMap[refName].push(mObject);
+                            (referenceMap[refName] as Pojo[]).push(mObject as Pojo);
                         }
                     });
                 }
