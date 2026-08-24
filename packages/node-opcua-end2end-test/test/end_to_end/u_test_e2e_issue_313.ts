@@ -2,18 +2,14 @@ import "should";
 import { AttributeIds, ClientMonitoredItem, coerceNodeId, OPCUAClient, TimestampsToReturn } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Issue #313 - monitoring invalid nodeId twice shouldn't crash", () => {
         it("Does not crash when monitoring same invalid nodeId twice", async () => {
             const badNodeId = coerceNodeId("ns=4;s=TestVerzeichnis.TestKnotn"); // miss-typed
             const client = OPCUAClient.create({});
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
                 async function addMonitoredItemExpectingError() {
