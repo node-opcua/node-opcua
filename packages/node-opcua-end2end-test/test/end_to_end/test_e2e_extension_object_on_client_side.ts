@@ -2,7 +2,7 @@ import "should";
 import fs from "node:fs";
 import path from "node:path";
 import { AttributeIds, NumericRange, OPCUAClient, ReadValueId, StatusCodes } from "node-opcua";
-import { start_simple_server, stop_simple_server } from "../../test_helpers/external_server_fixture";
+import { type ServerHandle, start_simple_server, stop_simple_server } from "../../test_helpers/external_server_fixture";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
 const port = 2018;
@@ -12,7 +12,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 describe("testing extension object with client residing on a different process than the server process", function (this: Mocha.Context) {
     this.timeout(Math.max(600_000, this.timeout()));
 
-    let serverHandle: any = null;
+    let serverHandle: ServerHandle;
 
     const options = {
         silent: true,
@@ -41,14 +41,14 @@ describe("testing extension object with client residing on a different process t
         await perform_operation_on_client_session(client, endpointUrl, async (session) => {
             // First: read Value attribute (expects an XML schema string for custom structure definition)
             const nodesToRead = [new ReadValueId({ nodeId, attributeId: AttributeIds.Value })];
-            const dataValues = await (session as any).read(nodesToRead);
+            const dataValues = await session.read(nodesToRead);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             const xmlData1 = dataValues[0].value.value.toString("utf-8");
             xmlData1.should.match(/opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType"/);
             // Second: read Description (attributeId 13) with explicit empty NumericRange
             const nodeToRead = { nodeId, attributeId: 13, indexRange: new NumericRange() };
-            const dataValue = await (session as any).read(nodeToRead);
+            const dataValue = await session.read(nodeToRead);
             const xmlData2 = dataValue.value.value.toString("utf-8");
             xmlData2.should.match(/opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType"/);
         });
