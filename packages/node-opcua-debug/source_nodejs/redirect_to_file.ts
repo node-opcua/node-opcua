@@ -15,7 +15,7 @@ import { getTempFilename } from "./get_temp_filename";
  */
 export function redirectToFile(
     tmpFile: string,
-    actionFct: (callback?: (err?: Error) => void) => void,
+    actionFct: (() => void) | ((callback: (err?: Error) => void) => void),
     callback: ((err?: Error) => void) | null
 ): void {
     let oldConsoleLog: typeof console.log;
@@ -45,7 +45,8 @@ export function redirectToFile(
 
         // async version
         try {
-            actionFct();
+            // actionFct.length === 0 was checked above (isAsync), so this is the 0-arg overload
+            (actionFct as () => void)();
             f.end(callback);
         } catch (err) {
             console.log = oldConsoleLog;
@@ -71,7 +72,8 @@ export function redirectToFile(
 
         // async version
 
-        actionFct((err?: Error) => {
+        // actionFct.length > 0 was checked above (isAsync), so this is the callback overload
+        (actionFct as (callback: (err?: Error) => void) => void)((err?: Error) => {
             assert(typeof callback === "function");
             console.log = oldConsoleLog;
             if (err) {

@@ -35,6 +35,9 @@
             "path": "../node-opcua-factory"
         },
         {
+            "path": "../node-opcua-numeric-range"
+        },
+        {
             "path": "../node-opcua-status-code"
         },
         {
