@@ -19,25 +19,28 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { createHVACSystem } from "../../test_helpers/hvac_system";
 
+// biome-ignore lint/suspicious/noExplicitAny: UAProxyManager builds proxy objects dynamically at runtime; shape isn't statically knowable
+type DynamicProxyValue = any;
+
 const port = 2229;
 
 describe("testing client Proxy", function (this: Mocha.Context) {
     this.timeout(Math.max(600_000, this.timeout()));
 
-    let server: any; // concrete helper returns custom server wrapper
-    let client: OPCUAClient;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
+    let client: OPCUAClient | undefined;
     let endpointUrl: string;
-    let hvacNodeId: any = null;
+    let hvacNodeId: string;
 
     // Start a dedicated test server with a temperature device & custom HVAC model
     before(async () => {
-        if ((global as any).gc) {
-            (global as any).gc();
+        if (global.gc) {
+            global.gc();
         }
         server = await build_server_with_temperature_device({ port });
         endpointUrl = server.getEndpointUrl();
-        hvacNodeId = createHVACSystem(server.engine.addressSpace);
-        const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;
+        hvacNodeId = createHVACSystem(server.engine.addressSpace!);
+        const shutdownReason = server.engine.addressSpace!.rootFolder.objects.server.serverStatus.shutdownReason;
         console.log("shutdownReason", shutdownReason.readValue().toString());
     });
 
@@ -47,7 +50,7 @@ describe("testing client Proxy", function (this: Mocha.Context) {
     });
 
     afterEach(async () => {
-        client = undefined as any;
+        client = undefined;
     });
 
     // Gracefully dispose server after the full test suite
@@ -57,12 +60,12 @@ describe("testing client Proxy", function (this: Mocha.Context) {
 
     // Proxy1: Retrieve the HVAC root object and read a representative variable
     it("Proxy1 - proxies the HVAC UAObject", async () => {
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await client!.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const proxyManager = new UAProxyManager(session);
             // Acquire live proxies for nodes referenced by the HVAC model.
             // UAProxyManager dynamically builds JS objects that mirror UA nodes & methods.
             await proxyManager.start();
-            const hvac: any = await proxyManager.getObject(hvacNodeId);
+            const hvac: DynamicProxyValue = await proxyManager.getObject(hvacNodeId);
             // Read an initial snapshot of the interior temperature to ensure the variable is reachable.
             await hvac.interiorTemperature.readValue();
             // Original debug aid kept for troubleshooting value resolution:
@@ -73,11 +76,11 @@ describe("testing client Proxy", function (this: Mocha.Context) {
 
     // Proxy2: Interrogate standard Server object - ensures core namespace proxying works
     it("Proxy2 - proxies the Server UAObject", async () => {
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await client!.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const proxyManager = new UAProxyManager(session);
             await proxyManager.start();
-            const serverObject: any = await proxyManager.getObject("i=2253");
-            if (typeof (serverObject as any).getMonitoredItems !== "function") {
+            const serverObject: DynamicProxyValue = await proxyManager.getObject("i=2253");
+            if (typeof serverObject.getMonitoredItems !== "function") {
                 throw new Error("Cannot find serverObject.getMonitoredItems");
             }
             // Access a selection of well-known Server object hierarchy attributes.
@@ -86,8 +89,10 @@ describe("testing client Proxy", function (this: Mocha.Context) {
             await serverObject.serverStatus.readValue(); // composite server status structure
             await serverObject.serverStatus.buildInfo.readValue(); // build metadata
             // now call getMonitoredItems (method on Server object per Part 4 Diagnostics) to validate dynamic method binding
-            const subscriptionId = proxyManager.subscription ? (proxyManager.subscription as any).subscriptionId || 1 : 1;
-            await (serverObject as any).getMonitoredItems({ subscriptionId });
+            const subscriptionId = proxyManager.subscription
+                ? (proxyManager.subscription as DynamicProxyValue).subscriptionId || 1
+                : 1;
+            await serverObject.getMonitoredItems({ subscriptionId });
             await proxyManager.stop();
         });
     });
@@ -95,20 +100,20 @@ describe("testing client Proxy", function (this: Mocha.Context) {
     // Proxy3: Validate events & access rules on HVAC variables + method argument constraints
     it("Proxy3 - subscribes to property changes", async function (this: Mocha.Context) {
         this.timeout(Math.max(20_000, this.timeout()));
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await client!.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const proxyManager = new UAProxyManager(session);
             await proxyManager.start();
-            const hvac: any = await proxyManager.getObject(hvacNodeId);
+            const hvac: DynamicProxyValue = await proxyManager.getObject(hvacNodeId);
             hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
             hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double);
             hvac.setTargetTemperature.inputArguments[0].valueRank.should.eql(-1);
             hvac.setTargetTemperature.outputArguments.length.should.eql(0);
             // (Optional debug) Inspect raw data value structure:
             // console.log("Interior temperature DV", hvac.interiorTemperature.dataValue?.toString());
-            hvac.interiorTemperature.on("value_changed", (value: any) => {
+            hvac.interiorTemperature.on("value_changed", (value: DynamicProxyValue) => {
                 console.log(chalk.yellow("  EVENT: interiorTemperature has changed to "), value.value.toString());
             });
-            hvac.targetTemperature.on("value_changed", (value: any) => {
+            hvac.targetTemperature.on("value_changed", (value: DynamicProxyValue) => {
                 console.log(chalk.cyan("  EVENT: targetTemperature has changed to "), value.value.toString());
             });
             await hvac.interiorTemperature.readValue();
@@ -143,7 +148,7 @@ describe("testing client Proxy", function (this: Mocha.Context) {
 
     // Proxy4: Ensure SubscriptionDiagnosticsArray gets populated after a subscription is created
     it("Proxy4 - exposes SubscriptionDiagnostics array", async () => {
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await client!.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const proxyManager = new UAProxyManager(session);
             await proxyManager.start();
             const subscriptionDiagnosticsArray = await proxyManager.getObject(
@@ -152,7 +157,7 @@ describe("testing client Proxy", function (this: Mocha.Context) {
             // Prior to adding a new subscription, implementation may already expose at least one diagnostics entry
             // depending on pre-existing internal sessions. We assert presence (>1) instead of exact size to avoid flakiness.
             subscriptionDiagnosticsArray.$components.length.should.be.greaterThan(1);
-            await (session as any).createSubscription2({
+            await session.createSubscription2({
                 requestedPublishingInterval: 100,
                 requestedLifetimeCount: 6000,
                 requestedMaxKeepAliveCount: 10,
@@ -167,7 +172,7 @@ describe("testing client Proxy", function (this: Mocha.Context) {
 
     // Proxy5: Simple metadata read (sanity check on well-known node)
     it("Proxy5 - reads shutdown reason", async () => {
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        await client!.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const dataValue = await session.read({ nodeId: VariableIds.Server_ServerStatus_ShutdownReason });
             console.log(dataValue.toString());
         });
