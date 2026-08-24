@@ -12,7 +12,6 @@ import * as browserModule from "../../source/index";
 const status = document.querySelector("#status");
 
 // Expose the loaded module for Playwright to introspect.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).__opcuaReady = {
     loaded: true,
     exports: Object.keys(browserModule).sort()

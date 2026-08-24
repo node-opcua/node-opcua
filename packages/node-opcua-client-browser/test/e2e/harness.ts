@@ -64,10 +64,7 @@ async function startStaticServer(rootDir: string): Promise<StaticServer> {
     return {
         url,
         port: addr.port,
-        close: () =>
-            new Promise<void>((r, rej) =>
-                server.close((err) => (err ? rej(err) : r()))
-            )
+        close: () => new Promise<void>((r, rej) => server.close((err) => (err ? rej(err) : r())))
     };
 }
 

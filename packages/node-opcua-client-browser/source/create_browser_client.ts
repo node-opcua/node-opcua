@@ -27,8 +27,8 @@
  * ```
  */
 
-import { InMemoryCertificateKeyPairProvider, InMemoryCertificateStore } from "node-opcua-common";
 import { OPCUAClient, type OPCUAClientOptions } from "node-opcua-client";
+import { InMemoryCertificateKeyPairProvider, InMemoryCertificateStore } from "node-opcua-common";
 import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 
 import { browserWsTransportFactory } from "./client_ws_transport";
@@ -90,9 +90,7 @@ export function createBrowserClient(options: CreateBrowserClientOptions = {} as 
     // If the caller provided a client cert + private key, pre-populate the
     // provider so the owning client can reach them without further async setup.
     if (!clientOptions.certificateKeyPairProvider) {
-        const chain = clientCertificate
-            ? (Array.isArray(clientCertificate) ? clientCertificate : [clientCertificate])
-            : undefined;
+        const chain = clientCertificate ? (Array.isArray(clientCertificate) ? clientCertificate : [clientCertificate]) : undefined;
         clientOptions.certificateKeyPairProvider = new InMemoryCertificateKeyPairProvider(chain, clientPrivateKey);
     }
 

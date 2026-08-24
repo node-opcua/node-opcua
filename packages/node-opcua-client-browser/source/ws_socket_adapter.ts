@@ -74,7 +74,10 @@ export class WsSocketAdapter extends EventEmitter implements ISocketLike {
     private _timeoutMs = 0;
     private _timeoutCb: (() => void) | null = null;
 
-    constructor(private readonly ws: WebSocketLike, url?: string) {
+    constructor(
+        private readonly ws: WebSocketLike,
+        url?: string
+    ) {
         super();
 
         if (url) {
@@ -104,7 +107,6 @@ export class WsSocketAdapter extends EventEmitter implements ISocketLike {
             const buf = toBuffer(ev.data);
             if (!buf) {
                 // Text frame or unknown type: ignore with a warning, per spec
-                // eslint-disable-next-line no-console
                 console.warn("[ClientWS_transport] ignoring non-binary WebSocket frame");
                 return;
             }

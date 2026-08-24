@@ -1,9 +1,8 @@
-import should from "should";
-
 import { OPCUAClient } from "node-opcua-client";
 import { InMemoryCertificateStore } from "node-opcua-common";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { IClientTransportFactory } from "node-opcua-transport";
+import should from "should";
 
 import { browserWsTransportFactory } from "../../dist";
 // `createBrowserClient` is not re-exported from the package barrel today
@@ -31,8 +30,7 @@ describe("createBrowserClient", () => {
         const client = createBrowserClient();
         // OPCUAClientImpl stores transportFactory as a private field; the cast
         // exposes it for white-box assertion. There is no public getter today.
-        const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })
-            ._transportFactory;
+        const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })._transportFactory;
         should.exist(tf);
         tf!.should.equal(browserWsTransportFactory);
     });
@@ -43,8 +41,7 @@ describe("createBrowserClient", () => {
             create: (() => null) as any
         };
         const client = createBrowserClient({ transportFactory: customFactory });
-        const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })
-            ._transportFactory;
+        const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })._transportFactory;
         tf!.should.equal(customFactory);
     });
 

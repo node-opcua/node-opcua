@@ -15,8 +15,8 @@
 export {
     AcknowledgeMessage,
     HelloMessage,
-    TCPErrorMessage,
     packTcpMessage,
     readRawMessageHeader,
+    TCPErrorMessage,
     type TransportSettingsOptions
 } from "node-opcua-transport";

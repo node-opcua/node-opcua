@@ -75,19 +75,16 @@ describe("ClientWS_transport — structural / factory", () => {
     });
 
     it("rejects unsupported scheme at connect() time", async () => {
-       
         const t = new ClientWS_transport({ webSocketCtor: WebSocket as WebSocketConstructor });
 
         try {
             const err = await new Promise<Error | undefined>((resolve) => {
                 t.connect("opc.tcp://localhost:4840", (err) => {
-                  
                     resolve(err as Error | undefined);
                 });
             });
             should.exist(err);
             should(err?.message || "").match(/unsupported endpoint URL scheme|opc\.tcp/);
-            
         } finally {
             // clean up
             t.dispose();
@@ -152,7 +149,7 @@ describe("ClientWS_transport — HEL/ACK over ws://", function (this: Mocha.Suit
 
     afterEach(async () => {
         if (!server) return;
-        await new Promise<void>((resolve,reject)=>    server.close((err) => err ? reject(err) : resolve())    );
+        await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
     });
 
     it("connects, performs HEL/ACK, and emits 'connect'", (done) => {
