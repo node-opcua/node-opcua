@@ -11,6 +11,7 @@
         "tsup": "npx tsup ./packages/node-opcua/source/index.ts",
         "consistency": "npx -y @ster5/check-version-consistency",
         "preinstall": "node prevent_npm_install.js",
+        "lint": "biome check --reporter=summary --no-errors-on-unmatched .",
         "build": "tsc -b packages",
         "build:all": "pnpm run generate:types && pnpm run build",
         "generate": "pnpm run generate:types && pnpm run generate:nodesets",
