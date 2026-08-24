@@ -2,11 +2,14 @@ import "should";
 import {
     AttributeIds,
     allPermissions,
+    type ClientSession,
     DataType,
     makeRoles,
+    type NodeId,
     OPCUAClient,
     PermissionType,
     StatusCodes,
+    type UAVariable,
     UserTokenType,
     WellKnownRoles
 } from "node-opcua";
@@ -16,7 +19,7 @@ import { build_server_with_temperature_device } from "../../test_helpers/build_s
 interface TestUser {
     username: string;
     password: string;
-    roles: any;
+    roles: NodeId[];
 }
 
 const users: TestUser[] = [
@@ -43,9 +46,9 @@ const userManager = {
 const port = 2225;
 
 describe("testing Client-Server with UserName/Password identity token (role-based access)", () => {
-    let server: any;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
     let endpointUrl: string;
-    let node1: any;
+    let node1: UAVariable;
     let valueCounter = 45;
 
     before(async () => {
@@ -58,7 +61,7 @@ describe("testing Client-Server with UserName/Password identity token (role-base
             { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions }
         ];
 
-        const addressSpace = server.engine.addressSpace;
+        const addressSpace = server.engine.addressSpace!;
         const namespace = addressSpace.getOwnNamespace();
         node1 = namespace.addVariable({
             browseName: "v1",
@@ -73,11 +76,11 @@ describe("testing Client-Server with UserName/Password identity token (role-base
         await server.shutdown();
     });
 
-    async function read(session: any) {
+    async function read(session: ClientSession) {
         const dv = await session.read({ nodeId: node1.nodeId.toString(), attributeId: AttributeIds.Value });
         return dv.statusCode;
     }
-    async function write(session: any) {
+    async function write(session: ClientSession) {
         valueCounter += 1.12;
         const statusCodes = await session.write([
             {
