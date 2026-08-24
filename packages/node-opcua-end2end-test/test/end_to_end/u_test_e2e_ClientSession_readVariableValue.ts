@@ -2,15 +2,16 @@ import "should";
 import { AttributeIds, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("ClientSession#readVariableValue", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         afterEach(async () => {
