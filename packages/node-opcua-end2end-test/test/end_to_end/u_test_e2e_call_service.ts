@@ -3,6 +3,7 @@ import {
     type CallMethodRequestOptions,
     ClientMonitoredItem,
     type ClientSession,
+    type ClientSessionRawSubscriptionService,
     coerceNodeId,
     DataType,
     MethodIds,
@@ -19,8 +20,13 @@ import {
     perform_operation_on_client_session,
     perform_operation_on_subscription
 } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-export function t(test: any) {
+// getMonitoredItems() is declared on the raw subscription service, deliberately
+// excluded from the public ClientSession interface.
+type RawSession = ClientSession & ClientSessionRawSubscriptionService;
+
+export function t(test: UmbrellaTestContext) {
     describe("testing CALL SERVICE on a fake server exposing the temperature device", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
@@ -29,7 +35,7 @@ export function t(test: any) {
             client = OPCUAClient.create({
                 requestedSessionTimeout: 600 * 1000 // use long session time out
             });
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         afterEach(() => {});
@@ -327,16 +333,13 @@ export function t(test: any) {
             });
         });
 
-        interface ClientSessionEx extends ClientSession {
-            getMonitoredItems(subscriptionId: number): Promise<{ serverHandles: any[]; clientHandles: any[] }>;
-        }
         describe("GetMonitoredItems", () => {
             it("T1 A client should be able to call the GetMonitoredItems standard OPCUA command, and return BadSubscriptionId if input args subscriptionId is invalid ", async () => {
                 await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                     const subscriptionId = 1000000; // invalid subscription ID
 
                     await assertThrow(async () => {
-                        const _monitoredItems = await (session as ClientSessionEx).getMonitoredItems(subscriptionId);
+                        const _monitoredItems = await (session as RawSession).getMonitoredItems(subscriptionId);
                     }, /BadSubscriptionId/);
                 });
             });
@@ -345,7 +348,7 @@ export function t(test: any) {
                 await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
                     const subscriptionId = subscription.subscriptionId;
 
-                    const result = await (session as ClientSessionEx).getMonitoredItems(subscriptionId);
+                    const result = await (session as RawSession).getMonitoredItems(subscriptionId);
                     should(result.serverHandles).be.instanceOf(Uint32Array);
                     should(result.clientHandles).be.instanceOf(Uint32Array);
                     result.serverHandles.length.should.eql(0);
@@ -372,7 +375,7 @@ export function t(test: any) {
                         monitoredItem.once("changed", resolve);
                     });
 
-                    const result = await (session as ClientSessionEx).getMonitoredItems(subscriptionId);
+                    const result = await (session as RawSession).getMonitoredItems(subscriptionId);
 
                     should(result.serverHandles).be.instanceOf(Uint32Array);
                     should(result.clientHandles).be.instanceOf(Uint32Array);
