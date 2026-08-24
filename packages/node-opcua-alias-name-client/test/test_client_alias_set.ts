@@ -189,7 +189,6 @@ describe("OPC 10000-17: ClientAliasSet", () => {
             const counting = new PseudoSession(addressSpace);
             let calls = 0;
             const original = counting.translateBrowsePath.bind(counting);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (counting as unknown as { translateBrowsePath: unknown }).translateBrowsePath = (...args: unknown[]) => {
                 calls += 1;
                 return (original as (...a: unknown[]) => unknown)(...args);
