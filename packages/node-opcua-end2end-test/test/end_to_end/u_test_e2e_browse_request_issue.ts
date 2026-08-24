@@ -1,20 +1,28 @@
-import { BrowseDirection, BrowseRequest, OPCUAClient, resolveNodeId, StatusCodes } from "node-opcua";
+import {
+    BrowseDirection,
+    BrowseRequest,
+    type BrowseResponse,
+    type ClientSession,
+    OPCUAClient,
+    resolveNodeId,
+    StatusCodes
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
+interface SessionWithTransaction {
+    performMessageTransaction(request: BrowseRequest): Promise<BrowseResponse>;
 }
 
-export function t(test: TestHarness): void {
+export function t(test: UmbrellaTestContext): void {
     describe("QSD Test Browse Request", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
-        let g_session: any = null; // session typing loosened due to performMessageTransaction unexposed type
+        let g_session: ClientSession | null = null;
 
         beforeEach(async () => {
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
             client = OPCUAClient.create({});
             await client.connect(endpointUrl);
             g_session = await client.createSession();
@@ -30,7 +38,7 @@ export function t(test: TestHarness): void {
                     await client.disconnect();
                 }
             }
-            g_session = null as any;
+            g_session = null;
         });
 
         it("T6 - #BrowseNext response", async () => {
@@ -43,14 +51,13 @@ export function t(test: TestHarness): void {
                 nodeClassMask: 255
             };
             const browseRequest1 = new BrowseRequest({
-                view: null as any,
                 requestedMaxReferencesPerNode: 0,
                 nodesToBrowse: [nodeToBrowse]
             });
-            const response = await (g_session as any).performMessageTransaction(browseRequest1);
-            response.results[0].statusCode.should.eql(StatusCodes.Good);
-            response.results[0].references.length.should.be.greaterThan(3); // want 4 at least
-            should(response.results[0].continuationPoint).eql(null);
+            const response = await (g_session as unknown as SessionWithTransaction).performMessageTransaction(browseRequest1);
+            response.results![0].statusCode.should.eql(StatusCodes.Good);
+            response.results![0].references!.length.should.be.greaterThan(3); // want 4 at least
+            should(response.results![0].continuationPoint).eql(null);
         });
     });
 }
