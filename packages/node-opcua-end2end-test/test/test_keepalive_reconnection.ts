@@ -13,6 +13,12 @@ import * as net from "node:net";
 const realServerPort = 2254;
 const proxyPort = 2255;
 
+// hasBeenClosed() is public on the session implementation but not exposed on the
+// public ClientSession interface.
+interface ClientSessionWithHasBeenClosed extends ClientSession {
+    hasBeenClosed(): boolean;
+}
+
 describe("Testing keepSessionAlive and Reconnection", function (this: Mocha.Suite) {
     this.timeout(40 * 1000); // Extended timeout for reconnection testing
 
@@ -144,7 +150,7 @@ describe("Testing keepSessionAlive and Reconnection", function (this: Mocha.Suit
         connectionReestablished.should.eql(true, "Client should have reestablished connection");
 
         // ensure session is still usable (or repaired)
-        const isClosed = (session as any).hasBeenClosed();
+        const isClosed = (session as ClientSessionWithHasBeenClosed).hasBeenClosed();
         console.log("Session closed?", isClosed);
 
         // Clean up
