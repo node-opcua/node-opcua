@@ -85,7 +85,7 @@ describe("testing message decryption", () => {
         const encrypted_part = buffer.subarray(start);
 
         // decrypt the encrypted part
-        const decrypted_part = privateDecrypt_long(encrypted_part, privateKey as any, 128, PaddingAlgorithm.RSA_PKCS1_PADDING);
+        const decrypted_part = privateDecrypt_long(encrypted_part, { hidden: privateKey }, 128, PaddingAlgorithm.RSA_PKCS1_PADDING);
 
         // 1496
         // recompose the buffer

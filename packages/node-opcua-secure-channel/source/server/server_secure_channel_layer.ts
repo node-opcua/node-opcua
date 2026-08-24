@@ -1216,7 +1216,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         let derivedKeys = this.#tokenStack.getTokenDerivedKeys(tokenId);
         // c8 ignore next
-        if (!derivedKeys || !derivedKeys.derivedServerKeys) {
+        if (!derivedKeys?.derivedServerKeys) {
             // The request's token has expired or been removed.
             // Per OPC UA Part 6 §6.7.3, the server should use
             // the current active token to secure outgoing messages.
@@ -1584,7 +1584,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
 
         /* c8 ignore next */
-        if (!this.#messageBuilder || !this.#messageBuilder.sequenceHeader) {
+        if (!this.#messageBuilder?.sequenceHeader) {
             throw new Error("Internal Error");
         }
 

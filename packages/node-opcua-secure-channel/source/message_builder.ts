@@ -18,6 +18,7 @@ import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-op
 import { type BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
+import type { PacketInfo } from "node-opcua-packet-assembler";
 import {
     AsymmetricAlgorithmSecurityHeader,
     CloseSecureChannelRequest,
@@ -60,11 +61,9 @@ export interface MessageBuilderOptions extends MessageBuilderBaseOptions {
     name: string;
 }
 
-export const invalidPrivateKey = null as any as PrivateKey;
+export const invalidPrivateKey = null as unknown as PrivateKey;
 
 let counter = 0;
-
-type PacketInfo = any;
 
 export interface MessageBuilder extends MessageBuilderBase {
     on(eventName: "startChunk", eventHandler: (info: PacketInfo, data: Buffer) => void): this;
@@ -214,7 +213,7 @@ export class MessageBuilder extends MessageBuilderBase {
             " the objectFactory must provide a constructObject method"
         );
         this.#previousSequenceNumber = -1; // means unknown
-        assert(isFinite(this.#previousSequenceNumber));
+        assert(Number.isFinite(this.#previousSequenceNumber));
     }
 
     public setSecurity(securityMode: MessageSecurityMode, securityPolicy: SecurityPolicy): void {
@@ -285,7 +284,7 @@ export class MessageBuilder extends MessageBuilderBase {
                         return this._report_error(StatusCodes2.BadSecurityChecksFailed, "Invalid Security Policy (1)");
                     }
                     if (this.securityPolicy === SecurityPolicy.Invalid) {
-                        this.securityPolicy = securityPolicyFromResponse!;
+                        this.securityPolicy = securityPolicyFromResponse;
                     }
                     if (securityPolicyFromResponse !== this.securityPolicy) {
                         warningLog("Invalid Security Policy", this.securityPolicy);
@@ -342,6 +341,10 @@ export class MessageBuilder extends MessageBuilderBase {
             // invalid message type
             return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK/ERR )");
         }
+        if (!this.sequenceHeader) {
+            return this._report_error(StatusCodes2.BadTcpInternalError, "internal error: sequenceHeader not decoded yet");
+        }
+        const sequenceHeader = this.sequenceHeader;
 
         if (msgType === "CLO" && fullMessageBody.length === 0 && this.sequenceHeader) {
             // The Client closes the connection by sending a CloseSecureChannel request and closing the
@@ -383,7 +386,10 @@ export class MessageBuilder extends MessageBuilderBase {
             if (this.#_safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
                 /* c8 ignore next */
                 if (doDebug) {
-                    const o = objMessage as any;
+                    const o = objMessage as BaseUAObject & {
+                        responseHeader?: { requestHandle: unknown };
+                        requestHeader?: { requestHandle: unknown };
+                    };
                     const requestHandle = o.responseHeader
                         ? o.responseHeader.requestHandle
                         : o.requestHeader
@@ -409,7 +415,7 @@ export class MessageBuilder extends MessageBuilderBase {
                      * @param  msgType the message type ( "HEL","ACK","OPN","CLO" or "MSG" )
                      * @param  the request Id
                      */
-                    this.emit("message", objMessage, msgType, this.securityHeader, this.sequenceHeader!.requestId, this.channelId);
+                    this.emit("message", objMessage, msgType, this.securityHeader, sequenceHeader.requestId, this.channelId);
                 } catch (err) {
                     // this code catches a uncaught exception somewhere in one of the event handler
                     // this indicates a bug in the code that uses this class
@@ -447,8 +453,8 @@ export class MessageBuilder extends MessageBuilderBase {
 
     #_validateSequenceNumber(sequenceNumber: number): boolean {
         // checking that sequenceNumber is increasing
-        assert(isFinite(this.#previousSequenceNumber));
-        assert(isFinite(sequenceNumber) && sequenceNumber >= 0);
+        assert(Number.isFinite(this.#previousSequenceNumber));
+        assert(Number.isFinite(sequenceNumber) && sequenceNumber >= 0);
 
         let expectedSequenceNumber: number;
         if (this.#previousSequenceNumber !== -1) {
@@ -484,7 +490,7 @@ export class MessageBuilder extends MessageBuilderBase {
         assert(this.securityMode !== MessageSecurityMode.None);
         assert(this.securityHeader instanceof AsymmetricAlgorithmSecurityHeader);
 
-        const asymmetricAlgorithmSecurityHeader = this.securityHeader! as AsymmetricAlgorithmSecurityHeader;
+        const asymmetricAlgorithmSecurityHeader = this.securityHeader as AsymmetricAlgorithmSecurityHeader;
 
         /* c8 ignore next */
         if (doDebug) {
@@ -694,11 +700,10 @@ export class MessageBuilder extends MessageBuilderBase {
         }
     }
 
-    #_safe_decode_message_body(fullMessageBody: Buffer, objMessage: any, binaryStream: BinaryStream) {
+    #_safe_decode_message_body(fullMessageBody: Buffer, objMessage: BaseUAObject, binaryStream: BinaryStream) {
         try {
             // de-serialize the object from the binary stream
-            const options = this.#objectFactory;
-            objMessage.decode(binaryStream, options);
+            objMessage.decode(binaryStream);
         } catch (err) {
             if (types.isNativeError(err)) {
                 warningLog("Decode message error : ", err.message);

@@ -53,9 +53,9 @@ function waitForEvent<T>(emitter: EventEmitter, eventName: string, timeout: numb
         const timer = setTimeout(() => {
             reject(new Error(`Timeout waiting for event ${eventName}`));
         }, timeout);
-        emitter.once(eventName, (...args: any[]) => {
+        emitter.once(eventName, (...args: unknown[]) => {
             clearTimeout(timer);
-            resolve(args[0]);
+            resolve(args[0] as T);
         });
     });
 }
@@ -72,11 +72,11 @@ const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 const _debugLog = make_debugLog(__filename);
 
-describe("testing ServerSecureChannelLayer ", function (this: any) {
+describe("testing ServerSecureChannelLayer ", function (this: Mocha.Context) {
     this.timeout(Math.max(10000, this.timeout()));
 
     it("KK1 should create a ServerSecureChannelLayer", () => {
-        const serverSecureChannel = new ServerSecureChannelLayer({ parent: null as any });
+        const serverSecureChannel = new ServerSecureChannelLayer({ parent: null as unknown as ServerSecureChannelParent });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout.should.be.greaterThan(100);
 
@@ -87,7 +87,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+            parent: null as unknown as ServerSecureChannelParent,
             timeout: 50 // very short timeout
         });
 
@@ -193,7 +193,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         // Given a ServerSecureChannelLayer
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any,
+            parent: null as unknown as ServerSecureChannelParent,
             timeout: 1000
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
@@ -229,7 +229,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any
+            parent: null as unknown as ServerSecureChannelParent
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
@@ -274,7 +274,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any
+            parent: null as unknown as ServerSecureChannelParent
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
@@ -342,13 +342,13 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         let server_has_emitted_the_abort_message = false;
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any
+            parent: null as unknown as ServerSecureChannelParent
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
         serverSecureChannel.timeout = 1000;
 
-        let err: any;
+        let err: Error | null | undefined;
         serverSecureChannel.init(transportPair.server, (_err) => {
             err = _err;
 
@@ -389,10 +389,10 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
             let server_has_emitted_the_abort_message = false;
             let server_has_emitted_the_message_event = false;
-            let err: any;
+            let err: Error | null | undefined;
 
             const serverSecureChannel = new ServerSecureChannelLayer({
-                parent: null as any
+                parent: null as unknown as ServerSecureChannelParent
             });
 
             serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
@@ -436,7 +436,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
         const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: null as any
+            parent: null as unknown as ServerSecureChannelParent
         });
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 100000;
@@ -489,7 +489,7 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
 
         let _requestId = 1;
 
-        async function send2(msg: "OPN" | "MSG", request: any, tweakingFunc?: (chunk: Buffer) => Buffer) {
+        async function send2(msg: "OPN" | "MSG", request: BaseUAObject, tweakingFunc?: (chunk: Buffer) => Buffer) {
             const securityHeader =
                 msg === "OPN"
                     ? new AsymmetricAlgorithmSecurityHeader({

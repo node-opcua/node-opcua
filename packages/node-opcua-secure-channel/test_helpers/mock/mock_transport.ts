@@ -44,48 +44,43 @@ export const fakeGetEndpointsResponse = new GetEndpointsResponse({
 export const fakeCreateSessionResponse = new CreateSessionResponse({});
 export const fakeActivateSessionResponse = new ActivateSessionResponse({});
 
+type ReplyEntry = Buffer | Buffer[] | ((this: MockServerTransport) => Buffer | Buffer[] | undefined);
+
 export class MockServerTransport extends EventEmitter {
-    private _replies: any;
-    private _mockTransport: TransportPairDirect;
+    private _replies: ReplyEntry[];
+    public mockTransport: TransportPairDirect;
     private _counter: number;
 
-    constructor(expectedReplies: any) {
+    constructor(expectedReplies: ReplyEntry[]) {
         super();
 
         this._replies = expectedReplies;
         this._counter = 0;
 
-        this._mockTransport = new TransportPairDirect();
-        this._mockTransport.initialize(() => {
+        this.mockTransport = new TransportPairDirect();
+        this.mockTransport.initialize(() => {
             debugLog("mock transport initialized");
         });
 
-        this._mockTransport.server.on("data", (data: Buffer) => {
-            let reply = this._replies[this._counter];
+        this.mockTransport.server.on("data", (data: Buffer) => {
+            let reply: Buffer | Buffer[] | undefined;
+            const replyEntry = this._replies[this._counter];
             this._counter++;
-            if (reply) {
-                if (typeof reply === "function") {
-                    reply = reply.call(this);
-                    // console.log(" interpreting reply as a function" + reply);
-                    if (!reply) {
-                        return;
-                    }
+            if (replyEntry) {
+                reply = typeof replyEntry === "function" ? replyEntry.call(this) : replyEntry;
+                if (!reply) {
+                    return;
                 }
 
                 debugLog("\nFAKE SERVER RECEIVED");
                 debugLog(hexDump(data));
 
-                let replies = [];
-                if (reply instanceof Buffer) {
-                    replies.push(reply);
-                } else {
-                    replies = reply;
-                }
+                const replies: Buffer[] = Array.isArray(reply) ? reply : [reply];
                 assert(replies.length >= 1, ` expecting at least one reply ${JSON.stringify(reply)}`);
-                replies.forEach((reply1: any) => {
+                replies.forEach((reply1: Buffer) => {
                     debugLog("\nFAKE SERVER SEND");
                     debugLog(chalk.red(hexDump(reply1)));
-                    this._mockTransport.server.write(reply1);
+                    this.mockTransport.server.write(reply1);
                 });
             } else {
                 const msg = " MockServerTransport has no more packets to send to client to" + " emulate server responses.... ";

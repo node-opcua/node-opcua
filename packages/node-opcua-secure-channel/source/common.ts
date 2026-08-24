@@ -14,6 +14,7 @@ import type { ServiceFault } from "./services";
 export interface IResponseBase {
     responseHeader: ResponseHeader;
     schema: CommonInterface;
+    binaryStoreSize(): number;
 }
 
 export type Response = IResponseBase | ServiceFault;
@@ -22,6 +23,7 @@ export interface IRequestBase {
     requestHeader: RequestHeader;
     schema: CommonInterface;
     securityMode: MessageSecurityMode;
+    binaryStoreSize(): number;
 }
 
 export type Request = IRequestBase | CloseSecureChannelRequest;

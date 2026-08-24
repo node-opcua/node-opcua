@@ -1,25 +1,32 @@
 import "should";
 import { BinaryStream } from "node-opcua-binary-stream";
+import type { ICertificateStore } from "node-opcua-common";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { helloMessage1 } from "node-opcua-transport/dist/test-fixtures";
 import { OpenSecureChannelRequest, SecurityTokenRequestType } from "node-opcua-types";
-import { MessageChunker, MessageSecurityMode, SecurityPolicy, ServerSecureChannelLayer } from "../dist/source";
+import {
+    invalidPrivateKey,
+    MessageChunker,
+    MessageSecurityMode,
+    SecurityPolicy,
+    ServerSecureChannelLayer,
+    type ServerSecureChannelParent
+} from "../dist/source";
 
 describe("T73-1 Reproduction: Sequence Number Reset on Renewal", () => {
     it("should strictly increase sequence numbers across secure channel renewal", async () => {
         const transportPair = new TransportPairDirect();
-        const serverSecureChannel = new ServerSecureChannelLayer({
-            parent: {
-                getCertificate: () => Buffer.alloc(0),
-                getCertificateChain: () => Buffer.alloc(0),
-                getPrivateKey: () => null as any,
-                getEndpointDescription: () => ({}) as any,
-                certificateManager: {
-                    checkCertificate: async () => ({ isGood: () => true })
-                } as any
-            } as any
-        });
+        const parent: ServerSecureChannelParent = {
+            getCertificate: () => Buffer.alloc(0),
+            getCertificateChain: () => [Buffer.alloc(0)],
+            getPrivateKey: () => invalidPrivateKey,
+            getEndpointDescription: () => null,
+            certificateManager: {
+                checkCertificate: async () => ({ isGood: () => true })
+            } as unknown as ICertificateStore
+        };
+        const serverSecureChannel = new ServerSecureChannelLayer({ parent });
 
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
@@ -70,7 +77,7 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", () => {
             securityMode: MessageSecurityMode.None
         });
 
-        async function sendChunk(msg: "OPN" | "MSG", request: any) {
+        async function sendChunk(msg: "OPN" | "MSG", request: OpenSecureChannelRequest) {
             const securityHeader =
                 msg === "OPN"
                     ? new AsymmetricAlgorithmSecurityHeader({

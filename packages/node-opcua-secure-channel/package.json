@@ -25,6 +25,7 @@
         "node-opcua-nodeid": "2.177.0",
         "node-opcua-object-registry": "2.175.6",
         "node-opcua-packet-analyzer": "2.177.0",
+        "node-opcua-packet-assembler": "2.175.6",
         "node-opcua-service-endpoints": "2.177.0",
         "node-opcua-service-secure-channel": "2.177.0",
         "node-opcua-status-code": "2.176.0",

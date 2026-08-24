@@ -42,6 +42,9 @@
             "path": "../node-opcua-packet-analyzer"
         },
         {
+            "path": "../node-opcua-packet-assembler"
+        },
+        {
             "path": "../node-opcua-service-endpoints"
         },
         {

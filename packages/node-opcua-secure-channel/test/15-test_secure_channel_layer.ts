@@ -7,7 +7,13 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { MessageSecurityMode, ReadRequest } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
-import { ClientSecureChannelLayer, type ClientSecureChannelLayerOptions, SecurityPolicy, ServerSecureChannelLayer } from "..";
+import {
+    ClientSecureChannelLayer,
+    type ClientSecureChannelLayerOptions,
+    SecurityPolicy,
+    ServerSecureChannelLayer,
+    type ServerSecureChannelParent
+} from "..";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -22,7 +28,7 @@ async function pause(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe("Testing ClientSecureChannel 1", function (this: any) {
+describe("Testing ClientSecureChannel 1", function (this: Mocha.Context) {
     this.timeout(Math.max(this.timeout(), 100000));
 
     const options = {
@@ -87,7 +93,7 @@ async function startServer(holder: IHolder, port: number) {
 
     tcpServer.on("connection", (socket) => {
         const serverChannel = new ServerSecureChannelLayer({
-            parent: null as any, // TO DO CHECK THIS
+            parent: null as unknown as ServerSecureChannelParent, // TO DO CHECK THIS
             timeout: 1000 * 1000
         });
         holder.serverChannel = serverChannel;
@@ -116,7 +122,7 @@ function simulate_server_abrupt_shutdown(holder: IHolder) {
     }
 }
 
-describe("Testing ClientSecureChannel 2", function (this: any) {
+describe("Testing ClientSecureChannel 2", function (this: Mocha.Context) {
     const port = port2;
     beforeEach(async () => {
         await startServer(this, port);
@@ -147,7 +153,7 @@ describe("Testing ClientSecureChannel 2", function (this: any) {
     });
 });
 
-describe("Testing ClientSecureChannel with BackOff reconnection strategy", function (this: any) {
+describe("Testing ClientSecureChannel with BackOff reconnection strategy", function (this: Mocha.Context) {
     this.timeout(Math.max(this.timeout(), 100000));
 
     it("WW2-a connectionStrategy: should retry many times and fail eventually ", (done) => {

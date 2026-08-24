@@ -12,7 +12,7 @@ export function absoluteDurationToString(durationInMilliseconds: number) {
     const numMinutes = Math.floor((((seconds % secondsInAYear) % secondsInADay) % secondsInAnHour) / secondsInAMinute);
     const numSeconds = ((((seconds % secondsInAYear) % secondsInADay) % secondsInAnHour) % secondsInAMinute).toFixed(3);
 
-    const str: string[] = [];
+    const _str: string[] = [];
     if (numYears !== 0) {
         return `${numYears} years ${numDays} days ${numHours} hours ${numMinutes} minutes ${numSeconds} seconds`;
     }

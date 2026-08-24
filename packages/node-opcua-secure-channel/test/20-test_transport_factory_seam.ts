@@ -40,7 +40,7 @@ class NoopTransportStub {
     public connectSpy = sinon.spy();
     public disposeSpy = sinon.spy();
 
-    connect(endpointUrl: string, cb: (err?: Error | null) => void) {
+    connect(endpointUrl: string, _cb: (err?: Error | null) => void) {
         this.endpointUrl = endpointUrl;
         this.connectSpy(endpointUrl);
         // deliberately never call cb – keeps channel in "pending" state.
@@ -95,7 +95,7 @@ describe("ClientSecureChannelLayer transportFactory seam", () => {
 
         // Kick off connect. Stub never completes the handshake, but that's fine:
         // we only want to observe which factory path was taken.
-        (channel as any).create("fake://localhost:1/Fake", () => {
+        channel.create("fake://localhost:1/Fake", () => {
             /* wrapperCallback - we'll abort before it fires */
         });
 
@@ -109,7 +109,7 @@ describe("ClientSecureChannelLayer transportFactory seam", () => {
                 // The channel uses our stub. getTransport()'s TypeScript signature is widened
                 // to ClientTCP_transport for backward-compatibility with tests that reach
                 // into `_socket`; at runtime, however, it is still the stub we passed in.
-                const usedTransport = (channel as any).getTransport();
+                const usedTransport = channel.getTransport();
                 // The pending transport path: during an in-flight connect, the stub is the
                 // pending transport and `getTransport()` may still be undefined. We assert
                 // via the factory/connect spies instead, which is sufficient evidence.

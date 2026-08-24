@@ -5,7 +5,7 @@
 import { assert } from "node-opcua-assert";
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
-import { type Mode, SequenceHeader } from "node-opcua-chunkmanager";
+import type { Mode } from "node-opcua-chunkmanager";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { BaseUAObject } from "node-opcua-factory";
 import {
@@ -25,7 +25,7 @@ import { SequenceNumberGenerator } from "./sequence_number_generator";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog("secure_channel");
-const warningLog = make_warningLog("secure_channel");
+const _warningLog = make_warningLog("secure_channel");
 
 export interface MessageChunkerOptions {
     securityHeader?: SecurityHeader;
@@ -58,61 +58,6 @@ export class MessageChunker {
     }
 
     public dispose(): void {}
-
-    #makeAbandonChunk(params: ChunkMessageParameters) {
-        const finalC = "A";
-        const msgType = "MSG";
-        const buffer = Buffer.alloc(
-            // MSGA
-            4 +
-                // length
-                4 +
-                // secureChannelId
-                4 +
-                // tokenId
-                4 +
-                2 * 4
-        );
-        const stream = new BinaryStream(buffer);
-
-        // message header --------------------------
-        // ---------------------------------------------------------------
-        // OPC UA Secure Conversation Message Header : Part 6 page 36
-        // MessageType     Byte[3]
-        // IsFinal         Byte[1]  C : intermediate, F: Final , A: Final with Error
-        // MessageSize     UInt32   The length of the MessageChunk, in bytes. This value includes size of the message header.
-        // SecureChannelId UInt32   A unique identifier for the ClientSecureChannelLayer assigned by the server.
-
-        stream.writeUInt8(msgType.charCodeAt(0));
-        stream.writeUInt8(msgType.charCodeAt(1));
-        stream.writeUInt8(msgType.charCodeAt(2));
-        stream.writeUInt8(finalC.charCodeAt(0));
-
-        stream.writeUInt32(0); // will be written later
-
-        stream.writeUInt32(params.channelId || 0); // secure channel id
-
-        const securityHeader =
-            params.securityHeader ||
-            new SymmetricAlgorithmSecurityHeader({
-                tokenId: 0
-            });
-
-        securityHeader.encode(stream);
-
-        const sequenceHeader = new SequenceHeader({
-            sequenceNumber: this.#sequenceNumberGenerator.next(),
-            requestId: params.securityOptions.requestId /// fix me
-        });
-        sequenceHeader.encode(stream);
-
-        // write chunk length
-        const length = stream.length;
-        stream.length = 4;
-        stream.writeUInt32(length);
-        stream.length = length;
-        return buffer;
-    }
 
     #_build_chunk_manager(msgType: string, params: ChunkMessageParameters): SecureMessageChunkManager {
         const securityHeader = params.securityHeader;
@@ -160,7 +105,7 @@ export class MessageChunker {
                 return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
             }
             return { statusCode: StatusCodes.Good, chunkManager: chunkManager };
-        } catch (err) {
+        } catch (_err) {
             return { statusCode: StatusCodes.BadTcpInternalError, chunkManager: null };
         }
     }
@@ -171,8 +116,11 @@ export class MessageChunker {
         messageChunkCallback: MessageCallbackFunc
     ): StatusCode {
         const calculateMessageLength = (message: BaseUAObject) => {
+            if (!message.schema.encodingDefaultBinary) {
+                throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
+            }
             const stream = new BinaryStreamSizeCalculator();
-            encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
+            encodeExpandedNodeId(message.schema.encodingDefaultBinary, stream);
             message.encode(stream);
             return stream.length;
         };
@@ -215,8 +163,11 @@ export class MessageChunker {
             });
 
         // create buffer to stream
+        if (!message.schema.encodingDefaultBinary) {
+            throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
+        }
         const stream = new BinaryStream(messageLength);
-        encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
+        encodeExpandedNodeId(message.schema.encodingDefaultBinary, stream);
         message.encode(stream);
         // inject buffer to chunk manager
         chunkManager.write(stream.buffer, stream.buffer.length);

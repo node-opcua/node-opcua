@@ -6,7 +6,7 @@ import { TokenStack } from "../source/token_stack";
  *
  * @param packets
  */
-export function verify_multi_chunk_message(packets: any[]) {
+export function verify_multi_chunk_message(packets: (Buffer | number[])[]) {
     const maxChunkSize = packets.map((p) => p.length).reduce((a, b) => Math.max(a, b), 0);
 
     const tokenStack = new TokenStack(1);

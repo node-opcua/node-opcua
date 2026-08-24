@@ -11,7 +11,7 @@ import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helper
 
 const _debugLog = make_debugLog(__filename);
 
-describe("testing ClientSecureChannelLayer ", function (this: any) {
+describe("testing ClientSecureChannelLayer ", function (this: Mocha.Context) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
 
     it("should create and close a ClientSecureChannelLayer", (done) => {
@@ -32,8 +32,8 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
             //Xx packTcpMessage("CLO", fakeAcknowledgeMessage),
-            function (this: any) {
-                this._mockTransport.server.end();
+            function (this: MockServerTransport) {
+                this.mockTransport.server.end();
             },
 
             () => {
@@ -70,8 +70,8 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function (this: any) {
-                this._mockTransport.server.end();
+            function (this: MockServerTransport) {
+                this.mockTransport.server.end();
             }
         ]);
 
@@ -117,8 +117,8 @@ describe("testing ClientSecureChannelLayer ", function (this: any) {
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function (this: any) {
-                this._mockTransport.server.end();
+            function (this: MockServerTransport) {
+                this.mockTransport.server.end();
             }
         ]);
 

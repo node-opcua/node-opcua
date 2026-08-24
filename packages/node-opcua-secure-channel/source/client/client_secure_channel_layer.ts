@@ -844,7 +844,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
 
     #_install_message_builder() {
         // c8 ignore next
-        if (!this.#_transport || !this.#_transport.parameters) {
+        if (!this.#_transport?.parameters) {
             throw new Error("internal error");
         }
         // use to receive Server response

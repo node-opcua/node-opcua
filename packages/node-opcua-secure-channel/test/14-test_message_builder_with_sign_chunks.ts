@@ -37,13 +37,19 @@ import {
 const debugLog = make_debugLog("TEST");
 const private_key_filename = getFixture("certs/server_key_1024.pem");
 
-function installFakeDecodeMessageBody(messageBuilder: any) {
-    function fake_decodeMessageBody(this: MessageBuilder, message: Buffer) {
-        this.emit("message" as any, message);
+interface MessageBuilderWithInternals {
+    _decodeMessageBody: (fullMessageBody: Buffer) => boolean;
+    emit(eventName: string, ...args: unknown[]): boolean;
+}
+
+function installFakeDecodeMessageBody(messageBuilder: MessageBuilder) {
+    function fake_decodeMessageBody(this: MessageBuilderWithInternals, message: Buffer) {
+        this.emit("message", message);
         return true;
     }
-    assert(typeof messageBuilder._decodeMessageBody === "function");
-    messageBuilder._decodeMessageBody = fake_decodeMessageBody;
+    const messageBuilderWithInternals = messageBuilder as unknown as MessageBuilderWithInternals;
+    assert(typeof messageBuilderWithInternals._decodeMessageBody === "function");
+    messageBuilderWithInternals._decodeMessageBody = fake_decodeMessageBody;
 }
 
 const senderCertificate = readCertificateChain(getFixture("certs/client_cert_1024.pem"))[0];

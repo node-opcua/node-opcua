@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { make_traceLog } from "node-opcua-debug";
-import { BaseUAObject } from "node-opcua-factory";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     ActivateSessionRequest,
@@ -249,8 +248,7 @@ function _get_extraInfo(req: Response | Request): string {
 }
 
 function evaluateBinarySize(r: Request | Response): string {
-    const e = r as any;
-    const size = e.binaryStoreSize();
+    const size = r.binaryStoreSize();
     return `s=${(`${size}`).padStart(6)} `;
 }
 
@@ -320,7 +318,7 @@ export function traceClientRequestContent(request: Request, channelId: number, s
         " channel id ",
         channelId,
         " securityToken=",
-        securityToken! ? securityToken!.tokenId : "x"
+        securityToken ? securityToken.tokenId : "x"
     );
 
     if (doTraceClientRequestContent) {
@@ -328,7 +326,7 @@ export function traceClientRequestContent(request: Request, channelId: number, s
     }
 }
 
-export function traceClientResponseContent(response: Response, channelId: number): void {
+export function traceClientResponseContent(response: Response, _channelId: number): void {
     if (doTraceClientResponseContent) {
         traceLog(response.toString());
     }

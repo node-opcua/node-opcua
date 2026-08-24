@@ -20,7 +20,7 @@ import type { ErrorCallback } from "node-opcua-status-code";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
-import { type Message, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source";
+import { type Message, type Response, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source";
 import {
     ClientSecureChannelLayer,
     type ClientSecureChannelParent,
@@ -31,8 +31,6 @@ import {
 } from "../source";
 
 const doDebug = false;
-
-type SimpleCallback = (err?: Error | null) => void;
 
 interface TestParam {
     securityMode: MessageSecurityMode;
@@ -50,7 +48,7 @@ fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store a
 const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt(process.version.match(/^v([0-9]+)/)?.[1] || "0", 10) >= 21;
 console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURITY_BASIC128RSA15);
 
-describe("Testing secure client and server connection", function (this: any) {
+describe("Testing secure client and server connection", function (this: Mocha.Context) {
     this.timeout(120 * 1000);
     const certificateManager = new OPCUACertificateManager({
         automaticallyAcceptUnknownCertificate: true,
@@ -133,7 +131,7 @@ describe("Testing secure client and server connection", function (this: any) {
         serverSChannel.send_response = function (
             this: ServerSecureChannelLayer,
             msgType: string,
-            response: any,
+            response: Response,
             message: Message,
             callback?: ErrorCallback
         ): void {

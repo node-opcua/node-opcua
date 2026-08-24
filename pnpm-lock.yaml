@@ -3281,6 +3281,9 @@ importers:
       node-opcua-packet-analyzer:
         specifier: 2.177.0
         version: link:../node-opcua-packet-analyzer
+      node-opcua-packet-assembler:
+        specifier: 2.175.6
+        version: link:../node-opcua-packet-assembler
       node-opcua-service-endpoints:
         specifier: 2.177.0
         version: link:../node-opcua-service-endpoints

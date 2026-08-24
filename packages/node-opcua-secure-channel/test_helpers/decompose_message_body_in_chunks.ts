@@ -19,7 +19,7 @@ import {
  * wrap a message body into one or more messageChunks
  * (  use this method to build fake data blocks in tests)
  */
-export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: string, chunkSize: number): Array<any> {
+export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: string, chunkSize: number): Buffer[] {
     assert(chunkSize > 24, "expecting chunkSize");
     assert(msgType.length === 3, ` invalid msgType ${msgType}`);
     assert(messageBody instanceof Buffer && messageBody.length > 0, " invalid buffer");
