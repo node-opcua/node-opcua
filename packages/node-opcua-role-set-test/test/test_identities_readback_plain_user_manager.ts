@@ -17,7 +17,7 @@
  * server e2e uses `createUserManager`, whose bridge implements
  * `getIdentitiesForRole` — masking exactly this combination.)
  */
-import should from "should";
+
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -31,6 +31,7 @@ import { installRoleSet } from "node-opcua-role-set-server";
 import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
+import should from "should";
 
 const port = 48501;
 const pkiRoot = path.join(os.tmpdir(), `role-set-identities-e2e-${port}`);

@@ -8,21 +8,22 @@ export {
     HistoryData,
     HistoryModifiedData,
     HistoryReadDetails,
-    HistoryReadValueId,
-    HistoryReadResult,
-    HistoryUpdateResult,
     HistoryReadRequest,
+    HistoryReadRequestOptions,
     HistoryReadResponse,
+    HistoryReadResult,
+    HistoryReadValueId,
     HistoryUpdateRequest,
     HistoryUpdateResponse,
-    ReadRawModifiedDetails,
-    ReadProcessedDetails,
-    ReadAtTimeDetails,
+    HistoryUpdateResult,
     HistoryUpdateType,
     ModificationInfo,
+    ReadAtTimeDetails,
     ReadEventDetails,
-    HistoryReadRequestOptions
+    ReadProcessedDetails,
+    ReadRawModifiedDetails
 } from "node-opcua-types";
+
 import { assert } from "node-opcua-assert";
 import { HistoryReadRequest } from "node-opcua-types";
 

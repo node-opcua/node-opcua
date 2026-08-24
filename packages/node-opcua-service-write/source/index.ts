@@ -2,9 +2,9 @@
  * @module node-opcua-service-write
  */
 export {
-    WriteValue,
-    WriteValueOptions,
     WriteRequest,
     WriteRequestOptions,
-    WriteResponse
+    WriteResponse,
+    WriteValue,
+    WriteValueOptions
 } from "node-opcua-types";

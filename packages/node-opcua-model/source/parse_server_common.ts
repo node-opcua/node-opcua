@@ -1,7 +1,7 @@
 import {
-    populateDataTypeManager,
+    DataTypeExtractStrategy,
     getExtraDataTypeManager,
-    DataTypeExtractStrategy
+    populateDataTypeManager
 } from "node-opcua-client-dynamic-extension-object";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 
