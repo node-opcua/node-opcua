@@ -66,7 +66,7 @@ export class EnumItem {
      * @return {String} JSON object representation of this EnumItem.
      */
 
-    public toJSON(): any {
+    public toJSON(): string {
         return this.key;
     }
 
@@ -81,13 +81,13 @@ export class EnumItem {
 }
 
 function powerOfTwo(n: number): boolean {
-    return n && !(n & (n - 1)) ? true : false;
+    return !!(n && !(n & (n - 1)));
 }
 // check if enum is flaggable
 function checkIsFlaggable(enums: EnumItem[]): boolean {
     for (const e of enums) {
         const value = +e.value;
-        if (isNaN(value)) {
+        if (Number.isNaN(value)) {
             continue; // skipping none number value
         }
         if (value !== 0 && value !== 1 && !powerOfTwo(value)) {
@@ -123,6 +123,11 @@ export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
  * Represents an Enum with enum items.
  * @param {Array || Object}  map     This are the enum items.
  */
+// The Enum constructor dynamically attaches each EnumItem under both its string key and its
+// numeric value (pThis[key] = kv; pThis[val] = kv), so lookups by either can go through a plain
+// property access. This type captures that dynamic bag shape for the casts below.
+type IndexedEnum = Enum & Record<string | number, EnumItem>;
+
 export class Enum {
     private readonly enumItems: EnumItem[];
     private readonly _isFlaggable: boolean;
@@ -143,7 +148,7 @@ export class Enum {
                 continue;
             }
             const kv = new EnumItem(key, val);
-            const pThis = this as any;
+            const pThis = this as unknown as IndexedEnum;
             pThis[key] = kv;
             pThis[val] = kv;
 
@@ -166,7 +171,7 @@ export class Enum {
      * @return the get result.
      */
     public get(key: EnumItemLike): EnumItem | null {
-        const pThis = this as any;
+        const pThis = this as unknown as IndexedEnum;
         if (key instanceof EnumItem) {
             if (!pThis[key.key]) {
                 throw new Error("Invalid key");
@@ -199,7 +204,7 @@ export class Enum {
     }
 
     private _getByString(key: string): EnumItem | null {
-        const pThis = this as any;
+        const pThis = this as unknown as IndexedEnum;
         const parts = key.split(" | ");
 
         let val = 0;
@@ -228,11 +233,11 @@ export class Enum {
         if (key === 0) {
             return null;
         }
-        const pThis = this as any;
+        const pThis = this as unknown as IndexedEnum;
 
         let name: string | undefined;
         let c = 1;
-        for (let i = 0; c < key; i++) {
+        for (let _i = 0; c < key; _i++) {
             if ((c & key) === c) {
                 const item = pThis[c];
                 if (undefined === item) {
