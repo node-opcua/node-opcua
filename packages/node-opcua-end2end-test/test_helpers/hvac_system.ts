@@ -1,10 +1,24 @@
 import chalk from "chalk";
 import { DataType, DataValue, type NodeId, StatusCodes, standardUnits, Variant } from "node-opcua";
-import type { IAddressSpace, ISessionContext, UAAnalogItem, UAMethod, UAObject, UAVariableT } from "node-opcua-address-space";
+import type {
+    IAddressSpace,
+    ISessionContext,
+    Namespace,
+    UAAnalogItem,
+    UAMethod,
+    UAObject,
+    UAVariableT
+} from "node-opcua-address-space";
 import { adjustDataValueStatusCode } from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
+import type { UAVariableImpl } from "node-opcua-address-space/src/ua_variable_impl";
 import { assert } from "node-opcua-assert";
 
 const doDebug = false;
+
+// checkVariantCompatibility/acceptValueOutOfRange/adjustDataValueStatusCode operate on the
+// internal UAVariableImpl (src/), not the public UAVariable interface.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
 
 interface IHVAC extends UAObject {
     nodeId: NodeId;
@@ -54,13 +68,13 @@ interface IHVAC extends UAObject {
  * @return {*}
  */
 export function createHVACSystem(addressSpace: IAddressSpace) {
-    const namespace = addressSpace.getOwnNamespace() as unknown as any;
+    const namespace = addressSpace.getOwnNamespace() as Namespace;
 
-    const HVACEnabledEventType = namespace.addEventType({
+    namespace.addEventType({
         browseName: "HVACEnabledEventType"
     });
 
-    const HVACDisabledEventType = namespace.addEventType({
+    namespace.addEventType({
         browseName: "HVACDisabledEventType"
     });
 
@@ -111,7 +125,6 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         modellingRule: "Mandatory",
         browseName: "Enable",
         description: "Enable the hvac system",
-        alwaysGeneratesEvent: HVACEnabledEventType,
         inputArguments: [],
         outputArguments: []
     });
@@ -120,7 +133,6 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         modellingRule: "Mandatory",
         browseName: "Disable",
         description: "Disable the hvac system",
-        alwaysGeneratesEvent: HVACDisabledEventType,
         inputArguments: [],
         outputArguments: []
     });
@@ -192,13 +204,12 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         const targetTemperature = inputArguments[0];
         assert(targetTemperature instanceof Variant);
 
-        const variable = myHVAC.targetTemperature;
+        const variable = myHVAC.targetTemperature as unknown as UAVariableImpl;
 
         if (doDebug) {
             console.log("instrumentRange=", myHVAC.targetTemperature.instrumentRange?.readValue().value.toString());
-            console.log("instrumentRange=", HVACModuleType.targetTemperature.instrumentRange.readValue().value.toString());
         }
-        const s = (variable as any).checkVariantCompatibility(targetTemperature);
+        const s = variable.checkVariantCompatibility(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
             console.log(chalk.red.bold(` Invalid Value specified for targetTemperature ${s.toString()}`));
             return { statusCode: s };
@@ -206,7 +217,8 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
 
         const dataValue = new DataValue({ value: targetTemperature });
 
-        const statusCode = adjustDataValueStatusCode(variable as any, dataValue, (variable as any).acceptValueOutOfRange || false);
+        const acceptValueOutOfRange = (variable as InternalAny).acceptValueOutOfRange || false;
+        const statusCode = adjustDataValueStatusCode(variable, dataValue, acceptValueOutOfRange);
         if (statusCode.isNotGood()) {
             return { statusCode };
         }
