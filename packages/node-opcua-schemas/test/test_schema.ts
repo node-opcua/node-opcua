@@ -82,7 +82,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         should(structureWithOptionalFields1.optionalStringArray).eql(undefined);
 
         if (doDebug) {
-            console.log((StructureWithOptionalFields as any).schema);
+            console.log(StructureWithOptionalFields.schema);
         }
         encode_decode_round_trip_test(structureWithOptionalFields1, (buffer: Buffer) => {
             if (doDebug) {
@@ -259,7 +259,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     it("BSHB3 - should construct a dynamic object structure 1", () => {
         const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
 
-        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues;
+        const _SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues;
 
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3,
@@ -462,33 +462,33 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
     it("BSHE1 - should parse ScanData union", async () => {
         const ScanData = getOrCreateConstructor("ScanData", dataTypeFactory);
 
-        const scanData2a = new ScanData({ byteString: Buffer.allocUnsafe(10) });
+        const _scanData2a = new ScanData({ byteString: Buffer.allocUnsafe(10) });
         const scanData2b = new ScanData({ switchField: 1, byteString: Buffer.allocUnsafe(10) });
-        const reloaded2b = encode_decode_round_trip_test(scanData2b, (buffer: Buffer) => {
+        const _reloaded2b = encode_decode_round_trip_test(scanData2b, (buffer: Buffer) => {
             buffer.length.should.eql(4 + 4 + 10);
         });
 
         const scanData4a = new ScanData({ string: "Hello" });
-        const reloaded4a = encode_decode_round_trip_test(scanData4a, (buffer: Buffer) => {
+        const _reloaded4a = encode_decode_round_trip_test(scanData4a, (buffer: Buffer) => {
             buffer.length.should.eql(4 + 4 + 5);
         });
         const scanData4b = new ScanData({ switchField: 2, string: "Hello" });
-        const reloaded4b = encode_decode_round_trip_test(scanData4b, (buffer: Buffer) => {
+        const _reloaded4b = encode_decode_round_trip_test(scanData4b, (buffer: Buffer) => {
             buffer.length.should.eql(4 + 4 + 5);
         });
 
         const scanData5a = new ScanData({ string: "36" });
-        const reloaded5a = encode_decode_round_trip_test(scanData5a, (buffer: Buffer) => {
+        const _reloaded5a = encode_decode_round_trip_test(scanData5a, (buffer: Buffer) => {
             buffer.length.should.eql(10);
         });
         const scanData5b = new ScanData({ switchField: 3, value: 36 });
-        const reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
+        const _reloaded5b = encode_decode_round_trip_test(scanData5b, (buffer: Buffer) => {
             buffer.length.should.eql(8);
         });
 
-        const scanData6a = new ScanData({ custom: { dataType: "Double", value: 36 } });
+        const _scanData6a = new ScanData({ custom: { dataType: "Double", value: 36 } });
         const scanData6b = new ScanData({ switchField: 4, custom: { dataType: "Double", value: 36 } });
-        const reloaded6b = encode_decode_round_trip_test(scanData6b, (buffer: Buffer) => {
+        const reloaded6b = encode_decode_round_trip_test(scanData6b, (_buffer: Buffer) => {
             // buffer.length.should.eql(35);
         });
         console.log(reloaded6b.toString());
@@ -498,7 +498,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         reloaded.custom.value.should.eql(36);
 
         const scanData1 = new ScanData({}); // should throw
-        const reloaded1 = encode_decode_round_trip_test(scanData1, (buffer: Buffer) => {
+        const _reloaded1 = encode_decode_round_trip_test(scanData1, (buffer: Buffer) => {
             buffer.length.should.eql(4);
         });
     });
@@ -512,7 +512,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
                 string: "36"
             }
         });
-        const reloaded = encode_decode_round_trip_test(result, (buffer: Buffer) => {
+        const reloaded = encode_decode_round_trip_test(result, (_buffer: Buffer) => {
             // buffer.length.should.eql(35);
         });
         console.log(reloaded.toString());
@@ -582,7 +582,7 @@ describe("BSHG - Binary Schema Helper 6 - Milo", () => {
         console.log(reloadedData1.toJSON());
 
         const data2 = new CustomUnionType({ bar: "Hello" });
-        const reloadedData2 = encode_decode_round_trip_test(data2, (buffer: Buffer) => {
+        const _reloadedData2 = encode_decode_round_trip_test(data2, (buffer: Buffer) => {
             buffer.length.should.eql(4 /* optionalBit*/ + 4 /* string length*/ + 5 /* Hello*/);
         });
         console.log(reloadedData1.toJSON());

@@ -1,10 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { Variant } from "node-opcua-variant";
-import should from "should";
-import { getOrCreateConstructor, parseBinaryXSD } from "../dist/source";
+import { parseBinaryXSD } from "../dist/source";
 import { MockProvider } from "./mock_id_provider";
 
 class MockProvider2 extends MockProvider {
@@ -47,7 +46,10 @@ describe("Binary schema with recursive", () => {
         await parseBinaryXSD(sample, idProvider, dataTypeFactory);
 
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName("ISA95ParameterDataType");
-        const ISA95ParameterDataType = structureInfo.constructor!;
+        const ISA95ParameterDataType = structureInfo.constructor;
+        if (!ISA95ParameterDataType) {
+            throw new Error("Cannot find constructor for ISA95ParameterDataType");
+        }
         const a = new ISA95ParameterDataType({
             ID: "1",
             value: new Variant({ dataType: "Double", value: 1.0 }),
@@ -58,7 +60,7 @@ describe("Binary schema with recursive", () => {
                     value: new Variant({ dataType: "Double", value: 2.0 })
                 }
             ]
-        }) as any;
+        }) as IExtensionObject;
 
         console.log(a.toString());
         encode_decode_round_trip_test(a);

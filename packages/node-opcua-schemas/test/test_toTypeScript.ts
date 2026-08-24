@@ -4,10 +4,10 @@ import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import "node-opcua-data-model";
 import "node-opcua-variant";
-import { InternalTypeDictionary, parseBinaryXSD, toTypeScript } from "../source";
+import { parseBinaryXSD, toTypeScript } from "../source";
 import { MockProvider } from "./mock_id_provider";
 
-function n(i: number): NodeId {
+function _n(i: number): NodeId {
     return new NodeId(NodeId.NodeIdType.NUMERIC, i, 1);
 }
 

@@ -1,10 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
-import should from "should";
+import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 
-import { getOrCreateConstructor, parseBinaryXSD } from "..";
+import { parseBinaryXSD } from "..";
 import { MockProvider } from "./mock_id_provider";
 
 class MockProvider2 extends MockProvider {
@@ -38,13 +37,16 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         await parseBinaryXSD(sample, idProvider, dataTypeFactory);
 
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName("Recipe_BMD_Rep");
-        const Recipe_BMD_Rep = structureInfo.constructor!;
+        const Recipe_BMD_Rep = structureInfo.constructor;
+        if (!Recipe_BMD_Rep) {
+            throw new Error("Cannot find constructor for Recipe_BMD_Rep");
+        }
         const a = new Recipe_BMD_Rep({
             STN1: { value: 1 },
             STN2: { value: 2 },
             STN3: { value: 3 },
             STN4: { value: 4 }
-        }) as any;
+        }) as IExtensionObject & { STN3: { value: number } };
 
         // console.log(a.toString());
         a.STN3.value.should.eql(3);

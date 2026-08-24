@@ -4,9 +4,6 @@ import type { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider } from "..
 export class MockProvider implements MapDataTypeAndEncodingIdProvider {
     private _map: { [key: string]: DataTypeAndEncodingId } = {};
     private i = 1;
-    constructor() {
-        //
-    }
     public getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null {
         if (!this._map[key]) {
             const dataTypeNodeId = new NodeId(NodeId.NodeIdType.NUMERIC, this.i++, 1);

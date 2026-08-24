@@ -12,6 +12,7 @@ import {
     type DataTypeFactory,
     FieldCategory,
     type FieldType,
+    type IBaseUAObject,
     type IStructuredTypeSchema,
     initialize_field,
     initialize_field_array,
@@ -22,7 +23,7 @@ import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
 
 function associateEncoding(
     dataTypeFactory: DataTypeFactory,
@@ -35,8 +36,8 @@ function associateEncoding(
     if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
         schema.encodingDefaultBinary = encodingDefaultBinary;
         schema.encodingDefaultXml = encodingDefaultXml;
-        (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
-        (constructor as any).encodingDefaultXml = encodingDefaultXml;
+        constructor.encodingDefaultBinary = encodingDefaultBinary;
+        constructor.encodingDefaultXml = encodingDefaultXml;
         dataTypeFactory.associateWithBinaryEncoding(dataTypeName, encodingDefaultBinary);
     }
 }
@@ -44,7 +45,7 @@ export function getOrCreateConstructor(
     dataTypeName: string,
     dataTypeFactory: DataTypeFactory,
     encodingDefaultBinary?: ExpandedNodeId,
-    encodingDefaultXml?: ExpandedNodeId
+    _encodingDefaultXml?: ExpandedNodeId
 ): AnyConstructorFunc {
     if (dataTypeFactory.hasStructureByTypeName(dataTypeName)) {
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName(dataTypeName);
@@ -75,11 +76,15 @@ export function getOrCreateConstructor(
     return constructor;
 }
 
+interface Encodable {
+    encode?(stream: OutputBinaryStream): void;
+}
+
 function encodeElement(
     field: FieldType,
-    element: any,
+    element: Encodable,
     stream: OutputBinaryStream,
-    encodeFunc?: (a: any, stream: OutputBinaryStream) => void
+    encodeFunc?: (a: unknown, stream: OutputBinaryStream) => void
 ) {
     if (encodeFunc) {
         encodeFunc(element, stream);
@@ -89,22 +94,22 @@ function encodeElement(
             throw new Error(`encodeArrayOrElement: object field ${field.name} has no encode method and encodeFunc is missing`);
         }
         if (field.allowSubTypes) {
-            encodeExtensionObject(element, stream);
+            encodeExtensionObject(element as unknown as ExtensionObject, stream);
             // new Variant({ dataType: DataType.ExtensionObject, value: element }).encode(stream);
         } else {
-            (element as any).encode(stream);
+            element.encode(stream);
         }
     }
 }
 
 function encodeArrayOrElement(
     field: FieldType,
-    obj: any,
+    obj: Record<string, unknown>,
     stream: OutputBinaryStream,
-    encodeFunc?: (a: any, stream: OutputBinaryStream) => void
+    encodeFunc?: (a: unknown, stream: OutputBinaryStream) => void
 ) {
     if (field.isArray) {
-        const array = obj[field.name];
+        const array = obj[field.name] as Encodable[] | undefined | null;
         if (!array) {
             stream.writeUInt32(0xffffffff);
         } else {
@@ -114,7 +119,7 @@ function encodeArrayOrElement(
             }
         }
     } else {
-        encodeElement(field, obj[field.name], stream, encodeFunc);
+        encodeElement(field, obj[field.name] as Encodable, stream, encodeFunc);
     }
 }
 
@@ -144,8 +149,8 @@ function decodeElement(
     dataTypeFactory: DataTypeFactory,
     field: FieldType,
     stream: BinaryStream,
-    decodeFunc?: (stream: BinaryStream) => any
-): any {
+    decodeFunc?: (stream: BinaryStream) => unknown
+): unknown {
     if (decodeFunc) {
         return decodeFunc(stream);
     } else {
@@ -167,9 +172,9 @@ function decodeElement(
 function decodeArrayOrElement(
     dataTypeFactory: DataTypeFactory,
     field: FieldType,
-    obj: any,
+    obj: Record<string, unknown>,
     stream: BinaryStream,
-    decodeFunc?: (stream: BinaryStream) => any
+    decodeFunc?: (stream: BinaryStream) => unknown
 ) {
     if (field.isArray) {
         const array = [];
@@ -193,7 +198,7 @@ function isSubtype(dataTypeFactory: DataTypeFactory, dataTypeNodeId: NodeId, sch
         return true;
     }
     const baseSchema = schema.getBaseSchema();
-    if (!baseSchema || !baseSchema?.dataTypeNodeId) return false;
+    if (!baseSchema?.dataTypeNodeId) return false;
     const structureInfo = dataTypeFactory.getStructureInfoForDataType(baseSchema.dataTypeNodeId);
     if (!structureInfo) {
         return false;
@@ -201,25 +206,31 @@ function isSubtype(dataTypeFactory: DataTypeFactory, dataTypeNodeId: NodeId, sch
     return isSubtype(dataTypeFactory, dataTypeNodeId, structureInfo.schema);
 }
 
-function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTypeField, value: any): void {
+interface VariantLike {
+    dataType: number;
+    value?: unknown;
+}
+
+function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTypeField, value: unknown): void {
     assert(field.allowSubTypes);
     if (!value) {
         value = { dataType: DataType.Null, value: null };
         return;
     }
     if (field.category === "basic") {
-        if (!Object.hasOwn(value, "dataType")) {
+        if (!Object.hasOwn(value as object, "dataType")) {
             const msg = "initializeField: field that allow subtype must be a Variant like and have a dataType property";
             errorLog(msg);
             throw new Error(msg);
         }
-        const c = dataTypeFactory.getBuiltInTypeByDataType(coerceNodeId(`i=${value.dataType}`, 0));
+        const variantValue = value as VariantLike;
+        const c = dataTypeFactory.getBuiltInTypeByDataType(coerceNodeId(`i=${variantValue.dataType}`, 0));
         if (field.fieldType === "Variant" || field.fieldType === "BaseDataType") {
             // this is valid, expecting a Variant with any dataType in it
             return;
         }
         const d = dataTypeFactory.getBuiltInType(field.fieldType);
-        if (c && c.isSubTypeOf(d)) {
+        if (c?.isSubTypeOf(d)) {
             return;
         }
 
@@ -229,7 +240,7 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
             " expecting " +
             field.fieldType +
             " but got " +
-            DataType[value.dataType];
+            DataType[variantValue.dataType];
         errorLog(msg);
         throw new Error(msg);
     } else {
@@ -241,7 +252,10 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
             // throw new Error(`${field.name}: element must be an ExtensionObject`);
         }
         const e = value as ExtensionObject;
-        if (!isSubtype(dataTypeFactory, field.dataType!, e.schema)) {
+        if (!field.dataType) {
+            throw new Error(`initializeField: field ${field.name} that allow subtype must have a dataType`);
+        }
+        if (!isSubtype(dataTypeFactory, field.dataType, e.schema)) {
             const msg =
                 "initializeField: invalid subtype for field " +
                 field.name +
@@ -256,7 +270,7 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
         }
     }
 }
-function validateSubTypeA(dataTypeFactory: DataTypeFactory, field: FieldType, value: any) {
+function validateSubTypeA(dataTypeFactory: DataTypeFactory, field: FieldType, value: unknown) {
     if (field.isArray) {
         const arr = (value as unknown[]) || [];
         for (const e of arr) {
@@ -271,15 +285,15 @@ function validateSubTypeA(dataTypeFactory: DataTypeFactory, field: FieldType, va
 function coerceExtensionObject(
     dataTypeFactory: DataTypeFactory,
     field: FieldType,
-    value: any,
+    value: unknown,
     options: { allowSubTypes: boolean } = { allowSubTypes: false }
-): any {
+): unknown {
     const { allowSubTypes } = options;
 
     // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
     const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
 
-    const adjustValue = (value: any) => {
+    const adjustValue = (value: unknown) => {
         if (value instanceof ExtensionObject) {
             if (allowSubTypes) {
                 return value.clone();
@@ -293,7 +307,7 @@ function coerceExtensionObject(
             }
         }
         // we have a POJO and we need to construct an ExtensionObject
-        return constructor ? new constructor(value) : null;
+        return constructor ? new constructor(value as Record<string, unknown>) : null;
     };
 
     if (field.isArray) {
@@ -301,20 +315,20 @@ function coerceExtensionObject(
         if (!Array.isArray(arr)) {
             throw new Error(`Expecting an array here for field ${field.name}but got ${arr}`);
         }
-        return arr.map((x: any) => adjustValue(x));
+        return arr.map((x: unknown) => adjustValue(x));
     } else {
         return adjustValue(value);
     }
 }
 
-function coerceEnumeration(dataTypeFactory: DataTypeFactory, field: FieldType, value: any): any {
+function coerceEnumeration(dataTypeFactory: DataTypeFactory, field: FieldType, value: unknown): unknown {
     const enumeration = dataTypeFactory.getEnumeration(field.fieldType);
     if (!enumeration) {
         throw new Error(`Cannot find ${field.fieldType} as a structure or enumeration`);
     } else {
         if (field.isArray) {
             const arr = (value as unknown[]) || [];
-            return arr.map((x: any) => enumeration.typedEnum.get(x));
+            return arr.map((x: unknown) => enumeration.typedEnum.get(x as number | string));
         } else {
             return enumeration.typedEnum.get(value as number | string);
         }
@@ -325,7 +339,7 @@ function initializeField(
     field: FieldType,
     thisAny: Record<string, unknown>,
     options: Record<string, unknown>,
-    schema: IStructuredTypeSchema,
+    _schema: IStructuredTypeSchema,
     dataTypeFactory: DataTypeFactory
 ) {
     const name = field.name;
@@ -379,7 +393,7 @@ function initializeFields(
 ) {
     const baseSchema = schema.getBaseSchema();
     // initialize base class first
-    if (baseSchema && baseSchema.fields.length) {
+    if (baseSchema?.fields.length) {
         initializeFields(thisAny, options, baseSchema, dataTypeFactory, params);
     }
     // finding fields that are in options but not in schema!
@@ -404,10 +418,10 @@ function hasOptionalFieldsF(schema: IStructuredTypeSchema): boolean {
     return baseSchema ? hasOptionalFieldsF(baseSchema) : false;
 }
 
-function _internal_encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
+function _internal_encodeFields(thisAny: Record<string, unknown>, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
     const baseSchema = schema.getBaseSchema();
     // encodeFields base class first
-    if (baseSchema && baseSchema.fields.length) {
+    if (baseSchema?.fields.length) {
         _internal_encodeFields(thisAny, baseSchema, stream);
     }
     for (const field of schema.fields) {
@@ -434,18 +448,16 @@ interface BitfieldOffset {
     bitField: number;
     allOptional: boolean;
 }
-function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
+function makeBitField(thisAny: Record<string, unknown>, schema: IStructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
     const baseSchema = schema.getBaseSchema();
     const data = baseSchema ? makeBitField(thisAny, baseSchema, bo) : bo;
     let { bitField, allOptional } = data;
 
-    let nbOptionalFields = 0;
     for (const field of schema.fields) {
         if (field.switchBit === undefined) {
             allOptional = false;
             continue;
         }
-        nbOptionalFields += 1;
         if (thisAny[field.name] === undefined) {
             continue;
         }
@@ -453,7 +465,7 @@ function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldO
     }
     return { bitField, allOptional };
 }
-function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
+function encodeFields(thisAny: Record<string, unknown>, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
     const hasOptionalFields = hasOptionalFieldsF(schema);
 
     // ============ Deal with switchBits
@@ -468,7 +480,7 @@ function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: Outpu
 }
 
 function internal_decodeFields(
-    thisAny: any,
+    thisAny: Record<string, unknown>,
     bitField: number,
     hasOptionalFields: boolean,
     schema: IStructuredTypeSchema,
@@ -478,7 +490,7 @@ function internal_decodeFields(
 ) {
     const baseSchema = schema.getBaseSchema();
     // encodeFields base class first
-    if (baseSchema && baseSchema.fields.length) {
+    if (baseSchema?.fields.length) {
         internal_decodeFields(thisAny, bitField, hasOptionalFields, baseSchema, stream, dataTypeFactory, cache);
     }
     for (const field of schema.fields) {
@@ -515,7 +527,12 @@ function internal_decodeFields(
     }
 }
 
-function decodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: BinaryStream, dataTypeFactory: DataTypeFactory) {
+function decodeFields(
+    thisAny: Record<string, unknown>,
+    schema: IStructuredTypeSchema,
+    stream: BinaryStream,
+    dataTypeFactory: DataTypeFactory
+) {
     // ============ Deal with switchBits
     const hasOptionalFields = hasOptionalFieldsF(schema);
     let bitField = 0;
@@ -528,34 +545,42 @@ function decodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: Binar
     internal_decodeFields(thisAny, bitField, hasOptionalFields, schema, stream, dataTypeFactory, cache);
 }
 
-function ___fieldToJson(field: FieldType, value: any): any {
+interface JSONable {
+    toJSON?(): unknown;
+}
+
+function ___fieldToJson(field: FieldType, value: unknown): unknown {
     switch (field.category) {
         case FieldCategory.complex:
-            return value ? value?.toJSON() : null;
+            return value ? (value as JSONable)?.toJSON?.() : null;
         case FieldCategory.enumeration:
         case FieldCategory.basic:
-            return value instanceof Date ? new Date(value.getTime()) : value?.toJSON ? value?.toJSON() : value;
+            if (value instanceof Date) {
+                return new Date(value.getTime());
+            }
+            return (value as JSONable)?.toJSON ? (value as JSONable).toJSON?.() : value;
         default:
             /* c8 ignore next*/
             throw new Error(`Invalid category ${field.category} ${FieldCategory[field.category]}`);
     }
 }
-function fieldToJSON(field: FieldType, value: any): any {
+function fieldToJSON(field: FieldType, value: unknown): unknown {
     if (field.isArray) {
         if (value) {
-            return value.map(___fieldToJson.bind(null, field));
+            return (value as unknown[]).map((x) => ___fieldToJson(field, x));
         }
+        return undefined;
     } else {
         return ___fieldToJson(field, value);
     }
 }
-function encodeToJson(thisAny: any, schema: IStructuredTypeSchema, pojo: any) {
+function encodeToJson(thisAny: Record<string, unknown>, schema: IStructuredTypeSchema, pojo: Record<string, unknown>) {
     const baseSchema = schema.getBaseSchema();
-    if (baseSchema && baseSchema.fields.length) {
+    if (baseSchema?.fields.length) {
         encodeToJson(thisAny, baseSchema, pojo);
     }
     for (const field of schema.fields) {
-        const value = (thisAny as any)[field.name];
+        const value = thisAny[field.name];
         if (value === undefined) {
             continue;
         }
@@ -589,22 +614,29 @@ export class DynamicExtensionObject extends ExtensionObject {
 
     public encode(stream: OutputBinaryStream): void {
         super.encode(stream);
-        encodeFields(this, this.schema, stream);
+        encodeFields(this as Record<string, unknown>, this.schema, stream);
     }
 
     public decode(stream: BinaryStream): void {
         super.decode(stream);
-        decodeFields(this, this.schema, stream, _private.get(this).factory);
+        const priv = _private.get(this);
+        if (!priv?.factory) {
+            throw new Error("DynamicExtensionObject.decode: missing dataTypeFactory");
+        }
+        decodeFields(this as Record<string, unknown>, this.schema, stream, priv.factory);
     }
 
     public get schema(): IStructuredTypeSchema {
         const r = _private.get(this);
-        return r.schema!;
+        if (!r?.schema) {
+            throw new Error("DynamicExtensionObject.schema: missing schema");
+        }
+        return r.schema;
     }
 
-    public toJSON(): any {
-        const pojo: any = {};
-        encodeToJson(this, this.schema, pojo);
+    public toJSON(): Record<string, unknown> {
+        const pojo: Record<string, unknown> = {};
+        encodeToJson(this as Record<string, unknown>, this.schema, pojo);
         return pojo;
     }
 }
@@ -612,13 +644,15 @@ export class DynamicExtensionObject extends ExtensionObject {
 interface AnyConstructable {
     schema: IStructuredTypeSchema;
     possibleFields: string[];
-    new (options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
+    encodingDefaultBinary?: ExpandedNodeId;
+    encodingDefaultXml?: ExpandedNodeId;
+    new (options?: Record<string, unknown>, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): IBaseUAObject;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
 
 class UnionBaseClass extends BaseUAObject {
-    constructor(options: any, schema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory) {
+    constructor(options: Record<string, unknown>, schema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory) {
         super();
 
         assert(schema, "expecting a schema here ");
@@ -628,6 +662,8 @@ class UnionBaseClass extends BaseUAObject {
         _private.set(this, { schema });
 
         check_options_correctness_against_schema(this, this.schema, options);
+
+        const self = this as unknown as Record<string, unknown>;
 
         let uniqueFieldHasBeenFound = false;
         let switchFieldName = "";
@@ -671,7 +707,7 @@ class UnionBaseClass extends BaseUAObject {
                 }
             }
             uniqueFieldHasBeenFound = true;
-            (this as any)[switchFieldName] = field.switchValue;
+            self[switchFieldName] = field.switchValue;
 
             switch (field.category) {
                 case FieldCategory.complex: {
@@ -681,9 +717,11 @@ class UnionBaseClass extends BaseUAObject {
                     }
                     // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
                     if (field.isArray) {
-                        (this as any)[name] = ((value as any) || []).map((x: any) => (Constructor ? new Constructor(x) : null));
+                        self[name] = ((value as unknown[]) || []).map((x: unknown) =>
+                            Constructor ? new Constructor(x as Record<string, unknown>) : null
+                        );
                     } else {
-                        (this as any)[name] = Constructor ? new Constructor(value as Record<string, unknown>) : null;
+                        self[name] = Constructor ? new Constructor(value as Record<string, unknown>) : null;
                     }
                     // xx processStructuredType(fieldSchema);
                     break;
@@ -691,16 +729,16 @@ class UnionBaseClass extends BaseUAObject {
                 case FieldCategory.enumeration:
                 case FieldCategory.basic:
                     if (field.isArray) {
-                        (this as any)[name] = initialize_field_array(field, value);
+                        self[name] = initialize_field_array(field, value);
                     } else {
-                        (this as any)[name] = initialize_field(field, value);
+                        self[name] = initialize_field(field, value);
                     }
                     break;
             }
         }
         if (!uniqueFieldHasBeenFound) {
             if (Object.keys(options).length === 0) {
-                (this as any)[switchFieldName] = 0x00;
+                self[switchFieldName] = 0x00;
                 return;
             }
             const r = schema.fields
@@ -722,8 +760,9 @@ class UnionBaseClass extends BaseUAObject {
     }
 
     public encode(stream: OutputBinaryStream): void {
+        const self = this as unknown as Record<string, unknown>;
         const switchFieldName = this.schema.fields[0].name;
-        const switchValue = (this as any)[switchFieldName];
+        const switchValue = self[switchFieldName];
         if (typeof switchValue !== "number") {
             throw new Error(`Invalid switchValue  ${switchFieldName} value = ${switchValue}`);
         }
@@ -735,11 +774,11 @@ class UnionBaseClass extends BaseUAObject {
             }
             switch (field.category) {
                 case FieldCategory.complex:
-                    encodeArrayOrElement(field, this as any, stream);
+                    encodeArrayOrElement(field, self, stream);
                     break;
                 case FieldCategory.enumeration:
                 case FieldCategory.basic:
-                    encodeArrayOrElement(field, this as any, stream, field.schema.encode);
+                    encodeArrayOrElement(field, self, stream, field.schema.encode);
                     break;
                 default:
                     /* c8 ignore next*/
@@ -751,11 +790,12 @@ class UnionBaseClass extends BaseUAObject {
 
     public decode(stream: BinaryStream): void {
         const factory = this.schema.getDataTypeFactory();
+        const self = this as unknown as Record<string, unknown>;
 
         const switchValue = stream.readUInt32();
         const switchFieldName = this.schema.fields[0].name;
 
-        (this as any)[switchFieldName] = switchValue;
+        self[switchFieldName] = switchValue;
 
         for (const field of this.schema.fields) {
             if (field.switchValue === undefined || field.switchValue !== switchValue) {
@@ -764,11 +804,11 @@ class UnionBaseClass extends BaseUAObject {
 
             switch (field.category) {
                 case FieldCategory.complex:
-                    decodeArrayOrElement(factory, field, this as any, stream);
+                    decodeArrayOrElement(factory, field, self, stream);
                     break;
                 case FieldCategory.enumeration:
                 case FieldCategory.basic:
-                    decodeArrayOrElement(factory, field, this as any, stream, field.schema.decode);
+                    decodeArrayOrElement(factory, field, self, stream, field.schema.decode);
                     break;
                 default:
                     /* c8 ignore next*/
@@ -779,17 +819,22 @@ class UnionBaseClass extends BaseUAObject {
     }
 
     public get schema(): IStructuredTypeSchema {
-        return _private.get(this).schema!;
+        const r = _private.get(this);
+        if (!r?.schema) {
+            throw new Error("UnionBaseClass.schema: missing schema");
+        }
+        return r.schema;
     }
 
     public toString(): string {
         return super.toString();
     }
 
-    public toJSON(): any {
-        const pojo: any = Object.create(null);
+    public toJSON(): Record<string, unknown> {
+        const self = this as unknown as Record<string, unknown>;
+        const pojo: Record<string, unknown> = Object.create(null);
         const switchFieldName = this.schema.fields[0].name;
-        const switchValue = (this as any)[switchFieldName];
+        const switchValue = self[switchFieldName];
         if (typeof switchValue !== "number") {
             throw new Error(`Invalid switchValue  ${switchValue}`);
         }
@@ -800,7 +845,7 @@ class UnionBaseClass extends BaseUAObject {
             if (field.switchValue === undefined || field.switchValue !== switchValue) {
                 continue;
             }
-            const value = (this as any)[field.name];
+            const value = self[field.name];
             if (value === undefined) {
                 continue;
             }
@@ -824,8 +869,8 @@ function _createDynamicUnionConstructor(
         static encodingDefaultXml: ExpandedNodeId;
         static encodingDefaultJson?: ExpandedNodeId;
 
-        constructor(options?: any) {
-            super(options, schema, dataTypeFactory);
+        constructor(options?: Record<string, unknown>) {
+            super(options || {}, schema, dataTypeFactory);
             assert(this.schema === schema);
         }
     }
@@ -835,11 +880,11 @@ function _createDynamicUnionConstructor(
     const schemaPriv = schema as IStructuredTypeSchemaEx;
     assert(!schemaPriv.$Constructor);
     schemaPriv.$Constructor = UNION;
-    UNION.encodingDefaultBinary = schema.encodingDefaultBinary!;
+    UNION.encodingDefaultBinary = schema.encodingDefaultBinary || new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
     return UNION;
 }
 interface IStructuredTypeSchemaEx extends IStructuredTypeSchema {
-    $Constructor: any;
+    $Constructor: ConstructorFuncWithSchema;
 }
 export function createDynamicObjectConstructor(
     schema: IStructuredTypeSchema,
@@ -854,7 +899,7 @@ export function createDynamicObjectConstructor(
 
     if (schema.baseType === "Union") {
         const UNIONConstructor = _createDynamicUnionConstructor(schema, dataTypeFactory);
-        dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, UNIONConstructor as any);
+        dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, UNIONConstructor);
         return UNIONConstructor;
     }
 
@@ -881,8 +926,8 @@ export function createDynamicObjectConstructor(
                     if (!BaseClass) {
                         throw new Error(`Cannot find base class : ${schema.baseType}`);
                     }
-                    if ((BaseClass as any).possibleFields) {
-                        possibleFields = (BaseClass as any).possibleFields.concat(possibleFields);
+                    if (BaseClass.possibleFields) {
+                        possibleFields = BaseClass.possibleFields.concat(possibleFields);
                     }
                 }
             }
@@ -899,16 +944,16 @@ export function createDynamicObjectConstructor(
             return schema;
         }
 
-        constructor(options?: any, schema2?: IStructuredTypeSchema, factory2?: DataTypeFactory) {
+        constructor(options?: Record<string, unknown>, schema2?: IStructuredTypeSchema, factory2?: DataTypeFactory) {
             super(options, schema2 ? schema2 : EXTENSION.schema, factory2 ? factory2 : dataTypeFactory);
         }
 
         public toString(): string {
             return super.toString();
         }
-        public toJSON(): any {
-            const pojo = {};
-            encodeToJson(this, this.schema, pojo);
+        public toJSON(): Record<string, unknown> {
+            const pojo: Record<string, unknown> = {};
+            encodeToJson(this as unknown as Record<string, unknown>, this.schema, pojo);
             return pojo;
         }
 
@@ -923,11 +968,11 @@ export function createDynamicObjectConstructor(
     // to do : may be remove DataType suffix here ?
     Object.defineProperty(EXTENSION, "name", { value: schema.name });
     schemaPriv.$Constructor = EXTENSION;
-    EXTENSION.encodingDefaultBinary = schema.encodingDefaultBinary!;
+    EXTENSION.encodingDefaultBinary = schema.encodingDefaultBinary || new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
     dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, EXTENSION as ConstructorFuncWithSchema);
 
     return EXTENSION as ConstructorFuncWithSchema;
 }
-function warningLog(arg0: string, message: string) {
-    throw new Error("Function not implemented.");
+function warningLog(prefix: string, message: string) {
+    errorLog(prefix, message);
 }

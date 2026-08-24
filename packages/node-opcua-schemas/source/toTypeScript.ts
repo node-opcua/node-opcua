@@ -1,19 +1,17 @@
-import {
-    ConstructorFuncWithSchema,
-    type DataTypeFactory,
-    type EnumerationDefinitionSchema,
-    type IStructuredTypeSchema,
-    type StructureInfo
-} from "node-opcua-factory";
+import type { DataTypeFactory, EnumerationDefinitionSchema, IStructuredTypeSchema, StructureInfo } from "node-opcua-factory";
 
 export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
     const enumeratedTypes: Map<string, EnumerationDefinitionSchema> = new Map();
     for (const k of dataTypeFactory.enumerations()) {
-        enumeratedTypes.set(k, dataTypeFactory.getEnumeration(k)!);
+        const enumeration = dataTypeFactory.getEnumeration(k);
+        if (!enumeration) {
+            throw new Error(`Cannot find enumeration ${k}`);
+        }
+        enumeratedTypes.set(k, enumeration);
     }
     const structuredTypes: Map<string, StructureInfo> = new Map();
     for (const k of dataTypeFactory.structuredTypesNames()) {
-        structuredTypes.set(k, dataTypeFactory.getStructureInfoByTypeName(k)!);
+        structuredTypes.set(k, dataTypeFactory.getStructureInfoByTypeName(k));
     }
 
     const declaration: Map<string, string> = new Map();
@@ -34,7 +32,7 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
     // enumeration
     for (const e of enumeratedTypes.values()) {
         l.push(`export enum ${e.name} {`);
-        for (const v of Object.entries(e.enumValues as any)) {
+        for (const v of Object.entries(e.enumValues)) {
             const vv = parseInt(v[0], 10);
             if (vv >= 0) {
                 continue;
@@ -67,7 +65,7 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
             }
             // export all flavors
             for (const field of o.fields) {
-                const name = field.name;
+                const _name = field.name;
                 if (field.switchValue === undefined) {
                     continue;
                 }

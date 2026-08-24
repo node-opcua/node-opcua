@@ -13,7 +13,7 @@ import {
     type StructuredTypeOptions
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
-import { Xml2Json } from "node-opcua-xml2json";
+import { type ReaderStateParser, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 
 import { getOrCreateStructuredTypeSchema } from "./tools";
 
@@ -24,49 +24,11 @@ function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);
 }
 
-const predefinedType: any = {
-    "opc:Bit": 1,
-    "opc:Boolean": 1,
-    "opc:Byte": 1,
-    "opc:ByteString": 1,
-    "opc:Char": 1,
-    "opc:CharArray": 1,
-    "opc:DateTime": 1,
-    "opc:Double": 1,
-    "opc:Float": 1,
-    "opc:Guid": 1,
-    "opc:Int16": 1,
-    "opc:Int32": 1,
-    "opc:Int64": 1,
-    "opc:SByte": 1,
-    "opc:String": 1,
-    "opc:UInt16": 1,
-    "opc:UInt32": 1,
-    "opc:UInt64": 1,
-
-    "ua:ByteStringNodeId": 1,
-    "ua:DataValue": 1,
-    "ua:DiagnosticInfo": 1,
-    "ua:ExpandedNodeId": 1,
-    "ua:ExtensionObject": 1,
-    "ua:FourByteNodeId": 1,
-    "ua:GuidNodeId": 1,
-    "ua:LocalizedText": 1,
-    "ua:NodeId": 1,
-    "ua:NodeIdType": 1,
-    "ua:NumericNodeId": 1,
-    "ua:QualifiedName": 1,
-    "ua:StatusCode": 1,
-    "ua:StringNodeId": 1,
-    "ua:TwoByteNodeId": 1,
-    "ua:Variant": 1,
-    "ua:XmlElement": 1
-};
-
 export interface EnumeratedType {
     name: string;
     documentation?: string;
-    enumeratedValues: any;
+    // bidirectional map: name -> value and value -> name, as produced by the XSD enumerated-value parser
+    enumeratedValues: Record<string | number, string | number>;
     lengthInBits?: number;
 }
 
@@ -74,7 +36,7 @@ export interface StructureTypeRaw {
     name: string;
     baseType: string;
     base?: StructureTypeRaw;
-    fields: any[];
+    fields: FieldInterfaceOptions[];
 }
 
 export interface ITypeDictionary {
@@ -93,10 +55,6 @@ export class InternalTypeDictionary implements ITypeDictionary {
 
     // tns: "http://opcfoundation.org/a/b"
     public _namespaces: Record<string, string> = {};
-
-    constructor() {
-        /**  */
-    }
     public addEnumeration(name: string, e: EnumeratedType): void {
         this.enumeratedTypesRaw[name] = e;
     }
@@ -109,14 +67,14 @@ export class InternalTypeDictionary implements ITypeDictionary {
     public addStructureRaw(structuredType: StructureTypeRaw): void {
         this.structuredTypesRaw[structuredType.name] = structuredType;
     }
-    public getStructuredTypesRawByName(name: string): StructureTypeRaw {
+    public getStructuredTypesRawByName(name: string): StructureTypeRaw | undefined {
         name = name.split(":")[1] || name;
-        return this.structuredTypesRaw[name]! as StructureTypeRaw;
+        return this.structuredTypesRaw[name];
     }
 }
 
 interface _IParser {
-    attrs: any;
+    attrs: XmlAttributes;
     text?: string;
 }
 interface ITypeDefinitionParser extends _IParser {
@@ -145,13 +103,13 @@ interface IImportParser extends _IParser {
 interface IStructureTypeFieldParser extends _IParser {
     parent: IStructureTypeParser;
 }
-const state0: any = {
+const state0: ReaderStateParser = {
     init: () => {
-        const a = 1;
+        /**  */
     },
     parser: {
         TypeDictionary: {
-            init: function (this: ITypeDefinitionParser, name: string, attributes: Record<string, string>) {
+            init: function (this: ITypeDefinitionParser, _name: string, attributes: Record<string, string>) {
                 this.typeDictionary = this.engine.typeDictionary;
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
                 this.typeDictionary.targetNamespace = attributes.TargetNamespace;
@@ -166,7 +124,7 @@ const state0: any = {
             },
             parser: {
                 Import: {
-                    init: function (this: IImportParser, name: string, attributes: any) {
+                    init: function (this: IImportParser, _name: string, attributes: XmlAttributes) {
                         this.parent.typeDictionary.imports.push(attributes.Namespace);
                     },
                     finish: function (this: IImportParser) {
@@ -287,7 +245,7 @@ const state0: any = {
                                 if (field.fieldType === "opc:Bit") {
                                     // do something to collect bits but ignore them as field
                                     structuredType.bitFields = structuredType.bitFields || [];
-                                    const length = this.attrs.Length || 1;
+                                    const length = this.attrs.Length ? parseInt(this.attrs.Length, 10) : 1;
                                     structuredType.bitFields.push({ name: field.name, length });
                                     return;
                                 }
@@ -324,7 +282,7 @@ const state0: any = {
                                         }
                                     } else {
                                         field.switchBit = structuredType.bitFields
-                                            ? structuredType.bitFields!.findIndex((x) => x.name === switchField)
+                                            ? structuredType.bitFields.findIndex((x) => x.name === switchField)
                                             : -2;
                                         // c8 ignore next
                                         if (doDebug) {
@@ -392,7 +350,7 @@ export async function parseBinaryXSD(
     // c8 ignore next
     if (doDebug) {
         debugLog("------------------------------- Resolving complex Type");
-        typeDictionary.getStructures().map((x: any) => debugLog(x.name));
+        typeDictionary.getStructures().map((x: StructureTypeRaw) => debugLog(x.name));
     }
 
     // create area in navigation order
@@ -417,7 +375,7 @@ export async function parseBinaryXSD(
             markAsVisited(structuredType.name);
             if (structuredType.baseType && structuredType.baseType !== "ua:ExtensionObject") {
                 const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
-                if (base && base.baseType) {
+                if (base?.baseType) {
                     doDebug && debugLog("  investigating  base", chalk.cyan(base.name));
                     visitStructure(base);
                 }

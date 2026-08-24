@@ -11,7 +11,7 @@ import {
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
 import { createDynamicObjectConstructor } from "./dynamic_extension_object";
-import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider } from "./parse_binary_xsd";
+import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider, StructureTypeRaw } from "./parse_binary_xsd";
 
 const errorLog = make_errorLog(__filename);
 const _doDebug = false; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
@@ -71,7 +71,7 @@ export function getOrCreateStructuredTypeSchema(
         // Note: Some files do not have SourceType property and may be replicated here,
         //       but they belong to the base class and shall be removed.
         //       For instance, DataTypeSchemaHeader => UABinaryFileDataType
-        if (baseSchema && baseSchema.fields && baseSchema.name !== "ExtensionObject") {
+        if (baseSchema?.fields && baseSchema.name !== "ExtensionObject") {
             structuredType.fields = structuredType.fields.filter((field) => {
                 const name = field.name;
                 const index = baseSchema.fields.findIndex((f) => f.name === name);
@@ -90,7 +90,7 @@ export function getOrCreateStructuredTypeSchema(
                 return index < 0;
             });
         }
-        applyOnFields();
+        applyOnFields(structuredType);
         const schema = new StructuredTypeSchema({
             ...structuredType,
             dataTypeFactory
@@ -100,7 +100,8 @@ export function getOrCreateStructuredTypeSchema(
             // This may happen if the type is abstract or if the type refers to an internal ExtensionObject
             // that can only exist inside another extension object. This Type of extension object cannot
             // be instantiated as a standalone object and does not have encoding nodeIds...
-            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
+            // the constructor is created for its side effect of registering the dynamic class
+            createDynamicObjectConstructor(schema, dataTypeFactory);
             return schema;
         }
         schema.dataTypeNodeId = ids.dataTypeNodeId;
@@ -123,12 +124,12 @@ export function getOrCreateStructuredTypeSchema(
         Constructor.encodingDefaultJson = schema.encodingDefaultJson;
         return schema;
 
-        function applyOnFields() {
+        function applyOnFields(structuredType: StructureTypeRaw) {
             for (const field of structuredType.fields) {
                 const fieldType = field.fieldType;
                 if (!field.schema) {
                     const prefix = _getNamespacePart(fieldType);
-                    const fieldTypeName = _adjustFieldTypeName(_removeNamespacePart(fieldType)!);
+                    const fieldTypeName = _adjustFieldTypeName(_removeNamespacePart(fieldType));
 
                     switch (prefix) {
                         case "ua":
@@ -176,7 +177,7 @@ export function getOrCreateStructuredTypeSchema(
                             if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
                                 field.category = FieldCategory.enumeration;
                                 const enumeratedType = dataTypeFactory.getEnumeration(fieldTypeName);
-                                field.schema = enumeratedType;
+                                field.schema = enumeratedType || undefined;
                             } else if (dataTypeFactory.hasStructureByTypeName(fieldTypeName)) {
                                 field.category = FieldCategory.complex;
                                 const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
