@@ -8,10 +8,11 @@ import {
     TimestampsToReturn,
     VariableIds
 } from "node-opcua";
-export function t(test: any) {
+import type { UmbrellaTestContext } from "./_helper_umbrella";
+export function t(test: UmbrellaTestContext) {
     describe("getMonitoredItem issue #1018", () => {
         it("getMonitoredItems with more than 25 variables", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const client = OPCUAClient.create({});
             const subscriptionParameters = {
                 requestedPublishingInterval: 1000,
