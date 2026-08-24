@@ -1,4 +1,4 @@
-import type { ListenerSignature, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { ListenerSignature, UAMethod } from "node-opcua-address-space-base";
 import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import type { UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua";
 import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";

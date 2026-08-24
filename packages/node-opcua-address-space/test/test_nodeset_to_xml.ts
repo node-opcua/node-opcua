@@ -1101,7 +1101,7 @@ describe("toNodeset2XML - cross-namespace references with types and instances", 
         // pointing to the DI namespace. Without the fix, the DI namespace
         // would be excluded and the reference serialized as bare "i=5001"
         // (namespace 0), which doesn't exist.
-        const myInstance = namespace.addObject({
+        const _myInstance = namespace.addObject({
             browseName: "MyMachine",
             organizedBy: deviceSet
         });

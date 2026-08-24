@@ -100,7 +100,6 @@ import {
     UAConditionImplBase,
     UADiscreteAlarmImplBase
 } from "./alarms_and_conditions";
-import { UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
 import { UAExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
 import { UAExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
 import { UALimitAlarmImplBase } from "./alarms_and_conditions/ua_limit_alarm_impl";

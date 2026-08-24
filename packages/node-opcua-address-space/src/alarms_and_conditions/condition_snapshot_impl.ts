@@ -210,12 +210,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         }
         return variant;
     }
-
-    #_is_varValid(varName: string) {
-        const key = normalizeName(varName);
-        const variant = this._map.get(key);
-        return !(variant && variant.dataType === DataType.StatusCode && variant.value === StatusCodes.BadConditionDisabled);
-    }
     #_get_varTDefault<T>(dataType: DataType, varName: string, defaultValue: T): T {
         const variant = this.#_get_var_inner(varName);
         if (variant.dataType !== dataType) {

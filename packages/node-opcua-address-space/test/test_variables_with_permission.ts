@@ -126,12 +126,12 @@ describe("AddressSpace : Variable.setPermissions", () => {
 describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let uaVariable: UAVariable;
-    let uaVariable2: UAVariable;
-    let uaDefaultVariable: UAVariable;
-    let parentNode: UAObject;
-    let restrictedVariableSign: UAVariable;
-    let restrictedVariableSignAndEncrypt: UAVariable;
+    let _uaVariable: UAVariable;
+    let _uaVariable2: UAVariable;
+    let _uaDefaultVariable: UAVariable;
+    let _parentNode: UAObject;
+    let _restrictedVariableSign: UAVariable;
+    let _restrictedVariableSignAndEncrypt: UAVariable;
 
     before(async () => {
         addressSpace = await getMiniAddressSpace();

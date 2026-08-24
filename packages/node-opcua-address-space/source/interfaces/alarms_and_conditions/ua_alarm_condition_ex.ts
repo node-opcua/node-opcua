@@ -1,7 +1,6 @@
-import type { BaseNode, ITypedEventEmitter, ListenerSignature, UAObject, UAVariable } from "node-opcua-address-space-base";
+import type { BaseNode, ListenerSignature, UAVariable } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
-import { ITypeDictionary } from "../../../../node-opcua-schemas/source";
 import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
 import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
 import type { ConditionInfo } from "./condition_info_i";

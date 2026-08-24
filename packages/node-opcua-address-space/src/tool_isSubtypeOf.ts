@@ -4,7 +4,6 @@
 
 import type {
     BaseNode,
-    BaseNodeEvents,
     UADataType,
     UAObjectType,
     UAReference,

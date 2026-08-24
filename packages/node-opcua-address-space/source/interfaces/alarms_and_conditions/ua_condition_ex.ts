@@ -1,4 +1,4 @@
-import type { ITypedEventEmitter, ListenerSignature, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
+import type { ListenerSignature, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { UACondition_Base } from "node-opcua-nodeset-ua";

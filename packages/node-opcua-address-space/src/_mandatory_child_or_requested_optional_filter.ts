@@ -24,14 +24,11 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly references: UAReference[];
     private readonly copyAlsoAllOptionals: boolean = false;
 
-    private readonly _instance: BaseNode;
-
     constructor(instance: BaseNode, copyAlsoAllOptionals: boolean, optionalsMap: OptionalMap) {
         this.copyAlsoAllOptionals = copyAlsoAllOptionals;
         // should we clone the node to be a component or propertyOf of a instance
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
-        this._instance = instance;
         this.references = instance.findReferencesEx("Aggregates", BrowseDirection.Forward);
     }
 

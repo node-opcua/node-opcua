@@ -4,7 +4,7 @@
 
 import type { BaseNodeEvents, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { AttributeIds, coerceLocalizedText, LocalizedText, type LocalizedTextOptions, NodeClass } from "node-opcua-data-model";
+import { AttributeIds, LocalizedText, type LocalizedTextOptions, NodeClass } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";

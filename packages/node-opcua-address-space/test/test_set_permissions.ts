@@ -6,7 +6,7 @@ import {
     makePermissionFlag
 } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     type CallMethodResultOptions,
