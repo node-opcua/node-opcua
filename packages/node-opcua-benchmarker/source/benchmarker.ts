@@ -48,7 +48,7 @@ function maximum<T>(arr: T[], predicate: (t: T) => number): T {
 }
 
 export interface IBenchmarkerEvent {
-    on(event: "completed", listener: (this: Benchmarker, fastest: ITestRun, speedUp: number) => void): this;
+    on(event: "complete", listener: (this: Benchmarker, fastest: ITestRun | undefined, speedUp: number) => void): this;
 
     on(event: "cycle", listener: (message: string) => void): this;
 }

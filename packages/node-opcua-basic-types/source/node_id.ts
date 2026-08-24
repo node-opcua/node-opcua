@@ -178,7 +178,7 @@ function _decodeNodeId(encodingByte: number, stream: BinaryStream, _nodeId?: Nod
     if (_nodeId === undefined) {
         return new NodeId(identifierType, value, namespace);
     }
-    _nodeId.value = value!;
+    _nodeId.value = value;
     _nodeId.identifierType = identifierType;
     _nodeId.namespace = namespace || 0;
     return _nodeId;

@@ -68,7 +68,7 @@ describe("GUID", () => {
             .on("cycle", (message) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Benchmarker) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
@@ -81,7 +81,7 @@ describe("Map vs Object", () => {
         const bench = new Benchmarker();
 
         const map = new Map();
-        const _map: any = {};
+        const _map: Record<string, number> = {};
         let counter = 0;
         bench
             .add("inserting with Map", () => {
@@ -95,7 +95,7 @@ describe("Map vs Object", () => {
             .on("cycle", (message) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Benchmarker) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
@@ -106,7 +106,7 @@ describe("Map vs Object", () => {
         const bench = new Benchmarker();
 
         const map = new Map();
-        const _map: any = {};
+        const _map: Record<string, number> = {};
 
         let counter = 0;
         for (let i = counter; i < counter + 120000; i += 3) {
@@ -126,7 +126,7 @@ describe("Map vs Object", () => {
             .on("cycle", (message) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Benchmarker) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
@@ -136,7 +136,7 @@ describe("Map vs Object", () => {
         const bench = new Benchmarker();
 
         const map = new Map();
-        const _map: any = {};
+        const _map: Record<string, number> = {};
 
         let counter = 0;
         for (let i = counter; i < counter + 120000; i += 3) {
@@ -156,7 +156,7 @@ describe("Map vs Object", () => {
             .on("cycle", (message) => {
                 console.log(message);
             })
-            .on("complete", function (this: any) {
+            .on("complete", function (this: Benchmarker) {
                 console.log(` Fastest is ${this.fastest.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
