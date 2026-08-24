@@ -9,11 +9,37 @@ import { retryOnTransientWrite } from "./private/fs_retry";
 const dryRun = false;
 
 const NODE_BUILTINS = new Set([
-    "assert", "async_hooks", "buffer", "child_process", "cluster", "console",
-    "crypto", "dgram", "dns", "events", "fs", "http", "http2", "https", "net",
-    "os", "path", "perf_hooks", "process", "querystring", "readline", "stream",
-    "string_decoder", "tls", "tty", "url", "util", "v8", "vm", "worker_threads",
-    "zlib",
+    "assert",
+    "async_hooks",
+    "buffer",
+    "child_process",
+    "cluster",
+    "console",
+    "crypto",
+    "dgram",
+    "dns",
+    "events",
+    "fs",
+    "http",
+    "http2",
+    "https",
+    "net",
+    "os",
+    "path",
+    "perf_hooks",
+    "process",
+    "querystring",
+    "readline",
+    "stream",
+    "string_decoder",
+    "tls",
+    "tty",
+    "url",
+    "util",
+    "v8",
+    "vm",
+    "worker_threads",
+    "zlib"
 ]);
 
 function importGroup(spec: string): number {
@@ -122,7 +148,8 @@ function regroupImports(file: SourceFile) {
     }
 }
 
-const BIOME_IGNORE_EMPTY_INTERFACE = "// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types";
+const BIOME_IGNORE_EMPTY_INTERFACE =
+    "// biome-ignore lint/suspicious/noEmptyInterface: forward-compatible placeholder for OPC-UA generated types";
 
 function tidyEmptyInterfaces(file: SourceFile) {
     // Two complaints to resolve:
@@ -152,7 +179,10 @@ function tidyEmptyInterfaces(file: SourceFile) {
         if (iface.getMembers().length !== 0) continue;
         // Rule only fires when there's no extends clause.
         if (iface.getExtends().length !== 0) continue;
-        const leading = iface.getLeadingCommentRanges().map((c) => c.getText()).join("\n");
+        const leading = iface
+            .getLeadingCommentRanges()
+            .map((c) => c.getText())
+            .join("\n");
         if (leading.includes("biome-ignore lint/suspicious/noEmptyInterface")) continue;
         positions.push(iface.getStart());
     }
@@ -232,7 +262,7 @@ export async function cleanUpTypescriptModule(moduleFolder: string) {
     const project = new Project({
         skipAddingFilesFromTsConfig: true,
         skipFileDependencyResolution: true,
-        skipLoadingLibFiles: true,
+        skipLoadingLibFiles: true
     });
 
     const dirFiles = await fs.promises.readdir(sourceFolder);

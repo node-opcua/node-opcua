@@ -1,9 +1,9 @@
-import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
-import { INodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { AttributeIds, BrowseDirection, type LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
+import { type INodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { DataTypeIds } from "node-opcua-constants";
-import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
-import { BrowseResult, DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
-import { ModellingRuleType } from "node-opcua-address-space-base";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { type BrowseResult, type DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
+import type { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-variant";
 import { make_debugLog } from "node-opcua-debug";
 
@@ -104,7 +104,10 @@ export async function extractBasicDataType(session: IBasicSessionBrowseAsyncSimp
     return await extractBasicDataType(session, r!.nodeId);
 }
 
-export async function getSubtypeNodeIdIfAny(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription | null> {
+export async function getSubtypeNodeIdIfAny(
+    session: IBasicSessionBrowseAsyncSimple,
+    nodeId: NodeId
+): Promise<ReferenceDescription | null> {
     if (nodeId.isEmpty()) {
         return null;
     }
@@ -212,7 +215,8 @@ export async function _convertNodeIdToDataTypeAsync(
     if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Number) {
         return {
             type: "genericNumber",
-            dataTypeCombination: "DataType.Float | DataType.Double | " +
+            dataTypeCombination:
+                "DataType.Float | DataType.Double | " +
                 "DataType.UInt64 | DataType.UInt32 | DataType.UInt16 |  DataType.SByte | " +
                 "DataType.Int64 | DataType.Int32 | DataType.Int16 | DataType.Byte"
         };
@@ -245,13 +249,12 @@ export async function _convertNodeIdToDataTypeAsync(
         referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: 0xff
     };
-    // tslint:disable:no-shadowed-variable
     const browseResult = await session.browse(nodeToBrowse);
 
     const references = browseResult!.references;
 
     if (!references || references.length !== 1) {
-        throw new Error("cannot find SuperType of " + dataTypeName.toString());
+        throw new Error(`cannot find SuperType of ${dataTypeName.toString()}`);
     }
     const nodeId = references[0].nodeId;
 

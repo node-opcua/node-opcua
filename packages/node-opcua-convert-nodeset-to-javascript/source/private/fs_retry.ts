@@ -22,7 +22,9 @@ export function retryOnTransientWrite<T>(write: () => T, attempts = 6): T {
         } catch (err) {
             if (!isTransientWriteError(err) || i === attempts - 1) throw err;
             const until = Date.now() + 50 * (i + 1);
-            while (Date.now() < until) { /* spin */ }
+            while (Date.now() < until) {
+                /* spin */
+            }
         }
     }
 }

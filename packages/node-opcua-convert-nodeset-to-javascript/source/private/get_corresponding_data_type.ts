@@ -1,9 +1,9 @@
-import { NodeId } from "node-opcua-nodeid";
-import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
-import { Import, referenceEnumeration, referenceExtensionObject } from "./cache";
+import { type Import, referenceEnumeration, referenceExtensionObject } from "./cache";
 import { getValueRank, _convertNodeIdToDataTypeAsync } from "./utils";
-import { Cache } from "./cache";
+import type { Cache } from "./cache";
 
 export async function getCorrespondingJavascriptType2(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
@@ -11,12 +11,17 @@ export async function getCorrespondingJavascriptType2(
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string, dataTypeCombination?: string, type: "enum" | "basic" | "genericNumber"}> {
-    const { dataType, jtype, dataTypeCombination, type} = await getCorrespondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
+): Promise<{ dataType: DataType; jtype: string; dataTypeCombination?: string; type: "enum" | "basic" | "genericNumber" }> {
+    const { dataType, jtype, dataTypeCombination, type } = await getCorrespondingJavascriptType(
+        session,
+        dataTypeNodeId,
+        cache,
+        importCollect
+    );
     const valueRank = await getValueRank(session, nodeId);
     let jtype2 = "";
     if (valueRank >= 0) {
-        jtype2 = jtype + "[]";
+        jtype2 = `${jtype}[]`;
     } else if (valueRank === -1) {
         jtype2 = jtype;
     } else if (valueRank === -2) {
@@ -26,25 +31,23 @@ export async function getCorrespondingJavascriptType2(
         // ScalarOrOneDimension (-3):  The value can be a scalar or a one dimensional array.
         jtype2 = `(${jtype} | ${jtype}[])`;
     } else {
-        throw new Error("Invalid valueRank " + valueRank);
+        throw new Error(`Invalid valueRank ${valueRank}`);
     }
     return { dataType: dataType, jtype: jtype2, dataTypeCombination, type };
 }
 
-// eslint-disable-next-line complexity
 export async function getCorrespondingJavascriptType(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
-): Promise<{ 
-    enumerationType?: string; 
-    dataType: DataType; 
-    jtype: string,
-    type: "enum" | "basic" | "genericNumber",
-    dataTypeCombination?: string
- }> {
-
+): Promise<{
+    enumerationType?: string;
+    dataType: DataType;
+    jtype: string;
+    type: "enum" | "basic" | "genericNumber";
+    dataTypeCombination?: string;
+}> {
     const info = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
     const { type } = info;
 
@@ -69,7 +72,7 @@ export async function getCorrespondingJavascriptType(
         return t.name;
     };
     if (type == "genericNumber") {
-        const { dataTypeCombination } = info;   
+        const { dataTypeCombination } = info;
         return { dataType: DataType.Variant, jtype: "number", type, dataTypeCombination };
     } else {
         const { dataType } = info;
@@ -125,7 +128,7 @@ export async function getCorrespondingJavascriptType(
             case DataType.XmlElement:
                 return { dataType, jtype: referenceBasicType("String"), type };
             default:
-                throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
+                throw new Error(`Unsupported ${dataType} ${DataType[dataType]}`);
         }
     }
 }

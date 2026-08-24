@@ -1,11 +1,11 @@
-import path from "path";
+import path from "node:path";
 import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
-import { DataTypeDefinition, EnumDefinition } from "node-opcua-types";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { type DataTypeDefinition, EnumDefinition } from "node-opcua-types";
 import { kebabCase } from "case-anything";
-import { Options } from "../options";
+import type { Options } from "../options";
 import { getBrowseName, getDefinition } from "./utils";
 
 export interface Import {
@@ -33,7 +33,7 @@ interface RequestedSymbol {
     }[];
 }
 export function makeName2(name: string) {
-    return "U" + name;
+    return `U${name}`;
     // if (name === "EUInformation") {
     //     return "EUInformation2";
     // }
@@ -57,7 +57,7 @@ export class Cache implements CacheInterface {
             "node-opcua-variant": {
                 DataType: 1,
                 Variant: 1,
-                VariantOptions: 1,
+                VariantOptions: 1
             },
             "node-opcua-data-model": {
                 LocalizedText: 1,
@@ -120,7 +120,7 @@ export class Cache implements CacheInterface {
         {
             const sourceFolder = this.namespace[namespaceIndex]?.sourceFolder;
             if (!sourceFolder) {
-                throw new Error("Cannot find namespace  " + namespaceIndex);
+                throw new Error(`Cannot find namespace  ${namespaceIndex}`);
             }
         }
         const symbols = (this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {});
@@ -157,7 +157,10 @@ function getSourceFolderForNamespace(browseName: QualifiedName, options: Options
     return { sourceFolder, module };
 }
 
-export async function referenceExtensionObject(session: IBasicSessionReadAsyncSimple, extensionObjectDataType: NodeId): Promise<Import> {
+export async function referenceExtensionObject(
+    session: IBasicSessionReadAsyncSimple,
+    extensionObjectDataType: NodeId
+): Promise<Import> {
     const browseName = await getBrowseName(session, extensionObjectDataType);
     const definition = await getDefinition(session, extensionObjectDataType);
     const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
@@ -235,7 +238,7 @@ export function makeTypeNameNew(
             case NodeClass.Object:
             case NodeClass.VariableType:
             case NodeClass.ObjectType:
-                name = `UA${typeName.replace(/Type$/, "")}` + (suffix || "");
+                name = `UA${typeName.replace(/Type$/, "")}${suffix || ""}`;
                 break;
             case NodeClass.DataType:
                 if (definition instanceof EnumDefinition) {
@@ -246,7 +249,7 @@ export function makeTypeNameNew(
                 break;
         }
         if (name === "") {
-            throw new Error("Internal Error " + NodeClass[nodeClass] + " " + typeName + "browseName = " + browseName.toString());
+            throw new Error(`Internal Error ${NodeClass[nodeClass]} ${typeName}browseName = ${browseName.toString()}`);
         }
         return { name, module: name, namespace: browseName.namespaceIndex };
     }

@@ -1,20 +1,19 @@
-/* eslint-disable max-statements */
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { DataTypeIds } from "node-opcua-constants";
-import { ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
+import { type ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
 import { convertTypeToTypescript } from "./convert_to_typescript";
 import { constructCache } from "./private/cache";
 import { writeFileSyncRetry } from "./private/fs_retry";
-import { Options } from "./options";
+import type { Options } from "./options";
 
 function findPackageJson(dependency: string, options: Options): string | undefined {
     const l = [...(options.lookupFolders || [])];
     l.push(path.join(__dirname, "../../"));
     for (const folder of l) {
-        const d = path.join(folder, dependency + "/package.json");
+        const d = path.join(folder, `${dependency}/package.json`);
         if (!fs.existsSync(d)) {
             continue;
         }
@@ -36,7 +35,7 @@ function getPackageFolder(dependency: string, options: Options) {
     }
     const packageJson = path.join(packageoFolder, "package.json");
     if (!fs.existsSync(packageJson)) {
-        fs.writeFileSync(packageJson, "{\n  \"name\": \"" + dependency + "\"\n}");
+        fs.writeFileSync(packageJson, `{\n  "name": "${dependency}"\n}`);
     }
     const sourceFolder = path.join(packageoFolder, "source");
     if (!fs.existsSync(sourceFolder)) {
@@ -44,8 +43,7 @@ function getPackageFolder(dependency: string, options: Options) {
     }
     return packageJson;
 
-
-    throw new Error("cannot find package.json for " + dependency);
+    throw new Error(`cannot find package.json for ${dependency}`);
 }
 function getPackageInfo(dependency: string, options: Options) {
     const d = getPackageFolder(dependency, options);
@@ -170,9 +168,9 @@ export async function convertNamespaceTypeToTypescript(
             if (!fs.existsSync(sourceFolder)) {
                 fs.mkdirSync(sourceFolder);
             }
-            writeFileSyncRetry(path.join(sourceFolder, filename + ".ts"), content);
+            writeFileSyncRetry(path.join(sourceFolder, `${filename}.ts`), content);
             infos[module] = infos[module] || { folder, dependencies: [], module, files: [] };
-            infos[module].files.push(filename + ".ts");
+            infos[module].files.push(`${filename}.ts`);
             infos[module].dependencies = [...new Set([...infos[module].dependencies, ...dependencies])];
         }
     };
@@ -294,7 +292,6 @@ async function _output_tsconfig_json(info: Info, options: Options): Promise<void
     }
 }
 async function _output_licence(info: Info, options: Options): Promise<void> {
-
     if (info.module === "node-opcua-nodeset-ua") {
         return;
     }
@@ -327,17 +324,13 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 `);
 
-
     // content3.push(fs.readFileSync(path.join(__dirname, "../source/licences/agpl_v3.md"), "utf8"));
     fs.writeFileSync(licenseFile, content3.join("\n"));
-
-
-
 }
 async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     const values = Object.values(infos) as Info[];
     if (values.length < 1) {
-        console.log(`There is no type information to generate for ${options.nsName}`)
+        console.log(`There is no type information to generate for ${options.nsName}`);
     }
     console.log("generating files for ", options.nsName);
     for (const info of values) {

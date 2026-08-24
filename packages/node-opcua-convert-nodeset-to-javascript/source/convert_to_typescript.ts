@@ -1,17 +1,12 @@
-/* eslint-disable max-depth */
 import chalk from "chalk";
-import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
-import {
-    ReferenceDescription,
-    StructureDefinition,
-    _enumerationDataChangeTrigger
-} from "node-opcua-types";
+import { type LocalizedText, NodeClass, type QualifiedName } from "node-opcua-data-model";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { type ReferenceDescription, StructureDefinition, _enumerationDataChangeTrigger } from "node-opcua-types";
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
-import { ModellingRuleType } from "node-opcua-address-space-base";
+import type { ModellingRuleType } from "node-opcua-address-space-base";
 import { make_warningLog, make_debugLog } from "node-opcua-debug";
 import {
     getBrowseName,
@@ -25,16 +20,11 @@ import {
     getChildrenOrFolderElements,
     getDataTypeNodeId,
     extractBasicDataType,
-    getValueRank} from "./private/utils";
+    getValueRank
+} from "./private/utils";
 
-import {
-    Cache,
-    constructCache,
-    Import,
-    makeTypeNameNew,
-    RequestedSubSymbol
-} from "./private/cache";
-import { Options } from "./options";
+import { type Cache, constructCache, type Import, makeTypeNameNew, type RequestedSubSymbol } from "./private/cache";
+import type { Options } from "./options";
 import { toFilename } from "./private/to_filename";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
 import { _exportDataTypeToTypescript } from "./_dataType";
@@ -60,7 +50,6 @@ const mC = !doDebug ? "" : `/* c */`;
 const mD = !doDebug ? "" : `/* d */`;
 const mE = !doDebug ? "" : `/* e */`;
 const mF = !doDebug ? "" : `/* f */`;
-
 
 export async function convertDataTypeToTypescript(session: IBasicSessionReadAsyncSimple, dataTypeId: NodeId): Promise<void> {
     const definition = await getDefinition(session, dataTypeId);
@@ -123,7 +112,7 @@ export async function extractClassDefinition(
     }
     const nodeClass = await getNodeClass(session, nodeId);
     if (nodeClass !== NodeClass.VariableType && nodeClass !== NodeClass.ObjectType) {
-        throw new Error("Invalid nodeClass " + NodeClass[nodeClass] + " nodeId " + nodeId.toString());
+        throw new Error(`Invalid nodeClass ${NodeClass[nodeClass]} nodeId ${nodeId.toString()}`);
     }
 
     const browseName = await getBrowseName(session, nodeId);
@@ -133,9 +122,9 @@ export async function extractClassDefinition(
     const dataTypeNodeId = await getDataTypeNodeId(session, nodeId);
     let dataTypeName = "";
     let dataType: DataType = DataType.Null;
-    let dataTypeImport: Import[] | undefined = undefined;
-    let valueRank: number| undefined;
-    let dataTypeCombination: string| undefined;;
+    let dataTypeImport: Import[] | undefined ;
+    let valueRank: number | undefined;
+    let dataTypeCombination: string | undefined;
     if (nodeClass === NodeClass.VariableType) {
         dataType = await extractBasicDataType(session, dataTypeNodeId!);
         const importCollector = (i: Import) => {
@@ -191,7 +180,6 @@ export async function extractClassDefinition(
         baseInterfaceName,
         valueRank,
         dataTypeCombination
-
     };
     _c[nodeId.toString()] = classDef;
 
@@ -397,7 +385,6 @@ async function _extractLocalMembers(
     classMember: ClassMember,
     cache: Cache
 ): Promise<ClassMemberBasic[]> {
-
     const children2: ClassMemberBasic[] = [];
     for (const child of classMember.children) {
         const nodeId = child.nodeId;
@@ -465,7 +452,13 @@ async function extractVariableExtra(
         const dataTypeNodeId = await getDataTypeNodeId(session, nodeId);
         const valueRank = await getValueRank(session, nodeId);
         valueRank;
-        const { dataType, jtype, dataTypeCombination } = await getCorrespondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
+        const { dataType, jtype, dataTypeCombination } = await getCorrespondingJavascriptType2(
+            session,
+            nodeId,
+            dataTypeNodeId!,
+            cache,
+            importCollector
+        );
 
         cache && cache.referenceBasicType("DataType");
         importCollector({ name: "DataType", namespace: -1, module: "BasicType" });
@@ -475,7 +468,7 @@ async function extractVariableExtra(
         const suffix =
             jtype === "undefined" || isUnspecifiedDataType(dataType)
                 ? `<any, any>`
-                : `<${jtype}${t ? `, ${m0}DataType.${DataType[dataType]}` :""}>`;
+                : `<${jtype}${t ? `, ${m0}DataType.${DataType[dataType]}` : ""}>`;
 
         // const suffix2 = `<T${t ? `, /DT extends DataType` : ""}>`;
         const suffix3 = `<T${t ? `, ${m1}DT` : ""}>`;
@@ -497,22 +490,31 @@ async function extractVariableExtra(
             }
         } else {
             if (!isUnspecifiedDataType(typeDefCD.dataType)) {
-
-                if (jtype === "number" && (dataTypeNodeId!.value as number> 25)) {
-                    console.log("dataTypeNodeId", dataTypeNodeId?.toString()), dataTypeCombination;   
+                if (jtype === "number" && (dataTypeNodeId!.value as number) > 25) {
+                    console.log("dataTypeNodeId", dataTypeNodeId?.toString()), dataTypeCombination;
                 }
                 if (dataTypeCombination) {
                     suffixInstantiate = `<${jtype}${mD},${dataTypeCombination}>`;
                 } else {
                     suffixInstantiate = `<${jtype}${mE}>`;
-
                 }
             } else {
                 suffixInstantiate = `<${jtype}, DataType.${DataType[dataType]}${mF}>`;
             }
         }
 
-        return { suffixInstantiate, suffix, suffix2, suffix3, dataTypeNodeId, dataType, jtype, typeToReference, chevrons , dataTypeCombination};
+        return {
+            suffixInstantiate,
+            suffix,
+            suffix2,
+            suffix3,
+            dataTypeNodeId,
+            dataType,
+            jtype,
+            typeToReference,
+            chevrons,
+            dataTypeCombination
+        };
     }
     return { suffix: "", typeToReference };
 }
@@ -524,7 +526,6 @@ interface ClassDefinitionB {
     interfaceName: Import;
     baseClassDef?: ClassDefinition | null;
 }
-// eslint-disable-next-line max-statements
 export async function extractClassMemberDef(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
@@ -537,7 +538,7 @@ export async function extractClassMemberDef(
     const name = toJavascritPropertyName(browseName.name!, { ignoreConflictingName: true });
 
     if (nodeClass !== NodeClass.Method && nodeClass !== NodeClass.Object && nodeClass !== NodeClass.Variable) {
-        throw new Error("Invalid property " + NodeClass[nodeClass] + " " + browseName?.toString() + " " + nodeId.toString());
+        throw new Error(`Invalid property ${NodeClass[nodeClass]} ${browseName?.toString()} ${nodeId.toString()}`);
     }
 
     const description = await getDescription(session, nodeId);
@@ -585,7 +586,7 @@ export async function extractClassMemberDef(
             if (sameMemberInBaseClass) {
                 innerClass = {
                     module: parentDef.interfaceName.module,
-                    name: parentDef.interfaceName.name + "_" + name,
+                    name: `${parentDef.interfaceName.name}_${name}`,
                     namespace: nodeId.namespace
                 };
                 childBase = sameMemberInBaseClass.childType;
@@ -593,7 +594,7 @@ export async function extractClassMemberDef(
             } else {
                 innerClass = {
                     module: parentDef.interfaceName.module,
-                    name: parentDef.interfaceName.name + "_" + name,
+                    name: `${parentDef.interfaceName.name}_${name}`,
                     namespace: nodeId.namespace
                 };
                 childBase = childType;
@@ -647,22 +648,27 @@ export async function extractClassMemberDef(
             ...classMember,
             ...extra
         };
-        
+
         const baseParentDef2 = parentDef.superType && parentDef.baseClassDef;
         if (baseParentDef2) {
-            const sameMemberInBase = baseParentDef2.members.find(
-                (m) => m.browseName.toString() === browseName.toString()
-            );
-            if (sameMemberInBase && sameMemberInBase.childType.name === classMember.childType.name 
-                && sameMemberInBase.childType.name !== typeDefinition.browseName.name?.toString()) {
+            const sameMemberInBase = baseParentDef2.members.find((m) => m.browseName.toString() === browseName.toString());
+            if (
+                sameMemberInBase &&
+                sameMemberInBase.childType.name === classMember.childType.name &&
+                sameMemberInBase.childType.name !== typeDefinition.browseName.name?.toString()
+            ) {
                 // childType was inherited from base (e.g., UADiscreteItem instead of UATwoStateDiscrete)
                 // Recalculate suffix based on base class's classDef
                 if (sameMemberInBase.classDef && classMember.dataType !== undefined) {
-                    const baseTypeHasUnspecifiedDataType = 
-                        sameMemberInBase.classDef.dataType === DataType.Null || 
+                    const baseTypeHasUnspecifiedDataType =
+                        sameMemberInBase.classDef.dataType === DataType.Null ||
                         sameMemberInBase.classDef.dataType === DataType.Variant;
-                    
-                    if (baseTypeHasUnspecifiedDataType && classMember.dataType !== DataType.Null && classMember.dataType !== DataType.Variant) {
+
+                    if (
+                        baseTypeHasUnspecifiedDataType &&
+                        classMember.dataType !== DataType.Null &&
+                        classMember.dataType !== DataType.Variant
+                    ) {
                         // Base type is generic (2 params), current has specific dataType
                         // Generate: <specificType, DataType.SpecificType>
                         classMember.suffixInstantiate = `<${classMember.jtype}, DataType.${DataType[classMember.dataType]}>`;
@@ -691,7 +697,7 @@ async function preDumpChildren(padding: string, classDef: ClassDefinition, f: Li
 
         //f.write(`export interface ${innerClass.name}${suffix2} extends ${childBase.name}${suffix3} { // ${NodeClass[nodeClass]}`);
         f.write(`export interface ${innerClass.name}${suffix2} extends ${baseStuff} { // ${NodeClass[nodeClass]}`);
-        await dumpChildren(padding + "  ", memberDef.children2, f, cache);
+        await dumpChildren(`${padding}  `, memberDef.children2, f, cache);
         f.write("}");
     }
 }
@@ -741,7 +747,7 @@ export function findUsedImport(namespaceIndex: number, cache: Cache): string[] {
     // from standard types
     for (const imp of Object.keys(cache.imports)) {
         const symbolToImport = Object.keys(cache.imports[imp]).filter((f) =>
-            Object.prototype.hasOwnProperty.call(cache.requestedBasicTypes, f)
+            Object.hasOwn(cache.requestedBasicTypes, f)
         );
         if (symbolToImport.length == 0) {
             continue;
@@ -768,7 +774,7 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
 
     for (const imp of Object.keys(cache.imports)) {
         const symbolToImport = Object.keys(cache.imports[imp]).filter(
-            (f) => f !== currentType && Object.prototype.hasOwnProperty.call(cache.requestedBasicTypes, f)
+            (f) => f !== currentType && Object.hasOwn(cache.requestedBasicTypes, f)
         );
         if (symbolToImport.length == 0) {
             continue;
@@ -886,7 +892,6 @@ function getBaseClassWithOmit2(classMember: ClassMember) {
 /**
  *  nodeId : a DataType, ReferenceType,AObjectType, VariableType node
  */
-// eslint-disable-next-line max-statements
 export async function _convertTypeToTypescript(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
@@ -929,13 +934,12 @@ export async function _convertTypeToTypescript(
     f.write(` * |----------------|${f2("-")}|`);
     f.write(` * |namespace       |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
     f.write(` * |nodeClass       |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * |typedDefinition |${f1(browseName.name!.toString() + " " + n(nodeId))}|`);
+    f.write(` * |typedDefinition |${f1(`${browseName.name!.toString()} ${n(nodeId)}`)}|`);
     if (nodeClass === NodeClass.VariableType) {
         const { valueRank } = classDef;
         f.write(` * |dataType        |${f1(DataType[dataType])}|`);
-        f.write(` * |dataType Name   |${f1(dataTypeName + " " + n(dataTypeNodeId))}|`);
+        f.write(` * |dataType Name   |${f1(`${dataTypeName} ${n(dataTypeNodeId)}`)}|`);
         valueRank && f.write(` * |value rank      |${f1(valueRank.toString())}|`);
-
     }
     f.write(` * |isAbstract      |${f1(isAbstract.toString())}|`);
     f.write(` */`);
@@ -944,11 +948,9 @@ export async function _convertTypeToTypescript(
     //     debugger;
     // }
     cache.ensureImported(baseInterfaceName!);
-    cache.ensureImported({ ...baseInterfaceName!, name: baseInterfaceName!.name + `${baseExtension}` });
+    cache.ensureImported({ ...baseInterfaceName!, name: `${baseInterfaceName!.name}${baseExtension}` });
 
     const ch = calculateChevrons(classDef);
-
-    {
         if (nodeClass === NodeClass.VariableType) {
             if (classDef.dataTypeImport) {
                 // c8 ignore next
@@ -995,7 +997,6 @@ export async function _convertTypeToTypescript(
                 f.write(`}`);
             }
         }
-    }
     const baseStuff = getBaseClassWithOmit(classDef);
 
     if (nodeClass === NodeClass.VariableType) {

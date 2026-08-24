@@ -31,7 +31,7 @@ async function main() {
     const session = new PseudoSession(addressSpace);
     const options = {
         baseFolder: path.join(__dirname, "../../"),
-        prefix: "node-opcua-nodeset-",
+        prefix: "node-opcua-nodeset-"
     };
     // const nodesetCatalog2 = nodesetCatalog.filter((meta) => meta.name == "scales");
 
@@ -48,7 +48,7 @@ async function main() {
         }
         await convertNamespaceTypeToTypescript(session, index, {
             ...options,
-            nsName: meta.name,
+            nsName: meta.name
         });
     }
 
@@ -56,7 +56,8 @@ async function main() {
     // source/ folder on disk. This covers cases where a catalog entry name
     // doesn't line up with its package folder (e.g. catalog "standard" writes
     // into node-opcua-nodeset-ua).
-    const folders = fs.readdirSync(options.baseFolder)
+    const folders = fs
+        .readdirSync(options.baseFolder)
         .filter((name) => name.startsWith(options.prefix))
         .map((name) => path.join(options.baseFolder, name))
         .filter((p) => fs.existsSync(path.join(p, "source")));

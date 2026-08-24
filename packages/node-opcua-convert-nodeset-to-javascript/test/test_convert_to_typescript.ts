@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import chalk from "chalk";
 import "should";
 
@@ -9,7 +9,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
 import {
     convertTypeToTypescript,
-    ReferenceDescriptionEx,
+    type ReferenceDescriptionEx,
     walkThroughObjectTypes,
     walkThroughDataTypes,
     walkThroughReferenceTypes,
@@ -46,8 +46,8 @@ describe("Convert to Typescript", function (this: any) {
         prefix: "node-opcua-nodeset-",
         licence: <"MIT">"MIT"
     };
-    const referenceFolder = path.join(__dirname,"./references/");
-    const actualFolder = path.join(__dirname,"../tmp/");
+    const referenceFolder = path.join(__dirname, "./references/");
+    const actualFolder = path.join(__dirname, "../tmp/");
     it("P1 - should convert DeviceType", async () => {
         const filename = "node-opcua-di.txt";
 
@@ -57,16 +57,15 @@ describe("Convert to Typescript", function (this: any) {
         const deviceDataTypeNodeId = d.nodeId;
         const session = new PseudoSession(addressSpace);
 
-        const { content , dependencies} = await convertTypeToTypescript(session, deviceDataTypeNodeId, options);
+        const { content, dependencies } = await convertTypeToTypescript(session, deviceDataTypeNodeId, options);
 
         fs.writeFileSync(path.join(actualFolder, filename), content);
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
+        const expectedContent = fs.readFileSync(path.join(referenceFolder, filename), "utf-8");
         content.should.eql(expectedContent);
-
     });
     it("P2 - should convert ChromatographDevice ", async () => {
         const filename = "ChromatographDeviceType.txt";
- 
+
         const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
         nsADI.should.be.greaterThan(0);
         const d = addressSpace.findObjectType("ChromatographDeviceType", nsADI)!;
@@ -75,14 +74,13 @@ describe("Convert to Typescript", function (this: any) {
 
         const { content } = await convertTypeToTypescript(session, chromatographDeviceTypeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
- 
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
+
+        const expectedContent = fs.readFileSync(path.join(referenceFolder, filename), "utf-8");
         content.should.eql(expectedContent);
-    
     });
     it("P3 - should convert AnalyserDevice ", async () => {
-        const filename = "node-opcua-adi_UAAnalyserDevice.txt"
- 
+        const filename = "node-opcua-adi_UAAnalyserDevice.txt";
+
         const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
         nsADI.should.be.greaterThan(0);
         const d = addressSpace.findObjectType("AnalyserDeviceType", nsADI)!;
@@ -91,12 +89,12 @@ describe("Convert to Typescript", function (this: any) {
 
         const { content } = await convertTypeToTypescript(session, chromatographDeviceTypeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
- 
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
+
+        const expectedContent = fs.readFileSync(path.join(referenceFolder, filename), "utf-8");
         content.should.eql(expectedContent);
     });
     it("P4 - should convert UASessionSecurityDiagnostics ", async () => {
-        const filename = "node-opcua-ua_UASessionSecurityDiagnostics.txt"
+        const filename = "node-opcua-ua_UASessionSecurityDiagnostics.txt";
 
         const d = addressSpace.findVariableType("SessionSecurityDiagnosticsType", 0)!;
         const typeNodeId = d.nodeId;
@@ -104,8 +102,8 @@ describe("Convert to Typescript", function (this: any) {
 
         const { content } = await convertTypeToTypescript(session, typeNodeId, options);
         fs.writeFileSync(path.join(actualFolder, filename), content);
- 
-        const expectedContent = fs.readFileSync(path.join(referenceFolder,filename), "utf-8");
+
+        const expectedContent = fs.readFileSync(path.join(referenceFolder, filename), "utf-8");
         content.should.eql(expectedContent);
     });
     const colors = [chalk.grey, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.greenBright, chalk.bgGreenBright];
@@ -160,11 +158,11 @@ describe("Convert to Typescript", function (this: any) {
             baseFolder: path.join(__dirname, "../tmp/"),
             prefix: "node-opcua-nodeset-",
             licence: <"MIT">"MIT"
-        }
+        };
         const nsUA = 0;
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
-        
+
         await convertNamespaceTypeToTypescript(session, nsUA, options);
         await convertNamespaceTypeToTypescript(session, nsDI, options);
         await convertNamespaceTypeToTypescript(session, nsADI, options);

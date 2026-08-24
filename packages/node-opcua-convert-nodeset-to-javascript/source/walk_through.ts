@@ -1,6 +1,6 @@
-import { AttributeIds, BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
-import { ExpandedNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import { AttributeIds, BrowseDirection, type NodeClass, type QualifiedName } from "node-opcua-data-model";
+import { type ExpandedNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { ReferenceDescription } from "node-opcua-types";
 
 export interface ReferenceDescriptionEx extends ReferenceDescription {

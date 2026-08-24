@@ -1,12 +1,12 @@
 import { NodeClass } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
-import { EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { EnumDefinition, StructureDefinition, type StructureField } from "node-opcua-types";
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-import { Type } from "./convert_to_typescript";
+import type { Type } from "./convert_to_typescript";
 import {
-    Import,
+    type Import,
     getDescription,
     getDefinition,
     getBrowseName,
@@ -14,11 +14,10 @@ import {
     makeTypeNameNew,
     getSubtypeNodeId
 } from "./private-stuff";
-import { Cache, makeName2 } from "./private/cache";
+import { type Cache, makeName2 } from "./private/cache";
 import { getCorrespondingJavascriptType } from "./private/get_corresponding_data_type";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
 
-// eslint-disable-next-line max-statements, complexity
 export async function _exportDataTypeToTypescript(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
