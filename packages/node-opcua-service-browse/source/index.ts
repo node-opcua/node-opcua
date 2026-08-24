@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-service-browse
  */
+
 import {
     BrowseDescription,
     BrowseNextRequest,
@@ -12,22 +13,20 @@ import {
     ViewDescription
 } from "node-opcua-types";
 
-import { NodeClass } from "node-opcua-data-model";
-
 export { BrowseDirection } from "node-opcua-data-model";
 
 export {
-    ReferenceDescription,
-    BrowseResult,
     BrowseDescription,
     BrowseDescriptionOptions,
-    BrowseRequestOptions,
     BrowseNextRequest,
-    BrowseNextResponse,
     BrowseNextRequestOptions,
-    ViewDescription,
+    BrowseNextResponse,
     BrowseRequest,
-    BrowseResponse
+    BrowseRequestOptions,
+    BrowseResponse,
+    BrowseResult,
+    ReferenceDescription,
+    ViewDescription
 } from "node-opcua-types";
 
 BrowseResult.schema.fields[1].defaultValue = null;
