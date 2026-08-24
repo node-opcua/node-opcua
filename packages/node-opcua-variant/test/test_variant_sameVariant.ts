@@ -1066,7 +1066,7 @@ describe("testing return sameVariant for pull request", () => {
         // the check at line 977, so we add an extra key dynamically.
         const ext1 = new SomeExtensionObjectA({ a: 32 });
         const ext2 = new SomeExtensionObjectA({ a: 32 });
-        (ext2 as any).extraKey = 99;
+        (ext2 as unknown as Record<string, unknown>).extraKey = 99;
 
         const b1 = new Variant({ dataType: DataType.ExtensionObject, value: ext1 });
         const b2 = new Variant({ dataType: DataType.ExtensionObject, value: ext2 });

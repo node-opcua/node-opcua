@@ -38,7 +38,7 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     // c8 ignore stop
 
     // c8 ignore start
-    if (options.valueRank > 0 && options.arrayDimensions!.length !== options.valueRank) {
+    if (options.valueRank > 0 && options.arrayDimensions?.length !== options.valueRank) {
         throw new Error(
             `[CONFORMANCE] when valueRank> 0, arrayDimensions must have valueRank elements, this.valueRank =${options.valueRank}  whereas arrayDimensions.length =${options.arrayDimensions?.length}`
         );

@@ -12,7 +12,7 @@ describe("verifyRankAndDimensions", () => {
     ].forEach((params, index) => {
         it(`TH-${index} should throw ${JSON.stringify(params)}`, () => {
             should.throws(() => {
-                verifyRankAndDimensions(params as any);
+                verifyRankAndDimensions(params as unknown as { valueRank?: number; arrayDimensions?: number[] | null });
             });
         });
     });

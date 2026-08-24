@@ -1,7 +1,7 @@
 import { DataType } from "node-opcua-basic-types";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { decodeVariant, Variant } from "../source/variant";
+import { decodeVariant } from "../source/variant";
 
 const size = 10 * 1024 * 1024; // 10 MB
 const buffer = Buffer.allocUnsafe(size + 100);

@@ -785,13 +785,13 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
             break;
 
         case DataType.LocalizedText:
-            if (!value || !value.schema || value.schema !== LocalizedText.schema) {
+            if (!value?.schema || value.schema !== LocalizedText.schema) {
                 value = new LocalizedText(value);
             }
             break;
 
         case DataType.QualifiedName:
-            if (!value || !value.schema || value.schema !== QualifiedName.schema) {
+            if (!value?.schema || value.schema !== QualifiedName.schema) {
                 value = new QualifiedName(value);
             }
             break;
