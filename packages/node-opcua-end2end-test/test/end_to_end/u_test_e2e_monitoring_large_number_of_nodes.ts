@@ -22,12 +22,9 @@ import sinon from "sinon";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 import { waitUntilCondition } from "../../test_helpers/utils";
 import { pause } from "../discovery/helpers/_helper";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = false;
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
 
 /**
  * Monitoring scalability tests
@@ -38,18 +35,18 @@ interface TestHarness {
  *
  * Converted from callback-based JavaScript to async/await TypeScript while keeping original intent/comments.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Monitoring many nodes", function (this: Mocha.Context) {
-        this.timeout(Math.max(60_000, test.timeout));
+        this.timeout(Math.max(60_000, this.timeout()));
         let client: OPCUAClient;
         let endpointUrl: string;
 
         beforeEach(async () => {
-            if ((global as any).gc) {
-                (global as any).gc();
+            if (global.gc) {
+                global.gc();
             }
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
             client.on("lifetime_75", () => {
                 /* token about to expire */
             });
