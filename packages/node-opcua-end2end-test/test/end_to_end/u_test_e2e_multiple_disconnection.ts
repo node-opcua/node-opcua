@@ -3,13 +3,9 @@ import { OPCUAClient } from "node-opcua";
 import { messageLogger } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("CDC multiple disconnection", () => {
         let client: OPCUAClient;
         let endpointUrl: string;
@@ -17,7 +13,7 @@ export function t(test: TestHarness) {
 
         beforeEach(() => {
             client = OPCUAClient.create({});
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
             warningSpy = sinon.spy();
             messageLogger.on("warningMessage", warningSpy);
         });
