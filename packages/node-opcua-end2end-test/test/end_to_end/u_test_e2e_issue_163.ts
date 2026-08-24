@@ -1,29 +1,24 @@
 import "should";
 import { AttributeIds, ClientMonitoredItem, ClientSubscription, DataType, OPCUAClient, StatusCodes, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 /**
  * Bug #163 - Variable alternating between Good values and Bad status should not cause internal errors.
  * The server variable returns StatusCodes.Bad when exceeding threshold then resets to lower value.
  * Test ensures monitored item continues receiving notifications without server internal error.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Bug #163 monitored variable alternates Good/Bad status", () => {
         it("monitors variable with intermittent Bad status", async () => {
-            const server = test.server;
+            const server = test.server!;
             const refreshRate = 500; // ms
-            const addressSpace = server.engine.addressSpace;
+            const addressSpace = server.engine.addressSpace!;
             const namespace = addressSpace.getOwnNamespace();
             let variable2 = 16.0;
 
             const theVariable = namespace.addVariable({
-                organizes: addressSpace.rootFolder.objects,
+                organizedBy: addressSpace.rootFolder.objects,
                 nodeId: "ns=1;b=1020FFAA",
                 browseName: "MyVariable2",
                 dataType: "Double",
@@ -37,7 +32,7 @@ export function t(test: TestHarness) {
                         variable2 += 1.0;
                         return new Variant({ dataType: DataType.Double, value: variable2 });
                     },
-                    set: (variant: any) => {
+                    set: (variant: Variant) => {
                         variable2 = parseFloat(variant.value);
                         return StatusCodes.Good;
                     }
@@ -45,7 +40,7 @@ export function t(test: TestHarness) {
             });
 
             const client = OPCUAClient.create({});
-            await client.connect(test.endpointUrl);
+            await client.connect(test.endpointUrl!);
             try {
                 const session = await client.createSession();
                 const subscription = ClientSubscription.create(session, {
