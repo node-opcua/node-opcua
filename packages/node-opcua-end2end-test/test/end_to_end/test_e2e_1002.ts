@@ -2,6 +2,12 @@ import "should";
 import { ClientSecureChannelLayer, get_mini_nodeset_filename, OPCUAClient, OPCUAServer } from "node-opcua";
 import sinon from "sinon";
 
+// _secureChannel (private client impl field) and its transport's underlying raw socket (not
+// part of the public IClientTransport surface) are reached here to test transport-level timeout
+// behavior directly.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 const port = 2128;
 
 async function startServer(): Promise<OPCUAServer> {
@@ -40,8 +46,8 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_reestablished", spyConnectionReestablished);
 
         const actualTimeout = await client.withSessionAsync<number>(endpointUrl, async (_session) => {
-            const timeout = (client as any)._secureChannel?.getTransport().timeout;
-            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
+            const timeout = (client as InternalAny)._secureChannel?.getTransport().timeout;
+            const socket = (client as InternalAny)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
             return timeout;
         });
@@ -71,8 +77,8 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_reestablished", spyConnectionReestablished);
 
         const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
-            const timeout = (client as any)._secureChannel?.getTransport().timeout;
-            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
+            const timeout = (client as InternalAny)._secureChannel?.getTransport().timeout;
+            const socket = (client as InternalAny)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);
@@ -109,8 +115,8 @@ describe("#1002 - ability to set transport timeout ", () => {
         const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
         const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
-            const timeout = (client as any)._secureChannel?.getTransport().timeout;
-            const socket = (client as any)._secureChannel?.getTransport()._socket as NodeJS.Socket;
+            const timeout = (client as InternalAny)._secureChannel?.getTransport().timeout;
+            const socket = (client as InternalAny)._secureChannel?.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);
