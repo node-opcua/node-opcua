@@ -436,7 +436,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
         if (callMethodResult.statusCode.isGood()) {
-            if (!callMethodResult.outputArguments || callMethodResult.outputArguments.length !== 1) {
+            if (callMethodResult.outputArguments?.length !== 1) {
                 return {
                     statusCode: StatusCodes.BadInternalError,
                     applyChangesRequired: false

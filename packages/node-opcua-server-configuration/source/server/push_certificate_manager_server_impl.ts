@@ -39,6 +39,8 @@ export interface PushCertificateManagerEvents {
     applyChangesCompleted: (context?: ISessionContext) => void;
     certificateUpdated: (certificateGroupId: NodeId | string, certificate: Buffer) => void;
     trustListUpdated: (certificateGroupId: string) => void;
+    CertificateAboutToChange: (actionQueue: ActionQueue) => void;
+    CertificateChanged: (actionQueue: ActionQueue) => void;
 }
 
 export interface PushCertificateManagerServerOptions {
@@ -71,14 +73,14 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
     // ── typed event helpers ──────────────────────────────────────────
     public on<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
-    public on(event: string | symbol, listener: (...args: any[]) => void): this;
-    public on(event: string | symbol, listener: (...args: any[]) => void): this {
+    public on(event: string | symbol, listener: (...args: unknown[]) => void): this;
+    public on(event: string | symbol, listener: (...args: unknown[]) => void): this {
         return super.on(event, listener);
     }
 
     public once<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
-    public once(event: string | symbol, listener: (...args: any[]) => void): this;
-    public once(event: string | symbol, listener: (...args: any[]) => void): this {
+    public once(event: string | symbol, listener: (...args: unknown[]) => void): this;
+    public once(event: string | symbol, listener: (...args: unknown[]) => void): this {
         return super.once(event, listener);
     }
 

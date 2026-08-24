@@ -73,7 +73,7 @@ function trustListIsAlreadyOpened(trustList: UATrustList): boolean {
         return false;
     }
     const dataValue = openCountNode.readValue();
-    if (!dataValue || !dataValue.value) {
+    if (!dataValue?.value) {
         return false;
     }
     const openCount = dataValue.value.value as number;
@@ -465,7 +465,6 @@ function verificationStatusToStatusCode(status: VerificationStatus): StatusCode 
             return StatusCodes.BadCertificateUntrusted;
         case VerificationStatus.BadSecurityChecksFailed:
             return StatusCodes.BadSecurityChecksFailed;
-        case VerificationStatus.BadCertificateInvalid:
         default:
             return StatusCodes.BadCertificateInvalid;
     }

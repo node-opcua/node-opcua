@@ -20,7 +20,6 @@ import {
     exploreCertificate,
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
-    split_der,
     toPem
 } from "node-opcua-crypto/web";
 import { CertificateAuthority } from "node-opcua-pki";

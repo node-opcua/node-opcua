@@ -2,7 +2,7 @@ import { type ISessionContext, WellKnownRoles } from "node-opcua-address-space";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
 
 export function hasExpectedUserAccess(context: ISessionContext) {
-    if (!context || !context.session || !context.session.userIdentityToken) {
+    if (!context?.session?.userIdentityToken) {
         return false;
     }
     return context.currentUserHasRole(WellKnownRoles.SecurityAdmin);

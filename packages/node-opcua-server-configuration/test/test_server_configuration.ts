@@ -960,7 +960,7 @@ describe("ServerConfiguration", () => {
 
                 // Re-promote the trust list (simulates server restart)
                 const { promoteTrustList } = await import("../dist/server/promote_trust_list.js");
-                await promoteTrustList(trustListNode as any);
+                await promoteTrustList(trustListNode);
 
                 // LastUpdateTime should now reflect the filesystem mtime, not MinDate
                 const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
@@ -984,7 +984,7 @@ describe("ServerConfiguration", () => {
 
                 // Re-promote on an empty trust store
                 const { promoteTrustList } = await import("../dist/server/promote_trust_list.js");
-                await promoteTrustList(trustListNode as any);
+                await promoteTrustList(trustListNode);
 
                 // LastUpdateTime should remain at epoch (no files to read mtime from)
                 const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
