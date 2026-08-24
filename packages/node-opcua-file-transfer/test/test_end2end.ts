@@ -8,7 +8,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
 
-describe("FileType: Testing with very large file end-to-end", function (this: any) {
+describe("FileType: Testing with very large file end-to-end", function (this: Mocha.Context) {
     this.timeout(100000);
 
     let server: OPCUAServer;
@@ -21,7 +21,7 @@ describe("FileType: Testing with very large file end-to-end", function (this: an
 
         await server.start();
         const addressSpace = server.engine.addressSpace!;
-        const namespace = addressSpace.getOwnNamespace();
+        const _namespace = addressSpace.getOwnNamespace();
 
         const filename = path.join(os.tmpdir(), "largeFileServerSide.bin");
 

@@ -1,6 +1,5 @@
 import type { NoParamCallback, OpenMode, PathLike, Stats, WriteFileOptions } from "node:fs";
 
-export type ReadStreamOptions = {};
 export interface AbstractFs {
     stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
 

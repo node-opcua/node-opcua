@@ -21,8 +21,8 @@ import { OpenFileMode, OpenFileModeMask } from "../open_mode";
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
-const doDebug = checkDebugFlag("FileType");
-doDebug;
+const _doDebug = checkDebugFlag("FileType");
+_doDebug;
 /**
  *
  */
@@ -79,7 +79,7 @@ export class FileTypeData {
         this.refreshFileContentFunc = options.refreshFileContentFunc;
 
         this.filename = options.filename;
-        this.maxSize = options.maxSize!;
+        this.maxSize = options.maxSize ?? 0;
         this.mimeType = options.mimeType || "";
         this.maxChunkSizeBytes = options.maxChunkSize || FileTypeData.maxChunkSize;
 
@@ -114,7 +114,7 @@ export class FileTypeData {
                             value: new Variant({ dataType: DataType.UInt64, value: data._fileSize }),
                             statusCode: StatusCodes.Good
                         });
-                    } catch (err) {
+                    } catch (_err) {
                         return new DataValue({
                             serverTimestamp: new Date(),
                             statusCode: StatusCodes.BadDataUnavailable
@@ -241,7 +241,7 @@ interface FileTypeM {
 }
 
 interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
-function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
+function _prepare(addressSpace: IAddressSpace): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
     _context.$$files = _context.$$files || {};
@@ -251,11 +251,11 @@ function _getSessionId(context: ISessionContext) {
     if (!context.session) {
         return new NodeId();
     }
-    assert(context.session && context.session.getSessionId);
+    assert(context.session?.getSessionId);
     return context.session?.getSessionId() || new NodeId();
 }
 function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMode: OpenFileMode): UInt32 {
-    const _context = _prepare(addressSpace, context);
+    const _context = _prepare(addressSpace);
     _context.$$currentFileHandle++;
     const fileHandle: number = _context.$$currentFileHandle;
     const sessionId = _getSessionId(context);
@@ -273,7 +273,7 @@ function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMod
 }
 
 function _getFileInfo(addressSpace: IAddressSpace, context: ISessionContext, fileHandle: UInt32): FileAccessData | null {
-    const _context = _prepare(addressSpace, context);
+    const _context = _prepare(addressSpace);
     const _fileInfo = _context.$$files[fileHandle];
     const sessionId = _getSessionId(context);
 
@@ -284,8 +284,8 @@ function _getFileInfo(addressSpace: IAddressSpace, context: ISessionContext, fil
     return _fileInfo;
 }
 
-function _close(addressSpace: IAddressSpace, context: ISessionContext, fileData: FileAccessData) {
-    const _context = _prepare(addressSpace, context);
+function _close(addressSpace: IAddressSpace, fileData: FileAccessData) {
+    const _context = _prepare(addressSpace);
     delete _context.$$files[fileData.handle];
 }
 
@@ -463,7 +463,7 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
     debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     await promisify(abstractFs.close)(_fileInfo.fd);
-    _close(addressSpace, context, _fileInfo);
+    _close(addressSpace, _fileInfo);
     fileData.openCount -= 1;
 
     return {
@@ -539,7 +539,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
     try {
         // note: we do not util.promise here as it has a wierd behavior...
         ret = await new Promise((resolve, reject) =>
-            abstractFs.read(_fileInfo.fd, data, 0, length, _fileInfo.position[1], (err, bytesRead, buff) => {
+            abstractFs.read(_fileInfo.fd, data, 0, length, _fileInfo.position[1], (err, bytesRead, _buff) => {
                 if (err) {
                     return reject(err);
                 }

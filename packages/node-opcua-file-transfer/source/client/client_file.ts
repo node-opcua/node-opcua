@@ -100,7 +100,7 @@ export class ClientFile implements IClientFile {
             throw new Error(`cannot open file statusCode = ${result.statusCode.toString()} mode = ${OpenFileMode[mode]}`);
         }
 
-        this.fileHandle = result.outputArguments![0].value;
+        this.fileHandle = result.outputArguments?.[0].value;
 
         return this.fileHandle;
     }
@@ -138,7 +138,7 @@ export class ClientFile implements IClientFile {
         if (result.statusCode.isNotGood()) {
             throw new Error(`Error ${result.statusCode.toString()}`);
         }
-        return result.outputArguments![0].value as UInt64;
+        return result.outputArguments?.[0].value as UInt64;
     }
 
     public async setPosition(position: UInt64 | UInt32): Promise<void> {
@@ -190,7 +190,7 @@ export class ClientFile implements IClientFile {
         if (!result.outputArguments || result.outputArguments[0].dataType !== DataType.ByteString) {
             throw new Error("Error invalid output");
         }
-        return result.outputArguments![0].value as Buffer;
+        return result.outputArguments?.[0].value as Buffer;
     }
 
     public async write(data: Buffer): Promise<void> {
@@ -218,12 +218,12 @@ export class ClientFile implements IClientFile {
 
     public async openCount(): Promise<UInt16> {
         await this.ensureInitialized();
-        const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId!, attributeId: AttributeIds.Value };
+        const nodeToRead: ReadValueIdOptions = { nodeId: this.openCountNodeId, attributeId: AttributeIds.Value };
         const dataValue = await this.session.read(nodeToRead);
 
         // c8 ignore next
         if (doDebug) {
-            debugLog(" OpenCount ", nodeToRead.nodeId!.toString(), dataValue.toString());
+            debugLog(" OpenCount ", nodeToRead.nodeId?.toString(), dataValue.toString());
         }
         return dataValue.value.value;
     }
@@ -252,8 +252,8 @@ export class ClientFile implements IClientFile {
             if (results[1].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory Size Property");
             }
-            this.openCountNodeId = results[0].targets![0].targetId;
-            this.sizeNodeId = results[1].targets![0].targetId;
+            this.openCountNodeId = results[0].targets?.[0].targetId;
+            this.sizeNodeId = results[1].targets?.[0].targetId;
             return;
         }
         const browsePaths: BrowsePath[] = [
@@ -296,16 +296,16 @@ export class ClientFile implements IClientFile {
 
         // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
         if (false && doDebug) {
-            results.map((x: any) => debugLog(x.toString()));
+            results.map((x) => debugLog(x.toString()));
         }
-        this.openMethodNodeId = results[0].targets![0].targetId;
-        this.closeMethodNodeId = results[1].targets![0].targetId;
-        this.setPositionNodeId = results[2].targets![0].targetId;
-        this.getPositionNodeId = results[3].targets![0].targetId;
-        this.writeNodeId = results[4].targets![0].targetId;
-        this.readNodeId = results[5].targets![0].targetId;
-        this.openCountNodeId = results[6].targets![0].targetId;
-        this.sizeNodeId = results[7].targets![0].targetId;
+        this.openMethodNodeId = results[0].targets?.[0].targetId;
+        this.closeMethodNodeId = results[1].targets?.[0].targetId;
+        this.setPositionNodeId = results[2].targets?.[0].targetId;
+        this.getPositionNodeId = results[3].targets?.[0].targetId;
+        this.writeNodeId = results[4].targets?.[0].targetId;
+        this.readNodeId = results[5].targets?.[0].targetId;
+        this.openCountNodeId = results[6].targets?.[0].targetId;
+        this.sizeNodeId = results[7].targets?.[0].targetId;
     }
 
     protected async ensureInitialized(): Promise<void> {

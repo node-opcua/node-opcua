@@ -30,7 +30,7 @@ export async function writeOPCUAFile(clientFile: IClientFile, filePath: string, 
     await clientFile.setPosition(0);
     try {
         const outStream = new Writable({
-            write(chunk, encoding, callback) {
+            write(chunk, _encoding, callback) {
                 doDebug && debugLog("writing chunk", chunk.length);
                 clientFile
                     .write(chunk)

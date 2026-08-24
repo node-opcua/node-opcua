@@ -20,7 +20,7 @@ describe("FileTransfer with virtual file system & refreshFunc", () => {
     let opcuaFile: UAFile;
     const buff = Buffer.from("Hello-World", "ascii");
     before(async () => {
-        const namespace = addressSpace.getOwnNamespace();
+        const _namespace = addressSpace.getOwnNamespace();
 
         const fileType = addressSpace.findObjectType("FileType")!;
 
@@ -30,7 +30,7 @@ describe("FileTransfer with virtual file system & refreshFunc", () => {
             organizedBy: addressSpace.rootFolder.objects.server
         }) as UAFile;
 
-        const fileSystem = fsMemory as any as AbstractFs;
+        const fileSystem = fsMemory as unknown as AbstractFs;
         const filename = "/tempFile1.txt";
 
         const refreshFileContentFunc = async () => {
