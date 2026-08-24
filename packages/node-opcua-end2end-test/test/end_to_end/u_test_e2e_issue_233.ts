@@ -1,14 +1,9 @@
 import "should";
-import { AttributeIds, ClientMonitoredItem, OPCUAClient, resolveNodeId } from "node-opcua";
+import { AttributeIds, ClientMonitoredItem, type DataValue, OPCUAClient, resolveNodeId, type UAVariable } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-
-interface TestHarness {
-    endpointUrl: string;
-    server?: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 // Collect a fixed number of monitored item change notifications using a spy.
 // Returns the spy once the desired count has been reached or rejects on timeout.
@@ -23,7 +18,7 @@ async function collectMonitoredItemChanges(
             monitoredItem.removeListener("changed", onChanged);
             reject(new Error(`Expected ${count} ServerStatus changes within ${timeoutMs} ms (got ${spy.callCount}).`));
         }, timeoutMs);
-        function onChanged(dataValue: any) {
+        function onChanged(dataValue: DataValue) {
             spy(dataValue);
             if (spy.callCount >= count) {
                 clearTimeout(timer);
@@ -35,28 +30,28 @@ async function collectMonitoredItemChanges(
     });
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Issue #253 - ServerStatus monitored item notifications", function (this: Mocha.Context) {
         this.timeout(Math.max(3000, this.timeout()));
 
         let oldMinSampling = 0;
         before(() => {
             if (test.server) {
-                const node = test.server.engine.addressSpace.findNode("i=2256");
+                const node = test.server.engine.addressSpace!.findNode("i=2256") as UAVariable;
                 oldMinSampling = node.minimumSamplingInterval;
                 node.minimumSamplingInterval = 10; // speed up test
             }
         });
         after(() => {
             if (test.server) {
-                const node = test.server.engine.addressSpace.findNode("i=2256");
+                const node = test.server.engine.addressSpace!.findNode("i=2256") as UAVariable;
                 node.minimumSamplingInterval = oldMinSampling;
             }
         });
 
         it("KK1 subscription receives ServerStatus notifications", async () => {
             const client = OPCUAClient.create({});
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             await perform_operation_on_subscription(client, endpointUrl, async (_session, subscription) => {
                 const monitoredItem = ClientMonitoredItem.create(
                     subscription,
