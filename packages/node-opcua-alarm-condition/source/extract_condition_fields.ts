@@ -1,5 +1,5 @@
-import { NodeIdLike } from "node-opcua-nodeid";
-import { ISessionForExtractField, extractFields, simpleBrowsePathsToString } from "node-opcua-pseudo-session";
+import type { NodeIdLike } from "node-opcua-nodeid";
+import { extractFields, type ISessionForExtractField, simpleBrowsePathsToString } from "node-opcua-pseudo-session";
 
 export async function extractConditionFields(session: ISessionForExtractField, conditionNodeId: NodeIdLike): Promise<string[]> {
     // conditionNodeId could be a Object of type ConditionType

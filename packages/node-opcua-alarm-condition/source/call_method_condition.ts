@@ -1,30 +1,25 @@
 import assert from "node-opcua-assert";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { NodeId, NodeIdLike, coerceNodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { MethodIds } from "node-opcua-constants";
+import { LocalizedText, type LocalizedTextLike } from "node-opcua-data-model";
+import { coerceNodeId, NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { findMethodId, type IBasicSessionAsync } from "node-opcua-pseudo-session";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodRequest } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import { IBasicSessionAsync, findMethodId } from "node-opcua-pseudo-session";
-import { MethodIds } from "node-opcua-constants";
-
-
-
 
 export async function callMethodCondition(
     session: IBasicSessionAsync,
     methodName: string,
     conditionId: NodeIdLike,
     eventId: Buffer,
-    comment: LocalizedTextLike,
-   
-): Promise<StatusCode>
-{
+    comment: LocalizedTextLike
+): Promise<StatusCode> {
     conditionId = coerceNodeId(conditionId);
     assert(conditionId instanceof NodeId);
     assert(eventId instanceof Buffer);
     assert(typeof comment === "string" || comment instanceof LocalizedText);
 
-    comment = LocalizedText.coerce(comment) || new LocalizedText();    
+    comment = LocalizedText.coerce(comment) || new LocalizedText();
     const r = await findMethodId(session, conditionId, methodName);
 
     let methodId = r.methodId;
@@ -62,13 +57,12 @@ export async function callMethodCondition(
         })
     );
 
-   const results =  await session.call(methodToCalls);
-   const statusCode = results![0].statusCode;
-   return statusCode;
- }
+    const results = await session.call(methodToCalls);
+    const statusCode = results![0].statusCode;
+    return statusCode;
+}
 
-
- export async function acknowledgeCondition(
+export async function acknowledgeCondition(
     session: IBasicSessionAsync,
     conditionId: NodeIdLike,
     eventId: Buffer,

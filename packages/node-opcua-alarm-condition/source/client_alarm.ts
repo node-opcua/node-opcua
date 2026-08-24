@@ -1,13 +1,11 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCode } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
-import { IBasicSessionAsync} from "node-opcua-pseudo-session";
-import { EventStuff} from "./event_stuff";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import type { StatusCode } from "node-opcua-status-code";
+import { DataType, type Variant } from "node-opcua-variant";
 import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
-
-
+import type { EventStuff } from "./event_stuff";
 
 export interface ClientAlarm {
     conditionId: NodeId;
@@ -22,6 +20,7 @@ export interface ClientAlarm {
 /**
  * describes a OPCUA Alarm as seen in the client side
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class ClientAlarm extends EventEmitter {
     public conditionId: NodeId;
     public eventType: NodeId;
@@ -61,7 +60,7 @@ export class ClientAlarm extends EventEmitter {
             " " +
             Object.entries(this.fields)
                 .filter(([key, value]) => value.dataType !== DataType.Null)
-                .map(([key, value]) => key.padEnd(30) + "=" + value.toString())
+                .map(([key, value]) => `${key.padEnd(30)}=${value.toString()}`)
                 .join("\n") +
             "\n\n"
         );

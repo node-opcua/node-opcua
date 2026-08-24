@@ -1,12 +1,12 @@
 import assert from "node-opcua-assert";
 import { DataType } from "node-opcua-basic-types";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
+import type { CallMethodRequestLike, IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodRequest } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { IBasicSessionAsync, CallMethodRequestLike } from "node-opcua-pseudo-session";
 
 const doDebug = false;
 const debugLog = make_debugLog("A&E");

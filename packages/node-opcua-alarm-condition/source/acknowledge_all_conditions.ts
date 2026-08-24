@@ -1,18 +1,15 @@
-import { resolveNodeId } from "node-opcua-nodeid";
-import { constructEventFilter } from "node-opcua-service-filter";
-import { AttributeIds, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
-import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
-import { IBasicSessionEx } from "node-opcua-pseudo-session";
-
-import { EventStuff, fieldsToJson } from "./event_stuff";
-import { extractConditionFields } from "./extract_condition_fields";
-import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
+import { resolveNodeId } from "node-opcua-nodeid";
+import type { IBasicSessionAsync, IBasicSessionEx } from "node-opcua-pseudo-session";
+import { constructEventFilter } from "node-opcua-service-filter";
+import { AttributeIds, type ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, type Variant } from "node-opcua-variant";
 import { callConditionRefresh } from "./call_condition_refresh";
+import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
+import { type EventStuff, fieldsToJson } from "./event_stuff";
+import { extractConditionFields } from "./extract_condition_fields";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);

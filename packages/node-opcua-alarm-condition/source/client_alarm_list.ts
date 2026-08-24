@@ -1,8 +1,8 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { NodeId } from "node-opcua-nodeid";
-import { EventStuff } from "./event_stuff";
+import type { NodeId } from "node-opcua-nodeid";
 import { ClientAlarm } from "./client_alarm";
+import type { EventStuff } from "./event_stuff";
 
 export interface ClientAlarmList {
     on(eventName: "alarmChanged", handler: (alarm: ClientAlarm) => void): this;
@@ -14,8 +14,9 @@ export interface ClientAlarmList {
     emit(eventName: "alarmDeleted", alarm: ClientAlarm): boolean;
 }
 // maintain a set of alarm list for a client
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlarm> {
-    private _map: Map<string,ClientAlarm> = new Map();
+    private _map: Map<string, ClientAlarm> = new Map();
     public constructor() {
         super();
     }
@@ -57,7 +58,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
         if (!alarm) {
             const key = this.makeKey(conditionId.value, eventType.value);
             const newAlarm = new ClientAlarm(eventField);
-            this._map.set(key,newAlarm);
+            this._map.set(key, newAlarm);
             this.emit("newAlarm", newAlarm);
             this.emit("alarmChanged", newAlarm);
         } else {
@@ -92,7 +93,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
     }
 
     private makeKey(conditionId: NodeId, eventType: NodeId) {
-        return conditionId.toString() + "|" + eventType.toString();
+        return `${conditionId.toString()}|${eventType.toString()}`;
     }
     private findAlarm(conditionId: NodeId, eventType: NodeId): ClientAlarm | null {
         const key = this.makeKey(conditionId, eventType);

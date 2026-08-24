@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { AttributeIds } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
 import { make_traceLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { DataType, type Variant, type VariantLike } from "node-opcua-variant";
 
 const traceLog = make_traceLog("ClientAlarmTool");
 
@@ -44,7 +44,6 @@ export async function dumpEvent(session: IBasicSessionReadAsyncSimple, fields: s
                 ")"
             );
         } else {
-            // tslint:disable-next-line: no-console
             traceLog(
                 chalk.yellow(w("", 30), w(_fields[index], 25)),
                 chalk.cyan(w(DataType[variant.dataType as number], 10).toString()),

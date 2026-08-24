@@ -1,8 +1,8 @@
-import { NodeId } from "node-opcua-nodeid";
-import { lowerFirstLetter } from "node-opcua-utils";
-import { Variant } from "node-opcua-variant";
-
 import { make_warningLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import { lowerFirstLetter } from "node-opcua-utils";
+import type { Variant } from "node-opcua-variant";
+
 const warningLog = make_warningLog(__filename);
 
 export interface TVariant<T> extends Variant {
@@ -22,12 +22,10 @@ export interface EventStuff {
     conditionName?: TVariant<string>;
 }
 
-
 /**
  * @private
  */
 export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: boolean): EventStuff {
-
     function setProperty(_data: Record<string, unknown>, fieldName: string, value: Variant) {
         let name: string;
         if (!fieldName || value === null) {
