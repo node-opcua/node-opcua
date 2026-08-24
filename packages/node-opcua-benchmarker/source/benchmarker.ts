@@ -39,11 +39,11 @@ async function measure_cycle(func: TestFunction): Promise<number> {
     return elapsed[0] + elapsed[1] / 1000000000;
 }
 
-function minimum<T>(arr: T[], predicate: (t: T) => number): T {
+function minimum<T>(arr: T[], predicate: (t: T) => number): T | undefined {
     return arr.reduce((prev: T, current: T) => (predicate(prev) < predicate(current) ? prev : current), arr[0]);
 }
 
-function maximum<T>(arr: T[], predicate: (t: T) => number): T {
+function maximum<T>(arr: T[], predicate: (t: T) => number): T | undefined {
     return arr.reduce((prev: T, current: T) => (predicate(prev) > predicate(current) ? prev : current), arr[0]);
 }
 
@@ -100,14 +100,18 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
         options.min_count = options.min_count || 5;
 
         for (const test of Object.values(this.suites)) {
-            test.result = await this.measure_perf(test.name, test.functor, options!);
+            test.result = await this.measure_perf(test.name, test.functor, options);
         }
-        const pred = (bench: ITestRun) => bench.result!.ops;
+        // every entry in this.suites was just given a .result by the loop above
+        const pred = (bench: ITestRun) => bench.result?.ops ?? 0;
         // find fastest
         this.fastest = maximum(Object.values(this.suites), pred);
         this.slowest = minimum(Object.values(this.suites), pred);
+        if (!this.fastest || !this.slowest) {
+            throw new Error("Benchmarker.run() called with no tests added");
+        }
 
-        this.speedUp = Math.floor(this.fastest!.result!.ops / this.slowest!.result!.ops);
+        this.speedUp = Math.floor((this.fastest.result?.ops ?? 0) / (this.slowest.result?.ops ?? 1));
 
         this.emit("complete", this.fastest, this.speedUp);
 

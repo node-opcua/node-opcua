@@ -11,15 +11,15 @@ describe("Testing Benchmarker", () => {
 
         bench
             .add("for simple loop", () => {
-                let sum = 0;
+                let _sum = 0;
                 for (let i = 0; i < values.length; i++) {
-                    sum += values[i];
+                    _sum += values[i];
                 }
             })
             .add("forEach        ", () => {
-                let sum = 0;
+                let _sum = 0;
                 values.forEach((e) => {
-                    sum += e;
+                    _sum += e;
                 });
             })
             .on("cycle", (message) => {
