@@ -745,8 +745,8 @@ _declareTypeArrayHelper(DataType.Int32, Int32Array);
 _declareTypeArrayHelper(DataType.UInt16, Uint16Array);
 _declareTypeArrayHelper(DataType.UInt32, Uint32Array);
 
-function decodeDimension(stream: BinaryStream) {
-    return decodeGeneralArray(DataType.UInt32, stream);
+function decodeDimension(stream: BinaryStream): number[] | null {
+    return decodeGeneralArray(DataType.UInt32, stream) as number[] | null;
 }
 
 function encodeDimension(dimensions: number[], stream: OutputBinaryStream) {

@@ -19,17 +19,25 @@ const debugLog = make_debugLog(__filename);
  */
 export function check_schema_correctness(schema: IStructuredTypeSchema): void {
     assert(typeof schema.name === "string", " expecting schema to have a name");
-    assert(schema.fields instanceof Array, ` expecting schema to provide a set of fields ${schema.name}`);
+    assert(Array.isArray(schema.fields), ` expecting schema to provide a set of fields ${schema.name}`);
     assert(schema.baseType === undefined || typeof schema.baseType === "string");
 }
 
 /**
-
+ * initialize the value of a field, coercing/defaulting it as needed according to the field schema.
+ *
+ * This is a dispatch function used by every generated (and hand-written) BaseUAObject-derived
+ * constructor across the whole monorepo, and it is always called with the value assigned directly
+ * to a concretely-typed class field (e.g. `this.protocolVersion = initialize_field(schema.fields[0], options.protocolVersion)`).
+ * It is declared generic so each call site keeps inferring/annotating its own concrete field type
+ * rather than this shared helper widening every caller to `unknown`.
+ *
  * @param value
  * @param defaultValue
  * @return {*}
  */
-export function initialize_field(field: StructuredTypeField, value: unknown, factory?: DataTypeFactory): any {
+// biome-ignore-start lint/suspicious/noExplicitAny: dispatch helper called by hundreds of concretely-typed call sites across the monorepo; see generic default above
+export function initialize_field<T = any>(field: StructuredTypeField, value: unknown, _factory?: DataTypeFactory): T {
     const _t = field.schema;
 
     if (field.allowSubTypes && field.category === "complex") {
@@ -44,7 +52,7 @@ export function initialize_field(field: StructuredTypeField, value: unknown, fac
     }
     if (field.category === FieldCategory.complex) {
         if (field.fieldTypeConstructor) {
-            return new field.fieldTypeConstructor(value as Record<string, unknown>);
+            return new field.fieldTypeConstructor(value as Record<string, unknown>) as T;
         } else {
             debugLog("xxxx => missing constructor for field type", field.fieldType);
         }
@@ -54,13 +62,13 @@ export function initialize_field(field: StructuredTypeField, value: unknown, fac
         const defaultValue = _t.computer_default_value ? _t.computer_default_value(field.defaultValue) : field.defaultValue;
         if (value === undefined) {
             if (_t.coerce) {
-                return _t.coerce(defaultValue);
+                return _t.coerce(defaultValue) as T;
             }
-            return defaultValue;
+            return defaultValue as T;
         }
         if (defaultValue === null) {
             if (value === null) {
-                return null;
+                return null as T;
             }
         }
     }
@@ -72,29 +80,32 @@ export function initialize_field(field: StructuredTypeField, value: unknown, fac
             throw Error(` invalid value ${value} for field ${field.name} of type ${field.fieldType}`);
         }
     }
-    return value;
+    return value as T;
 }
+// biome-ignore-end lint/suspicious/noExplicitAny: dispatch helper called by hundreds of concretely-typed call sites across the monorepo
 
 /**
-
+ * see {@link initialize_field} - same reasoning applies: generic so each of the many concretely-typed
+ * call sites across the monorepo keeps its own element type instead of being widened to `unknown[]`.
+ *
  * @param field
  * @param valueArray
  * @return
  */
-export function initialize_field_array(field: FieldType, valueArray: any, factory?: DataTypeFactory): any {
-    const _t = field.schema;
-
+// biome-ignore-start lint/suspicious/noExplicitAny: dispatch helper called by hundreds of concretely-typed call sites across the monorepo; see generic default above
+export function initialize_field_array<T = any>(field: FieldType, valueArrayIn: unknown, factory?: DataTypeFactory): T[] | null {
     assert(field !== null && typeof field === "object");
     assert(field.isArray);
 
-    if (!valueArray && field.defaultValue === null) {
+    if (!valueArrayIn && field.defaultValue === null) {
         return null;
     }
-    valueArray = valueArray || [];
-    const arr: unknown[] = [];
+    const valueArray = (valueArrayIn || []) as unknown[];
+    const arr: T[] = [];
     for (let i = 0; i < valueArray.length; i++) {
-        const value = initialize_field(field, valueArray[i], factory);
+        const value = initialize_field<T>(field, valueArray[i], factory);
         arr.push(value);
     }
     return arr;
 }
+// biome-ignore-end lint/suspicious/noExplicitAny: dispatch helper called by hundreds of concretely-typed call sites across the monorepo

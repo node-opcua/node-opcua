@@ -11,13 +11,13 @@ const errorLog = make_errorLog("Factory");
 export interface BasicTypeOptions {
     name: string;
     subType: string;
-    encode?: (value: any, stream: OutputBinaryStream) => void;
-    decode?: (stream: BinaryStream) => void;
-    validate?: (value: any) => boolean;
-    coerce?: (value: any) => any;
-    toJSON?: (value: any) => any;
-    random?: () => any;
-    defaultValue?: any;
+    encode?(value: unknown, stream: OutputBinaryStream): void;
+    decode?(stream: BinaryStream): void;
+    validate?(value: unknown): boolean;
+    coerce?(value: unknown): unknown;
+    toJSON?(value: unknown): unknown;
+    random?(): unknown;
+    defaultValue?: unknown;
 }
 /**
  * register a Basic Type ,
@@ -84,10 +84,10 @@ export function registerBasicType(schema: BasicTypeOptions): void {
         subType: schema.subType,
 
         coerce: coerceFunc,
-        decode: decodeFunc!,
-        encode: encodeFunc!,
+        decode: decodeFunc,
+        encode: encodeFunc,
 
-        random,
+        random: random as (() => unknown) | undefined,
 
         defaultValue,
 

@@ -75,11 +75,11 @@ import {
  */
 export class TypeSchemaBase implements CommonInterface {
     public name: string;
-    public defaultValue: any;
-    public encode?: (value: any, stream: OutputBinaryStream) => void;
-    public decode?: (stream: BinaryStream) => any;
-    public coerce?: (value: any) => any;
-    public toJSON?: () => string;
+    public defaultValue: unknown;
+    public encode?(value: unknown, stream: OutputBinaryStream): void;
+    public decode?(stream: BinaryStream): unknown;
+    public coerce?(value: unknown): unknown;
+    public toJSON?(): string;
     public category: FieldCategory;
     public subType: string;
     public isAbstract: boolean;
@@ -93,7 +93,7 @@ export class TypeSchemaBase implements CommonInterface {
         this.name = options.name;
         for (const prop in options) {
             if (Object.hasOwn(options, prop)) {
-                (this as any)[prop] = (options as any)[prop];
+                (this as unknown as Record<string, unknown>)[prop] = (options as unknown as Record<string, unknown>)[prop];
             }
         }
         this.subType = options.subType || "";
@@ -105,7 +105,7 @@ export class TypeSchemaBase implements CommonInterface {
      * @param defaultValue {*} the default value
      * @return {*}
      */
-    public computer_default_value(defaultValue: unknown): any {
+    public computer_default_value(defaultValue: unknown): unknown {
         if (defaultValue === undefined) {
             defaultValue = this.defaultValue;
         }
@@ -137,8 +137,8 @@ export class TypeSchemaBase implements CommonInterface {
 export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefinition {
     public subType: string;
     public isAbstract: boolean;
-    public encode: (value: any, stream: OutputBinaryStream) => void;
-    public decode: (stream: BinaryStream) => any;
+    public encode: (value: unknown, stream: OutputBinaryStream) => void;
+    public decode: (stream: BinaryStream) => unknown;
 
     constructor(options: BasicTypeDefinitionOptions) {
         super(options);
@@ -156,16 +156,6 @@ export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefiniti
 //   Enumeration
 
 const defaultXmlElement = "";
-
-interface T {
-    subType?: any;
-    name: string;
-    encode: (value: any, stream: OutputBinaryStream) => void;
-    decode: (stream: BinaryStream) => any;
-    coerce?: any;
-    defaultValue?: any;
-    toJSON?: any;
-}
 
 // Built-In Type
 const _defaultType: BasicTypeDefinitionOptionsBase[] = [

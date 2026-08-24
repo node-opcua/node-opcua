@@ -1,7 +1,7 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { make_warningLog } from "node-opcua-debug";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import type { StructuredTypeField } from "node-opcua-factory";
+import type { IBaseUAObject, StructuredTypeField } from "node-opcua-factory";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 //
@@ -53,7 +53,8 @@ export async function resolveOpaqueStructureInExtensionObject(
         }
         return element;
     }
-    function fixOpaqueStructure(object: Record<string, unknown>, field: StructuredTypeField, data: D, args?: unknown) {
+    function fixOpaqueStructure(objectArg: IBaseUAObject, field: StructuredTypeField, data: D, args?: unknown) {
+        const object = objectArg as unknown as Record<string, unknown>;
         const a = object[field.name];
         if (!a) {
             return;

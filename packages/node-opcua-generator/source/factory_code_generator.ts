@@ -381,7 +381,7 @@ function write_constructor(write: WriteFunc, schema: IStructuredTypeSchema): voi
                 write(`     * @type ${makeFieldType(field)}`);
             }
             if (field.defaultValue !== undefined && typeof field.defaultValue !== "function") {
-                write("     * @default  ", field.defaultValue);
+                write("     * @default  ", String(field.defaultValue));
             }
 
             write("     */");

@@ -58,7 +58,7 @@ function figureOutSchema(
         return underConstructSchema;
     }
 
-    let returnValue: any = null;
+    let returnValue: CommonInterface | null | undefined = null;
 
     // may be the field.type  contains a ns<X>: prefix !! like the one found in Beckhoff PLC !
     const m = field.fieldType.match(regExp);
@@ -171,10 +171,10 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
 
     public documentation?: string;
 
-    public isValid?: (options: any) => boolean;
+    public isValid?(options: unknown): boolean;
 
-    public decodeDebug?: (stream: BinaryStream, options: any) => any;
-    public constructHook?: (options: any) => any;
+    public decodeDebug?(stream: BinaryStream, options: unknown): unknown;
+    public constructHook?(options: unknown): unknown;
 
     public encodingDefaultBinary?: ExpandedNodeId;
     public encodingDefaultXml?: ExpandedNodeId;
@@ -233,7 +233,7 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
                 "  field   =  " +
                     f.name.padEnd(30) +
                     " isArray= " +
-                    (f.isArray ? true : false) +
+                    !!f.isArray +
                     " " +
                     f.fieldType.toString().padEnd(30) +
                     (f.switchBit !== undefined ? ` switchBit ${f.switchBit}` : "") +
@@ -304,12 +304,17 @@ export function extractAllPossibleFields(schema: IStructuredTypeSchema): string[
 
  *
  */
-export function check_options_correctness_against_schema(obj: any, schema: IStructuredTypeSchema, options: any): boolean {
+export function check_options_correctness_against_schema(
+    // biome-ignore lint/complexity/noBannedTypes: obj.constructor genuinely has type Function here (it is `this.constructor` at call sites)
+    obj: { constructor: Function & { possibleFields?: string[] } },
+    schema: IStructuredTypeSchema,
+    optionsIn: unknown
+): boolean {
     if (!parameters.debugSchemaHelper) {
         return true; // ignoring set
     }
 
-    options = options || {};
+    const options: Record<string, unknown> = (optionsIn as Record<string, unknown>) || {};
 
     // c8 ignore next
     if (!(options !== null && typeof options === "object") && !(typeof options === "object")) {

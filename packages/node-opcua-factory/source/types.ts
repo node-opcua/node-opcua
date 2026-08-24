@@ -20,18 +20,18 @@ export enum FieldCategory {
 //
 export interface CommonInterface {
     name: string;
-    defaultValue?: any;
+    defaultValue?: unknown;
 
-    encode?: (value: any, stream: OutputBinaryStream) => void;
-    decode?: (stream: BinaryStream) => any;
-    coerce?: (value: any) => any;
+    encode?(value: unknown, stream: OutputBinaryStream): void;
+    decode?(stream: BinaryStream): unknown;
+    coerce?(value: unknown): unknown;
 
-    toJSON?: (value: any) => any;
+    toJSON?(value: unknown): unknown;
     category: FieldCategory;
 
-    random?: () => any;
-    validate?: (value: any) => void;
-    computer_default_value(defaultValue: any): any;
+    random?(): unknown;
+    validate?(value: unknown): void;
+    computer_default_value(defaultValue: unknown): unknown;
     subType: string;
     isAbstract: boolean;
 
@@ -40,7 +40,7 @@ export interface CommonInterface {
 
 export interface FieldInterfaceOptions {
     name: string;
-    defaultValue?: any | DefaultValueFunc;
+    defaultValue?: unknown | DefaultValueFunc;
     fieldType: string;
     isArray?: boolean;
     documentation?: string;
@@ -54,9 +54,16 @@ export interface FieldInterfaceOptions {
     valueRank?: number;
 }
 
-export type Func1<T> = (value: any, field: StructuredTypeField, data: T, args?: any) => void;
+export type Func1<T> = (value: IBaseUAObject, field: StructuredTypeField, data: T, args?: unknown) => void;
+
+export interface Tracer {
+    trace(...args: unknown[]): void;
+    dump(...args: unknown[]): void;
+    encoding_byte(...args: unknown[]): void;
+}
+
 export interface DecodeDebugOptions {
-    tracer: any;
+    tracer: Tracer;
     name: string;
 }
 
@@ -65,11 +72,11 @@ export interface IBaseUAObject {
     encode(stream: OutputBinaryStream): void;
     decode(stream: BinaryStream): void;
     binaryStoreSize(): number;
-    toString(...args: any[]): string;
+    toString(...args: unknown[]): string;
     isValid(): boolean;
     explore(): string;
     applyOnAllFields<T>(func: Func1<T>, data: T): void;
-    toJSON(): any;
+    toJSON(): unknown;
     decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void;
     clone(): IBaseUAObject;
 }
@@ -93,7 +100,7 @@ export interface StructuredTypeField {
     isArray?: boolean;
     documentation?: string;
     category: FieldCategory;
-    defaultValue?: any | DefaultValueFunc;
+    defaultValue?: unknown | DefaultValueFunc;
     schema: CommonInterface;
     switchBit?: number; // the bit number
     switchValue?: number;
@@ -104,8 +111,8 @@ export interface StructuredTypeField {
     fieldTypeConstructor?: ConstructorFunc;
 
     subType?: string;
-    validate?: (value: any) => boolean;
-    decode?: (stream: BinaryStream) => any;
+    validate?(value: unknown): boolean;
+    decode?(stream: BinaryStream): unknown;
 }
 
 export interface FieldEnumeration extends StructuredTypeField {
@@ -122,7 +129,7 @@ export interface FieldBasic extends StructuredTypeField {
 
 export type FieldType = FieldEnumeration | FieldComplex | FieldBasic;
 
-export type DefaultValueFunc = () => any;
+export type DefaultValueFunc = () => unknown;
 
 export interface StructuredTypeOptions {
     name: string;
@@ -141,16 +148,16 @@ export interface TypeSchemaConstructorOptions {
     subType?: string;
     isAbstract?: boolean;
     category?: FieldCategory;
-    defaultValue?: any;
-    encode?: (value: any, stream: OutputBinaryStream) => void;
-    decode?: (stream: BinaryStream) => any;
-    coerce?: (value: any) => any;
+    defaultValue?: unknown;
+    encode?(value: unknown, stream: OutputBinaryStream): void;
+    decode?(stream: BinaryStream): unknown;
+    coerce?(value: unknown): unknown;
 }
 
 export interface BasicTypeDefinitionOptionsB extends TypeSchemaConstructorOptions {
-    toJSON?: (value: any) => any;
-    random?: () => any;
-    validate?: (value: any) => void;
+    toJSON?(value: unknown): unknown;
+    random?(): unknown;
+    validate?(value: unknown): void;
 }
 
 export interface BasicTypeDefinitionOptionsBase extends BasicTypeDefinitionOptionsB {
@@ -188,10 +195,10 @@ export interface IStructuredTypeSchema extends CommonInterface {
 
     documentation?: string;
 
-    isValid?: (options: any) => boolean;
+    isValid?(options: unknown): boolean;
 
-    decodeDebug?: (stream: BinaryStream, options: any) => any;
-    constructHook?: (options: any) => any;
+    decodeDebug?(stream: BinaryStream, options: unknown): unknown;
+    constructHook?(options: unknown): unknown;
 
     encodingDefaultBinary?: ExpandedNodeId;
     encodingDefaultXml?: ExpandedNodeId;

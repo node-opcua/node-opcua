@@ -1,36 +1,36 @@
 import assert from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-export function defaultEncode(value: any, stream: OutputBinaryStream): void {
+export function defaultEncode(_value: unknown, _stream: OutputBinaryStream): void {
     /** */
 }
 
-export function defaultDecode(stream: BinaryStream): any {
+export function defaultDecode(_stream: BinaryStream): unknown {
     return null;
 }
 
-export function defaultGuidValue(): any {
+export function defaultGuidValue(): Buffer {
     return Buffer.alloc(0);
 }
 
-export function toJSONGuid(value: any): any {
+export function toJSONGuid(value: unknown): unknown {
     if (typeof value === "string") {
         return value;
     }
     assert(value instanceof Buffer);
-    return value.toString("base64");
+    return (value as Buffer).toString("base64");
 }
 
-export function encodeAny(value: any, stream: OutputBinaryStream) {
+export function encodeAny(_value: unknown, _stream: OutputBinaryStream) {
     assert(false, "type 'Any' cannot be encoded");
 }
 
-export function decodeAny(stream: BinaryStream) {
+export function decodeAny(_stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
 }
 
-export function encodeNull(value: any, stream: OutputBinaryStream): void {}
+export function encodeNull(_value: unknown, _stream: OutputBinaryStream): void {}
 
-export function decodeNull(stream: BinaryStream): any {
+export function decodeNull(_stream: BinaryStream): unknown {
     return null;
 }

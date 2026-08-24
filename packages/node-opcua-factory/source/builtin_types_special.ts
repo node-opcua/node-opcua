@@ -9,18 +9,20 @@ import { registerType } from "./builtin_types";
 import type { ConstructorFunc } from "./types";
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
-function _self_encode(constructor: any) {
+function _self_encode(constructor: ConstructorFunc) {
     assert(typeof constructor === "function");
-    return (value: any, stream: OutputBinaryStream) => {
-        if (!value || !value.encode) {
-            value = new constructor(value);
-        }
+    return (valueIn: unknown, stream: OutputBinaryStream) => {
+        const value = (
+            (valueIn as { encode?: unknown })?.encode ? valueIn : new constructor(valueIn as Record<string, unknown>)
+        ) as {
+            encode(stream: OutputBinaryStream): void;
+        };
         value.encode(stream);
     };
 }
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
-function _self_decode(constructor: any) {
+function _self_decode(constructor: ConstructorFunc) {
     assert(typeof constructor === "function");
     return (stream: BinaryStream) => {
         const value = new constructor();
@@ -30,10 +32,10 @@ function _self_decode(constructor: any) {
 }
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
-function _self_coerce(constructor: any) {
+function _self_coerce(constructor: ConstructorFunc) {
     assert(typeof constructor === "function");
-    return (value: any) => {
-        const obj = new constructor(value);
+    return (value: unknown) => {
+        const obj = new constructor(value as Record<string, unknown>);
         return obj;
     };
 }

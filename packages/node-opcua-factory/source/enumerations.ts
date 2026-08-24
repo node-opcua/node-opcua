@@ -18,7 +18,7 @@ function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinar
 
 function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     const value = stream.readInteger();
-    const e = typedEnum.get(value) as any as string;
+    const e = typedEnum.get(value);
     // c8 ignore next
     if (!e) {
         throw new Error(`cannot  coerce value=${value} to ${typedEnum.constructor.name}`);
@@ -78,7 +78,7 @@ const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, 
  * @return {Enum}
  */
 export function registerEnumeration(options: EnumerationDefinitionOptions): Enum {
-    const dataTypeNodeId = resolveNodeId(DataTypeIds[options.name as any]);
+    const dataTypeNodeId = resolveNodeId((DataTypeIds as unknown as Record<string, number>)[options.name]);
 
     assert(Object.hasOwn(options, "name"));
     assert(Object.hasOwn(options, "enumValues"));

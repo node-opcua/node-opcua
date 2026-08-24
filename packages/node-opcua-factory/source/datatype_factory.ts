@@ -4,7 +4,6 @@
 
 import util from "node:util";
 import chalk from "chalk";
-import { assert } from "node-opcua-assert";
 import { DataTypeIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
@@ -275,7 +274,7 @@ export class DataTypeFactory {
                     " with ID " +
                     expandedNodeId +
                     "  already in constructorMap for  " +
-                    this._structureInfoByEncodingMap.get(expandedNodeIdKey)!.schema.name
+                    this._structureInfoByEncodingMap.get(expandedNodeIdKey)?.schema.name
             );
         }
 
@@ -284,7 +283,7 @@ export class DataTypeFactory {
 
     public toString(): string {
         const l: string[] = [];
-        function write(...args: [any, ...any[]]) {
+        function write(...args: unknown[]) {
             l.push(util.format.apply(util.format, args));
         }
         dumpDataFactory(this, write);
@@ -313,15 +312,15 @@ export class DataTypeFactory {
     }
 }
 
-function dumpSchema(schema: IStructuredTypeSchema, write: any) {
+function dumpSchema(schema: IStructuredTypeSchema, write: (...args: unknown[]) => void) {
     write("name           ", schema.name);
     write("dataType       ", schema.dataTypeNodeId.toString());
     write("binaryEncoding ", schema.encodingDefaultBinary?.toString());
     for (const f of schema.fields) {
-        write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
+        write("          ", f.name.padEnd(30, " "), !!f.isArray, f.fieldType);
     }
 }
-function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ...any[]]) => void) {
+function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: unknown[]) => void) {
     for (const structureTypeName of dataFactory.structuredTypesNames()) {
         const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
 
