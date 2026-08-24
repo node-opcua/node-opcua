@@ -1,7 +1,7 @@
 import Table from "cli-table3";
 import truncate from "cli-truncate";
 import type { IEventData } from "node-opcua-address-space";
-import { construct_demo_alarm_in_address_space } from "node-opcua-address-space/testHelpers";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
 import {
     acknowledgeAllConditions,
     type ClientAlarm,
@@ -15,6 +15,21 @@ import {
 } from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "../_helper_umbrella";
+
+type AlarmTestContext = UmbrellaTestContext & IAlarmTestData;
+
+// the demo alarm fixture populates EventStuff-shaped fields beyond what the EventStuff
+// interface declares (enabledState, branchId, message, severity, lastSeverity, comment); this
+// mirrors the subset displayAlarms actually reads.
+interface DemoAlarmFields {
+    enabledState: { id: { value: boolean } };
+    branchId: { value: { toString(): string } };
+    message: { value: { text: string } };
+    severity: { value: number };
+    lastSeverity: { value: number };
+    comment: { value: { text: string } };
+}
 
 const doDebug = false;
 
@@ -46,7 +61,7 @@ function displayAlarms(alarms: ClientAlarmList) {
         ]
     });
     for (const alarm of alarms.alarms()) {
-        const fields = alarm.fields as any;
+        const fields = alarm.fields as typeof alarm.fields & DemoAlarmFields;
         const isEnabled = fields.enabledState.id.value;
         table.push([
             alarm.eventType.toString(),
@@ -67,10 +82,10 @@ function displayAlarms(alarms: ClientAlarmList) {
     console.log("-----");
 }
 
-export function t(test: any) {
+export function t(test: AlarmTestContext) {
     describe("A&C3 client side alarm monitoring", () => {
         let client: OPCUAClient;
-        function resetConditions(test: { tankLevelCondition: any; tankLevelCondition2: any; tankLevel: any; tankLevel2: any }) {
+        function resetConditions(test: AlarmTestContext) {
             // set alarms to a known state
             test.tankLevelCondition.setEnabledState(true);
             test.tankLevelCondition.currentBranch().setRetain(false);
@@ -94,7 +109,7 @@ export function t(test: any) {
             // add a condition to the server
             // Server - HasNotifier -> Tank -> HasEventSource -> TankLevel -> HasCondition -> TankLevelCondition
 
-            const addressSpace = test.server.engine.addressSpace;
+            const addressSpace = test.server!.engine.addressSpace!;
             construct_demo_alarm_in_address_space(test, addressSpace);
             client = OPCUAClient.create({
                 keepSessionAlive: false,
@@ -117,7 +132,7 @@ export function t(test: any) {
                 dataType: "Double",
                 value
             });
-            /// test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
+            /// test.tankLevelCondition.limitState.getCurrentState()!.should.eql("HighHigh");
         }
         function _setAlarmHighHigh() {
             const value = 0.99;
@@ -128,7 +143,7 @@ export function t(test: any) {
                 dataType: "Double",
                 value
             });
-            test.tankLevelCondition.limitState.getCurrentState().should.eql("HighHigh");
+            test.tankLevelCondition.limitState.getCurrentState()!.should.eql("HighHigh");
         }
         function setAlarmLowLow() {
             const value = 0.01;
@@ -139,13 +154,13 @@ export function t(test: any) {
                 dataType: "Double",
                 value
             });
-            test.tankLevelCondition.limitState.getCurrentState().should.eql("Low");
+            test.tankLevelCondition.limitState.getCurrentState()!.should.eql("Low");
         }
         async function pause() {
             await new Promise((resolve) => setTimeout(resolve, 1500));
         }
         it("should monitor all alarms", async () => {
-            await perform_operation_on_subscription_async(client, test.endpointUrl, async (session, _subscription) => {
+            await perform_operation_on_subscription_async(client, test.endpointUrl!, async (session, _subscription) => {
                 setAlarmInBound();
                 // make sure no alarm exists anymore
                 try {
@@ -155,9 +170,7 @@ export function t(test: any) {
                     function _d(alarms: ClientAlarm[]) {
                         function n(o: NodeIdLike) {
                             const no = test.tankLevel.addressSpace.findNode(o);
-                            return no
-                                ? `${no.browseName.toString()} ${no.nodeId.toString(test.tankLevel.addressSpace)}`
-                                : o.toString();
+                            return no ? `${no.browseName.toString()} ${no.nodeId.toString()}` : o.toString();
                         }
                         function dd(alarm: ClientAlarm) {
                             const a = alarm.fields;
@@ -173,9 +186,10 @@ export function t(test: any) {
                             dd(a);
                         }
                     }
-                    const addressSpace = test.server.engine.addressSpace;
-                    const server = addressSpace.findNode("Server");
-                    server.on("event", (eventData: IEventData & { [key: string]: Variant }) => {
+                    const addressSpace = test.server!.engine.addressSpace!;
+                    const server = addressSpace.findNode("Server")!;
+                    server.on("event", (eventDataRaw: IEventData) => {
+                        const eventData = eventDataRaw as IEventData & { [key: string]: Variant };
                         console.log(
                             "server send event ",
                             eventData.eventId.toString(),
