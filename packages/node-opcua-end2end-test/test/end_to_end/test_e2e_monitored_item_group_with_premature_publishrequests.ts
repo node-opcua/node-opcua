@@ -5,6 +5,7 @@ import {
     type ErrorCallback,
     type Message,
     MessageSecurityMode,
+    type NotificationMessage,
     OPCUAClient,
     OPCUAServer,
     type ReadValueIdOptions,
@@ -45,7 +46,14 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
 
         return server;
     }
-    let old: any;
+    type SendResponseFn = (
+        this: ServerSecureChannelLayer,
+        msgType: string,
+        response: Response,
+        message: Message,
+        callback?: ErrorCallback
+    ) => void;
+    let old: SendResponseFn;
 
     function makeCreateMonitoredItemsResponseLate() {
         ServerSecureChannelLayer.prototype.send_response = function send_response(
@@ -103,7 +111,7 @@ describe("[CLIENT] monitoredItem group when NotificationChange arrive before Cre
             requestedMaxKeepAliveCount: 5,
             publishingEnabled: true
         });
-        subscription.on("raw_notification", (_notificationMessage: any) => {
+        subscription.on("raw_notification", (_notificationMessage: NotificationMessage) => {
             // console.log(notificationMessage.toString());
         });
 
