@@ -16,14 +16,14 @@ import ts from "typescript";
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-doDebug;
+const _doDebug = checkDebugFlag(__filename);
+_doDebug;
 
 /**
  * @module opcua.miscellaneous
  */
 
-function compileTScriptCode(typescriptFilename: string): string {
+function _compileTScriptCode(typescriptFilename: string): string {
     const content = fs.readFileSync(typescriptFilename, "utf-8");
 
     const compilerOptions = {
@@ -46,11 +46,14 @@ function compileTScriptCode(typescriptFilename: string): string {
     const sourceMapFilename = typescriptFilename.replace(/\.ts$/, ".js.map");
 
     fs.writeFileSync(javascriptFilename, res1.outputText, "utf-8");
-    fs.writeFileSync(sourceMapFilename, res1.sourceMapText!, "utf-8");
+    if (!res1.sourceMapText) {
+        throw new Error("transpileModule did not produce a source map (sourceMap: true is set above)");
+    }
+    fs.writeFileSync(sourceMapFilename, res1.sourceMapText, "utf-8");
 
     return res1.outputText;
 }
-compileTScriptCode;
+_compileTScriptCode;
 
 export const verbose = false;
 

@@ -63,7 +63,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
 
     const str = [];
 
-    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match(/^[0-9]+$/));
+    const values = Object.keys(enumerationSchema.enumValues).filter((a: string) => a.match(/^[0-9]+$/));
 
     for (const value of values) {
         str.push(`    ${enumerationSchema.enumValues[value]} = ${value}`);
@@ -143,10 +143,10 @@ export async function generate(filename: string, generatedTypescriptFilename: st
 
     const idProvider: MapDataTypeAndEncodingIdProvider = {
         getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId | null {
-            const dataType = (DataTypeIds as any)[name] || 0;
-            const binEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultBinary`] || 0;
-            const xmlEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultXml`] || 0;
-            const jsonEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultJson`] || 0;
+            const dataType = (DataTypeIds as unknown as Record<string, number>)[name] || 0;
+            const binEncoding = (ObjectIds as unknown as Record<string, number>)[`${name}_Encoding_DefaultBinary`] || 0;
+            const xmlEncoding = (ObjectIds as unknown as Record<string, number>)[`${name}_Encoding_DefaultXml`] || 0;
+            const jsonEncoding = (ObjectIds as unknown as Record<string, number>)[`${name}_Encoding_DefaultJson`] || 0;
             if (dataType === undefined) {
                 return null;
             }
@@ -269,29 +269,29 @@ import {
     // write(`}`);
     // write(``);
 
-    const alreadyDone: { [key: string]: any } = {};
-    alreadyDone["ExtensionObject"] = true;
-    alreadyDone["NodeId"] = true;
+    const alreadyDone: { [key: string]: boolean | EnumerationDefinitionSchema | IStructuredTypeSchema } = {};
+    alreadyDone.ExtensionObject = true;
+    alreadyDone.NodeId = true;
 
-    alreadyDone["ExpandedNodeId"] = true;
-    alreadyDone["Variant"] = true;
-    alreadyDone["XmlElement"] = true;
+    alreadyDone.ExpandedNodeId = true;
+    alreadyDone.Variant = true;
+    alreadyDone.XmlElement = true;
 
-    alreadyDone["NodeIdType"] = true;
-    alreadyDone["TwoByteNodeId"] = true;
-    alreadyDone["FourByteNodeId"] = true;
-    alreadyDone["NumericNodeId"] = true;
-    alreadyDone["StringNodeId"] = true;
-    alreadyDone["GuidNodeId"] = true;
-    alreadyDone["ByteStringNodeId"] = true;
+    alreadyDone.NodeIdType = true;
+    alreadyDone.TwoByteNodeId = true;
+    alreadyDone.FourByteNodeId = true;
+    alreadyDone.NumericNodeId = true;
+    alreadyDone.StringNodeId = true;
+    alreadyDone.GuidNodeId = true;
+    alreadyDone.ByteStringNodeId = true;
 
-    alreadyDone["DiagnosticInfo"] = true;
-    alreadyDone["Variant"] = true;
-    alreadyDone["DataValue"] = true;
-    alreadyDone["LocalizedText"] = true;
-    alreadyDone["QualifiedName"] = true;
-    alreadyDone["BrowseDirection"] = true;
-    alreadyDone["TimestampsToReturn"] = true;
+    alreadyDone.DiagnosticInfo = true;
+    alreadyDone.Variant = true;
+    alreadyDone.DataValue = true;
+    alreadyDone.LocalizedText = true;
+    alreadyDone.QualifiedName = true;
+    alreadyDone.BrowseDirection = true;
+    alreadyDone.TimestampsToReturn = true;
 
     function processEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): void {
         if (alreadyDone[enumerationSchema.name]) {
@@ -317,7 +317,10 @@ import {
                 processStructuredType(fieldSchema);
             }
             if (field.category === FieldCategory.enumeration) {
-                const fieldSchema = dataTypeFactory.getEnumeration(field.fieldType)!;
+                const fieldSchema = dataTypeFactory.getEnumeration(field.fieldType);
+                if (!fieldSchema) {
+                    throw new Error(`Cannot find enumeration ${field.fieldType}`);
+                }
                 processEnumeratedType(fieldSchema);
             }
         }

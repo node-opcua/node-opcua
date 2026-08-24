@@ -35,16 +35,16 @@ function makeFieldType(field: FieldType) {
     return `{${field.fieldType}${field.isArray ? "[" : ""}${field.isArray ? "]" : ""}}`;
 }
 
-function _convertToJavascriptCode(obj: any): string {
+function _convertToJavascriptCode(obj: unknown): string {
     const lines: string[] = [];
 
-    if (typeof obj === "object" && !(obj instanceof Array)) {
+    if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
         lines.push("{");
         for (const prop of Object.keys(obj)) {
-            lines.push(prop, ": ", _convertToJavascriptCode(obj[prop]), ",");
+            lines.push(prop, ": ", _convertToJavascriptCode((obj as Record<string, unknown>)[prop]), ",");
         }
         lines.push("}");
-    } else if (obj instanceof Array) {
+    } else if (Array.isArray(obj)) {
         lines.push("[");
         for (const prop of obj) {
             lines.push(_convertToJavascriptCode(prop), ",");
@@ -137,10 +137,10 @@ function write_enumeration_setter(write: WriteFunc, _schema: IStructuredTypeSche
 
 function write_enumeration_fast_init(
     write: WriteFunc,
-    schema: IStructuredTypeSchema,
+    _schema: IStructuredTypeSchema,
     field: FieldType,
     member: string,
-    i: number
+    _i: number
 ): void {
     if (field.isArray) {
         write(`             this.${member} =  [];`);
@@ -149,7 +149,7 @@ function write_enumeration_fast_init(
     write(`             this.${member} =  0 as  ${field.fieldType};`);
 }
 
-function write_enumeration(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
+function write_enumeration(write: WriteFunc, _schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
     const capMember = capitalizeFirstLetter(member);
     if (field.isArray) {
         write(
@@ -160,7 +160,7 @@ function write_enumeration(write: WriteFunc, schema: IStructuredTypeSchema, fiel
     write(`        this.${field.name} = this.set${capMember}(initialize_field(schema.fields[${i}], options?.${field.name}));`);
 }
 
-function write_complex_fast_init(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string) {
+function write_complex_fast_init(write: WriteFunc, _schema: IStructuredTypeSchema, field: FieldType, member: string) {
     if (field.isArray) {
         write(`         this.${member} =  null; /* null array */`);
     } else {
@@ -192,7 +192,7 @@ function write_complex(write: WriteFunc, schema: IStructuredTypeSchema, field: F
     }
 }
 
-function write_basic(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
+function write_basic(write: WriteFunc, _schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
     assert(field.category === FieldCategory.basic);
 
     if (field.isArray) {
@@ -206,7 +206,13 @@ function write_basic(write: WriteFunc, schema: IStructuredTypeSchema, field: Fie
         write(`        this.${member} = initialize_field(schema.fields[${i}], options?.${field.name});`);
     }
 }
-function write_basic_fast_init(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string, i: number): void {
+function write_basic_fast_init(
+    write: WriteFunc,
+    _schema: IStructuredTypeSchema,
+    field: FieldType,
+    member: string,
+    _i: number
+): void {
     if (field.isArray) {
         // write(`this.${member} = [];`);
         // write(`if (options.${member}) {`);
@@ -299,20 +305,20 @@ function write_constructor(write: WriteFunc, schema: IStructuredTypeSchema): voi
         if (schema.documentation && schema.documentation.length > 0) {
             write(`     * ${schema.documentation}`);
         }
-        let def = "";
+        let _def = "";
         for (let i = 0; i < n; i++) {
             const field = schema.fields[i];
-            const fieldType = field.fieldType;
-            const documentation = field.documentation ? field.documentation : "";
-            def = "";
+            const _fieldType = field.fieldType;
+            const _documentation = field.documentation ? field.documentation : "";
+            _def = "";
             if (field.defaultValue !== undefined) {
                 if (typeof field.defaultValue === "function") {
-                    def = ` = ${field.defaultValue()}`;
+                    _def = ` = ${field.defaultValue()}`;
                 } else {
-                    def = ` = ${field.defaultValue}`;
+                    _def = ` = ${field.defaultValue}`;
                 }
             }
-            const ft = makeFieldType(field);
+            const _ft = makeFieldType(field);
             // xx write(" * @param  [options." + field.name + def + "] " + ft + " " + documentation);
         }
 
@@ -396,7 +402,7 @@ function write_constructor(write: WriteFunc, schema: IStructuredTypeSchema): voi
     write("    }");
 }
 
-function write_possible_fields(write: WriteFunc, className: string, possibleFields: string[]): void {
+function write_possible_fields(write: WriteFunc, _className: string, possibleFields: string[]): void {
     write("    public static possibleFields: string[] = [");
     write(`          ${possibleFields.map(quotify).join(`,${os.EOL}           `)}`);
     write("    ];");
@@ -530,7 +536,7 @@ function write_decode(write: WriteFunc, schema: IStructuredTypeSchema): void {
         const n = schema.fields.length;
         for (let i = 0; i < n; i++) {
             const field = schema.fields[i];
-            const fieldType = field.fieldType;
+            const _fieldType = field.fieldType;
             const member = field.name;
             write_field(field, member, i);
         }
@@ -547,7 +553,7 @@ function hasEnumeration(schema: IStructuredTypeSchema): boolean {
     return false;
 }
 
-function hasComplex(schema: IStructuredTypeSchema): boolean {
+function _hasComplex(schema: IStructuredTypeSchema): boolean {
     for (const field of schema.fields) {
         if (field.category === FieldCategory.complex) {
             return true;
@@ -660,7 +666,7 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: IStructuredTypeS
     write('import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";');
 
     const n = schema.fields.length;
-    const done: any = {};
+    const done: Record<string, FieldType> = {};
     for (let i = 0; i < n; i++) {
         const field = schema.fields[i];
         const fieldType = field.fieldType;
@@ -792,23 +798,23 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
 
 function getDataTypeNodeId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingBinaryId = (DataTypeIds as any)[className];
+    const encodingBinaryId = (DataTypeIds as unknown as Record<string, number>)[className];
     return coerceNodeId(encodingBinaryId);
 }
 function getEncodingBinaryId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingBinaryId = (ObjectIds as any)[`${className}_Encoding_DefaultBinary`];
+    const encodingBinaryId = (ObjectIds as unknown as Record<string, number>)[`${className}_Encoding_DefaultBinary`];
     return coerceNodeId(encodingBinaryId);
 }
 
 function getEncodingXmlId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingXmlId = (ObjectIds as any)[`${className}_Encoding_DefaultXml`];
+    const encodingXmlId = (ObjectIds as unknown as Record<string, number>)[`${className}_Encoding_DefaultXml`];
     return coerceNodeId(encodingXmlId);
 }
 function getEncodingJsonId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingXmlId = (ObjectIds as any)[`${className}_Encoding_DefaultJson`];
+    const encodingXmlId = (ObjectIds as unknown as Record<string, number>)[`${className}_Encoding_DefaultJson`];
     return coerceNodeId(encodingXmlId);
 }
 
@@ -873,7 +879,7 @@ export function produce_TScript_code(
     // -------------------------------------------------------------------------
     // - insert definition of complex type used by this class
     // -------------------------------------------------------------------------
-    const tmpMap: any = {};
+    const tmpMap: Record<string, number> = {};
     for (const field of complexTypes) {
         if (Object.hasOwn(tmpMap, field.fieldType)) {
             continue;
