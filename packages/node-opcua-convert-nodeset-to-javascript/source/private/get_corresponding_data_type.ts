@@ -1,9 +1,9 @@
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
-import { type Import, referenceEnumeration, referenceExtensionObject } from "./cache";
-import { getValueRank, _convertNodeIdToDataTypeAsync } from "./utils";
 import type { Cache } from "./cache";
+import { type Import, referenceEnumeration, referenceExtensionObject } from "./cache";
+import { _convertNodeIdToDataTypeAsync, getValueRank } from "./utils";
 
 export async function getCorrespondingJavascriptType2(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
@@ -51,27 +51,27 @@ export async function getCorrespondingJavascriptType(
     const info = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
     const { type } = info;
 
-    if (type == "enum" && info.enumerationType) {
+    if (type === "enum" && info.enumerationType) {
         // we have a enmeration name here
         const jtypeImport = await referenceEnumeration(session, dataTypeNodeId);
         const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
+        importCollect?.(jtypeImport);
         return { dataType: info.dataType, jtype, type };
     }
 
-    if (type == "basic" && info.dataType === DataType.ExtensionObject) {
+    if (type === "basic" && info.dataType === DataType.ExtensionObject) {
         const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
         const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
+        importCollect?.(jtypeImport);
         return { dataType: info.dataType, jtype, type };
     }
     const referenceBasicType = (name: string): string => {
         const t = { name, namespace: -1, module: "BasicType" };
-        importCollect && importCollect(t);
+        importCollect?.(t);
         cache.ensureImported(t);
         return t.name;
     };
-    if (type == "genericNumber") {
+    if (type === "genericNumber") {
         const { dataTypeCombination } = info;
         return { dataType: DataType.Variant, jtype: "number", type, dataTypeCombination };
     } else {

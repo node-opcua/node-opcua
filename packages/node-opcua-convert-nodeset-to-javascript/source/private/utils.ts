@@ -1,11 +1,11 @@
-import { AttributeIds, BrowseDirection, type LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
-import { type INodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import type { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
+import { AttributeIds, BrowseDirection, type LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
+import { make_debugLog } from "node-opcua-debug";
+import { type INodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { type BrowseResult, type DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
-import type { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-variant";
-import { make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog(__filename);
 
@@ -69,7 +69,11 @@ export async function getModellingRule(session: IBasicSessionBrowseAsyncSimple, 
     if (!browseResult.references || browseResult.references.length === 0) {
         return null;
     }
-    return browseResult.references[0].browseName.name! as ModellingRuleType;
+    const modellingRuleName = browseResult.references[0].browseName.name;
+    if (!modellingRuleName) {
+        throw new Error(`HasModellingRule reference for ${nodeId.toString()} has no browseName`);
+    }
+    return modellingRuleName as ModellingRuleType;
 }
 export async function isExtensionObject(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<boolean> {
     const n = nodeId as INodeId;
@@ -80,7 +84,10 @@ export async function isExtensionObject(session: IBasicSessionBrowseAsyncSimple,
         return false;
     }
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
-    return await isExtensionObject(session, r!.nodeId);
+    if (!r) {
+        throw new Error(`cannot find SuperType of ${nodeId.toString()}`);
+    }
+    return await isExtensionObject(session, r.nodeId);
 }
 
 export async function isEnumeration(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<boolean> {
@@ -92,7 +99,10 @@ export async function isEnumeration(session: IBasicSessionBrowseAsyncSimple, nod
         return false;
     }
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
-    return await isEnumeration(session, r!.nodeId);
+    if (!r) {
+        throw new Error(`cannot find SuperType of ${nodeId.toString()}`);
+    }
+    return await isEnumeration(session, r.nodeId);
 }
 
 export async function extractBasicDataType(session: IBasicSessionBrowseAsyncSimple, dataTypeNodeId: NodeId): Promise<DataType> {
@@ -101,7 +111,10 @@ export async function extractBasicDataType(session: IBasicSessionBrowseAsyncSimp
         return dataTypeNodeId.value as DataType;
     }
     const r = await getSubtypeNodeIdIfAny(session, dataTypeNodeId);
-    return await extractBasicDataType(session, r!.nodeId);
+    if (!r) {
+        throw new Error(`cannot find SuperType of ${dataTypeNodeId.toString()}`);
+    }
+    return await extractBasicDataType(session, r.nodeId);
 }
 
 export async function getSubtypeNodeIdIfAny(
@@ -251,16 +264,20 @@ export async function _convertNodeIdToDataTypeAsync(
     };
     const browseResult = await session.browse(nodeToBrowse);
 
-    const references = browseResult!.references;
+    const references = browseResult?.references;
 
-    if (!references || references.length !== 1) {
+    if (references?.length !== 1) {
         throw new Error(`cannot find SuperType of ${dataTypeName.toString()}`);
     }
     const nodeId = references[0].nodeId;
 
     const info = await _convertNodeIdToDataTypeAsync(session, nodeId);
-    if (info.type == "enum" && info.enumerationId) {
-        return { ...info, enumerationId: dataTypeId, enumerationType: dataTypeName.name! };
+    if (info.type === "enum" && info.enumerationId) {
+        const enumerationType = dataTypeName.name;
+        if (!enumerationType) {
+            throw new Error(`cannot find name for enumeration dataType ${dataTypeId.toString()}`);
+        }
+        return { ...info, enumerationId: dataTypeId, enumerationType };
     }
     return info;
 }

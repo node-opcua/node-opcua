@@ -2,7 +2,9 @@
 // stays up-to-date with nodeset package list.
 
 import { existsSync, promises as fsPromises } from "node:fs";
+
 const { readFile, writeFile } = fsPromises;
+
 import path from "node:path";
 // Uncomment the following to get __dirname equivalent when compiling to ESM
 //import { fileURLToPath } from 'url';
@@ -18,7 +20,11 @@ export async function updateParentTSConfig() {
     // Strip out comments to avoid JSON parsing error
     const contentWithoutComments = content.replace(/\/\*.+?\*\//g, "").replace(/\/\/.+?$/g, "");
     // TODO: Preserve comments automatically
-    let parentTSConfig: any = "";
+    interface TSConfigJson {
+        references: { path: string }[];
+        [key: string]: unknown;
+    }
+    let parentTSConfig: TSConfigJson;
     try {
         parentTSConfig = JSON.parse(contentWithoutComments);
     } catch (err) {
@@ -57,13 +63,12 @@ export async function updateParentTSConfig() {
         parentTSConfig.references.sort(compareByPath);
         // Maintain the compact style `{ "path": "node-opcua-X" }` in references section
         // Also add the comment about Istanbul back
-        const newJSON =
-            JSON.stringify(parentTSConfig, null, "    ")
-                .replace(
-                    '"removeComments": false',
-                    '"removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */'
-                )
-                .replace(/{\s*"path":\s*"([^"]+)"\s*}/g, '{ "path": "$1" }') + "\n";
+        const newJSON = `${JSON.stringify(parentTSConfig, null, "    ")
+            .replace(
+                '"removeComments": false',
+                '"removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */'
+            )
+            .replace(/{\s*"path":\s*"([^"]+)"\s*}/g, '{ "path": "$1" }')}\n`;
         //console.log('Writing updated tsconfig.json file:', newJSON);
         await writeFile(parentTSConfigFile, newJSON, "utf8");
     }

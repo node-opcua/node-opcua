@@ -1,18 +1,16 @@
-import should from "should";
-import { coerceQualifiedName, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { AddressSpace, PseudoSession, type UAObjectType, type UAVariable } from "node-opcua-address-space";
-import { coerceNodeId, type NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import { generateAddressSpace } from "node-opcua-address-space/distNodeJS";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { ObjectIds, VariableIds, ObjectTypeIds } from "node-opcua-constants";
-import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { ObjectTypeIds } from "node-opcua-constants";
+import { coerceQualifiedName, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
+import { coerceNodeId, type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { DataTypeDefinition } from "node-opcua-types";
 import type { IBasicSessionAsync, IBasicSessionTranslateBrowsePathAsync } from "node-opcua-pseudo-session";
-
-import { makeTypeNameNew, constructCache, type Cache2 } from "../dist/private-stuff";
-import { extractClassMemberDef, extractClassDefinition } from "..";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import { DataTypeDefinition } from "node-opcua-types";
+import should from "should";
+import { extractClassDefinition, extractClassMemberDef } from "..";
+import { type Cache2, constructCache, makeTypeNameNew } from "../dist/private-stuff";
 
 const debugLog = make_debugLog("TEST");
 
@@ -204,7 +202,7 @@ describe("Test low level routine for typescript d.ts creation", () => {
     it("LD-A", async () => {
         const accessorySlotStateMachine = addressSpace.findObjectType("AccessorySlotStateMachineType", nsADI)!;
         const parentNodeId = accessorySlotStateMachine.nodeId;
-        const classDef = await extractClassDefinition(session, parentNodeId, cache);
+        const _classDef = await extractClassDefinition(session, parentNodeId, cache);
 
         //     debugLog(JSON.stringify(classDef, null, " "));
     });

@@ -5,18 +5,25 @@ import { EnumDefinition, StructureDefinition, type StructureField } from "node-o
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import type { Type } from "./convert_to_typescript";
-import {
-    type Import,
-    getDescription,
-    getDefinition,
-    getBrowseName,
-    getIsAbstract,
-    makeTypeNameNew,
-    getSubtypeNodeId
-} from "./private-stuff";
 import { type Cache, makeName2 } from "./private/cache";
 import { getCorrespondingJavascriptType } from "./private/get_corresponding_data_type";
+import {
+    getBrowseName,
+    getDefinition,
+    getDescription,
+    getIsAbstract,
+    getSubtypeNodeId,
+    type Import,
+    makeTypeNameNew
+} from "./private-stuff";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
+
+function requireFieldName(field: { name?: string | null }): string {
+    if (!field.name) {
+        throw new Error("field is expected to have a name");
+    }
+    return field.name;
+}
 
 export async function _exportDataTypeToTypescript(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
@@ -24,10 +31,8 @@ export async function _exportDataTypeToTypescript(
     cache: Cache,
     f?: LineFile
 ): Promise<{ type: Type; content: string; typeName: string }> {
-    const importCollect: any = undefined;
     const referenceBasicType = (name: string): string => {
         const t = { name, namespace: -1, module: "BasicType" };
-        importCollect && importCollect(t);
         cache.ensureImported(t);
         return t.name;
     };
@@ -52,6 +57,9 @@ export async function _exportDataTypeToTypescript(
     cache.ensureImported(baseInterfaceImport);
 
     const baseInterfaceName = baseInterfaceImport.name;
+    if (!browseName.name) {
+        throw new Error(`Expecting a browseName.name for node ${nodeId.toString()}`);
+    }
     //  f.write(superType.toString());
     f.write(`/**`);
     if (description.text) {
@@ -62,7 +70,7 @@ export async function _exportDataTypeToTypescript(
     f.write(` * |-----------|${f2("-")}|`);
     f.write(` * | namespace |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
     f.write(` * | nodeClass |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * | name      |${f1(browseName.name!.toString())}|`);
+    f.write(` * | name      |${f1(browseName.name.toString())}|`);
     f.write(` * | isAbstract|${f1(isAbstract.toString())}|`);
     f.write(` */`);
 
@@ -70,23 +78,33 @@ export async function _exportDataTypeToTypescript(
     if (definition instanceof EnumDefinition) {
         type = "enum";
         f.write(`export enum ${interfaceName}  {`);
-        for (const field of definition.fields!) {
+        if (!definition.fields) {
+            throw new Error(`EnumDefinition is expected to have fields for ${interfaceName}`);
+        }
+        for (const field of definition.fields) {
             if (field.description.text) {
                 f.write(`  /**`);
                 f.write(toComment("   * ", field.description.text || ""));
                 f.write(`   */`);
             }
-            f.write(`  ${quotifyIfNecessary(field.name!)} = ${field.value[1]},`);
+            f.write(`  ${quotifyIfNecessary(requireFieldName(field))} = ${field.value[1]},`);
         }
         f.write(`}`);
     } else if (definition instanceof StructureDefinition) {
         if (baseInterfaceName === "DTUnion") {
             type = "structure";
-            for (let i = 0; i < definition.fields!.length; i++) {
+            if (!definition.fields) {
+                throw new Error(`StructureDefinition (Union) is expected to have fields for ${interfaceName}`);
+            }
+            const unionFields = definition.fields;
+            for (let i = 0; i < unionFields.length; i++) {
                 f.write(`export interface ${interfaceName}_${i} extends ${baseInterfaceName} {`);
-                for (let j = 0; j < definition.fields!.length; j++) {
-                    const field = definition.fields![j];
-                    const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
+                for (let j = 0; j < unionFields.length; j++) {
+                    const field = unionFields[j];
+                    if (!field) {
+                        throw new Error(`StructureDefinition is expected to have a field at index ${j} for ${interfaceName}`);
+                    }
+                    const fieldName = toJavascritPropertyName(requireFieldName(field), { ignoreConflictingName: false });
                     if (j === i) {
                         await outputStructureField(f, field);
                     } else {
@@ -96,13 +114,13 @@ export async function _exportDataTypeToTypescript(
                 f.write(`}`);
             }
             f.write(`export type ${interfaceName} = `);
-            for (let i = 0; i < definition.fields!.length; i++) {
+            for (let i = 0; i < unionFields.length; i++) {
                 f.write(`  | ${interfaceName}_${i}`);
             }
             f.write(`  ;`);
         } else {
             type = "structure";
-            if (!definition.fields!.length && interfaceName !== "DTStructure") {
+            if (!definition.fields?.length && interfaceName !== "DTStructure") {
                 f.write(`export type ${interfaceName} = ${baseInterfaceName};`);
             } else {
                 if (interfaceName === "DTStructure") {
@@ -110,7 +128,10 @@ export async function _exportDataTypeToTypescript(
                 } else {
                     f.write(`export interface ${interfaceName} extends ${baseInterfaceName} {`);
                 }
-                for (const field of definition.fields!) {
+                if (!definition.fields) {
+                    throw new Error(`StructureDefinition is expected to have fields for ${interfaceName}`);
+                }
+                for (const field of definition.fields) {
                     await outputStructureField(f, field);
                 }
                 f.write(`}`);
@@ -125,8 +146,8 @@ export async function _exportDataTypeToTypescript(
                 // filter issue with UDTOpticalVerifierScanResult that has a decode:Uint32 conflicting with the ExtensionObject decode method
 
                 const toAvoid = ["decode", "encode"];
-                const collidingNames = definition
-                    .fields!.map((a) => toJavascritPropertyName(a.name!, { ignoreConflictingName: false }))
+                const collidingNames = definition.fields
+                    ?.map((a) => toJavascritPropertyName(requireFieldName(a), { ignoreConflictingName: false }))
                     .filter((d) => toAvoid.indexOf(d.toLowerCase()) !== -1);
 
                 const adpatedIntefaceName =
@@ -146,7 +167,7 @@ export async function _exportDataTypeToTypescript(
     return { type, content: f.toString(), typeName: interfaceName };
 
     async function outputStructureField(f: LineFile, field: StructureField) {
-        const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
+        const fieldName = toJavascritPropertyName(requireFieldName(field), { ignoreConflictingName: false });
         // special case ! fieldName=
         if (field.description.text) {
             f.write(`  /** ${field.description.text}*/`);

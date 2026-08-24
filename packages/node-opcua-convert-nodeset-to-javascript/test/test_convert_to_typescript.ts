@@ -3,21 +3,21 @@ import path from "node:path";
 import chalk from "chalk";
 import "should";
 
-import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import {
+    convertNamespaceTypeToTypescript,
     convertTypeToTypescript,
     type ReferenceDescriptionEx,
-    walkThroughObjectTypes,
     walkThroughDataTypes,
+    walkThroughObjectTypes,
     walkThroughReferenceTypes,
-    walkThroughVariableTypes,
-    convertNamespaceTypeToTypescript
+    walkThroughVariableTypes
 } from "..";
 
-describe("Convert to Typescript", function (this: any) {
+describe("Convert to Typescript", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -57,7 +57,7 @@ describe("Convert to Typescript", function (this: any) {
         const deviceDataTypeNodeId = d.nodeId;
         const session = new PseudoSession(addressSpace);
 
-        const { content, dependencies } = await convertTypeToTypescript(session, deviceDataTypeNodeId, options);
+        const { content } = await convertTypeToTypescript(session, deviceDataTypeNodeId, options);
 
         fs.writeFileSync(path.join(actualFolder, filename), content);
         const expectedContent = fs.readFileSync(path.join(referenceFolder, filename), "utf-8");
@@ -108,7 +108,7 @@ describe("Convert to Typescript", function (this: any) {
     });
     const colors = [chalk.grey, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.greenBright, chalk.bgGreenBright];
     it("P5 - workThrough", async () => {
-        const parents: any = {};
+        const parents: Record<string, number> = {};
         const nodeVisitor = {
             async visit(reference: ReferenceDescriptionEx, level: number): Promise<void> {
                 if (reference.nodeId.namespace === 0) {

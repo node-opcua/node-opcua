@@ -1,10 +1,10 @@
 import path from "node:path";
+import { kebabCase } from "case-anything";
 import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { type DataTypeDefinition, EnumDefinition } from "node-opcua-types";
-import { kebabCase } from "case-anything";
 import type { Options } from "../options";
 import { getBrowseName, getDefinition } from "./utils";
 
@@ -123,7 +123,8 @@ export class Cache implements CacheInterface {
                 throw new Error(`Cannot find namespace  ${namespaceIndex}`);
             }
         }
-        const symbols = (this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {});
+        this.namespace[namespaceIndex].symbols = this.namespace[namespaceIndex].symbols || {};
+        const symbols = this.namespace[namespaceIndex].symbols;
         symbols[typeName] = (symbols[typeName] || 0) + 1;
 
         const ns = this.requestedSymbols.namespace[namespaceIndex] || { symbols: {} };
@@ -134,7 +135,8 @@ export class Cache implements CacheInterface {
         if (!mainTypeName) {
             mainTypeName = typeName;
         }
-        const subs = (ns.symbols[mainTypeName] = ns.symbols[mainTypeName] || { subSymbols: {} });
+        ns.symbols[mainTypeName] = ns.symbols[mainTypeName] || { subSymbols: {} };
+        const subs = ns.symbols[mainTypeName];
         subs.subSymbols[typeName] = (subs.subSymbols[typeName] || 0) + 1;
     }
 
@@ -217,8 +219,10 @@ export function makeTypeNameNew(
     suffix?: string
 ): Import {
     assert(browseName && !!browseName.name, "expecting a class name here");
-
-    const typeName = browseName.name!.toString();
+    if (!browseName.name) {
+        throw new Error("expecting a class name here");
+    }
+    const typeName = browseName.name.toString();
     if (typeName === "EUInformation") {
         return makeBasicTypeImport("EUInformation");
     } else if (typeName === "Enumeration") {

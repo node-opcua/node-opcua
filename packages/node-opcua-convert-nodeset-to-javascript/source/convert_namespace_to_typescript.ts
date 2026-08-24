@@ -1,13 +1,17 @@
-import path from "node:path";
 import fs from "node:fs";
-
-import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import path from "node:path";
 import { DataTypeIds } from "node-opcua-constants";
-import { type ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
+import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { convertTypeToTypescript } from "./convert_to_typescript";
+import type { Options } from "./options";
 import { constructCache } from "./private/cache";
 import { writeFileSyncRetry } from "./private/fs_retry";
-import type { Options } from "./options";
+import {
+    type ReferenceDescriptionEx,
+    walkThroughDataTypes,
+    walkThroughObjectTypes,
+    walkThroughVariableTypes
+} from "./walk_through";
 
 function findPackageJson(dependency: string, options: Options): string | undefined {
     const l = [...(options.lookupFolders || [])];
@@ -42,8 +46,6 @@ function getPackageFolder(dependency: string, options: Options) {
         fs.mkdirSync(sourceFolder);
     }
     return packageJson;
-
-    throw new Error(`cannot find package.json for ${dependency}`);
 }
 function getPackageInfo(dependency: string, options: Options) {
     const d = getPackageFolder(dependency, options);
@@ -69,7 +71,7 @@ function getGeneratedPackageVersion(info: Info, options: Options): string {
             if (version) {
                 return version;
             }
-        } catch (err) {
+        } catch (_err) {
             // malformed package.json: fall through and seed a fresh version
         }
     }
@@ -137,11 +139,11 @@ export async function convertNamespaceTypeToTypescript(
     const infos: { [key: string]: Info } = {};
     // walk through all Types:
     const nodeVisitor = {
-        async visit(reference: ReferenceDescriptionEx, level: number): Promise<void> {
+        async visit(reference: ReferenceDescriptionEx, _level: number): Promise<void> {
             if (reference.nodeId.namespace !== namespaceIndex) {
                 return;
             }
-            cache!.resetRequire();
+            cache?.resetRequire();
 
             if (reference.nodeId.namespace === 0 && reference.nodeId.value === DataTypeIds.Enumeration) {
                 return; // ignore enumeration
@@ -150,7 +152,7 @@ export async function convertNamespaceTypeToTypescript(
                 session,
                 reference.nodeId,
                 options,
-                cache!
+                cache
             );
 
             if (type === "basic") {
@@ -291,7 +293,7 @@ async function _output_tsconfig_json(info: Info, options: Options): Promise<void
         return !!c.match(/node_modules/);
     }
 }
-async function _output_licence(info: Info, options: Options): Promise<void> {
+async function _output_licence(info: Info, _options: Options): Promise<void> {
     if (info.module === "node-opcua-nodeset-ua") {
         return;
     }
