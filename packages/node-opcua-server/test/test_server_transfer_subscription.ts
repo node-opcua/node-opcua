@@ -1,5 +1,6 @@
 /// reference
 
+import type { IServerBase } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { NodeId } from "node-opcua-nodeid";
@@ -19,9 +20,13 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = !!process.env.TESTDEBUG;
 
-describe("ServerEngine Subscriptions Transfer", function (this: any) {
+interface ITestContext {
+    clock?: sinon.SinonFakeTimers;
+}
+
+describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
     const test = this;
-    const server: any = {};
+    const server: IServerBase = {};
     /**
      * @type {ServerEngine}
      */
@@ -63,6 +68,11 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
     function sendPublishRequest(session: ServerSession, publishHandler: () => void) {
         session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
         _requestHandle++;
+        // sendPublishRequest is only ever called from within a with_fake_timer worker, after the fake clock
+        // has been installed on `test`
+        if (!test.clock) {
+            throw new Error("sendPublishRequest: expecting a fake clock to be installed");
+        }
         test.clock.tick(0);
     }
 
@@ -72,7 +82,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
         session1 = engine.createSession({ sessionTimeout: 100 * 1000, server });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(test, async (test: any) => {
+        await with_fake_timer.call(test, async (test) => {
             if (!session1) return;
 
             const subscription = session1.createSubscription({

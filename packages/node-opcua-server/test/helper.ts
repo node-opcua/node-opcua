@@ -1,10 +1,14 @@
 import { MonitoredItemNotification } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import type { Subscription } from "../source";
+import type { MonitoredItem, Subscription } from "../source";
 
 interface M2 {
     simulateMonitoredItemAddingNotification: () => void;
     queue: unknown[];
+}
+
+interface ISubscriptionWithMonitoredItems {
+    monitoredItems: Record<number, MonitoredItem>;
 }
 
 export function add_mock_monitored_item(subscription: Subscription) {
@@ -30,15 +34,18 @@ export function add_mock_monitored_item(subscription: Subscription) {
         },
         simulateMonitoredItemAddingNotification() {}
     };
-    (monitoredItem as any).__defineGetter__("hasMonitoredItemNotifications", function (this: any) {
-        return this.queue.length > 0;
-    });
+    (monitoredItem as unknown as Record<string, unknown>).__defineGetter__(
+        "hasMonitoredItemNotifications",
+        function (this: { queue: unknown[] }) {
+            return this.queue.length > 0;
+        }
+    );
 
-    (subscription as any).monitoredItems[1] = monitoredItem;
+    (subscription as unknown as ISubscriptionWithMonitoredItems).monitoredItems[1] = monitoredItem as unknown as MonitoredItem;
 
     let counter = 1;
 
-    const monitoredItem_ = monitoredItem as any as M2;
+    const monitoredItem_ = monitoredItem as unknown as M2;
 
     monitoredItem_.simulateMonitoredItemAddingNotification = function simulateMonitoredItemAddingNotification() {
         monitoredItem_.queue.push(

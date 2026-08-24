@@ -16,13 +16,20 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
 
-import { ServerEngine, ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
+import {
+    ServerEngine,
+    type ServerSession,
+    ServerSidePublishEngine,
+    Subscription,
+    type SubscriptionOptions,
+    SubscriptionState
+} from "../source";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    subscription1.$session = {
         sessionContext: SessionContext.defaultContext
-    };
+    } as unknown as ServerSession;
     return subscription1;
 }
 
@@ -41,7 +48,11 @@ function _freeze_data_source() {
 function _unfreeze_data_source() {
     _dataSourceFrozen = false;
 }
-describe("Subscriptions and MonitoredItems and triggering", function (this: any) {
+interface ITestContext extends Mocha.Suite {
+    clock: sinon.SinonFakeTimers;
+}
+
+describe("Subscriptions and MonitoredItems and triggering", function (this: Mocha.Suite) {
     /***
      * 5.12.1.6 Triggering model ToC
      * The MonitoredItems Service allows the addition of items that are reported only when some other item
@@ -76,13 +87,13 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
      * If the Node that contains the Attribute being monitored is deleted, the MonitoredItem generates a
      * Notification with a StatusCode Bad_NodeIdUnknown that indicates the deletion, but the MonitoredItem is not deleted.
      */
-    this.timeout(Math.max(300000, this._timeout));
+    this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
     let engine: ServerEngine;
 
-    const test = this;
+    const test = this as ITestContext;
 
     before(async () => {
         engine = new ServerEngine({ applicationUri: "uri" });
@@ -166,9 +177,9 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
-        (subscription as any).$session = {
+        subscription.$session = {
             sessionContext: SessionContext.defaultContext
-        };
+        } as unknown as ServerSession;
         serverSidePublishEngine.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
         send_response_for_request_spy.callCount.should.equal(0);

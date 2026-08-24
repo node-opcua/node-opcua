@@ -523,7 +523,9 @@ function build_scanning_node_function(addressSpace: AddressSpace, itemToMonitor:
 }
 
 function prepareMonitoredItem(_context: ISessionContext, addressSpace: AddressSpace, monitoredItem: MonitoredItem) {
-    const itemToMonitor = monitoredItem.itemToMonitor;
+    // MonitoredItem.itemToMonitor is always constructed as a real ReadValueId instance (see defaultItemToMonitor
+    // in monitored_item.ts), even though its declared type is the looser ReadValueIdOptions
+    const itemToMonitor = monitoredItem.itemToMonitor as ReadValueId;
     const readNodeFunc = build_scanning_node_function(addressSpace, itemToMonitor);
     monitoredItem.samplingFunc = readNodeFunc;
 }
@@ -1609,7 +1611,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         });
 
         // start dialing out to any configured reverse-connect clients (OPC UA Part 6 §7.1.3)
-        if (this.options.reverseConnect && this.options.reverseConnect.connections?.length) {
+        if (this.options.reverseConnect?.connections?.length) {
             this.#reverseConnectManager = new ReverseConnectManager(
                 {
                     getDialEndpoint: () => this.endpoints[0],
@@ -1880,7 +1882,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             return;
         }
 
-        if (!userTokenSignature || !userTokenSignature.signature) {
+        if (!userTokenSignature?.signature) {
             this.raiseEvent("AuditCreateSessionEventType", {});
             callback(null, StatusCodes.BadUserSignatureInvalid);
             return;
@@ -4036,7 +4038,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
 const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken): UserIdentityToken => {
     if (!userIdentityToken) return new AnonymousIdentityToken();
-    const a: UserIdentityToken = userIdentityToken.clone();
+    const a = userIdentityToken.clone() as UserIdentityToken;
     // For Username/Password tokens the password shall not be included.
     if (a instanceof UserNameIdentityToken) {
         // remove password

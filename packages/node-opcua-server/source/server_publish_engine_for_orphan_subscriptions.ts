@@ -4,14 +4,17 @@
 import chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
 
-import { ServerSidePublishEngine, type ServerSidePublishEngineOptions } from "./server_publish_engine";
+import { ServerSidePublishEngine } from "./server_publish_engine";
 import type { Subscription } from "./server_subscription";
 import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
 
 const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const _doDebug = checkDebugFlag(__filename);
+
+interface ISubscriptionWithExpiredFunc {
+    _expired_func?: (this: Subscription) => void;
+}
 
 /**
  * the ServerSidePublishEngineForOrphanSubscription is keeping track of
@@ -23,10 +26,6 @@ const doDebug = checkDebugFlag(__filename);
  * @internal
  */
 export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePublishEngine {
-    constructor(options: ServerSidePublishEngineOptions) {
-        super(options);
-    }
-
     public add_subscription(subscription: Subscription): Subscription {
         debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
 
@@ -43,22 +42,26 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
         super.add_subscription(subscription);
         // also add an event handler to detected when the subscription has ended
         // so we can automatically remove it from the orphan table
-        (subscription as any)._expired_func = function (this: Subscription) {
+        const subscriptionEx = subscription as unknown as ISubscriptionWithExpiredFunc;
+        subscriptionEx._expired_func = function (this: Subscription) {
             debugLog(chalk.bgCyan.yellow(" Removing expired subscription with id="), this.id, " from orphan");
             // make sure all monitored item have been deleted
             // Xx subscription.terminate();
             // xx publish_engine.detach_subscription(subscription);
             // Xx subscription.dispose();
         };
-        subscription.once("expired", (subscription as any)._expired_func);
+        subscription.once("expired", subscriptionEx._expired_func);
         return subscription;
     }
 
     public detach_subscription(subscription: Subscription): Subscription {
         // un set the event handler
         super.detach_subscription(subscription);
-        subscription.removeListener("expired", (subscription as any)._expired_func);
-        (subscription as any)._expired_func = null;
+        const subscriptionEx = subscription as unknown as ISubscriptionWithExpiredFunc;
+        if (subscriptionEx._expired_func) {
+            subscription.removeListener("expired", subscriptionEx._expired_func);
+        }
+        subscriptionEx._expired_func = undefined;
         return subscription;
     }
 }

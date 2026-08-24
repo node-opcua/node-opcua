@@ -20,7 +20,7 @@ import {
     type UASessionDiagnosticsVariable,
     type UASessionSecurityDiagnostics
 } from "node-opcua-address-space";
-import type { ISessionContext } from "node-opcua-address-space-base";
+import type { AddReferenceOpts, BaseNode, ISessionContext } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { getMinOPCUADate, randomGuid } from "node-opcua-basic-types";
 import {
@@ -62,10 +62,10 @@ function on_channel_abort(this: ServerSession) {
 }
 
 interface SessionDiagnosticsDataTypeEx extends SessionDiagnosticsDataType {
-    $session: any;
+    $session: ServerSession | null;
 }
 interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnosticsDataType {
-    $session: any;
+    $session: ServerSession | null;
 }
 
 export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed";
@@ -103,7 +103,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public sessionName = "";
 
     public publishEngine: ServerSidePublishEngine;
-    public sessionObject: any;
+    public sessionObject: UAObject | null = null;
     public readonly creationDate: Date;
     public sessionTimeout: number;
     public sessionDiagnostics?: UASessionDiagnosticsVariable<DTSessionDiagnostics>;
@@ -129,13 +129,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     keepAlive: () => void = WatchDog.emptyKeepAlive;
 
     private _registeredNodesCounter: number;
-    private _registeredNodes: any;
-    private _registeredNodesInv: any;
+    private _registeredNodes: Record<string, NodeId>;
+    private _registeredNodesInv: Record<string, BaseNode>;
     private _cumulatedSubscriptionCount: number;
     private _sessionDiagnostics?: SessionDiagnosticsDataTypeEx;
     private _sessionSecurityDiagnostics?: SessionSecurityDiagnosticsDataTypeEx;
 
-    private channel_abort_event_handler: any;
+    private channel_abort_event_handler?: () => void;
 
     constructor(parent: ServerEngine, server: IServerBase, sessionTimeout: number) {
         super();
@@ -156,7 +156,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             server
         });
 
-        assert(isFinite(sessionTimeout));
+        assert(Number.isFinite(sessionTimeout));
         assert(sessionTimeout >= 0, " sessionTimeout");
         this.sessionTimeout = sessionTimeout;
 
@@ -224,7 +224,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
     public endpoint?: EndpointDescription;
     public getEndpointDescription(): EndpointDescription {
-        return this.endpoint!;
+        if (!this.endpoint) {
+            throw new Error("getEndpointDescription: session has no endpoint set");
+        }
+        return this.endpoint;
     }
     public getEndpointUrl(): string | undefined {
         return this.endpoint?.endpointUrl ?? undefined;
@@ -235,20 +238,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
-        this.parent = null as any as ServerEngine;
+        this.parent = null as unknown as ServerEngine;
         this.authenticationToken = new NodeId();
 
         if (this.publishEngine) {
             this.publishEngine.dispose();
-            (this as any).publishEngine = null;
+            this.publishEngine = null as unknown as ServerSidePublishEngine;
         }
 
         this._sessionDiagnostics = undefined;
 
         this._registeredNodesCounter = 0;
-        this._registeredNodes = null;
-        this._registeredNodesInv = null;
-        (this as any).continuationPointManager = null;
+        this._registeredNodes = {};
+        this._registeredNodesInv = {};
+        this.continuationPointManager = null as unknown as ContinuationPointManager;
         this.removeAllListeners();
         this.__status = "disposed";
 
@@ -283,8 +286,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     get addressSpace(): AddressSpace | null {
-        if (this.parent && this.parent.addressSpace) {
-            return this.parent.addressSpace!;
+        if (this.parent?.addressSpace) {
+            return this.parent.addressSpace;
         }
         return null;
     }
@@ -294,7 +297,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public updateClientLastContactTime(): void {
-        if (this._sessionDiagnostics && this._sessionDiagnostics.clientLastContactTime) {
+        if (this._sessionDiagnostics?.clientLastContactTime) {
             const currentTime = new Date();
             // do not record all ticks as this may be overwhelming,
             if (currentTime.getTime() - 250 >= this._sessionDiagnostics.clientLastContactTime.getTime()) {
@@ -333,7 +336,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public incrementTotalRequestCount(): void {
-        if (this._sessionDiagnostics && this._sessionDiagnostics.totalRequestCount) {
+        if (this._sessionDiagnostics?.totalRequestCount) {
             this._sessionDiagnostics.totalRequestCount.totalCount += 1;
         }
     }
@@ -346,7 +349,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
             } else {
-                (this._sessionDiagnostics as any)[propName].totalCount += 1;
+                (this._sessionDiagnostics as unknown as Record<string, { totalCount: number }>)[propName].totalCount += 1;
             }
         }
     }
@@ -360,7 +363,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 errorLog("incrementRequestErrorCounter: cannot find", propName);
                 // xx  return;
             } else {
-                (this._sessionDiagnostics as any)[propName].errorCount += 1;
+                (this._sessionDiagnostics as unknown as Record<string, { errorCount: number }>)[propName].errorCount += 1;
             }
         }
     }
@@ -369,16 +372,24 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * returns rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray
      */
     public getSessionDiagnosticsArray(): UADynamicVariableArray<SessionDiagnosticsDataType> {
-        const server = this.addressSpace!.rootFolder.objects.server;
-        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionDiagnosticsArray as any;
+        if (!this.addressSpace) {
+            throw new Error("getSessionDiagnosticsArray: address space is not available");
+        }
+        const server = this.addressSpace.rootFolder.objects.server;
+        return server.serverDiagnostics.sessionsDiagnosticsSummary
+            .sessionDiagnosticsArray as unknown as UADynamicVariableArray<SessionDiagnosticsDataType>;
     }
 
     /**
      * returns rootFolder.objects.server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray
      */
     public getSessionSecurityDiagnosticsArray(): UADynamicVariableArray<SessionSecurityDiagnosticsDataType> {
-        const server = this.addressSpace!.rootFolder.objects.server;
-        return server.serverDiagnostics.sessionsDiagnosticsSummary.sessionSecurityDiagnosticsArray as any;
+        if (!this.addressSpace) {
+            throw new Error("getSessionSecurityDiagnosticsArray: address space is not available");
+        }
+        const server = this.addressSpace.rootFolder.objects.server;
+        return server.serverDiagnostics.sessionsDiagnosticsSummary
+            .sessionSecurityDiagnosticsArray as unknown as UADynamicVariableArray<SessionSecurityDiagnosticsDataType>;
     }
 
     /**
@@ -497,7 +508,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
             assert(this.publishEngine.subscriptionCount === 0);
             this.publishEngine.dispose();
-            this.publishEngine = null as any as ServerSidePublishEngine;
+            this.publishEngine = null as unknown as ServerSidePublishEngine;
         }
 
         this._removeSessionObjectFromAddressSpace();
@@ -521,7 +532,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             return registeredNode;
         }
 
-        const node = this.addressSpace!.findNode(nodeId);
+        const node = this.addressSpace?.findNode(nodeId);
         if (!node) {
             return nodeId;
         }
@@ -544,8 +555,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         if (!node) {
             return;
         }
-        this._registeredNodesInv[aliasNodeId.toString()] = null;
-        this._registeredNodes[node.nodeId.toString()] = null;
+        delete this._registeredNodesInv[aliasNodeId.toString()];
+        delete this._registeredNodes[node.nodeId.toString()];
     }
 
     public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
@@ -608,7 +619,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(Object.hasOwn(channel.sessionTokens, key));
         assert(this.channel);
         assert(typeof this.channel_abort_event_handler === "function");
-        channel.removeListener("abort", this.channel_abort_event_handler);
+        if (this.channel_abort_event_handler) {
+            channel.removeListener("abort", this.channel_abort_event_handler);
+        }
 
         delete channel.sessionTokens[key];
         this.channel = undefined;
@@ -674,7 +687,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         // self.addressSpace.findNode(makeNodeId(ObjectIds.Server_ServerDiagnostics));
         const serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
-        if (!serverDiagnosticsNode || !serverDiagnosticsNode.sessionsDiagnosticsSummary) {
+        if (!serverDiagnosticsNode?.sessionsDiagnosticsSummary) {
             debugLog("ServerSession#_createSessionObjectInAddressSpace :" + " no serverDiagnostics.sessionsDiagnosticsSummary");
             return false;
         }
@@ -691,11 +704,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         function createSessionDiagnosticsStuff(this: ServerSession) {
             if (sessionDiagnosticsDataType && sessionDiagnosticsVariableType) {
+                // addressSpace and sessionObject were already validated/set non-null by
+                // _createSessionObjectInAddressSpace / createSessionDiagnosticSummaryUAObject before this
+                // synchronous helper is invoked
+                if (!this.addressSpace) {
+                    throw new Error("createSessionDiagnosticsStuff: address space is not available");
+                }
+                if (!this.sessionObject) {
+                    throw new Error("createSessionDiagnosticsStuff: sessionObject is not available");
+                }
                 // the extension object
-                this._sessionDiagnostics = this.addressSpace!.constructExtensionObject(
+                this._sessionDiagnostics = this.addressSpace.constructExtensionObject(
                     sessionDiagnosticsDataType,
                     {}
-                )! as SessionDiagnosticsDataTypeEx;
+                ) as SessionDiagnosticsDataTypeEx;
                 this._sessionDiagnostics.$session = this;
 
                 // install property getter on property that are unlikely to change
@@ -704,8 +726,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 }
 
                 Object.defineProperty(this._sessionDiagnostics, "clientConnectionTime", {
-                    get(this: any) {
-                        return this.$session.clientConnectionTime;
+                    // note: sibling getters below (actualSessionTimeout, sessionId, sessionName) already
+                    // guard against a null $session; this one previously accessed it unguarded (behind `this:
+                    // any`), which would throw if ever read after the session was disposed. Aligned here.
+                    get(this: SessionDiagnosticsDataTypeEx) {
+                        return this.$session?.clientConnectionTime;
                     }
                 });
 
@@ -745,11 +770,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
         function createSessionSecurityDiagnosticsStuff(this: ServerSession) {
             if (sessionSecurityDiagnosticsDataType && sessionSecurityDiagnosticsType) {
+                // addressSpace and sessionObject were already validated/set non-null by
+                // _createSessionObjectInAddressSpace / createSessionDiagnosticSummaryUAObject before this
+                // synchronous helper is invoked
+                if (!this.addressSpace) {
+                    throw new Error("createSessionSecurityDiagnosticsStuff: address space is not available");
+                }
+                if (!this.sessionObject) {
+                    throw new Error("createSessionSecurityDiagnosticsStuff: sessionObject is not available");
+                }
                 // the extension object
-                this._sessionSecurityDiagnostics = this.addressSpace!.constructExtensionObject(
+                this._sessionSecurityDiagnostics = this.addressSpace.constructExtensionObject(
                     sessionSecurityDiagnosticsDataType,
                     {}
-                )! as SessionSecurityDiagnosticsDataTypeEx;
+                ) as SessionSecurityDiagnosticsDataTypeEx;
                 this._sessionSecurityDiagnostics.$session = this;
 
                 /*
@@ -764,53 +798,53 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                     clientCertificate: ByteString;
                 */
                 Object.defineProperty(this._sessionSecurityDiagnostics, "sessionId", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return this.$session?.nodeId;
                     }
                 });
 
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientUserIdOfSession", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return ""; // UAString // TO DO : implement
                     }
                 });
 
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientUserIdHistory", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return []; // UAString[] | null
                     }
                 });
 
                 Object.defineProperty(this._sessionSecurityDiagnostics, "authenticationMechanism", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return "";
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "encoding", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return "";
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "transportProtocol", {
-                    get(this: any) {
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         return "opc.tcp";
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityMode", {
-                    get(this: any) {
-                        const session: ServerSession = this.$session;
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
+                        const session = this.$session;
                         return session?.channel?.securityMode;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityPolicyUri", {
-                    get(this: any) {
-                        const session: ServerSession = this.$session;
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
+                        const session = this.$session;
                         return session?.channel?.securityPolicy;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
-                    get(this: any) {
-                        const session: ServerSession = this.$session;
+                    get(this: SessionSecurityDiagnosticsDataTypeEx) {
+                        const session = this.$session;
                         return session?.channel?.clientCertificate;
                     }
                 });
@@ -840,7 +874,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
 
         function createSessionDiagnosticSummaryUAObject(this: ServerSession) {
-            const references: any[] = [];
+            const references: AddReferenceOpts[] = [];
             if (sessionDiagnosticsObjectType) {
                 references.push({
                     isForward: true,
@@ -862,9 +896,21 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             createSessionSecurityDiagnosticsStuff.call(this);
         }
         function createSubscriptionDiagnosticsArray(this: ServerSession) {
-            const subscriptionDiagnosticsArrayType = this.addressSpace!.findVariableType("SubscriptionDiagnosticsArrayType")!;
+            // addressSpace was already validated non-null by _createSessionObjectInAddressSpace before this
+            // synchronous helper is invoked
+            if (!this.addressSpace) {
+                throw new Error("createSubscriptionDiagnosticsArray: address space is not available");
+            }
+            const subscriptionDiagnosticsArrayType = this.addressSpace.findVariableType("SubscriptionDiagnosticsArrayType");
+            if (!subscriptionDiagnosticsArrayType) {
+                throw new Error("createSubscriptionDiagnosticsArray: cannot find SubscriptionDiagnosticsArrayType");
+            }
             assert(subscriptionDiagnosticsArrayType.nodeId.toString() === "ns=0;i=2171");
 
+            // sessionObject is guaranteed to be set by createSessionDiagnosticSummaryUAObject, called just before
+            if (!this.sessionObject) {
+                throw new Error("createSubscriptionDiagnosticsArray: sessionObject is not available");
+            }
             this.subscriptionDiagnosticsArray = createExtObjArrayNode<SubscriptionDiagnosticsDataType>(this.sessionObject, {
                 browseName: { namespaceIndex: 0, name: "SubscriptionDiagnosticsArray" },
                 complexVariableType: "SubscriptionDiagnosticsArrayType",
@@ -896,25 +942,29 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             return;
         }
         if (this.sessionDiagnostics) {
-            const sessionDiagnosticsArray = this.getSessionDiagnosticsArray()!;
+            const sessionDiagnosticsArray = this.getSessionDiagnosticsArray();
             removeElement(sessionDiagnosticsArray, (a) => sameNodeId(a.sessionId, this.getSessionId()));
             this.addressSpace.deleteNode(this.sessionDiagnostics);
 
-            assert(this._sessionDiagnostics!.$session === this);
-            this._sessionDiagnostics!.$session = null;
+            assert(this._sessionDiagnostics?.$session === this);
+            if (this._sessionDiagnostics) {
+                this._sessionDiagnostics.$session = null;
+            }
 
             this._sessionDiagnostics = undefined;
             this.sessionDiagnostics = undefined;
         }
 
         if (this.sessionSecurityDiagnostics) {
-            const sessionSecurityDiagnosticsArray = this.getSessionSecurityDiagnosticsArray()!;
+            const sessionSecurityDiagnosticsArray = this.getSessionSecurityDiagnosticsArray();
             removeElement(sessionSecurityDiagnosticsArray, (a) => sameNodeId(a.sessionId, this.getSessionId()));
 
             this.addressSpace.deleteNode(this.sessionSecurityDiagnostics);
 
-            assert(this._sessionSecurityDiagnostics!.$session === this);
-            this._sessionSecurityDiagnostics!.$session = null;
+            assert(this._sessionSecurityDiagnostics?.$session === this);
+            if (this._sessionSecurityDiagnostics) {
+                this._sessionSecurityDiagnostics.$session = null;
+            }
 
             this._sessionSecurityDiagnostics = undefined;
             this.sessionSecurityDiagnostics = undefined;

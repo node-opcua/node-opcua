@@ -7,7 +7,9 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { getStandardDataTypeFactory } from "node-opcua-factory";
 import type { ExpandedNodeId } from "node-opcua-nodeid";
 
-export type EngineForFactory = {};
+// "any non-nullish object" - Factory only stores the engine reference, it never accesses any
+// property on it (see the assert below)
+export type EngineForFactory = object;
 export class Factory {
     public engine: EngineForFactory;
 

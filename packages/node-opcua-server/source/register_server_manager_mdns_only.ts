@@ -47,7 +47,10 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
 
         const host = "TODO-find how to extract hostname";
         const capabilities = this.server.capabilitiesForMDNS;
-        const name = this.server.serverInfo.applicationUri!;
+        if (!this.server.serverInfo.applicationUri) {
+            throw new Error("internal error: expecting a valid applicationUri");
+        }
+        const name = this.server.serverInfo.applicationUri;
         const port = this.server.endpoints[0].port;
 
         this._state = RegisterServerManagerStatus.REGISTERING;

@@ -35,8 +35,11 @@ function isNumberDataType(node: UAVariable): boolean {
                 return false;
         }
     }
-    const dataType = node.addressSpace.findDataType(node.dataType)!;
-    const dataTypeNumber = node.addressSpace.findDataType("Number")!;
+    const dataType = node.addressSpace.findDataType(node.dataType);
+    const dataTypeNumber = node.addressSpace.findDataType("Number");
+    if (!dataType || !dataTypeNumber) {
+        throw new Error("isNumberDataType: cannot resolve DataType or the standard 'Number' DataType in the address space");
+    }
     return dataType.isSubtypeOf(dataTypeNumber);
 }
 

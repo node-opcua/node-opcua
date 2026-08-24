@@ -65,6 +65,6 @@ export class Queue<T> {
                 return iterator;
             }
         };
-        return iteratable as any;
+        return iteratable as unknown as Iterable<T>;
     }
 }

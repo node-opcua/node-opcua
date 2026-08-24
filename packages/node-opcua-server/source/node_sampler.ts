@@ -13,7 +13,7 @@ import type { MonitoredItem } from "./monitored_item";
 
 interface ITimer {
     _samplingId: NodeJS.Timeout | false;
-    monitoredItems: Record<string, any>;
+    monitoredItems: Record<string, MonitoredItem>;
     monitoredItemsCount: number;
 }
 const timers: Record<string, ITimer> = {};

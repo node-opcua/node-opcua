@@ -44,17 +44,15 @@ import {
     MonitoringParameters,
     type PseudoRange
 } from "node-opcua-service-subscription";
-import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, type ModifiableStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
-    DataChangeNotification,
     EventFieldList,
-    EventNotificationList,
     type MonitoringFilter,
     type ReadValueIdOptions,
     type SimpleAttributeOperand,
     type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
-import { sameVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import { sameVariant, Variant } from "node-opcua-variant";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import type { SamplingFunc } from "./sampling_func";
@@ -101,14 +99,14 @@ function _adjust_queue_size(queueSize: number): number {
     return queueSize;
 }
 
-function _validate_parameters(monitoringParameters: any) {
+function _validate_parameters(monitoringParameters: MonitoringParameters) {
     // xx assert(options instanceof MonitoringParameters);
     assert(Object.hasOwn(monitoringParameters, "clientHandle"));
     assert(Object.hasOwn(monitoringParameters, "samplingInterval"));
-    assert(isFinite(monitoringParameters.clientHandle));
-    assert(isFinite(monitoringParameters.samplingInterval));
+    assert(Number.isFinite(monitoringParameters.clientHandle));
+    assert(Number.isFinite(monitoringParameters.samplingInterval));
     assert(typeof monitoringParameters.discardOldest === "boolean");
-    assert(isFinite(monitoringParameters.queueSize));
+    assert(Number.isFinite(monitoringParameters.queueSize));
     assert(monitoringParameters.queueSize >= 0);
 }
 
@@ -156,9 +154,11 @@ function valueHasChanged(
             // If the Value of the MonitoredItem is an array, then the deadband calculation logic shall be applied to
             // each element of the array. If an element that requires a DataChange is found, then no further
             // deadband checking is necessary and the entire array shall be returned.
-            assert(this.node !== null, "expecting a valid address_space object here to get access the the EURange");
+            if (this.node === null) {
+                throw new Error("valueHasChanged: expecting a valid address_space object here to get access the the EURange");
+            }
 
-            const euRangeNode = this.node!.getChildByName("EURange") as UAVariable;
+            const euRangeNode = this.node.getChildByName("EURange") as UAVariable;
             if (euRangeNode && euRangeNode.nodeClass === NodeClass.Variable) {
                 // double,double
                 const rangeVariant = euRangeNode.readValue().value;
@@ -207,7 +207,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
             if (trigger === DataChangeTrigger.StatusValue || trigger === DataChangeTrigger.StatusValueTimestamp) {
                 debugLog(
                     "valueHasChanged ",
-                    valueHasChanged.call(this, newDataValue, oldDataValue, this.filter!.deadbandType, this.filter!.deadbandValue)
+                    valueHasChanged.call(this, newDataValue, oldDataValue, this.filter?.deadbandType, this.filter?.deadbandValue)
                 );
             }
             if (trigger === DataChangeTrigger.StatusValueTimestamp) {
@@ -257,17 +257,25 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     }
 }
 
-const s = (a: any) => JSON.stringify(a, null, "  ");
+const s = (a: unknown) => JSON.stringify(a, null, "  ");
+
+interface IDataValueWithSafeGuardTag {
+    _$monitoredItem?: string;
+}
+interface IMonitoredItemWithSafeGuard {
+    _$safeGuard?: string;
+}
 
 function safeGuardRegister(monitoredItem: MonitoredItem) {
-    (monitoredItem.oldDataValue as any)._$monitoredItem = monitoredItem.node?.nodeId?.toString();
-    (monitoredItem as any)._$safeGuard = s((monitoredItem as any).oldDataValue);
+    (monitoredItem.oldDataValue as unknown as IDataValueWithSafeGuardTag)._$monitoredItem = monitoredItem.node?.nodeId?.toString();
+    (monitoredItem as unknown as IMonitoredItemWithSafeGuard)._$safeGuard = s(monitoredItem.oldDataValue);
 }
 function safeGuardVerify(monitoredItem: MonitoredItem) {
-    if ((monitoredItem as any)._$safeGuard) {
+    const monitoredItemEx = monitoredItem as unknown as IMonitoredItemWithSafeGuard;
+    if (monitoredItemEx._$safeGuard) {
         const verif = s(monitoredItem.oldDataValue || "");
-        if (verif !== (monitoredItem as any)._$safeGuard) {
-            errorLog(verif, (monitoredItem as any)._$safeGuard);
+        if (verif !== monitoredItemEx._$safeGuard) {
+            errorLog(verif, monitoredItemEx._$safeGuard);
             throw new Error("Internal error: DataValue has been altered !!!");
         }
     }
@@ -338,12 +346,10 @@ export interface BaseNode2 extends EventEmitter {
     browseName: QualifiedNameOptions;
     nodeClass: NodeClass;
     dataType: NodeId;
-    addressSpace: any;
+    addressSpace: AddressSpace;
 
     readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue;
 }
-
-type TimerKey = NodeJS.Timer;
 
 export interface IServerSession2 {
     sessionContext: ISessionContext;
@@ -358,7 +364,7 @@ export interface ISubscription {
     readonly maxSelectClauseParameters?: number;
 }
 
-function isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
+function _isSourceNewerThan(a: DataValue, b?: DataValue): boolean {
     if (!b) {
         return true;
     }
@@ -386,7 +392,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         return this._node;
     }
 
-    public set node(someNode: UAVariable | UAObject | UAMethod | null) {
+    public set node(_someNode: UAVariable | UAObject | UAMethod | null) {
         throw new Error("Unexpected way to set node");
     }
 
@@ -407,7 +413,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     public timestampsToReturn: TimestampsToReturn;
-    public itemToMonitor: any;
+    // attributeId is always populated by the time a MonitoredItem is constructed (see _validate_parameters
+    // and the OPC UA spec: it is mandatory on a ReadValueId used to create a MonitoredItem)
+    public itemToMonitor: ReadValueIdOptions & { attributeId: AttributeIds };
     public filter: MonitoringFilter | null;
     public discardOldest = true;
     public queueSize = 0;
@@ -420,10 +428,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling = false;
-    private _on_opcua_event_received_callback: any;
-    private _attribute_changed_callback: any;
-    private _value_changed_callback: any;
-    private _semantic_changed_callback: any;
+    private _on_opcua_event_received_callback: ((eventData: IEventData) => void) | null = null;
+    private _attribute_changed_callback: ((dataValue: DataValue, indexRange?: NumericRange | null) => void) | null = null;
+    private _value_changed_callback: ((dataValue: DataValue, indexRange?: NumericRange | null) => void) | null = null;
+    private _semantic_changed_callback: (() => void) | null = null;
     private _on_node_disposed_listener: (() => void) | null;
     private _linkedItems?: number[];
     private _triggeredNotifications?: QueueItem[];
@@ -453,7 +461,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         this.timestampsToReturn = coerceTimestampsToReturn(options.timestampsToReturn);
 
-        this.itemToMonitor = options.itemToMonitor;
+        this.itemToMonitor = options.itemToMonitor as ReadValueIdOptions & { attributeId: AttributeIds };
 
         this._node = null;
         this._semantic_version = 0;
@@ -471,8 +479,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public setNode(node: UAVariable | UAObject | UAMethod): void {
         assert(!this.node || this.node === node, "node already set");
         this._node = node;
-        this._semantic_version = (node as any).semantic_version;
-        this._on_node_disposed_listener = () => this._on_node_disposed(this._node!);
+        this._semantic_version = "semantic_version" in node ? node.semantic_version : 0;
+        // note: dispose() always removes this listener before nulling this._node, so _node is
+        // guaranteed non-null whenever the "dispose" event actually reaches this callback
+        this._on_node_disposed_listener = () => {
+            if (!this._node) {
+                throw new Error("MonitoredItem#_on_node_disposed_listener: expecting a valid node");
+            }
+            this._on_node_disposed(this._node);
+        };
         (this._node as BaseNode).on("dispose", this._on_node_disposed_listener);
     }
 
@@ -502,7 +517,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             // sampling interval.
             const recordInitialValue =
                 old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled;
-            const installEventHandler = old_monitoringMode === MonitoringMode.Invalid;
+            const _installEventHandler = old_monitoringMode === MonitoringMode.Invalid;
             this._start_sampling(recordInitialValue);
         } else {
             return StatusCodes.BadInternalError;
@@ -522,7 +537,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public dispose(): void {
         // c8 ignore next
         if (doDebug) {
-            debugLog("DISPOSING MONITORED ITEM", this._node!.nodeId.toString());
+            debugLog("DISPOSING MONITORED ITEM", this._node?.nodeId.toString());
         }
 
         this._stop_sampling();
@@ -537,7 +552,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // x assert(this._samplingId === null,"Sampling Id must be null");
         this.oldDataValue = badDataUnavailable;
         this.queue = [];
-        this.itemToMonitor = null;
+        this.itemToMonitor = null as unknown as ReadValueIdOptions & { attributeId: AttributeIds };
         this.filter = null;
         this.monitoredItemId = 0;
         this._node = null;
@@ -617,12 +632,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
         doDebug && assert(!dataValue.value || dataValue.value.isValid(), "expecting a valid variant value");
 
-        const hasSemanticChanged = this.node && (this.node as any).semantic_version !== this._semantic_version;
+        const hasSemanticChanged =
+            this.node && ("semantic_version" in this.node ? this.node.semantic_version : 0) !== this._semantic_version;
 
         if (!hasSemanticChanged && indexRange && this.itemToMonitor.indexRange) {
             // we just ignore changes that do not fall within our range
             // ( unless semantic bit has changed )
-            if (!NumericRange.overlap(indexRange as NumericalRange0, this.itemToMonitor.indexRange)) {
+            if (!NumericRange.overlap(indexRange as NumericalRange0, this.itemToMonitor.indexRange as NumericalRange0)) {
                 // c8 ignore next
                 doDebug && debugLog("recordValue => Rejected", this.node?.browseName.toString(), " because no range not overlap");
                 return false; // no overlap !
@@ -636,10 +652,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (doDebug2) {
             debugLog(
                 "MonitoredItem#recordValue",
-                this.node!.nodeId.toString(),
-                this.node!.browseName.toString(),
+                this.node?.nodeId.toString(),
+                this.node?.browseName.toString(),
                 " has Changed = ",
-                !sameDataValue(dataValue, this.oldDataValue!),
+                !sameDataValue(dataValue, this.oldDataValue),
                 "skipChangeTest = ",
                 skipChangeTest,
                 "hasSemanticChanged = ",
@@ -661,7 +677,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         const useIndexRange = this.itemToMonitor.indexRange && !this.itemToMonitor.indexRange.isEmpty();
 
         if (!skipChangeTest) {
-            const hasChanged = !sameDataValue(dataValue, this.oldDataValue!);
+            const hasChanged = !sameDataValue(dataValue, this.oldDataValue);
             if (!hasChanged) {
                 // c8 ignore next
                 doDebug2 &&
@@ -718,7 +734,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (!this._linkedItems) {
             return false;
         }
-        return this._linkedItems.findIndex((x) => x === linkedMonitoredItemId) > 0;
+        return this._linkedItems.indexOf(linkedMonitoredItemId) > 0;
     }
     public addLinkItem(linkedMonitoredItemId: number): StatusCode {
         if (linkedMonitoredItemId === this.monitoredItemId) {
@@ -735,7 +751,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (!this._linkedItems || linkedMonitoredItemId === this.monitoredItemId) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
-        const index = this._linkedItems.findIndex((x) => x === linkedMonitoredItemId);
+        const index = this._linkedItems.indexOf(linkedMonitoredItemId);
         if (index === -1) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
@@ -783,7 +799,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         setImmediate(() => {
             this._triggeredNotifications = this._triggeredNotifications || [];
             const notifications = this.extractMonitoredItemNotifications(true);
-            this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications!, notifications);
+            this._triggeredNotifications = ([] as QueueItem[]).concat(this._triggeredNotifications, notifications);
         });
     }
 
@@ -841,7 +857,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._adjustSampling(old_samplingInterval);
 
         if (monitoringParameters.filter) {
-            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node!, {
+            if (!this.node) {
+                throw new Error("setMonitoringParameters: expecting a valid node");
+            }
+            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node, {
                 maxWhereClauseParameters: this.$subscription?.maxWhereClauseParameters,
                 maxSelectClauseParameters: this.$subscription?.maxSelectClauseParameters
             });
@@ -895,7 +914,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (!session) {
             return null;
         }
-        const sessionContext: ISessionContext = session!.sessionContext;
+        const sessionContext: ISessionContext = session.sessionContext;
         return sessionContext;
     }
     /**
@@ -932,7 +951,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 // note : see also issue #156 on github
 
                 // Note: some server returns GoodOverload here
-                const statusCode = StatusCodes.GoodOverload;
+                const _statusCode = StatusCodes.GoodOverload;
 
                 return;
             }
@@ -954,10 +973,12 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 // c8 ignore next
                 if (err) {
                     errorLog(" SAMPLING ERROR =>", err);
+                } else if (!newDataValue) {
+                    errorLog(" SAMPLING ERROR => samplingFunc completed without error but returned no dataValue");
                 } else {
                     // only record value if source timestamp is newer
                     // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
-                    this._on_value_changed(newDataValue!);
+                    this._on_value_changed(newDataValue);
                     // xx }
                 }
                 this._is_sampling = false;
@@ -1015,13 +1036,16 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         assert(!this._on_opcua_event_received_callback);
     }
 
-    private _on_value_changed(dataValue: DataValue, indexRange?: NumericRange) {
+    private _on_value_changed(dataValue: DataValue, indexRange?: NumericRange | null) {
         assert(dataValue instanceof DataValue);
-        this.recordValue(dataValue, false, indexRange);
+        this.recordValue(dataValue, false, indexRange ?? undefined);
     }
 
     private _on_semantic_changed() {
-        const dataValue: DataValue = (this.node! as UAVariable).readValue();
+        if (!this.node) {
+            throw new Error("_on_semantic_changed: expecting a valid node");
+        }
+        const dataValue: DataValue = (this.node as UAVariable).readValue();
         this._on_value_changed(dataValue);
     }
 
@@ -1053,7 +1077,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (doDebug) {
             debugLog(" RECEIVED INTERNAL EVENT THAT WE ARE MONITORING");
             debugLog(this.filter ? this.filter.toString() : "no filter");
-            eventFields.forEach((e: any) => {
+            eventFields.forEach((e: Variant) => {
                 debugLog(e.toString());
             });
         }
@@ -1219,17 +1243,18 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this.filter = (monitoredParameters.filter as MonitoringFilter) || null;
     }
 
-    private _setOverflowBit(notification: any) {
+    private _setOverflowBit(notification: QueueItem) {
         if (Object.hasOwn(notification, "value")) {
-            assert(notification.value.statusCode.equals(StatusCodes.Good));
-            notification.value.statusCode = StatusCode.makeStatusCode(
-                notification.value.statusCode,
+            const dataChangeNotification = notification as MonitoredItemNotification;
+            assert(dataChangeNotification.value.statusCode.equals(StatusCodes.Good));
+            dataChangeNotification.value.statusCode = StatusCode.makeStatusCode(
+                dataChangeNotification.value.statusCode,
                 "Overflow | InfoTypeDataValue"
             );
-            assert(sameStatusCode(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
-            assert(notification.value.statusCode.hasOverflowBit);
+            assert(sameStatusCode(dataChangeNotification.value.statusCode, StatusCodes.GoodWithOverflowBit));
+            assert(dataChangeNotification.value.statusCode.hasOverflowBit);
         }
-        if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
+        if (this.$subscription?.subscriptionDiagnostics) {
             this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
         }
         // to do: eventQueueOverflowCount
@@ -1244,7 +1269,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             // sampling and the Client will always receive the most up-to-date value.
             // The discard policy is ignored if the queue size is one.
             // ensure queue size
-            if (!this.queue || this.queue.length !== 1) {
+            if (this.queue?.length !== 1) {
                 this.queue = [];
             }
             this.queue[0] = notification;
@@ -1321,7 +1346,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                    this.node!.browseName.toString() +
+                    this.node?.browseName.toString() +
                     " " +
                     dataValue.toString() +
                     "  " +
@@ -1331,7 +1356,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         // c8 ignore next
         if (doDebug) {
-            debugLog("MonitoredItem#_enqueue_value", this.node!.nodeId.toString());
+            debugLog("MonitoredItem#_enqueue_value", this.node?.nodeId.toString());
             safeGuardVerify(this);
         }
         this.oldDataValue = dataValue.clone();
@@ -1344,14 +1369,14 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._enqueue_notification(notification);
     }
 
-    private _makeEventFieldList(eventFields: any[]): EventFieldList {
+    private _makeEventFieldList(eventFields: Variant[]): EventFieldList {
         return new EventFieldList({
             clientHandle: this.clientHandle,
             eventFields
         });
     }
 
-    private _enqueue_event(eventFields: any[]) {
+    private _enqueue_event(eventFields: Variant[]) {
         // c8 ignore next
         if (doDebug) {
             debugLog(" MonitoredItem#_enqueue_event");
@@ -1416,7 +1441,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 if (this.queue[0] instanceof MonitoredItemNotification) {
                     const el = this.queue[0] as MonitoredItemNotification;
                     if (el.value.statusCode.hasOverflowBit) {
-                        (el.value.statusCode as any).unset("Overflow | InfoTypeDataValue");
+                        (el.value.statusCode as ModifiableStatusCode).unset("Overflow | InfoTypeDataValue");
                     }
                 }
             }

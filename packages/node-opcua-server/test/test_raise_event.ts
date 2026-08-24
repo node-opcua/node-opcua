@@ -42,9 +42,15 @@ describe("testing Events  ", () => {
         eventType.browseName.toString().should.eql("1:SomeEventType");
     });
 
+    interface ITestEventData {
+        sourceName: Variant;
+    }
+
     class Observer {
         /* empty */
-        public onEvent: any;
+        public onEvent: (evtData: ITestEventData) => void = () => {
+            /* empty */
+        };
     }
 
     util.inherits(Observer, EventEmitter);
@@ -57,7 +63,7 @@ describe("testing Events  ", () => {
 
         const observer = new Observer();
 
-        observer.onEvent = (evtData: any) => {
+        observer.onEvent = (evtData: ITestEventData) => {
             debugLog(" EVENT RECEIVED :", evtData.sourceName.value);
             evtData.sourceName.dataType.should.eql(DataType.String);
 
@@ -202,7 +208,7 @@ describe("testing Events  ", () => {
         eventFields[2].dataType.should.eql(DataType.String); // sourceName
         eventFields[3].dataType.should.eql(DataType.DateTime);
 
-        debugLog(" EVENT RECEIVED :", (eventData as any).sourceName.value);
+        debugLog(" EVENT RECEIVED :", (eventData as unknown as ITestEventData).sourceName.value);
         done();
     });
 
@@ -243,16 +249,16 @@ describe("testing Events  ", () => {
         pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
         pumpStartEventType.subtypeOfObj?.browseName.toString().should.eql("BaseEventType");
 
-        const receivers: any[] = [];
+        const receivers: (string | undefined)[] = [];
 
-        function spyFunc(this: BaseNode, _object: any, _data: any): void {
+        function spyFunc(this: BaseNode, _object: unknown, _data: unknown): void {
             debugLog("object ", this.browseName.toString(), " received Event");
             receivers.push(this.browseName.name?.toString());
         }
         const server = addressSpace.findNode("Server")!;
 
         server.on("event", spyFunc.bind(server));
-        (pump as any).on("event", spyFunc.bind(pump));
+        pump.on("event", spyFunc.bind(pump));
         tank1.on("event", spyFunc.bind(tank1));
         area1.on("event", spyFunc.bind(area1));
 

@@ -9,6 +9,16 @@ const port = 48444;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
+// not part of the public client API - accessed here for diagnostic logging only
+interface IClientWithInternals {
+    requestedSessionTimeout: number;
+    _transportTimeout: number;
+    _secureChannel: {
+        getTransport(): { _socket: { timeout: number } };
+        activeSecurityToken: { revisedLifetime: number };
+    };
+}
+
 async function startClient() {
     //const endpointUri = "opc.tcp://opcua.umati.app:4843";
     const endpointUri = `opc.tcp://localhost:${port}`;
@@ -37,13 +47,14 @@ async function startClient() {
 
     await session.read({ nodeId: "ns=0;i=2258", attributeId: 13 });
 
-    console.log("requested sessionTimeout           ", (client as any).requestedSessionTimeout);
+    const clientEx = client as unknown as IClientWithInternals;
+    console.log("requested sessionTimeout           ", clientEx.requestedSessionTimeout);
     console.log("sessionTimeout                     ", session.timeout);
     console.log("tokenRenewalInterval               ", client.tokenRenewalInterval);
-    console.log("requested socket timeout           ", (client as any)._transportTimeout); // not public api !
-    console.log("socket timeout                     ", (client as any)._secureChannel.getTransport()._socket.timeout);
+    console.log("requested socket timeout           ", clientEx._transportTimeout); // not public api !
+    console.log("socket timeout                     ", clientEx._secureChannel.getTransport()._socket.timeout);
     //console.log("_secureChannel?.timeout", client._secureChannel);
-    console.log("activeSecurityToken.revisedLifetime", (client as any)._secureChannel.activeSecurityToken.revisedLifetime);
+    console.log("activeSecurityToken.revisedLifetime", clientEx._secureChannel.activeSecurityToken.revisedLifetime);
     console.log("connected ");
 
     return { client, session };

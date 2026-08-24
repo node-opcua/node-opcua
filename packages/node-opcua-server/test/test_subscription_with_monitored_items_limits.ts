@@ -17,7 +17,7 @@ const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
 
-describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
+describe("SM3 - Subscriptions and MonitoredItems limits", function (this: Mocha.Suite) {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 
@@ -39,7 +39,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
-            function addVar(typeName: string, value: any) {
+            function addVar(typeName: string, value: unknown) {
                 namespace.index.should.eql(1);
 
                 namespace.addVariable({
@@ -47,7 +47,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
                     nodeId: `s=Static_${typeName}`,
                     browseName: `Static_${typeName}`,
                     dataType: typeName,
-                    value: { dataType: DataType[typeName as any], value: value }
+                    value: { dataType: (DataType as unknown as Record<string, number>)[typeName], value: value }
                 });
             }
 

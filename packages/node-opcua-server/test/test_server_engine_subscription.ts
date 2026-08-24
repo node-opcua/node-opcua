@@ -14,7 +14,12 @@ import { with_fake_timer } from "./helper_with_fake_timer";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-describe("ServerEngine Subscriptions service", function (this: any) {
+interface ITestContext {
+    // set synchronously by with_fake_timer before the worker body (this arrow function) executes
+    clock: sinon.SinonFakeTimers;
+}
+
+describe("ServerEngine Subscriptions service", function (this: ITestContext) {
     /**
      * @type {ServerEngine}
      */

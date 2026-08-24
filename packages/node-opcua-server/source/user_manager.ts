@@ -33,16 +33,16 @@ export interface IUAUserManager extends IUserManager {
 }
 
 export abstract class UAUserManagerBase implements IUAUserManager {
-    getUserRoles(user: string): NodeId[] {
+    getUserRoles(_user: string): NodeId[] {
         throw new Error("Method not implemented.");
     }
-    isValidUser(session: ServerSession, username: string, password: string): Promise<boolean> {
+    isValidUser(_session: ServerSession, _username: string, _password: string): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    getIdentitiesForRole(role: NodeId): IdentityMappingRuleType[] {
+    getIdentitiesForRole(_role: NodeId): IdentityMappingRuleType[] {
         return [];
     }
-    bind(roleSet: UARoleSet): void {
+    bind(_roleSet: UARoleSet): void {
         /**  */
     }
 }
@@ -70,12 +70,12 @@ export class UAUserManager1 extends UAUserManagerBase {
             return new Promise<boolean>((resolve, reject) => {
                 this.options.isValidUserAsync?.call(session, username, password, (err, isAuthorized) => {
                     if (err) return reject();
-                    resolve(isAuthorized!);
+                    resolve(!!isAuthorized);
                 });
             });
         } else if (typeof this.options.isValidUser === "function") {
             try {
-                const authorized = this.options.isValidUser!.call(session, username, password);
+                const authorized = this.options.isValidUser?.call(session, username, password);
                 return authorized;
             } catch (err) {
                 if (types.isNativeError(err)) {

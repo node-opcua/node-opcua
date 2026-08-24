@@ -4,7 +4,7 @@ import type { ServerEngine } from "./server_engine";
 import type { ServerSession } from "./server_session";
 import { type Subscription, SubscriptionState } from "./server_subscription";
 
-const consolelog = (...args: any) => {
+const consolelog = (...args: unknown[]) => {
     const d = new Date();
     const t = `${d.toTimeString().split(" ")[0]}.${d.getMilliseconds().toString().padStart(3, "0")}`;
     console.log.apply(console, [t, ...args]);
@@ -42,14 +42,14 @@ export function installSubscriptionMonitoring(subscription: Subscription) {
     });
     // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
     if (true || doDebug) {
-        subscription.on("lifeTimeCounterChanged", (ltc: number) => {
+        subscription.on("lifeTimeCounterChanged", (_ltc: number) => {
             consolelog("subscription lifeTimeCounterChanged".padEnd(45), info(subscription));
         });
     }
     subscription.on("expired", () => {
         consolelog("subscription expired".padEnd(45), info(subscription));
     });
-    subscription.on("stateChanged", (state: SubscriptionState) => {
+    subscription.on("stateChanged", (_state: SubscriptionState) => {
         consolelog("subscription stateChanged".padEnd(45), info(subscription));
     });
     subscription.on("terminate", () => {
@@ -73,11 +73,11 @@ export function installSessionLoggingOnEngine(serverEngine: ServerEngine) {
                 installSubscriptionMonitoring(subscription);
             });
         } catch (err) {
-            consolelog((err as any).message);
+            consolelog(err instanceof Error ? err.message : err);
         }
     }
     serverEngine.on("create_session", on_create_session);
-    serverEngine.once("session_closed", (session) => {
+    serverEngine.once("session_closed", (_session) => {
         consolelog("session is closed");
         serverEngine.removeListener("create_session", on_create_session);
     });

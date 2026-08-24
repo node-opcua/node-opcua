@@ -19,6 +19,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { TimestampsToReturn } from "node-opcua-service-read";
 import {
     DataChangeFilter,
+    type DataChangeNotification,
     DataChangeTrigger,
     DeadbandType,
     MonitoredItemCreateRequest,
@@ -36,13 +37,19 @@ import sinon from "sinon";
 
 import {
     MonitoredItem,
+    type QueueItem,
     ServerEngine,
+    type ServerSession,
     ServerSidePublishEngine,
     Subscription,
     type SubscriptionOptions,
     SubscriptionState
 } from "../source";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
+
+interface ITestContext extends Mocha.Suite {
+    clock: sinon.SinonFakeTimers;
+}
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 const fake_publish_engine = getFakePublishEngine();
@@ -74,7 +81,11 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-function _simulate_client_adding_publish_request(test: any, publishEngine: any, callback?: () => void) {
+function _simulate_client_adding_publish_request(
+    test: ITestContext,
+    publishEngine: ServerSidePublishEngine,
+    callback?: () => void
+) {
     callback = callback || (() => undefined);
     const publishRequest = new PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
@@ -83,13 +94,13 @@ function _simulate_client_adding_publish_request(test: any, publishEngine: any, 
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    subscription1.$session = {
         sessionContext: SessionContext.defaultContext
-    };
+    } as unknown as ServerSession;
     return subscription1;
 }
 
-describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
+describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext) {
     this.timeout(Math.max(300000, this.timeout()));
 
     let addressSpace: IAddressSpace;
@@ -102,7 +113,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     let engine: ServerEngine;
     const test = this;
 
-    function simulate_client_adding_publish_request(publishEngine: any, callback?: () => void) {
+    function simulate_client_adding_publish_request(publishEngine: ServerSidePublishEngine, callback?: () => void) {
         _simulate_client_adding_publish_request(test, publishEngine, callback);
     }
 
@@ -121,7 +132,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
             someVariableNode = uaSomeVariable.nodeId;
 
-            function addVar(typeName: keyof typeof DataType, value: any) {
+            function addVar(typeName: keyof typeof DataType, value: unknown) {
                 namespace.index.should.eql(1);
 
                 namespace.addVariable({
@@ -301,9 +312,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
     function makeSubscription(options: SubscriptionOptions) {
         const subscription1 = new Subscription(options);
-        (subscription1 as any).$session = {
+        subscription1.$session = {
             sessionContext: SessionContext.defaultContext
-        };
+        } as unknown as ServerSession;
         return subscription1;
     }
     it("SM1-3 a subscription should collect monitored item notification with _harvestMonitoredItems", async () => {
@@ -510,7 +521,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         subscription.dispose();
     });
 
-    async function on_subscription(actionFunc: any) {
+    async function on_subscription(actionFunc: (subscription: Subscription) => Promise<void>) {
         // see Err-03.js
         const subscription = makeSubscription({
             id: 42,
@@ -656,12 +667,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         let _clientHandle = 1;
 
         function my_samplingFunc(
-            this: any,
+            this: MonitoredItem,
             _sessionContext: ISessionContext | null,
             _oldData: DataValue,
             callback: ResponseCallback<DataValue>
         ) {
             //xx console.log(self.toString());
+            if (!this.node) {
+                throw new Error("my_samplingFunc: expecting a valid node");
+            }
             const dataValue = addressSpace.findNode(this.node.nodeId)?.readAttribute(null, 13);
             callback(null, dataValue);
         }
@@ -1160,7 +1174,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
 
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
-            function simulate_node_value_change(currentValue: any) {
+            function simulate_node_value_change(currentValue: number | Int64) {
                 const v = new Variant({
                     dataType: DataType[dataType as keyof typeof DataType],
                     arrayType: VariantArrayType.Scalar,
@@ -1211,7 +1225,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
 
-            function simulate_publish_request_and_check_one(expectedValue: any) {
+            function simulate_publish_request_and_check_one(expectedValue: number | Int64 | undefined) {
                 test.clock.tick(100);
 
                 // process publish
@@ -1224,10 +1238,12 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
                 } else {
                     notifs.length.should.eql(1, " should have one pending notification");
 
-                    expectedValue = (encode_decode as any)[`coerce${dataType}`](expectedValue);
+                    const coercedExpectedValue = (encode_decode as unknown as Record<string, (v: unknown) => unknown>)[
+                        `coerce${dataType}`
+                    ](expectedValue);
 
                     // verify that value matches expected value
-                    (notifs[0] as any).value.value.value.should.eql(expectedValue);
+                    (notifs[0] as MonitoredItemNotification).value.value.value.should.eql(coercedExpectedValue);
                 }
             }
 
@@ -1327,7 +1343,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     });
 
     describe("SM1-C MonitoredItem should set SemanticChanged bit on statusCode when appropriate", () => {
-        function _changeEURange(analogItem: any, done: () => void) {
+        interface IAnalogItemLike {
+            readAttribute(attributeId: AttributeIds): DataValue;
+            euRange: { writeAttribute(writeValue: WriteValue, callback: () => void): void };
+        }
+        function _changeEURange(analogItem: IAnalogItemLike, done: () => void) {
             const dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
 
             const dataValue = {
@@ -1491,7 +1511,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     });
 });
 
-describe("SM2 - MonitoredItem advanced", function (this: any) {
+describe("SM2 - MonitoredItem advanced", function (this: ITestContext) {
     let addressSpace: IAddressSpace;
     let namespace: INamespace;
     let someVariableNode: NodeId;
@@ -1580,9 +1600,9 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         });
 
         function numberOfNotifications(publishResponse: PublishResponse) {
-            const notificationData = publishResponse.notificationMessage.notificationData! || [];
-            return notificationData.reduce((accumulated, data: any) => {
-                return accumulated + data.monitoredItems.length;
+            const notificationData = publishResponse.notificationMessage.notificationData || [];
+            return notificationData.reduce((accumulated, data) => {
+                return accumulated + ((data as DataChangeNotification).monitoredItems?.length || 0);
             }, 0);
         }
 
@@ -1736,10 +1756,10 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
                 globalCounter: { totalMonitoredItemCount: 0 },
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
-            (subscription as any).$session = {
+            subscription.$session = {
                 nodeId: coerceNodeId("i=5;s=tmp"),
                 sessionContext: SessionContext.defaultContext
-            };
+            } as unknown as ServerSession;
             // console.log(subscription.subscriptionDiagnostics.toString());
 
             subscription.on("monitoredItem", (monitoredItem) => {

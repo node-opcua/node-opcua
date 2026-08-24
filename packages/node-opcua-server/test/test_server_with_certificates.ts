@@ -20,7 +20,7 @@ describe("preventing server to start with invalid certificates/private key combi
             privateKeyFile
         });
 
-        let _err: any;
+        let _err: Error | undefined;
         try {
             await server.start();
         } catch (err) {
@@ -30,7 +30,7 @@ describe("preventing server to start with invalid certificates/private key combi
             server?.dispose();
         }
         should.exist(_err, "Expecting an exception in start !");
-        _err.message.should.match(/the certificate and the private key do not match/);
+        (_err as Error).message.should.match(/the certificate and the private key do not match/);
     });
     it("KP2: should raise a warning when attempting to start a server with a key length <=1024", async () => {
         const certificateFile = path.join(certificateFolder, "server_cert_1024.pem");

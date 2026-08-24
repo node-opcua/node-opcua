@@ -1,28 +1,31 @@
 import { SessionContext } from "node-opcua-address-space";
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { PublishResponseOptions } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
-import { Subscription, type SubscriptionOptions, SubscriptionState } from "..";
+import { type ServerSession, Subscription, type SubscriptionOptions, SubscriptionState } from "..";
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
+import type { Subscription as SubscriptionType } from "../source/server_subscription";
 
 const doDebug = false;
-function getFakePublishEngine() {
+function getFakePublishEngine(): IServerSidePublishEngine {
     return {
         pendingPublishRequestCount: 0,
-        _send_response(_subscription: any, _response?: any) {
+        _send_response(_subscription: SubscriptionType, _response?: PublishResponseOptions) {
             if (this.pendingPublishRequestCount <= 0) {
                 throw new Error("Invalid send");
             }
             this.pendingPublishRequestCount--;
         },
-        send_keep_alive_response(_subscriptionId: any, _get_future_sequence_number: any) {
+        send_keep_alive_response(_subscriptionId: number, _get_future_sequence_number: number) {
             if (this.pendingPublishRequestCount <= 0) {
                 return false;
             }
-            this._send_response(null);
+            this._send_response(null as unknown as SubscriptionType, undefined);
             return true;
         },
-        on_close_subscription(_subscription: any) {
+        on_close_subscription(_subscription) {
             /**  empty */
         },
         _on_tick() {
@@ -31,26 +34,30 @@ function getFakePublishEngine() {
     };
 }
 
-let fake_publish_engine = {
+let fake_publish_engine: IServerSidePublishEngine = {
     pendingPublishRequestCount: 0
-};
+} as unknown as IServerSidePublishEngine;
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();
 }
 
 interface SubscriptionOptions2 extends SubscriptionOptions {
-    publishEngine: any;
+    publishEngine: IServerSidePublishEngine;
 }
 function makeSubscription(options: SubscriptionOptions2) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    subscription1.$session = {
         sessionContext: SessionContext.defaultContext
-    };
+    } as unknown as ServerSession;
     return subscription1;
 }
 
-describe("Subscription keepAlive behavior", function (this: any) {
+interface ITestContext extends Mocha.Suite {
+    clock: sinon.SinonFakeTimers;
+}
+
+describe("Subscription keepAlive behavior", function (this: ITestContext) {
     beforeEach(() => {
         this.clock = sinon.useFakeTimers(new Date("2024-01-01"));
         reconstruct_fake_publish_engine();

@@ -13,7 +13,6 @@ import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, Timestam
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { NumericRange } from "node-opcua-numeric-range";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     AggregateConfiguration,
@@ -101,7 +100,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         const results: BrowseResult[] = [];
         for (const browseDescription of nodesToBrowse) {
             results.push(await this.browseNode(browseDescription, context));
-            assert(browseDescription.nodeId!, "expecting a nodeId");
+            assert(browseDescription.nodeId, "expecting a nodeId");
         }
         return results;
     }
@@ -146,7 +145,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
         context.currentTime = getCurrentClock();
-        await ensureDatatypeExtracted(this.addressSpace!);
+        await ensureDatatypeExtracted(this.addressSpace);
         const results: StatusCode[] = [];
         for (const writeValue of nodesToWrite) {
             const statusCode = await this.writeNode(context, writeValue);
@@ -157,7 +156,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
     public async call(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]> {
         const results: CallMethodResultOptions[] = [];
-        await ensureDatatypeExtracted(this.addressSpace!);
+        await ensureDatatypeExtracted(this.addressSpace);
         for (const methodToCall of methodsToCall) {
             const result = await this.callMethod(context, methodToCall);
             results.push(result);
@@ -169,7 +168,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         assert(historyReadRequest instanceof HistoryReadRequest);
 
         const timestampsToReturn = historyReadRequest.timestampsToReturn;
-        const historyReadDetails = historyReadRequest.historyReadDetails! as HistoryReadDetails;
+        const historyReadDetails = historyReadRequest.historyReadDetails as HistoryReadDetails;
         const releaseContinuationPoints = historyReadRequest.releaseContinuationPoints;
         assert(historyReadDetails instanceof HistoryReadDetails);
         //  ReadAnnotationDataDetails | ReadAtTimeDetails | ReadEventDetails | ReadProcessedDetails | ReadRawModifiedDetails;
@@ -215,7 +214,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             return results;
         }
 
-        const _r = async (nodeToRead: HistoryReadValueId, index: number) => {
+        const _r = async (nodeToRead: HistoryReadValueId, _index: number) => {
             const continuationPoint = nodeToRead.continuationPoint;
             return await this.historyReadNode(context, nodeToRead, historyReadDetails, timestampsToReturn, {
                 continuationPoint,
@@ -236,7 +235,10 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         if (!this.addressSpace) {
             throw new Error("Address Space has not been initialized");
         }
-        const nodeId = resolveNodeId(browseDescription.nodeId!);
+        if (!browseDescription.nodeId) {
+            throw new Error("browseNode: expecting a nodeId in browseDescription");
+        }
+        const nodeId = resolveNodeId(browseDescription.nodeId);
         const r = this.addressSpace.browseSingleNode(
             nodeId,
             browseDescription instanceof BrowseDescription
@@ -249,13 +251,19 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     public async readNode(
         context: ISessionContext,
         nodeToRead: ReadValueIdOptions,
-        maxAge: number,
+        _maxAge: number,
         timestampsToReturn?: TimestampsToReturn
     ): Promise<DataValue> {
         assert(context instanceof SessionContext);
-        const nodeId = resolveNodeId(nodeToRead.nodeId!);
-        const attributeId: AttributeIds = nodeToRead.attributeId!;
-        const indexRange: NumericRange = nodeToRead.indexRange!;
+        if (!nodeToRead.nodeId) {
+            throw new Error("readNode: expecting a nodeId in nodeToRead");
+        }
+        if (nodeToRead.attributeId === undefined) {
+            throw new Error("readNode: expecting an attributeId in nodeToRead");
+        }
+        const nodeId = resolveNodeId(nodeToRead.nodeId);
+        const attributeId: AttributeIds = nodeToRead.attributeId;
+        const indexRange = nodeToRead.indexRange;
         const dataEncoding = nodeToRead.dataEncoding;
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
@@ -299,15 +307,18 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     private __findNode(nodeId: NodeId): BaseNode | null {
         const namespaceIndex = nodeId.namespace || 0;
 
-        if (namespaceIndex && namespaceIndex >= (this.addressSpace?.getNamespaceArray().length || 0)) {
+        if (!this.addressSpace) {
             return null;
         }
-        const namespace = this.addressSpace!.getNamespace(namespaceIndex)!;
-        return namespace.findNode2(nodeId)!;
+        if (namespaceIndex && namespaceIndex >= this.addressSpace.getNamespaceArray().length) {
+            return null;
+        }
+        const namespace = this.addressSpace.getNamespace(namespaceIndex);
+        return namespace.findNode2(nodeId);
     }
 
     public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
-        await resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!);
+        await resolveOpaqueOnAddressSpace(this.addressSpace, writeValue.value.value);
 
         assert(context instanceof SessionContext);
         assert(writeValue.schema.name === "WriteValue");
@@ -330,8 +341,10 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                 obj.writeAttribute(context, writeValue, (err, statusCode) => {
                     if (err) {
                         reject(err);
+                    } else if (statusCode === undefined) {
+                        reject(new Error("writeAttribute callback returned no statusCode"));
                     } else {
-                        resolve(statusCode!);
+                        resolve(statusCode);
                     }
                 });
             });
@@ -358,7 +371,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         const nodeId = nodeToRead.nodeId;
         const indexRange = nodeToRead.indexRange;
         const dataEncoding = nodeToRead.dataEncoding;
-        const continuationPoint = nodeToRead.continuationPoint;
+        const _continuationPoint = nodeToRead.continuationPoint;
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
@@ -400,7 +413,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             //    invalid range      : BadIndexRangeInvalid
             const result = await obj.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData);
 
-            assert(result!.isValid());
+            assert(result?.isValid());
             return result;
         }
     }

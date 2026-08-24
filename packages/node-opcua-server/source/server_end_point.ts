@@ -8,7 +8,7 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { type ICertificateChainProvider, type ICertificateStore, StaticCertificateChainProvider } from "node-opcua-common";
-import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey, split_der } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {

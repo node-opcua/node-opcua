@@ -1,5 +1,11 @@
 import { MessageSecurityMode } from "node-opcua-secure-channel";
-import { AnonymousIdentityToken, IssuedIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import {
+    AnonymousIdentityToken,
+    IssuedIdentityToken,
+    type UserIdentityToken,
+    UserNameIdentityToken,
+    X509IdentityToken
+} from "node-opcua-types";
 import should from "should";
 
 import type { ServerSession } from "../source/server_session";
@@ -11,7 +17,11 @@ import {
 
 // The destination argument is read for its user identity token, its clientDescription.applicationUri
 // and its channel.securityMode, so a minimal stand-in providing those is enough.
-function fakeSession(userIdentityToken?: any, applicationUri?: string, securityMode?: MessageSecurityMode): ServerSession {
+function fakeSession(
+    userIdentityToken?: UserIdentityToken,
+    applicationUri?: string,
+    securityMode?: MessageSecurityMode
+): ServerSession {
     return {
         userIdentityToken,
         clientDescription: applicationUri !== undefined ? { applicationUri } : undefined,
@@ -19,7 +29,11 @@ function fakeSession(userIdentityToken?: any, applicationUri?: string, securityM
     } as unknown as ServerSession;
 }
 // build a source identity snapshot the same way the server does (via getTransferSessionIdentity)
-function identity(userIdentityToken?: any, applicationUri?: string, securityMode?: MessageSecurityMode): ITransferSessionIdentity {
+function identity(
+    userIdentityToken?: UserIdentityToken,
+    applicationUri?: string,
+    securityMode?: MessageSecurityMode
+): ITransferSessionIdentity {
     return getTransferSessionIdentity(fakeSession(userIdentityToken, applicationUri, securityMode));
 }
 

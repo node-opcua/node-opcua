@@ -1437,7 +1437,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 // fix getMonitoredItems.outputArguments arrayDimensions
                 const fixGetMonitoredItemArgs = () => {
                     const objects = this.addressSpace?.rootFolder?.objects;
-                    if (!objects || !objects.server) {
+                    if (!objects?.server) {
                         return;
                     }
                     const getMonitoredItemsMethod = objects.server.getMethodByName("GetMonitoredItems");
@@ -1992,7 +1992,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 try {
                     uaVariable.asyncRefresh(referenceTime, (err, dataValue) => {
                         if (err) return reject(err);
-                        resolve(dataValue!);
+                        if (!dataValue) return reject(new Error("asyncRefresh completed without error but returned no dataValue"));
+                        resolve(dataValue);
                     });
                 } catch (err) {
                     const _err = err as Error;

@@ -3,27 +3,31 @@ import { SessionContext } from "node-opcua-address-space";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 
-import { Subscription } from "../source";
+import { type ServerSession, Subscription, type SubscriptionOptions } from "../source";
 import { add_mock_monitored_item } from "./helper";
-import { getFakePublishEngine } from "./helper_fake_publish_engine";
+import { getFakePublishEngine, type IServerSidePublishEngine2 } from "./helper_fake_publish_engine";
 
-let fake_publish_engine = {
+let fake_publish_engine: IServerSidePublishEngine2 = {
     pendingPublishRequestCount: 0
-};
+} as unknown as IServerSidePublishEngine2;
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();
 }
 
-function makeSubscription(options: any) {
+function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
+    subscription1.$session = {
         sessionContext: SessionContext.defaultContext
-    };
+    } as unknown as ServerSession;
     return subscription1;
 }
 
-describe("Subscription#resendInitialValues", function (this: any) {
+interface ITestContext extends Mocha.Suite {
+    clock: sinon.SinonFakeTimers;
+}
+
+describe("Subscription#resendInitialValues", function (this: ITestContext) {
     beforeEach(() => {
         this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
@@ -50,7 +54,7 @@ describe("Subscription#resendInitialValues", function (this: any) {
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             //
-            publishEngine: fake_publish_engine as any,
+            publishEngine: fake_publish_engine,
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });

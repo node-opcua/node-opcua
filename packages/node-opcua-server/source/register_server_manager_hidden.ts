@@ -11,9 +11,7 @@ import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_re
 export class RegisterServerManagerHidden extends EventEmitter implements IRegisterServerManager {
     public discoveryServerEndpointUrl = "";
 
-    constructor(options?: {
-        /** */
-    }) {
+    constructor(_options?: { server?: unknown }) {
         super();
     }
 

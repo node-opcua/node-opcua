@@ -22,13 +22,13 @@ import {
     installSubscriptionMonitoring,
     MonitoredItem,
     ServerEngine,
+    type ServerSession,
     ServerSidePublishEngine,
     Subscription,
     type SubscriptionOptions,
     SubscriptionState
 } from "../source";
 
-import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
 import { add_mock_monitored_item } from "./helper";
 
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
@@ -56,16 +56,20 @@ interface ISubscriptionPrivate {
     discardOldSentNotifications(): void;
 }
 
-function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
-    const subscription1 = new Subscription(options);
-    (subscription1 as any).$session = {
-        sessionContext: SessionContext.defaultContext
-    };
-    return subscription1 as any;
+interface ITestContext extends Mocha.Suite {
+    clock: sinon.SinonFakeTimers;
 }
 
-describe("Subscriptions", function (this: any) {
-    const test = this;
+function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
+    const subscription1 = new Subscription(options);
+    subscription1.$session = {
+        sessionContext: SessionContext.defaultContext
+    } as unknown as ServerSession;
+    return subscription1 as unknown as SubscriptionInternal;
+}
+
+describe("Subscriptions", function (this: Mocha.Suite) {
+    const test = this as ITestContext;
     beforeEach(() => {
         test.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();
@@ -459,12 +463,12 @@ describe("Subscriptions", function (this: any) {
 
         let publishEngine: ServerSidePublishEngine;
 
-        function simulate_client_adding_publish_request(publishEngine?: IServerSidePublishEngine, callback?: () => void) {
+        function simulate_client_adding_publish_request(publishEngine?: ServerSidePublishEngine, callback?: () => void) {
             if (!publishEngine) throw new Error("Internal Error");
             callback = callback || (() => {});
 
             const publishRequest = new PublishRequest({});
-            (publishEngine as any)._on_PublishRequest(publishRequest, callback);
+            publishEngine._on_PublishRequest(publishRequest, callback);
             test.clock.tick(0);
         }
 
@@ -1267,7 +1271,7 @@ describe("Subscriptions", function (this: any) {
     });
 });
 
-describe("Subscription#setPublishingMode", function (this: any) {
+describe("Subscription#setPublishingMode", function (this: ITestContext) {
     beforeEach(() => {
         this.clock = sinon.useFakeTimers();
         reconstruct_fake_publish_engine();

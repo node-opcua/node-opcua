@@ -3,7 +3,7 @@ import { checkFilter, FilterContextOnAddressSpace } from "node-opcua-service-fil
 import type { ContentFilter } from "node-opcua-types";
 
 export function checkWhereClauseOnAdressSpace(
-    addressSpace: IAddressSpace,
+    _addressSpace: IAddressSpace,
     sessionContext: ISessionContext,
     whereClause: ContentFilter,
     eventData: IEventData
