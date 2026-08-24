@@ -56,7 +56,8 @@ export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: bo
 
     // use this Object.create(null) to construct an object with no prototype
     // so that we immune from prototype pollution
-    const data: any = Object.create(null);
+    const data: Record<string, unknown> = Object.create(null);
+    // biome-ignore lint/suspicious/noProto: deliberate sanity check that Object.create(null) has no prototype (prototype-pollution defense)
     if (data.__proto__) {
         throw new Error("expecting  __proto__ to be undefined");
     }
@@ -66,5 +67,5 @@ export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: bo
         setProperty(data, fields[index], variant);
     }
 
-    return data;
+    return data as unknown as EventStuff;
 }

@@ -92,18 +92,16 @@ export async function findActiveConditions(session: IBasicSessionEx): Promise<Ev
     const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
     const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, _reject) => {
         // now create a event monitored Item
-        event_monitoringItem.on("changed", (_eventFields: any) => {
-            const eventFields = _eventFields as Variant[];
-
+        event_monitoringItem.on("changed", (eventFields: Variant[]) => {
             try {
                 if (RefreshEndEventHasBeenReceived) {
                     return;
                 }
 
                 // dumpEvent(session, fields, eventFields);
-                const pojo = fieldsToJson(fields, eventFields) as any;
+                const pojo = fieldsToJson(fields, eventFields);
 
                 // make sure we only start recording event after the RefreshStartEvent has been received
                 if (!refreshStartEventHasBeenReceived) {
@@ -123,7 +121,7 @@ export async function findActiveConditions(session: IBasicSessionEx): Promise<Ev
                 }
 
                 if (pojo.ackedState.id.dataType === DataType.Boolean) {
-                    acknowledgeableConditions.push(pojo as EventStuff);
+                    acknowledgeableConditions.push(pojo);
                 }
             } catch (err) {
                 errorLog("Error !!", err);
@@ -175,7 +173,7 @@ export async function confirmAllConditions(session: IBasicSessionEx, message: st
         // filter acknowledgeable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.confirmedState.id.value === false);
 
-        const promises: Array<Promise<any>> = [];
+        const promises: Array<Promise<StatusCode>> = [];
         for (const eventStuff of conditions) {
             promises.push(confirmConditionEV(session, eventStuff, message));
         }

@@ -20,8 +20,8 @@ export async function dumpEvent(session: IBasicSessionReadAsyncSimple, fields: s
             nodeId
         });
         if (dataValue.statusCode.isGood()) {
-            const browseName = dataValue.value.value.name!;
-            return browseName;
+            const browseName = dataValue.value.value.name;
+            return browseName || "???";
         } else {
             return "???";
         }
@@ -29,7 +29,7 @@ export async function dumpEvent(session: IBasicSessionReadAsyncSimple, fields: s
     function w(str: string, l: number): string {
         return (str || "").toString().padEnd(l, " ").substring(0, l);
     }
-    async function __dumpEvent1(_session: IBasicSessionReadAsyncSimple, _fields: any, variant: VariantLike, index: number) {
+    async function __dumpEvent1(_session: IBasicSessionReadAsyncSimple, _fields: string[], variant: VariantLike, index: number) {
         if (variant.dataType === DataType.Null) {
             return;
         }

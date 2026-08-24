@@ -59,7 +59,7 @@ export class ClientAlarm extends EventEmitter {
             this.eventType.toString() +
             " " +
             Object.entries(this.fields)
-                .filter(([key, value]) => value.dataType !== DataType.Null)
+                .filter(([_key, value]) => value.dataType !== DataType.Null)
                 .map(([key, value]) => `${key.padEnd(30)}=${value.toString()}`)
                 .join("\n") +
             "\n\n"
@@ -67,6 +67,6 @@ export class ClientAlarm extends EventEmitter {
     }
 
     public getField(fieldName: string): Variant | null {
-        return (this.fields as any)[fieldName] || null;
+        return (this.fields as unknown as Record<string, Variant>)[fieldName] || null;
     }
 }

@@ -13,7 +13,7 @@ const debugLog = make_debugLog("A&E");
 const warningLog = make_warningLog("A&E");
 
 export async function callConditionRefresh(session: IBasicSessionAsync, subscriptionId: number): Promise<StatusCode> {
-    assert(isFinite(subscriptionId), "May be subscription is not yet initialized");
+    assert(Number.isFinite(subscriptionId), "May be subscription is not yet initialized");
     const conditionTypeNodeId = resolveNodeId("ConditionType");
     let conditionRefreshId = resolveNodeId("ConditionType_ConditionRefresh");
     // find conditionRefreshId

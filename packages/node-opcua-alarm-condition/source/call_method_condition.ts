@@ -58,7 +58,7 @@ export async function callMethodCondition(
     );
 
     const results = await session.call(methodToCalls);
-    const statusCode = results![0].statusCode;
+    const statusCode = results[0].statusCode;
     return statusCode;
 }
 

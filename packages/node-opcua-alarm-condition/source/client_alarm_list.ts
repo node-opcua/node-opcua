@@ -17,9 +17,6 @@ export interface ClientAlarmList {
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlarm> {
     private _map: Map<string, ClientAlarm> = new Map();
-    public constructor() {
-        super();
-    }
 
     public [Symbol.iterator](): Iterator<ClientAlarm> {
         let pointer = 0;
