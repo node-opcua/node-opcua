@@ -3,9 +3,9 @@
  */
 import chalk from "chalk";
 
-const displayAssert = typeof process === "object" ? (process.env.DISPLAY_ASSERT ? true : false) : false;
+const displayAssert = typeof process === "object" ? !!process.env.DISPLAY_ASSERT : false;
 
-type func = (...args: any[]) => any;
+type func = (...args: unknown[]) => unknown;
 
 export function assert(cond: boolean | unknown | null | undefined | func, message?: string): void {
     if (!cond) {
@@ -13,7 +13,7 @@ export function assert(cond: boolean | unknown | null | undefined | func, messag
         // c8 ignore next
         if (displayAssert) {
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
-            console.log(chalk.whiteBright.bgRed(message!));
+            console.log(chalk.whiteBright.bgRed(message ?? ""));
             console.log(chalk.whiteBright.bgRed("-----------------------------------------------------------"));
         }
         throw err;
