@@ -19,6 +19,7 @@ import {
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
 
 const debugLog = make_debugLog("TEST");
@@ -28,18 +29,21 @@ interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
     suspend(suspend: boolean): void;
 }
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEnginePrivate;
+}
 function getInternalPublishEngine(session: ClientSession): ClientSidePublishEnginePrivate {
-    const s: ClientSidePublishEnginePrivate = (session as any).getPublishEngine();
+    const s: ClientSidePublishEnginePrivate = (session as SessionWithPublishEngine).getPublishEngine();
     return s;
 }
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     const options: OPCUAClientOptions = {
         requestedSessionTimeout: 10000000
     };
 
     async function createSession() {
         const client = OPCUAClient.create(options);
-        const endpointUrl = test.endpointUrl;
+        const endpointUrl = test.endpointUrl!;
         await client.connect(endpointUrl);
         const session = await client.createSession();
 
@@ -70,9 +74,9 @@ export function t(test: any) {
         publishEngine.internalSendPublishRequest();
         return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
             // wait for fist notification
-            subscription.once("raw_notification", (notificationMessage: any) => {
+            subscription.once("raw_notification", (notificationMessage: NotificationMessage) => {
                 debugLog("got notification message ", notificationMessage.toString());
-                resolve(notificationMessage.notificationData);
+                resolve((notificationMessage.notificationData ?? []) as ExtensionObject[]);
             });
         });
     }
@@ -97,11 +101,11 @@ export function t(test: any) {
         this.timeout(Math.max(200000, this.timeout()));
 
         before(() => {
-            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
-            const _namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
+            const _addressSpace = test.server!.engine.addressSpace as AddressSpace;
+            const _namespace = test.server!.engine.addressSpace!.getOwnNamespace() as Namespace;
         });
         beforeEach(async () => {
-            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _addressSpace = test.server!.engine.addressSpace as AddressSpace;
             s = await createSession();
         });
         afterEach(async () => {
@@ -111,7 +115,7 @@ export function t(test: any) {
         });
 
         it("Should monitor a large number of node efficiently", async () => {
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription } = s;
 
             session.on("session_closed", () => {
                 console.log("session_closed");
