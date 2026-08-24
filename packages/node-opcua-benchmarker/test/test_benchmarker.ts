@@ -1,4 +1,3 @@
-// tslint:disable: no-console
 import { Benchmarker, type ITestRun } from "..";
 
 describe("Testing Benchmarker", () => {
@@ -13,7 +12,6 @@ describe("Testing Benchmarker", () => {
         bench
             .add("for simple loop", () => {
                 let sum = 0;
-                // tslint:disable-next-line: prefer-for-of
                 for (let i = 0; i < values.length; i++) {
                     sum += values[i];
                 }
@@ -28,7 +26,7 @@ describe("Testing Benchmarker", () => {
                 console.log(message);
             })
             .on("complete", (fastest: ITestRun, speedUp: number) => {
-                console.log(" Fastest is " + fastest.name);
+                console.log(` Fastest is ${fastest.name}`);
                 console.log(" Speed Up : x", speedUp);
                 console.log(" count    :  ", fastest.result!.count);
                 console.log(" ops/s    :  ", fastest.result!.ops);
@@ -61,7 +59,7 @@ describe("Testing Benchmarker", () => {
                 console.log(message);
             })
             .on("complete", (fastest: ITestRun, speedUp: number) => {
-                console.log(" Fastest is " + fastest.name);
+                console.log(` Fastest is ${fastest.name}`);
                 console.log(" Speed Up : x", speedUp);
                 console.log(" count    :  ", fastest.result!.count);
                 console.log(" ops/s    :  ", fastest.result!.ops);

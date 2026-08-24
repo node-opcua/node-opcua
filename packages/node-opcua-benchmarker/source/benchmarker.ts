@@ -1,9 +1,8 @@
 /***
  * @module node-opcua-benchmarker
  */
-// tslint:disable:object-literal-shorthand
 /// <reference types="node" />
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { hrtime } from "node-opcua-utils";
 
 export interface IPerformanceData {
@@ -132,7 +131,7 @@ export class Benchmarker extends EventEmitter implements IBenchmarkerEvent {
             count += 1;
         }
         const ops = count / totalTime;
-        const message = " CYCLE " + name + " op/s " + ((count / totalTime).toPrecision(7) + " count = " + count);
+        const message = ` CYCLE ${name} op/s ${(count / totalTime).toPrecision(7)} count = ${count}`;
         this.emit("cycle", message);
 
         return {
