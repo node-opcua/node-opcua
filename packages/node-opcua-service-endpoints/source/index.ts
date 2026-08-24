@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-service-endpoints
  */
-// tslint:disable:max-line-length
 export {
     ApplicationType,
     ApplicationDescription,

@@ -11,5 +11,5 @@ export {
     QueryFirstResponse,
     QueryNextRequest,
     QueryNextRequestOptions,
-    QueryNextResponse,
+    QueryNextResponse
 } from "node-opcua-types";

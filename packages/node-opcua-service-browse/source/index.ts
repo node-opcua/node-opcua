@@ -3,10 +3,13 @@
  */
 import {
     BrowseDescription,
-    BrowseNextRequest, BrowseNextResponse,
-    BrowseRequest, BrowseResponse,
+    BrowseNextRequest,
+    BrowseNextResponse,
+    BrowseRequest,
+    BrowseResponse,
     BrowseResult,
-    ReferenceDescription, ViewDescription
+    ReferenceDescription,
+    ViewDescription
 } from "node-opcua-types";
 
 import { NodeClass } from "node-opcua-data-model";
@@ -15,18 +18,24 @@ export { BrowseDirection } from "node-opcua-data-model";
 
 export {
     ReferenceDescription,
-    BrowseResult, BrowseDescription, BrowseDescriptionOptions,
+    BrowseResult,
+    BrowseDescription,
+    BrowseDescriptionOptions,
     BrowseRequestOptions,
-    BrowseNextRequest, BrowseNextResponse, BrowseNextRequestOptions,
+    BrowseNextRequest,
+    BrowseNextResponse,
+    BrowseNextRequestOptions,
     ViewDescription,
-    BrowseRequest, BrowseResponse
+    BrowseRequest,
+    BrowseResponse
 } from "node-opcua-types";
 
-BrowseResult.schema.fields[1].defaultValue =  null;
+BrowseResult.schema.fields[1].defaultValue = null;
 
 BrowseDescription.schema.fields[0].documentation = "The id of the node to browse.";
 BrowseDescription.schema.fields[1].documentation = "The direction of the references to return.";
-BrowseDescription.schema.fields[2].documentation = "The type of references to return." +
+BrowseDescription.schema.fields[2].documentation =
+    "The type of references to return." +
     "Specifies the NodeId of the ReferenceType to follow. Only instances of this ReferenceType or" +
     " its subtype are returned. If not specified then all ReferenceTypes are returned and includeSubtypes is ignored.";
 BrowseDescription.schema.fields[3].documentation = "Includes subtypes of the reference type.";
@@ -40,8 +49,7 @@ BrowseDescription.schema.fields[3].documentation = "Includes subtypes of the ref
 //   5   ReferenceType
 //   6   DataType
 //   7   View
-BrowseDescription.schema.fields[4].documentation =
-    "A mask indicating which node classes to return. 0 means return all nodes.";
+BrowseDescription.schema.fields[4].documentation = "A mask indicating which node classes to return. 0 means return all nodes.";
 // mask : (see ResultMask)
 //  bit
 //   0   ReferenceType
@@ -66,8 +74,7 @@ BrowseNextRequest.schema.fields[0].documentation = "A standard header included i
  * Server. If the Client does not want to get the next set of browse information,
  * BrowseNext shall be called with this parameter set to TRUE.
  */
-BrowseNextRequest.schema.fields[1].documentation =
-    "If TRUE the continuation points are released and no results are returned.";
+BrowseNextRequest.schema.fields[1].documentation = "If TRUE the continuation points are released and no results are returned.";
 /*
  * A list of Server-defined opaque values that represent continuation points. The value for a continuation point
  * was returned to the Client in a previous Browse or BrowseNext response. These values are used to identify the
@@ -117,17 +124,17 @@ ReferenceDescription.schema.fields[4].documentation = "The display name of the t
 ReferenceDescription.schema.fields[5].documentation = "The node class of the target node.";
 ReferenceDescription.schema.fields[6].documentation = "The type definition of the target node.";
 
-ViewDescription.schema.documentation =  "the view to browse.";
+ViewDescription.schema.documentation = "the view to browse.";
 // ViewDescription : NodeId of the View to Query. A null value indicates the entire AddressSpace.
-ViewDescription.schema.fields[0].documentation =  "The node id of the view.";
+ViewDescription.schema.fields[0].documentation = "The node id of the view.";
 // The time date desired. The corresponding version is the one with the closest
 // previous creation timestamp. Either the Timestamp or the viewVersion
 // parameter may be set by a Client, but not both. If ViewVersion is set this
 // parameter shall be null.
-ViewDescription.schema.fields[1].documentation =   "Browses the view at or before this time.";
+ViewDescription.schema.fields[1].documentation = "Browses the view at or before this time.";
 // The version number for the View desired. When Nodes are added to or removed from a View, the value of a
 // View‟s ViewVersion Property is updated. Either the Timestamp or the viewVersion parameter may be set by
 // a Client, but not both.
 // The ViewVersion Property is defined in Part 3. If timestamp is set this parameter
 // shall be 0. The current view is used if timestamp is null and viewVersion is 0.
-ViewDescription.schema.fields[2].documentation =  "Browses a specific version of the view .";
+ViewDescription.schema.fields[2].documentation = "Browses a specific version of the view .";

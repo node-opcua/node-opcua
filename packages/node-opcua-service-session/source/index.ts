@@ -2,10 +2,14 @@
  * @module node-opcua-service-session
  */
 export {
-    CreateSessionRequest, CreateSessionResponse,
-    ActivateSessionRequest, ActivateSessionResponse,
-    CloseSessionRequest, CloseSessionResponse,
-    CancelRequest, CancelResponse,
+    CreateSessionRequest,
+    CreateSessionResponse,
+    ActivateSessionRequest,
+    ActivateSessionResponse,
+    CloseSessionRequest,
+    CloseSessionResponse,
+    CancelRequest,
+    CancelResponse,
     AnonymousIdentityToken,
     UserNameIdentityToken,
     X509IdentityToken,

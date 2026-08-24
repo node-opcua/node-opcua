@@ -15,13 +15,10 @@ export {
     HistoryReadResponse,
     HistoryUpdateRequest,
     HistoryUpdateResponse,
-
     ReadRawModifiedDetails,
     ReadProcessedDetails,
     ReadAtTimeDetails,
-
     HistoryUpdateType,
-
     ModificationInfo,
     ReadEventDetails,
     HistoryReadRequestOptions

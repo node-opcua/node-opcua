@@ -2,14 +2,10 @@
  * @module node-opcua-service-read
  */
 import { assert } from "node-opcua-assert";
-import {
-    ReadRequest, ReadResponse, ReadValueId
-} from "node-opcua-types";
+import { ReadRequest, ReadResponse, ReadValueId } from "node-opcua-types";
 
 import { AttributeIds, isValidAttributeId } from "node-opcua-data-model";
-import {
-    TimestampsToReturn
-} from "node-opcua-data-value";
+import { TimestampsToReturn } from "node-opcua-data-value";
 
 assert(ReadRequest.schema.fields[2].name === "timestampsToReturn");
 ReadRequest.schema.fields[2].defaultValue = () => TimestampsToReturn.Both;
@@ -21,7 +17,8 @@ ReadValueId.schema.fields[1].validate = (value: any) => {
 };
 
 export {
-    RequestHeader, ResponseHeader
+    RequestHeader,
+    ResponseHeader
 } from "node-opcua-service-secure-channel";
 
 // --------------------------------------------------------------------------------
@@ -41,6 +38,4 @@ export {
     attributeNameById,
     AttributeIds
 } from "node-opcua-data-model";
-export {
-    TimestampsToReturn
-} from "node-opcua-data-value";
+export { TimestampsToReturn } from "node-opcua-data-value";
