@@ -42,7 +42,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         });
 
         let serverTransport: ServerTCP_transport;
-        let spyOnClose: any;
+        let spyOnClose: sinon.SinonSpy;
 
         let oldThrottle = 0;
         beforeEach((done) => {
@@ -161,7 +161,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             transportPair.client.write(helloMessage);
         });
 
-        function test_malformedHelloMessage(altered_helloMessage: Buffer, done: (err?: any) => void) {
+        function test_malformedHelloMessage(altered_helloMessage: Buffer, done: (err?: Error) => void) {
             let initError: Error | null | undefined = null;
             serverTransport.init(transportPair.server, (err) => {
                 initError = err;

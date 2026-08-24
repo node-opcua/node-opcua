@@ -1,5 +1,3 @@
-import should from "should";
-
 import { ClientTCP_transport, defaultClientTransportFactory, type IClientTransport, type IClientTransportFactory } from "..";
 
 describe("defaultClientTransportFactory / IClientTransport", () => {

@@ -1,4 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
+import type { ConstantStatusCode } from "node-opcua-status-code";
 import {
     decodeMessage,
     decodeReverseHello,
@@ -8,6 +9,10 @@ import {
     ReverseHelloMessage,
     validateReverseHelloFields
 } from "..";
+
+// decodeReverseHello throws an Error tagged with a transport-level statusCode (see
+// ReverseHelloMessage.ts#makeTaggedError) instead of a dedicated error class.
+type TaggedError = Error & { statusCode: ConstantStatusCode };
 
 describe("testing ReverseHello (RHE) message encoding and decoding", () => {
     it("RHE-1 should encode and decode a ReverseHelloMessage via packTcpMessage/decodeMessage", () => {
@@ -44,11 +49,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         const hello = new HelloMessage({ endpointUrl: "opc.tcp://host:1234" });
         const helloChunk = packTcpMessage("HEL", hello);
 
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(helloChunk);
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.message.should.match(/RHE/);
@@ -63,11 +68,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         });
         const message = packTcpMessage("RHE", reverseHello);
 
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(message);
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.statusCode.name.should.match(/BadTcpEndpointUrlInvalid/);
@@ -91,11 +96,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
     });
 
     it("RHE-7 decodeReverseHello should reject a chunk shorter than the 8-byte header", () => {
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(Buffer.alloc(4));
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.statusCode.name.should.match(/BadTcpMessageTypeInvalid/);
@@ -105,11 +110,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         const message = packTcpMessage("RHE", new ReverseHelloMessage({ serverUri: "urn:s", endpointUrl: "opc.tcp://h:1" }));
         message.write("C", 3, "binary"); // flip the 'F' (final) marker to 'C' (chunk)
 
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(message);
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.message.should.match(/final/);
@@ -120,11 +125,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         const message = packTcpMessage("RHE", new ReverseHelloMessage({ serverUri: "urn:s", endpointUrl: "opc.tcp://h:1" }));
         message.writeUInt32LE(message.length + 100, 4); // corrupt the declared length
 
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(message);
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.statusCode.name.should.match(/BadTcpMessageTooLarge/);
@@ -138,11 +143,11 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         frame.writeUInt32LE(12, 4); // declared length matches the buffer
         frame.writeUInt32LE(0x1000_0000, 8); // bogus UAString length (~256 MB)
 
-        let caught: any;
+        let caught: TaggedError | undefined;
         try {
             decodeReverseHello(frame);
         } catch (err) {
-            caught = err;
+            caught = err as TaggedError;
         }
         should.exist(caught);
         caught.statusCode.name.should.match(/BadTcpEndpointUrlInvalid/);

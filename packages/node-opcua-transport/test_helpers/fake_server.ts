@@ -8,7 +8,7 @@ export class FakeServer extends EventEmitter {
     public url: string;
     public tcpServer: net.Server;
     protected _serverSocket?: net.Socket;
-    private _responses?: any[];
+    private _responses?: Array<(socket: net.Socket, data: Buffer) => void>;
 
     constructor({ port }: { port: number }) {
         super();
@@ -65,7 +65,7 @@ export class FakeServer extends EventEmitter {
         if (!this._responses) {
             return null;
         }
-        return this._responses.shift();
+        return this._responses.shift() || null;
     }
 
     public pushResponse(func: (socket: net.Socket, data: Buffer) => void): void {

@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { compare_buffers } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
@@ -18,13 +18,13 @@ const port = 5678;
 import { BinaryStream } from "../../node-opcua/dist";
 import { AcknowledgeMessage, ClientTCP_transport, packTcpMessage, TCP_transport, TCPErrorMessage, writeTCPMessageHeader } from "..";
 
-describe("testing ClientTCP_transport", function (this: any) {
+describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
     this.timeout(Math.max(15 * 1000, this.timeout()));
 
     let clientTransport: ClientTCP_transport;
-    let spyOnClose: any;
-    let spyOnConnect: any;
-    let spyOnConnectionBreak: any;
+    let spyOnClose: sinon.SinonSpy;
+    let spyOnConnect: sinon.SinonSpy;
+    let spyOnConnectionBreak: sinon.SinonSpy;
 
     let fakeServer: FakeServer;
     let endpointUrl: string;
@@ -474,23 +474,27 @@ describe("testing ClientTCP_transport", function (this: any) {
         let destroyCalled = false;
         let endCalled = false;
 
-        const origOnAckResponse = (ClientTCP_transport.prototype as any)._on_ACK_response;
-        const stub = sinon.stub(ClientTCP_transport.prototype as any, "_on_ACK_response").callsFake(function patchedOnAck(
-            this: any,
-            externalCallback: any,
-            err: Error | null,
-            data?: Buffer
+        type OnAckResponse = (externalCallback: ErrorCallback, err: Error | null, data?: Buffer) => void;
+        type ClientTCPTransportPrivate = { _on_ACK_response: OnAckResponse; _socket: net.Socket | null };
+        const clientTCPTransportProto = ClientTCP_transport.prototype as unknown as ClientTCPTransportPrivate;
+
+        const origOnAckResponse = clientTCPTransportProto._on_ACK_response;
+        const stub = sinon.stub(clientTCPTransportProto, "_on_ACK_response").callsFake(function patchedOnAck(
+            this: ClientTCPTransportPrivate,
+            externalCallback,
+            err,
+            data
         ) {
             if (err || !data) {
-                const sock: net.Socket | null = this._socket;
+                const sock = this._socket;
                 if (sock) {
                     const origEnd = sock.end.bind(sock);
                     const origDestroy = sock.destroy.bind(sock);
-                    (sock as any).end = (...args: any[]) => {
+                    sock.end = ((...args: Parameters<typeof origEnd>) => {
                         endCalled = true;
                         return origEnd(...args);
-                    };
-                    (sock as any).destroy = (...args: any[]) => {
+                    }) as typeof sock.end;
+                    sock.destroy = (...args: Parameters<typeof origDestroy>) => {
                         destroyCalled = true;
                         return origDestroy(...args);
                     };
