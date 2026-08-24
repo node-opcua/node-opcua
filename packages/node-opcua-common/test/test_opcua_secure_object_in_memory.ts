@@ -1,5 +1,5 @@
 import "mocha";
-import should from "should";
+import "should";
 import {
     type ICertificateKeyPairProvider,
     type ICertificateKeyPairProviderWithLocation,

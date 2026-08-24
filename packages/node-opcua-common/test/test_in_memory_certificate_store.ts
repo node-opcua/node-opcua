@@ -1,6 +1,6 @@
 import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
-import should from "should";
+import "should";
 import { InMemoryCertificateStore } from "../source/in_memory_certificate_store";
 
 describe("InMemoryCertificateStore", () => {
