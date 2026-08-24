@@ -1,11 +1,16 @@
 import "should";
-import { get_empty_nodeset_filename, OPCUAClient, OPCUAServer, parseEndpointUrl } from "node-opcua";
+import { get_empty_nodeset_filename, OPCUAClient, OPCUAServer, parseEndpointUrl, type ServerSecureChannelLayer } from "node-opcua";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 const port = 6789;
+
+// getChannels() is protected on OPCUABaseServer; reached here only for test introspection.
+function getChannels(server: OPCUAServer): ServerSecureChannelLayer[] {
+    return (server as unknown as { getChannels(): ServerSecureChannelLayer[] }).getChannels();
+}
 
 describe("Testing a simple server from Server side", () => {
     it("should have at least one endpoint", async () => {
@@ -27,19 +32,19 @@ describe("Testing a simple server from Server side", () => {
     it("OPCUAServer#getChannels", async () => {
         const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
         try {
-            (server as any).getChannels().length.should.equal(0);
+            getChannels(server).length.should.equal(0);
             await server.start();
-            (server as any).getChannels().length.should.equal(0);
+            getChannels(server).length.should.equal(0);
             const endpointUrl = server.getEndpointUrl();
             const client = OPCUAClient.create({});
             await perform_operation_on_client_session(client, endpointUrl, async (_session) => {
-                (server as any).getChannels().length.should.equal(1);
+                getChannels(server).length.should.equal(1);
             });
             // after session closed
-            (server as any).getChannels().length.should.equal(0);
+            getChannels(server).length.should.equal(0);
         } finally {
             await server.shutdown();
-            (OPCUAServer as any).registry.count().should.eql(0);
+            OPCUAServer.registry.count().should.eql(0);
         }
     });
 
