@@ -1,7 +1,6 @@
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "..";
 import "should";
 
-// tslint:disable:no-console
 describe("hostname", () => {
     it("should replace %FQDN% with fqdn (resolveFullyQualifiedDomainName)", async () => {
         // we need at least one async operation to make sure that the fqdn package
