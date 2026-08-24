@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /**
  * @module node-opcua-server
  */
@@ -1455,8 +1454,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 applicationUri: () => this.serverInfo.applicationUri || "",
                 buildInfo,
                 isAuditing: options.isAuditing,
-                allowAnonymousSubscriptionTransferOnUnsecuredChannel:
-                    options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
+                allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
                 serverCapabilities: options.serverCapabilities,
 
                 serverConfiguration: {
@@ -2141,7 +2139,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     }
 
     // session services
-    // eslint-disable-next-line max-statements
     protected async _on_CreateSessionRequest(message: Message, channel: ServerSecureChannelLayer): Promise<void> {
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
@@ -2455,7 +2452,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             return;
         }
 
-        // tslint:disable-next-line: no-unused-expression
         session.keepAlive ? session.keepAlive() : void 0;
 
         // OpcUA 1.02 part 3 $5.6.3.1 ActiveSession Set page 29
@@ -4167,7 +4163,6 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
     secureChannelId: PseudoVariantString;
 }
 
-// tslint:disable:no-empty-interface
 export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {

@@ -1,9 +1,8 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
     type AddressSpace,
     addElement,
@@ -12,8 +11,8 @@ import {
     type DTSessionDiagnostics,
     type DTSessionSecurityDiagnostics,
     ensureObjectIsSecure,
-    type ISessionBase,
     type IServerBase,
+    type ISessionBase,
     removeElement,
     SessionContext,
     type UADynamicVariableArray,
@@ -341,7 +340,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
-            const propName = lowerFirstLetter(counterName + "Count");
+            const propName = lowerFirstLetter(`${counterName}Count`);
             // c8 ignore next
             if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestTotalCounter: cannot find", propName);
@@ -355,7 +354,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public incrementRequestErrorCounter(counterName: string): void {
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
-            const propName = lowerFirstLetter(counterName + "Count");
+            const propName = lowerFirstLetter(`${counterName}Count`);
             // c8 ignore next
             if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
                 errorLog("incrementRequestErrorCounter: cannot find", propName);
@@ -812,7 +811,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
                     get(this: any) {
                         const session: ServerSession = this.$session;
-                        return session?.channel!.clientCertificate;
+                        return session?.channel?.clientCertificate;
                     }
                 });
 
@@ -851,7 +850,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             }
 
             this.sessionObject = namespace.createNode({
-                browseName: this.sessionName || "Session-" + this.nodeId.toString(),
+                browseName: this.sessionName || `Session-${this.nodeId.toString()}`,
                 componentOf: serverDiagnosticsNode.sessionsDiagnosticsSummary,
                 nodeClass: NodeClass.Object,
                 nodeId: this.nodeId,

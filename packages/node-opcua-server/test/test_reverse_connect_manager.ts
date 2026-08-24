@@ -1,11 +1,9 @@
 import { EventEmitter } from "node:events";
-
-import sinon from "sinon";
-import should from "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-import { ReverseConnectManager } from "..";
+import should from "should";
+import sinon from "sinon";
 import type { OPCUAServerEndPoint, ReverseConnectManagerContext } from "..";
+import { ReverseConnectManager } from "..";
 
 /**
  * Unit tests for the server-side Reverse Connect dial loop (ReverseConnectManager).
@@ -51,11 +49,14 @@ describe("ReverseConnectManager dial loop (RC-MGR)", function (this: Mocha.Suite
             return undefined;
         }) as unknown as CreateReverseConnection);
 
-        const manager = new ReverseConnectManager(makeContext(() => endpoint), {
-            connections: [{ endpointUrl: "opc.tcp://client:1" }],
-            reconnectDelay: 1000,
-            maxReconnectDelay: 8000
-        });
+        const manager = new ReverseConnectManager(
+            makeContext(() => endpoint),
+            {
+                connections: [{ endpointUrl: "opc.tcp://client:1" }],
+                reconnectDelay: 1000,
+                maxReconnectDelay: 8000
+            }
+        );
 
         manager.start(); //          dial #1 @ t=0     -> retry in 1000 (currentDelay 1000 -> 2000)
         clock.tick(1000); //         dial #2 @ t=1000  -> retry in 2000 (-> 4000)
@@ -125,11 +126,14 @@ describe("ReverseConnectManager dial loop (RC-MGR)", function (this: Mocha.Suite
             return undefined;
         }) as unknown as CreateReverseConnection);
 
-        const manager = new ReverseConnectManager(makeContext(() => endpoint), {
-            connections: [{ endpointUrl: "opc.tcp://client:1" }],
-            reconnectDelay: 1000,
-            maxReconnectDelay: 60000
-        });
+        const manager = new ReverseConnectManager(
+            makeContext(() => endpoint),
+            {
+                connections: [{ endpointUrl: "opc.tcp://client:1" }],
+                reconnectDelay: 1000,
+                maxReconnectDelay: 60000
+            }
+        );
 
         manager.start();
         dialCount.should.eql(1); // established on first dial
@@ -162,10 +166,13 @@ describe("ReverseConnectManager dial loop (RC-MGR)", function (this: Mocha.Suite
             return undefined;
         }) as unknown as CreateReverseConnection);
 
-        const manager = new ReverseConnectManager(makeContext(() => endpoint), {
-            connections: [{ endpointUrl: "opc.tcp://client:1" }],
-            reconnectDelay: 1000
-        });
+        const manager = new ReverseConnectManager(
+            makeContext(() => endpoint),
+            {
+                connections: [{ endpointUrl: "opc.tcp://client:1" }],
+                reconnectDelay: 1000
+            }
+        );
 
         manager.start();
         channel.listenerCount("abort").should.eql(2); // endpoint's own + the manager's redial listener
@@ -184,10 +191,13 @@ describe("ReverseConnectManager dial loop (RC-MGR)", function (this: Mocha.Suite
             return undefined;
         }) as unknown as CreateReverseConnection);
 
-        const manager = new ReverseConnectManager(makeContext(() => endpoint), {
-            connections: [{ endpointUrl: "opc.tcp://client:1" }],
-            reconnectDelay: 1000
-        });
+        const manager = new ReverseConnectManager(
+            makeContext(() => endpoint),
+            {
+                connections: [{ endpointUrl: "opc.tcp://client:1" }],
+                reconnectDelay: 1000
+            }
+        );
 
         manager.start();
         dialCount.should.eql(1);
@@ -207,10 +217,13 @@ describe("ReverseConnectManager dial loop (RC-MGR)", function (this: Mocha.Suite
             return { destroy: () => undefined }; // a pending socket the manager tracks
         }) as unknown as CreateReverseConnection);
 
-        const manager = new ReverseConnectManager(makeContext(() => endpoint), {
-            connections: [{ endpointUrl: "opc.tcp://client:1" }],
-            reconnectDelay: 1000
-        });
+        const manager = new ReverseConnectManager(
+            makeContext(() => endpoint),
+            {
+                connections: [{ endpointUrl: "opc.tcp://client:1" }],
+                reconnectDelay: 1000
+            }
+        );
 
         manager.start(); // dial issued; callback captured but not yet invoked
         manager.stop(); // shutting down while the dial is still in flight

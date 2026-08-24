@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import "should";
 import { type AddressSpace, type Namespace, SessionContext, type UAVariable } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
@@ -27,7 +26,6 @@ function makeSubscription(options: SubscriptionOptions) {
     return subscription1;
 }
 
-// tslint:disable-next-line: no-var-requires
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -84,7 +82,6 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     let namespace: Namespace;
     let engine: ServerEngine;
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     before(async () => {
@@ -134,7 +131,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     });
 
     function multipleIncrement(nodeIds: NodeId[]) {
-        nodeIds.map((nodeId: NodeId) => {
+        nodeIds.forEach((nodeId: NodeId) => {
             const variable = addressSpace.findNode(nodeId) as UAVariable;
             const dataValue = variable.readValue();
             variable.setValueFromSource({ dataType: DataType.UInt32, value: dataValue.value.value + 1 });
@@ -226,9 +223,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         test.clock.tick(100);
 
         if (doDebug) {
-            // tslint:disable-next-line: no-console
             console.log(send_response_for_request_spy.callCount);
-            // tslint:disable-next-line: no-console
             console.log(send_response_for_request_spy.getCall(0).args[1].toString());
         }
         while (send_response_for_request_spy.callCount === 0) {
@@ -248,9 +243,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             test.clock.tick(100);
         }
         if (doDebug) {
-            // tslint:disable-next-line: no-console
             console.log(send_response_for_request_spy.callCount);
-            // tslint:disable-next-line: no-console
             console.log(send_response_for_request_spy.getCall(0).args[1].toString());
         }
         send_response_for_request_spy.callCount.should.eql(1);
@@ -333,8 +326,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const publishedResponse0 = waitInitialNotification();
         {
             publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
-            const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
-                .monitoredItems!;
+            const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);
         }
 
@@ -353,7 +345,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const publishResponse = waitNextNotification();
 
         publishResponse.notificationMessage.notificationData?.length.should.eql(1);
-        const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+        const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
 
         // console.log(publishResponse.notificationMessage.toString());
 
@@ -374,7 +366,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const publishResponse1 = waitNextNotification();
 
         publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
-        const notifs1 = (publishResponse1.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+        const notifs1 = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
         notifs1.length.should.eql(2);
         notifs1[0].clientHandle.should.eql(1);
         notifs1[1].clientHandle.should.eql(3);
@@ -411,8 +403,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         {
             // console.log(publishedResponse0.toString());
             publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
-            const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
-                .monitoredItems!;
+            const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);
         }
 
@@ -430,7 +421,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         const publishResponse = waitNextNotification();
 
         publishResponse.notificationMessage.notificationData?.length.should.eql(1);
-        const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+        const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
         notifs.length.should.eql(3);
         notifs[0].clientHandle.should.eql(1);
         notifs[1].clientHandle.should.eql(2);
@@ -450,7 +441,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const publishedResponse0 = waitInitialNotification();
             {
                 publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
-                const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
+                const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(2);
                 notifs0[0].clientHandle.should.eql(2);
@@ -471,7 +462,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const publishResponse = waitNextNotification();
 
             publishResponse.notificationMessage.notificationData?.length.should.eql(1);
-            const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+            const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(2);
             notifs[0].clientHandle.should.eql(2);
             notifs[1].clientHandle.should.eql(3);
@@ -488,7 +479,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const publishedResponse0 = waitInitialNotification();
             {
                 publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
-                const notifs0 = (publishedResponse0.notificationMessage.notificationData?.[0] as DataChangeNotification)
+                const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(1);
             }
@@ -507,7 +498,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
             const publishResponse = waitNextNotification();
 
             publishResponse.notificationMessage.notificationData?.length.should.eql(1);
-            const notifs = (publishResponse.notificationMessage.notificationData?.[0] as DataChangeNotification).monitoredItems!;
+            const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(1);
             notifs[0].clientHandle.should.eql(1);
         }

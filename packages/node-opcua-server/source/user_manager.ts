@@ -1,8 +1,8 @@
+import { types } from "node:util";
 import type { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { make_errorLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IdentityMappingRuleType } from "node-opcua-types";
-import { types } from "util";
 import type { ServerSession } from "./server_session";
 
 const errorLog = make_errorLog(__filename);

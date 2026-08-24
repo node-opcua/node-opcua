@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 
 import { type IAddressSpace, type INamespace, type ISessionContext, SessionContext } from "node-opcua-address-space";
@@ -66,7 +65,6 @@ function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
 }
 
 describe("Subscriptions", function (this: any) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     beforeEach(() => {
         test.clock = sinon.useFakeTimers();

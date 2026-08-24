@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import { EventEmitter } from "node:events";
 import sinon from "sinon";
 import "should";

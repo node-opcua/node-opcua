@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 
 import fs from "node:fs";
 import { isIP } from "node:net";
@@ -155,8 +154,7 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             // Disk path — derive cert/key paths from certificate manager
             const cm = options.serverCertificateManager as OPCUACertificateManager;
             options.privateKeyFile = options.privateKeyFile || cm.privateKey;
-            options.certificateFile =
-                options.certificateFile || path.join(cm.rootDir, "own/certs/certificate.pem");
+            options.certificateFile = options.certificateFile || path.join(cm.rootDir, "own/certs/certificate.pem");
         }
         // else: in-memory path — caller must provide cert/key via provider
 
@@ -304,23 +302,23 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             // certificateKeyPairProvider, when running in-memory, or when
             // serverCertificateManager doesn't expose an async getPrivateKey()
             // (e.g. a bare ICertificateStore).
-            await resolvePrivateKeyProviderIfNeeded(
-                this,
-                this.serverCertificateManager,
-                !!this.options.certificateKeyPairProvider
-            );
+            await resolvePrivateKeyProviderIfNeeded(this, this.serverCertificateManager, !!this.options.certificateKeyPairProvider);
         } catch (err) {
             if (err instanceof PrivateKeyPassphraseRequiredError) {
                 throw new Error(
                     `[NODE-OPCUA-E30] private key ${this.privateKeyFile} is encrypted; ` +
-                    "set privateKeyPassphrase on the OPCUACertificateManager passed as serverCertificateManager"
+                        "set privateKeyPassphrase on the OPCUACertificateManager passed as serverCertificateManager"
                 );
             }
             throw err;
         }
 
         if ("privateKey" in this.serverCertificateManager) {
-            debugLog("privateKey      = ", this.privateKeyFile, (this.serverCertificateManager as unknown as { privateKey: string }).privateKey);
+            debugLog(
+                "privateKey      = ",
+                this.privateKeyFile,
+                (this.serverCertificateManager as unknown as { privateKey: string }).privateKey
+            );
         } else {
             debugLog("privateKey      = ", this.privateKeyFile);
         }
@@ -367,12 +365,12 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             const akid = leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier ?? "?";
             warningLog(
                 `[NODE-OPCUA-W60] Server certificate "${cn}" is CA-signed ` +
-                `but certificate.pem contains only the leaf certificate. ` +
-                `Clients may reject the connection with BadCertificateChainIncomplete. ` +
-                `(authorityKeyIdentifier: ${akid}). ` +
-                `To fix this, ensure the issuer CA certificate chain is appended ` +
-                `to ${this.certificateFile}, or re-provision the certificate ` +
-                `using the GDS UpdateCertificate workflow.`
+                    `but certificate.pem contains only the leaf certificate. ` +
+                    `Clients may reject the connection with BadCertificateChainIncomplete. ` +
+                    `(authorityKeyIdentifier: ${akid}). ` +
+                    `To fix this, ensure the issuer CA certificate chain is appended ` +
+                    `to ${this.certificateFile}, or re-provision the certificate ` +
+                    `using the GDS UpdateCertificate workflow.`
             );
         } catch (err) {
             warningLog(`[NODE-OPCUA-W60] Certificate chain check failed: ${(err as Error).message}`);
@@ -470,8 +468,8 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             if (missing.length > 0) {
                 warningLog(
                     `[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
-                    "Clients with strict certificate validation may reject connections for these entries. " +
-                    "Use server.regenerateSelfSignedCertificate() to fix this."
+                        "Clients with strict certificate validation may reject connections for these entries. " +
+                        "Use server.regenerateSelfSignedCertificate() to fix this."
                 );
             }
         } catch (_err) {
@@ -512,7 +510,6 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         assert(this.endpoints.length > 0, "We need at least one end point");
 
         installPeriodicClockAdjustment();
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const server: OPCUABaseServer<OPCUABaseServerEvents> = this;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
             server.emit("newChannel", channel, this);
@@ -911,12 +908,10 @@ function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFa
     assert(typeof messages[0] === "string");
 
     response.responseHeader.stringTable = messages;
-    // tslint:disable:no-console
     warningLog(chalk.cyan(" messages "), messages.join("\n"));
     return response;
 }
 
-// tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
 
 const opts = { multiArgs: false };

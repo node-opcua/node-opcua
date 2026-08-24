@@ -1,9 +1,6 @@
 import { EventEmitter } from "node:events";
 /* jslint */
 /*global require,describe, it, before, after */
-// tslint:disable: only-arrow-functions
-// tslint:disable: no-console
-// tslint:disable: ordered-imports
 import util from "node:util";
 import {
     type AddressSpace,
@@ -20,8 +17,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { checkSelectClauses, EventFilter, extractEventFields, SimpleAttributeOperand } from "node-opcua-service-filter";
-import { StatusCodes } from "node-opcua-status-code";
 import { EventFieldList } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
@@ -56,7 +53,6 @@ describe("testing Events  ", () => {
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");
 
-        // tslint:disable-next-line: no-shadowed-variable
         const eventType = addressSpace.findEventType("1:SomeEventType")!;
 
         const observer = new Observer();
@@ -197,7 +193,9 @@ describe("testing Events  ", () => {
         });
 
         eventFields.length.should.eql(4);
-        eventFields.forEach((f) => debugLog(f.toString()));
+        eventFields.forEach((f) => {
+            debugLog(f.toString());
+        });
 
         eventFields[1].value.should.eql(serverObject.nodeId); // sourceNode
         eventFields[2].value.should.eql("Hello");

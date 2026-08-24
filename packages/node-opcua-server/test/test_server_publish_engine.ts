@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 /**
  *
  *  OPCUA protocol defines a long-pooling mechanism for sending server-triggered events back to the client.
@@ -47,7 +46,6 @@ const property =
     <T extends { [P in K]: unknown }>(obj: T): T[K] =>
         obj[key];
 
-// tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");
 
 function makeSubscription(options: SubscriptionOptions) {
@@ -59,7 +57,6 @@ function makeSubscription(options: SubscriptionOptions) {
 }
 
 describe("Testing the server publish engine", function (this: Mocha.Suite) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this as unknown as { clock: sinon.SinonFakeTimers };
 
     beforeEach(() => {
@@ -360,7 +357,6 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
         }
     });
 
-    // eslint-disable-next-line max-statements
     it("ZDZ-9 the server shall process the client acknowledge sequence number", () => {
         const publish_server = new ServerSidePublishEngine();
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
@@ -705,7 +701,6 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
         }
     });
 
-    // eslint-disable-next-line max-statements
     it("ZDZ-F a publish engine should be able to find out which are the most urgent late subscriptions to serve ", () => {
         const publish_server = new ServerSidePublishEngine();
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");

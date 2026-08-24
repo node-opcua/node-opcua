@@ -266,7 +266,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
         const obj = this.__findNode(coerceNodeId(nodeId));
 
-        let dataValue;
+        let dataValue: DataValue;
         if (!obj) {
             // Object Not Found
             return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });

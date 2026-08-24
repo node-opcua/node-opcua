@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
 export class Queue<T> {
     private _d = new Dequeue();
@@ -32,7 +31,7 @@ export class Queue<T> {
     public filterOut(predicate: (element: T) => boolean): number {
         let counter = 0;
         let p = this._d.head.next;
-        while (p != this._d.head) {
+        while (p !== this._d.head) {
             const shouldRemove = predicate(p.data);
             const pPrev = p;
             p = p.next;
@@ -46,7 +45,6 @@ export class Queue<T> {
     }
 
     public values(): Iterable<T> {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         const iteratable = {
             [Symbol.iterator]() {

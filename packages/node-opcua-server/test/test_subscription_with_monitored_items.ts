@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import {
     type IAddressSpace,
     type INamespace,
@@ -102,7 +100,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     let uaSomeVariable: UAVariable;
 
     let engine: ServerEngine;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     function simulate_client_adding_publish_request(publishEngine: any, callback?: () => void) {
@@ -1158,7 +1155,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
             if (!subscription) throw new Error("internal error");
 
             const nodeId = `ns=1;s=Static_${dataType}`;
-            const node = engine.addressSpace?.findNode(nodeId)! as UAVariable;
+            const node = engine.addressSpace!.findNode(nodeId) as UAVariable;
             should.exists(node);
 
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
@@ -1176,7 +1173,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
                 node.readValue().value.value.should.eql(currentValue, "value must have been recorded");
             }
 
-            let notifs;
+            let notifs: QueueItem[];
 
             let currentValue = writesFail[0];
             simulate_node_value_change(currentValue);
@@ -1502,7 +1499,6 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
     let engine: ServerEngine;
     let publishEngine: ServerSidePublishEngine;
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     function simulate_client_adding_publish_request(publishEngine: ServerSidePublishEngine, callback: () => void) {
         _simulate_client_adding_publish_request(test, publishEngine, callback);

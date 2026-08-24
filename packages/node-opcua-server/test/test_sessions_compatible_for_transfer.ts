@@ -27,9 +27,7 @@ function identity(userIdentityToken?: any, applicationUri?: string, securityMode
 // behalf of the same user as the Session that owns the Subscription.
 describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
     it("SCT-01 - refuses the transfer when the owning identity is unknown (fail closed)", () => {
-        should(sessionsCompatibleForTransfer(undefined, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(
-            false
-        );
+        should(sessionsCompatibleForTransfer(undefined, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(false);
         should(sessionsCompatibleForTransfer(undefined, fakeSession(undefined))).eql(false);
     });
 
@@ -101,12 +99,8 @@ describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
         should(JSON.stringify(snapshot)).not.match(/s3cret/, "snapshot must not retain the password");
 
         // the snapshot must remain valid for a transfer decision even after the session is gone
-        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(
-            true
-        );
-        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user2" })))).eql(
-            false
-        );
+        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(true);
+        should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user2" })))).eql(false);
     });
 
     // ---- anonymous user rule (§5.14.7): same ApplicationUri AND Sign/SignAndEncrypt channel ----

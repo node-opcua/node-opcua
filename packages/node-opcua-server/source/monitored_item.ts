@@ -2,8 +2,8 @@
  * @module node-opcua-server
  */
 
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 import {
     type AddressSpace,
     type BaseNode,
@@ -604,7 +604,6 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      *   * is !skipChangeTest and value is equal to previous value
      *
      */
-    // eslint-disable-next-line complexity, max-statements
     public recordValue(dataValue: DataValue, skipChangeTest?: boolean, indexRange?: NumericRange): boolean {
         if (!this.itemToMonitor) {
             // we must have a valid itemToMonitor(have this monitoredItem been disposed already ?)
@@ -681,7 +680,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because apply_filter");
                 debugLog("current Value =>", this.oldDataValue?.toString());
                 debugLog("proposed Value =>", dataValue?.toString());
-                debugLog("proposed Value =>", dataValue == this.oldDataValue, dataValue.value === this.oldDataValue?.value);
+                debugLog("proposed Value =>", dataValue === this.oldDataValue, dataValue.value === this.oldDataValue?.value);
             }
             return false;
         }
@@ -1087,10 +1086,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         assert(this.itemToMonitor.attributeId === AttributeIds.Value);
         assert(this.node);
         if (this.node?.nodeClass !== NodeClass.Variable) {
-            return callback(new Error("Invalid "));
+            callback(new Error("Invalid "));
+            return;
         }
         const variable = this.node as UAVariable;
-        if (this.oldDataValue == badDataUnavailable) {
+        if (this.oldDataValue === badDataUnavailable) {
             variable.readValueAsync(sessionContext, (err: Error | null, dataValue?: DataValue) => {
                 callback(err, dataValue);
             });
@@ -1126,7 +1126,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this._on_opcua_event_received_callback) {
                 // we are monitoring OPCUA Event
                 this._on_opcua_event_received_callback = this._on_opcua_event.bind(this);
-                if (this.node && this.node.nodeClass == NodeClass.Object) {
+                if (this.node && this.node.nodeClass === NodeClass.Object) {
                     this.node.on("event", this._on_opcua_event_received_callback);
                 }
             }
@@ -1158,7 +1158,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 assert(!this._semantic_changed_callback);
                 this._value_changed_callback = this._on_value_changed.bind(this);
                 this._semantic_changed_callback = this._on_semantic_changed.bind(this);
-                if (this.node.nodeClass == NodeClass.Variable) {
+                if (this.node.nodeClass === NodeClass.Variable) {
                     this.node.on("value_changed", this._value_changed_callback);
                     this.node.on("semantic_changed", this._semantic_changed_callback);
                 }

@@ -13,8 +13,9 @@
  * a configurable (exponentially-backed-off) delay, keeping a single waiting connection per
  * target — exactly as the specification mandates.
  */
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+
 import type { Socket } from "node:net";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 
 import type { OPCUAServerEndPoint } from "./server_end_point";
@@ -139,7 +140,8 @@ export class ReverseConnectManager {
         const endpointUrl = this.#context.getEndpointUrl();
 
         // c8 ignore next
-        doDebug && debugLog(`reverse connect: dialing ${state.clientEndpointUrl} (serverUri=${serverUri}, endpointUrl=${endpointUrl})`);
+        doDebug &&
+            debugLog(`reverse connect: dialing ${state.clientEndpointUrl} (serverUri=${serverUri}, endpointUrl=${endpointUrl})`);
 
         state.pendingSocket = endpoint.createReverseConnection(
             state.clientEndpointUrl,

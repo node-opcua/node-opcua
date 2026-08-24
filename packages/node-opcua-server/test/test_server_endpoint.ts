@@ -349,8 +349,7 @@ type MockServerEndPoint = Pick<OPCUAServerEndPoint, "endpointDescriptions">;
 
 function mockServerEndpoint(...urls: string[]): MockServerEndPoint {
     return {
-        endpointDescriptions: (): EndpointDescription[] =>
-            urls.map((u) => ({ endpointUrl: u }) as unknown as EndpointDescription)
+        endpointDescriptions: (): EndpointDescription[] => urls.map((u) => ({ endpointUrl: u }) as unknown as EndpointDescription)
     };
 }
 

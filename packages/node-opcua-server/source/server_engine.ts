@@ -4,7 +4,6 @@
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
 
-
 import chalk from "chalk";
 import {
     AddressSpace,
@@ -530,8 +529,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._applicationUri = options.applicationUri || "<unset _applicationUri>";
         }
 
-        options.serverDiagnosticsEnabled =
-            options.serverDiagnosticsEnabled == undefined ? true : options.serverDiagnosticsEnabled;
+        options.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled ?? true;
 
         this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
     }
@@ -914,7 +912,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             const serverNamespace = this.addressSpace.registerNamespace(this.serverNamespaceUrn);
             assert(serverNamespace.index === 1);
         }
-        // eslint-disable-next-line max-statements
         generateAddressSpace(this.addressSpace, options.nodeset_filename)
             .catch((err) => {
                 console.log(err.message);
@@ -1073,7 +1070,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     return this.isAuditing;
                 });
 
-                // eslint-disable-next-line @typescript-eslint/no-this-alias
                 const engine = this;
                 const makeNotReadableIfEnabledFlagIsFalse = (variable: UAVariable) => {
                     const originalIsReadable = variable.isReadable;
@@ -1491,10 +1487,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     // only by administrators (ConfigureAdmin / SecurityAdmin).
                     // accessLevel declares the capability (readable + writable),
                     // while rolePermissions restrict Write to admin roles only.
-                    serverDiagnosticsNode.enabledFlag.accessLevel =
-                        makeAccessLevelFlag("CurrentRead | CurrentWrite");
-                    serverDiagnosticsNode.enabledFlag.userAccessLevel =
-                        makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                    serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                    serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
                     serverDiagnosticsNode.enabledFlag.setRolePermissions([
                         { roleId: WellKnownRoles.Anonymous, permissions: PermissionType.Read | PermissionType.Browse },
                         { roleId: WellKnownRoles.AuthenticatedUser, permissions: PermissionType.Read | PermissionType.Browse },
@@ -1502,10 +1496,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         { roleId: WellKnownRoles.Operator, permissions: PermissionType.Read | PermissionType.Browse },
                         { roleId: WellKnownRoles.Engineer, permissions: PermissionType.Read | PermissionType.Browse },
                         { roleId: WellKnownRoles.Supervisor, permissions: PermissionType.Read | PermissionType.Browse },
-                        { roleId: WellKnownRoles.ConfigureAdmin,
-                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write },
-                        { roleId: WellKnownRoles.SecurityAdmin,
-                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write }
+                        {
+                            roleId: WellKnownRoles.ConfigureAdmin,
+                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write
+                        },
+                        {
+                            roleId: WellKnownRoles.SecurityAdmin,
+                            permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write
+                        }
                     ]);
 
                     // A Server may not expose the SamplingIntervalDiagnosticsArray if it does not use fixed sampling rates.
@@ -2077,7 +2075,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         assert(subscription.publishEngine === session.publishEngine);
         session.publishEngine.add_subscription(subscription);
 
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const engine = this;
         subscription.once("terminated", function (this: Subscription) {
             engine._unexposeSubscriptionDiagnostics(this);
@@ -2102,8 +2099,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             /* c8 ignore next */
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                chalk.cyan(nodeId.toString()) +
-                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                    chalk.cyan(nodeId.toString()) +
+                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }

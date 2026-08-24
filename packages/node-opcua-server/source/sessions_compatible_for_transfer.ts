@@ -45,10 +45,9 @@ export interface SessionsCompatibleForTransferOptions {
     allowAnonymousTransferOnUnsecuredChannel?: boolean;
 }
 
-function classifyUserIdentity(token: UserIdentityToken | undefined): Pick<
-    ITransferSessionIdentity,
-    "kind" | "userName" | "certificateThumbprint"
-> {
+function classifyUserIdentity(
+    token: UserIdentityToken | undefined
+): Pick<ITransferSessionIdentity, "kind" | "userName" | "certificateThumbprint"> {
     if (!token) {
         return { kind: "none" };
     }

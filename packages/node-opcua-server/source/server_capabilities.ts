@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:max-classes-per-file
 import type { Double, UInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { QualifiedName } from "node-opcua-data-model";
@@ -222,7 +221,6 @@ export class ServerCapabilities implements IServerCapabilities {
     public maxMonitoredItemsQueueSize: UInt32;
     public conformanceUnits: QualifiedName[];
 
-    // eslint-disable-next-line complexity
     constructor(options: ServerCapabilitiesOptions) {
         options = options || {};
         options.operationLimits = options.operationLimits || {};

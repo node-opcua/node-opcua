@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 import { SessionContext } from "node-opcua-address-space";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

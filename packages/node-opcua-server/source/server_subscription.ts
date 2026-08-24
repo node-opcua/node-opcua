@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 
 import { EventEmitter } from "node:events";
 import chalk from "chalk";
@@ -1456,7 +1455,7 @@ export class Subscription extends EventEmitter {
         const availableSequenceNumbers = this.getAvailableSequenceNumbers();
         assert(
             !response.notificationMessage ||
-            availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
+                availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
         );
         response.availableSequenceNumbers = availableSequenceNumbers;
 
@@ -1533,7 +1532,7 @@ export class Subscription extends EventEmitter {
             } else {
                 debugLog(
                     "     -> subscription.state === LATE , " +
-                    "because keepAlive Response cannot be send due to lack of PublishRequest"
+                        "because keepAlive Response cannot be send due to lack of PublishRequest"
                 );
                 if (this.messageSent || this.keepAliveCounterHasExpired) {
                     this.state = SubscriptionState.LATE;
@@ -1861,10 +1860,7 @@ export class Subscription extends EventEmitter {
         // Subscription are moved from the old to the new Session.
         if (maxNotificationMessagesInQueue < this._sent_notification_messages.length) {
             doDebug && debugLog("discardOldSentNotifications = ", this._sent_notification_messages.length);
-            this._sent_notification_messages.splice(
-                0,
-                this._sent_notification_messages.length - maxNotificationMessagesInQueue
-            );
+            this._sent_notification_messages.splice(0, this._sent_notification_messages.length - maxNotificationMessagesInQueue);
         }
     }
 

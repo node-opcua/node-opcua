@@ -1,15 +1,14 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 import chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 
 import { ServerSidePublishEngine, type ServerSidePublishEngineOptions } from "./server_publish_engine";
-import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
 import type { Subscription } from "./server_subscription";
+import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);

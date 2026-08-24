@@ -1,4 +1,4 @@
-import util from "util";
+import util from "node:util";
 import type { OPCUAServer } from "./opcua_server";
 import type { ServerEngine } from "./server_engine";
 import type { ServerSession } from "./server_session";
@@ -6,7 +6,7 @@ import { type Subscription, SubscriptionState } from "./server_subscription";
 
 const consolelog = (...args: any) => {
     const d = new Date();
-    const t = d.toTimeString().split(" ")[0] + "." + d.getMilliseconds().toString().padStart(3, "0");
+    const t = `${d.toTimeString().split(" ")[0]}.${d.getMilliseconds().toString().padStart(3, "0")}`;
     console.log.apply(console, [t, ...args]);
 };
 const doDebug = false;
@@ -25,9 +25,9 @@ const info = (subscription: Subscription) => {
         SubscriptionState[subscription.state].padEnd(9),
         subscription.state,
         "kac=",
-        subscription.currentKeepAliveCount.toString().padStart(3) + "/" + subscription.maxKeepAliveCount.toString().padStart(3),
+        `${subscription.currentKeepAliveCount.toString().padStart(3)}/${subscription.maxKeepAliveCount.toString().padStart(3)}`,
         "ltc=",
-        subscription.currentLifetimeCount.toString().padStart(3) + "/" + subscription.lifeTimeCount.toString().padStart(3),
+        `${subscription.currentLifetimeCount.toString().padStart(3)}/${subscription.lifeTimeCount.toString().padStart(3)}`,
         "prc=",
         subscription.publishEngine?.pendingPublishRequestCount.toString().padStart(3),
         "pi=",
@@ -40,6 +40,7 @@ export function installSubscriptionMonitoring(subscription: Subscription) {
     subscription.on("lifeTimeExpired", () => {
         consolelog("lifeTimeExpired".padEnd(45), info(subscription));
     });
+    // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
     if (true || doDebug) {
         subscription.on("lifeTimeCounterChanged", (ltc: number) => {
             consolelog("subscription lifeTimeCounterChanged".padEnd(45), info(subscription));

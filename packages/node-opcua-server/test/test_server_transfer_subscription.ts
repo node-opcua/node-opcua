@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-/* eslint-disable max-statements */
 /// reference
 
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { NodeId } from "node-opcua-nodeid";
 
 import { PublishRequest } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
@@ -35,7 +34,8 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
     /**
      *  @type {NodeId}
      */
-    let _FolderTypeId, _BaseDataVariableTypeId;
+    let _FolderTypeId: NodeId | undefined;
+    let _BaseDataVariableTypeId: NodeId | undefined;
     beforeEach((done) => {
         engine = new ServerEngine({
             applicationUri: "application:uri"

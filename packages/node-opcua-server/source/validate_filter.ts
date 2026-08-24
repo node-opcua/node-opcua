@@ -61,7 +61,7 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
 
         // node must also have a valid euRange
         if (!node.getChildByName("EURange", 0)) {
-            warningLog(" node has no euRange ! Dead band Percent cannot be used on node " + node.nodeId.toString());
+            warningLog(` node has no euRange ! Dead band Percent cannot be used on node ${node.nodeId.toString()}`);
             return StatusCodes.BadMonitoredItemFilterUnsupported;
         }
     }

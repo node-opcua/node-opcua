@@ -1,8 +1,6 @@
-/* eslint-disable max-statements */
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 
 import { EventEmitter } from "node:events";
 import net, { type Server, type Socket } from "node:net";
@@ -70,8 +68,9 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
-            } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
+            s.sessionTimeout
+        } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -348,19 +347,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * errors (e.g. untrusted/missing-CRL) based on application
      * policy such as the server being in NoConfiguration state.
      */
-    public onAdjustCertificateStatus?: (
-        statusCode: StatusCode,
-        certificate: Certificate
-    ) => StatusCode | Promise<StatusCode>;
+    public onAdjustCertificateStatus?: (statusCode: StatusCode, certificate: Certificate) => StatusCode | Promise<StatusCode>;
 
     /**
      * Implements `ServerSecureChannelParent.adjustCertificateStatus`.
      * Delegates to the `onAdjustCertificateStatus` callback if set.
      */
-    public adjustCertificateStatus(
-        statusCode: StatusCode,
-        certificate: Certificate
-    ): StatusCode | Promise<StatusCode> {
+    public adjustCertificateStatus(statusCode: StatusCode, certificate: Certificate): StatusCode | Promise<StatusCode> {
         if (this.onAdjustCertificateStatus) {
             return this.onAdjustCertificateStatus(statusCode, certificate);
         }
@@ -471,7 +464,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             maxConnections: this.maxConnections,
             timeout: this.timeout,
             currentChannelCount: this.currentChannelCount,
-            endpointDescriptions: this._endpoints.map(e => e.endpointUrl)
+            endpointDescriptions: this._endpoints.map((e) => e.endpointUrl)
         };
     }
 
@@ -808,7 +801,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._server.listen(
             listenOptions,
-            /*"::",*/(err?: Error) => {
+            /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -998,7 +991,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -1008,7 +1001,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "The maximum number of connection has been reached - Connection is refused"
+                        "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = `maxConnections reached (${this.maxConnections})`;
@@ -1126,7 +1119,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         socket.setKeepAlive(true);
 
         const onTimeout = () => {
-            onConnectError(new Error(`reverse connect: TCP connection to ${clientEndpointUrl} timed out after ${connectTimeout} ms`));
+            onConnectError(
+                new Error(`reverse connect: TCP connection to ${clientEndpointUrl} timed out after ${connectTimeout} ms`)
+            );
         };
 
         const onConnectError = (err: Error) => {
@@ -1165,29 +1160,25 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
             this._preregisterChannel(channel);
 
-            channel.initReverse(
-                socket,
-                { serverUri: options.serverUri, endpointUrl: options.endpointUrl },
-                (err?: Error) => {
-                    this._un_pre_registerChannel(channel);
-                    debugLog(chalk.yellow.bold("reverse Channel#initReverse done"), err);
-                    if (err) {
-                        if (settled) return;
-                        settled = true;
-                        const reason = `reverse connect openSecureChannel has Failed ${err.message}`;
-                        const socketData = extractSocketData(socket, reason);
-                        const channelData = extractChannelData(channel);
-                        this.emit("openSecureChannelFailure", socketData, channelData);
-                        socket.destroy();
-                        callback(err);
-                    } else {
-                        settled = true;
-                        debugLog("server established a reverse connection");
-                        this._registerChannel(channel);
-                        callback(null, channel);
-                    }
+            channel.initReverse(socket, { serverUri: options.serverUri, endpointUrl: options.endpointUrl }, (err?: Error) => {
+                this._un_pre_registerChannel(channel);
+                debugLog(chalk.yellow.bold("reverse Channel#initReverse done"), err);
+                if (err) {
+                    if (settled) return;
+                    settled = true;
+                    const reason = `reverse connect openSecureChannel has Failed ${err.message}`;
+                    const socketData = extractSocketData(socket, reason);
+                    const channelData = extractChannelData(channel);
+                    this.emit("openSecureChannelFailure", socketData, channelData);
+                    socket.destroy();
+                    callback(err);
+                } else {
+                    settled = true;
+                    debugLog("server established a reverse connection");
+                    this._registerChannel(channel);
+                    callback(null, channel);
                 }
-            );
+            });
 
             channel.on("message", (message: Message) => {
                 // forward

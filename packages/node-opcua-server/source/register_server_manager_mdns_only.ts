@@ -3,7 +3,7 @@
  */
 // RegisterServerManagerMDNSONLY
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { BonjourHolder } from "node-opcua-service-discovery";
 import { OPCUABaseServer } from "./base_server";

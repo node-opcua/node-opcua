@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
 
 import { EventEmitter } from "node:events";
 import chalk from "chalk";

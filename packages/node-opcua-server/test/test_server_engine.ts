@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import { type INamespace, type ISessionContext, SessionContext, type UAObject, type UAVariable } from "node-opcua-address-space";
 import type { UAVariableImpl } from "node-opcua-address-space/dist/src/ua_variable_impl";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";

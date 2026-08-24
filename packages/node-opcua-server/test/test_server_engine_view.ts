@@ -1,9 +1,9 @@
 import { promisify } from "node:util";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { NodeId } from "node-opcua-nodeid";
 import should from "should";
 import { ServerEngine } from "../source";
-import { NodeId } from "node-opcua-nodeid";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

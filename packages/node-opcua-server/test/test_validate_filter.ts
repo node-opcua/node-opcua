@@ -1,7 +1,14 @@
 import "should";
 import type { BaseNode } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
-import { ContentFilter, ElementOperand, EventFilter, FilterOperator, ofType, SimpleAttributeOperand } from "node-opcua-service-filter";
+import {
+    ContentFilter,
+    ElementOperand,
+    EventFilter,
+    FilterOperator,
+    ofType,
+    SimpleAttributeOperand
+} from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 
@@ -130,7 +137,9 @@ describe("validateFilter - EventFilter whereClause conformance (OPC UA Part 4 - 
                 ]
             })
         });
-        validateFilter(filter, onEventNotifier, dummyNode, { maxWhereClauseParameters: 2 }).should.eql(StatusCodes.BadEventFilterInvalid);
+        validateFilter(filter, onEventNotifier, dummyNode, { maxWhereClauseParameters: 2 }).should.eql(
+            StatusCodes.BadEventFilterInvalid
+        );
         validateFilter(filter, onEventNotifier, dummyNode, { maxWhereClauseParameters: 3 }).should.eql(StatusCodes.Good);
     });
 
@@ -140,7 +149,9 @@ describe("validateFilter - EventFilter whereClause conformance (OPC UA Part 4 - 
             new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["SourceNode"] })
         ];
         const filter = new EventFilter({ selectClauses, whereClause: new ContentFilter({ elements: [] }) });
-        validateFilter(filter, onEventNotifier, dummyNode, { maxSelectClauseParameters: 1 }).should.eql(StatusCodes.BadEventFilterInvalid);
+        validateFilter(filter, onEventNotifier, dummyNode, { maxSelectClauseParameters: 1 }).should.eql(
+            StatusCodes.BadEventFilterInvalid
+        );
         validateFilter(filter, onEventNotifier, dummyNode, { maxSelectClauseParameters: 2 }).should.eql(StatusCodes.Good);
     });
 

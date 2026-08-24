@@ -13,7 +13,6 @@ import sinon from "sinon";
 import { ServerEngine } from "../source/server_engine";
 import { Subscription } from "../source/server_subscription";
 
-// tslint:disable-next-line: no-var-requires
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
@@ -112,7 +111,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             serverCapabilities: engine.serverCapabilities
         });
 
-        (subscription as unknown as { $session: { nodeId: NodeId, sessionContext: SessionContext } }).$session = {
+        (subscription as unknown as { $session: { nodeId: NodeId; sessionContext: SessionContext } }).$session = {
             nodeId: coerceNodeId("i=5;s=tmp"),
             sessionContext: SessionContext.defaultContext
         };

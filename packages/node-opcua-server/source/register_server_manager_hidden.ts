@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
 /**

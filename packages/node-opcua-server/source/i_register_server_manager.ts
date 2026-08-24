@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server
  */
-import type { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 
 /**
  * Finite State Machine for RegisterServerManager.
@@ -72,7 +72,6 @@ export interface IRegisterServerManager extends EventEmitter {
      */
     getState(): RegisterServerManagerStatus;
 
-    // tslint:disable:unified-signatures
     on(eventName: "serverRegistrationPending", eventHandler: () => void): this;
     on(eventName: "serverRegistered", eventHandler: () => void): this;
     on(eventName: "serverRegistrationRenewed", eventHandler: () => void): this;
