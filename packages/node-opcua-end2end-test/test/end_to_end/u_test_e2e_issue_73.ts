@@ -1,16 +1,11 @@
 import "should";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy, ServerSecureChannelLayer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const doDebug = false;
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing bug #73 - Server resets sequence number after secure channel renewal", () => {
         before(function () {
             this.timeout(Math.max(200000, this.timeout()));
@@ -19,12 +14,12 @@ export function t(test: TestHarness) {
         let endpointUrl: string;
         let oldMin: number;
         beforeEach(() => {
-            oldMin = (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime;
-            (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime = 500;
-            endpointUrl = test.endpointUrl;
+            oldMin = ServerSecureChannelLayer.g_MinimumSecureTokenLifetime;
+            ServerSecureChannelLayer.g_MinimumSecureTokenLifetime = 500;
+            endpointUrl = test.endpointUrl!;
         });
         afterEach(() => {
-            (ServerSecureChannelLayer as any).g_MinimumSecureTokenLifetime = oldMin;
+            ServerSecureChannelLayer.g_MinimumSecureTokenLifetime = oldMin;
         });
 
         [
@@ -35,17 +30,18 @@ export function t(test: TestHarness) {
                 const client = OPCUAClient.create({
                     securityMode,
                     securityPolicy,
+                    // biome-ignore lint/suspicious/noExplicitAny: explicit null forces "fetch via GetEndpoints"; the option type only declares undefined
                     serverCertificate: null as any,
                     defaultSecureTokenLifetime: 500
                 });
                 const sequenceNumbers: number[] = [];
                 const messages: string[] = [];
 
-                client.on("secure_channel_created", (channel: any) => {
-                    channel.on("message", (msg: any) => {
+                client.on("secure_channel_created", (channel) => {
+                    channel.on("message", (msg) => {
                         try {
                             messages.push(msg.constructor.name);
-                            sequenceNumbers.push(channel._getMessageBuilder().sequenceHeader.sequenceNumber);
+                            sequenceNumbers.push(channel._getMessageBuilder()!.sequenceHeader!.sequenceNumber);
                         } catch (_err) {
                             // ignore
                         }
