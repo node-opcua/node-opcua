@@ -129,30 +129,25 @@ function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken)
             return !isAnonymous(token);
 
         case IdentityCriteriaType.UserName:
-            return isUserName(token) && (token as any).userName === rule.criteria;
+            return isUserName(token) && token.userName === rule.criteria;
 
         case IdentityCriteriaType.Thumbprint: {
-            if (!isX509(token) || !(token as any).certificateData) {
+            if (!isX509(token) || !token.certificateData) {
                 return false;
             }
-            const certBuffer =
-                (token as any).certificateData instanceof Buffer
-                    ? (token as any).certificateData
-                    : Buffer.from((token as any).certificateData);
+            const certBuffer = token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
             const thumbprint = makeSHA1Thumbprint(certBuffer).toString("hex").toUpperCase();
             const expected = (rule.criteria ?? "").toUpperCase().replace(/[\s:]/g, "");
             return thumbprint === expected;
         }
 
         case IdentityCriteriaType.X509Subject: {
-            if (!isX509(token) || !(token as any).certificateData) {
+            if (!isX509(token) || !token.certificateData) {
                 return false;
             }
             try {
                 const certBuffer =
-                    (token as any).certificateData instanceof Buffer
-                        ? (token as any).certificateData
-                        : Buffer.from((token as any).certificateData);
+                    token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
                 const info = exploreCertificate(certBuffer);
                 const subject = info.tbsCertificate.subject ?? {};
                 return matchX509Subject(rule.criteria ?? "", subject);
