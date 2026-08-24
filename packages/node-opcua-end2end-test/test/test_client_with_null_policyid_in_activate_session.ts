@@ -10,6 +10,12 @@ import {
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
+// performMessageTransaction is public on the client implementation but not exposed on
+// the public OPCUAClient interface; reached here to inject a malformed ActivateSessionRequest.
+interface ClientWithTransaction {
+    performMessageTransaction(request: Request, callback: (error: Error | null) => void): void;
+}
+
 const port = 2235;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -34,8 +40,9 @@ describe("Testing client that have policyId = null in Activate Session for anony
         const client = OPCUAClient.create({});
 
         let policyIdSetToNull = false;
-        const original_performMessageTransaction = (client as any).performMessageTransaction;
-        (client as any).performMessageTransaction = (request: Request, callback: (error: Error | null) => void) => {
+        const clientEx = client as unknown as ClientWithTransaction;
+        const original_performMessageTransaction = clientEx.performMessageTransaction;
+        clientEx.performMessageTransaction = (request: Request, callback: (error: Error | null) => void) => {
             if (request instanceof ActivateSessionRequest) {
                 // console.log(request.toString());
                 // reproduce the behavior of Siemens PLC  Un-secure connection
