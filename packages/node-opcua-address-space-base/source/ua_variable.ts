@@ -102,6 +102,11 @@ export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = 
     readonly dataTypeObj: UADataType;
     semantic_version: number;
 
+    // Concrete node types (and their generic *T variants) bind this to whatever ExtensionObject
+    // subclass their DataType implies, and narrow/widen it independently across the address-space
+    // package — typing it as ExtensionObject here breaks that narrowing (tried it: multiple-interface
+    // merge conflicts in ua_two_state_variable.ts, assignment errors in server_engine.ts).
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     $extensionObject?: any;
 
     get typeDefinitionObj(): UAVariableType;

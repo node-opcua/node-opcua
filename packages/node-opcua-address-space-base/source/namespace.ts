@@ -59,7 +59,7 @@ export interface CreateNodeOptions {
     modellingRule?: ModellingRuleType;
     eventNotifier?: number;
 
-    postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void;
+    postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: unknown) => void;
 }
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
