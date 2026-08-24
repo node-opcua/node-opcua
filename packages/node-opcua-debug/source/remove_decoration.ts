@@ -1,3 +1,4 @@
+// biome-ignore lint/suspicious/noControlCharactersInRegex: deliberately matches ANSI escape sequences to strip terminal color codes
 const nonTextReg = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 
 export function removeDecoration(str: string): string {

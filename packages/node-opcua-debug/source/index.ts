@@ -1,18 +1,24 @@
 /**
  * @module node-opcua-debug
  */
-export { removeDecoration } from "./remove_decoration";
-export { traceFromThisProjectOnly, displayTraceFromThisProjectOnly } from "./display_trace";
+
+export { displayTraceFromThisProjectOnly, traceFromThisProjectOnly } from "./display_trace";
+export { dump, dumpIf } from "./dump_if";
+export { hexDump } from "./hexDump";
+export { inlineText, makeBufferFromTrace } from "./make_buffer_from_trace";
 export {
     checkDebugFlag,
-    setDebugFlag,
+    LogLevel,
     make_debugLog,
     make_errorLog,
-    make_warningLog,
     make_traceLog,
-    messageLogger
+    make_warningLog,
+    messageLogger,
+    setDebugFlag,
+    setDebugLogger,
+    setErrorLogger,
+    setLogLevel,
+    setTraceLogger,
+    setWarningLogger
 } from "./make_loggers";
-export { makeBufferFromTrace, inlineText } from "./make_buffer_from_trace";
-export { hexDump } from "./hexDump";
-export { dump, dumpIf } from "./dump_if";
-export { LogLevel, setLogLevel, setDebugLogger, setWarningLogger, setErrorLogger, setTraceLogger } from "./make_loggers";
+export { removeDecoration } from "./remove_decoration";

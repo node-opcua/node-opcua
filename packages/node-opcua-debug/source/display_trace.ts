@@ -10,10 +10,10 @@ export function traceFromThisProjectOnly(err?: Error): string {
         str.push(err.message);
     }
     err = err || new Error("Error used to extract stack trace");
-    let stack: any = err.stack;
+    const stack: string | undefined = err.stack;
     if (stack) {
-        stack = stack.split("\n").filter((el: string) => el.match(/node-opcua/) && !el.match(/node_modules/));
-        str.push(chalk.yellow(stack.join("\n")));
+        const filteredStack = stack.split("\n").filter((el: string) => el.match(/node-opcua/) && !el.match(/node_modules/));
+        str.push(chalk.yellow(filteredStack.join("\n")));
     } else {
         str.push(chalk.red(" NO STACK TO TRACE !!!!"));
     }

@@ -32,11 +32,11 @@ function hexString(str: string): string {
     if (lines.length === 0) {
         return hexLine;
     }
-    while (lines.length && lines[0]!.length === 0) {
+    while (lines.length && lines[0]?.length === 0) {
         lines = lines.splice(1);
     }
     // find prefix
-    const m = lines[0]!.match(/[0-9a-fA-F:]* +/);
+    const m = lines[0]?.match(/[0-9a-fA-F:]* +/);
     if (!m) return hexLine;
     const prefixLength = m[0].length;
 

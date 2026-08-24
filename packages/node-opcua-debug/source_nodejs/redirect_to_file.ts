@@ -13,20 +13,24 @@ import { getTempFilename } from "./get_temp_filename";
  * @param actionFct  the inner function to execute
  * @param callback
  */
-export function redirectToFile(tmpFile: string, actionFct: Function, callback: ((err?: Error) => void) | null): void {
-    let oldConsoleLog: any;
+export function redirectToFile(
+    tmpFile: string,
+    actionFct: (callback?: (err?: Error) => void) => void,
+    callback: ((err?: Error) => void) | null
+): void {
+    let oldConsoleLog: typeof console.log;
 
     assert(typeof actionFct === "function");
     assert(!callback || typeof callback === "function");
 
-    const isAsync = actionFct && actionFct.length;
+    const isAsync = actionFct?.length;
 
     const logFile = getTempFilename(tmpFile);
 
     // xx    console.log(" log_file ",log_file);
     const f = fs.createWriteStream(logFile, { flags: "w", encoding: "utf-8" });
 
-    function _write_to_file(...args: [any, ...any[]]) {
+    function _write_to_file(...args: unknown[]) {
         const msg = format.call(null, ...args);
         f.write(`${msg}\n`);
         if (typeof process === "object" && process.env.DEBUG) {
@@ -67,7 +71,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
 
         // async version
 
-        actionFct((err: Error) => {
+        actionFct((err?: Error) => {
             assert(typeof callback === "function");
             console.log = oldConsoleLog;
             if (err) {
