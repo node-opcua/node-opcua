@@ -18,7 +18,7 @@ const cm = new ChunkManager(Mode.SignAndEncrypt, {
         const dest = Buffer.alloc(Math.ceil(buffer.length / 245) * 256);
         return dest;
     },
-    signBufferFunc: (buffer) => Buffer.alloc(128),
+    signBufferFunc: (_buffer) => Buffer.alloc(128),
     writeHeaderFunc: () => {},
     writeSequenceHeaderFunc: () => {}
 });

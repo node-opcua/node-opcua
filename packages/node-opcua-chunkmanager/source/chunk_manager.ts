@@ -195,9 +195,10 @@ export class ChunkManager extends EventEmitter {
             const nbToWrite = Math.min(length - inputCursor, spaceLeft);
 
             this.#chunk = this.#chunk || createFastUninitializedBuffer(this.chunkSize);
+            const chunk = this.#chunk;
 
             if (buffer) {
-                buffer.copy(this.#chunk!, this.#cursor + this.#dataOffset, inputCursor, inputCursor + nbToWrite);
+                buffer.copy(chunk, this.#cursor + this.#dataOffset, inputCursor, inputCursor + nbToWrite);
             }
 
             inputCursor += nbToWrite;
@@ -259,7 +260,7 @@ export class ChunkManager extends EventEmitter {
             assert(areaToEncrypt.length % this.plainBlockSize === 0); // padding should have been applied
             const nbBlock = areaToEncrypt.length / this.plainBlockSize;
 
-            const encryptedBuffer = this.#encryptBufferFunc!.call(this, areaToEncrypt);
+            const encryptedBuffer = this.#encryptBufferFunc.call(this, areaToEncrypt);
             assert(encryptedBuffer.length % this.cipherBlockSize === 0);
             assert(encryptedBuffer.length === nbBlock * this.cipherBlockSize);
 
@@ -272,13 +273,19 @@ export class ChunkManager extends EventEmitter {
             const expectedLength = this.#pendingChunk.length;
 
             if (this.headerSize > 0) {
+                if (!this.#writeHeaderFunc) {
+                    throw new Error("ChunkManager: writeHeaderFunc is required when headerSize > 0");
+                }
                 // Release 1.02  39  OPC Unified Architecture, Part 6:
                 // The sequence header ensures that the first  encrypted block of every  Message  sent over
                 // a channel will start with different data.
-                this.#writeHeaderFunc!.call(this, this.#pendingChunk.subarray(0, this.headerSize), isLast, expectedLength);
+                this.#writeHeaderFunc.call(this, this.#pendingChunk.subarray(0, this.headerSize), isLast, expectedLength);
             }
             if (this.sequenceHeaderSize > 0) {
-                this.#writeSequenceHeaderFunc!.call(
+                if (!this.#writeSequenceHeaderFunc) {
+                    throw new Error("ChunkManager: writeSequenceHeaderFunc is required when sequenceHeaderSize > 0");
+                }
+                this.#writeSequenceHeaderFunc.call(
                     this,
                     this.#pendingChunk.subarray(this.headerSize, this.headerSize + this.sequenceHeaderSize)
                 );
@@ -299,22 +306,27 @@ export class ChunkManager extends EventEmitter {
     }
 
     #_write_padding_bytes(nbPaddingByteTotal: number) {
+        if (!this.#chunk) {
+            throw new Error("ChunkManager: #_write_padding_bytes called with no current chunk");
+        }
+        const chunk = this.#chunk;
+
         const nbPaddingByte = nbPaddingByteTotal % 256;
         const extraNbPaddingByte = Math.floor(nbPaddingByteTotal / 256);
 
         assert(extraNbPaddingByte === 0 || this.plainBlockSize > 256, "extraNbPaddingByte only requested when key size > 2048");
 
         // write the padding byte
-        this.#chunk!.writeUInt8(nbPaddingByte, this.#cursor + this.#dataOffset);
+        chunk.writeUInt8(nbPaddingByte, this.#cursor + this.#dataOffset);
         this.#cursor += 1;
 
         if (nbPaddingByteTotal > 0) {
-            this.#chunk!.fill(nbPaddingByte, this.#cursor + this.#dataOffset, this.#cursor + this.#dataOffset + nbPaddingByteTotal);
+            chunk.fill(nbPaddingByte, this.#cursor + this.#dataOffset, this.#cursor + this.#dataOffset + nbPaddingByteTotal);
             this.#cursor += nbPaddingByteTotal;
         }
 
         if (this.plainBlockSize > 256) {
-            this.#chunk!.writeUInt8(extraNbPaddingByte, this.#cursor + this.#dataOffset);
+            chunk.writeUInt8(extraNbPaddingByte, this.#cursor + this.#dataOffset);
             this.#cursor += 1;
         }
     }
@@ -352,7 +364,10 @@ export class ChunkManager extends EventEmitter {
         // calculate the expected length of the chunk, once encrypted if encryption apply
         const expectedLength = this.#dataEnd + this.signatureLength + extraEncryptionBytes;
 
-        this.#pendingChunk = this.#chunk!.subarray(0, expectedLength);
+        if (!this.#chunk) {
+            throw new Error("ChunkManager: #_post_process_current_chunk called with no current chunk");
+        }
+        this.#pendingChunk = this.#chunk.subarray(0, expectedLength);
         // note :
         //  - this.pending_chunk has the correct size but is not signed nor encrypted yet
         //    as we don't know what to write in the header yet

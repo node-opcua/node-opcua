@@ -14,7 +14,7 @@ function make_packet(packet_length: number) {
 
 const doDebug = false;
 
-function computeFakeSignature(this: ChunkManager, section_to_sign: Buffer) {
+function computeFakeSignature(this: ChunkManager, _section_to_sign: Buffer) {
     const signature = Buffer.allocUnsafe(4);
     for (let i = 0; i < signature.length; i++) {
         signature.writeUInt8(0xcc, i);
@@ -22,7 +22,7 @@ function computeFakeSignature(this: ChunkManager, section_to_sign: Buffer) {
     return signature;
 }
 
-function writeFakeHeader(this: ChunkManager, block: Buffer, isLast: boolean, total_length: number) {
+function writeFakeHeader(this: ChunkManager, block: Buffer, _isLast: boolean, _total_length: number) {
     for (let i = 0; i < this.headerSize; i++) {
         block.writeUInt8(0xaa, i);
     }
@@ -65,7 +65,7 @@ function fake_encrypt_buffer(this: ChunkManager, buffer: Buffer) {
     return outputBuffer;
 }
 
-function no_encrypt_block(this: any, block: Buffer): Buffer {
+function no_encrypt_block(this: ChunkManager, block: Buffer): Buffer {
     assert(this.plainBlockSize === this.cipherBlockSize);
     return block;
 }
@@ -74,7 +74,7 @@ function make_hex_block(hexString: string) {
     return Buffer.from(hexString.split(" ").join(""), "hex");
 }
 
-describe("Chunk manager - no header - no signature - no encryption", function (this: any) {
+describe("Chunk manager - no header - no signature - no encryption", () => {
     it("should decompose a large single write in small chunks", () => {
         const chunkManager = new ChunkManager(Mode.None, {
             chunkSize: 48,
@@ -153,7 +153,7 @@ describe("Chunk manager - no header - no signature - no encryption", function (t
 function perform_test(
     chunkManager: ChunkManager,
     packet_length: number,
-    expected_chunk_lengths: any[],
+    expected_chunk_lengths: (number | string)[],
     done: (err?: Error) => void
 ) {
     let expected_chunks: Buffer[] = [];
