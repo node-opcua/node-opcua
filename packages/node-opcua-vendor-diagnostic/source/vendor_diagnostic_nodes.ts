@@ -1,9 +1,8 @@
 /* c8 ignore start */
-// tslint:disable:no-console
-import os from "os";
+import os from "node:os";
 
-import { types } from "util";
-import { Namespace } from "node-opcua-address-space";
+import { types } from "node:util";
+import type { Namespace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { ObjectIds } from "node-opcua-constants";
 import { ServerEngine } from "node-opcua-server";
@@ -13,7 +12,6 @@ import { make_warningLog } from "node-opcua-debug";
 
 const warningLog = make_warningLog(__filename);
 
-// tslint:disable:no-var-requires
 const humanize = require("humanize");
 
 /**
@@ -32,9 +30,9 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
     namespace.addVariable({
         propertyOf: variable,
 
-        browseName: options.browseName.name.toString() + "AsText",
+        browseName: `${options.browseName.name.toString()}AsText`,
         dataType: "String",
-        description: options.description + " as text",
+        description: `${options.description} as text`,
         minimumSamplingInterval: options.minimumSamplingInterval,
         value: {
             get() {
