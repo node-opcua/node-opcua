@@ -1,4 +1,4 @@
-import {
+import type {
     BaseNode,
     IAddressSpace,
     IEventData,
@@ -12,20 +12,23 @@ import {
 } from "node-opcua-address-space-base";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
-import { NodeId, sameNodeId, NodeIdLike, coerceNodeId } from "node-opcua-nodeid";
+import { NodeId, sameNodeId, type NodeIdLike, coerceNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { BrowsePath } from "node-opcua-types";
+import type { BrowsePath } from "node-opcua-types";
 import { Variant, DataType } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 //
-import { FilterContext } from "../filter_context";
+import type { FilterContext } from "../filter_context";
 
 const warningLog = make_warningLog("Filter");
 
 export class FilterContextOnAddressSpace implements FilterContext {
     public eventSource: NodeId;
 
-    constructor(private sessionContext: ISessionContext, private eventData: IEventData) {
+    constructor(
+        private sessionContext: ISessionContext,
+        private eventData: IEventData
+    ) {
         this.eventSource = this.eventData.getEventDataSource()?.nodeId || NodeId.nullNodeId;
     }
 
@@ -98,16 +101,10 @@ export class FilterContextOnAddressSpace implements FilterContext {
     }
 
     public browsePath(browsePath: BrowsePath): NodeId | null {
-
         // delegate to eventData if appropriate
         if (sameNodeId(browsePath.startingNode, this.eventSource)) {
             const browseResult = this.eventData._browse(browsePath);
-            if (
-                browseResult &&
-                browseResult.statusCode.isGood() &&
-                browseResult.targets &&
-                browseResult.targets.length === 1
-            ) {
+            if (browseResult && browseResult.statusCode.isGood() && browseResult.targets && browseResult.targets.length === 1) {
                 return browseResult.targets![0].targetId;
             }
         }

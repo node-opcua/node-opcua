@@ -1,11 +1,11 @@
 import { NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import type { NodeId } from "node-opcua-nodeid";
 import { constructBrowsePathFromQualifiedName, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { SimpleAttributeOperand, AttributeOperand, VariableAttributes } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { FilterContext } from "./filter_context";
+import type { FilterContext } from "./filter_context";
 
 const warningLog = make_warningLog("FILTER");
 const debugLog = make_debugLog("FILTER");
@@ -32,7 +32,12 @@ export function resolveOperand(context: FilterContext, operand: SimpleAttributeO
         }
         const nodeClass = context.getNodeClass(target);
         if (nodeClass !== NodeClass.Variable) {
-            doDebug && debugLog("resolveOperand: cannot find variable here but got nodeClass", NodeClass[nodeClass], browsePath.toString());
+            doDebug &&
+                debugLog(
+                    "resolveOperand: cannot find variable here but got nodeClass",
+                    NodeClass[nodeClass],
+                    browsePath.toString()
+                );
             return new Variant({ dataType: DataType.StatusCode, value: StatusCodes.BadNodeClassInvalid });
         }
         const value = context.readNodeValue(target);

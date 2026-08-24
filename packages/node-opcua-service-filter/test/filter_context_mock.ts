@@ -1,13 +1,13 @@
-import { NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import { BrowsePath } from "node-opcua-types";
-import { Variant, DataType, VariantOptions } from "node-opcua-variant";
+import { NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import type { BrowsePath } from "node-opcua-types";
+import { Variant, DataType, type VariantOptions } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { assert } from "node-opcua-assert";
 import { make_warningLog } from "node-opcua-debug";
 
-import { FilterContext } from "..";
+import type { FilterContext } from "..";
 
 const warningLog = make_warningLog("TEST");
 
@@ -101,7 +101,7 @@ function setParent(nodes: Record<string, ErsatzNode>, node: _WithChildren, paren
                 p.nodeClass !== NodeClass.ObjectType &&
                 p.nodeClass !== NodeClass.VariableType)
         ) {
-            throw new Error("parent doesn't exist or has invalid type ( parent= " + parent + ")" + NodeClass[p?.nodeClass]);
+            throw new Error(`parent doesn't exist or has invalid type ( parent= ${parent})${NodeClass[p?.nodeClass]}`);
         }
         p.children = p.children || [];
         p.children.push(node as ErsatzNodeObject | ErsatzNodeVariable);
@@ -505,14 +505,14 @@ export class FilterContextMock implements FilterContext {
     public setValue(name: string, variant: VariantOptions) {
         const node = this.nodes[name];
         if (!node || node.nodeClass !== NodeClass.Variable) {
-            throw new Error("cannot find node " + name);
+            throw new Error(`cannot find node ${name}`);
         }
         node.value = new Variant(variant);
     }
 
     public findNodeByName(name: string): NodeId {
         const node = this.nodes[name];
-        if (!node) throw new Error("cannot find node " + name);
+        if (!node) throw new Error(`cannot find node ${name}`);
         return node.nodeId;
     }
 }

@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { FilterContextMock } from "./filter_context_mock";
 
-describe("Test FilterContext Mock", function () {
+describe("Test FilterContext Mock", () => {
     const filterContext = new FilterContextMock();
 
     it("should have a Number dataType", () => {

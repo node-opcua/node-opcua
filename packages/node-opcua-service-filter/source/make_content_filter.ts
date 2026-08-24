@@ -3,16 +3,16 @@
  */
 import { DataType } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
-import { AttributeIds, coerceQualifiedName, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
-import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { type AttributeIds, coerceQualifiedName, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
+import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { ContentFilterElementResult } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 
 import {
-    AttributeOperand,
+    type AttributeOperand,
     ContentFilter,
     ContentFilterElement,
-    ContentFilterElementOptions,
+    type ContentFilterElementOptions,
     ContentFilterOptions,
     ElementOperand,
     EventFilter,

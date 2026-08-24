@@ -4,7 +4,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { FilterContext } from "./filter_context";
+import type { FilterContext } from "./filter_context";
 import { resolveOperand } from "./resolve_operand";
 
 const warningLog = make_warningLog("FILTER");
@@ -27,7 +27,7 @@ export function extractEventField(context: FilterContext, operand: SimpleAttribu
             // but could be on of its derived type. for instance ns=0;i=2881 => AcknowledgeableConditionType
             if (!context.isSubtypeOf(operand.typeDefinitionId, conditionTypeNodeId)) {
                 warningLog(" ", operand.typeDefinitionId.toString());
-                warningLog("this case is not handled yet : selectClause.typeDefinitionId = " + operand.typeDefinitionId.toString());
+                warningLog(`this case is not handled yet : selectClause.typeDefinitionId = ${operand.typeDefinitionId.toString()}`);
                 warningLog(operand.toString());
                 return new Variant({ dataType: DataType.NodeId, value: context.eventSource });
             }

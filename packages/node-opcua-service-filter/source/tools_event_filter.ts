@@ -2,14 +2,9 @@
  * @module node-opcua-service-filter
  */
 import { ObjectTypeIds } from "node-opcua-constants";
-import {
-    AttributeIds,
-    QualifiedName,
-    QualifiedNameOptions,
-    coerceQualifiedName,
-} from "node-opcua-data-model";
+import { AttributeIds, type QualifiedName, type QualifiedNameOptions, coerceQualifiedName } from "node-opcua-data-model";
 
-import { ContentFilter, ContentFilterElement, ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports";
+import { ContentFilter, ContentFilterElement, type ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports";
 
 function coerceQualifiedName2(a: string | QualifiedNameOptions) {
     if (typeof a === "string") return coerceQualifiedName(a);

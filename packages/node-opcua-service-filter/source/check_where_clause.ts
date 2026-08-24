@@ -1,26 +1,26 @@
 import {
-    ContentFilter,
-    ContentFilterElement,
+    type ContentFilter,
+    type ContentFilterElement,
     FilterOperator,
     LiteralOperand,
     SimpleAttributeOperand,
-    FilterOperand,
+    type FilterOperand,
     AttributeOperand,
     ElementOperand
 } from "node-opcua-types";
-import { ExtensionObject } from "node-opcua-extension-object";
+import type { ExtensionObject } from "node-opcua-extension-object";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
-import { NodeId, sameNodeId } from "node-opcua-nodeid";
+import { type NodeId, sameNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { make_warningLog } from "node-opcua-debug";
 //
-import { FilterContext } from "./filter_context";
+import type { FilterContext } from "./filter_context";
 import { resolveOperand } from "./resolve_operand";
 
 const warningLog = make_warningLog("Filter");
 
-function _coerceToBoolean(value: Variant | string| number | null ): boolean {
+function _coerceToBoolean(value: Variant | string | number | null): boolean {
     if (value instanceof Variant) {
         return !!value.value;
     }
@@ -90,7 +90,7 @@ function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | nul
     }
     // c8 ignore next
     if (ofType.value.dataType !== DataType.NodeId) {
-        warningLog("invalid operand type (expecting NodeId); got " + DataType[ofType.value.dataType]);
+        warningLog(`invalid operand type (expecting NodeId); got ${DataType[ofType.value.dataType]}`);
         return false;
     }
 
@@ -108,7 +108,7 @@ function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | nul
         ofTypeNodeNodeClass !== NodeClass.DataType &&
         ofTypeNodeNodeClass !== NodeClass.ReferenceType
     ) {
-        warningLog("operand should be a ObjectType " + ofTypeNode.toString());
+        warningLog(`operand should be a ObjectType ${ofTypeNode.toString()}`);
         return false;
     }
 
@@ -176,7 +176,6 @@ function checkGreaterThanOrEqual(filterContext: FilterContext, filter: ContentFi
 }
 
 const isVariantEqual = (a: Variant, b: Variant): boolean => {
-
     switch (a.dataType) {
         case DataType.Null:
             return b.dataType === DataType.Null;
@@ -198,7 +197,7 @@ const isVariantEqual = (a: Variant, b: Variant): boolean => {
         case DataType.DateTime:
             return (a.value as Date)?.getTime() === (b.value as Date).getTime();
         case DataType.Guid:
-            return a.value.toLowerCase() === ("" + (b.value || "")).toLowerCase();
+            return a.value.toLowerCase() === `${b.value || ""}`.toLowerCase();
         case DataType.ByteString:
             if (b.dataType !== DataType.ByteString) {
                 return false;
@@ -215,7 +214,7 @@ const isVariantEqual = (a: Variant, b: Variant): boolean => {
         default:
             return false; // not sure how to do
     }
-}
+};
 
 function checkEquals(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToEqualable);
@@ -254,7 +253,7 @@ function checkInList(context: FilterContext, filterOperands: FilterOperand[]): b
     // c8 ignore next
     if (!(operand0 instanceof SimpleAttributeOperand)) {
         // unsupported case
-        warningLog("FilterOperator.InList operand0 is not a SimpleAttributeOperand " + operand0.constructor.name);
+        warningLog(`FilterOperator.InList operand0 is not a SimpleAttributeOperand ${operand0.constructor.name}`);
         return false;
     }
     const value = resolveOperand(context, operand0);
@@ -292,7 +291,6 @@ function checkInList(context: FilterContext, filterOperands: FilterOperand[]): b
     return false;
 }
 
-// eslint-disable-next-line complexity
 function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter, index: number): boolean {
     if (!filter.elements || filter.elements.length === 0) {
         return true;

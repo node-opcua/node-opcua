@@ -2,10 +2,10 @@
  * @module node-opcua-address-space
  */
 import { NodeClass } from "node-opcua-data-model";
-import { SimpleAttributeOperand } from "node-opcua-types";
+import type { SimpleAttributeOperand } from "node-opcua-types";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BaseNode, UAObjectType } from "node-opcua-address-space-base";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { BaseNode, UAObjectType } from "node-opcua-address-space-base";
 import { make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog(__filename);
