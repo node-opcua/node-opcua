@@ -23,7 +23,7 @@ export interface PseudoRange {
  * @returns true if the difference between value1 and value2 is greater than absoluteDeadband
  */
 function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataType: DataType, absoluteDeadband: number): boolean {
-    let diff;
+    let diff: number;
     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
         // c8 ignore next
         if (!(Array.isArray(value1) && Array.isArray(value2))) {

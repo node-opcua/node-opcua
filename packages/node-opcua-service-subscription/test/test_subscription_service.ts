@@ -1,33 +1,31 @@
 import "should"; // side-effect for should assertions
 import { assert } from "node-opcua-assert";
 import { makeBufferFromTrace } from "node-opcua-debug";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
-import { StatusCodes } from "node-opcua-status-code";
-import { TimestampsToReturn } from "node-opcua-service-read";
+import { redirectToFileAsync } from "node-opcua-debug/distNodeJS/redirect_to_file";
 import { makeNodeId } from "node-opcua-nodeid";
-import { verify_multi_chunk_message } from "node-opcua-secure-channel/dist/test_helpers";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { verify_multi_chunk_message } from "node-opcua-secure-channel/dist/test_helpers";
+import { TimestampsToReturn } from "node-opcua-service-read";
+import { StatusCodes } from "node-opcua-status-code";
 import {
-    CreateSubscriptionRequest,
-    CreateSubscriptionResponse,
     CreateMonitoredItemsRequest,
     CreateMonitoredItemsResponse,
-    MonitoringParameters,
+    CreateSubscriptionRequest,
     DeleteMonitoredItemsRequest,
     DeleteMonitoredItemsResponse,
+    DeleteSubscriptionsRequest,
+    DeleteSubscriptionsResponse,
+    ModifyMonitoredItemsRequest,
+    ModifyMonitoredItemsResponse,
     MonitoringMode,
-    SetPublishingModeRequest,
-    SetPublishingModeResponse,
+    MonitoringParameters,
     PublishRequest,
     PublishResponse,
     RepublishRequest,
     RepublishResponse,
-    DeleteSubscriptionsRequest,
-    DeleteSubscriptionsResponse,
-    ModifyMonitoredItemsRequest,
-    ModifyMonitoredItemsResponse
+    SetPublishingModeRequest,
+    SetPublishingModeResponse
 } from "..";
-import { redirectToFileAsync } from "node-opcua-debug/distNodeJS/redirect_to_file";
 
 describe("testing subscription objects", () => {
     it("should encode and decode a CreateSubscriptionRequest", () => {
@@ -53,7 +51,7 @@ describe("testing subscription objects", () => {
                     requestedParameters: new MonitoringParameters({
                         clientHandle: 1,
                         samplingInterval: 1000,
-                        filter: null as any,
+                        filter: null,
                         queueSize: 10,
                         discardOldest: true
                     })
@@ -127,7 +125,7 @@ describe("testing subscription objects", () => {
             notificationMessage: {
                 sequenceNumber: 4,
                 publishTime: new Date(),
-                notificationData: null as any
+                notificationData: null
             },
             results: [StatusCodes.Good],
             diagnosticInfos: []
@@ -154,12 +152,12 @@ describe("testing subscription objects", () => {
     });
 
     it("should encode and decode a DeleteSubscriptionsRequest", () => {
-        const obj = new DeleteSubscriptionsRequest({ subscriptionIds: [1, 2, 3] } as any);
+        const obj = new DeleteSubscriptionsRequest({ subscriptionIds: [1, 2, 3] });
         encode_decode_round_trip_test(obj);
     });
 
     it("should encode and decode a DeleteSubscriptionsResponse", () => {
-        const obj = new DeleteSubscriptionsResponse({ results: [StatusCodes.Good, StatusCodes.Good] } as any);
+        const obj = new DeleteSubscriptionsResponse({ results: [StatusCodes.Good, StatusCodes.Good] });
         encode_decode_round_trip_test(obj);
     });
 
@@ -168,12 +166,12 @@ describe("testing subscription objects", () => {
             subscriptionId: 1,
             timestampsToReturn: TimestampsToReturn.Both,
             itemsToModify: []
-        } as any);
+        });
         encode_decode_round_trip_test(obj);
     });
 
     it("should encode and decode a ModifyMonitoredItemsResponse", () => {
-        const obj = new ModifyMonitoredItemsResponse({ results: [], diagnosticInfos: [] } as any);
+        const obj = new ModifyMonitoredItemsResponse({ results: [], diagnosticInfos: [] });
         encode_decode_round_trip_test(obj);
     });
 });
