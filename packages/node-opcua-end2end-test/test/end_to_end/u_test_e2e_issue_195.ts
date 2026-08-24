@@ -2,18 +2,21 @@ import "should";
 import {
     AttributeIds,
     ClientMonitoredItem,
+    type ClientSession,
+    type ClientSessionRawSubscriptionService,
+    type ClientSidePublishEngine,
     ClientSubscription,
     OPCUAClient,
     ServerSession,
     StatusCodes,
-    TimestampsToReturn
+    TimestampsToReturn,
+    type TransferSubscriptionsResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEngine;
 }
 
 /**
@@ -21,19 +24,19 @@ interface TestHarness {
  * A: Client detects server max pending publish requests limit and adapts.
  * B: Client handles session close (simulated here) and can transfer old subscription to new session.
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Issue #195 publish request throttling & session recovery", () => {
         it("195-A detects server max pending publish requests", async () => {
             const server = test.server;
             if (!server) return;
 
             const client = OPCUAClient.create({ requestedSessionTimeout: 120 * 60 * 1000, keepSessionAlive: false });
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
-            let session: any;
-            const oldValue = (ServerSession as any).maxPublishRequestInQueue;
+            let session: SessionWithPublishEngine | undefined;
+            const oldValue = ServerSession.maxPublishRequestInQueue;
             oldValue.should.be.greaterThan(20);
-            (ServerSession as any).maxPublishRequestInQueue = 10; // constrain
+            ServerSession.maxPublishRequestInQueue = 10; // constrain
 
             async function createSubscription() {
                 // create subscription
@@ -41,9 +44,9 @@ export function t(test: TestHarness) {
                     requestedPublishingInterval: 10000,
                     requestedLifetimeCount: 60,
                     requestedMaxKeepAliveCount: 10
-                } as any;
-                (ClientSubscription as any).ignoreNextWarning = true;
-                const subscription = ClientSubscription.create(session, parameters);
+                };
+                ClientSubscription.ignoreNextWarning = true;
+                const subscription = ClientSubscription.create(session!, parameters);
                 await new Promise<void>((resolve) => subscription.on("started", () => resolve()));
                 subscription.on("internal_error", (_err: Error) => {
                     // console.error("internal_error", err.message);
@@ -65,8 +68,8 @@ export function t(test: TestHarness) {
 
             try {
                 await client.connect(endpointUrl);
-                session = await client.createSession();
-                (session.getPublishEngine() as any).nbMaxPublishRequestsAcceptedByServer.should.be.greaterThan(100);
+                session = (await client.createSession()) as SessionWithPublishEngine;
+                session.getPublishEngine().nbMaxPublishRequestsAcceptedByServer.should.be.greaterThan(100);
 
                 await createSubscription();
                 await createSubscription();
@@ -75,9 +78,9 @@ export function t(test: TestHarness) {
                 await createSubscription();
 
                 // After multiple subscriptions, client should have learned reduced server limit
-                (session as any)._publishEngine.nbMaxPublishRequestsAcceptedByServer.should.eql(10);
+                session.getPublishEngine().nbMaxPublishRequestsAcceptedByServer.should.eql(10);
             } finally {
-                (ServerSession as any).maxPublishRequestInQueue = oldValue;
+                ServerSession.maxPublishRequestInQueue = oldValue;
                 if (session) {
                     await session.close();
                 }
@@ -89,18 +92,18 @@ export function t(test: TestHarness) {
             const server = test.server;
             if (!server) return;
             const client = OPCUAClient.create({ requestedSessionTimeout: 2500, keepSessionAlive: false });
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             await client.connect(endpointUrl);
-            let session: any = await client.createSession();
+            let session = await client.createSession();
 
             // Create long-lived subscription whose keep-alive exceeds session timeout
             const subParams = {
                 requestedPublishingInterval: 1000,
                 requestedLifetimeCount: 100000,
                 requestedMaxKeepAliveCount: 1000
-            } as any;
-            (ClientSubscription as any).ignoreNextWarning = true;
+            };
+            ClientSubscription.ignoreNextWarning = true;
             const subscription = ClientSubscription.create(session, subParams);
             await new Promise<void>((resolve) => subscription.on("started", () => resolve()));
             const expectedKeepAliveMillis = subscription.publishingInterval * subscription.maxKeepAliveCount;
@@ -123,13 +126,16 @@ export function t(test: TestHarness) {
 
             // Re-create session and transfer subscription
             session = await client.createSession();
-            const transferResponse: any = await new Promise((resolve, reject) => {
-                (session as any).transferSubscriptions({ subscriptionIds: [subscriptionId] }, (err: Error, response: any) => {
-                    if (err) return reject(err);
-                    resolve(response);
-                });
+            const transferResponse = await new Promise<TransferSubscriptionsResponse>((resolve, reject) => {
+                (session as ClientSession & ClientSessionRawSubscriptionService).transferSubscriptions(
+                    { subscriptionIds: [subscriptionId] },
+                    (err, response) => {
+                        if (err) return reject(err);
+                        resolve(response as TransferSubscriptionsResponse);
+                    }
+                );
             });
-            transferResponse.results[0].statusCode.should.eql(StatusCodes.Good);
+            transferResponse.results![0].statusCode.should.eql(StatusCodes.Good);
 
             await session.close();
             await client.disconnect();
