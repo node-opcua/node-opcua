@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 // @ts-check
 import chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -68,7 +67,6 @@ function redirectToNull(functor: () => void): void {
     const old = console.log;
 
     if (!process.env.DEBUG) {
-        // tslint:disable:no-empty
         console.log = (..._args: unknown[]) => {
             /** */
         };

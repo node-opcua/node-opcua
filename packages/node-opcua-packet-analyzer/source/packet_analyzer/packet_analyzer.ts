@@ -227,7 +227,7 @@ export function analyseExtensionObject(
     } catch (err) {
         console.log(id);
         console.log(err);
-        console.log("Cannot read decodeExpandedNodeId on stream " + stream.buffer.toString("hex"));
+        console.log(`Cannot read decodeExpandedNodeId on stream ${stream.buffer.toString("hex")}`);
     }
     _internalAnalyzePacket(buffer, stream, objMessage, padding, customOptions, offset);
 }
