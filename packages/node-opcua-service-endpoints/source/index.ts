@@ -2,19 +2,17 @@
  * @module node-opcua-service-endpoints
  */
 export {
-    ApplicationType,
     ApplicationDescription,
     ApplicationDescriptionOptions,
-    UserTokenPolicy,
+    ApplicationType,
     EndpointDescription,
-    UserIdentityToken,
     GetEndpointsRequest,
     GetEndpointsRequestOptions,
     GetEndpointsResponse,
+    UserIdentityToken,
+    UserTokenPolicy,
     UserTokenType
 } from "node-opcua-types";
-
-import { UserTokenType } from "node-opcua-types";
 
 // OPC Unified Architecture, Part 4 $7.1 page 106
 // ApplicationDescription",
