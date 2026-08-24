@@ -1,14 +1,12 @@
 /**
  * @module node-opcua-status-code
  */
-// tslint:disable:no-bitwise
 
 import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 function warnLog(...args: [any?, ...any[]]) {
     /* c8 ignore next */
-    // tslint:disable-next-line:no-console
     console.warn(...args);
 }
 
@@ -150,7 +148,7 @@ export abstract class StatusCode {
     }
 
     public toString(): string {
-        return this.name + " (0x" + this.value.toString(16).padStart(8, "0") + ")";
+        return `${this.name} (0x${this.value.toString(16).padStart(8, "0")})`;
     }
 
     public checkBit(mask: number): boolean {
@@ -211,7 +209,6 @@ Object.defineProperty(StatusCode.prototype, "value", { enumerable: true });
 Object.defineProperty(StatusCode.prototype, "description", { enumerable: true });
 Object.defineProperty(StatusCode.prototype, "name", { enumerable: true });
 
-// tslint:disable:max-classes-per-file
 export class ConstantStatusCode extends StatusCode {
     private readonly _value: number;
     private readonly _description: string;
@@ -273,7 +270,7 @@ export function getStatusCodeFromCode(code: number): StatusCode {
     /* c8 ignore next */
     if (!sc) {
         sc = StatusCodes.Bad;
-        warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), " code was 0x" + code.toString(16));
+        warnLog(`expecting a known StatusCode but got 0x${codeWithoutInfoBits.toString(16)}`, ` code was 0x${code.toString(16)}`);
     }
     if (infoBits) {
         const tmp = new ModifiableStatusCode({ _base: sc });
@@ -327,7 +324,7 @@ export class ModifiableStatusCode extends StatusCode {
 
             /* c8 ignore next */
             if (!tmp) {
-                throw new Error("Invalid StatusCode Bit " + bit);
+                throw new Error(`Invalid StatusCode Bit ${bit}`);
             }
             bit = tmp;
         }
@@ -347,7 +344,7 @@ export class ModifiableStatusCode extends StatusCode {
 
             /* c8 ignore next */
             if (!tmp) {
-                throw new Error("Invalid StatusCode Bit " + bit);
+                throw new Error(`Invalid StatusCode Bit ${bit}`);
             }
             bit = tmp;
         }
@@ -366,7 +363,7 @@ export class ModifiableStatusCode extends StatusCode {
         if (str.length === 0) {
             return "";
         }
-        return "#" + str.join("|");
+        return `#${str.join("|")}`;
     }
 }
 
@@ -390,7 +387,7 @@ export function coerceStatusCode(statusCode: StatusCode | number | string | { va
     }
     const _StatusCodes = StatusCodes as any;
     if (!_StatusCodes[statusCode as string]) {
-        throw new Error("Cannot find StatusCode " + statusCode);
+        throw new Error(`Cannot find StatusCode ${statusCode}`);
     }
     return _StatusCodes[statusCode as string];
 }
