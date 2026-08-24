@@ -2,6 +2,8 @@ import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
 import "mocha";
+import { fs as MemFs } from "memfs";
+import type { UAObject } from "node-opcua-address-space";
 import {
     AddressSpace,
     ContinuationPointManager,
@@ -13,8 +15,6 @@ import {
     WellKnownRoles
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
-import { fs as MemFs } from "memfs";
-import type { UAObject } from "node-opcua-address-space";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import { NodeId } from "node-opcua-nodeid";

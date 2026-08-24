@@ -1,11 +1,9 @@
-// tslint:disable:no-console
-
-import { randomBytes } from "node-opcua-utils";
 import fs from "node:fs";
 import os, { hostname } from "node:os";
 import path from "node:path";
 import { types } from "node:util";
 import chalk from "chalk";
+import { randomBytes } from "node-opcua-utils";
 import "should";
 import { makeRoles } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -712,7 +710,6 @@ describe("Testing server configured with push certificate management", function 
                 await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(endpointUrl);
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
-
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();

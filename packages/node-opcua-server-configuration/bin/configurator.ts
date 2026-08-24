@@ -13,19 +13,15 @@ import {
     SecurityPolicy,
     UserTokenType
 } from "node-opcua-client";
+import { readCertificateChain, readCertificateChainAsync, readCertificateRevocationList } from "node-opcua-crypto";
 import {
-    readCertificateChain,
-    readCertificateChainAsync,
-    readCertificateRevocationList
-} from "node-opcua-crypto";
-import {
+    type Certificate,
     combine_der,
     exploreCertificate,
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
     split_der,
-    toPem,
-    type Certificate
+    toPem
 } from "node-opcua-crypto/web";
 import { CertificateAuthority } from "node-opcua-pki";
 import type { TrustListDataType } from "node-opcua-types";

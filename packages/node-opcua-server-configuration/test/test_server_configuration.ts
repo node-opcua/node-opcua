@@ -17,12 +17,7 @@ import {
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import {
-    type Certificate,
-    combine_der,
-    makeSHA1Thumbprint,
-    split_der
-} from "node-opcua-crypto";
+import { type Certificate, combine_der, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -32,6 +27,7 @@ import { SecurityPolicy } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "../dist/index.js";
 import type { PushCertificateManagerInternalContext } from "../dist/server/push_certificate_manager/internal_context.js";
 import { TrustListMasks } from "../dist/server/trust_list_server.js";
@@ -42,7 +38,6 @@ import {
     produceCertificateAndPrivateKey,
     produceSignedCertificateChain
 } from "./helpers/fake_certificate_authority.js";
-import should from "should";
 
 // ---------------------------------------------------------------------------
 // Certificate buffers generated once per test suite in before().
@@ -337,10 +332,7 @@ describe("ServerConfiguration", () => {
         });
 
         /** Get the default application group trust list with a secure admin context. */
-        async function getDefaultTrustList(
-            server: IServerBase = opcuaServer,
-            sess: ISessionBase = session
-        ) {
+        async function getDefaultTrustList(server: IServerBase = opcuaServer, sess: ISessionBase = session) {
             const context = new SessionContext({ server, session: sess });
             const pseudoSession = new PseudoSession(addressSpace, context);
             const mgr = new ClientPushCertificateManagement(pseudoSession);
@@ -349,7 +341,10 @@ describe("ServerConfiguration", () => {
         }
 
         /** Preload issuer certificates into the trust list so AddCertificate chain validation passes. */
-        async function preloadIssuerCertificates(trustList: Awaited<ReturnType<typeof getDefaultTrustList>>, issuerCerts: Buffer[]) {
+        async function preloadIssuerCertificates(
+            trustList: Awaited<ReturnType<typeof getDefaultTrustList>>,
+            issuerCerts: Buffer[]
+        ) {
             await trustList.writeTrustedCertificateList(
                 makeTrustListData(TrustListMasks.IssuerCertificates, { issuerCertificates: issuerCerts })
             );
@@ -450,8 +445,7 @@ describe("ServerConfiguration", () => {
                 should.exist(certificates);
                 certificates.length.should.eql(1);
 
-                const sc = await trustList.addCertificate(
-                    combine_der(certificates), /*isTrustedCertificate =*/ true);
+                const sc = await trustList.addCertificate(combine_der(certificates), /*isTrustedCertificate =*/ true);
                 sc.should.eql(StatusCodes.Good);
             }
 
@@ -645,18 +639,14 @@ describe("ServerConfiguration", () => {
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_REPLACE_CRL", 0));
 
             // First, write a trust list with issuer CRLs
-            await trustList.writeTrustedCertificateList(
-                makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] })
-            );
+            await trustList.writeTrustedCertificateList(makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] }));
 
             // Verify the initial write
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
             a.issuerCrls?.length.should.eql(1);
 
             // Now write a new trust list with 1 issuer CRL (should replace the previous)
-            await trustList.writeTrustedCertificateList(
-                makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] })
-            );
+            await trustList.writeTrustedCertificateList(makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] }));
 
             // Verify the replacement
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
@@ -672,9 +662,7 @@ describe("ServerConfiguration", () => {
             const crlMask = TrustListMasks.IssuerCrls | TrustListMasks.TrustedCrls;
 
             // First, write some CRLs
-            await trustList.writeTrustedCertificateList(
-                makeTrustListData(crlMask, { trustedCrls: [crl], issuerCrls: [crl] })
-            );
+            await trustList.writeTrustedCertificateList(makeTrustListData(crlMask, { trustedCrls: [crl], issuerCrls: [crl] }));
 
             // Verify CRLs were written
             let a = await trustList.readTrustedCertificateListWithMasks(crlMask);
@@ -750,9 +738,7 @@ describe("ServerConfiguration", () => {
             // Now update only CRLs
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_PRESERVE_CERT", 0));
 
-            await trustList.writeTrustedCertificateList(
-                makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] })
-            );
+            await trustList.writeTrustedCertificateList(makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] }));
 
             // Verify certificate is still there and CRL was added
             a = await trustList.readTrustedCertificateList();
@@ -891,7 +877,6 @@ describe("ServerConfiguration", () => {
                 let a = await trustList.readTrustedCertificateList();
                 a.trustedCertificates?.length.should.eql(1);
 
-
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
 
                 // Try to remove from issuer folder (wrong folder) - should return BadInvalidArgument
@@ -979,8 +964,9 @@ describe("ServerConfiguration", () => {
 
                 // LastUpdateTime should now reflect the filesystem mtime, not MinDate
                 const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
-                afterPromoteTime.getTime().should.be.greaterThan(0,
-                    "LastUpdateTime should be initialized from filesystem mtime, not remain MinDate");
+                afterPromoteTime
+                    .getTime()
+                    .should.be.greaterThan(0, "LastUpdateTime should be initialized from filesystem mtime, not remain MinDate");
             });
 
             it("should keep LastUpdateTime at MinDate when trust store is empty", async () => {
@@ -1002,8 +988,7 @@ describe("ServerConfiguration", () => {
 
                 // LastUpdateTime should remain at epoch (no files to read mtime from)
                 const afterPromoteTime = lastUpdateTimeNode.readValue().value.value as Date;
-                afterPromoteTime.getTime().should.eql(0,
-                    "LastUpdateTime should remain MinDate when no files exist in trust store");
+                afterPromoteTime.getTime().should.eql(0, "LastUpdateTime should remain MinDate when no files exist in trust store");
             });
         });
 
@@ -1191,7 +1176,7 @@ describe("ServerConfiguration", () => {
                 const certificateChain = caCertChain;
 
                 // Try to add the certificate without first adding its issuer to the trust list
-                // Per OPC UA spec: "This Method will return a validation error if the Certificate 
+                // Per OPC UA spec: "This Method will return a validation error if the Certificate
                 // is issued by a CA and the Certificate for the issuer is not in the TrustList"
                 const sc1 = await trustList.addCertificate(certificateChain[0], true);
                 console.log("sc1", sc1);

@@ -109,13 +109,10 @@ function updateLastUpdateTime(trustList: UATrustList): void {
  * Uses async fs.promises to avoid blocking the event loop on startup
  * when PKI directories are large or on slow filesystems.
  */
-async function getNewestMtimeFromPkiStore(
-    cm: OPCUACertificateManager,
-    isAborted?: () => boolean
-): Promise<Date | null> {
+async function getNewestMtimeFromPkiStore(cm: OPCUACertificateManager, isAborted?: () => boolean): Promise<Date | null> {
     const dirs = [cm.trustedFolder, cm.crlFolder, cm.issuersCertFolder, cm.issuersCrlFolder];
     let newest: Date | null = null;
-    
+
     for (const dir of dirs) {
         if (isAborted?.()) break;
 
@@ -130,7 +127,7 @@ async function getNewestMtimeFromPkiStore(
         } catch {
             continue;
         }
-        
+
         // Process stats sequentially to avoid threadpool exhaustion
         // and event-loop lag when directories have thousands of files.
         for (const entry of entries) {
@@ -174,10 +171,10 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
 
     trustList.$$initaliseMTimePromise = (async () => {
         const startTime = Date.now();
-        let isAborted = false;
-        
-        // Note: Removed abortHandler from registerShutdownTask because AddressSpace 
-        // does not have an unregister mechanism, which causes `_shutdownTasks` to leak 
+        const isAborted = false;
+
+        // Note: Removed abortHandler from registerShutdownTask because AddressSpace
+        // does not have an unregister mechanism, which causes `_shutdownTasks` to leak
         // continuously if promoteTrustList is called multiple times.
         // Sequential scanning is fast enough that it won't block shutdown significantly.
 
@@ -193,7 +190,9 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
             if (!currentValue || currentValue.getTime() <= 0) {
                 const newest = await getNewestMtimeFromPkiStore(cm, () => isAborted);
                 if (isAborted) {
-                    console.log(`[node-opcua] _initializeLastUpdateTimeFromFilesystem aborted for ${trustList.browseName.toString()}`);
+                    console.log(
+                        `[node-opcua] _initializeLastUpdateTimeFromFilesystem aborted for ${trustList.browseName.toString()}`
+                    );
                     return;
                 }
                 if (newest) {
@@ -238,7 +237,9 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
                 });
             }
 
-            console.log(`[node-opcua] _initializeLastUpdateTimeFromFilesystem took ${Date.now() - startTime}ms for ${trustList.browseName.toString()}`);
+            console.log(
+                `[node-opcua] _initializeLastUpdateTimeFromFilesystem took ${Date.now() - startTime}ms for ${trustList.browseName.toString()}`
+            );
         } finally {
             trustList.$$initaliseMTimePromise = undefined;
         }

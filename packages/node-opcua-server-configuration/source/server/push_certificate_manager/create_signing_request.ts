@@ -139,8 +139,10 @@ export async function executeCreateSigningRequest(
         errorLog(
             "CreateSigningRequest failed during CSR generation:",
             (err as Error).message,
-            "subject=", subjectName,
-            "applicationUri=", serverImpl.applicationUri
+            "subject=",
+            subjectName,
+            "applicationUri=",
+            serverImpl.applicationUri
         );
         return { statusCode: StatusCodes.BadInternalError };
     }

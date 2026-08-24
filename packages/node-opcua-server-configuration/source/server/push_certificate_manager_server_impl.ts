@@ -71,17 +71,13 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
     // ── typed event helpers ──────────────────────────────────────────
     public on<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public on(event: string | symbol, listener: (...args: any[]) => void): this;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public on(event: string | symbol, listener: (...args: any[]) => void): this {
         return super.on(event, listener);
     }
 
     public once<K extends keyof PushCertificateManagerEvents>(event: K, listener: PushCertificateManagerEvents[K]): this;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public once(event: string | symbol, listener: (...args: any[]) => void): this;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public once(event: string | symbol, listener: (...args: any[]) => void): this {
         return super.once(event, listener);
     }
@@ -175,7 +171,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         return await executeGetRejectedList(this._context);
     }
 
-    // eslint-disable-next-line max-statements
     public async updateCertificate(
         certificateGroupId: NodeId | string,
         certificateTypeId: NodeId | string,

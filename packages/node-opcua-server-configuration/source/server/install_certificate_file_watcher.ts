@@ -5,8 +5,7 @@ import { make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("ServerConfiguration");
 
-
-export interface CertificateChangeEvents extends UAObjectEvents  {
+export interface CertificateChangeEvents extends UAObjectEvents {
     certificateChange: () => void;
 }
 export function installCertificateFileWatcher(

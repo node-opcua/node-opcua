@@ -16,12 +16,12 @@ import {
 } from "node-opcua-address-space";
 import { EventNotifierFlags, type UAObject, type UAVariable } from "node-opcua-address-space-base";
 import type { ByteString, UAString } from "node-opcua-basic-types";
+import type { CertificateManager } from "node-opcua-certificate-manager";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
 import { type Certificate, readCertificateChainAsync } from "node-opcua-crypto";
 import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";

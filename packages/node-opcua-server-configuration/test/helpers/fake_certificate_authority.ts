@@ -2,7 +2,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { randomBytes } from "node-opcua-utils";
 import {
     type Certificate,
     type CertificateRevocationList,
@@ -18,6 +17,7 @@ import {
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { CertificateAuthority } from "node-opcua-pki";
+import { randomBytes } from "node-opcua-utils";
 
 const { readFile, writeFile } = fs.promises;
 
@@ -27,7 +27,7 @@ let sharedCAInitPromise: Promise<void> | null = null;
 export async function getSharedCertificateAuthority(): Promise<CertificateAuthority> {
     if (!sharedCA) {
         const caFolder = path.join(os.tmpdir(), `node-opcua2-shared-ca-${randomBytes(4).toString("hex")}`);
-        await fs.promises.rm(caFolder, { recursive: true, force: true }).catch(() => { });
+        await fs.promises.rm(caFolder, { recursive: true, force: true }).catch(() => {});
         sharedCA = new CertificateAuthority({
             keySize: 2048,
             location: caFolder
@@ -149,8 +149,8 @@ async function _produceCertificate(
     const certificatePEM = await readFile(certificate, "utf8");
     const certificateDER = convertPEMtoDER(certificatePEM);
 
-    await fs.promises.unlink(csrFile).catch(() => { });
-    await fs.promises.unlink(certificate).catch(() => { });
+    await fs.promises.unlink(csrFile).catch(() => {});
+    await fs.promises.unlink(certificate).catch(() => {});
 
     // signCertificateRequest already writes the full chain (cert + CA), so just return it
     return split_der(certificateDER);
@@ -271,9 +271,7 @@ export async function produceNotYetValidCertificate(subfolder: string, certifica
  * This is useful for tests that need a non-self-signed certificate
  * without depending on external certificate files.
  */
-export async function produceSignedCertificateChain(
-    subfolder: string
-): Promise<Certificate[]> {
+export async function produceSignedCertificateChain(subfolder: string): Promise<Certificate[]> {
     const uniqueId = randomBytes(8).toString("hex");
     const certificateManager = new CertificateManager({
         keySize: 2048,

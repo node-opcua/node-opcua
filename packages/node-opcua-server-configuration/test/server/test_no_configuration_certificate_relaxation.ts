@@ -51,7 +51,6 @@ describe("NoConfiguration certificate relaxation", function (this: Mocha.Suite) 
         await server.initialize();
         await installPushCertificateManagementOnServer(server);
         try {
-
         } finally {
             await server.shutdown();
         }
@@ -73,14 +72,12 @@ describe("NoConfiguration certificate relaxation", function (this: Mocha.Suite) 
         await installPushCertificateManagementOnServer(server);
 
         try {
-
             console.log("server.endpoints.length", server.endpoints.length);
             // ── Hook is installed on all endpoints ──
             for (const endpoint of server.endpoints) {
                 const ep = endpoint as OPCUAServerEndPoint;
                 (typeof ep.onAdjustCertificateStatus).should.eql("function");
             }
-
 
             const ep = server.endpoints[0] as OPCUAServerEndPoint;
             const hook = ep.onAdjustCertificateStatus;
@@ -97,30 +94,23 @@ describe("NoConfiguration certificate relaxation", function (this: Mocha.Suite) 
             (await hook(StatusCodes.BadCertificateChainIncomplete, fakeCert)).should.eql(StatusCodes.Good);
 
             // ── NoConfiguration: non-relaxable errors → unchanged ──
-            (await hook(StatusCodes.BadCertificateRevoked, fakeCert))
-                .should.eql(StatusCodes.BadCertificateRevoked);
+            (await hook(StatusCodes.BadCertificateRevoked, fakeCert)).should.eql(StatusCodes.BadCertificateRevoked);
 
-            (await hook(StatusCodes.BadCertificateInvalid, fakeCert))
-                .should.eql(StatusCodes.BadCertificateInvalid);
+            (await hook(StatusCodes.BadCertificateInvalid, fakeCert)).should.eql(StatusCodes.BadCertificateInvalid);
 
-            (await hook(StatusCodes.BadCertificateTimeInvalid, fakeCert))
-                .should.eql(StatusCodes.BadCertificateTimeInvalid);
+            (await hook(StatusCodes.BadCertificateTimeInvalid, fakeCert)).should.eql(StatusCodes.BadCertificateTimeInvalid);
 
-            (await hook(StatusCodes.BadCertificateUseNotAllowed, fakeCert))
-                .should.eql(StatusCodes.BadCertificateUseNotAllowed);
+            (await hook(StatusCodes.BadCertificateUseNotAllowed, fakeCert)).should.eql(StatusCodes.BadCertificateUseNotAllowed);
 
             // ── Running: ALL relaxable errors → unchanged ──
             server.setServerState(ServerState.Running);
 
-            (await hook(StatusCodes.BadCertificateUntrusted, fakeCert))
-                .should.eql(StatusCodes.BadCertificateUntrusted);
-            (await hook(StatusCodes.BadCertificateRevocationUnknown, fakeCert))
-                .should.eql(StatusCodes.BadCertificateRevocationUnknown);
-            (await hook(StatusCodes.BadCertificateChainIncomplete, fakeCert))
-                .should.eql(StatusCodes.BadCertificateChainIncomplete);
-
+            (await hook(StatusCodes.BadCertificateUntrusted, fakeCert)).should.eql(StatusCodes.BadCertificateUntrusted);
+            (await hook(StatusCodes.BadCertificateRevocationUnknown, fakeCert)).should.eql(
+                StatusCodes.BadCertificateRevocationUnknown
+            );
+            (await hook(StatusCodes.BadCertificateChainIncomplete, fakeCert)).should.eql(StatusCodes.BadCertificateChainIncomplete);
         } finally {
-
             await server.shutdown();
         }
     });

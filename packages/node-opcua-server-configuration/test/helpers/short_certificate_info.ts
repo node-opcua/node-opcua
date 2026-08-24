@@ -1,10 +1,4 @@
-import {
-    type Certificate,
-    exploreCertificate,
-    split_der
-} from "node-opcua-crypto";
-
-
+import { type Certificate, exploreCertificate, split_der } from "node-opcua-crypto";
 
 export function short_certificate_info(certificateChain: Certificate | Certificate[] | null | undefined) {
     if (!certificateChain) {
