@@ -59,7 +59,6 @@ export interface CreateNodeOptions {
     modellingRule?: ModellingRuleType;
     eventNotifier?: number;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void;
 }
 export interface AddBaseNodeOptions {
