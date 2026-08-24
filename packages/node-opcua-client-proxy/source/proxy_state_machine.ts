@@ -1,10 +1,10 @@
 /**
  * @module node-opcua-client-proxy
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { NodeId } from "node-opcua-nodeid";
-import { UAProxyManager } from "./proxy_manager";
+import type { NodeId } from "node-opcua-nodeid";
+import type { UAProxyManager } from "./proxy_manager";
 
 export class StateMachineProxy extends EventEmitter {
     public nodeId: NodeId;

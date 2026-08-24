@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-client-proxy
  */
-import { NodeId } from "node-opcua-nodeid";
-import { ProxyNode } from "./proxy_transition";
+import type { NodeId } from "node-opcua-nodeid";
+import type { ProxyNode } from "./proxy_transition";
 
 export class ProxyState {
     private _node: any;
@@ -26,7 +26,7 @@ export class ProxyState {
     }
 
     public toString(): string {
-        return "state " + this.browseName + " stateNumber :" + this.stateNumber.toString();
+        return `state ${this.browseName} stateNumber :${this.stateNumber.toString()}`;
     }
 }
 

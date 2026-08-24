@@ -1,16 +1,16 @@
 /**
  * @module node-opcua-client-proxy
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { Argument } from "node-opcua-service-call";
-import { WriteValueOptions } from "node-opcua-service-write";
-import { DataType, Variant } from "node-opcua-variant";
-import { UAProxyManager } from "./proxy_manager";
-import { StatusCode } from "node-opcua-status-code";
+import { AttributeIds, type NodeClass } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
+import type { Argument } from "node-opcua-service-call";
+import type { WriteValueOptions } from "node-opcua-service-write";
+import type { StatusCode } from "node-opcua-status-code";
+import type { DataType, Variant } from "node-opcua-variant";
+import type { UAProxyManager } from "./proxy_manager";
 
 export interface ArgumentEx extends Argument {
     _basicDataType: DataType;
@@ -130,17 +130,17 @@ export class ProxyBaseNode extends EventEmitter {
             value: dataValue
         };
         const statusCode = await this.proxyManager.session.write(nodeToWrite);
-       
+
         return statusCode;
     }
 
     public toString(): string {
         const str = [];
         str.push(" ProxyObject ");
-        str.push("   browseName     : " + this.browseName.toString());
+        str.push(`   browseName     : ${this.browseName.toString()}`);
         // str.push("   typeDefinition : " + this.typeDefinition.toString());
-        str.push("   $components#   : " + this.$components.length.toString());
-        str.push("   $properties#   : " + this.$properties.length.toString());
+        str.push(`   $components#   : ${this.$components.length.toString()}`);
+        str.push(`   $properties#   : ${this.$properties.length.toString()}`);
 
         return str.join("\n");
     }

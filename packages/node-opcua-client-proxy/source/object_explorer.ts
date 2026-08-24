@@ -3,23 +3,20 @@
  */
 
 import { assert } from "node-opcua-assert";
+import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import {
-    IBasicSessionReadAsyncSimple,
-    IBasicSessionBrowseAsyncSimple
-} from "node-opcua-pseudo-session";
-import { ReferenceDescription } from "node-opcua-service-browse";
-import { CallMethodRequest, Argument } from "node-opcua-service-call";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import type { ReferenceDescription } from "node-opcua-service-browse";
+import { type Argument, CallMethodRequest } from "node-opcua-service-call";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { make_errorLog, make_debugLog } from "node-opcua-debug";
-import { DataTypeIds } from "node-opcua-constants";
 
 import { makeRefId } from "./proxy";
-import { UAProxyManager } from "./proxy_manager";
+import type { ArgumentEx, MethodDescription } from "./proxy_base_node";
+import type { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
-import { MethodDescription, ArgumentEx } from "./proxy_base_node";
 
 const doDebug = false;
 const debugLog = make_debugLog("Proxy");
@@ -97,13 +94,12 @@ async function convertNodeIdToDataTypeAsync(
         // xx nodeClassMask: makeNodeClassMask("ObjectType"),
         resultMask
     };
-    // tslint:disable:no-shadowed-variable
     const browseResult = await session.browse(nodeToBrowse);
 
     const references = browseResult!.references;
 
     if (!references || references.length !== 1) {
-        throw new Error("cannot find SuperType of " + dataTypeName.toString());
+        throw new Error(`cannot find SuperType of ${dataTypeName.toString()}`);
     }
     const nodeId = references[0].nodeId;
     return convertNodeIdToDataTypeAsync(session, nodeId);
@@ -134,11 +130,14 @@ function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<str
     return inputArguments;
 }
 
-import { ProxyNode } from "./proxy_transition";
-import { StatusCode } from "node-opcua-status-code";
+import type { StatusCode } from "node-opcua-status-code";
+import type { ProxyNode } from "./proxy_transition";
 
 function makeFunction(obj: any, methodName: string) {
-    return async function functionCaller(this: any, inputArgs: Record<string, unknown>): Promise<{ statusCode: StatusCode, output?: Record<string, unknown> }> {
+    return async function functionCaller(
+        this: any,
+        inputArgs: Record<string, unknown>
+    ): Promise<{ statusCode: StatusCode; output?: Record<string, unknown> }> {
         const session = this.proxyManager.session;
 
         const methodDef = this.$methods[methodName];
@@ -170,7 +169,7 @@ function makeFunction(obj: any, methodName: string) {
             );
         }
         const output: Record<string, unknown> = {};
-        methodDef.outputArguments.map((arg: Argument, index: number) => {
+        methodDef.outputArguments.forEach((arg: Argument, index: number) => {
             const variant = callResult!.outputArguments![index];
             const propName = lowerFirstLetter(arg.name!);
             output[propName] = variant.value;
@@ -202,7 +201,6 @@ async function add_method(proxyManager: UAProxyManager, obj: any, reference: Ref
     let inputArguments: ArgumentEx[] = [];
     let outputArguments: ArgumentEx[] = [];
 
-    // tslint:disable:no-shadowed-variable
     const argumentDefinition = await session.getArgumentDefinition(reference.nodeId);
     inputArguments = (argumentDefinition.inputArguments as ArgumentEx[]) || [];
     outputArguments = (argumentDefinition.outputArguments as ArgumentEx[]) || [];
@@ -249,7 +247,6 @@ async function add_component(proxyManager: UAProxyManager, obj: any, reference: 
 }
 
 async function addFolderElement(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
-
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     const childObj = new ObjectExplorer({
@@ -265,7 +262,6 @@ async function addFolderElement(proxyManager: UAProxyManager, obj: any, referenc
 }
 
 async function add_property(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
-  
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     obj[name] = new ProxyVariable(proxyManager, reference.nodeId, reference);
@@ -291,7 +287,7 @@ async function addToState(proxyManager: UAProxyManager, obj: any, reference: Ref
     const childObj = await proxyManager.getObject(reference.nodeId);
     obj.$toState = childObj;
 }
-export class ObjectExplorer  {
+export class ObjectExplorer {
     public proxyManager: UAProxyManager;
     public name: string;
     public nodeId: NodeId;
@@ -313,7 +309,7 @@ export class ObjectExplorer  {
 
 function t(references: ReferenceDescription[] | null) {
     if (!references) return "";
-    return references.map((r: ReferenceDescription) => r.browseName.name + " " + r.nodeId.toString());
+    return references.map((r: ReferenceDescription) => `${r.browseName.name} ${r.nodeId.toString()}`);
 }
 
 export async function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: NodeId }): Promise<ProxyNode> {

@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { makeProxyState, ProxyState } from "./proxy_state";
-import { makeProxyTransition, ProxyNode, ProxyTransition } from "./proxy_transition";
+import { makeProxyTransition, type ProxyNode, type ProxyTransition } from "./proxy_transition";
 
 export class ProxyStateMachineType {
     public initialState: ProxyState | undefined;
@@ -11,7 +11,6 @@ export class ProxyStateMachineType {
     public transitions: ProxyTransition[];
 
     constructor(obj: ProxyNode) {
-        
         const localInitialState = obj.$components.filter((component: any) => {
             if (!component.typeDefinition) {
                 return false;

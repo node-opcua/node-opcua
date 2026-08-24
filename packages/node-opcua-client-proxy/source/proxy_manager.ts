@@ -1,26 +1,24 @@
 /**
  * @module node-opcua-client-proxy
  */
-// tslint:disable:no-shadowed-variable
-import { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 
-import { AttributeIds, NodeClass, coerceAccessLevelFlag } from "node-opcua-data-model";
-import { NodeId, coerceNodeId } from "node-opcua-nodeid";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { NodeIdLike } from "node-opcua-nodeid";
-import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
-import { IBasicSessionAsync, IBasicSessionGetArgumentDefinitionAsync } from "node-opcua-pseudo-session";
-import { ReadValueIdOptions } from "node-opcua-service-read";
-import { Variant } from "node-opcua-variant";
+import { AttributeIds, coerceAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { make_debugLog } from "node-opcua-debug";
+import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
+import type { IBasicSessionAsync, IBasicSessionGetArgumentDefinitionAsync } from "node-opcua-pseudo-session";
+import type { ReadValueIdOptions } from "node-opcua-service-read";
+import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import type { Variant } from "node-opcua-variant";
 
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
 import { ProxyObject } from "./proxy_object";
+import type { ProxyNode } from "./proxy_transition";
 import { ProxyStateMachineType } from "./state_machine_proxy";
-import { ProxyNode } from "./proxy_transition";
 
 const debugLog = make_debugLog(__filename);
 
@@ -34,11 +32,7 @@ export interface IProxy extends EventEmitter, IProxy1 {
     dataValue: DataValue;
 }
 
-async function internalGetObject(
-    proxyManager: UAProxyManager, 
-    nodeId: NodeIdLike | NodeId, options: any
-): Promise<ProxyNode> {
-   
+async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, options: any): Promise<ProxyNode> {
     const session = proxyManager.session;
 
     nodeId = coerceNodeId(nodeId) as NodeId;
@@ -96,7 +90,7 @@ async function internalGetObject(
     const dataValues = await session.read(nodesToRead);
 
     if (dataValues[0].statusCode.equals(StatusCodes.BadNodeIdUnknown)) {
-        throw new Error("Invalid Node " + nodeId.toString());
+        throw new Error(`Invalid Node ${nodeId.toString()}`);
     }
 
     clientObject = new ProxyObject(proxyManager, nodeId as NodeId);
@@ -134,7 +128,6 @@ export interface IBasicSessionWithSubscriptionAsync extends IBasicSessionAsync, 
     createSubscription2(options: CreateSubscriptionRequestOptions): Promise<IClientSubscription>;
 }
 
-// tslint:disable-next-line: max-classes-per-file
 export class UAProxyManager {
     public readonly session: IBasicSessionWithSubscriptionAsync;
     public subscription?: IClientSubscription;
@@ -146,7 +139,6 @@ export class UAProxyManager {
     }
 
     public async start(): Promise<void> {
-
         const createSubscriptionRequest: CreateSubscriptionRequestOptions = {
             maxNotificationsPerPublish: 1000,
             priority: 10,
@@ -180,7 +172,7 @@ export class UAProxyManager {
 
         const key = nodeId.toString();
         // the object already exist in the map ?
-        if (Object.prototype.hasOwnProperty.call(this.#_map, key)) {
+        if (Object.hasOwn(this.#_map, key)) {
             return this.#_map[key];
         }
 

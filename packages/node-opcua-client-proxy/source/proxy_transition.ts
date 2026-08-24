@@ -1,5 +1,5 @@
-import { QualifiedName } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
+import type { QualifiedName } from "node-opcua-data-model";
+import type { NodeId } from "node-opcua-nodeid";
 
 export interface ProxyNode {
     nodeId: NodeId;
