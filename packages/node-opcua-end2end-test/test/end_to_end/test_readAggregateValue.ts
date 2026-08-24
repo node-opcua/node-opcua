@@ -55,7 +55,6 @@ async function startServerWithHA() {
     return server;
 }
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("test readAggregateValue", () => {
@@ -65,7 +64,6 @@ describe("test readAggregateValue", () => {
         server = await startServerWithHA();
         await server.start();
         endpointUrl = server.getEndpointUrl()!;
-        // tslint:disable-next-line: no-console
         debugLog("endpointUrl = ", endpointUrl);
     });
     after(async () => {
@@ -109,7 +107,6 @@ describe("test readAggregateValue", () => {
                 processingInterval
             );
             resultAvg.statusCode.should.eql(StatusCodes.Good);
-            // tslint:disable-next-line: no-console
             debugLog(resultAvg.toString());
         });
     });
@@ -262,7 +259,6 @@ describe("test readAggregateValue", () => {
                 endTime
             );
         });
-        // tslint:disable-next-line: no-console
         debugLog(historyReadResult.toString());
     });
 
@@ -281,7 +277,6 @@ describe("test readAggregateValue", () => {
                 endTime
             );
         });
-        // tslint:disable-next-line: no-console
         debugLog(historyReadResult.toString());
         historyReadResult.statusCode.should.eql(StatusCodes.Good);
         historyReadResult.historyData?.should.be.instanceOf(HistoryData);

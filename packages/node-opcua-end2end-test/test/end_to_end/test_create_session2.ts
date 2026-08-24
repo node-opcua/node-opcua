@@ -11,7 +11,6 @@ const sleep = async (delay: number) => await new Promise((resolve) => setTimeout
 const port = 1304;
 
 describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", function (this: Mocha.Suite) {
-
     this.timeout(Math.max(this.timeout(), 120_000));
 
     let server: OPCUAServer;

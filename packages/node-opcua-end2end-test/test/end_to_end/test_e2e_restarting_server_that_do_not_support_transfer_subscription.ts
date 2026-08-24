@@ -67,7 +67,6 @@ async function createServer() {
 
 const wait = (timeout: number) => new Promise((resolve) => setTimeout(resolve, timeout));
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {

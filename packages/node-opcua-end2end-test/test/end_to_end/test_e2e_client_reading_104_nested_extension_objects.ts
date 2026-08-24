@@ -27,7 +27,6 @@ async function startServer(): Promise<OPCUAServer> {
     return server;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing github issue", () => {

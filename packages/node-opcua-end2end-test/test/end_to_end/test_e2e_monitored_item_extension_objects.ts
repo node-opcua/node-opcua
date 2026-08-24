@@ -30,7 +30,6 @@ const _should = should;
 const port = 2228;
 let endpointUrl: string;
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
@@ -166,7 +165,6 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
     it("MIEO-1 - a client should not receive opaque structure when monitoring extension objects", async () => {
         const client = OPCUAClient.create({
             requestedSessionTimeout: 10000000,
-            // tslint:disable-next-line: object-literal-sort-keys
             endpointMustExist: false
         });
 
@@ -266,7 +264,6 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                         queueSize: 100,
                         samplingInterval: 0, // when ever changed
 
-                        // tslint:disable-next-line: object-literal-sort-keys
                         filter: eventFilter
                     };
 
@@ -284,20 +281,17 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
 
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", () => {
-                        // tslint:disable-next-line: no-console
                         debugLog(" Initialized !");
                     });
 
                     const changedSpy = sinon.spy();
                     monitoredItem.on("changed", changedSpy);
                     monitoredItem.on("err", (message: string) => {
-                        // tslint:disable-next-line: no-console
                         debugLog("Error", message);
                     });
 
                     monitoredItem.on("changed", (eventFields: Variant[]) => {
                         for (const _eventField of eventFields) {
-                            // tslint:disable-next-line: no-console
                             // debugLog(eventField.toString());
                         }
                     });

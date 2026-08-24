@@ -1,6 +1,6 @@
-import path from "path";
-import os from "os";
-import fs from "fs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua";
 
 export async function createServerCertificateManager(port: number): Promise<OPCUACertificateManager> {

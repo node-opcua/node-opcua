@@ -13,7 +13,6 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing bug #1171- Subscription with Variable with restricted access", () => {

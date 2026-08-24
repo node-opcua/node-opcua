@@ -16,12 +16,10 @@ const doDebug = false;
 function f(func: Function) {
     const fct = async (...args: any[]) => {
         if (doDebug) {
-            // eslint-disable-next-line no-console
             console.log(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         }
         await func.apply(null, args);
         if (doDebug) {
-            // eslint-disable-next-line no-console
             console.log(`       ! ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
         }
     };

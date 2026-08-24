@@ -284,7 +284,6 @@ async function test_with_anonymous_user_changing_to_wrong_user() {
 
 const doDebug = false;
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing user change security", () => {

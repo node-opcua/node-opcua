@@ -598,8 +598,8 @@ export function t(test: TestHarness) {
                 servers?.length.should.eql(
                     6,
                     "found " +
-                    servers?.length +
-                    " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
+                        servers?.length +
+                        " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
                 ); // 5 server + 1 discovery server
                 // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
             }

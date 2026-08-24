@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import {
     type AddressSpace,
     AttributeIds,
@@ -86,7 +85,6 @@ export function t(test: any) {
         return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
             // wait for fist notification
             subscription.once("raw_notification", (notificationMessage: any) => {
-                // tslint:disable-next-line: no-console
                 debugLog("got notification message ", notificationMessage.toString());
                 resolve(notificationMessage.notificationData);
             });
@@ -97,13 +95,13 @@ export function t(test: any) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
-                    statusCode: item.value.statusCode,
-                    value: item.value.value.value
-                })) ?? [];
+                const r =
+                    dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
+                        statusCode: item.value.statusCode,
+                        value: item.value.value.value
+                    })) ?? [];
                 return r;
             }
-            // tslint:disable-next-line: no-console
             debugLog(" ------- skipping empty publish response");
             return [];
         }
@@ -146,7 +144,6 @@ export function t(test: any) {
         const handles: number[] = [];
         for (const call of spy.getCalls()) {
             const notification = call.args[0] as NotificationMessage;
-            // tslint:disable-next-line: no-unused-expression
             doDebug && console.log(notification.toString());
             const dataChange = notification.notificationData?.[0] as DataChangeNotification | undefined;
             for (const item of dataChange?.monitoredItems ?? []) {
@@ -235,7 +232,6 @@ export function t(test: any) {
                 await new Promise((resolve: any) => {
                     // wait for fist notification
                     monitoredItem.once("changed", (dataValue) => {
-                        // tslint:disable-next-line: no-console
                         debugLog("got initial value !!! ", dataValue.value.value);
                         resolve();
                     });
@@ -498,7 +494,6 @@ export function t(test: any) {
             raw_notification_spy.callCount.should.eql(2, "must  have received a changed notification and one empty notif");
             {
                 const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
                 const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;
@@ -560,7 +555,6 @@ export function t(test: any) {
                 await waitUntilKeepAlive(publishEngine, subscription);
 
                 const notification = raw_notification_spy.getCall(0).args[0] as NotificationMessage;
-                // tslint:disable-next-line: no-unused-expression
                 doDebug && console.log(notification.toString());
 
                 const monitoredItems = (notification.notificationData?.[0] as DataChangeNotification).monitoredItems!;

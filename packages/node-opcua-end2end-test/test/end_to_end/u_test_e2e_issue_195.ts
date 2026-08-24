@@ -46,7 +46,6 @@ export function t(test: TestHarness) {
                 const subscription = ClientSubscription.create(session, parameters);
                 await new Promise<void>((resolve) => subscription.on("started", () => resolve()));
                 subscription.on("internal_error", (_err: Error) => {
-                    // eslint-disable-next-line no-console
                     // console.error("internal_error", err.message);
                 });
                 subscription.on("keepalive", () => {

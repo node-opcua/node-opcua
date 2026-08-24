@@ -1,5 +1,4 @@
 import "should";
-import { randomBytes } from "node-opcua-utils";
 import {
     CreateSessionRequest,
     get_empty_nodeset_filename,
@@ -11,6 +10,7 @@ import {
     StatusCodes
 } from "node-opcua";
 import { SignatureData } from "node-opcua-service-secure-channel";
+import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
 

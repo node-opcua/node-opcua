@@ -12,25 +12,24 @@ import {
     EventFilterResult,
     FilterOperator,
     LiteralOperand,
-    makeNodeId,
     ModifyMonitoredItemsRequest,
     MonitoredItemModifyRequest,
     MonitoringMode,
+    makeNodeId,
     OPCUAClient,
     ReadValueId,
     resolveNodeId,
     SimpleAttributeOperand,
     StatusCodes,
     TimestampsToReturn,
-    Variant,
-    VariableIds
+    VariableIds,
+    Variant
 } from "node-opcua";
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
+import should from "should";
 import { assertThrow } from "../../test_helpers/assert_throw";
 import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
 
 // assertThrow helper has no TypeScript declarations; import via require and type as any
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 interface TestHarness {
     endpointUrl: string;
@@ -204,7 +203,9 @@ export function t(test: TestHarness): void {
         function makeOversizedWhereClause(): ContentFilter {
             const operands: any[] = [new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })];
             for (let i = 0; i < 101; i++) {
-                operands.push(new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) }));
+                operands.push(
+                    new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) })
+                );
             }
             return new ContentFilter({ elements: [{ filterOperator: FilterOperator.InList, filterOperands: operands }] });
         }
@@ -215,7 +216,10 @@ export function t(test: TestHarness): void {
                 timestampsToReturn: TimestampsToReturn.Neither,
                 itemsToCreate: [
                     {
-                        itemToMonitor: new ReadValueId({ nodeId: resolveNodeId("Server"), attributeId: AttributeIds.EventNotifier }),
+                        itemToMonitor: new ReadValueId({
+                            nodeId: resolveNodeId("Server"),
+                            attributeId: AttributeIds.EventNotifier
+                        }),
                         requestedParameters: { samplingInterval: 0, discardOldest: false, queueSize: 1, filter },
                         monitoringMode: MonitoringMode.Reporting
                     }
@@ -231,7 +235,9 @@ export function t(test: TestHarness): void {
                 elements: [{ filterOperator: FilterOperator.Not, filterOperands: [new ElementOperand({ index: 0 })] }]
             });
             await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                const res = await (session as any).createMonitoredItems(
+                    makeCreateRequest(subscription.subscriptionId, eventFilter)
+                );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 res.results[0].statusCode.should.eql(StatusCodes.BadFilterElementInvalid);
             });
@@ -242,7 +248,9 @@ export function t(test: TestHarness): void {
             const eventFilter = constructEventFilter(["SourceName", "EventId"]);
             eventFilter.whereClause = makeOversizedWhereClause();
             await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                const res = await (session as any).createMonitoredItems(
+                    makeCreateRequest(subscription.subscriptionId, eventFilter)
+                );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 res.results[0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
             });
@@ -253,7 +261,9 @@ export function t(test: TestHarness): void {
             // create a valid event monitored item first ...
             const eventFilter = constructEventFilter(["SourceName", "EventId"]);
             await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                const res = await (session as any).createMonitoredItems(
+                    makeCreateRequest(subscription.subscriptionId, eventFilter)
+                );
                 res.results[0].statusCode.should.eql(StatusCodes.Good);
                 const monitoredItemId = res.results[0].monitoredItemId;
 
@@ -289,7 +299,9 @@ export function t(test: TestHarness): void {
                 ]
             });
             await perform_operation_on_subscription(client, test.endpointUrl, async (session, subscription) => {
-                const res = await (session as any).createMonitoredItems(makeCreateRequest(subscription.subscriptionId, eventFilter));
+                const res = await (session as any).createMonitoredItems(
+                    makeCreateRequest(subscription.subscriptionId, eventFilter)
+                );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 // the monitored item is still created; the faulty select clause is reported per-clause
                 res.results[0].statusCode.should.eql(StatusCodes.Good);

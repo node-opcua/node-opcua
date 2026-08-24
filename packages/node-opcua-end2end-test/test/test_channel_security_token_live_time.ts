@@ -17,7 +17,6 @@ const _doDebug = checkDebugFlag("TEST");
 
 const port = 2041;
 
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable) {

@@ -21,7 +21,6 @@ let timer1: NodeJS.Timeout | undefined;
 let _variableNode2: UAVariable;
 let _variableNode1: UAVariable;
 
-// tslint:disable:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing bug #635", () => {

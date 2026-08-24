@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { type ClientSession, OPCUAClient, type OPCUAClientOptions } from "node-opcua";
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
+import should from "should";
 
 const doDebug = false;
 

@@ -57,7 +57,6 @@ export function t(_test: TestHarness) {
             await discoveryServer3.shutdown();
         });
 
-        // eslint-disable-next-line max-statements
         it("DISCO5-A - should register server to the discover server 1", async () => {
             // there should be no endpoint exposed by an blank discovery server
             discoveryServer1.registeredServerCount.should.equal(0);

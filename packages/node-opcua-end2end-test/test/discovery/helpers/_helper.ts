@@ -212,14 +212,12 @@ export function f<T>(func: FF<T>): FF<T> {
         .replace("then ", chalk.green("**THEN** "));
     const ff = async (): Promise<T> => {
         if (doTrace) {
-            // tslint:disable-next-line: no-console
             console.log(`         * ${title}`);
         }
         try {
             return await func();
         } catch (err) {
             if (doDebug) {
-                // tslint:disable-next-line: no-console
                 console.log(`         ! ${title}`);
             }
             throw err;
@@ -238,12 +236,10 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
 
     const ff = async () => {
         if (doTrace) {
-            // tslint:disable-next-line: no-console
             console.log(`         * ${title}`);
         }
         await func();
         if (doDebug) {
-            // tslint:disable-next-line: no-console
             console.log(`         ! ${title}`);
         }
     };

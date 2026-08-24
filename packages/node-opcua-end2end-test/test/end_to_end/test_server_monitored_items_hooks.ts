@@ -42,7 +42,6 @@ async function createServer() {
     return server;
 }
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Test server monitored Item hooks", () => {
@@ -80,7 +79,6 @@ describe("Test server monitored Item hooks", () => {
         try {
             await functor(subscription, session);
         } catch (err) {
-            // tslint:disable-next-line: no-console
             console.log(err);
             throw err;
         } finally {

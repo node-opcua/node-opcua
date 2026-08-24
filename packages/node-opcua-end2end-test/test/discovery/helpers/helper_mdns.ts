@@ -40,7 +40,7 @@ export async function cleanUpmDNSandSanityCheck() {
                     });
                     // Store the published service instance
                     reannouncedServices.set(service.name, publishedService);
-                } catch (_err) { }
+                } catch (_err) {}
             }
         }
     );

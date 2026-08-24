@@ -24,7 +24,6 @@ import { build_client_server_session, type ClientServerSession } from "../test_h
 import { wait } from "../test_helpers/utils";
 
 const port = 2020;
-// eslint-disable-next-line import/order
 describe("testing basic Client Server dealing with subscription at low level", function (this: Mocha.Runnable) {
     this.timeout(Math.max(40000, this.timeout()));
 

@@ -1,12 +1,5 @@
 import "should";
-import {
-    AttributeIds,
-    ClientReverseConnect,
-    get_mini_nodeset_filename,
-    OPCUAClient,
-    OPCUAServer,
-    StatusCodes
-} from "node-opcua";
+import { AttributeIds, ClientReverseConnect, get_mini_nodeset_filename, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
 
 // Reverse connect (OPC UA Part 6 §7.1.3) end-to-end.
 //

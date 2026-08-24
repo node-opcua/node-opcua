@@ -1,9 +1,8 @@
 import * as net from "node:net";
-
-import should from "should";
-import { get_mini_nodeset_filename, OPCUAServer } from "node-opcua";
 import type { OPCUAServerEndPoint } from "node-opcua";
+import { get_mini_nodeset_filename, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 
 // reserved reverse-connect range — see test/reverse_connect/README.md
 const serverPort = 2401;

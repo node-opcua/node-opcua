@@ -79,7 +79,6 @@ export function t(test: any) {
         return await new Promise((resolve: (result: NotificationData[]) => void) => {
             // wait for fist notification
             subscription.once("raw_notification", (notificationMessage: any) => {
-                // tslint:disable-next-line: no-console
                 debugLog("got notification message ", notificationMessage.toString());
                 resolve(notificationMessage.notificationData);
             });
@@ -100,13 +99,13 @@ export function t(test: any) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
-                    statusCode: item.value.statusCode,
-                    value: item.value.value.value
-                })) ?? [];
+                const r =
+                    dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
+                        statusCode: item.value.statusCode,
+                        value: item.value.value.value
+                    })) ?? [];
                 return r;
             }
-            // tslint:disable-next-line: no-console
             debugLog(" ------- skipping empty publish response");
             return [];
         }

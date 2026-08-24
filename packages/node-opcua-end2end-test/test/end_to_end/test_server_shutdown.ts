@@ -130,7 +130,6 @@ function f<T, T2>(func: (a?: T2) => Promise<T>): (a?: T2) => Promise<T> {
     };
 }
 
-// tslint:disable-next-line: no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing server shutdown", () => {
@@ -211,8 +210,6 @@ describe("Testing server shutdown", () => {
         shutdownReasonSpy.getCall(0).args[0].value.value.toString().should.eql("locale=null text=null");
         shutdownReasonSpy.getCall(1).args[0].value.value.text.should.eql("Shutdown by Test");
 
-        // tslint:disable-next-line: no-console
         debugLog("Done");
     });
 });
-

@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 // e2e regression test for https://github.com/node-opcua/node-opcua/issues/1524
 //
 // "Client does not recover subscriptions after Republish/BadMessageNotAvailable"

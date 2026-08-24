@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import fs from "node:fs";
 import type { Socket } from "node:net";
 import os from "node:os";

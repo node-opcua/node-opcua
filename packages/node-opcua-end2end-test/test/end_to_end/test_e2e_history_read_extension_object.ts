@@ -1,3 +1,4 @@
+import type { ExtensionObject } from "node-opcua";
 import {
     BinaryStream,
     DataType,
@@ -11,7 +12,6 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-import type { ExtensionObject } from "node-opcua";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import "should";
 

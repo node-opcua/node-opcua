@@ -214,7 +214,7 @@ async function terminate_active_client() {
 }
 
 async function f(func: () => Promise<any>) {
-    debugLog("       * " + func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**")));
+    debugLog(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
     return await func();
 }
 

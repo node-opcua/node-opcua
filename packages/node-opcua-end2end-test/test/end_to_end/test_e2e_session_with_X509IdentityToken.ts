@@ -1,4 +1,3 @@
-// tslint:disable:no-var-requires
 import fs from "node:fs";
 import path from "node:path";
 import { get_empty_nodeset_filename, OPCUACertificateManager, OPCUAClient, OPCUAServer } from "node-opcua";

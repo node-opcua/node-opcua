@@ -1,5 +1,3 @@
-// tslint:disable: no-shadowed-variable
-// tslint:disable: no-console
 import "should";
 import {
     type AddressSpace,
@@ -158,7 +156,6 @@ export function t(test: any) {
         return await new Promise((resolve: (result: ExtensionObject[]) => void) => {
             // wait for fist notification
             subscription.once("raw_notification", (notificationMessage: any) => {
-                // tslint:disable-next-line: no-console
                 debugLog("got notification message ", notificationMessage.toString());
                 resolve(notificationMessage.notificationData);
             });
@@ -169,13 +166,13 @@ export function t(test: any) {
             const notificationData1 = await waitForRawNotifications();
             if (notificationData1.length > 0) {
                 const dcn = notificationData1[0] as DataChangeNotification;
-                const r = dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
-                    statusCode: item.value.statusCode,
-                    value: item.value.value.value
-                })) ?? [];
+                const r =
+                    dcn.monitoredItems?.map((item: MonitoredItemNotification) => ({
+                        statusCode: item.value.statusCode,
+                        value: item.value.value.value
+                    })) ?? [];
                 return r;
             }
-            // tslint:disable-next-line: no-console
             debugLog(" ------- skipping empty publish response");
             return [];
         }
@@ -240,7 +237,6 @@ export function t(test: any) {
             await new Promise((resolve: any) => {
                 // wait for fist notification
                 monitoredItem.once("changed", (dataValue) => {
-                    // tslint:disable-next-line: no-console
                     debugLog("got initial value !!! ", dataValue.value.value);
                     resolve();
                 });
@@ -455,7 +451,6 @@ export function t(test: any) {
 
             // read dataValue
             const currentValue = await readCurrentValue(session, nodeId);
-            // tslint:disable-next-line: no-console
             const values = makeValuesOutsideDeadBand(currentValue, range, percent, 5);
 
             for (const value of values) {

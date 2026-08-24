@@ -1,5 +1,3 @@
-// tslint:disable: no-shadowed-variable
-// tslint:disable: no-console
 import { type ClientSubscriptionOptions, OPCUAClient } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

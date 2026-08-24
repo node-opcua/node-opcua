@@ -1,27 +1,40 @@
 import chalk from "chalk";
-import { ErrorCallback } from "node-opcua-client";
+import type { ErrorCallback } from "node-opcua-client";
+
 const { red, green, bgWhite } = chalk;
 
 let step_count = 0;
 
 export function fCallback(doDebug: boolean, func: (callback: ErrorCallback) => void) {
-
-    return function (callback: ErrorCallback) {
+    return (callback: ErrorCallback) => {
         if (doDebug) {
             console.log(bgWhite.cyan("FUNC=>  "), " ", step_count, chalk.yellow.bold(func.name));
         }
         try {
-
-            func(function (err) {
+            func((err) => {
                 if (doDebug) {
-                    console.log(bgWhite.cyan("END =>  "), " ", step_count, chalk.yellow.bold(func.name), " => ", err ? red(err.name) : green("OK"));
+                    console.log(
+                        bgWhite.cyan("END =>  "),
+                        " ",
+                        step_count,
+                        chalk.yellow.bold(func.name),
+                        " => ",
+                        err ? red(err.name) : green("OK")
+                    );
                 }
                 step_count++;
                 setImmediate(() => callback(err));
             });
         } catch (err) {
             if (doDebug) {
-                console.log(chalk.bgWhite.cyan("END WITH EXCEPTION=>  "), " ", step_count, chalk.yellow.bold(func.name), " => ", err ? red((err as Error).name) : green("OK"));
+                console.log(
+                    chalk.bgWhite.cyan("END WITH EXCEPTION=>  "),
+                    " ",
+                    step_count,
+                    chalk.yellow.bold(func.name),
+                    " => ",
+                    err ? red((err as Error).name) : green("OK")
+                );
             }
             callback(err as Error);
         }
@@ -29,8 +42,7 @@ export function fCallback(doDebug: boolean, func: (callback: ErrorCallback) => v
 }
 
 export function fAsync<T>(doDebug: boolean, func: () => Promise<T>): () => Promise<T> {
-
-    return async function (): Promise<T> {
+    return async (): Promise<T> => {
         if (doDebug) {
             console.log(bgWhite.cyan("FUNC=>  "), " ", step_count, chalk.yellow.bold(func.name));
         }
@@ -44,7 +56,14 @@ export function fAsync<T>(doDebug: boolean, func: () => Promise<T>): () => Promi
             return res;
         } catch (err) {
             if (doDebug) {
-                console.log(bgWhite.cyan("END =>  "), " ", step_count, chalk.yellow.bold(func.name), " => ", red((err as Error).name));
+                console.log(
+                    bgWhite.cyan("END =>  "),
+                    " ",
+                    step_count,
+                    chalk.yellow.bold(func.name),
+                    " => ",
+                    red((err as Error).name)
+                );
             }
             throw err;
         }

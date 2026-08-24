@@ -112,7 +112,6 @@ async function createServerVersion3() {
     return server;
 }
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {

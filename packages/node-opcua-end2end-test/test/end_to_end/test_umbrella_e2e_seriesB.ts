@@ -9,7 +9,6 @@ describe("testing Client - Umbrella-B ", function (this: Mocha.Context) {
     this.timeout(process.arch === "arm" ? 400000 : 30000);
     this.timeout(Math.max(200000, this.timeout()));
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this as UmbrellaTestContext;
     test.port = port;
 

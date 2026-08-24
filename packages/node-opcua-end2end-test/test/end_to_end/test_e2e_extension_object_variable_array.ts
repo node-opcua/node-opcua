@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import path from "node:path";
 import util from "node:util";
 import {
@@ -673,7 +671,6 @@ async function withClient(
     );
 }
 
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing extension object variable enrichment", function (this: any) {

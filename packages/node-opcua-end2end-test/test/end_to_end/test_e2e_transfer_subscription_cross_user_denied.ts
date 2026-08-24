@@ -65,12 +65,7 @@ async function orphanSubscriptionAs(endpointUrl: string, userName: string, passw
     }
 }
 
-async function transferAs(
-    endpointUrl: string,
-    userName: string,
-    password: string,
-    subscriptionId: number
-): Promise<StatusCodes> {
+async function transferAs(endpointUrl: string, userName: string, password: string, subscriptionId: number): Promise<StatusCodes> {
     const client = OPCUAClient.create({ endpointMustExist: false });
     await client.connect(endpointUrl);
     try {

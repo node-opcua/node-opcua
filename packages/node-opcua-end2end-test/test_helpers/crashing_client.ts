@@ -1,12 +1,11 @@
 // a simple client that is design to crash in the middle of a connection
 // once a item has been monitored
-"use strict";
-import { hostname } from "os";
+
+import { hostname } from "node:os";
 
 console.log("process.argv.length ", process.argv.length);
 
-import { OPCUAClient  } from "node-opcua-client";
-
+import { OPCUAClient } from "node-opcua-client";
 
 async function main() {
     if (process.argv.length !== 3) {
@@ -15,7 +14,7 @@ async function main() {
     }
     const port = process.argv[2];
 
-    const endpointUrl = "opc.tcp://" + hostname() + ":" + port;
+    const endpointUrl = `opc.tcp://${hostname()}:${port}`;
     console.log("endpointUrl = ", endpointUrl);
 
     const options = {
@@ -27,7 +26,6 @@ async function main() {
         }
     };
 
-
     const client = OPCUAClient.create(options);
 
     try {
@@ -37,15 +35,13 @@ async function main() {
         // step 2 : createSession
         const session = await client.createSession();
 
-        // wait 
+        // wait
         console.log("About to CRASH !!!!");
         await new Promise<void>((resolve) => setTimeout(resolve, 3000));
         console.log(" CRASHING !!!!");
         process.exit(-1);
-
     } catch (err) {
         console.log(" cannot connect to endpoint :", endpointUrl);
     }
-
 }
 main();

@@ -7,7 +7,6 @@ import { perform_operation_on_client_session } from "../../test_helpers/perform_
 
 const port = 2018;
 
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("testing extension object with client residing on a different process than the server process", function (this: Mocha.Context) {

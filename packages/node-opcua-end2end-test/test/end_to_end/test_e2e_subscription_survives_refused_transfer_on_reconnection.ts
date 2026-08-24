@@ -180,7 +180,12 @@ async function runReconnectionScenario(handle: ServerHandle): Promise<ScenarioRe
         );
 
         // 1) make sure the subscription is live and delivering notifications
-        const valuesBefore = await collectValueChanges(monitoredItem, 3, 10_000, "subscription failed to deliver initial notifications");
+        const valuesBefore = await collectValueChanges(
+            monitoredItem,
+            3,
+            10_000,
+            "subscription failed to deliver initial notifications"
+        );
         const before = subscription.subscriptionId;
         const lastValueBeforeBreak = valuesBefore[valuesBefore.length - 1];
 
@@ -236,10 +241,9 @@ describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA
             assertCommonRecoveryGuarantees(result);
 
             handle.transferStatuses.length.should.be.greaterThan(0, "the client should have attempted a transfer");
-            handle.transferStatuses.some((s) => /BadUserAccessDenied/.test(s)).should.eql(
-                true,
-                `server should have refused the transfer, got: ${handle.transferStatuses.join(", ")}`
-            );
+            handle.transferStatuses
+                .some((s) => /BadUserAccessDenied/.test(s))
+                .should.eql(true, `server should have refused the transfer, got: ${handle.transferStatuses.join(", ")}`);
             result.after.should.not.eql(result.before, "subscription should have been rebuilt with a new subscriptionId");
         } finally {
             await handle.stop();
@@ -256,10 +260,9 @@ describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA
             assertCommonRecoveryGuarantees(result);
 
             handle.transferStatuses.length.should.be.greaterThan(0, "the client should have attempted a transfer");
-            handle.transferStatuses.some((s) => /^Good/.test(s)).should.eql(
-                true,
-                `server should have accepted the transfer, got: ${handle.transferStatuses.join(", ")}`
-            );
+            handle.transferStatuses
+                .some((s) => /^Good/.test(s))
+                .should.eql(true, `server should have accepted the transfer, got: ${handle.transferStatuses.join(", ")}`);
             result.after.should.eql(result.before, "subscription should have been transferred keeping its subscriptionId");
         } finally {
             await handle.stop();

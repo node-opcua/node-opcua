@@ -1,23 +1,16 @@
+import chalk from "chalk";
+import { DataType, DataValue, type NodeId, StatusCodes, standardUnits, Variant } from "node-opcua";
 import {
     type IAddressSpace,
     type ISessionContext,
     SessionContext,
-    UAAnalogItem,
-    UAMethod,
-    UAObject,
-    UAVariableT
+    type UAAnalogItem,
+    type UAMethod,
+    type UAObject,
+    type UAVariableT
 } from "node-opcua-address-space";
-import {
-    adjustDataValueStatusCode
-} from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
-import chalk from "chalk";
+import { adjustDataValueStatusCode } from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
 import { assert } from "node-opcua-assert";
-import {
-    StatusCodes, DataType, standardUnits, DataValue,
-    Variant,
-    NodeId
-} from "node-opcua";
-
 
 const doDebug = false;
 
@@ -27,7 +20,6 @@ interface IHVAC extends UAObject {
     setTargetTemperature: UAMethod;
     interiorTemperature: UAVariableT<number, DataType.Double>;
     targetTemperature: UAAnalogItem<number, DataType.Double>;
-
 }
 /**
  * @method createHVACSystem
@@ -191,14 +183,14 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
 
     const timerId = setInterval(updateInteriorTemperature, 60);
 
-    myHVAC.on("dispose", function () {
+    myHVAC.on("dispose", () => {
         clearInterval(timerId);
     });
 
     //xx console.log(" => ",myHVAC.setTargetTemperature.inputArguments.readValue().toString());
 
     // bind the method
-    myHVAC.setTargetTemperature.bindMethod(async function (inputArguments: Variant[], sessionContext: ISessionContext) {
+    myHVAC.setTargetTemperature.bindMethod(async (inputArguments: Variant[], sessionContext: ISessionContext) => {
         sessionContext;
         if (doDebug) {
             console.log(chalk.cyan.bold(" In SetTargetTemperature"));
@@ -216,7 +208,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         }
         const s = (variable as any).checkVariantCompatibility(targetTemperature);
         if (s.isNot(StatusCodes.Good)) {
-            console.log(chalk.red.bold(" Invalid Value specified for targetTemperature " + s.toString()));
+            console.log(chalk.red.bold(` Invalid Value specified for targetTemperature ${s.toString()}`));
             return { statusCode: s };
         }
 
@@ -231,4 +223,4 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
     });
 
     return myHVAC.nodeId.toString();
-};
+}

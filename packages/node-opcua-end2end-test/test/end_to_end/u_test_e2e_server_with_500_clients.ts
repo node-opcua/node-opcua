@@ -7,7 +7,7 @@ import {
     type OPCUAClientOptions
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import should from "should"; // eslint-disable-line @typescript-eslint/no-var-requires
+import should from "should";
 
 const doDebug = false;
 

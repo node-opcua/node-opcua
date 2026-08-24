@@ -75,7 +75,7 @@ export function t(test: TestHarness) {
                 for (let i = 1; i < sequenceNumbers.length; i++) {
                     sequenceNumbers[i].should.be.greaterThan(sequenceNumbers[i - 1]);
                 }
-            })
+            });
         });
     });
 }

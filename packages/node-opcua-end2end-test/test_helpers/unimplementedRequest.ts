@@ -1,37 +1,23 @@
-import {
-    BaseUAObject,
-    buildStructuredType
-} from "node-opcua-factory";
+import { ObjectIds } from "node-opcua-constants";
+import { BaseUAObject, buildStructuredType } from "node-opcua-factory";
+import { makeExpandedNodeId } from "node-opcua-nodeid";
 
-import {
-    makeExpandedNodeId
-} from "node-opcua-nodeid";
+import { RequestHeader } from "node-opcua-service-secure-channel";
 
-import {
-    ObjectIds
-} from "node-opcua-constants";
-
-import {
-    RequestHeader
-} from "node-opcua-service-secure-channel";
 // a fake request type that is supposed to be correctly decoded on server side
 // but that is not supported by the server engine
 
 const schemaServerSideUnimplementedRequest = buildStructuredType({
     name: "ServerSideUnimplementedRequest",
     baseType: "BaseUAObject",
-//x    id: ObjectIds.Annotation_Encoding_DefaultXml,
-    fields: [
-        {name: "RequestHeader", fieldType: "RequestHeader"}
-    ]
+    //x    id: ObjectIds.Annotation_Encoding_DefaultXml,
+    fields: [{ name: "RequestHeader", fieldType: "RequestHeader" }]
 });
 
-export class ServerSideUnimplementedRequest extends  BaseUAObject
-{
-
+export class ServerSideUnimplementedRequest extends BaseUAObject {
     static schema: any;
     requestHeader: RequestHeader;
-    constructor(options: {} ) {
+    constructor(options: {}) {
         super();
         this.requestHeader = new RequestHeader();
     }

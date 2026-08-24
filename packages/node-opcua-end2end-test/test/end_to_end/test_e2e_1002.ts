@@ -18,7 +18,6 @@ async function startServer(): Promise<OPCUAServer> {
     return server;
 }
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("#1002 - ability to set transport timeout ", () => {

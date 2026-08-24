@@ -1,5 +1,5 @@
+import type { EventEmitter } from "node:events";
 import { make_errorLog } from "node-opcua-debug";
-import { EventEmitter } from "events";  
 
 const errorLog = make_errorLog("TEST");
 
@@ -7,14 +7,13 @@ export async function wait(duration: number) {
     return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-
 export async function waitUntilCondition(
     condition: () => Promise<boolean> | boolean,
     timeout: number,
-    message: string= ""
+    message: string = ""
 ): Promise<void> {
     const t = Date.now();
-    while (!await condition()) {
+    while (!(await condition())) {
         await wait(100);
         const t2 = Date.now();
         if (t2 - t > timeout) {
@@ -25,17 +24,19 @@ export async function waitUntilCondition(
     }
 }
 
-
 export async function waitForEvent(emitter: EventEmitter, event: string, timeoutMs: number) {
     return await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error(`${event} not received within ${timeoutMs} ms`)), timeoutMs);
-        emitter.once(event, () => { clearTimeout(timer); resolve(); });
+        emitter.once(event, () => {
+            clearTimeout(timer);
+            resolve();
+        });
     });
 }
 
 export const stepLog = (message: string) => {
-    console.log("    -> ".padEnd(40, "-") + " " + message);
-}
+    console.log(`${"    -> ".padEnd(40, "-")} ${message}`);
+};
 
 /*export function trace_console_log(...args: [string, ...string[]]) {
     const log1 = global.console.log;
@@ -50,7 +51,6 @@ export const stepLog = (message: string) => {
 */
 export const tracelog = (...args: [string | number, ...(string | number)[]]) => {
     const d = new Date();
-    const t = d.toTimeString().split(" ")[0] + "." + d.getMilliseconds().toString().padStart(3, "0");
+    const t = `${d.toTimeString().split(" ")[0]}.${d.getMilliseconds().toString().padStart(3, "0")}`;
     console.log.apply(console, [t, ...args]);
 };
-

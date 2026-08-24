@@ -67,7 +67,6 @@ export function t(test: any) {
 
         it("SDS1-B server should expose a SessionDiagnostics per Session", async () => {
             const client = OPCUAClient.create({});
-            // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
                 await readNamespaceArray(session);
 

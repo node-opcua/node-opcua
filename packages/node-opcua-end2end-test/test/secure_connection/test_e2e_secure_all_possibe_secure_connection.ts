@@ -1,7 +1,6 @@
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
 
-import { randomBytes } from "node-opcua-utils";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -40,6 +39,7 @@ import {
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
+import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";

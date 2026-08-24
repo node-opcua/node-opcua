@@ -1,4 +1,3 @@
-/* eslint-disable max-statements */
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { afterEachTest, afterTest, beforeEachTest, beforeTest, type UmbrellaTestContext } from "./_helper_umbrella";

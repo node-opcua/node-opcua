@@ -61,10 +61,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             );
         }
     }
-    async function createSignedCertInManager(
-        mgr: OPCUACertificateManager,
-        name: string
-    ) {
+    async function createSignedCertInManager(mgr: OPCUACertificateManager, name: string) {
         const isClient = name.toLowerCase().includes("client");
 
         /// ---- Create CSR ----
@@ -171,7 +168,6 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         await clientCertificateManager.addRevocationList(certificateRevocationList);
 
         await createSignedCertInManager(clientCertificateManager, "client1");
-
 
         const client = OPCUAClient.create({
             applicationUri: "urn:localhost:client1",
@@ -280,8 +276,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
 
         // ---- Verify server-side: getCertificateChain() returns the full chain ----
         const serverChain = server.getCertificateChain();
-        should(serverChain.length).be.greaterThanOrEqual(2,
-            "Server.getCertificateChain() should return at least leaf + CA");
+        should(serverChain.length).be.greaterThanOrEqual(2, "Server.getCertificateChain() should return at least leaf + CA");
 
         const serverLeaf = exploreCertificate(serverChain[0]);
         const serverCA = exploreCertificate(serverChain[1]);
@@ -318,33 +313,34 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
                 // session.serverCertificate is the raw DER buffer from the
                 // CreateSession response — it should contain the full chain
                 const receivedChain = split_der(session.serverCertificate);
-                should(receivedChain.length).be.greaterThanOrEqual(2,
-                    "CreateSession response should contain the full certificate chain (leaf + CA)");
+                should(receivedChain.length).be.greaterThanOrEqual(
+                    2,
+                    "CreateSession response should contain the full certificate chain (leaf + CA)"
+                );
 
                 const receivedLeaf = exploreCertificate(receivedChain[0]);
                 const receivedCA = exploreCertificate(receivedChain[1]);
 
                 // Verify the chain structure
-                should(receivedLeaf.tbsCertificate.subject.commonName).eql("server3",
-                    "First certificate should be the server leaf");
+                should(receivedLeaf.tbsCertificate.subject.commonName).eql(
+                    "server3",
+                    "First certificate should be the server leaf"
+                );
                 should(receivedLeaf.tbsCertificate.issuer.commonName).eql(
                     receivedCA.tbsCertificate.subject.commonName,
                     "Leaf issuer should match CA subject in the received chain"
                 );
 
                 // Verify it matches what the server has on disk
-                receivedChain[0].toString("hex").should.eql(
-                    serverChain[0].toString("hex"),
-                    "Received leaf should match server's leaf certificate"
-                );
-                receivedChain[1].toString("hex").should.eql(
-                    serverChain[1].toString("hex"),
-                    "Received CA should match server's CA certificate"
-                );
+                receivedChain[0]
+                    .toString("hex")
+                    .should.eql(serverChain[0].toString("hex"), "Received leaf should match server's leaf certificate");
+                receivedChain[1]
+                    .toString("hex")
+                    .should.eql(serverChain[1].toString("hex"), "Received CA should match server's CA certificate");
             });
         } finally {
             await server.shutdown();
         }
     });
-
 });

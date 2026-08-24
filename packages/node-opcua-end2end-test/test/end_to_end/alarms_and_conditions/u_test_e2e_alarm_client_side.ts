@@ -13,7 +13,6 @@ import {
     uninstallAlarmMonitoring,
     type Variant
 } from "node-opcua-client";
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../../test_helpers/perform_operation_on_client_session";
 

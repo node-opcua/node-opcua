@@ -1,5 +1,3 @@
-/* eslint-disable max-statements */
-
 import {
     AttributeIds,
     type ClientSession,

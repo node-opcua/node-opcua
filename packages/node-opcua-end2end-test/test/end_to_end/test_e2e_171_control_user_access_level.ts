@@ -44,7 +44,6 @@ const userManager = {
     }
 };
 
-// eslint-disable-next-line import/order
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 

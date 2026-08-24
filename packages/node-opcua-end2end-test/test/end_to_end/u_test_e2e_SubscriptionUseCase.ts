@@ -571,7 +571,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
 
         it(
             "AZA2-B a server should accept several Publish Requests from the client without sending notification immediately," +
-            " and should still be able to reply to other requests",
+                " and should still be able to reply to other requests",
             async () => {
                 await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                     const subscription = await session.createSubscription2({
@@ -1278,7 +1278,6 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
 
                 const err = await new Promise<Error | string>((resolve, reject) => {
                     monitoredItem.on("initialized", () => {
-                        // eslint-disable-next-line no-debugger
                         // debugger;
                         reject(new Error("Should not recevied initialized when invalid args"));
                     });
@@ -1520,7 +1519,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             });
         });
 
-        afterEach(async () => { });
+        afterEach(async () => {});
 
         interface ClientSubscriptionEx extends ClientSubscription {
             nb_keep_alive_received: number;
@@ -2256,9 +2255,9 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
 
         xit(
             "AZA3-W When a user adds a monitored item that the user is denied read access to, the add operation for the" +
-            " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
-            " returned in the Publish response",
-            async () => { }
+                " item shall succeed and the bad status  Bad_NotReadable  or  Bad_UserAccessDenied  shall be" +
+                " returned in the Publish response",
+            async () => {}
         );
 
         /**
@@ -2800,7 +2799,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                         const setMonitoringModeRequest = {
                             subscriptionId: subscription.subscriptionId,
                             monitoringMode: MonitoringMode.Sampling,
-                            monitoredItemIds: [monitoredItem.monitoredItemId as number + 9999]
+                            monitoredItemIds: [(monitoredItem.monitoredItemId as number) + 9999]
                         };
                         const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
                         response.results?.length.should.eql(1);

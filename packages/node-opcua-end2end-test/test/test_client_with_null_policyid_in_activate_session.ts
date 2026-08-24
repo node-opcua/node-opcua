@@ -12,7 +12,6 @@ import { createServerCertificateManager } from "../test_helpers/createServerCert
 
 const port = 2235;
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("Testing client that have policyId = null in Activate Session for anonymous connection", () => {

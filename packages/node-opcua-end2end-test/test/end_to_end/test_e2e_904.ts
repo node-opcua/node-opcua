@@ -55,7 +55,6 @@ async function startServer(): Promise<OPCUAServer> {
     return server;
 }
 
-// tslint:disable-next-line:no-var-requires
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("#904 - Client should connect to server that do not provide ServerNonce", () => {
