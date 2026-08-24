@@ -1,6 +1,6 @@
-import should from "should";
 import { assert } from "node-opcua-assert";
 import { hexDump } from "node-opcua-debug";
+import should from "should";
 import { ChunkManager, Mode } from "../dist";
 
 function make_packet(packet_length: number) {
@@ -86,7 +86,7 @@ describe("Chunk manager - no header - no signature - no encryption", function (t
         });
 
         let chunk_counter = 0;
-        chunkManager.on("chunk", function (chunk) {
+        chunkManager.on("chunk", (chunk) => {
             if (chunk_counter < 2) {
                 // all packets shall be 48 byte long, except last
                 chunk.length.should.equal(48);
@@ -95,7 +95,7 @@ describe("Chunk manager - no header - no signature - no encryption", function (t
                 chunk.length.should.equal(12);
             }
             if (doDebug) {
-                console.log(" chunk " + chunk_counter + " " + chunk.toString("hex"));
+                console.log(` chunk ${chunk_counter} ${chunk.toString("hex")}`);
             }
             chunk_counter += 1;
         });
@@ -125,7 +125,7 @@ describe("Chunk manager - no header - no signature - no encryption", function (t
         chunkManager.maxBodySize.should.equal(48);
 
         let chunk_counter = 0;
-        chunkManager.on("chunk", function (chunk) {
+        chunkManager.on("chunk", (chunk) => {
             // console.log(" chunk "+ chunk_counter + " " + chunk.toString("hex"));
             if (chunk_counter < 2) {
                 // all packets shall be 48 byte long, except last
@@ -169,7 +169,7 @@ function perform_test(
 
         chunk_counter.should.not.be.greaterThan(expected_chunk_lengths.length);
 
-        chunk.length.should.eql(expected_chunk_lengths[chunk_counter], " testing chunk " + chunk_counter);
+        chunk.length.should.eql(expected_chunk_lengths[chunk_counter], ` testing chunk ${chunk_counter}`);
 
         if (expected_chunks && expected_chunks.length > 0) {
             if (doDebug) {
@@ -196,7 +196,7 @@ function perform_test(
 describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)", () => {
     let chunkManager: ChunkManager;
 
-    beforeEach(function () {
+    beforeEach(() => {
         chunkManager = new ChunkManager(Mode.None, {
             chunkSize: 32,
 
@@ -233,7 +233,7 @@ describe("Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes)", () 
 describe("Sign - Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes ,signatureLength: 4 )", () => {
     let chunkManager: ChunkManager;
 
-    beforeEach(function () {
+    beforeEach(() => {
         chunkManager = new ChunkManager(Mode.Sign, {
             chunkSize: 32,
 
@@ -272,7 +272,7 @@ describe("Sign - Chunk Manager (chunk size 32 bytes, sequenceHeaderSize: 8 bytes
 describe("Sign&Encrypt: Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 8 bytes ,cipherBlockSize 8 bytes )\n", () => {
     let chunkManager: ChunkManager;
 
-    beforeEach(function () {
+    beforeEach(() => {
         chunkManager = new ChunkManager(Mode.SignAndEncrypt, {
             chunkSize: 32,
 
@@ -391,7 +391,7 @@ describe("Sign&Encrypt: Chunk Manager Padding (chunk size 32 bytes, plainBlockSi
 describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,cipherBlockSize 8 bytes )", () => {
     let chunkManager: ChunkManager;
 
-    beforeEach(function () {
+    beforeEach(() => {
         chunkManager = new ChunkManager(Mode.SignAndEncrypt, {
             chunkSize: 64,
 

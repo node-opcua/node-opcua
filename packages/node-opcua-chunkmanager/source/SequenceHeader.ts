@@ -1,15 +1,15 @@
 /***
  * @module node-opcua-chunkmanager
  */
-import { decodeUInt32, encodeUInt32, UInt32 } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { decodeUInt32, encodeUInt32, type UInt32 } from "node-opcua-basic-types";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
     check_options_correctness_against_schema,
+    type IStructuredTypeSchema,
     initialize_field,
-    parameters,
-    IStructuredTypeSchema
+    parameters
 } from "node-opcua-factory";
 
 const schemaSequenceHeader: IStructuredTypeSchema = buildStructuredType({

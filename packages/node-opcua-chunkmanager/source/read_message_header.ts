@@ -1,8 +1,8 @@
 /***
  * @module node-opcua-chunkmanager
  */
-import { BinaryStream } from "node-opcua-binary-stream";
-import { MessageHeader } from "node-opcua-packet-assembler";
+import type { BinaryStream } from "node-opcua-binary-stream";
+import type { MessageHeader } from "node-opcua-packet-assembler";
 
 export function readMessageHeader(stream: BinaryStream): MessageHeader {
     const msgType =

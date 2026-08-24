@@ -1,7 +1,7 @@
 /***
  * @module node-opcua-chunkmanager
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -14,7 +14,7 @@ export function verify_message_chunk(messageChunk: Buffer): void {
     assert(messageChunk instanceof Buffer);
     const header = readMessageHeader(new BinaryStream(messageChunk));
     if (messageChunk.length !== header.length) {
-        throw new Error(" chunk length = " + messageChunk.length + " message  length " + header.length);
+        throw new Error(` chunk length = ${messageChunk.length} message  length ${header.length}`);
     }
 }
 
@@ -147,7 +147,7 @@ export class ChunkManager extends EventEmitter {
             // this is the formula proposed  by OPCUA
             this.maxBodySize =
                 this.plainBlockSize *
-                Math.floor((this.chunkSize - this.headerSize - this.signatureLength - 1) / this.cipherBlockSize) -
+                    Math.floor((this.chunkSize - this.headerSize - this.signatureLength - 1) / this.cipherBlockSize) -
                 this.sequenceHeaderSize;
 
             // this is the formula proposed  by ERN
