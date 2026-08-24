@@ -1,13 +1,17 @@
 import "should"; // side-effect assertion lib
-import { DataType, makeBrowsePath, type NodeIdLike, OPCUAClient, StatusCodes, VariantArrayType } from "node-opcua";
+import {
+    type ClientSession,
+    DataType,
+    makeBrowsePath,
+    type NodeIdLike,
+    OPCUAClient,
+    StatusCodes,
+    VariantArrayType
+} from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
-
-async function translateBrowsePathToNodeId(session: any, startingNode: NodeIdLike, relativePath: string) {
+async function translateBrowsePathToNodeId(session: ClientSession, startingNode: NodeIdLike, relativePath: string) {
     const browsePath = makeBrowsePath(startingNode, relativePath);
     const result = await session.translateBrowsePath(browsePath);
     if (!result || !Array.isArray(result.targets) || result.targets.length === 0) {
@@ -16,10 +20,10 @@ async function translateBrowsePathToNodeId(session: any, startingNode: NodeIdLik
     return result.targets[0].targetId;
 }
 
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Issue #223 - Demonstrate client call service usage", () => {
         it("#223 - calling a method with one input argument", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const client = OPCUAClient.create({});
             await client.connect(endpointUrl);
             const session = await client.createSession();
@@ -48,7 +52,7 @@ export function t(test: TestHarness) {
                     }
                 ];
 
-                const results = await session.call(methodsToCall as any);
+                const results = await session.call(methodsToCall);
                 const callResults = Array.isArray(results) ? results : [results];
                 callResults.length.should.eql(1);
                 callResults[0].statusCode.should.eql(StatusCodes.Good);
