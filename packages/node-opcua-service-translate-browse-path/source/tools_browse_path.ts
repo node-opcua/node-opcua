@@ -2,8 +2,8 @@
  * @module node-opcua-service-translate-browse-path
  */
 import { ReferenceTypeIds } from "node-opcua-constants";
-import { QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
-import { makeNodeId, NodeId } from "node-opcua-nodeid";
+import { QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
+import { makeNodeId, type NodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "./imports";
 
 // const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);

@@ -3,8 +3,8 @@
  */
 import { assert } from "node-opcua-assert";
 import { QualifiedName } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { RelativePath, RelativePathElement } from "node-opcua-types";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { RelativePath, type RelativePathElement } from "node-opcua-types";
 /*=
  * Release 1.03 page 152 OPC Unified Architecture, Part 4
  * Annex A (informative) BNF definitions
@@ -79,15 +79,15 @@ const regCharacters = /[^/.<>:#!&]/;
 // reserved character
 const regReservedCharacters = /[/.<>:#!&]/;
 
-const regName = new RegExp("(" + regCharacters.source + "|(&" + regReservedCharacters.source + "))+");
+const regName = new RegExp(`(${regCharacters.source}|(&${regReservedCharacters.source}))+`);
 
 const regNamespaceIndex = /[0-9]+/;
 
-const regBrowseName = new RegExp("(" + regNamespaceIndex.source + ":)?(" + regName.source + ")");
+const regBrowseName = new RegExp(`(${regNamespaceIndex.source}:)?(${regName.source})`);
 
-const regReferenceType = new RegExp("/|\\.|(<(#)?(!)?(" + regBrowseName.source + ")>)");
+const regReferenceType = new RegExp(`/|\\.|(<(#)?(!)?(${regBrowseName.source})>)`);
 
-const regRelativePath = new RegExp("(" + regReferenceType.source + ")(" + regBrowseName.source + ")?");
+const regRelativePath = new RegExp(`(${regReferenceType.source})(${regBrowseName.source})?`);
 
 export function unescape(str: string): string {
     // replace all &x by
@@ -124,7 +124,6 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
     return new QualifiedName({ namespaceIndex, name });
 }
 
-
 export interface RelativePathEx extends RelativePath {
     elements: RelativePathElement[];
 }
@@ -150,7 +149,7 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePathE
     while (str.length > 0) {
         const matches = str.match(regRelativePath);
         if (!matches) {
-            throw new Error("Malformed relative path  :'" + str + "'" + " in " + originalStr);
+            throw new Error(`Malformed relative path  :'${str}' in ${originalStr}`);
         }
 
         let referenceTypeId: NodeId;
@@ -162,13 +161,13 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePathE
         //
         const refStr = matches[1];
         if (refStr === "/") {
-            // The forward slash character indicates that the Server is to follow 
+            // The forward slash character indicates that the Server is to follow
             // any subtype of HierarchicalReferences.
             referenceTypeId = hierarchicalReferenceTypeNodeId;
             isInverse = false;
             includeSubtypes = true;
         } else if (refStr === ".") {
-            // The period (dot) character indicates that the Server is to follow 
+            // The period (dot) character indicates that the Server is to follow
             // any subtype of a Aggregates ReferenceType.
             referenceTypeId = aggregatesReferenceTypeNodeId;
             isInverse = false;
@@ -185,7 +184,7 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePathE
             // match 5
             // namespace match 6 ( ns:)
             // name      match 7
-            //  This namespace index is used specify the namespace component of the BrowseName 
+            //  This namespace index is used specify the namespace component of the BrowseName
             //  for the ReferenceType. If the namespace prefix is omitted then namespace index 0 is used.
             const ns = matches[6] ? parseInt(matches[6], 10) : 0;
             const name = matches[7];

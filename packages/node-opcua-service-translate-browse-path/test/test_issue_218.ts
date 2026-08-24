@@ -1,10 +1,8 @@
 import "should";
-import { makeBrowsePath, BrowsePath} from ".."
+import { makeBrowsePath, BrowsePath } from "..";
 
-describe("#makeBrowsePath", function () {
-
-    it("should parse name containing spaces and ( or )", function () {
-
+describe("#makeBrowsePath", () => {
+    it("should parse name containing spaces and ( or )", () => {
         const path = makeBrowsePath("RootFolder", "/Objects/2:MatrikonOPC Simulation Server (DA)");
 
         const expected = new BrowsePath({
@@ -33,6 +31,5 @@ describe("#makeBrowsePath", function () {
         });
         //xx console.log(path.toString());
         path.should.eql(expected);
-
     });
 });

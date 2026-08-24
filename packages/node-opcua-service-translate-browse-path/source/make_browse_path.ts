@@ -1,17 +1,17 @@
 /**
  * @module node-opcua-service-translate-browse-path
  */
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "node-opcua-types";
 import { makeRelativePath } from "./make_relative_path";
 
 export declare type NodeIdLikeOrWithNodeId =
     | NodeIdLike
     | {
-        nodeId: NodeId;
-    };
+          nodeId: NodeId;
+      };
 function _get_nodeId(node: NodeIdLikeOrWithNodeId): NodeId {
-    if (Object.prototype.hasOwnProperty.call(node, "nodeId")) {
+    if (typeof node === "object" && Object.hasOwn(node, "nodeId")) {
         return (node as any).nodeId;
     }
     return resolveNodeId(node as NodeIdLike);
