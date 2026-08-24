@@ -12,6 +12,12 @@ import {
 } from "node-opcua";
 import should from "should";
 
+// _on_TransferSubscriptionsRequest/_on_RepublishRequest are protected OPCUAServer methods
+// (their `message` parameter type isn't publicly exported either), overridden here to
+// simulate a server that doesn't support these services.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 const port = 2797;
 let counter = 0;
 function addVariable(server: OPCUAServer) {
@@ -46,15 +52,15 @@ async function createServer() {
     await server.initialize();
     addVariable(server);
 
-    should.exist((server as any)._on_TransferSubscriptionsRequest);
-    (server as any)._on_TransferSubscriptionsRequest = (message: any, channel: ServerSecureChannelLayer) => {
+    should.exist((server as InternalAny)._on_TransferSubscriptionsRequest);
+    (server as InternalAny)._on_TransferSubscriptionsRequest = (message: InternalAny, channel: ServerSecureChannelLayer) => {
         const response = new TransferSubscriptionsResponse({
             responseHeader: { serviceResult: StatusCodes.BadServiceUnsupported }
         });
         return channel.send_response("MSG", response, message);
     };
 
-    (server as any)._on_RepublishRequest = (message: any, channel: ServerSecureChannelLayer) => {
+    (server as InternalAny)._on_RepublishRequest = (message: InternalAny, channel: ServerSecureChannelLayer) => {
         const response = new RepublishResponse({
             responseHeader: { serviceResult: StatusCodes.BadServiceUnsupported }
         });
