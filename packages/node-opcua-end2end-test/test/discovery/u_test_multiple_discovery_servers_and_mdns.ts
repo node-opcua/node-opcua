@@ -72,7 +72,7 @@ export function t(_test: TestHarness) {
             let _initialServerCount = 0;
             {
                 const data = await findServers(discoveryServerEndpointUrl1);
-                const { servers, endpoints } = data;
+                const { servers } = data;
                 _initialServerCount = servers.length;
                 servers[0].discoveryUrls?.length.should.eql(1);
             }
@@ -97,14 +97,14 @@ export function t(_test: TestHarness) {
             const hostname = os.hostname();
             {
                 const data = await findServers(discoveryServerEndpointUrl1);
-                const { servers, endpoints } = data!;
+                const { servers } = data!;
                 servers.length.should.eql(2);
                 servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover1}`);
                 servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A1`));
             }
             {
                 const data = await findServers(discoveryServerEndpointUrl2);
-                const { servers, endpoints } = data!;
+                const { servers } = data!;
 
                 debugLog("length = ", servers.length);
                 debugLog("servers[0].applicationUri = ", servers[0].applicationUri);
@@ -118,7 +118,7 @@ export function t(_test: TestHarness) {
 
             {
                 const data = await findServers(discoveryServerEndpointUrl3);
-                const { servers, endpoints } = data!;
+                const { servers } = data!;
                 servers.length.should.eql(2);
                 servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover3}`);
                 servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A3`));
