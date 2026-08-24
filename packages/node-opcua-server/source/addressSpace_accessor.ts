@@ -341,10 +341,9 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                 obj.writeAttribute(context, writeValue, (err, statusCode) => {
                     if (err) {
                         reject(err);
-                    } else if (statusCode === undefined) {
-                        reject(new Error("writeAttribute callback returned no statusCode"));
                     } else {
-                        resolve(statusCode);
+                        // a setter is allowed to invoke its callback with no statusCode to mean Good
+                        resolve(statusCode || StatusCodes.Good);
                     }
                 });
             });
