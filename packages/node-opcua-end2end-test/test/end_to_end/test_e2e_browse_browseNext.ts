@@ -23,7 +23,7 @@ const _doDebug = false;
 
 describe("testing browse & browseNext", () => {
     let server: OPCUAServer;
-    let endpointUrl: any;
+    let endpointUrl: string;
 
     const port = 1975;
     let groupNodeId: NodeId;
