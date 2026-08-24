@@ -5,14 +5,19 @@ import { types } from "node:util";
 import type { Namespace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { ObjectIds } from "node-opcua-constants";
-import { ServerEngine } from "node-opcua-server";
+import { make_warningLog } from "node-opcua-debug";
+import { type OPCUAServer, ServerEngine } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import { make_warningLog } from "node-opcua-debug";
 
 const warningLog = make_warningLog(__filename);
 
 const humanize = require("humanize");
+
+interface UsageResult {
+    memory: number;
+    cpu: number;
+}
 
 /**
 
@@ -21,6 +26,12 @@ const humanize = require("humanize");
  * @param options.browseName
  * @private
  */
+// This helper is unreachable in practice (install_optional_cpu_and_memory_usage_node has no callers
+// anywhere in the workspace) and its body doesn't actually match AddVariableOptions — it assumes
+// options.browseName is always a QualifiedNameOptions object (`.name.toString()`), but every call
+// site in this file passes a plain string. Typing this precisely would mean fixing that pre-existing
+// bug, which is out of scope for a lint pass on dead code.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
 function addVariableWithHumanizeText(namespace: Namespace, options: any) {
     assert(options.componentOf || options.organizedBy);
     assert(typeof options.description === "string");
@@ -51,11 +62,13 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
  * @param server {OPCUAServer}
  *
  */
-export function install_optional_cpu_and_memory_usage_node(server: any) {
+export function install_optional_cpu_and_memory_usage_node(server: OPCUAServer) {
     const engine = server.engine;
     assert(engine instanceof ServerEngine);
 
-    let usage: any;
+    let usage: {
+        lookup(pid: number, options: { keepHistory: boolean }, callback: (err: Error | null, result: UsageResult) => void): void;
+    } | null;
     try {
         const usage_module = "usage"; // we use a variable here to prevent error in webpack
         usage = require(usage_module); // a warning will be generated here with webpack as the module name is not a litteral
@@ -68,10 +81,16 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
     }
 
     const addressSpace = engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("engine.addressSpace must be initialized");
+    }
 
     const namespace = addressSpace.getOwnNamespace();
 
     const vendorServerInfo = addressSpace.findNode(ObjectIds.Server_VendorServerInfo);
+    if (!vendorServerInfo) {
+        throw new Error("Server_VendorServerInfo node must exist in the address space");
+    }
 
     let usage_result = { memory: 0, cpu: 100 };
 
@@ -80,7 +99,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
     if (usage) {
         const options = { keepHistory: true };
         setInterval(() => {
-            usage.lookup(pid, options, (err: Error | null, result: any) => {
+            usage.lookup(pid, options, (err: Error | null, result: UsageResult) => {
                 usage_result = result;
                 warningLog("result Used Memory: ", humanize.filesize(result.memory), " CPU ", Math.round(result.cpu), " %");
                 if (err) {
