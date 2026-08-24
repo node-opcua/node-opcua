@@ -2,6 +2,7 @@ import {
     AttributeIds,
     type ClientMonitoredItem,
     type ClientSession,
+    type ClientSessionRawSubscriptionService,
     type ClientSubscription,
     type CreateSubscriptionRequestLike,
     type CreateSubscriptionResponse,
@@ -10,8 +11,13 @@ import {
     type OPCUAClient,
     type ReadValueIdOptions,
     resolveNodeId,
+    type SubscriptionId,
     TimestampsToReturn
 } from "node-opcua-client";
+
+// createSubscription/deleteSubscriptions are declared on the raw subscription
+// service, deliberately excluded from the public ClientSession interface.
+type RawSession = ClientSession & ClientSessionRawSubscriptionService;
 
 /**
  * @method perform_operation_on_client_session
@@ -124,16 +130,15 @@ export async function perform_operation_on_raw_subscription(
     action: (
         session: ClientSession,
         result: {
-            subscriptionId: any;
+            subscriptionId: SubscriptionId;
         }
     ) => Promise<void>
 ) {
     const result = {
-        id: null,
-        subscriptionId: null as any
+        subscriptionId: 0 as SubscriptionId
     };
     await perform_operation_on_client_session(client, endpointUrl, async (session) => {
-        const response: CreateSubscriptionResponse = await (session as any).createSubscription({
+        const response: CreateSubscriptionResponse = await (session as RawSession).createSubscription({
             requestedPublishingInterval: 100, // Duration
             requestedLifetimeCount: 600, // Counter
             requestedMaxKeepAliveCount: 200, // Counter
@@ -154,7 +159,7 @@ export async function perform_operation_on_raw_subscription(
         try {
             await action(session, result);
         } finally {
-            await (session as any).deleteSubscriptions({
+            await (session as RawSession).deleteSubscriptions({
                 subscriptionIds: [result.subscriptionId]
             });
         }
