@@ -24,22 +24,28 @@ import { build_client_server_session, type ClientServerSession } from "../test_h
 import { wait } from "../test_helpers/utils";
 
 const port = 2020;
+
+// createSubscription/deleteSubscriptions/createMonitoredItems/deleteMonitoredItems/publish/
+// setPublishingMode are declared on the raw subscription service, deliberately excluded
+// from the public ClientSession interface.
+type RawSubscriptionSession = ClientSession & {
+    createSubscription: (request: CreateSubscriptionRequest) => Promise<CreateSubscriptionResponse>;
+    deleteSubscriptions: (request: DeleteSubscriptionsRequest) => Promise<DeleteSubscriptionsRequest>;
+    createMonitoredItems: (request: CreateMonitoredItemsRequest) => Promise<CreateMonitoredItemsResponse>;
+    deleteMonitoredItems: (request: DeleteMonitoredItemsRequest) => Promise<DeleteMonitoredItemsResponse>;
+    publish: (request: PublishRequest) => Promise<PublishResponse>;
+    setPublishingMode(publishingEnabled: boolean, subscriptionIds: SubscriptionId[]): Promise<StatusCode[]>;
+};
+
 describe("testing basic Client Server dealing with subscription at low level", function (this: Mocha.Runnable) {
     this.timeout(Math.max(40000, this.timeout()));
 
-    let g_session: ClientSession & {
-        createSubscription: (request: CreateSubscriptionRequest) => Promise<CreateSubscriptionResponse>;
-        deleteSubscriptions: (request: DeleteSubscriptionsRequest) => Promise<DeleteSubscriptionsRequest>;
-        createMonitoredItems: (request: CreateMonitoredItemsRequest) => Promise<CreateMonitoredItemsResponse>;
-        deleteMonitoredItems: (request: DeleteMonitoredItemsRequest) => Promise<DeleteMonitoredItemsResponse>;
-        publish: (request: PublishRequest) => Promise<PublishResponse>;
-        setPublishingMode(publishingEnabled: boolean, subscriptionIds: SubscriptionId[]): Promise<StatusCode[]>;
-    };
+    let g_session: RawSubscriptionSession;
     let client_server: ClientServerSession;
 
     before(async () => {
         client_server = await build_client_server_session({ port });
-        g_session = client_server.g_session as any;
+        g_session = client_server.g_session as unknown as RawSubscriptionSession;
     });
 
     after(async () => {
