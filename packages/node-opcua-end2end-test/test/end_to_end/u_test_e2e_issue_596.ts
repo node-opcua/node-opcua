@@ -2,11 +2,7 @@ import os from "node:os";
 import "should";
 import { makeApplicationUrn, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
-interface TestHarness {
-    endpointUrl: string;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 /**
  * Bug #596 - ClientSession#getNamespaceIndex
@@ -16,11 +12,11 @@ interface TestHarness {
  * URN for the server (constructed with `makeApplicationUrn`).
  *
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Bug #596 - ClientSession#getNamespaceIndex", () => {
         it("retrieves namespace index from URI on client side", async () => {
             const client = OPCUAClient.create({});
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const hostname = os.hostname();
 
             const namespaceArray: string[] = await client.withSessionAsync(endpointUrl, async (session) => {
