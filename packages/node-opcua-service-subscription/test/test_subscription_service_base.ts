@@ -1,9 +1,7 @@
 import { CreateSubscriptionRequest } from "../dist";
 
-describe("Subscription Service",function() {
-
-    it("should create a CreateSubscriptionRequest",function() {
-
-         new CreateSubscriptionRequest();
+describe("Subscription Service", () => {
+    it("should create a CreateSubscriptionRequest", () => {
+        new CreateSubscriptionRequest();
     });
 });

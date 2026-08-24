@@ -29,9 +29,7 @@ import {
 } from "..";
 import { redirectToFileAsync } from "node-opcua-debug/distNodeJS/redirect_to_file";
 
-
-describe("testing subscription objects", function () {
-
+describe("testing subscription objects", () => {
     it("should encode and decode a CreateSubscriptionRequest", () => {
         const obj = new CreateSubscriptionRequest({
             requestedPublishingInterval: 1000,
@@ -178,11 +176,9 @@ describe("testing subscription objects", function () {
         const obj = new ModifyMonitoredItemsResponse({ results: [], diagnosticInfos: [] } as any);
         encode_decode_round_trip_test(obj);
     });
-
 });
 
-describe("CreateMonitoredItemsRequest with EventFilter parameters", function () {
-
+describe("CreateMonitoredItemsRequest with EventFilter parameters", () => {
     it("should decode this packet from PROSYS ANDROID app", async () => {
         const ws_CreateMonitoredItemsRequest = makeBufferFromTrace(
             `00000000: 4d 53 47 46 97 01 00 00 09 00 00 00 01 00 00 00 04 00 00 00 04 00 00 00 01 00 ef 02 05 00 00 10    MSGF......................o.....\n
