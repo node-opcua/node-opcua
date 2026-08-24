@@ -1,10 +1,11 @@
 import { OPCUAClient, readHistoryServerCapabilities } from "node-opcua-client";
 import should from "should";
-export function t(test: any) {
+import type { UmbrellaTestContext } from "./_helper_umbrella";
+export function t(test: UmbrellaTestContext) {
     describe("ReadHistoryServerCapabilities", () => {
         it("should read history server capabilities", async () => {
             const client = OPCUAClient.create({});
-            await client.withSessionAsync(test.endpointUrl, async (session) => {
+            await client.withSessionAsync(test.endpointUrl!, async (session) => {
                 const cap = await readHistoryServerCapabilities(session);
 
                 console.log(cap);
