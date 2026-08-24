@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /**
  * @module node-opcua-nodeid
  */
@@ -12,7 +11,7 @@ import {
     VariableIds,
     VariableTypeIds
 } from "node-opcua-constants";
-import { emptyGuid, Guid, isValidGuid, normalizeGuid } from "node-opcua-guid";
+import { emptyGuid, type Guid, isValidGuid, normalizeGuid } from "node-opcua-guid";
 
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
@@ -28,12 +27,16 @@ export enum NodeIdType {
 // function defaultValue(identifierType: NodeIdType.STRING): "";
 // function defaultValue(identifierType: NodeIdType.NUMERIC): 0;
 // function defaultValue(identifierType: NodeIdType.GUID): string;
-function defaultValue(identifierType: NodeIdType): string | 0 | Buffer  {
+function defaultValue(identifierType: NodeIdType): string | 0 | Buffer {
     switch (identifierType) {
-        case NodeIdType.GUID: return emptyGuid;
-        case NodeIdType.BYTESTRING: return null as any as Buffer;// Buffer.alloc(0);
-        case NodeIdType.STRING: return "";
-        case NodeIdType.NUMERIC: return 0;
+        case NodeIdType.GUID:
+            return emptyGuid;
+        case NodeIdType.BYTESTRING:
+            return null as any as Buffer; // Buffer.alloc(0);
+        case NodeIdType.STRING:
+            return "";
+        case NodeIdType.NUMERIC:
+            return 0;
         default:
             throw new Error("invalid identifierType");
     }
@@ -72,20 +75,18 @@ export interface INodeIdString extends NodeId {
  */
 export type INodeId = INodeIdNumeric | INodeIdGuid | INodeIdString | INodeIdByteString;
 
-
-
 /**
- * 
+ *
  * This class holds a OPC-UA node identifier.
- * 
+ *
  * Nodes are unambiguously identified using a constructed
  * identifier called the NodeId. Some Servers may accept
  * alternative NodeIds in addition to the canonical NodeId
- * represented in this Attribute. 
- * 
+ * represented in this Attribute.
+ *
  * A Server shall persist the NodeId of a Node, that is,
  * it shall not generate new
- * NodeIds when rebooting. 
+ * NodeIds when rebooting.
  *
  */
 export class NodeId {
@@ -107,7 +108,7 @@ export class NodeId {
      * @param identifierType   - the nodeID type
      * @param value            - the node id value. The type of Value depends on identifierType.
      * @param namespace        - the index of the related namespace (optional , default value = 0 )
-     *  
+     *
      * @example
      *
      * ```javascript
@@ -188,12 +189,12 @@ export class NodeId {
         const addressSpace = options ? options.addressSpace : null;
 
         const namespacePart: string = options?.namespaceArray
-            ? this.namespace == 0
+            ? this.namespace === 0
                 ? ""
                 : `nsu=${options.namespaceArray[this.namespace] || `<unknown namespace with index ${this.namespace}>`};`
             : `ns=${this.namespace};`;
 
-        let str;
+        let str: string;
         const _this = this as INodeId;
         switch (_this.identifierType) {
             case NodeIdType.NUMERIC:
@@ -206,7 +207,7 @@ export class NodeId {
                 str = `${namespacePart}g=${normalizeGuid(_this.value)}`;
                 break;
             default:
-                assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
+                assert(this.identifierType === NodeIdType.BYTESTRING, `invalid identifierType in NodeId : ${this.identifierType}`);
                 if (this.value) {
                     str = `${namespacePart}b=${(this.value as Buffer).toString("base64")}`;
                 } else {
@@ -219,12 +220,12 @@ export class NodeId {
             if (this.namespace === 0 && _this.identifierType === NodeIdType.NUMERIC) {
                 // find standard browse name
                 const name = reverse_map((this.value || 0).toString()) || "<undefined>";
-                str += " " + name;
+                str += ` ${name}`;
             } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.
                 const n = addressSpace.findNode(this);
-                str += " " + (n ? n.browseName.toString() : " (????)");
+                str += ` ${n ? n.browseName.toString() : " (????)"}`;
             }
         }
         return str;
@@ -241,7 +242,7 @@ export class NodeId {
         if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
             const name = reverse_map(this.value.toString());
             if (name) {
-                return name + " (" + this.toString() + ")";
+                return `${name} (${this.toString()})`;
             }
         }
         return this.toString();
@@ -266,19 +267,16 @@ export class NodeId {
 }
 
 /**
- * a fixed instance of a null NodeId 
+ * a fixed instance of a null NodeId
  */
-NodeId.nullNodeId = new Proxy(
-    new NodeId(NodeIdType.NUMERIC, 0, 0),
-    {
-        get: (target: NodeId, prop: string) => {
-            return (target as any)[prop];
-        },
-        set: () => {
-            throw new Error("Cannot assign a value to constant NodeId.nullNodeId");
-        }
-    });
-
+NodeId.nullNodeId = new Proxy(new NodeId(NodeIdType.NUMERIC, 0, 0), {
+    get: (target: NodeId, prop: string) => {
+        return (target as any)[prop];
+    },
+    set: () => {
+        throw new Error("Cannot assign a value to constant NodeId.nullNodeId");
+    }
+});
 
 /**
  * anything that could be turned into a nodeId
@@ -296,11 +294,11 @@ const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f
 const regexNSU = /nsu=(.*);(.*)/;
 
 /**
- * 
+ *
  */
 export interface ResolveNodeIdOptions {
     namespaceArray?: string[];
-    defaultNamespaceIndex?: number ; 
+    defaultNamespaceIndex?: number;
 }
 /**
  * Convert a value into a nodeId:
@@ -310,20 +308,22 @@ export interface ResolveNodeIdOptions {
  *    - if nodeId is a string of form : "s=foo"   => nodeId({value="foo", identifierType: NodeIdType.STRING})
  *    - if nodeId is a string of form : "b=ABCD=" => nodeId({value=decodeBase64("ABCD="), identifierType: NodeIdType.BYTESTRING})
  *    - if nodeId is a {@link NodeId} :  coerceNodeId returns value
- * 
+ *
  */
 export function coerceNodeId(value: unknown, namespaceOptions?: number | ResolveNodeIdOptions): NodeId {
-    let matches;
-    let twoFirst;
+    let matches: RegExpExecArray | null;
+    let twoFirst: string;
     if (value instanceof NodeId) {
         return value;
     }
 
     value = value || 0;
 
-    let namespace = (typeof namespaceOptions === "number" ? namespaceOptions as number : namespaceOptions?.defaultNamespaceIndex )|| 0;
-    
-    const namespaceArray: string[] | undefined = (namespaceOptions as { namespace?: number, namespaceArray: string[] }) ?.namespaceArray || undefined;
+    let namespace =
+        (typeof namespaceOptions === "number" ? (namespaceOptions as number) : namespaceOptions?.defaultNamespaceIndex) || 0;
+
+    const namespaceArray: string[] | undefined =
+        (namespaceOptions as { namespace?: number; namespaceArray: string[] })?.namespaceArray || undefined;
 
     let identifierType = NodeIdType.NUMERIC;
 
@@ -347,6 +347,9 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | Resolve
         } else if (isValidGuid(value)) {
             identifierType = NodeIdType.GUID;
             value = normalizeGuid(value);
+            // biome-ignore-start lint/suspicious/noAssignInExpressions: ordered regex
+            // dispatch on a hot path (coerceNodeId). Hoisting each exec out of the
+            // chain would either nest four levels deep or evaluate every pattern.
         } else if ((matches = regexNamespaceI.exec(value)) !== null) {
             identifierType = NodeIdType.NUMERIC;
             namespace = parseInt(matches[1], 10);
@@ -364,20 +367,19 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | Resolve
             namespace = parseInt(matches[1], 10);
             value = normalizeGuid(matches[2]);
         } else {
-
-            // eslint-disable-next-line no-empty
-            if (namespaceArray && (matches = regexNSU.exec(value))!==null) {
+            if (namespaceArray && (matches = regexNSU.exec(value)) !== null) {
                 const namespaceIndex = namespaceArray.indexOf(matches[1]);
                 if (namespaceIndex === -1) {
-                    throw new Error("Cannot find namespace with index " + matches[1] + " in " + namespaceArray.join(","));
+                    throw new Error(`Cannot find namespace with index ${matches[1]} in ${namespaceArray.join(",")}`);
                 }
                 const nid = coerceNodeId(matches[2], namespace);
                 nid.namespace = namespaceIndex;
                 return nid;
             } else {
-                throw new Error("String cannot be coerced to a nodeId : " + value);
+                throw new Error(`String cannot be coerced to a nodeId : ${value}`);
             }
         }
+        // biome-ignore-end lint/suspicious/noAssignInExpressions: see above
     } else if (value instanceof Buffer) {
         identifierType = NodeIdType.BYTESTRING;
     } else if (value instanceof Object) {
@@ -434,7 +436,7 @@ const regName = /[a-zA-Z_].*/;
 (function build_standard_nodeid_indexes() {
     function expand_map(directIndex: any) {
         for (const name in directIndex) {
-            if (Object.prototype.hasOwnProperty.call(directIndex, name) && regName.exec(name) !== null) {
+            if (Object.hasOwn(directIndex, name) && regName.exec(name) !== null) {
                 const value = directIndex[name];
                 _nodeIdToNameIndex[value] = name;
                 _nameToNodeIdIndex[name] = new NodeId(NodeIdType.NUMERIC, value, 0);
@@ -461,7 +463,7 @@ function reverse_map(nodeId: string) {
  * resolveNodeId can be helpful to convert a wellknown Node Name to a nodeid
  * if a wellknown node name cannot be detected, the function falls back to
  * calling coerceNodeId {@link coerceNodeId}.
- * 
+ *
  * @example
  * ```javascript
  * const nodeId = resolveNodeId("ObjectsFolder");
@@ -470,7 +472,7 @@ function reverse_map(nodeId: string) {
  * ```text
  * >ns=0;i=85
  * ```
- * 
+ *
  * ```javascript
  * const nodeId = resolveNodeId("HasComponent");
  * console.log(nodeId.toString());
@@ -478,7 +480,7 @@ function reverse_map(nodeId: string) {
  * ```text
  * >ns=0;i=33
  * ```
- * 
+ *
  * ```javascript
  * const nodeId = resolveNodeId("ns=1;i=4444");
  * console.log(nodeId.toString());
@@ -486,10 +488,10 @@ function reverse_map(nodeId: string) {
  * ```text
  * >ns=1;i=4444
  * ```
- * 
+ *
  */
 export function resolveNodeId(nodeIdOrString: NodeIdLike, options?: ResolveNodeIdOptions): NodeId {
-    let nodeId;
+    let nodeId: NodeId;
 
     const rawId = typeof nodeIdOrString === "string" ? _nameToNodeIdIndex[nodeIdOrString] : undefined;
     if (rawId !== undefined) {
@@ -539,4 +541,3 @@ export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
     }
 }
 NodeId.sameNodeId = sameNodeId;
-

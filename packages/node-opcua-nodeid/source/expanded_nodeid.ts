@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-nodeid
  */
-import { Guid } from "node-opcua-guid";
+import type { Guid } from "node-opcua-guid";
 import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
 
 /**
@@ -69,10 +69,10 @@ export class ExpandedNodeId extends NodeId {
     public toString(): string {
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
-            str += ";namespaceUri:" + this.namespaceUri;
+            str += `;namespaceUri:${this.namespaceUri}`;
         }
         if (this.serverIndex) {
-            str += ";serverIndex:" + this.serverIndex;
+            str += `;serverIndex:${this.serverIndex}`;
         }
         return str;
     }
@@ -102,23 +102,22 @@ export function makeExpandedNodeId(value: unknown, namespace?: number): Expanded
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }
     const serverIndex = 0;
-    let n;
     const namespaceUri = null;
 
     if (value instanceof ExpandedNodeId) {
         // construct from a ExpandedNodeId => copy
-        n = value;
+        const n = value;
         return new ExpandedNodeId(n.identifierType, n.value, n.namespace, n.namespaceUri, n.serverIndex);
     }
     if (value instanceof NodeId) {
         // construct from a nodeId
-        n = value;
+        const n = value;
         return new ExpandedNodeId(n.identifierType, n.value, n.namespace, namespaceUri, serverIndex);
     }
 
     const valueInt = parseInt(value as string, 10);
-    if (!isFinite(valueInt)) {
-        throw new Error(" cannot makeExpandedNodeId out of " + value);
+    if (!Number.isFinite(valueInt)) {
+        throw new Error(` cannot makeExpandedNodeId out of ${value}`);
     }
     namespace = namespace || 0;
     return new ExpandedNodeId(NodeIdType.NUMERIC, valueInt, namespace, namespaceUri, serverIndex);
