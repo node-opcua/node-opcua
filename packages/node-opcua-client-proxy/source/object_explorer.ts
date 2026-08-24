@@ -5,7 +5,7 @@
 import { assert } from "node-opcua-assert";
 import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import { make_debugLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import type { ReferenceDescription } from "node-opcua-service-browse";
@@ -14,18 +14,23 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { makeRefId } from "./proxy";
-import type { ArgumentEx, MethodDescription } from "./proxy_base_node";
+import type { ArgumentEx, MethodDescription, ProxyBaseNode } from "./proxy_base_node";
 import type { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
 
 const doDebug = false;
 const debugLog = make_debugLog("Proxy");
 
+// ProxyBaseNode plus the dynamically-named child properties (obj[browseName] = childNode)
+// that add_component/add_property/addFolderElement/add_method install as they walk the
+// address space; there is no way to know those names statically.
+type ProxyNodeUnderConstruction = ProxyBaseNode & { [dynamicChildName: string]: unknown };
+
 export interface ObjectExplorerOptions {
     proxyManager: UAProxyManager;
     name: string;
     nodeId: NodeId;
-    parent: any;
+    parent: ProxyNodeUnderConstruction;
 }
 
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
@@ -79,7 +84,7 @@ async function convertNodeIdToDataTypeAsync(
     }
 
     if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
-        dataType = (DataType as any)[dataTypeId.value as number] as DataType;
+        dataType = (DataType as unknown as Record<number, DataType>)[dataTypeId.value as number];
         return dataType;
     }
 
@@ -96,16 +101,16 @@ async function convertNodeIdToDataTypeAsync(
     };
     const browseResult = await session.browse(nodeToBrowse);
 
-    const references = browseResult!.references;
+    const references = browseResult?.references;
 
-    if (!references || references.length !== 1) {
+    if (references?.length !== 1) {
         throw new Error(`cannot find SuperType of ${dataTypeName.toString()}`);
     }
     const nodeId = references[0].nodeId;
     return convertNodeIdToDataTypeAsync(session, nodeId);
 }
 
-function convertToVariant(value: unknown, arg: ArgumentEx, propName: string): Variant {
+function convertToVariant(value: unknown, arg: ArgumentEx, _propName: string): Variant {
     const dataType = arg._basicDataType || DataType.Null;
     const arrayType =
         arg.valueRank === 1 ? VariantArrayType.Array : arg.valueRank === -1 ? VariantArrayType.Scalar : VariantArrayType.Matrix;
@@ -133,12 +138,16 @@ function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<str
 import type { StatusCode } from "node-opcua-status-code";
 import type { ProxyNode } from "./proxy_transition";
 
-function makeFunction(obj: any, methodName: string) {
+function makeFunction(obj: ProxyNodeUnderConstruction, methodName: string) {
     return async function functionCaller(
-        this: any,
+        this: ProxyNodeUnderConstruction,
         inputArgs: Record<string, unknown>
     ): Promise<{ statusCode: StatusCode; output?: Record<string, unknown> }> {
-        const session = this.proxyManager.session;
+        // proxyManager is a private field of ProxyBaseNode, not part of its public shape;
+        // functionCaller is installed onto instances as a dynamic method (obj[methodName] =
+        // methodObj.func) and needs it at the call site regardless.
+        const proxyManager = (this as unknown as { proxyManager: UAProxyManager }).proxyManager;
+        const session = proxyManager.session;
 
         const methodDef = this.$methods[methodName];
         // convert input arguments into Variants
@@ -165,14 +174,14 @@ function makeFunction(obj: any, methodName: string) {
                 "Internal error callResult.outputArguments.length " +
                     callResult.outputArguments.length +
                     " " +
-                    obj[methodName].outputArguments.length
+                    methodDef.outputArguments.length
             );
         }
         const output: Record<string, unknown> = {};
         methodDef.outputArguments.forEach((arg: Argument, index: number) => {
-            const variant = callResult!.outputArguments![index];
-            const propName = lowerFirstLetter(arg.name!);
-            output[propName] = variant.value;
+            const variant = callResult?.outputArguments?.[index];
+            const propName = lowerFirstLetter(arg.name || "");
+            output[propName] = variant?.value;
         });
 
         return { statusCode: callResult.statusCode, output };
@@ -187,16 +196,20 @@ async function extractDataType(
         return;
     }
     const dataType = await convertNodeIdToDataTypeAsync(session, arg.dataType);
-    arg._basicDataType = dataType!;
+    arg._basicDataType = dataType;
 }
 /**
  
  * @private
  */
-async function add_method(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function add_method(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const session = proxyManager.session;
 
-    const methodName = lowerFirstLetter(reference.browseName.name!);
+    const methodName = lowerFirstLetter(reference.browseName.name || "");
 
     let inputArguments: ArgumentEx[] = [];
     let outputArguments: ArgumentEx[] = [];
@@ -217,22 +230,31 @@ async function add_method(proxyManager: UAProxyManager, obj: any, reference: Ref
     const methodObj: MethodDescription = {
         browseName: methodName,
         executableFlag: false,
-        func: makeFunction(obj, methodName) as any,
+        func: makeFunction(obj, methodName),
         nodeId: reference.nodeId,
         inputArguments,
         outputArguments
     };
     obj.$methods[methodName] = methodObj;
-    obj[methodName] = methodObj.func;
-
-    obj[methodName].inputArguments = inputArguments;
-    obj[methodName].outputArguments = outputArguments;
+    // the callable is also exposed directly as obj[methodName](...), decorated with the
+    // same input/output argument metadata carried by methodObj, for convenience.
+    const callableMethod = methodObj.func as MethodDescription["func"] & {
+        inputArguments: ArgumentEx[];
+        outputArguments: ArgumentEx[];
+    };
+    callableMethod.inputArguments = inputArguments;
+    callableMethod.outputArguments = outputArguments;
+    obj[methodName] = callableMethod;
 
     doDebug && debugLog("installing method name", methodName);
     await proxyManager._monitor_execution_flag(methodObj);
 }
 
-async function add_component(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function add_component(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const name = lowerFirstLetter(reference.browseName.name || "");
     await proxyManager.getObject(reference.nodeId);
     const childObj = new ObjectExplorer({
@@ -242,11 +264,17 @@ async function add_component(proxyManager: UAProxyManager, obj: any, reference: 
         proxyManager
     });
     obj[name] = childObj;
-    obj.$components.push(childObj);
+    // childObj is an unresolved placeholder here; $resolve() below pushes the real,
+    // fully-typed ProxyNode once the child has been fetched.
+    obj.$components.push(childObj as unknown as ProxyNode);
     await childObj.$resolve();
 }
 
-async function addFolderElement(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function addFolderElement(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     const childObj = new ObjectExplorer({
@@ -257,18 +285,29 @@ async function addFolderElement(proxyManager: UAProxyManager, obj: any, referenc
     });
 
     obj[name] = childObj;
-    obj.$organizes.push(childObj);
+    // childObj is an unresolved placeholder here; $resolve() below pushes the real,
+    // fully-typed ProxyNode once the child has been fetched.
+    obj.$organizes.push(childObj as unknown as ProxyNode);
     await childObj.$resolve();
 }
 
-async function add_property(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function add_property(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const name = lowerFirstLetter(reference.browseName.name || "");
 
-    obj[name] = new ProxyVariable(proxyManager, reference.nodeId, reference);
-    obj.$properties[name] = obj[name];
+    const propertyNode = new ProxyVariable(proxyManager, reference.nodeId, reference);
+    obj[name] = propertyNode;
+    obj.$properties[name] = propertyNode;
 }
 
-async function add_typeDefinition(proxyManager: UAProxyManager, obj: any, references: ReferenceDescription[]): Promise<void> {
+async function add_typeDefinition(
+    _proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    references: ReferenceDescription[]
+): Promise<void> {
     references = references || [];
     if (references.length !== 1) {
         return;
@@ -278,12 +317,20 @@ async function add_typeDefinition(proxyManager: UAProxyManager, obj: any, refere
     obj.typeDefinition = reference.browseName.name || "";
 }
 
-async function addFromState(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function addFromState(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const childObj = await proxyManager.getObject(reference.nodeId);
     obj.$fromState = childObj;
 }
 
-async function addToState(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
+async function addToState(
+    proxyManager: UAProxyManager,
+    obj: ProxyNodeUnderConstruction,
+    reference: ReferenceDescription
+): Promise<void> {
     const childObj = await proxyManager.getObject(reference.nodeId);
     obj.$toState = childObj;
 }
@@ -291,7 +338,7 @@ export class ObjectExplorer {
     public proxyManager: UAProxyManager;
     public name: string;
     public nodeId: NodeId;
-    public parent: any;
+    public parent: ProxyNodeUnderConstruction;
 
     constructor(options: ObjectExplorerOptions) {
         this.proxyManager = options.proxyManager;
@@ -312,7 +359,7 @@ function t(references: ReferenceDescription[] | null) {
     return references.map((r: ReferenceDescription) => `${r.browseName.name} ${r.nodeId.toString()}`);
 }
 
-export async function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: NodeId }): Promise<ProxyNode> {
+export async function readUAStructure(proxyManager: UAProxyManager, obj: ProxyNodeUnderConstruction): Promise<ProxyNode> {
     const session = proxyManager.session;
 
     //   0   Object
@@ -407,19 +454,15 @@ export async function readUAStructure(proxyManager: UAProxyManager, obj: { nodeI
     for (const reference of browseResults[2].references || []) {
         promises.push(add_method(proxyManager, obj, reference));
     }
-    browseResults[3].references &&
-        browseResults[3].references.length &&
-        promises.push(add_typeDefinition(proxyManager, obj, browseResults[3].references || []));
-    browseResults[4].references &&
-        browseResults[4].references.length &&
-        promises.push(addFromState(proxyManager, obj, browseResults[4].references[0]));
-    browseResults[5].references &&
-        browseResults[5].references.length &&
-        promises.push(addToState(proxyManager, obj, browseResults[5].references[0]));
+    browseResults[3].references?.length && promises.push(add_typeDefinition(proxyManager, obj, browseResults[3].references || []));
+    browseResults[4].references?.length && promises.push(addFromState(proxyManager, obj, browseResults[4].references[0]));
+    browseResults[5].references?.length && promises.push(addToState(proxyManager, obj, browseResults[5].references[0]));
     for (const reference of browseResults[6].references || []) {
         promises.push(addFolderElement(proxyManager, obj, reference));
     }
 
     await Promise.all(promises);
-    return obj as ProxyNode;
+    // $fromState/$toState are only ever set dynamically (addFromState/addToState above), so
+    // ProxyNodeUnderConstruction's index signature can't statically prove they're present.
+    return obj as unknown as ProxyNode;
 }

@@ -4,7 +4,7 @@
 import type { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 
-import { AttributeIds, coerceAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { type AccessLevelFlag, AttributeIds, coerceAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
@@ -20,6 +20,13 @@ import { ProxyObject } from "./proxy_object";
 import type { ProxyNode } from "./proxy_transition";
 import { ProxyStateMachineType } from "./state_machine_proxy";
 
+interface ProxyObjectWithDynamicFields extends ProxyObject {
+    dataValue?: DataValue;
+    userAccessLevel?: AccessLevelFlag;
+    accessLevel?: AccessLevelFlag;
+    [dynamicChildName: string]: unknown;
+}
+
 const debugLog = make_debugLog(__filename);
 
 export interface IProxy1 {
@@ -29,10 +36,14 @@ export interface IProxy1 {
     __monitoredItem?: EventEmitter;
 }
 export interface IProxy extends EventEmitter, IProxy1 {
-    dataValue: DataValue;
+    dataValue?: DataValue;
 }
 
-async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, options: any): Promise<ProxyNode> {
+async function internalGetObject(
+    proxyManager: UAProxyManager,
+    nodeId: NodeIdLike | NodeId,
+    _options: { depth?: number }
+): Promise<ProxyNode> {
     const session = proxyManager.session;
 
     nodeId = coerceNodeId(nodeId) as NodeId;
@@ -56,7 +67,7 @@ async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLik
         }
     ];
 
-    async function read_accessLevels(clientObject: any) {
+    async function read_accessLevels(clientObject: ProxyObjectWithDynamicFields) {
         const nodesToRead = [
             {
                 attributeId: AttributeIds.Value,
@@ -75,7 +86,10 @@ async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLik
         const dataValues = await session.read(nodesToRead);
 
         if (dataValues[0].statusCode.isGood()) {
-            clientObject.dataValue = dataValues[0].value;
+            // store the full DataValue (statusCode + timestamps + value), consistent with
+            // what _monitor_value's "changed" handler assigns here on later updates —
+            // assigning just the Variant (dataValues[0].value) would be a narrower shape.
+            clientObject.dataValue = dataValues[0];
         }
         if (dataValues[1].statusCode.isGood()) {
             clientObject.userAccessLevel = coerceAccessLevelFlag(dataValues[1].value.value);
@@ -85,7 +99,7 @@ async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLik
         }
     }
 
-    let clientObject: any;
+    let clientObject: ProxyObjectWithDynamicFields;
 
     const dataValues = await session.read(nodesToRead);
 
@@ -93,7 +107,7 @@ async function internalGetObject(proxyManager: UAProxyManager, nodeId: NodeIdLik
         throw new Error(`Invalid Node ${nodeId.toString()}`);
     }
 
-    clientObject = new ProxyObject(proxyManager, nodeId as NodeId);
+    clientObject = new ProxyObject(proxyManager, nodeId as NodeId) as ProxyObjectWithDynamicFields;
 
     clientObject.browseName = dataValues[0].value.value;
     clientObject.description = dataValues[1].value ? dataValues[1].value.value : "";
@@ -131,7 +145,7 @@ export interface IBasicSessionWithSubscriptionAsync extends IBasicSessionAsync, 
 export class UAProxyManager {
     public readonly session: IBasicSessionWithSubscriptionAsync;
     public subscription?: IClientSubscription;
-    #_map: any;
+    #_map: Record<string, ProxyNode>;
 
     constructor(session: IBasicSessionWithSubscriptionAsync) {
         this.session = session;
@@ -149,8 +163,8 @@ export class UAProxyManager {
         };
 
         const subscription = await this.session.createSubscription2(createSubscriptionRequest);
-        this.subscription = subscription!;
-        this.subscription!.on("terminated", () => {
+        this.subscription = subscription;
+        this.subscription?.on("terminated", () => {
             this.subscription = undefined;
         });
     }
@@ -166,9 +180,7 @@ export class UAProxyManager {
 
     // todo: rename getObject as getNode
     public async getObject(nodeId: NodeIdLike): Promise<ProxyNode> {
-        let options: any = {};
-        options = options || {};
-        options.depth = options.depth || 1;
+        const options: { depth: number } = { depth: 1 };
 
         const key = nodeId.toString();
         // the object already exist in the map ?
@@ -204,11 +216,11 @@ export class UAProxyManager {
         const monitoredItem = await this.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters);
 
         Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
-        proxyObject.__monitoredItem!.on("changed", (dataValue: DataValue) => {
+        proxyObject.__monitoredItem?.on("changed", (dataValue: DataValue) => {
             proxyObject.dataValue = dataValue;
             proxyObject.emit("value_changed", dataValue);
         });
-        proxyObject.__monitoredItem!.on("err", (err: Error) => {
+        proxyObject.__monitoredItem?.on("err", (err: Error) => {
             debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
         });
     }
@@ -242,7 +254,7 @@ export class UAProxyManager {
 
             enumerable: false
         });
-        proxyObject.__monitoredItem_execution_flag!.on("changed", (dataValue: DataValue) => {
+        proxyObject.__monitoredItem_execution_flag?.on("changed", (dataValue: DataValue) => {
             proxyObject.executableFlag = dataValue.value.value;
         });
     }

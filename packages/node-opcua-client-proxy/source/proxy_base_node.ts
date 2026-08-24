@@ -11,6 +11,8 @@ import type { WriteValueOptions } from "node-opcua-service-write";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType, Variant } from "node-opcua-variant";
 import type { UAProxyManager } from "./proxy_manager";
+import type { ProxyNode } from "./proxy_transition";
+import type { ProxyVariable } from "./proxy_variable";
 
 export interface ArgumentEx extends Argument {
     _basicDataType: DataType;
@@ -18,7 +20,7 @@ export interface ArgumentEx extends Argument {
 export interface MethodDescription {
     browseName: string;
     executableFlag: boolean;
-    func: (input: Record<string, unknown>, callback: (err: Error | null, output?: Record<string, unknown>) => void) => void;
+    func: (input: Record<string, unknown>) => Promise<{ statusCode: StatusCode; output?: Record<string, unknown> }>;
     nodeId: NodeId; // the method NodeId
     inputArguments: ArgumentEx[];
     outputArguments: ArgumentEx[];
@@ -36,25 +38,25 @@ export class ProxyBaseNode extends EventEmitter {
      * @property $components
      * @type {Array<ProxyBaseNode>}
      */
-    public readonly $components: any[];
+    public readonly $components: ProxyNode[];
     /**
      * the object's properties
      * @property $properties
      * @type {Array<ProxyBaseNode>}
      */
-    public $properties: any[];
+    public $properties: Record<string, ProxyVariable>;
     /**
      * the object's properties
      * @property $methods
      * @type {Array<ProxyBaseNode>}
      */
-    public $methods: MethodDescription[];
+    public $methods: Record<string, MethodDescription>;
     /**
      * the Folder's elements
      * @property $organizes
      * @type {Array<ProxyBaseNode>}
      */
-    public $organizes: any[];
+    public $organizes: ProxyNode[];
     /**
      * the object's description
      * @property description
@@ -72,7 +74,7 @@ export class ProxyBaseNode extends EventEmitter {
      * @property nodeClass
      * @type {NodeClass}
      */
-    public readonly nodeClass: NodeClass;
+    public nodeClass: NodeClass;
 
     private readonly proxyManager: UAProxyManager;
 
@@ -88,8 +90,8 @@ export class ProxyBaseNode extends EventEmitter {
             writable: true
         });
         this.$components = [];
-        this.$properties = [];
-        this.$methods = [];
+        this.$properties = {};
+        this.$methods = {};
         this.$organizes = [];
 
         this.description = "";
@@ -111,7 +113,7 @@ export class ProxyBaseNode extends EventEmitter {
             nodeId: this.nodeId
         };
         const dataValue = await this.proxyManager.session.read(nodeToRead);
-        const data = dataValue!.value;
+        const data = dataValue?.value;
         return data;
     }
 
@@ -140,7 +142,7 @@ export class ProxyBaseNode extends EventEmitter {
         str.push(`   browseName     : ${this.browseName.toString()}`);
         // str.push("   typeDefinition : " + this.typeDefinition.toString());
         str.push(`   $components#   : ${this.$components.length.toString()}`);
-        str.push(`   $properties#   : ${this.$properties.length.toString()}`);
+        str.push(`   $properties#   : ${Object.keys(this.$properties).length.toString()}`);
 
         return str.join("\n");
     }

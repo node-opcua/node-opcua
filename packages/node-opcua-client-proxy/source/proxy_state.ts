@@ -5,7 +5,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { ProxyNode } from "./proxy_transition";
 
 export class ProxyState {
-    private _node: any;
+    private _node: ProxyNode & { stateNumber?: ProxyNode };
 
     constructor(proxyNode: ProxyNode) {
         this._node = proxyNode;
@@ -17,7 +17,7 @@ export class ProxyState {
 
     public get stateNumber(): string {
         // note stateNumber has no real dataValue
-        return this._node.stateNumber.nodeId.value.toString();
+        return this._node.stateNumber?.nodeId.value.toString() || "";
     }
 
     public get nodeId(): NodeId {
