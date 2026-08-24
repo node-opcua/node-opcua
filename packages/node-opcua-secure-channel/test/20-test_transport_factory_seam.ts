@@ -1,6 +1,3 @@
-import should from "should";
-import sinon from "sinon";
-
 import {
     ClientTCP_transport,
     defaultClientTransportFactory,
@@ -8,6 +5,8 @@ import {
     type IClientTransportFactory,
     type TransportSettingsOptions
 } from "node-opcua-transport";
+import should from "should";
+import sinon from "sinon";
 
 import { ClientSecureChannelLayer } from "../dist/source";
 

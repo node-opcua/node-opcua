@@ -1,5 +1,4 @@
-
-/* 
+/*
  *  SymmetricSignatureAlgorithm    -----------------------------------------------------------------------------------+
  *  SymmetricEncryptionAlgorithm --------------------------------------------------------------------------+          |
  *  KeyDerivationAlgorithm ---------------------------------------------------------------------+          |          |
@@ -15,7 +14,6 @@
  *  Aes128-Sha256-RsaOaep_Limits      32 | 256 | 32 | RSA-OAEP-SHA1     | RSA-PKCS15-SHA2-256 |P-SHA2-256|AES128-CBC|HMAC-SHA2-256|
  *  Aes256-Sha256-RsaPss_Limits       32 | 256 | 32 | RSA-OAEP-SHA2-256 | RSA-PSS-SHA2-256    |P-SHA2-256|AES256-CBC|HMAC-SHA2-256|
  */
-
 
 /** Basic256 (deprecated)
 Basic256_Limits

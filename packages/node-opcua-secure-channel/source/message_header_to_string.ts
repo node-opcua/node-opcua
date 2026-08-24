@@ -14,15 +14,13 @@ import { chooseSecurityHeader } from "./secure_message_chunk_manager";
  * @return {string}
  */
 export function messageHeaderToString(messageChunk: Buffer): string {
-
     const stream = new BinaryStream(messageChunk);
 
     const messageHeader = readMessageHeader(stream);
     if (messageHeader.msgType === "ERR" || messageHeader.msgType === "HEL") {
-        return messageHeader.msgType + " " + messageHeader.isFinal + " length   = " + messageHeader.length;
+        return `${messageHeader.msgType} ${messageHeader.isFinal} length   = ${messageHeader.length}`;
     }
 
-  
     const sequenceHeader = new SequenceHeader();
     assert(stream.length === 8);
 
@@ -33,12 +31,21 @@ export function messageHeaderToString(messageChunk: Buffer): string {
 
     const slice = messageChunk.subarray(0, stream.length);
 
-    return messageHeader.msgType + " " +
+    return (
+        messageHeader.msgType +
+        " " +
         messageHeader.isFinal +
-        " length   = " + messageHeader.length +
-        " channel  = " + channelId +
-        " seqNum   = " + sequenceHeader.sequenceNumber +
-        " req ID   = " + sequenceHeader.requestId +
-        " security   = " + securityHeader.toString() +
-        "\n\n" + hexDump(slice);
+        " length   = " +
+        messageHeader.length +
+        " channel  = " +
+        channelId +
+        " seqNum   = " +
+        sequenceHeader.sequenceNumber +
+        " req ID   = " +
+        sequenceHeader.requestId +
+        " security   = " +
+        securityHeader.toString() +
+        "\n\n" +
+        hexDump(slice)
+    );
 }

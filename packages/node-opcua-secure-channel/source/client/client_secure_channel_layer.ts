@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 /**
  * @module node-opcua-secure-channel
  */
 import { createPublicKey } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
-
 
 import chalk from "chalk";
 
@@ -99,7 +97,6 @@ const doDebug1 = false;
 // set checkTimeout to true to enable timeout trace checking
 const checkTimeout = !!process.env.NODEOPCUACHECKTIMEOUT || false;
 
-// tslint:disable-next-line: no-var-requires
 const backoff = require("backoff");
 
 interface Backoff extends EventEmitter {
@@ -608,8 +605,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         const transport = this.#transportFactory.create(this.#requestedTransportSettings);
         transport.timeout = this.#transportTimeout;
 
-        doDebug &&
-            debugLog("ClientSecureChannelLayer#create creating transport with  transport.timeout = ", transport.timeout);
+        doDebug && debugLog("ClientSecureChannelLayer#create creating transport with  transport.timeout = ", transport.timeout);
         assert(!this.#_pending_transport);
         this.#_pending_transport = transport;
         this.#_establish_connection(transport, endpointUrl, (err?: Error | null) => {
@@ -721,10 +717,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
      *    ```
      *
      */
-    public performMessageTransaction(
-        request: Request,
-        callback: PerformTransactionCallback
-    ): void {
+    public performMessageTransaction(request: Request, callback: PerformTransactionCallback): void {
         this.#_performMessageTransaction("MSG", request, callback);
     }
 
@@ -1097,7 +1090,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
             lap_waiting_response: requestData.startReceivingTick - requestData.afterSendTick,
             request,
             response,
-            dump() { }
+            dump() {}
         };
 
         if (doTraceStatistics) {
@@ -1278,13 +1271,13 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                     if (Math.abs(delta) > ClientSecureChannelLayer.maxClockSkew) {
                         warningLog(
                             `[NODE-OPCUA-W33]  client : server token creation date exposes a time discrepancy ${durationToString(delta)}\n` +
-                            "remote server clock doesn't match this computer date !\n" +
-                            " please check both server and client clocks are properly set !\n" +
-                            ` server time :${chalk.cyan(securityToken.createdAt?.toISOString())}\n` +
-                            ` client time :${chalk.cyan(midDate.toISOString())}\n` +
-                            ` transaction duration = ${absoluteDurationToString(endDate.getTime() - startDate.getTime())}\n` +
-                            ` server URL = ${this.endpointUrl} \n` +
-                            ` token.createdAt  has been updated to reflect client time`
+                                "remote server clock doesn't match this computer date !\n" +
+                                " please check both server and client clocks are properly set !\n" +
+                                ` server time :${chalk.cyan(securityToken.createdAt?.toISOString())}\n` +
+                                ` client time :${chalk.cyan(midDate.toISOString())}\n` +
+                                ` transaction duration = ${absoluteDurationToString(endDate.getTime() - startDate.getTime())}\n` +
+                                ` server URL = ${this.endpointUrl} \n` +
+                                ` token.createdAt  has been updated to reflect client time`
                         );
                     }
                 }
@@ -1371,9 +1364,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         });
 
         // `setImmediate` is Node-only; fall back to a queued microtask in browsers.
-        const scheduleNext = typeof setImmediate === "function"
-            ? setImmediate
-            : (cb: () => void) => Promise.resolve().then(cb);
+        const scheduleNext = typeof setImmediate === "function" ? setImmediate : (cb: () => void) => Promise.resolve().then(cb);
         scheduleNext(() => {
             doDebug && debugLog(chalk.red("Client now sending OpenSecureChannel"));
             const isInitial = true;
@@ -1536,7 +1527,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
     /**
      * @private internal function
      */
-    public beforeSecurityRenew = async () => { };
+    public beforeSecurityRenew = async () => {};
     #_renew_security_token() {
         this.beforeSecurityRenew()
             .then(() => {

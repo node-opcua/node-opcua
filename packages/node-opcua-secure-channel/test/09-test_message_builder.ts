@@ -2,10 +2,10 @@ import "should";
 import { make_debugLog } from "node-opcua-debug";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import * as packets from "node-opcua-transport/dist/test-fixtures";
+import should from "should";
 import sinon from "sinon";
 import { MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source";
 import type { IDerivedKeyProvider } from "../dist/source/token_stack";
-import should from "should";
 
 const _debugLog = make_debugLog(__filename);
 

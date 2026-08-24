@@ -1,19 +1,26 @@
 /**
  * @module node-opcua-secure-channel
  */
-// tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
-import { BaseUAObject } from "node-opcua-factory";
-import { AsymmetricAlgorithmSecurityHeader, MessageSecurityMode, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { timestamp } from "node-opcua-utils";
+import { type Mode, SequenceHeader } from "node-opcua-chunkmanager";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
-import { Mode, SequenceHeader } from "node-opcua-chunkmanager";
+import type { BaseUAObject } from "node-opcua-factory";
+import {
+    AsymmetricAlgorithmSecurityHeader,
+    MessageSecurityMode,
+    SymmetricAlgorithmSecurityHeader
+} from "node-opcua-service-secure-channel";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { timestamp } from "node-opcua-utils";
 
-import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
+import {
+    SecureMessageChunkManager,
+    type SecureMessageChunkManagerOptions,
+    type SecurityHeader
+} from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
@@ -50,7 +57,7 @@ export class MessageChunker {
         this.maxChunkCount = options.maxChunkCount === undefined ? MessageChunker.defaultChunkCount : options.maxChunkCount;
     }
 
-    public dispose(): void { }
+    public dispose(): void {}
 
     #makeAbandonChunk(params: ChunkMessageParameters) {
         const finalC = "A";
@@ -58,13 +65,13 @@ export class MessageChunker {
         const buffer = Buffer.alloc(
             // MSGA
             4 +
-            // length
-            4 +
-            // secureChannelId
-            4 +
-            // tokenId
-            4 +
-            2 * 4
+                // length
+                4 +
+                // secureChannelId
+                4 +
+                // tokenId
+                4 +
+                2 * 4
         );
         const stream = new BinaryStream(buffer);
 
@@ -107,10 +114,8 @@ export class MessageChunker {
         return buffer;
     }
 
-
-
     #_build_chunk_manager(msgType: string, params: ChunkMessageParameters): SecureMessageChunkManager {
-        let securityHeader = params.securityHeader;
+        const securityHeader = params.securityHeader;
         if (msgType === "OPN") {
             assert(securityHeader instanceof AsymmetricAlgorithmSecurityHeader);
         } else if (msgType === "MSG") {
@@ -118,13 +123,21 @@ export class MessageChunker {
         }
         const channelId = params.channelId;
         const mode = this.securityMode as unknown as Mode;
-        const chunkManager = new SecureMessageChunkManager(mode, msgType, channelId, params.securityOptions, securityHeader, this.#sequenceNumberGenerator);
+        const chunkManager = new SecureMessageChunkManager(
+            mode,
+            msgType,
+            channelId,
+            params.securityOptions,
+            securityHeader,
+            this.#sequenceNumberGenerator
+        );
         return chunkManager;
     }
-    public prepareChunk(msgType: string,
+    public prepareChunk(
+        msgType: string,
         params: ChunkMessageParameters,
-        messageLength: number,
-    ): { statusCode: StatusCode, chunkManager: SecureMessageChunkManager | null } {
+        messageLength: number
+    ): { statusCode: StatusCode; chunkManager: SecureMessageChunkManager | null } {
         // calculate message size ( with its  encodingDefaultBinary)
         try {
             const chunkManager = this.#_build_chunk_manager(msgType, params);
@@ -157,13 +170,12 @@ export class MessageChunker {
         message: BaseUAObject,
         messageChunkCallback: MessageCallbackFunc
     ): StatusCode {
-
         const calculateMessageLength = (message: BaseUAObject) => {
             const stream = new BinaryStreamSizeCalculator();
             encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
             message.encode(stream);
             return stream.length;
-        }
+        };
         // evaluate the message size
         const messageLength = calculateMessageLength(message);
 
@@ -177,19 +189,20 @@ export class MessageChunker {
 
         let nbChunks = 0;
         let totalSize = 0;
-        chunkManager.on("chunk", (messageChunk: Buffer) => {
-            nbChunks++;
-            totalSize += messageChunk.length;
-            messageChunkCallback(messageChunk);
-        })
+        chunkManager
+            .on("chunk", (messageChunk: Buffer) => {
+                nbChunks++;
+                totalSize += messageChunk.length;
+                messageChunkCallback(messageChunk);
+            })
             .on("finished", () => {
                 if (doTraceChunk) {
                     console.log(
                         timestamp(),
                         "   <$$ ",
                         msgType,
-                        "nbChunk = " + nbChunks.toString().padStart(3),
-                        "totalLength = " + totalSize.toString().padStart(8),
+                        `nbChunk = ${nbChunks.toString().padStart(3)}`,
+                        `totalLength = ${totalSize.toString().padStart(8)}`,
                         "l=",
                         messageLength.toString().padStart(6),
                         "maxChunkCount=",
@@ -201,7 +214,7 @@ export class MessageChunker {
                 messageChunkCallback(null);
             });
 
-        // create buffer to stream 
+        // create buffer to stream
         const stream = new BinaryStream(messageLength);
         encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
         message.encode(stream);

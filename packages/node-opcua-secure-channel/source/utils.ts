@@ -1,49 +1,47 @@
-/* eslint-disable max-statements */
-/* eslint-disable complexity */
 import chalk from "chalk";
-import { timestamp } from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 import { make_traceLog } from "node-opcua-debug";
+import { BaseUAObject } from "node-opcua-factory";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
+    ActivateSessionRequest,
+    ActivateSessionResponse,
+    AnonymousIdentityToken,
     BrowseNextRequest,
     BrowseNextResponse,
     BrowseRequest,
     BrowseResponse,
-    ReadRequest,
-    ReadResponse,
-    WriteRequest,
-    WriteResponse,
+    type ChannelSecurityToken,
     CreateMonitoredItemsRequest,
     CreateMonitoredItemsResponse,
-    RegisterNodesRequest,
-    RegisterNodesResponse,
-    TranslateBrowsePathsToNodeIdsRequest,
-    TranslateBrowsePathsToNodeIdsResponse,
-    PublishResponse,
-    DataChangeNotification,
-    EventNotificationList,
-    StatusChangeNotification,
-    OpenSecureChannelRequest,
-    SecurityTokenRequestType,
-    MessageSecurityMode,
     CreateSessionRequest,
     CreateSessionResponse,
-    ActivateSessionRequest,
-    AnonymousIdentityToken,
-    UserNameIdentityToken,
-    X509IdentityToken,
-    ActivateSessionResponse,
-    PublishRequest,
-    ChannelSecurityToken,
     CreateSubscriptionResponse,
-    RepublishRequest,
+    DataChangeNotification,
     DeleteSubscriptionsRequest,
+    EventNotificationList,
+    MessageSecurityMode,
+    OpenSecureChannelRequest,
+    PublishRequest,
+    PublishResponse,
+    ReadRequest,
+    ReadResponse,
+    RegisterNodesRequest,
+    RegisterNodesResponse,
+    RepublishRequest,
+    SecurityTokenRequestType,
+    StatusChangeNotification,
     TransferSubscriptionsRequest,
-    TransferSubscriptionsResponse
+    TransferSubscriptionsResponse,
+    TranslateBrowsePathsToNodeIdsRequest,
+    TranslateBrowsePathsToNodeIdsResponse,
+    UserNameIdentityToken,
+    WriteRequest,
+    WriteResponse,
+    X509IdentityToken
 } from "node-opcua-types";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { Request, Response } from "./common";
-import { BaseUAObject } from "node-opcua-factory";
+import { timestamp } from "node-opcua-utils";
+import type { Request, Response } from "./common";
 
 const traceLog = make_traceLog(__filename);
 
@@ -58,12 +56,9 @@ export const doTraceRequest = serverFlag.match(/REQUEST/);
 export const doTraceResponse = serverFlag.match(/RESPONSE/);
 export const doPerfMonitoring = serverFlag.match(/PERF/);
 
-// eslint-disable-next-line prefer-const
-export let doTraceClientMessage = clientFlag.match(/TRACE/);
-// eslint-disable-next-line prefer-const
-export let doTraceClientRequestContent = clientFlag.match(/REQUEST/);
-// eslint-disable-next-line prefer-const
-export let doTraceClientResponseContent = clientFlag.match(/RESPONSE/);
+export const doTraceClientMessage = clientFlag.match(/TRACE/);
+export const doTraceClientRequestContent = clientFlag.match(/REQUEST/);
+export const doTraceClientResponseContent = clientFlag.match(/RESPONSE/);
 
 export const doTraceStatistics = process.env.NODEOPCUADEBUG && !!process.env.NODEOPCUADEBUG.match("STATS");
 // const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
@@ -136,34 +131,34 @@ const nameLength = "TranslateBrowsePathsToNodeIdsResponse".length + 2;
 
 function __get_extraInfo(req: Response | Request): string {
     if (req instanceof ReadRequest) {
-        return " nodesToRead.length    =" + req.nodesToRead?.length;
+        return ` nodesToRead.length    =${req.nodesToRead?.length}`;
     }
     if (req instanceof ReadResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof WriteRequest) {
-        return " nodesToWrite.length   =" + req.nodesToWrite?.length;
+        return ` nodesToWrite.length   =${req.nodesToWrite?.length}`;
     }
     if (req instanceof WriteResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof BrowseRequest) {
-        return " nodesToBrowse.length  =" + req.nodesToBrowse?.length;
+        return ` nodesToBrowse.length  =${req.nodesToBrowse?.length}`;
     }
     if (req instanceof BrowseResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof BrowseNextRequest) {
         return "                        "; // nodesToBrowse.length" + req.?.length;
     }
     if (req instanceof BrowseNextResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof CreateSessionRequest) {
-        return " " + req.sessionName + " to:" + req.requestedSessionTimeout + "ms";
+        return ` ${req.sessionName} to:${req.requestedSessionTimeout}ms`;
     }
     if (req instanceof CreateSessionResponse) {
-        return " " + req.sessionId + " to:" + req.revisedSessionTimeout + "ms";
+        return ` ${req.sessionId} to:${req.revisedSessionTimeout}ms`;
     }
     if (req instanceof ActivateSessionRequest) {
         if (req.userIdentityToken instanceof AnonymousIdentityToken) {
@@ -178,21 +173,21 @@ function __get_extraInfo(req: Response | Request): string {
         return (req.results || []).map((p) => p.toString()).join(" ");
     }
     if (req instanceof CreateMonitoredItemsRequest) {
-        const str = " n  =" + req.itemsToCreate?.length;
-        const str2 = req.subscriptionId ? " sid = " + req.subscriptionId : "";
-        return str + " " + str2;
+        const str = ` n  =${req.itemsToCreate?.length}`;
+        const str2 = req.subscriptionId ? ` sid = ${req.subscriptionId}` : "";
+        return `${str} ${str2}`;
     }
     if (req instanceof CreateMonitoredItemsResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof TranslateBrowsePathsToNodeIdsRequest) {
-        return " browsePaths.length    =" + req.browsePaths?.length;
+        return ` browsePaths.length    =${req.browsePaths?.length}`;
     }
     if (req instanceof TranslateBrowsePathsToNodeIdsResponse) {
-        return " results.length        =" + req.results?.length;
+        return ` results.length        =${req.results?.length}`;
     }
     if (req instanceof RegisterNodesRequest) {
-        return " nodesToRegister.length=" + req.nodesToRegister?.length;
+        return ` nodesToRegister.length=${req.nodesToRegister?.length}`;
     }
     if (req instanceof OpenSecureChannelRequest) {
         return (
@@ -206,19 +201,19 @@ function __get_extraInfo(req: Response | Request): string {
         );
     }
     if (req instanceof CreateSubscriptionResponse) {
-        return " subscriptionId = " + req.subscriptionId;
+        return ` subscriptionId = ${req.subscriptionId}`;
     }
     if (req instanceof RegisterNodesResponse) {
-        return " nodesToRegister.length=" + req.registeredNodeIds?.length;
+        return ` nodesToRegister.length=${req.registeredNodeIds?.length}`;
     }
     if (req instanceof PublishRequest) {
-        return " " + req.requestHeader.timeoutHint + "ms";
+        return ` ${req.requestHeader.timeoutHint}ms`;
     }
     if (req instanceof PublishResponse) {
         let t = "";
         if (req.notificationMessage.notificationData) {
             for (const n of req.notificationMessage.notificationData) {
-                t += n?.constructor?.name + " ";
+                t += `${n?.constructor?.name} `;
                 if (n instanceof DataChangeNotification) {
                     t += n.monitoredItems?.length;
                 }
@@ -232,10 +227,10 @@ function __get_extraInfo(req: Response | Request): string {
                 t = t.replace(/Notification/g, "Nt°");
             }
         }
-        return " " + t + " seq#=" + req.notificationMessage.sequenceNumber;
+        return ` ${t} seq#=${req.notificationMessage.sequenceNumber}`;
     }
     if (req instanceof RepublishRequest) {
-        return " subscriptionId = " + req.subscriptionId.toString();
+        return ` subscriptionId = ${req.subscriptionId.toString()}`;
     }
     if (req instanceof DeleteSubscriptionsRequest) {
         return req.subscriptionIds?.map((i) => i.toString()).join(", ") || "";
@@ -256,7 +251,7 @@ function _get_extraInfo(req: Response | Request): string {
 function evaluateBinarySize(r: Request | Response): string {
     const e = r as any;
     const size = e.binaryStoreSize();
-    return "s=" + ("" + size).padStart(6) + " ";
+    return `s=${(`${size}`).padStart(6)} `;
 }
 
 function statusCodeToString(s: StatusCode): string {
@@ -377,7 +372,7 @@ function additionalInfo(response: Response): string {
         if (!someBad) {
             return "";
         }
-        return "!!" + someBad.toString();
+        return `!!${someBad.toString()}`;
     }
     if (response instanceof CreateSubscriptionResponse) {
         return response.subscriptionId.toString();

@@ -2,16 +2,16 @@
  * @module node-opcua-secure-channel
  */
 export {
-    OpenSecureChannelRequest, OpenSecureChannelResponse,
-    CloseSecureChannelRequest, CloseSecureChannelResponse,
-    ServiceFault,
     AsymmetricAlgorithmSecurityHeader,
+    CloseSecureChannelRequest,
+    CloseSecureChannelResponse,
     MessageSecurityMode,
-    SecurityTokenRequestType,
-    ResponseHeader,
+    OpenSecureChannelRequest,
+    OpenSecureChannelResponse,
     RequestHeader,
+    ResponseHeader,
+    SecurityTokenRequestType,
+    ServiceFault,
     SignatureData
 } from "node-opcua-service-secure-channel";
-export {
-    AcknowledgeMessage
-} from "node-opcua-transport";
+export { AcknowledgeMessage } from "node-opcua-transport";

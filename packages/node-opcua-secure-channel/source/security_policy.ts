@@ -11,13 +11,8 @@ import {
     privateDecrypt as privateDecrypt_native,
     publicEncrypt as publicEncrypt_native
 } from "node:crypto";
-import { 
-    assert 
-} from "node-opcua-assert";
-import type { 
-    EncryptBufferFunc, 
-    SignBufferFunc 
-} from "node-opcua-chunkmanager";
+import { assert } from "node-opcua-assert";
+import type { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import {
     type Certificate,
     computeDerivedKeys as computeDerivedKeys_ext,
@@ -39,14 +34,8 @@ import {
     toPem,
     verifyMessageChunkSignature
 } from "node-opcua-crypto/web";
-import { 
-    make_errorLog, 
-    make_warningLog 
-} from "node-opcua-debug";
-import { 
-    MessageSecurityMode, 
-    SignatureData 
-} from "node-opcua-service-secure-channel";
+import { make_errorLog, make_warningLog } from "node-opcua-debug";
+import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
 
 const warningLog = make_warningLog("SecurityPolicy");
 const errorLog = make_errorLog("SecurityPolicy");

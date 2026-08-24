@@ -325,7 +325,6 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", () => {
 
         installFakeDecodeMessageBody(messageBuilder);
 
-        let _err;
         messageBuilder
             .on("full_message_body", (message) => {
                 console.log(hexDump(message));

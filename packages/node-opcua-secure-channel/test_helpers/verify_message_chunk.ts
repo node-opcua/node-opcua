@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import { MessageBuilder, MessageSecurityMode, messageHeaderToString, SecurityPolicy } from "../source/index";
 import { TokenStack } from "../source/token_stack";

@@ -1,41 +1,37 @@
-/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 /**
  * @module node-opcua-secure-channel
  */
-// tslint:disable:variable-name
-// tslint:disable:max-line-length
-import { types } from "util";
-import chalk from "chalk";
 
+import { types } from "node:util";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId, decodeString } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { SequenceHeader } from "node-opcua-chunkmanager";
 import {
     decryptBufferWithDerivedKeys,
     makeSHA1Thumbprint,
-    PrivateKey,
+    type PrivateKey,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto/web";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { type BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
+import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
     AsymmetricAlgorithmSecurityHeader,
+    CloseSecureChannelRequest,
     coerceMessageSecurityMode,
-    MessageSecurityMode,
-    CloseSecureChannelRequest
+    MessageSecurityMode
 } from "node-opcua-service-secure-channel";
-import { decodeStatusCode, StatusCodes, StatusCode } from "node-opcua-status-code";
-import { MessageBuilderBase, MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
+import { decodeStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { doTraceChunk, MessageBuilderBase, type MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
-import { SequenceHeader } from "node-opcua-chunkmanager";
-import { doTraceChunk } from "node-opcua-transport";
 
 import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
-import { chooseSecurityHeader, SecurityHeader } from "./secure_message_chunk_manager";
+import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager";
 import { asymmetricVerifyChunk, coerceSecurityPolicy, getCryptoFactory, SecurityPolicy } from "./security_policy";
-import { IDerivedKeyProvider } from "./token_stack";
+import type { IDerivedKeyProvider } from "./token_stack";
 import { reduceLength, removePadding } from "./utils";
 
 const debugLog = make_debugLog("SecureChannel");
@@ -183,6 +179,7 @@ export interface MessageBuilder extends MessageBuilderBase {
 
 /**
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class MessageBuilder extends MessageBuilderBase {
     public securityPolicy: SecurityPolicy;
     public securityMode: MessageSecurityMode;
@@ -195,9 +192,9 @@ export class MessageBuilder extends MessageBuilderBase {
     #privateKey: PrivateKey;
 
     /**
-     * 
+     *
      * @param derivedKeyProvider the key for client signing verification
-     * @param options 
+     * @param options
      */
     constructor(derivedKeyProvider: IDerivedKeyProvider, options: MessageBuilderOptions) {
         super(options);
@@ -266,8 +263,8 @@ export class MessageBuilder extends MessageBuilderBase {
                         timestamp(),
                         chalk.red("   >$$ "),
                         chalk.red(this.messageHeader.msgType),
-                        chalk.red("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
-                        chalk.red("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                        chalk.red(`nbChunk = ${this.messageChunks.length.toString().padStart(3)}`),
+                        chalk.red(`totalLength = ${this.totalMessageSize.toString().padStart(8)}`),
                         "l=",
                         this.messageHeader.length.toString().padStart(6),
                         errorCode.toString(),
@@ -312,8 +309,8 @@ export class MessageBuilder extends MessageBuilderBase {
                         chalk.cyan(timestamp()),
                         chalk.green("   >$$ "),
                         chalk.green(this.messageHeader.msgType),
-                        chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
-                        chalk.green("totalLength = " + this.totalMessageSize.toString().padStart(8)),
+                        chalk.green(`nbChunk = ${this.messageChunks.length.toString().padStart(3)}`),
+                        chalk.green(`totalLength = ${this.totalMessageSize.toString().padStart(8)}`),
                         "l=",
                         this.messageHeader.length.toString().padStart(6),
                         "s=",
@@ -329,7 +326,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return true;
         } catch (err) {
             warningLog(chalk.red("Error"), (err as Error).message);
-            return this._report_error(StatusCodes2.BadTcpInternalError, "Internal Error " + (err as Error).message);
+            return this._report_error(StatusCodes2.BadTcpInternalError, `Internal Error ${(err as Error).message}`);
         }
     }
 
@@ -367,21 +364,21 @@ export class MessageBuilder extends MessageBuilderBase {
             // we better off reporting an error and abort the communication
             return this._report_error(
                 StatusCodes2.BadTcpInternalError,
-                "decodeExpandedNodeId " + (types.isNativeError(err) ? err.message : "")
+                `decodeExpandedNodeId ${types.isNativeError(err) ? err.message : ""}`
             );
         }
 
         if (!this.#objectFactory.hasConstructor(id)) {
             // the datatype NodeId is not supported by the server and unknown in the factory
             // we better off reporting an error and abort the communication
-            return this._report_error(StatusCodes.BadNotSupported, "cannot construct object with nodeID " + id.toString());
+            return this._report_error(StatusCodes.BadNotSupported, `cannot construct object with nodeID ${id.toString()}`);
         }
 
         // construct the object
         const objMessage = this.#objectFactory.constructObject(id);
 
         if (!objMessage) {
-            return this._report_error(StatusCodes.BadNotSupported, "cannot construct object with nodeID " + id);
+            return this._report_error(StatusCodes.BadNotSupported, `cannot construct object with nodeID ${id}`);
         } else {
             if (this.#_safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
                 /* c8 ignore next */
@@ -390,15 +387,15 @@ export class MessageBuilder extends MessageBuilderBase {
                     const requestHandle = o.responseHeader
                         ? o.responseHeader.requestHandle
                         : o.requestHeader
-                            ? o.requestHeader.requestHandle
-                            : "";
+                          ? o.requestHeader.requestHandle
+                          : "";
 
                     debugLog(
                         this.id,
                         "message size =",
-                        ("" + this.totalMessageSize).padEnd(8),
+                        `${this.totalMessageSize}`.padEnd(8),
                         " body size   =",
-                        ("" + this.totalBodySize).padEnd(8),
+                        `${this.totalBodySize}`.padEnd(8),
                         " requestHandle = ",
                         requestHandle,
                         objMessage.constructor.name
@@ -429,14 +426,14 @@ export class MessageBuilder extends MessageBuilderBase {
                     }
                 }
             } else {
-                warningLog("cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name);
+                warningLog(`cannot decode message  for valid object of type ${id.toString()} ${objMessage.constructor.name}`);
                 this.emit("invalid_message", objMessage);
                 debugLog(
                     this.id,
                     "message size =",
-                    ("" + this.totalMessageSize).padEnd(8),
+                    `${this.totalMessageSize}`.padEnd(8),
                     " body size   =",
-                    ("" + this.totalBodySize).padEnd(8),
+                    `${this.totalBodySize}`.padEnd(8),
                     objMessage.constructor.name
                 );
                 warningLog(objMessage.toString());
@@ -453,13 +450,12 @@ export class MessageBuilder extends MessageBuilderBase {
         assert(isFinite(this.#previousSequenceNumber));
         assert(isFinite(sequenceNumber) && sequenceNumber >= 0);
 
-        let expectedSequenceNumber;
+        let expectedSequenceNumber: number;
         if (this.#previousSequenceNumber !== -1) {
             expectedSequenceNumber = this.#previousSequenceNumber + 1;
 
             if (expectedSequenceNumber !== sequenceNumber) {
-                const errMessage =
-                    "Invalid Sequence Number found ( expected " + expectedSequenceNumber + ", got " + sequenceNumber + ")";
+                const errMessage = `Invalid Sequence Number found ( expected ${expectedSequenceNumber}, got ${sequenceNumber})`;
 
                 /* c8 ignore next */
                 debugLog(chalk.red.bold(errMessage));
@@ -476,7 +472,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
         /* c8 ignore next */
         if (doDebug) {
-            debugLog(chalk.yellow.bold("" + this.id + " Sequence Number = "), sequenceNumber);
+            debugLog(chalk.yellow.bold(`${this.id} Sequence Number = `), sequenceNumber);
         }
         this.#previousSequenceNumber = sequenceNumber;
         return true;
@@ -531,7 +527,7 @@ export class MessageBuilder extends MessageBuilderBase {
         if (!cryptoFactory) {
             return this._report_error(
                 StatusCodes2.BadTcpInternalError,
-                " Security Policy " + this.securityPolicy + " is not implemented yet"
+                ` Security Policy ${this.securityPolicy} is not implemented yet`
             );
         }
 
@@ -556,7 +552,7 @@ export class MessageBuilder extends MessageBuilderBase {
             } catch (err) {
                 // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
                 // this package is wrong
-                return this._report_error(StatusCodes2.BadTcpInternalError, "Cannot decrypt OPN package " + (err as Error).message);
+                return this._report_error(StatusCodes2.BadTcpInternalError, `Cannot decrypt OPN package ${(err as Error).message}`);
             }
 
             /* c8 ignore next */
@@ -625,7 +621,7 @@ export class MessageBuilder extends MessageBuilderBase {
             this.#derivedKeyProvider.getDerivedKey(symmetricAlgorithmSecurityHeader.tokenId);
             return this._report_error(
                 StatusCodes2.BadSecureChannelTokenUnknown,
-                "Security token data for token " + symmetricAlgorithmSecurityHeader.tokenId + " doesn't exist"
+                `Security token data for token ${symmetricAlgorithmSecurityHeader.tokenId} doesn't exist`
             );
         }
 
@@ -680,7 +676,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // c8 ignore next
         if (msgType !== "OPN" && this.securityPolicy === SecurityPolicy.Invalid) {
-            throw new Error("internal error : invalid securityPolicy" + this.securityPolicy);
+            throw new Error(`internal error : invalid securityPolicy${this.securityPolicy}`);
         }
         // note: securityPolicy might still be Invalid when MSGType == OPN
 

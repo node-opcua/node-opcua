@@ -1,6 +1,6 @@
-import { randomBytes } from "node-opcua-utils";
 import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { getFixture } from "node-opcua-test-fixtures";
+import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import { computeSignature, fromURI, SecurityPolicy, toURI, verifySignature } from "../dist/source";
 

@@ -476,7 +476,6 @@ describe("testing ServerSecureChannelLayer ", function (this: any) {
             return rep;
         }
         async function sendHello() {
-            // eslint-disable-next-line no-undef
             const helloMessage = new HelloMessage({
                 protocolVersion: 0, // UInt32;
                 receiveBufferSize: 8 * 1024, // UInt32;

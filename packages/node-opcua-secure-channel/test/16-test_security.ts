@@ -101,7 +101,6 @@ describe("Testing secure client and server connection", function (this: any) {
         const parentS: ServerSecureChannelParent = {
             certificateManager,
 
-            // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
                 const firstCertificateInChain = this.getCertificateChain()[0];
                 return firstCertificateInChain;
@@ -180,7 +179,6 @@ describe("Testing secure client and server connection", function (this: any) {
         const serverSocket = transportPair.server;
 
         const parentC: ClientSecureChannelParent = {
-            // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
                 const firstCertificateInChain = this.getCertificateChain()[0];
                 return firstCertificateInChain;

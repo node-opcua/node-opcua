@@ -16,10 +16,7 @@ export type Nonce = Buffer;
  * returns true if the nonce is null or zero (all bytes set to 0)
  */
 export function isEmptyNonce(nonce: Nonce): boolean {
-    const countZero = nonce.reduce(
-        (accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0),
-        0
-    );
+    const countZero = nonce.reduce((accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0), 0);
     return countZero === nonce.length;
 }
 

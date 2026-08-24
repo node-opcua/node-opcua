@@ -4,7 +4,6 @@ import { assert } from "node-opcua-assert";
 import { readPrivateKey } from "node-opcua-crypto";
 import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto/web";
 
-// tslint:disable:no-var-requires
 const { getFixture } = require("node-opcua-test-fixtures");
 
 function construct_makeMessageChunkSignatureForTest() {
