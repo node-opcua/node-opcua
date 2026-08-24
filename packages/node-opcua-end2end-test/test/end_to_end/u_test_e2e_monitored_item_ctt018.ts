@@ -2,6 +2,7 @@ import {
     type AddressSpace,
     AttributeIds,
     type ClientSession,
+    type ClientSessionRawSubscriptionService,
     type ClientSidePublishEngine,
     ClientSubscription,
     DataChangeNotification,
@@ -13,6 +14,7 @@ import {
     type Namespace,
     type NodeId,
     type NotificationData,
+    type NotificationMessage,
     NumericRange,
     OPCUAClient,
     type OPCUAClientOptions,
@@ -27,6 +29,7 @@ import {
 import "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -35,18 +38,21 @@ interface ClientSidePublishEnginePrivate extends ClientSidePublishEngine {
     internalSendPublishRequest(): void;
     suspend(suspend: boolean): void;
 }
+interface SessionWithPublishEngine extends ClientSession {
+    getPublishEngine(): ClientSidePublishEnginePrivate;
+}
 function getInternalPublishEngine(session: ClientSession): ClientSidePublishEnginePrivate {
-    const s: ClientSidePublishEnginePrivate = (session as any).getPublishEngine();
+    const s: ClientSidePublishEnginePrivate = (session as SessionWithPublishEngine).getPublishEngine();
     return s;
 }
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     const options: OPCUAClientOptions = {
         requestedSessionTimeout: 1000000
     };
 
     async function createSession() {
         const client = OPCUAClient.create(options);
-        const endpointUrl = test.endpointUrl;
+        const endpointUrl = test.endpointUrl!;
         await client.connect(endpointUrl);
         const session = await client.createSession();
 
@@ -78,9 +84,9 @@ export function t(test: any) {
         publishEngine.internalSendPublishRequest();
         return await new Promise((resolve: (result: NotificationData[]) => void) => {
             // wait for fist notification
-            subscription.once("raw_notification", (notificationMessage: any) => {
+            subscription.once("raw_notification", (notificationMessage: NotificationMessage) => {
                 debugLog("got notification message ", notificationMessage.toString());
-                resolve(notificationMessage.notificationData);
+                resolve((notificationMessage.notificationData ?? []) as NotificationData[]);
             });
         });
     }
@@ -116,8 +122,8 @@ export function t(test: any) {
 
         const items: NodeId[] = [];
         before(() => {
-            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
-            const namespace = test.server.engine.addressSpace.getOwnNamespace() as Namespace;
+            const _addressSpace = test.server!.engine.addressSpace as AddressSpace;
+            const namespace = test.server!.engine.addressSpace!.getOwnNamespace() as Namespace;
 
             for (let i = 0; i < 10; i++) {
                 const v = namespace.addVariable({
@@ -129,7 +135,7 @@ export function t(test: any) {
             }
         });
         beforeEach(async () => {
-            const _addressSpace = test.server.engine.addressSpace as AddressSpace;
+            const _addressSpace = test.server!.engine.addressSpace as AddressSpace;
             s = await createSession();
         });
         afterEach(async () => {
@@ -173,7 +179,7 @@ export function t(test: any) {
             // we send a publish request
             // we should verify that only one notification is recevied (for the only one valid monitored item )
 
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription } = s;
 
             const itemToMonitorsAll: ReadValueIdOptions[] = items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }));
 
@@ -218,7 +224,7 @@ export function t(test: any) {
             // calls publish before and after changing the mode and verifies that datachange notifications
             // are received only for the reporting items.
 
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription } = s;
 
             const itemsValues: { [key: number]: DataValue } = {};
 
@@ -291,9 +297,9 @@ export function t(test: any) {
                         );
                 }
 
-                const _setMonitoringModeResponse = (await (session as any).setMonitoringMode(
-                    setMonitoringModeRequest
-                )) as SetMonitoringModeResponse;
+                const _setMonitoringModeResponse: SetMonitoringModeResponse = await (
+                    session as unknown as ClientSessionRawSubscriptionService
+                ).setMonitoringMode(setMonitoringModeRequest);
 
                 //xx checkSetMonitoringModeValidParameter( setMonitoringModeRequest, setMonitoringModeResponse );
 
@@ -356,7 +362,7 @@ export function t(test: any) {
 
             We do not expect to receive data in the Publish response. 
             */
-            const { session, subscription, publishEngine } = s;
+            const { session, subscription } = s;
 
             const namespaceSimulationIndex = 2;
 
@@ -395,7 +401,7 @@ export function t(test: any) {
             };
             const _group = await subscription.monitorItems(itemsToMonitor, requesterParameters, TimestampsToReturn.Both);
 
-            const d: any = {};
+            const d: { [key: number]: DataValue } = {};
             const change1 = await collectDataChange(d);
             change1.should.eql(1);
 
