@@ -1,22 +1,15 @@
 import os from "node:os";
 import { make_debugLog } from "node-opcua-debug";
-import {
-    MessageSecurityMode,
-    OPCUAClient,
-    type OPCUAClientOptions,
-    SecurityPolicy,
-} from "..";
+import { MessageSecurityMode, OPCUAClient, type OPCUAClientOptions, SecurityPolicy } from "..";
 
 const debugLog = make_debugLog("TEST");
 
-// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 async function wait(t: number) {
     return await new Promise((resolve) => setTimeout(resolve, t));
 }
 
 describe("issue #931 investigation", function (this: Mocha.Suite) {
-
     this.timeout(Math.max(40000, this.timeout()));
 
     async function doTest(options: OPCUAClientOptions, host: string) {

@@ -183,7 +183,6 @@ export interface ClientSession extends ClientSessionBase {
 }
 // events
 export interface ClientSession extends EventEmitter {
-    // tslint:disable:unified-signatures
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState) => void): this;
 
     on(event: "keepalive_failure", eventHandler: (state: any) => void): this;

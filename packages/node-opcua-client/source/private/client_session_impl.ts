@@ -2,8 +2,8 @@
  * @module node-opcua-client-private
  */
 
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import type { DateTime } from "node-opcua-basic-types";
 import {
@@ -423,8 +423,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                                 " BrowseResponse : the server didn't take into" +
                                 " account our requestedMaxReferencesPerNode "
                         );
-                        warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
-                        warningLog("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
+                        warningLog(`        this.requestedMaxReferencesPerNode= ${this.requestedMaxReferencesPerNode}`);
+                        warningLog(`        got ${r.references.length}for ${nodesToBrowse[i].nodeId.toString()}`);
                         warningLog("        continuationPoint ", r.continuationPoint);
                     }
                 }
@@ -1206,7 +1206,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                         "please make sure to refactor your code and check that " +
                             "the second argument of your callback function is named"
                     ),
-                    chalk.cyan("dataValue" + (isArray ? "s" : ""))
+                    chalk.cyan(`dataValue${isArray ? "s" : ""}`)
                 );
                 warningLog(chalk.cyan("to make this exception disappear"));
                 throw new Error("ERROR ClientSession#read  API has changed !!, please fix the client code");
@@ -1284,7 +1284,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         let callback = args[1];
         const subscription = new ClientSubscriptionImpl(this, createSubscriptionRequest);
 
-        // tslint:disable-next-line:no-empty
         subscription.on("error", (err) => {
             if (callback) {
                 callback(err);
@@ -1475,14 +1474,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
         if (!this._client) {
             // session may have been closed by user ... but is still in used !!
-            return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+            callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+            return;
         }
         if (
             request instanceof PublishRequest ||
             request instanceof ActivateSessionRequest ||
             request instanceof CloseSessionRequest
         ) {
-            return this._performMessageTransaction(request, callback);
+            this._performMessageTransaction(request, callback);
+            return;
         }
 
         if (this._reconnecting.pendingTransactions.length > 0) {
@@ -1547,7 +1548,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             const length = this._reconnecting.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
                 debugLog("reprocessRequest => ", this._reconnecting.pendingTransactions.length, " transaction(s) left in queue");
-                // tslint:disable-next-line: no-shadowed-variable
                 const { request, callback } = this._reconnecting.pendingTransactions.shift();
                 this.#reprocessRequest(0, request, callback);
             }
@@ -1560,7 +1560,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         /* c8 ignore next */
         if (!this._client) {
             // session may have been closed by user ... but is still in used !!
-            return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+            callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
+            return;
         }
 
         if (!this.isChannelValid()) {
@@ -1568,7 +1569,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             // for a long time
             // we may need to queue this transaction, as a secure token may be being reprocessed
             debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
-            return callback(new Error("Invalid Channel BadConnectionClosed"));
+            callback(new Error("Invalid Channel BadConnectionClosed"));
+            return;
         }
 
         // is this stuff useful?
@@ -1946,7 +1948,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         //
         const privateThis = this as any;
         if (!(!privateThis.pendingTransactions || privateThis.pendingTransactions.length === 0)) {
-            // tslint:disable-next-line: no-console
             warningLog("dispose when pendingTransactions is not empty ");
         }
     }
@@ -1959,34 +1960,34 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         const timeoutInfo =
             timeoutDelay < 0
-                ? chalk.red(" expired since " + -timeoutDelay / 1000 + " seconds")
-                : chalk.green(" timeout in " + timeoutDelay / 1000 + " seconds");
+                ? chalk.red(` expired since ${-timeoutDelay / 1000} seconds`)
+                : chalk.green(` timeout in ${timeoutDelay / 1000} seconds`);
 
         let str = "";
-        str += " name..................... " + this.name;
-        str += "\n sessionId................ " + this.sessionId.toString();
-        str += "\n authenticationToken...... " + (this.authenticationToken ? this.authenticationToken!.toString() : "");
-        str += "\n timeout.................. " + this.timeout + "ms" + timeoutInfo;
-        str += "\n serverNonce.............. " + (this.serverNonce ? this.serverNonce!.toString("hex") : "");
-        str += "\n serverCertificate........ " + buffer_ellipsis(this.serverCertificate);
-        str += "\n serverSignature.......... " + this.serverSignature;
-        str += "\n lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + "  (" + lap1 + ")";
-        str += "\n lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + " (" + lap2 + ")";
-        str += "\n isReconnecting........... " + this.isReconnecting;
-        str += "\n isValidChannel........... " + this.isChannelValid() + " has been closed  " + this.hasBeenClosed();
-        str += "\n channelId................ " + this.channelId();
-        str += "\n remaining life time...... " + this.evaluateRemainingLifetime();
-        str += "\n subscription count....... " + this.subscriptionCount;
+        str += ` name..................... ${this.name}`;
+        str += `\n sessionId................ ${this.sessionId.toString()}`;
+        str += `\n authenticationToken...... ${this.authenticationToken ? this.authenticationToken!.toString() : ""}`;
+        str += `\n timeout.................. ${this.timeout}ms${timeoutInfo}`;
+        str += `\n serverNonce.............. ${this.serverNonce ? this.serverNonce!.toString("hex") : ""}`;
+        str += `\n serverCertificate........ ${buffer_ellipsis(this.serverCertificate)}`;
+        str += `\n serverSignature.......... ${this.serverSignature}`;
+        str += `\n lastRequestSentTime...... ${new Date(this.lastRequestSentTime).toISOString()}  (${lap1})`;
+        str += `\n lastResponseReceivedTime. ${new Date(this.lastResponseReceivedTime).toISOString()} (${lap2})`;
+        str += `\n isReconnecting........... ${this.isReconnecting}`;
+        str += `\n isValidChannel........... ${this.isChannelValid()} has been closed  ${this.hasBeenClosed()}`;
+        str += `\n channelId................ ${this.channelId()}`;
+        str += `\n remaining life time...... ${this.evaluateRemainingLifetime()}`;
+        str += `\n subscription count....... ${this.subscriptionCount}`;
         if (this._client && this._client._secureChannel) {
             if (this._client._secureChannel.activeSecurityToken) {
-                str += "\n reviseTokenLifetime...... " + this._client._secureChannel.activeSecurityToken.revisedLifetime;
+                str += `\n reviseTokenLifetime...... ${this._client._secureChannel.activeSecurityToken.revisedLifetime}`;
             }
         }
-        str += "\n keepAlive ................ " + this._keepAliveManager ? true : false;
         if (this._keepAliveManager) {
-            str += "\n keepAlive checkInterval.. " + this._keepAliveManager.checkInterval + " ms";
-            str += "\n (defaultTransportTimeout)." + ClientSecureChannelLayer.defaultTransportTimeout + " ms";
-            str += "\n session timeout           " + this.timeout + " ms";
+            str += `\n keepAlive ................ ${this._keepAliveManager}`;
+            str += `\n keepAlive checkInterval.. ${this._keepAliveManager.checkInterval} ms`;
+            str += `\n (defaultTransportTimeout).${ClientSecureChannelLayer.defaultTransportTimeout} ms`;
+            str += `\n session timeout           ${this.timeout} ms`;
         }
         return str;
     }
@@ -2015,7 +2016,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         return this.$$namespaceArray!.indexOf(namespaceUri);
     }
 
-    // tslint:disable:no-empty
     // ---------------------------------------- Alarm & condition stub
     public disableCondition(): void {
         /** empty */
@@ -2143,6 +2143,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     //  DO NOT TERMINATE SESSION, as we will need a publishEngine when we
                     //  reconnect this._terminatePublishEngine();
 
+                    // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                     if (false) {
                         // ER 10.2019
                         /**
@@ -2160,7 +2161,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     #_recreate_session_and_reperform_transaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
         warningLog("attempt to recreate session to reperform a transaction ", request.constructor.name);
         if (this.recursive_repair_detector >= 1) {
-            // tslint:disable-next-line: no-console
             warningLog("recreate_session_and_reperform_transaction => Already in Progress");
             return callback(new Error("Cannot recreate session"));
         }
@@ -2217,8 +2217,6 @@ async function promoteOpaqueStructureForCall(session: IBasicSessionAsync2, callM
     await Promise.all(promises);
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const opts = { multiArgs: false };

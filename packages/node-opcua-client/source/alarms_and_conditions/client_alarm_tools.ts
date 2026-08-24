@@ -126,10 +126,10 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
             if (!conditionId?.value || conditionId.dataType === DataType.Null) {
                 // not a acknowledgeable condition
                 warningLog(
-                    " not acknowledgeable condition ---- " + eventType.value.toString() + " ",
+                    ` not acknowledgeable condition ---- ${eventType.value.toString()} `,
                     conditionId,
                     conditionName?.value,
-                    " " + eventId.value?.toString("hex")
+                    ` ${eventId.value?.toString("hex")}`
                 );
                 return;
             }

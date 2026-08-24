@@ -2,8 +2,7 @@
  * @module node-opcua-client
  */
 
-// tslint:disable:unified-signatures
-import type { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 import type { Byte, Double, UInt32 } from "node-opcua-basic-types";
 
 import type { DiagnosticInfo } from "node-opcua-data-model";
@@ -298,6 +297,7 @@ export declare interface ClientSubscription {
     ): ClientMonitoredItem;
 }
 
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class ClientSubscription implements IBasicSubscription {
     public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {
         /* c8 ignore next*/

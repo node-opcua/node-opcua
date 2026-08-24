@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-client-private
  */
-// tslint:disable:no-unused-expression
 import fs from "node:fs";
 import path from "node:path";
 
@@ -53,7 +52,11 @@ import {
 import { type ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { CloseSessionRequest, type CloseSessionResponse } from "node-opcua-service-session";
 import { type ErrorCallback, StatusCodes } from "node-opcua-status-code";
-import { type IAcceptedReverseConnection, type IClientTransportFactory, makeReverseClientTransportFactory } from "node-opcua-transport";
+import {
+    type IAcceptedReverseConnection,
+    type IClientTransportFactory,
+    makeReverseClientTransportFactory
+} from "node-opcua-transport";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import {
     type CreateSecureChannelCallbackFunc,
@@ -222,10 +225,10 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
                 return callback(
                     new Error(
                         "Cannot find an Endpoint matching " +
-                        " security mode: " +
-                        securityMode.toString() +
-                        " policy: " +
-                        securityPolicy.toString()
+                            " security mode: " +
+                            securityMode.toString() +
+                            " policy: " +
+                            securityPolicy.toString()
                     )
                 );
             }
@@ -311,10 +314,10 @@ let g_ClientCounter = 0;
 /**
  * @internal
  */
-// tslint:disable-next-line: max-classes-per-file
 export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBaseEvents>
     extends OPCUASecureObject<Events>
-    implements OPCUAClientBase<Events>, IClientBase {
+    implements OPCUAClientBase<Events>, IClientBase
+{
     /**
      * total number of requests that been canceled due to timeout
      */
@@ -473,8 +476,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             }
             const cm = options.clientCertificateManager as OPCUACertificateManager;
             options.privateKeyFile = options.privateKeyFile || cm.privateKey;
-            options.certificateFile =
-                options.certificateFile || path.join(cm.rootDir, "own/certs/client_certificate.pem");
+            options.certificateFile = options.certificateFile || path.join(cm.rootDir, "own/certs/client_certificate.pem");
             super(options as IOPCUASecureObjectOptions);
         }
 
@@ -872,7 +874,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 );
                 debugLog("privateKey      = ", this.privateKeyFile);
                 if ("privateKey" in this.clientCertificateManager) {
-                    debugLog("                = ", (this.clientCertificateManager as unknown as OPCUACertificateManager).privateKey);
+                    debugLog(
+                        "                = ",
+                        (this.clientCertificateManager as unknown as OPCUACertificateManager).privateKey
+                    );
                 }
                 debugLog("certificateFile = ", this.certificateFile);
                 const _certificate = this.getCertificate();
@@ -900,8 +905,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             // disconnect
             errorLog(
                 "[NODE-OPCUA-E08] initializeCM: clientCertificateManager is null\n" +
-                "                 This happen when you disconnected the client, to free resources.\n" +
-                "                 Please create a new OPCUAClient instance if you want to reconnect"
+                    "                 This happen when you disconnected the client, to free resources.\n" +
+                    "                 Please create a new OPCUAClient instance if you want to reconnect"
             );
             return;
         }
@@ -938,7 +943,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             if (err instanceof PrivateKeyPassphraseRequiredError) {
                 throw new Error(
                     `[NODE-OPCUA-E31] private key ${this.privateKeyFile} is encrypted; ` +
-                    "set privateKeyPassphrase on the OPCUACertificateManager passed as clientCertificateManager"
+                        "set privateKeyPassphrase on the OPCUACertificateManager passed as clientCertificateManager"
                 );
             }
             throw err;
@@ -1049,7 +1054,11 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
     public connectReverse(reverseConnect: ClientReverseConnect, expectation?: ReverseConnectExpectation): Promise<void>;
     public connectReverse(reverseConnect: ClientReverseConnect, callback: ErrorCallback): void;
-    public connectReverse(reverseConnect: ClientReverseConnect, expectation: ReverseConnectExpectation, callback: ErrorCallback): void;
+    public connectReverse(
+        reverseConnect: ClientReverseConnect,
+        expectation: ReverseConnectExpectation,
+        callback: ErrorCallback
+    ): void;
     public connectReverse(...args: unknown[]): Promise<void> | void {
         const reverseConnect = args[0] as ClientReverseConnect;
         const callback = args[args.length - 1] as ErrorCallback;
@@ -1166,10 +1175,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Server is not reachable.`));
                     err = new Error(
                         `The connection cannot be established with server ${endpointUrl} .\n` +
-                        "Please check that the server is up and running or your network configuration.\n" +
-                        "Err = (" +
-                        err.message +
-                        ")"
+                            "Please check that the server is up and running or your network configuration.\n" +
+                            "Err = (" +
+                            err.message +
+                            ")"
                     );
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 } else if (err.message.match(/disconnecting/)) {
@@ -1190,7 +1199,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             callback(
                 new Error(
                     "performMessageTransaction: No SecureChannel , connection may have been canceled abruptly by server" +
-                    " while performing " + request.schema.name
+                        " while performing " +
+                        request.schema.name
                 )
             );
             return;
@@ -1204,9 +1214,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             callback(
                 new Error(
                     "performMessageTransaction: Invalid client state = " +
-                    this._internalState +
-                    " while performing a transaction " +
-                    request.schema.name
+                        this._internalState +
+                        " while performing a transaction " +
+                        request.schema.name
                 )
             );
             return;
@@ -1444,7 +1454,6 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
     public disconnect(): Promise<void>;
     public disconnect(callback: ErrorCallback): void;
-    // eslint-disable-next-line max-statements
     public disconnect(...args: unknown[]): undefined | Promise<void> {
         const callback = args[0] as ErrorCallback;
         assert(typeof callback === "function", "expecting a callback function here");
@@ -1656,9 +1665,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 // no matching end point can be found ...
                 const err1 = new Error(
                     "cannot find endpoint for securityMode=" +
-                    MessageSecurityMode[this.securityMode] +
-                    " policy = " +
-                    this.securityPolicy
+                        MessageSecurityMode[this.securityMode] +
+                        " policy = " +
+                        this.securityPolicy
                 );
                 callback(err1);
                 return;
@@ -1674,7 +1683,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 .catch((err1: Error) => {
                     warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
                     if ("rootDir" in this.clientCertificateManager) {
-                        warningLog("                 clientCertificateManager.rootDir = ", (this.clientCertificateManager as unknown as { rootDir: string }).rootDir);
+                        warningLog(
+                            "                 clientCertificateManager.rootDir = ",
+                            (this.clientCertificateManager as unknown as { rootDir: string }).rootDir
+                        );
                     }
 
                     const chain = split_der(endpoint.serverCertificate);
@@ -1691,8 +1703,12 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                             const isCA = tbs.extensions?.basicConstraints?.cA === true;
                             const isSelfSigned = JSON.stringify(tbs.subject) === JSON.stringify(tbs.issuer);
                             const certType = isCA
-                                ? (isSelfSigned ? "Root CA" : "Intermediate CA")
-                                : (isSelfSigned ? "Application (self-signed)" : "Application (CA-signed)");
+                                ? isSelfSigned
+                                    ? "Root CA"
+                                    : "Intermediate CA"
+                                : isSelfSigned
+                                  ? "Application (self-signed)"
+                                  : "Application (CA-signed)";
                             const ski = tbs.extensions?.subjectKeyIdentifier ?? "-";
                             const aki = tbs.extensions?.authorityKeyIdentifier?.keyIdentifier ?? "-";
                             const notBefore = tbs.validity.notBefore.toISOString();
@@ -1704,13 +1720,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                             warningLog(`                   AKI:        ${aki}`);
                             warningLog(`                   validity:   ${notBefore} → ${notAfter}`);
                         } catch {
-                            warningLog(`                 [${i + 1}/${chain.length}] thumbprint: ${thumbprint} (details unavailable)`);
+                            warningLog(
+                                `                 [${i + 1}/${chain.length}] thumbprint: ${thumbprint} (details unavailable)`
+                            );
                         }
                     }
                     if (chain.length > 1) {
                         warningLog(
                             "                 verify also that the issuer certificate is trusted and the issuer's certificate is present in the issuer.cert folder\n" +
-                            "                 of the client certificate manager located in ",
+                                "                 of the client certificate manager located in ",
                             "rootDir" in this.clientCertificateManager
                                 ? (this.clientCertificateManager as unknown as { rootDir: string }).rootDir
                                 : "<in-memory>"
@@ -2018,7 +2036,6 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     }
 }
 
-// tslint:disable-next-line: max-classes-per-file
 class TmpClient extends ClientBaseImpl {
     constructor(options: OPCUAClientBaseOptions) {
         options.clientName = `${options.clientName || ""}_TmpClient`;
@@ -2039,7 +2056,7 @@ class TmpClient extends ClientBaseImpl {
         this._setInternalState("connecting");
         this._connectStep2(endpoint, (err?: Error) => {
             if (this.isUnusable()) {
-                this._handleUnrecoverableConnectionFailure(new Error("premature disconnection 4"), callback || (() => { }));
+                this._handleUnrecoverableConnectionFailure(new Error("premature disconnection 4"), callback || (() => {}));
                 return;
             }
             callback?.(err);
@@ -2047,8 +2064,6 @@ class TmpClient extends ClientBaseImpl {
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 ClientBaseImpl.prototype.connect = withCallback(ClientBaseImpl.prototype.connect);

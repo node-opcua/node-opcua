@@ -39,10 +39,7 @@ function extractStatusCode(err: Error | null | undefined, response?: RepublishRe
     return StatusCodes.Bad;
 }
 
-function _sendRepublish(
-    session: ClientSessionImpl,
-    subscription: ClientSubscriptionImpl
-): Promise<{ isDone: boolean }> {
+function _sendRepublish(session: ClientSessionImpl, subscription: ClientSubscriptionImpl): Promise<{ isDone: boolean }> {
     return new Promise<{ isDone: boolean }>((resolve, reject) => {
         assert(Number.isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
 
@@ -95,10 +92,7 @@ function _sendRepublish(
     });
 }
 
-async function _republish(
-    engine: ClientSidePublishEngine,
-    subscription: ClientSubscriptionImpl
-): Promise<void> {
+async function _republish(engine: ClientSidePublishEngine, subscription: ClientSubscriptionImpl): Promise<void> {
     const session = engine.session as ClientSessionImpl;
 
     // loop until done (all messages re-published or error)
@@ -114,10 +108,7 @@ async function _republish(
     debugLog(" _republish ends with ", "null");
 }
 
-async function __askSubscriptionRepublish(
-    engine: ClientSidePublishEngine,
-    subscription: ClientSubscriptionImpl
-): Promise<void> {
+async function __askSubscriptionRepublish(engine: ClientSidePublishEngine, subscription: ClientSubscriptionImpl): Promise<void> {
     try {
         await _republish(engine, subscription);
     } catch (err) {
@@ -185,5 +176,7 @@ export function republish(engine: ClientSidePublishEngine, callback: () => void)
         }
     };
 
-    processAll().then(() => callback()).catch(() => callback());
+    processAll()
+        .then(() => callback())
+        .catch(() => callback());
 }

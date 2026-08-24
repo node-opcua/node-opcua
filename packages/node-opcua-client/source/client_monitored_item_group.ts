@@ -2,14 +2,13 @@
  * @module node-opcua-client
  */
 
-import type { EventEmitter } from "events";
+import type { EventEmitter } from "node:events";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { MonitoringParametersOptions } from "node-opcua-types";
 
 import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
 import type { ClientSubscription } from "./client_subscription";
 
-// tslint:disable:unified-signatures
 export interface ClientMonitoredItemGroup extends EventEmitter, ClientMonitoredItemOrGroupAction {
     on(event: "changed", eventHandler: (monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => void): this;
 
@@ -24,6 +23,7 @@ export interface ClientMonitoredItemGroup {
     monitoredItems: ClientMonitoredItemBase[];
 }
 
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class ClientMonitoredItemGroup {
     public static create(
         subscription: ClientSubscription,

@@ -22,14 +22,8 @@ import type { Variant } from "node-opcua-variant";
 import type { ClientSubscription } from "./client_subscription";
 
 export interface ClientMonitoredItemOrGroupAction {
-    modify(
-        parameters: MonitoringParametersOptions,
-        timestampsToReturn?: TimestampsToReturn
-    ): Promise<MonitoredItemModifyResult>;
-    modify(
-        parameters: MonitoringParametersOptions,
-        callback: Callback<MonitoredItemModifyResult>
-    ): void;
+    modify(parameters: MonitoringParametersOptions, timestampsToReturn?: TimestampsToReturn): Promise<MonitoredItemModifyResult>;
+    modify(parameters: MonitoringParametersOptions, callback: Callback<MonitoredItemModifyResult>): void;
     modify(
         parameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn | null,

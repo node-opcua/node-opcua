@@ -1,12 +1,11 @@
 import "should";
-import sinon from "sinon";
 import { TimestampsToReturn } from "node-opcua-data-value";
-import { SinonSandbox } from "sinon";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon, { type SinonSandbox } from "sinon";
 
 import { ClientMonitoredItemGroup, ClientSidePublishEngine } from "..";
-import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl";
 import { ClientSessionImpl } from "../dist/private/client_session_impl";
+import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl";
 
 describe("Testing the Monitored Items Group", () => {
     let sandbox: SinonSandbox;
@@ -24,7 +23,6 @@ describe("Testing the Monitored Items Group", () => {
 
         const fakeSession = sandbox.createStubInstance(ClientSessionImpl);
         fakeEngine.session = fakeSession as any;
-
 
         fakeSession.createMonitoredItems.yields(new Error("something bad happened"));
 

@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-client-private
  */
-// tslint:disable:no-empty
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { coerceTimestampsToReturn, type DataValue, TimestampsToReturn } from "node-opcua-data-value";
@@ -16,7 +15,6 @@ import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../c
 import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import type { ClientSubscriptionImpl } from "./client_subscription_impl";
-
 
 const warningLog = make_warningLog(__filename);
 
@@ -104,12 +102,14 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
         });
     }
 
-    // tslint:disable:unified-signatures
     /**
 
      */
     public async modify(parameters: MonitoringParametersOptions): Promise<MonitoredItemModifyResult>;
-    public async modify(parameters: MonitoringParametersOptions, timestampsToReturn: TimestampsToReturn): Promise<MonitoredItemModifyResult>;
+    public async modify(
+        parameters: MonitoringParametersOptions,
+        timestampsToReturn: TimestampsToReturn
+    ): Promise<MonitoredItemModifyResult>;
     public modify(parameters: MonitoringParametersOptions, callback: Callback<MonitoredItemModifyResult>): void;
     public modify(
         parameters: MonitoringParametersOptions,
@@ -210,8 +210,6 @@ Please investigate the code of the event handler function to fix the error.`
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const opts = { multiArgs: false };

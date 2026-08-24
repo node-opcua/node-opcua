@@ -2,8 +2,8 @@
  * @module node-opcua-client
  */
 
+import { EventEmitter } from "node:events";
 import chalk from "chalk";
-import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
@@ -204,7 +204,9 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                                     // See: https://reference.opcfoundation.org/Core/Part4/v105/docs/7.38.2
                                     //      https://reference.opcfoundation.org/Core/Part4/v105/docs/7.32
                                     this.consecutiveFailures = 0;
-                                    debugLog("emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)");
+                                    debugLog(
+                                        "emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)"
+                                    );
                                     this.emit("keepalive", this.lastKnownState ?? ServerState.Unknown, this.count);
                                     resolve(0);
                                     return;

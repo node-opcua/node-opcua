@@ -4,21 +4,10 @@ import { type PublishRequest, PublishResponse, SubscriptionAcknowledgement } fro
 import should from "should";
 import sinon from "sinon";
 
-import {
-    type ClientSession,
-    ClientSidePublishEngine,
-    type ClientSubscription,
-    ExtensionObject
-} from "..";
-import type {
-    ClientSessionImpl
-} from "../dist/private/client_session_impl";
+import { type ClientSession, ClientSidePublishEngine, type ClientSubscription, ExtensionObject } from "..";
+import type { ClientSessionImpl } from "../dist/private/client_session_impl";
 
-function makeSubscription(
-    subscriptionId: number,
-    timeoutHint: number,
-    callback: (...args: unknown[]) => void
-): ClientSubscription {
+function makeSubscription(subscriptionId: number, timeoutHint: number, callback: (...args: unknown[]) => void): ClientSubscription {
     return {
         subscriptionId: subscriptionId,
         timeoutHint: timeoutHint,
@@ -161,11 +150,7 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
             notificationMessage: {
                 sequenceNumber: 36,
                 publishTime: new Date(),
-                notificationData: [
-                    new ExtensionObject({
-
-                    })
-                ]
+                notificationData: [new ExtensionObject({})]
             }
         });
 
@@ -176,11 +161,7 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
             notificationMessage: {
                 sequenceNumber: 78,
                 publishTime: new Date(),
-                notificationData: [
-                    new ExtensionObject({
-
-                    })
-                ]
+                notificationData: [new ExtensionObject({})]
             }
         });
         response_maker.onCall(0).returns([null, response1]);
@@ -258,7 +239,6 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
             isChannelValid: () => true
         } as unknown as ClientSessionImpl;
 
-
         const _spyFakeSessionPublish = sinon.spy(fakeSession, "publish");
 
         const clientPublishEngine = new ClientSidePublishEngine(fakeSession);
@@ -266,7 +246,11 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
         start();
 
         // start a first new subscription
-        clientPublishEngine.registerSubscription({ subscriptionId: 1, timeoutHint: 20000, onNotificationMessage: noop } as unknown as ClientSubscription);
+        clientPublishEngine.registerSubscription({
+            subscriptionId: 1,
+            timeoutHint: 20000,
+            onNotificationMessage: noop
+        } as unknown as ClientSubscription);
 
         clock.tick(100); // wait a little bit as PendingRequests are send asynchronously
         clientPublishEngine.nbPendingPublishRequests.should.eql(5);
@@ -321,8 +305,7 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
 
         const _spyFakeSessionPublish = sinon.spy(fakeSession, "publish");
 
-        const clientPublishEngine = new ClientSidePublishEngine(
-            fakeSession as unknown as ClientSession);
+        const clientPublishEngine = new ClientSidePublishEngine(fakeSession as unknown as ClientSession);
 
         start();
 

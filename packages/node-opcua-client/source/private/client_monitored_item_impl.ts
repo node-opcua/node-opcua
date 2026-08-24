@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-client-private
  */
-// tslint:disable:unified-signatures
-// tslint:disable:no-empty
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 
@@ -404,8 +402,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const _opts = { multiArgs: false };

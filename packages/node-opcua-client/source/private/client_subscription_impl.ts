@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-client-private
  */
-// tslint:disable:unified-signatures
 
 import { EventEmitter } from "node:events";
 import chalk from "chalk";
@@ -51,6 +50,7 @@ import type { ClientSessionImpl } from "./client_session_impl";
 interface ModifySubscriptionOptionsEx extends ModifySubscriptionOptions {
     subscriptionId?: SubscriptionId;
 }
+
 import { detectLongOperation } from "./performance";
 
 const debugLog = make_debugLog("CLIENT_SUBSCRIPTION");
@@ -251,10 +251,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public terminate(callback?: ErrorCallback): Promise<void> | void {
         debugLog("Terminating client subscription ", this.subscriptionId);
 
-        if (
-            this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
-            this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
-        ) {
+        if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
             callback?.();
             return;
@@ -332,7 +329,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         monitoringMode?: MonitoringMode | Callback<ClientMonitoredItemBase>,
         callback?: Callback<ClientMonitoredItemBase>
     ): Promise<ClientMonitoredItemBase> | undefined {
-
         // When called with 3 args via the promise API, thenify
         // injects its callback as the 4th argument (the
         // monitoringMode slot).  Detect this and shift.
@@ -378,7 +374,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         timestampsToReturn: TimestampsToReturn,
         callback?: Callback<ClientMonitoredItemGroup>
     ): Promise<ClientMonitoredItemGroup> | undefined {
-
         const monitoredItemGroup = new ClientMonitoredItemGroupImpl(this, itemsToMonitor, requestedParameters, timestampsToReturn);
 
         this._wait_for_subscription_to_be_ready((err?: Error) => {
@@ -397,10 +392,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         return undefined;
     }
 
-    public _delete_monitored_items(
-        monitoredItems: ClientMonitoredItemBase[],
-        callback: ErrorCallback
-    ): void {
+    public _delete_monitored_items(monitoredItems: ClientMonitoredItemBase[], callback: ErrorCallback): void {
         assert(typeof callback === "function");
         assert(Array.isArray(monitoredItems));
 
@@ -423,10 +415,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
     public async setPublishingMode(publishingEnabled: boolean): Promise<StatusCode>;
     public setPublishingMode(publishingEnabled: boolean, callback: Callback<StatusCode>): void;
-    public setPublishingMode(
-        publishingEnabled: boolean, callback?: Callback<StatusCode>
-    ): Promise<StatusCode> | undefined {
-
+    public setPublishingMode(publishingEnabled: boolean, callback?: Callback<StatusCode>): Promise<StatusCode> | undefined {
         const session = this.session as ClientSessionImpl;
         if (!session) {
             callback?.(new Error("no session"));
@@ -818,7 +807,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         if (s(this).$_slowNotifCount > 0 && s(this).$_slowNotifCount % 1000 !== 0) return;
                         s(this).$_slowNotifCount++;
                         warningLog(
-                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${s(this).$_slowNotifCount
+                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
+                                s(this).$_slowNotifCount
                             } times]\n         please ensure that your monitoredItem event handler is not blocking the event loop.`
                         );
                     }
@@ -935,8 +925,6 @@ export function ClientMonitoredItem_create(
     return monitoredItem;
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const _opts = { multiArgs: false };

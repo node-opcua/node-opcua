@@ -113,7 +113,12 @@ function rebuildSignature(
     securityPolicy: SecurityPolicy
 ) {
     // The signature generated with private key associated with the User Certificate
-    const userTokenSignature: SignatureDataOptions | undefined = computeSignature(certificate, serverNonce, privateKey, securityPolicy);
+    const userTokenSignature: SignatureDataOptions | undefined = computeSignature(
+        certificate,
+        serverNonce,
+        privateKey,
+        securityPolicy
+    );
 
     return userTokenSignature;
 }

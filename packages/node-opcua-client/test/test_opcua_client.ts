@@ -1,12 +1,5 @@
-import {
-    describeWithLeakDetector as describe
-} from "node-opcua-leak-detector";
-import {
-    ClientSecureChannelLayer,
-    OPCUAClient
-} from "..";
-
-// eslint-disable-next-line import/order
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { ClientSecureChannelLayer, OPCUAClient } from "..";
 
 describe("OPCUA Client", () => {
     it("it should create a client", () => {

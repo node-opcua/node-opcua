@@ -2,12 +2,12 @@
  * @module node-opcua-client
  */
 
+import { callbackify } from "node:util";
 import { acknowledgeCondition, callMethodCondition, confirmCondition } from "node-opcua-alarm-condition";
 import type { LocalizedTextLike } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { findMethodId, type ResponseCallback } from "node-opcua-pseudo-session";
 import type { Callback, StatusCode } from "node-opcua-status-code";
-import { callbackify } from "util";
 
 import { ClientSessionImpl } from "../private/client_session_impl";
 
@@ -64,8 +64,6 @@ ClientSessionImpl.prototype.acknowledgeCondition = function (
     callbackify(acknowledgeCondition)(this, conditionId, eventId, comment, callback);
 };
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 const opts = { multiArgs: false };

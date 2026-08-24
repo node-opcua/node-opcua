@@ -1295,8 +1295,6 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
     }
 }
 
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
 import { withCallback } from "thenify-ex";
 
 /**

@@ -49,7 +49,7 @@ export function readHistoryServerCapabilities(
             return callback(new Error("Internal Error"));
         }
         if (result.statusCode.isNotGood()) {
-            return callback(new Error("StatusCode = " + result.statusCode.toString()));
+            return callback(new Error(`StatusCode = ${result.statusCode.toString()}`));
         }
 
         result.targets = result.targets || [];
@@ -90,7 +90,7 @@ export function readHistoryServerCapabilities(
             "AggregateFunctions/DurationStateNonZero"
             // etc....
         ];
-        const browsePaths = properties.map((prop: string) => makeBrowsePath(historyServerCapabilitiesNodeId, "." + prop));
+        const browsePaths = properties.map((prop: string) => makeBrowsePath(historyServerCapabilitiesNodeId, `.${prop}`));
 
         session.translateBrowsePath(browsePaths, (innerErr: Error | null, results?: BrowsePathResult[]) => {
             if (innerErr) {

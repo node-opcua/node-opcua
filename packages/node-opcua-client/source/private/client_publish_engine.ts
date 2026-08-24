@@ -271,7 +271,7 @@ export class ClientSidePublishEngine {
                     chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
                     chalk.yellow(err.message)
                 );
-                debugLog("'" + err.message + "'");
+                debugLog(`'${err.message}'`);
 
                 if (err.message.match("not connected")) {
                     debugLog(chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED :" + " MAY BE RECONNECTION IS IN PROGRESS"));

@@ -158,9 +158,15 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
         let keepaliveFailureCount = 0;
         let failureCount = 0;
 
-        mgr.on("keepalive", () => { keepaliveCount++; });
-        mgr.on("keepalive_failure", () => { keepaliveFailureCount++; });
-        mgr.on("failure", () => { failureCount++; });
+        mgr.on("keepalive", () => {
+            keepaliveCount++;
+        });
+        mgr.on("keepalive_failure", () => {
+            keepaliveFailureCount++;
+        });
+        mgr.on("failure", () => {
+            failureCount++;
+        });
 
         // checkInterval=1000ms, pingTimeout=500ms → pings at t=500, 1500, 2500, 3500, 4500
         mgr.start(1000);

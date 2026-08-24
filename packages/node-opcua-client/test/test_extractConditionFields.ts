@@ -1,31 +1,13 @@
 import fs from "node:fs";
-import {
-    AddressSpace,
-    PseudoSession
-} from "node-opcua-address-space";
-import {
-    generateAddressSpace
-} from "node-opcua-address-space/nodeJS";
-import {
-    construct_demo_alarm_in_address_space,
-    type IAlarmTestData
-} from "node-opcua-address-space/testHelpers";
-import {
-    checkDebugFlag,
-} from "node-opcua-debug";
+import { AddressSpace, PseudoSession } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
+import { checkDebugFlag } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 
-import {
-    AttributeIds,
-    constructEventFilter,
-    DataType,
-    extractConditionFields,
-    fieldsToJson,
-    resolveNodeId,
-    Variant
-} from "..";
+import { AttributeIds, constructEventFilter, DataType, extractConditionFields, fieldsToJson, resolveNodeId, Variant } from "..";
 
 // const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

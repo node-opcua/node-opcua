@@ -2,7 +2,6 @@
  * @module node-opcua-client-private
  */
 
-// tslint:disable:only-arrow-functions
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -467,7 +466,8 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
     {
         const err = _shouldNotContinue(session);
         if (err) {
-            return callback(err);
+            callback(err);
+            return;
         }
     }
 
@@ -499,7 +499,8 @@ type EmptyCallback = (err?: Error) => void;
 export function repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: EmptyCallback): void {
     if (!client) {
         doDebug && debugLog("Aborting reactivation of old session because user requested session to be close");
-        return callback();
+        callback();
+        return;
     }
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
 
@@ -509,7 +510,8 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     if (session.hasBeenClosed()) {
         privateSession._reconnecting.reconnecting = false;
         doDebug && debugLog("Aborting reactivation of old session because session has been closed");
-        return callback();
+        callback();
+        return;
     }
     if (privateSession._reconnecting.reconnecting) {
         doDebug && debugLog(chalk.bgCyan("Reconnection is already happening for session"), session.sessionId.toString());
@@ -584,9 +586,13 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         // c8 ignore next
         if (transactionQueue.length > 0) {
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-            transactionQueue.forEach((e) => privateSession._reconnecting.pendingTransactions.push(e));
+            transactionQueue.forEach((e) => {
+                privateSession._reconnecting.pendingTransactions.push(e);
+            });
         }
-        otherCallbacks.forEach((c: EmptyCallback) => c(err));
+        otherCallbacks.forEach((c: EmptyCallback) => {
+            c(err);
+        });
         callback(err);
     });
 }

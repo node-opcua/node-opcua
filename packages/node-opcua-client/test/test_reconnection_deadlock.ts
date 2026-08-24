@@ -19,18 +19,15 @@
 import "mocha";
 import "should";
 
-import { _shouldNotContinue } from "../source/private/reconnection/reconnection";
 import type { ClientSessionImpl } from "../source/private/client_session_impl";
+import { _shouldNotContinue } from "../source/private/reconnection/reconnection";
 
 /**
  * Simulates what the secure channel's `modified_callback` / `process_request_callback`
  * does: wraps the user callback in a try/catch. If it throws, the error is logged
  * ("callback has thrown en error") and silently discarded.
  */
-function invokeCallbackLikeSecureChannel(
-    callback: (err: Error | null) => void,
-    err: Error | null,
-): Error | null {
+function invokeCallbackLikeSecureChannel(callback: (err: Error | null) => void, err: Error | null): Error | null {
     try {
         callback(err);
         return null;
@@ -47,7 +44,7 @@ function makeSessionDouble(usable = true) {
     const session = {
         _client: {
             _secureChannel: usable ? {} : null,
-            isUnusable: () => !usable,
+            isUnusable: () => !usable
         },
         hasBeenClosed: () => false,
 
@@ -60,7 +57,7 @@ function makeSessionDouble(usable = true) {
                 session._client._secureChannel = null;
                 session._client.isUnusable = () => true;
             }
-        },
+        }
     };
     return session as unknown as ClientSessionImpl & { setUsable(v: boolean): void };
 }
@@ -82,10 +79,7 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
      *         });
      *     });
      */
-    function buggyCreateSession(
-        session: ClientSessionImpl,
-        doAsync: (cb: (err: Error | null) => void) => void,
-    ): Promise<string> {
+    function buggyCreateSession(session: ClientSessionImpl, doAsync: (cb: (err: Error | null) => void) => void): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const err1 = _shouldNotContinue(session);
             if (err1) throw err1; // sync — caught by Promise
@@ -104,10 +98,7 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
     /**
      * The FIXED version: uses reject() instead of throw inside the callback.
      */
-    function fixedCreateSession(
-        session: ClientSessionImpl,
-        doAsync: (cb: (err: Error | null) => void) => void,
-    ): Promise<string> {
+    function fixedCreateSession(session: ClientSessionImpl, doAsync: (cb: (err: Error | null) => void) => void): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const err1 = _shouldNotContinue(session);
             if (err1) throw err1; // sync — caught by Promise
@@ -147,7 +138,7 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
         // This is the deadlock: the reconnection state machine is stuck forever.
         const result = await Promise.race([
             promise.then(() => "resolved").catch(() => "rejected"),
-            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000)),
+            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000))
         ]);
 
         result.should.eql("DEADLOCKED");
@@ -171,7 +162,7 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
         // can catch the error and retry.
         const result = await Promise.race([
             promise.then(() => "resolved").catch(() => "rejected"),
-            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000)),
+            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000))
         ]);
 
         result.should.eql("rejected");
@@ -189,7 +180,7 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
         // Synchronous throw IS caught by the Promise constructor — this works.
         const result = await Promise.race([
             promise.then(() => "resolved").catch(() => "rejected"),
-            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000)),
+            new Promise<string>((r) => setTimeout(() => r("DEADLOCKED"), 1000))
         ]);
 
         result.should.eql("rejected"); // correctly rejected

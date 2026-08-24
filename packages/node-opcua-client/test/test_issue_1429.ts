@@ -3,11 +3,7 @@
 import type { EventEmitter } from "node:events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import {
-    type ConnectionStrategyOptions,
-    OPCUAClient,
-    type OPCUAClientOptions,
-} from "..";
+import { type ConnectionStrategyOptions, OPCUAClient, type OPCUAClientOptions } from "..";
 
 /**
  * Function to log every emitted event of an event emitter.
@@ -44,7 +40,7 @@ describe("issue_1429", function (this: Mocha.Suite) {
             endpointMustExist: false,
             keepSessionAlive: true,
             tokenRenewalInterval: 2 * 1000,
-            transportTimeout: 1 * 1000, //  backoff every 1 seconds
+            transportTimeout: 1 * 1000 //  backoff every 1 seconds
         };
 
         const client = OPCUAClient.create(connectOptions);
@@ -55,7 +51,6 @@ describe("issue_1429", function (this: Mocha.Suite) {
         let timerId: NodeJS.Timeout | undefined;
         let caughtError: Error | undefined;
         try {
-
             client.on("backoff", () => {
                 backoffCount += 1;
                 if (backoffCount === 1) {
@@ -67,19 +62,17 @@ describe("issue_1429", function (this: Mocha.Suite) {
                         timerId = undefined;
                     }, 5 * 1000);
                 }
-            })
+            });
 
             await client.connect(endpointUrl);
-
         } catch (err) {
-            console.log('Error:', (err as Error).message);
+            console.log("Error:", (err as Error).message);
             caughtError = err as Error;
         } finally {
             if (timerId) clearTimeout(timerId);
             await client.disconnect();
         }
-        backoffCount.should.be.greaterThan(2,
-            "Expecting server to go to a backoff mode if ip cannot be joined");
+        backoffCount.should.be.greaterThan(2, "Expecting server to go to a backoff mode if ip cannot be joined");
         /* should(caughtError).be.undefined(); */
         should.exist(caughtError);
     });

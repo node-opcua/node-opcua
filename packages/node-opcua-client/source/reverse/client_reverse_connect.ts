@@ -23,6 +23,7 @@
 import { createServer, type Server, type Socket } from "node:net";
 
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import type { StatusCode } from "node-opcua-status-code";
 import {
     decodeReverseHello,
     type IAcceptedReverseConnection,
@@ -33,7 +34,6 @@ import {
     StatusCodes2,
     TCPErrorMessage
 } from "node-opcua-transport";
-import type { StatusCode } from "node-opcua-status-code";
 
 const doDebug = checkDebugFlag("ReverseConnect");
 const debugLog = make_debugLog("ReverseConnect");
@@ -193,7 +193,10 @@ export class ClientReverseConnect {
      * Register interest in the next reverse connection matching `expectation`.
      * The callback fires once with an accepted, RHE-validated connection (or an error).
      */
-    public waitForConnection(expectation: ReverseConnectExpectation | undefined, callback: AcceptedCallback): ICancelableRegistration {
+    public waitForConnection(
+        expectation: ReverseConnectExpectation | undefined,
+        callback: AcceptedCallback
+    ): ICancelableRegistration {
         // a validated connection may already be waiting
         for (let i = 0; i < this.#held.length; i++) {
             const h = this.#held[i];
@@ -341,7 +344,12 @@ export class ClientReverseConnect {
             doDebug && debugLog(`reverse connection from ${serverUri} held (no matching client yet)`);
             timer = setTimeout(() => {
                 timer = undefined;
-                this.#rejectSocket(socket, forget, StatusCodes2.BadTcpServerTooBusy, "no client is waiting for this reverse connection");
+                this.#rejectSocket(
+                    socket,
+                    forget,
+                    StatusCodes2.BadTcpServerTooBusy,
+                    "no client is waiting for this reverse connection"
+                );
             }, this.#matchTimeout);
             timer.unref?.();
             this.#held.push({ accepted, handOff });
