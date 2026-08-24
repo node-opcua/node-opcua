@@ -15,7 +15,6 @@
 
 import assert from "node:assert";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { describeWithLeakDetector: _describeWithLeakDetector } = require("../src/resource_leak_detector");
 
 // These tests intentionally leak timers that only the detector
