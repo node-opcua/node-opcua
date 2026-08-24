@@ -1,7 +1,6 @@
-
-import fs from "fs";
-import path from "path";
-import { NodesetMeta, NodesetName, nodesetCatalog } from "./nodeset_catalog";
+import fs from "node:fs";
+import path from "node:path";
+import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog";
 
 export function constructNodesetFilename(filename: string) {
     const dirname = __dirname;
@@ -22,7 +21,6 @@ export function constructNodesetFilename(filename: string) {
     }
     return file;
 }
-
 
 // Note: The ordering of these items is not arbitrary since we map this to generate nodesets export.
 //       First, we want to ensure that any dependencies of a nodeset are loaded first (precede it in the array).

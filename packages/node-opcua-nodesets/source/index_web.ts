@@ -1,8 +1,6 @@
-import { NodesetName, nodesetCatalog, NodesetMeta } from "./nodeset_catalog";
+import { type NodesetName, nodesetCatalog, type NodesetMeta } from "./nodeset_catalog";
 
-
-export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({
-    name, packageName, uri, xmlFile, dependencies, licence}) => ({
+export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({ name, packageName, uri, xmlFile, dependencies, licence }) => ({
     name,
     packageName: `<not implemented>`,
     uri,
