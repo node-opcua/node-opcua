@@ -5,15 +5,22 @@ import {
     type Request,
     type Response,
     TimestampsToReturn,
+    type UserIdentityInfo,
     UserTokenType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { assertThrow } from "../../test_helpers/assert_throw";
 
+// _createSession/_activateSession are private OPCUAClient implementation methods
+// (their session parameter is the internal ClientSessionImpl, not publicly exported),
+// reached here to exercise session states unreachable through the public API.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 type OPCUAClientEx = OPCUAClient & {
-    _createSession: any;
-    _activateSession: any;
+    _createSession: InternalAny;
+    _activateSession: InternalAny;
     performMessageTransaction(request: Request, callback: (err: Error | null, result: Response) => void): void;
 };
 
@@ -27,7 +34,7 @@ async function performMessageTransaction(client: OPCUAClient, request: Request):
         });
     });
 }
-async function _activateSession(client: OPCUAClient, session: any, userIdentityInfo: any): Promise<void> {
+async function _activateSession(client: OPCUAClient, session: InternalAny, userIdentityInfo: UserIdentityInfo): Promise<void> {
     return new Promise((resolve, reject) => {
         (client as OPCUAClientEx)._activateSession(session, userIdentityInfo, (err: Error | null) => {
             if (err) {
@@ -79,7 +86,7 @@ export function t(test: { endpointUrl: string }) {
                     }
 
                     // verify the session can no longer be used, because a command has already been sent
-                    const userIdentityInfo = { type: UserTokenType.Anonymous };
+                    const userIdentityInfo: UserIdentityInfo = { type: UserTokenType.Anonymous };
 
                     const activateSessionError = await assertThrow(async () => {
                         await _activateSession(client, session1, userIdentityInfo);
