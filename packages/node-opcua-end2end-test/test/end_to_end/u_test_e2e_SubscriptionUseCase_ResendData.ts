@@ -34,9 +34,9 @@ export function t(test: TestHarness) {
         let endpointUrl: string;
 
         before(() => {
-            server = test.server;
+            server = test.server!;
 
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
 
             const namespace = server.engine.addressSpace!.getOwnNamespace();
 
