@@ -2,11 +2,11 @@
  * @module node-opcua-service-translate-browse-path
  */
 export {
-    RelativePathElement,
-    RelativePath,
     BrowsePath,
-    TranslateBrowsePathsToNodeIdsRequest,
-    BrowsePathTarget,
     BrowsePathResult,
+    BrowsePathTarget,
+    RelativePath,
+    RelativePathElement,
+    TranslateBrowsePathsToNodeIdsRequest,
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-types";

@@ -4,7 +4,8 @@
 import { assert } from "node-opcua-assert";
 import { QualifiedName } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { RelativePath, type RelativePathElement } from "node-opcua-types";
+import { RelativePath, RelativePathElement } from "node-opcua-types";
+
 /*=
  * Release 1.03 page 152 OPC Unified Architecture, Part 4
  * Annex A (informative) BNF definitions
@@ -89,6 +90,7 @@ const regReferenceType = new RegExp(`/|\\.|(<(#)?(!)?(${regBrowseName.source})>)
 
 const regRelativePath = new RegExp(`(${regReferenceType.source})(${regBrowseName.source})?`);
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: public API of this package, renaming would be a breaking change
 export function unescape(str: string): string {
     // replace all &x by
     str = str.replace(/&\//g, "/");
@@ -101,6 +103,7 @@ export function unescape(str: string): string {
     return str.replace(/&&/g, "&");
 }
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: public API of this package, renaming would be a breaking change
 export function escape(str: string): string {
     // replace all &x by
     str = str.replace(/&/g, "&&");
@@ -141,10 +144,12 @@ export interface RelativePathEx extends RelativePath {
  *      var relativePath = makeRelativePath("/Server.ServerStatus.CurrentTime");
  *
  */
-export function makeRelativePath(str: string, addressSpace?: any): RelativePathEx {
-    let r: any = {
-        elements: []
-    };
+interface AddressSpaceLike {
+    findReferenceType(name: string, namespaceIndex: number): NodeId;
+}
+
+export function makeRelativePath(str: string, addressSpace?: AddressSpaceLike): RelativePathEx {
+    const elements: RelativePathElement[] = [];
     const originalStr = str;
     while (str.length > 0) {
         const matches = str.match(regRelativePath);
@@ -191,6 +196,11 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePathE
             if (!matches[6]) {
                 referenceTypeId = resolveNodeId(name);
             } else {
+                if (!addressSpace) {
+                    throw new Error(
+                        `makeRelativePath: an addressSpace is required to resolve namespace-qualified reference type '${name}'`
+                    );
+                }
                 // AddressSpace.prototype.findReferenceType = function (refType,namespace)
                 referenceTypeId = addressSpace.findReferenceType(name, ns);
             }
@@ -199,10 +209,9 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePathE
 
         const targetName = makeQualifiedName(matches);
 
-        r.elements.push({ referenceTypeId, isInverse, includeSubtypes, targetName });
+        elements.push(new RelativePathElement({ referenceTypeId, isInverse, includeSubtypes, targetName }));
 
         str = str.substring(matches[0].length);
     }
-    r = new RelativePath(r);
-    return r;
+    return new RelativePath({ elements }) as RelativePathEx;
 }

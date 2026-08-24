@@ -1,5 +1,5 @@
 import "should";
-import { makeBrowsePath, BrowsePath } from "..";
+import { BrowsePath, makeBrowsePath } from "..";
 
 describe("#makeBrowsePath", () => {
     it("should parse name containing spaces and ( or )", () => {

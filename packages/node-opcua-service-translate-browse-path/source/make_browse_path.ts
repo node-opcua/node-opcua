@@ -12,7 +12,7 @@ export declare type NodeIdLikeOrWithNodeId =
       };
 function _get_nodeId(node: NodeIdLikeOrWithNodeId): NodeId {
     if (typeof node === "object" && Object.hasOwn(node, "nodeId")) {
-        return (node as any).nodeId;
+        return (node as { nodeId: NodeId }).nodeId;
     }
     return resolveNodeId(node as NodeIdLike);
 }

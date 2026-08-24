@@ -1,6 +1,6 @@
 import "should";
-import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { QualifiedName } from "node-opcua-data-model";
+import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { makeRelativePath, RelativePathElement } from "..";
 
 describe("makeRelativePath", () => {

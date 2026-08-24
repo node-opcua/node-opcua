@@ -1,5 +1,5 @@
-import { resolveNodeId } from "node-opcua-nodeid";
 import { ReferenceTypeIds } from "node-opcua-constants";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { constructBrowsePathFromQualifiedName } from "..";
 
 describe("test constructBrowsePathFromQualifiedName", () => {
