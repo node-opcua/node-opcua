@@ -1,6 +1,7 @@
 import { type ClientSession, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 const sessionLiveTime = 20 * 1000;
 const doDebug = false;
@@ -45,17 +46,17 @@ async function reactivate_existing_session(endpointUrl: string, session: ClientS
     return session;
 }
 
-export function t(test: any) {
+export function t(test: UmbrellaTestContext) {
     describe("Client and expired session activation", () => {
         it("XKL1 it should be possible to re activate an active session which has not closed by a previous connection", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const session = await create_a_pending_session(endpointUrl);
             const new_session = await reactivate_existing_session(endpointUrl, session);
             new_session.sessionId.toString().should.eql(session.sessionId.toString());
         });
 
         it("XKL2 it should NOT be possible to re activate a session not closed by a previous connection that has expired", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
 
             const session = await create_a_pending_session(endpointUrl);
             if (doDebug) {
