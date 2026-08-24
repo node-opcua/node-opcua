@@ -49,7 +49,8 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
     const staticArraysFolders = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Arrays",
-        description: "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
+        description:
+            "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
         nodeId: "s=Static_Array"
     });
     for (const e of typeAndDefaultValue) {
@@ -61,7 +62,8 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
     const staticMultiDimensionalArrays = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Multi-Dimensional Arrays",
-        description: "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
+        description:
+            "Single dimension, suggested size of 10-elements per array. Unsupported types will be missing from the address-space.",
         nodeId: "s=Static_MultiDimensional_Array"
     });
     for (const e of typeAndDefaultValue) {

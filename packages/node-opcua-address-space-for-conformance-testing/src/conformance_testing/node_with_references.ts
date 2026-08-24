@@ -118,10 +118,26 @@ export function addNodeWithReferences(namespace: Namespace, simulation_folder: U
             typeDefinition: "FolderType",
             componentOf: referenceFolder
         });
-        namespace.addVariable({ browseName: "ReferenceNode1", propertyOf: hasReferencesOfAReferenceTypeAndSubType, dataType: "UInt32" });
-        namespace.addVariable({ browseName: "ReferenceNode2", propertyOf: hasReferencesOfAReferenceTypeAndSubType, dataType: "UInt32" });
-        namespace.addVariable({ browseName: "ReferenceNode3", propertyOf: hasReferencesOfAReferenceTypeAndSubType, dataType: "UInt32" });
-        namespace.addVariable({ browseName: "ReferenceNode4", propertyOf: hasReferencesOfAReferenceTypeAndSubType, dataType: "UInt32" });
+        namespace.addVariable({
+            browseName: "ReferenceNode1",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode2",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode3",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
+        namespace.addVariable({
+            browseName: "ReferenceNode4",
+            propertyOf: hasReferencesOfAReferenceTypeAndSubType,
+            dataType: "UInt32"
+        });
         for (let i = 0; i < 4; i++) {
             const a = namespace.addObject({ browseName: `AlarmSuppressionGroup${i}`, componentOf: referenceFolder });
             hasReferencesOfAReferenceTypeAndSubType.addReference({ nodeId: a, referenceType: "HasAlarmSuppressionGroup" });

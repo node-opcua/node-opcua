@@ -1,8 +1,9 @@
 /**
  * Default type/value table shared by static, simulation, mass, and large array builders.
  */
-import { emptyGuid } from "node-opcua-basic-types";
+
 import * as ec from "node-opcua-basic-types";
+import { emptyGuid } from "node-opcua-basic-types";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { coerceNodeId } from "node-opcua-nodeid";
 

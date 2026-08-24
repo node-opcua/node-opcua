@@ -92,7 +92,12 @@ function validate_value_or_array(isArray: boolean, variantValue: unknown, valida
 
 // ─── Variant Construction ───────────────────────────────────────────────
 
-export function makeVariant(dataTypeName: string, arrayType: VariantArrayType, dimensions: number[] | null, current_value: unknown) {
+export function makeVariant(
+    dataTypeName: string,
+    arrayType: VariantArrayType,
+    dimensions: number[] | null,
+    current_value: unknown
+) {
     const dataType = findDataType(dataTypeName);
     const validatorFunc = getValidatorFuncForType(dataType);
     const isArray = arrayType === VariantArrayType.Array || arrayType === VariantArrayType.Matrix;

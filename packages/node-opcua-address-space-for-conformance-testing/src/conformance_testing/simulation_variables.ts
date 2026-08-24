@@ -12,7 +12,12 @@ import { typeAndDefaultValue } from "./type_defaults";
 export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObject): void {
     let values_to_change: { dataType: DataType; randomFunc: () => unknown; variable: UAVariable }[] = [];
 
-    function add_simulation_variable(parent: UAObject, dataTypeName: string, defaultValue: unknown, realTypeName: string): UAVariable {
+    function add_simulation_variable(
+        parent: UAObject,
+        dataTypeName: string,
+        defaultValue: unknown,
+        realTypeName: string
+    ): UAVariable {
         realTypeName = realTypeName || dataTypeName;
         const dataType = findDataType(realTypeName);
         const randomFunc = getRandomFuncForType(dataType);

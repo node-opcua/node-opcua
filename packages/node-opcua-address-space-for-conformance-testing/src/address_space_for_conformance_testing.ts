@@ -8,7 +8,11 @@ import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 
 import { addAccessRightVariables } from "./conformance_testing/access_right_variables";
 import { addAnalogDataItems } from "./conformance_testing/analog_data_items";
-import { addMultiStateDiscreteVariable, addMultiStateValueDiscreteVariables, addTwoStateDiscreteVariables } from "./conformance_testing/discrete_variables";
+import {
+    addMultiStateDiscreteVariable,
+    addMultiStateValueDiscreteVariables,
+    addTwoStateDiscreteVariables
+} from "./conformance_testing/discrete_variables";
 import { addEnumerationVariable } from "./conformance_testing/enumeration_variable";
 import { addMassVariables } from "./conformance_testing/mass_variables";
 import { addNodeWithReferences } from "./conformance_testing/node_with_references";

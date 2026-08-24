@@ -1,8 +1,9 @@
 /**
  * Discrete variable types: TwoStateDiscrete, MultiStateDiscrete, MultiStateValueDiscrete.
  */
-import type { Int64, UInt64 } from "node-opcua-basic-types";
+
 import type { Namespace, UAObject } from "node-opcua-address-space";
+import type { Int64, UInt64 } from "node-opcua-basic-types";
 
 function getDADiscreteTypeFolder(namespace: Namespace, parentFolder: UAObject): UAObject {
     const name = "Simulation_DA_DiscreteType";
