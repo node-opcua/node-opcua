@@ -3,6 +3,12 @@ import { AttributeIds, DataType, type ExtensionObject, type NodeId, OPCUAClient,
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
 
+// _secureChannel/transport/socket are private client-implementation internals whose
+// concrete types (IClientTransport, ISocketLike) aren't publicly exported; reached
+// here to force a raw connection-reset error for reconnection testing.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 const port = 2244;
 
 describe("client with DataType Manager regeneration", () => {
@@ -115,7 +121,7 @@ describe("client with DataType Manager regeneration", () => {
     });
 
     async function simulateConnectionBreak(client: OPCUAClient) {
-        const socket = (client as any)._secureChannel.getTransport()._socket;
+        const socket = (client as InternalAny)._secureChannel.getTransport()._socket;
         socket.end();
         socket.emit("error", new Error("ECONNRESET"));
         await new Promise((resolve) => setTimeout(resolve, 1000));
