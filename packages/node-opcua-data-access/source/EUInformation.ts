@@ -4,7 +4,6 @@
 export { EUInformation } from "node-opcua-types";
 
 /*jslint bitwise: true */
-// tslint:disable:no-bitwise
 
 // EngineeringUnit
 // Units of measurement for  AnalogItems that represent continuously- variable physical quantities   ( e.g.,
@@ -57,10 +56,9 @@ schemaEUInformation.fields[3].documentation = "Contains the full name of the eng
 export function commonCodeToUInt(code: string): number {
     // CEL =>
     let unitId = 0;
-    let c;
     const m = Math.min(4, code.length);
     for (let i = 0; i < m; i++) {
-        c = code.charCodeAt(i);
+        const c = code.charCodeAt(i);
         /* c8 ignore next*/
         if (c === 0) {
             return unitId;
