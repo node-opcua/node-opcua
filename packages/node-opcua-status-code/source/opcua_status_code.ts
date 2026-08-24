@@ -5,7 +5,7 @@
 import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-function warnLog(...args: [any?, ...any[]]) {
+function warnLog(...args: unknown[]) {
     /* c8 ignore next */
     console.warn(...args);
 }
@@ -180,11 +180,11 @@ export abstract class StatusCode {
         return this.value === other.value;
     }
 
-    public toJSON(): any {
+    public toJSON(): { value: number } {
         return { value: this.value };
     }
 
-    public toJSONFull(): any {
+    public toJSONFull(): { value: number; name: string; description: string } {
         return { value: this.value, name: this.name, description: this.description };
     }
 
@@ -254,8 +254,14 @@ export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, st
     stream.writeUInt32(statusCode.value);
 }
 
+// StatusCodes (in the generated _generated_status_codes.ts) is a class with one static
+// ConstantStatusCode field per named status, plus makeStatusCode monkey-patched onto it below.
+// These types capture that dynamic shape for the casts that index/extend it by string key.
+type IndexedStatusCodes = Record<string, ConstantStatusCode>;
+type StatusCodesWithMakeStatusCode = typeof StatusCodes & { makeStatusCode: typeof StatusCode.makeStatusCode };
+
 /** @internal construct status codes fast search indexes */
-const statusCodesReversedMap: any = {};
+const statusCodesReversedMap: Record<string, StatusCode> = {};
 
 /**
  * returns the StatusCode corresponding to the provided value, if any
@@ -385,7 +391,7 @@ export function coerceStatusCode(statusCode: StatusCode | number | string | { va
     if (typeof statusCode === "number") {
         return getStatusCodeFromCode(statusCode);
     }
-    const _StatusCodes = StatusCodes as any;
+    const _StatusCodes = StatusCodes as unknown as IndexedStatusCodes;
     if (!_StatusCodes[statusCode as string]) {
         throw new Error(`Cannot find StatusCode ${statusCode}`);
     }
@@ -393,8 +399,8 @@ export function coerceStatusCode(statusCode: StatusCode | number | string | { va
 }
 
 for (const name of Object.keys(StatusCodes)) {
-    const code = (StatusCodes as any)[name];
+    const code = (StatusCodes as unknown as IndexedStatusCodes)[name];
     statusCodesReversedMap[code.value.toString()] = code;
 }
 
-(StatusCodes as any).makeStatusCode = StatusCode.makeStatusCode;
+(StatusCodes as StatusCodesWithMakeStatusCode).makeStatusCode = StatusCode.makeStatusCode;
