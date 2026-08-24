@@ -2,24 +2,19 @@ import "should";
 import { AttributeIds, coerceNodeId, DataType, OPCUAClient, StatusCodes, VariantArrayType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
-
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
 /**
  * CTT case (AttributeWriteValue test7)
  * Write a ByteString value to a node of type Byte[] and expect it to succeed (no BadTypeMismatch).
  */
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("Testing ctt  - write a ByteString value to a node of type Byte[]", () => {
         it("should write a ByteString value into a node of type Byte[]", async () => {
-            const endpointUrl = test.endpointUrl;
+            const endpointUrl = test.endpointUrl!;
             const client = OPCUAClient.create({});
 
-            await perform_operation_on_subscription_async(client, endpointUrl, async (session: any, _subscription: any) => {
+            await perform_operation_on_subscription_async(client, endpointUrl, async (session, _subscription) => {
                 // 1. find simulator namespace index
                 const namespaceArray: string[] = await session.readNamespaceArray();
                 const simulationNamespaceIndex = namespaceArray.indexOf("urn://node-opcua-simulator");
@@ -47,7 +42,7 @@ export function t(test: TestHarness) {
                         }
                     }
                 };
-                const results: any[] = await session.write([nodeToWrite]);
+                const results = await session.write([nodeToWrite]);
                 results[0].should.not.eql(StatusCodes.BadTypeMismatch);
                 results[0].should.eql(StatusCodes.Good);
             });
