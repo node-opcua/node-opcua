@@ -1,5 +1,5 @@
 import "should";
-import { AttributeIds, DataType, type NodeId, OPCUAClient, type OPCUAServer, StatusCodes } from "node-opcua";
+import { AttributeIds, DataType, OPCUAClient, StatusCodes, type UAVariable } from "node-opcua";
 import { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
 // NodeCrawler is deprecated but unit tests are still run
 // to trap potential issues.
@@ -12,6 +12,11 @@ import { perform_operation_on_client_session } from "../../test_helpers/perform_
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
+// NodeCrawler.read() returns a Pojo (Record<string, unknown>): the crawled tree's shape is
+// entirely address-space-defined, not statically knowable here.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type DynamicNode = any;
+
 describe("NodeCrawlerBase after write", function (this: Mocha.Runnable) {
     const port = 2012;
 
@@ -19,9 +24,9 @@ describe("NodeCrawlerBase after write", function (this: Mocha.Runnable) {
     // so we set a big enough timeout
     this.timeout(process.arch === "arm" ? 800000 : 200000);
 
-    let server: OPCUAServer;
+    let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;
     let client: OPCUAClient;
-    let _temperatureVariableId: NodeId;
+    let _temperatureVariableId: UAVariable;
     let endpointUrl: string;
 
     before(async () => {
@@ -33,7 +38,7 @@ describe("NodeCrawlerBase after write", function (this: Mocha.Runnable) {
         await build_address_space_for_conformance_testing(server.engine.addressSpace!, { mass_variables: false });
 
         endpointUrl = server.getEndpointUrl();
-        _temperatureVariableId = (server as any).temperatureVariableId;
+        _temperatureVariableId = server.temperatureVariableId;
     });
 
     beforeEach(async () => {
@@ -58,7 +63,7 @@ describe("NodeCrawlerBase after write", function (this: Mocha.Runnable) {
 
                 const nodeId = "RootFolder";
 
-                const obj: any = await crawler.read(nodeId);
+                const obj: DynamicNode = await crawler.read(nodeId);
 
                 obj.browseName.toString().should.equal("Root");
                 obj.organizes.length.should.equal(3);
@@ -93,7 +98,7 @@ describe("NodeCrawlerBase after write", function (this: Mocha.Runnable) {
 
                 const nodeId = "RootFolder";
 
-                const obj: any = await crawler.read(nodeId);
+                const obj: DynamicNode = await crawler.read(nodeId);
                 obj.browseName.toString().should.equal("Root");
                 obj.organizes.length.should.equal(3);
                 obj.organizes[0].browseName.toString().should.eql("Objects");
