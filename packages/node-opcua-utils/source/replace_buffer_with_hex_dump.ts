@@ -1,7 +1,9 @@
 /**
  * @module node-opcua-utils
  */
-export function replaceBufferWithHexDump(obj: Record<string, { toString(format: string): void }>): any {
+export function replaceBufferWithHexDump(
+    obj: Record<string, { toString(format: string): void }>
+): Record<string, { toString(format: string): void }> {
     for (const p in obj) {
         if (Object.hasOwn(obj, p)) {
             if (obj[p] instanceof Buffer) {

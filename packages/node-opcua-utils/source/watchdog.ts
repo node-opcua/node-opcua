@@ -62,7 +62,7 @@ export class WatchDog extends EventEmitter {
     private _counter: number;
     private _currentTime: ArbitraryClockTick;
     private _timer: NodeJS.Timeout | null;
-    private readonly _visitSubscriberB: (...args: any[]) => void;
+    private readonly _visitSubscriberB: () => void;
 
     constructor() {
         super();
