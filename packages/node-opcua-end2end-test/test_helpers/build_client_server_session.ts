@@ -24,14 +24,13 @@ export interface ClientServerSession {
 }
 export async function build_client_server_session(options: OPCUAServerOptions & { port: number }): Promise<ClientServerSession> {
     assert(options.port, "must provide a port number");
-    let endpointUrl: string;
     const server = new OPCUAServer(options);
     const client = OPCUAClient.create({});
 
     await server.start();
 
     // we will connect to first server end point
-    endpointUrl = server.getEndpointUrl();
+    const endpointUrl = server.getEndpointUrl();
     debugLog("endpointUrl", endpointUrl);
     is_valid_endpointUrl(endpointUrl).should.equal(true);
 
