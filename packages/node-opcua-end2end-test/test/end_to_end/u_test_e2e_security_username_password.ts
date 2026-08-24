@@ -1,25 +1,20 @@
 import "should";
-import { OPCUAClient, UserTokenType } from "node-opcua";
+import { type ClientSession, OPCUAClient, UserTokenType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assertThrow } from "../../test_helpers/assert_throw";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-interface TestHarness {
-    endpointUrl: string;
-    server: any;
-    [k: string]: any;
-}
-
-export function t(test: TestHarness) {
+export function t(test: UmbrellaTestContext) {
     describe("testing basic Client-Server communication", () => {
         let endpointUrl: string;
         beforeEach(() => {
-            endpointUrl = test.endpointUrl;
+            endpointUrl = test.endpointUrl!;
         });
 
         it("C1 - testing with username === empty string", async () => {
             const client1 = OPCUAClient.create({});
             await client1.connect(endpointUrl);
-            let session: any;
+            let session: ClientSession | undefined;
 
             try {
                 // Accept either client-side validation or server-side status
@@ -32,8 +27,9 @@ export function t(test: TestHarness) {
                 }, /BadIdentityTokenInvalid|Invalid userIdentityInfo/);
 
                 if (session) {
+                    const activeSession = session;
                     await assertThrow(async () => {
-                        await session.close();
+                        await activeSession.close();
                     }, /BadSessionNotActivated/);
                 }
             } finally {
