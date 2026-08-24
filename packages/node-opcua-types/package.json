@@ -9,7 +9,7 @@
         "build": "tsc -b",
         "test": "mocha",
         "test:check": "tsc --noEmit -p test/tsconfig.json",
-        "format": "biome check --write .",
+        "format": "biome check --write --no-errors-on-unmatched .",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo source/_generated_*"
     },
     "dependencies": {

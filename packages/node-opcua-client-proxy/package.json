@@ -5,8 +5,8 @@
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
-        "lint": "biome check .",
-        "format": "biome check --write .",
+        "lint": "biome check --no-errors-on-unmatched .",
+        "format": "biome check --write --no-errors-on-unmatched .",
         "test": "mocha"
     },
     "main": "./dist/index.js",

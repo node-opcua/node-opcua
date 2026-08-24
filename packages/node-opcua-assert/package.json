@@ -8,7 +8,7 @@
         "build": "tsc -b",
         "test": "echo nothing to do",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "lint": "biome check ."
+        "lint": "biome check --no-errors-on-unmatched ."
     },
     "versionBump": "1",
     "dependencies": {

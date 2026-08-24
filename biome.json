@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -24,12 +24,12 @@
             "packages/**/*.ts",
             "packages_extra/**/*.ts",
             "tools/**/*.ts",
-            "!packages/node-opcua-nodeset-*/**",
+            "!packages/node-opcua-nodeset-*",
             "!packages/node-opcua-constants/source/opcua_node_ids.ts",
             "!**/_generated_*.ts",
             "!**/_auto_generated_*",
-            "!**/_test_generated/**",
-            "!packages/node-opcua-variant/test/data_factory_code_generator/**"
+            "!**/_test_generated",
+            "!packages/node-opcua-variant/test/data_factory_code_generator"
         ]
     },
     "assist": {
