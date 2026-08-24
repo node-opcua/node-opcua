@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use strict";
 const path = require("path");
 const should = require("should");

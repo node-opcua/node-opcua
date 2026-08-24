@@ -2,18 +2,16 @@
 /**
  * @module node-opcua-generator
  */
-// tslint:disable:max-line-length
-// tslint:disable:no-console
-import fs from "fs";
+import fs from "node:fs";
+
 // node 14 onward : import { mkdir } from "fs/promises";
 const { mkdir } = fs.promises;
 
-import path from "path";
-import ts from "typescript";
-
+import path from "node:path";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ConstructorFunc } from "node-opcua-factory";
+import type { ConstructorFunc } from "node-opcua-factory";
+import ts from "typescript";
 
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
@@ -81,7 +79,7 @@ function get_caller_source_filename() {
 }
 
 export async function generateCode(schemaName: string, localSchemaFile: string, generatedCodeFolder?: string): Promise<void> {
-    const schemaTypescriptFile = schemaName + "_Schema.ts";
+    const schemaTypescriptFile = `${schemaName}_Schema.ts`;
 
     const currentFolder = process.cwd();
     //
@@ -100,7 +98,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
         await mkdir(generatedCodeFolder);
     }
 
-    const generatedTypescriptSource = path.join(generatedCodeFolder, "_" + schemaName + ".ts");
+    const generatedTypescriptSource = path.join(generatedCodeFolder, `_${schemaName}.ts`);
 
     const generatedSourceExists = fs.existsSync(generatedTypescriptSource);
 
@@ -119,7 +117,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
             codeGeneratorScript = path.join(__dirname, "factory_code_generator.js");
         }
 
-        assert(fs.existsSync(codeGeneratorScript), "cannot get code factory_code_generator" + codeGeneratorScript);
+        assert(fs.existsSync(codeGeneratorScript), `cannot get code factory_code_generator${codeGeneratorScript}`);
         const codeGeneratorScriptMtime = new Date(fs.statSync(codeGeneratorScript).mtime).getTime();
 
         codeGeneratorIsNewer = generatedSourceMtime <= codeGeneratorScriptMtime;
@@ -128,7 +126,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
 
     if (generatedSourceIsOutdated) {
         const module = await import(localSchemaFile);
-        const schema = module[schemaName + "_Schema"];
+        const schema = module[`${schemaName}_Schema`];
 
         if (!schema) {
             throw new Error(`module must export a Schema with name ${schemaName}_Schema  in ${generatedTypescriptSource}`);
@@ -138,14 +136,14 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
         if (exports.verbose) {
             console.log(" generating ", schemaName, " in ", generatedTypescriptSource);
         }
-        const localSchemaFile1 = path.join("../schemas", schemaName + "_schema");
+        const localSchemaFile1 = path.join("../schemas", `${schemaName}_schema`);
         produce_TScript_code(schema, localSchemaFile1, generatedTypescriptSource);
     }
 }
 
 export async function generateTypeScriptCodeFromSchema(schemaName: string): Promise<void> {
     const currentFolder = process.cwd();
-    const schemaFilename = path.join(currentFolder, "schemas", schemaName + "_schema.ts");
+    const schemaFilename = path.join(currentFolder, "schemas", `${schemaName}_schema.ts`);
     const generatedCodeFolder = path.join(process.cwd(), "_generated_");
     await generateCode(schemaName, schemaFilename, generatedCodeFolder);
 }
@@ -169,11 +167,11 @@ export async function registerObject(schema: string, generateCodeFolder?: string
     const folderHint = hintSchema[0];
     schema = hintSchema[1];
 
-    const schemaName = schema + "_Schema";
-    const schemaFile = path.join(folderHint, schema + "_schema.ts");
+    const schemaName = `${schema}_Schema`;
+    const schemaFile = path.join(folderHint, `${schema}_schema.ts`);
     const module = await import(schemaFile);
     if (!module) {
-        throw new Error("cannot find " + schemaFile);
+        throw new Error(`cannot find ${schemaFile}`);
     }
 
     await generateCode(schemaName, schemaFile, generateCodeFolder);

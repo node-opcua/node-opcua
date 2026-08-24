@@ -2,9 +2,6 @@
  * @module node-opcua-generator
  */
 
-// tslint:disable:max-line-length
-// tslint:disable:max-depth
-
 /* c8 ignore start */
 
 import fs from "node:fs";
@@ -53,8 +50,6 @@ function _convertToJavascriptCode(obj: any): string {
             lines.push(_convertToJavascriptCode(prop), ",");
         }
         lines.push("]");
-
-        // tslint:disable:no-empty
     } else if (typeof obj === "function") {
         /** */
     } else {
@@ -64,7 +59,7 @@ function _convertToJavascriptCode(obj: any): string {
 }
 
 function get_class_folder(_schemaName: string, optionalFolder?: string): string {
-    let folder : string ="";
+    let folder: string = "";
     if (optionalFolder) {
         if (!fs.existsSync(optionalFolder)) {
             fs.mkdirSync(optionalFolder);
@@ -175,7 +170,7 @@ function write_complex_fast_init(write: WriteFunc, schema: IStructuredTypeSchema
 
 function write_complex(write: WriteFunc, schema: IStructuredTypeSchema, field: FieldType, member: string /*, i*/) {
     if (field.isArray) {
-        if (Object.prototype.hasOwnProperty.call(field, "defaultValue")) {
+        if (Object.hasOwn(field, "defaultValue")) {
             // todo: fix me => should call field defaultValue in the live version
             write(`        this.${member} = []; // should default`);
         } else {
@@ -403,7 +398,7 @@ function write_constructor(write: WriteFunc, schema: IStructuredTypeSchema): voi
 
 function write_possible_fields(write: WriteFunc, className: string, possibleFields: string[]): void {
     write("    public static possibleFields: string[] = [");
-    write(`          ${possibleFields.map(quotify).join("," + os.EOL + "           ")}`);
+    write(`          ${possibleFields.map(quotify).join(`,${os.EOL}           `)}`);
     write("    ];");
 }
 
@@ -678,33 +673,33 @@ function write_expose_encoder_decoder(write: WriteFunc, schema: IStructuredTypeS
                     write(`const _enumeration${field.fieldType} = getEnumeration("${field.fieldType}");`);
                     write(
                         "const encode" +
-                        field.fieldType +
-                        ': (value: any, stream: OutputBinaryStream) => void = getEnumeration("' +
-                        field.fieldType +
-                        '").encode;'
+                            field.fieldType +
+                            ': (value: any, stream: OutputBinaryStream) => void = getEnumeration("' +
+                            field.fieldType +
+                            '").encode;'
                     );
                     write(
                         "const decode" +
-                        field.fieldType +
-                        ': (stream: BinaryStream) => void = getEnumeration("' +
-                        field.fieldType +
-                        '").decode;'
+                            field.fieldType +
+                            ': (stream: BinaryStream) => void = getEnumeration("' +
+                            field.fieldType +
+                            '").decode;'
                     );
                     break;
                 case FieldCategory.complex:
                     write(
                         "const encode" +
-                        field.fieldType +
-                        ': (value: any, stream: OutputBinaryStream) => void = getBuiltInType("' +
-                        field.fieldType +
-                        '").encode;'
+                            field.fieldType +
+                            ': (value: any, stream: OutputBinaryStream) => void = getBuiltInType("' +
+                            field.fieldType +
+                            '").encode;'
                     );
                     write(
                         "const decode" +
-                        field.fieldType +
-                        ': (stream: BinaryStream) => void  = getBuiltInType("' +
-                        field.fieldType +
-                        '").decode;'
+                            field.fieldType +
+                            ': (stream: BinaryStream) => void  = getBuiltInType("' +
+                            field.fieldType +
+                            '").decode;'
                     );
                     break;
             }
@@ -721,16 +716,13 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
     const encodingXmlNodeId = getEncodingXmlId(schema);
     const encodingJsonNodeId = getEncodingJsonId(schema);
 
-
     // ----------------------------------------------- Options
     if (baseClass === "BaseUAObject" || baseClass === "ExtensionObject" || baseClass === "DataTypeDefinition") {
         write(`export interface ${className}Options {`);
     } else {
         write(`export interface ${className}Options extends ${baseClass}Options {`);
     }
-    {
-        write_class_constructor_options(write, schema);
-    }
+    write_class_constructor_options(write, schema);
     write(`}`);
 
     write(`export class ${className} extends ${baseClass} {`);
@@ -791,7 +783,7 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
         write(`${className}.schema.encodingDefaultJson = ${className}.encodingDefaultJson;`);
     }
 
-    const needRegistration = true;//  encodingBinaryNodeId.value !== 0;
+    const needRegistration = true; //  encodingBinaryNodeId.value !== 0;
 
     if (needRegistration) {
         write(`registerClassDefinition( ${className}.dataTypeNodeId, "${className}", ${className});`);
@@ -805,18 +797,18 @@ function getDataTypeNodeId(schema: IStructuredTypeSchema): NodeId {
 }
 function getEncodingBinaryId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingBinaryId = (ObjectIds as any)[className + "_Encoding_DefaultBinary"];
+    const encodingBinaryId = (ObjectIds as any)[`${className}_Encoding_DefaultBinary`];
     return coerceNodeId(encodingBinaryId);
 }
 
 function getEncodingXmlId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingXmlId = (ObjectIds as any)[className + "_Encoding_DefaultXml"];
+    const encodingXmlId = (ObjectIds as any)[`${className}_Encoding_DefaultXml`];
     return coerceNodeId(encodingXmlId);
 }
 function getEncodingJsonId(schema: IStructuredTypeSchema): NodeId {
     const className = schema.name;
-    const encodingXmlId = (ObjectIds as any)[className + "_Encoding_DefaultJson"];
+    const encodingXmlId = (ObjectIds as any)[`${className}_Encoding_DefaultJson`];
     return coerceNodeId(encodingXmlId);
 }
 

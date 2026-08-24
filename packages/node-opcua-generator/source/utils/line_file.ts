@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-utils
  */
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { LineFile } from "node-opcua-utils";
 
 export class LineFile1 extends LineFile {
     constructor() {
         super();
-        this.write("// --------- This code has been automatically generated !!! " + new Date().toISOString());
+        this.write(`// --------- This code has been automatically generated !!! ${new Date().toISOString()}`);
         this.write("/**");
         this.write(" * @module node-opcua-types");
         this.write(" */");

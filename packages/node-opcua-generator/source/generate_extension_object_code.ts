@@ -1,13 +1,12 @@
-/* eslint-disable max-statements */
 /* c8 ignore start */
 /**
  * @module node-opcua-generator
  */
-// tslint:disable:max-line-length
-// tslint:disable:no-inner-declarations
 //
-import fs from "fs";
+
+import fs from "node:fs";
 import chalk from "chalk";
+
 // node 14 onward : import { readFile } from "fs/promises";
 const { readFile } = fs.promises;
 
@@ -17,14 +16,14 @@ import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import {
-    EnumerationDefinitionSchema,
+    DataTypeFactory,
+    type EnumerationDefinitionSchema,
     FieldCategory,
     getStandardDataTypeFactory,
-    DataTypeFactory,
-    IStructuredTypeSchema
+    type IStructuredTypeSchema
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
-import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSD } from "node-opcua-schemas";
+import { type DataTypeAndEncodingId, type MapDataTypeAndEncodingIdProvider, parseBinaryXSD } from "node-opcua-schemas";
 
 import { writeStructuredType } from "./factory_code_generator";
 import { LineFile1 } from "./utils/line_file";
@@ -37,7 +36,6 @@ const f = new LineFile1();
 
 const write = makeWrite(f);
 
-// eslint-disable-next-line max-statements
 function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): void {
     const arrayValues = Object.keys(enumerationSchema.enumValues)
         .filter((a: string) => a.match("[0-9]+"))
@@ -52,9 +50,11 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
     const maxEnumValue = Math.max.apply(null, arrayValues);
 
     // make sure there is a Invalid key in the enum => else insert one (but only if not flaggable)
-    const hasInvalid = Object.prototype.hasOwnProperty.call(enumerationSchema.enumValues, "Invalid");
+    const hasInvalid = Object.hasOwn(enumerationSchema.enumValues, "Invalid");
     if (!hasInvalid && !isFlaggable) {
-        enumerationSchema.enumValues[(enumerationSchema.enumValues.Invalid = 0xffffffff)] = "Invalid";
+        // bidirectional enum map: name -> value and value -> name
+        enumerationSchema.enumValues.Invalid = 0xffffffff;
+        enumerationSchema.enumValues[0xffffffff] = "Invalid";
     }
 
     write("");
@@ -144,9 +144,9 @@ export async function generate(filename: string, generatedTypescriptFilename: st
     const idProvider: MapDataTypeAndEncodingIdProvider = {
         getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId | null {
             const dataType = (DataTypeIds as any)[name] || 0;
-            const binEncoding = (ObjectIds as any)[name + "_Encoding_DefaultBinary"] || 0;
-            const xmlEncoding = (ObjectIds as any)[name + "_Encoding_DefaultXml"] || 0;
-            const jsonEncoding = (ObjectIds as any)[name + "_Encoding_DefaultJson"] || 0;
+            const binEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultBinary`] || 0;
+            const xmlEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultXml`] || 0;
+            const jsonEncoding = (ObjectIds as any)[`${name}_Encoding_DefaultJson`] || 0;
             if (dataType === undefined) {
                 return null;
             }
@@ -270,7 +270,6 @@ import {
     // write(``);
 
     const alreadyDone: { [key: string]: any } = {};
-    /* tslint:disable:no-string-literal */
     alreadyDone["ExtensionObject"] = true;
     alreadyDone["NodeId"] = true;
 

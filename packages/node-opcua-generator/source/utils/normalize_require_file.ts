@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 // ---------------------------------------------------------------------------------------------------------------------
 /**
 
@@ -13,7 +13,7 @@ export function normalize_require_file(baseFolder: string, fullPathToFile: strin
     let localFile = path.relative(baseFolder, fullPathToFile).replace(/\\/g, "/");
     // append ./ if necessary
     if (localFile.substring(0, 1) !== ".") {
-        localFile = "./" + localFile;
+        localFile = `./${localFile}`;
     }
     // remove extension
     localFile = localFile.substring(0, localFile.length - path.extname(localFile).length);

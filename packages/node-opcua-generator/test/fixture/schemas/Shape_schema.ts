@@ -1,9 +1,4 @@
-/* tslint:disable:variable-name */
-import {
-    getStandardDataTypeFactory,
-    registerEnumeration,
-    type StructuredTypeOptions
-} from "node-opcua-factory";
+import { getStandardDataTypeFactory, registerEnumeration, type StructuredTypeOptions } from "node-opcua-factory";
 
 export enum Color {
     RED = 100,
