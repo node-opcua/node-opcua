@@ -2,6 +2,11 @@ import os from "node:os";
 import { type ClientSession, type CreateSessionRequest, type CreateSessionResponse, OPCUAClient } from "node-opcua";
 import should from "should";
 
+// _createSession is a private OPCUAClient implementation method, reached here to
+// observe the raw CreateSessionResponse before the public createSession() wrapper runs.
+// biome-ignore lint/suspicious/noExplicitAny: see comment above
+type InternalAny = any;
+
 async function testCreateSessionResponse(
     endpointUrl: string
 ): Promise<{ createSessionResponse: CreateSessionResponse | null; err?: Error }> {
@@ -27,7 +32,7 @@ async function testCreateSessionResponse(
         await client1.connect(endpointUrl);
 
         const session = await new Promise<ClientSession>((resolve, reject) => {
-            (client1 as any)._createSession((err: Error | null, session: ClientSession) => {
+            (client1 as InternalAny)._createSession((err: Error | null, session: ClientSession) => {
                 if (err) {
                     return reject(err);
                 } else {
