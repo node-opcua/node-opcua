@@ -1,8 +1,16 @@
 import { AttributeIds, DataType, DataValue, makeNodeId, OPCUAClient, StatusCodes, WriteRequest } from "node-opcua";
 import { assertThrow } from "../../test_helpers/assert_throw";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import type { UmbrellaTestContext } from "./_helper_umbrella";
 
-export function t(test: any) {
+// performMessageTransaction() is public on the session implementation but excluded
+// from the public ClientSession interface; reached here to send a raw WriteRequest
+// (bypassing session.write()'s per-request splitting) and observe raw service faults.
+interface SessionWithTransaction {
+    performMessageTransaction(request: WriteRequest): Promise<unknown>;
+}
+
+export function t(test: UmbrellaTestContext) {
     describe("end-to-end testing of a write operation between a client and a server (session#write)", () => {
         let client: OPCUAClient;
         beforeEach(() => {
@@ -11,7 +19,7 @@ export function t(test: any) {
         afterEach(() => {});
 
         it("should return BadNodeIdUnknown if nodeId is unknown ", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const unknown_nodeid = makeNodeId(7777, 8788);
                 const nodesToWrite = [
                     {
@@ -40,7 +48,7 @@ export function t(test: any) {
                     }
                 }
             ];
-            const statusCodes = await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            const statusCodes = await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const statusCodes = await session.write(nodesToWrite);
                 return statusCodes;
             });
@@ -50,7 +58,7 @@ export function t(test: any) {
         });
 
         it("should return Good if nodeId is known and writable ", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const setPointTemperatureId = "ns=1;s=SetPointTemperature";
 
                 const nodesToWrite = [
@@ -69,7 +77,7 @@ export function t(test: any) {
         });
 
         it("should return an error if value to write has a wrong dataType", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const setPointTemperatureId = "ns=1;s=SetPointTemperature";
 
                 const nodesToWrite = [
@@ -93,7 +101,7 @@ export function t(test: any) {
         });
 
         it("should return an error if value to write has a wrong dataType ( Double  instead of Float)", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const float_Node = "ns=2;s=Scalar_Simulation_Float";
 
                 const nodesToWrite = [
@@ -116,7 +124,7 @@ export function t(test: any) {
             // The value was successfully written to an intermediate system but the Server does not know if
             // the data source was updated properly.
 
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const asyncNodeId = "ns=1;s=AsynchronousVariable";
 
                 const nodesToWrite = [
@@ -137,7 +145,7 @@ export function t(test: any) {
         });
 
         it("should return BadNothingToDo if writeRequest is empty", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 await assertThrow(async () => {
                     const _statusCodes = await session.write([]);
                 }, /BadNothingToDo/);
@@ -145,21 +153,21 @@ export function t(test: any) {
         });
 
         it("should return BadNothingToDo if writeRequest is null", async () => {
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const request = new WriteRequest({ nodesToWrite: null });
                 request.nodesToWrite = null;
                 await assertThrow(async () => {
-                    await (session as any).performMessageTransaction(request);
+                    await (session as unknown as SessionWithTransaction).performMessageTransaction(request);
                 }, /BadNothingToDo/);
             });
         });
 
         it("MMM should return BadTooManyOperation if nodesToWrite has too many elements", async () => {
-            test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 3;
+            test.server!.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 3;
 
-            test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.be.greaterThan(1);
+            test.server!.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.be.greaterThan(1);
 
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const nodeToWrite = {
                     nodeId: null,
                     attributeId: AttributeIds.Value,
@@ -184,18 +192,18 @@ export function t(test: any) {
                 const request = new WriteRequest({ nodesToWrite: nodesToWrite });
 
                 await assertThrow(async () => {
-                    await (session as any).performMessageTransaction(request);
+                    await (session as unknown as SessionWithTransaction).performMessageTransaction(request);
                 }, /BadTooManyOperations/);
 
                 // restore limit to zero
-                test.server.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 0;
+                test.server!.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 0;
             });
         });
 
         it("VQT should write Value Quality Timestamp - on basic variable", async () => {
             const setPointTemperatureId = "ns=1;s=SetPointTemperature";
             // Value, Quality, sourceTimestamp
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const date = new Date();
                 date.setTime(date.getTime() + 3);
 
@@ -239,7 +247,7 @@ export function t(test: any) {
             const asyncNodeId = "ns=1;s=AsynchronousFullVariable";
 
             // Value, Quality, sourceTimestamp
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
+            await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const date = new Date();
                 date.setTime(date.getTime() + 3);
 
