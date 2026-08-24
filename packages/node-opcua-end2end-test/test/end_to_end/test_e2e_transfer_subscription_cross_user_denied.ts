@@ -2,15 +2,26 @@ import "should";
 import {
     AttributeIds,
     ClientMonitoredItem,
+    type ClientSession,
+    type ClientSessionRawSubscriptionService,
     ClientSubscription,
     OPCUAClient,
     type OPCUAServer,
     StatusCodes,
     TimestampsToReturn,
+    type TransferSubscriptionsRequestLike,
+    type TransferSubscriptionsResponse,
     UserTokenType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+
+// transferSubscriptions() is declared on the raw subscription service, deliberately
+// excluded from the public ClientSession interface. Its optional-callback overload
+// wins resolution for a single-arg call, so re-declare the Promise-only form.
+type RawSession = Omit<ClientSession & ClientSessionRawSubscriptionService, "transferSubscriptions"> & {
+    transferSubscriptions(options: TransferSubscriptionsRequestLike): Promise<TransferSubscriptionsResponse>;
+};
 
 // -------------------------------------------------------------------------------------------------
 // OPC UA Part 4 §5.14.7 - ownership check for TransferSubscriptions.
@@ -70,11 +81,11 @@ async function transferAs(endpointUrl: string, userName: string, password: strin
     await client.connect(endpointUrl);
     try {
         const session = await client.createSession({ type: UserTokenType.UserName, userName, password });
-        const response: any = await (session as any).transferSubscriptions({
+        const response = await (session as RawSession).transferSubscriptions({
             subscriptionIds: [subscriptionId],
             sendInitialValues: false
         });
-        const statusCode = response.results[0].statusCode;
+        const statusCode = response.results![0].statusCode;
         await session.close();
         return statusCode;
     } finally {
