@@ -1,8 +1,7 @@
 /**
  * @module node-opcua-types
  */
-// tslint:disable:no-console
-import path from "path";
+import path from "node:path";
 import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { generate } from "node-opcua-generator";

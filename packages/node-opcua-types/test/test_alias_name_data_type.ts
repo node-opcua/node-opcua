@@ -99,9 +99,9 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
             const reloaded = binaryRoundTrip(value, AliasNameVerboseDataType);
 
             reloaded.aliasName.toString().should.eql(value.aliasName.toString());
-            reloaded.referencedNodes!.map((n: ExpandedNodeId) => n.toString()).should.eql(
-                value.referencedNodes!.map((n: ExpandedNodeId) => n.toString())
-            );
+            reloaded
+                .referencedNodes!.map((n: ExpandedNodeId) => n.toString())
+                .should.eql(value.referencedNodes!.map((n: ExpandedNodeId) => n.toString()));
             reloaded.serverUris!.should.eql([null, "urn:remote:server"]);
             reloaded.aliasNameCategoryId.toString().should.eql(value.aliasNameCategoryId.toString());
         });
