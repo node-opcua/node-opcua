@@ -1,6 +1,4 @@
-'use strict';
-
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { unescapeXML } from "../escape";
 
 const STATE_TEXT = 0;
@@ -16,18 +14,11 @@ const STATE_CDATA = 9;
 const STATE_IGNORE_CDATA = 10;
 
 export class SaxLtx extends EventEmitter {
-
-
     #write: (data: string) => void;
     constructor() {
         super();
 
-        function _handleTagOpening(
-            this: SaxLtx,
-            endTag: boolean| undefined,
-            tagName: string|undefined,
-            attrs: string
-        ) {
+        function _handleTagOpening(this: SaxLtx, endTag: boolean | undefined, tagName: string | undefined, attrs: string) {
             if (!endTag) {
                 this.emit("startElement", tagName, attrs);
                 if (selfClosing) {
@@ -36,20 +27,20 @@ export class SaxLtx extends EventEmitter {
             } else {
                 this.emit("endElement", tagName, false);
             }
-        };
+        }
         let state = STATE_TEXT;
         let remainder: string | null = null;
         let parseRemainder: boolean = false;
         let tagName: string | undefined;
         let attrs: string | {} | undefined;
-        let endTag: boolean|undefined;
+        let endTag: boolean | undefined;
         let selfClosing: boolean | undefined;
         let attrQuote: number;
         let attrQuoteChar: string;
         let recordStart: number | undefined = 0;
-        let attrName: string|undefined;
+        let attrName: string | undefined;
 
-        this.#write = function write(data: string ) {
+        this.#write = function write(data: string) {
             let pos = 0;
 
             /* Anything from previous write()? */
@@ -66,7 +57,7 @@ export class SaxLtx extends EventEmitter {
                     recordStart = undefined;
                     return recorded;
                 }
-                return  undefined;
+                return undefined;
             }
 
             for (; pos < data.length; pos++) {
@@ -149,10 +140,7 @@ export class SaxLtx extends EventEmitter {
                             if (data.substring(pos + 1, 7) === "[CDATA[") {
                                 recordStart = pos + 8;
                                 state = STATE_CDATA;
-                            } else if (
-                                data.length < pos + 8 &&
-                                "[CDATA[".startsWith(data.slice(pos + 1))
-                            ) {
+                            } else if (data.length < pos + 8 && "[CDATA[".startsWith(data.slice(pos + 1))) {
                                 // We potentially have CDATA, but the chunk is ending; stop here and let the next write() decide
                                 parseRemainder = true;
                                 pos = data.length;
@@ -243,7 +231,6 @@ export class SaxLtx extends EventEmitter {
         };
     }
 
-
     public write(data: string | Buffer) {
         this.#write(data.toString());
     }
@@ -253,7 +240,6 @@ export class SaxLtx extends EventEmitter {
         }
 
         /* Uh, yeah */
-        this.write = function write() { };
+        this.write = function write() {};
     }
 }
-

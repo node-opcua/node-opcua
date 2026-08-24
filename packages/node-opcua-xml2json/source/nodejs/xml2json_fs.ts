@@ -1,5 +1,5 @@
-import fs from "fs";
-import { Callback, SimpleCallback, Xml2Json } from "../xml2json";
+import fs from "node:fs";
+import { Xml2Json } from "../xml2json";
 
 export class Xml2JsonFs extends Xml2Json {
     /**

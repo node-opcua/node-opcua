@@ -1,17 +1,24 @@
-// tslint:disable:no-console
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
-import { ParserLike, ReaderStateParserLike, Xml2JsonPojo, startPojo, Xml2Json, XmlAttributes, json_parser } from "..";
+import {
+    json_parser,
+    type ParserLike,
+    type ReaderStateParserLike,
+    startPojo,
+    Xml2Json,
+    Xml2JsonPojo,
+    type XmlAttributes
+} from "..";
 
-const doDebug = checkDebugFlag("TEST");
-const debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+const _debugLog = make_debugLog("TEST");
 const _should = should;
 
 describe("It should parse XML doc into json (deprecated)", () => {
     it("should parse a simple xml file to json", async () => {
         const parser = new Xml2JsonPojo();
 
-        const json =parser.parseString("<Machine>" + "<DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</Machine>");
+        const json = parser.parseString("<Machine>" + "<DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</Machine>");
 
         json.should.eql({
             machine: {
@@ -59,7 +66,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
         const parser = new Xml2Json({
             parser: {
                 person: {
-                    init(name: string, attrs: XmlAttributes) {
+                    init(_name: string, attrs: XmlAttributes) {
                         this.parent.root.obj = {};
                         this.obj = this.parent.root.obj;
                         this.obj.name = attrs.name;
@@ -75,7 +82,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
                             });
                         }
                     },
-                    endElement(elementName: string) {
+                    endElement(_elementName: string) {
                         //  console.log("xxx elementName ", elementName);
                     },
                     parser: {
@@ -89,7 +96,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
             }
         });
 
-        const obj = parser.parseString(
+        const _obj = parser.parseString(
             `<employees>
              <person name='John'>F
                <address>Paris</address>
@@ -124,7 +131,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
                     Structure2: json_parser
                 },
 
-                startElement(elementName: string, attrs: any) {
+                startElement(_elementName: string, _attrs: any) {
                     this.parent.extensionObject = null;
                 },
 
@@ -160,7 +167,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
         let startElementCount = 0;
         let endElementCount = 0;
         const reader: ReaderStateParserLike = {
-            init(this: any, elementName: string) {
+            init(this: any, _elementName: string) {
                 this.obj = {};
             },
             finish(this: any) {
@@ -177,11 +184,11 @@ describe("It should parse XML doc into json (deprecated)", () => {
                             value: this.listData
                         };
                     },
-                    startElement(elementName: string) {
+                    startElement(_elementName: string) {
                         this.listData = this;
                         startElementCount++;
                     },
-                    endElement(elementName: string) {
+                    endElement(_elementName: string) {
                         endElementCount++;
                     }
                 }
@@ -190,7 +197,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
 
         const parser = new Xml2Json(reader);
 
-        const result = parser.parseString(
+        const _result = parser.parseString(
             `<Stuff>
 <ListOfExtensionObject>
     <ExtensionObject>

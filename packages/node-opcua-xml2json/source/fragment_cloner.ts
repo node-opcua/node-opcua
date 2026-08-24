@@ -1,4 +1,4 @@
-import { Xml2Json, XmlAttributes, IReaderState } from "./xml2json";
+import type { IReaderState, Xml2Json, XmlAttributes } from "./xml2json";
 
 interface XmlWriter {
     startElement(elementName: string): this;
@@ -19,7 +19,7 @@ export class InternalFragmentClonerReaderState implements IReaderState {
     public initLevel = 0;
     public engine?: Xml2Json;
 
-    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
+    public _on_startElement(_level: number, elementName: string, attrs: XmlAttributes): void {
         this._xw.startElement(elementName);
         for (const [attName, attValue] of Object.entries(attrs)) {
             this._xw.writeAttribute(attName, attValue);
@@ -29,12 +29,12 @@ export class InternalFragmentClonerReaderState implements IReaderState {
         this._xw.endElement();
         if (this.initLevel === level) {
             this.value = this._xw.toString();
-            this.engine!._demote(this, this.engine!.currentLevel, elementName);
+            this.engine?._demote(this, this.engine?.currentLevel, elementName);
             this.engine = undefined;
             this._on_finish();
         }
     }
-    public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void {
+    public _on_init(elementName: string, attrs: XmlAttributes, _parent: IReaderState, level: number, engine: Xml2Json): void {
         this.engine = engine;
         this.initLevel = level;
         this._xw = new XMLWriter(true);
@@ -48,7 +48,7 @@ export class InternalFragmentClonerReaderState implements IReaderState {
         /** */
     }
 
-    public _on_endElement2(level: number, elementName: string): void {
+    public _on_endElement2(_level: number, _elementName: string): void {
         /** */
     }
 

@@ -4,7 +4,7 @@
 //   <Field>
 // </Definition>
 import assert from "node-opcua-assert";
-import { ReaderStateParserLike, XmlAttributes } from "./xml2json";
+import type { ReaderStateParserLike, XmlAttributes } from "./xml2json";
 
 // <Definition Name="SomeName">
 //        <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
@@ -59,12 +59,12 @@ interface FieldParser {
     attrs: Record<string, string>;
 }
 export const _definitionParser: ReaderStateParserLike = {
-    init(this: AA, name: string, attrs: XmlAttributes, parent: any, engine: any) {
+    init(this: AA, _name: string, attrs: XmlAttributes, _parent: any, _engine: any) {
         assert(!this.parent.nFields || this.parent.definitionFields.length === 0);
         this.parent.definitionFields = [];
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
         this.array = this.parent.definitionFields;
-        this.isUnion = attrs.IsUnion === "true" ? true : false;
+        this.isUnion = attrs.IsUnion === "true";
     },
     parser: {
         Field: {
@@ -107,7 +107,7 @@ export const _definitionParser: ReaderStateParserLike = {
                 }
 
                 if (this.attrs.IsOptional !== undefined) {
-                    obj.isOptional = this.attrs.IsOptional === "true" ? true : false;
+                    obj.isOptional = this.attrs.IsOptional === "true";
                 }
                 if (this.attrs.SymbolicName !== undefined) {
                     obj.symbolicName = this.attrs.SymbolicName;

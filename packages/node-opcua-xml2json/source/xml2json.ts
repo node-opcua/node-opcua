@@ -3,13 +3,11 @@
  * node -> see if https://github.com/isaacs/sax-js could be used instead
  */
 
-
 import { assert } from "node-opcua-assert";
 import { SaxLtx } from "./thirdparties/parser/lts";
 
 export type SimpleCallback = (err?: Error) => void;
 export type Callback<T> = (err?: Error | null, result?: T) => void;
-
 
 export interface Parser {
     [key: string]: ReaderState;
@@ -72,8 +70,9 @@ export interface IReaderState {
     _on_text(text: string): void;
 }
 
-export class ReaderStateBase { }
-export interface ReaderStateBase extends IReaderState { }
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
+export class ReaderStateBase {}
+export interface ReaderStateBase extends IReaderState {}
 /**
  * @private
  */
@@ -149,7 +148,7 @@ export class ReaderState extends ReaderStateBase {
         if (this._startElement) {
             this._startElement(elementName, attrs);
         }
-        if (this.engine && Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
+        if (this.engine && Object.hasOwn(this.parser, elementName)) {
             this.engine._promote(this.parser[elementName], level, elementName, attrs);
         }
     }
@@ -157,7 +156,7 @@ export class ReaderState extends ReaderStateBase {
     /**
      * @protected
      */
-    public _on_endElement2(level: number, elementName: string): void {
+    public _on_endElement2(_level: number, elementName: string): void {
         if (this._endElement) {
             this._endElement(elementName);
         }
@@ -181,12 +180,8 @@ export class ReaderState extends ReaderStateBase {
             this.chunks = [];
             // this is the end
             this._on_finish();
-            if (
-                this.parent &&
-                (this.parent as any).parser &&
-                Object.prototype.hasOwnProperty.call((this.parent as any).parser, elementName)
-            ) {
-                this.engine!._demote(this, level, elementName);
+            if (this.parent && (this.parent as any).parser && Object.hasOwn((this.parent as any).parser, elementName)) {
+                this.engine?._demote(this, level, elementName);
             }
         }
     }

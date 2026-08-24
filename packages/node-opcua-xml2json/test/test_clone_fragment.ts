@@ -1,7 +1,4 @@
-// tslint:disable:no-console
-import should from "should";
-
-import { ReaderStateParserLike, FragmentClonerParser, Xml2Json } from "..";
+import { FragmentClonerParser, type ReaderStateParserLike, Xml2Json } from "..";
 
 const doDebug = false;
 
@@ -117,7 +114,7 @@ describe("Cloning XML Fragment", () => {
 `;
 
         const parser = new Xml2Json(reader);
-        const a = await parser.parseString(xmlDoc);
+        const _a = await parser.parseString(xmlDoc);
 
         xmlObjects.length.should.eql(3);
         xmlObjects[0].should.eql(`<EnumValueType a="b" c="d">

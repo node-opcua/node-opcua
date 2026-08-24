@@ -1,9 +1,8 @@
-// tslint:disable:no-console
-import path from "node:path";
 import fs from "node:fs";
-import should from "should";
+import path from "node:path";
 import { make_debugLog } from "node-opcua-debug";
-import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
+import should from "should";
+import { type ParserLike, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "..";
 import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
 
 const debugLog = make_debugLog("TEST");
@@ -55,17 +54,16 @@ describe("XMLToJSON", () => {
     });
 
     async function createXMLFileWithBOM(filename: string) {
-
         const xmlContent = `<?xml version="1.0" encoding="utf-8"?>
 <root>
   <element>Hello, World!</element>
 </root>`;
 
         // Prepend the BOM character
-        const xmlWithBom = '\uFEFF' + xmlContent;
+        const xmlWithBom = `\uFEFF${xmlContent}`;
 
         // Write to a file
-        await fs.promises.writeFile(filename, xmlWithBom, 'utf8');
+        await fs.promises.writeFile(filename, xmlWithBom, "utf8");
     }
     it("should parse a UTF8 encoded xml file with a BOM", async () => {
         const fixturesDir = path.join(__dirname, "fixtures");
@@ -119,18 +117,14 @@ describe("XMLToJSON", () => {
 
         parser.parseString("<object>" + "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</object>");
         displayName!.should.eql("<HelloWorld>");
-
-
     });
 
     it("should parse a array", () => {
-
-
         function BasicType_parser1(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
             const _parser: ParserLike = {};
 
             const r: ReaderStateParserLike = {
-                init(this: any, name: string, attrs: XmlAttributes) {
+                init(this: any, _name: string, _attrs: XmlAttributes) {
                     this.value = 0;
                 },
 
@@ -157,7 +151,7 @@ describe("XMLToJSON", () => {
                     };
                     // xx console.log("xxx.... finish, ", this.parent.parent);
                 },
-                endElement(this: any, element: string) {
+                endElement(this: any, _element: string) {
                     this.listData.push(this.parser[dataType].value);
                     // xx console.log("xxx.... endElement, ", this.listData);
                 }
@@ -185,9 +179,8 @@ describe("XMLToJSON", () => {
                 <uax:Float>32</uax:Float>
                 <uax:Float>33</uax:Float>
             </uax:ListOfFloat>
-        </Value>`);
-
+        </Value>`
+        );
     });
-    it("should parse a array 2", () => {
-    });
+    it("should parse a array 2", () => {});
 });

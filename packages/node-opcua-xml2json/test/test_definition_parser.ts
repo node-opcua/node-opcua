@@ -1,7 +1,3 @@
-// tslint:disable:no-console
-// tslint:disable: object-literal-sort-keys
-import should from "should";
-
 import { definitionReaderStateParser, Xml2Json } from "..";
 
 describe("Definition Parser", () => {
@@ -26,7 +22,7 @@ describe("Definition Parser", () => {
                     dataType: "Int32",
                     name: "Id",
                     allowSubTypes: false,
-                    valueRank: -1,
+                    valueRank: -1
                 },
                 {
                     dataType: "Double",

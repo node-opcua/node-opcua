@@ -5,12 +5,11 @@ export type withPojoLambda = (name: string, pojo: unknown) => void;
 export class ReaderState2 extends ReaderStateBase {
     public _stack: unknown[];
     public _pojo: unknown;
-    
+
     // biome-ignore lint/suspicious/noExplicitAny: explanation
     public _element: any;
     public text: string;
     public _withPojo: withPojoLambda;
-
 
     private initLevel = 0;
     constructor() {
@@ -25,11 +24,10 @@ export class ReaderState2 extends ReaderStateBase {
     }
 
     public _on_init(_elementName: string, _attrs: XmlAttributes, _parent: IReaderState, level: number, _engine: Xml2Json): void {
-
         this.initLevel = level;
         if (this._stack.length === 0) {
             this._pojo = {};
-            this._element = this._pojo as Record<string, unknown>   ;
+            this._element = this._pojo as Record<string, unknown>;
         }
     }
 
