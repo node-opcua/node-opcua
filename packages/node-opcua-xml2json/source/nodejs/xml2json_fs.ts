@@ -5,7 +5,7 @@ export class Xml2JsonFs extends Xml2Json {
     /**
      * @param xmlFile - the name of the xml file to parse.
      */
-    public async parse(xmlFile: string): Promise<any> {
+    public async parse(xmlFile: string): Promise<Record<string, unknown>> {
         // slightly faster but require more memory ..
         let data = await fs.promises.readFile(xmlFile);
         if (data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {

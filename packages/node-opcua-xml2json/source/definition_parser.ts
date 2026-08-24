@@ -4,7 +4,7 @@
 //   <Field>
 // </Definition>
 import assert from "node-opcua-assert";
-import type { ReaderStateParserLike, XmlAttributes } from "./xml2json";
+import type { IReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "./xml2json";
 
 // <Definition Name="SomeName">
 //        <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
@@ -58,8 +58,12 @@ interface FieldParser {
     parent: AA;
     attrs: Record<string, string>;
 }
+interface DescriptionParser {
+    parent: FieldParser;
+    text: string;
+}
 export const _definitionParser: ReaderStateParserLike = {
-    init(this: AA, _name: string, attrs: XmlAttributes, _parent: any, _engine: any) {
+    init(this: AA, _name: string, attrs: XmlAttributes, _parent: IReaderState, _engine: Xml2Json) {
         assert(!this.parent.nFields || this.parent.definitionFields.length === 0);
         this.parent.definitionFields = [];
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
@@ -73,7 +77,7 @@ export const _definitionParser: ReaderStateParserLike = {
             },
             parser: {
                 Description: {
-                    finish(this: any) {
+                    finish(this: DescriptionParser) {
                         this.parent.description = this.text;
                     }
                 }

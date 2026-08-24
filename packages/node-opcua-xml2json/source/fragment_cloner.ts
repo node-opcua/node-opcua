@@ -15,7 +15,7 @@ const XMLWriter = require("xml-writer");
 
 export class InternalFragmentClonerReaderState implements IReaderState {
     private _xw: XmlWriter = new XMLWriter(true);
-    public value: any;
+    public value: string | null = null;
     public initLevel = 0;
     public engine?: Xml2Json;
 

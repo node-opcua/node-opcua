@@ -2,7 +2,7 @@ import { InternalFragmentClonerReaderState } from "./fragment_cloner";
 import type { XmlAttributes } from "./xml2json";
 
 export class FragmentClonerParser {
-    public value: any;
+    public value: string | null | undefined;
     private _cloneFragment?: InternalFragmentClonerReaderState;
     private engine?: {
         currentLevel: number;
@@ -15,6 +15,8 @@ export class FragmentClonerParser {
     }
     public finish(): void {
         this.value = this._cloneFragment?.value;
-        this._cloneFragment!.value = null;
+        if (this._cloneFragment) {
+            this._cloneFragment.value = null;
+        }
     }
 }

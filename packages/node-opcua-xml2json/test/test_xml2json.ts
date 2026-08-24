@@ -50,7 +50,7 @@ describe("XMLToJSON", () => {
 
         finish_called.should.equal(true);
 
-        (parser as any).obj.should.eql({ name: "John", address: "Paris" });
+        (parser as unknown as { obj: Record<string, unknown> }).obj.should.eql({ name: "John", address: "Paris" });
     });
 
     async function createXMLFileWithBOM(filename: string) {
@@ -77,17 +77,17 @@ describe("XMLToJSON", () => {
         const parser = new Xml2JsonFs({
             parser: {
                 root: {
-                    init(this: any) {
+                    init() {
                         this.obj = {};
                     },
                     parser: {
                         element: {
-                            finish(this: any) {
+                            finish() {
                                 this.parent.obj.element = this.text;
                             }
                         }
                     },
-                    finish(this: any) {
+                    finish() {
                         parsedObj = this.obj;
                     }
                 }
@@ -108,7 +108,7 @@ describe("XMLToJSON", () => {
         const parser = new Xml2Json({
             parser: {
                 DisplayName: {
-                    finish(this: any) {
+                    finish() {
                         displayName = this.text;
                     }
                 }
@@ -120,16 +120,20 @@ describe("XMLToJSON", () => {
     });
 
     it("should parse a array", () => {
-        function BasicType_parser1(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
+        type ParseFunc = (text: string) => unknown;
+
+        function BasicType_parser1(dataType: string, parseFunc: ParseFunc): ParserLike {
             const _parser: ParserLike = {};
 
+            // contextually typed against ReaderStateParserLike, so `this` below is inferred
+            // (no explicit `this: any` needed) — same open extension point as the library itself.
             const r: ReaderStateParserLike = {
-                init(this: any, _name: string, _attrs: XmlAttributes) {
+                init(_name: string, _attrs: XmlAttributes) {
                     this.value = 0;
                 },
 
-                finish(this: any) {
-                    this.value = parseFunc.call(this, this.text);
+                finish() {
+                    this.value = parseFunc(this.text);
                     // xx console.log("xxx.... parser, ", this.value);
                 }
             };
@@ -137,21 +141,21 @@ describe("XMLToJSON", () => {
             return _parser;
         }
 
-        function ListOf1(dataType: string, parseFunc: any) {
+        function ListOf1(dataType: string, parseFunc: ParseFunc): ReaderStateParserLike {
             return {
-                init(this: any) {
+                init() {
                     this.listData = [];
                 },
 
                 parser: BasicType_parser1(dataType, parseFunc),
 
-                finish(this: any) {
+                finish() {
                     this.parent.array = {
                         value: this.listData
                     };
                     // xx console.log("xxx.... finish, ", this.parent.parent);
                 },
-                endElement(this: any, _element: string) {
+                endElement(_element: string) {
                     this.listData.push(this.parser[dataType].value);
                     // xx console.log("xxx.... endElement, ", this.listData);
                 }

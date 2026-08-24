@@ -4,7 +4,7 @@ const doDebug = false;
 
 describe("Cloning XML Fragment", () => {
     it("should clone a fragment", async () => {
-        const xmlObjects: any[] = [];
+        const xmlObjects: Array<string | null | undefined> = [];
         const reader: ReaderStateParserLike = {
             parser: {
                 UAVariable: {

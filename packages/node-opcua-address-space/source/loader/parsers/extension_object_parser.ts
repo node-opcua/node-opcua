@@ -330,7 +330,7 @@ export function makeExtensionObjectParser<T>(
                                     debugLog(`xmlEncodingNodeId is empty for ${typeDefinitionId.toString()}`);
                                     break;
                                 }
-                                setExtensionObjectPojo(xmlEncodingNodeId, bodyXML, data);
+                                setExtensionObjectPojo(xmlEncodingNodeId, bodyXML ?? "", data);
                                 break;
                             }
                         }

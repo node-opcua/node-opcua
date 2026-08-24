@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import type { XmlAttributes } from "../../xml2json";
 import { unescapeXML } from "../escape";
 
 const STATE_TEXT = 0;
@@ -18,7 +19,12 @@ export class SaxLtx extends EventEmitter {
     constructor() {
         super();
 
-        function _handleTagOpening(this: SaxLtx, endTag: boolean | undefined, tagName: string | undefined, attrs: string) {
+        function _handleTagOpening(
+            this: SaxLtx,
+            endTag: boolean | undefined,
+            tagName: string | undefined,
+            attrs: XmlAttributes | undefined
+        ) {
             if (!endTag) {
                 this.emit("startElement", tagName, attrs);
                 if (selfClosing) {
@@ -32,7 +38,7 @@ export class SaxLtx extends EventEmitter {
         let remainder: string | null = null;
         let parseRemainder: boolean = false;
         let tagName: string | undefined;
-        let attrs: string | {} | undefined;
+        let attrs: XmlAttributes | undefined;
         let endTag: boolean | undefined;
         let selfClosing: boolean | undefined;
         let attrQuote: number;
@@ -179,7 +185,7 @@ export class SaxLtx extends EventEmitter {
                         break;
                     case STATE_TAG:
                         if (c === 62 /* > */) {
-                            _handleTagOpening.call(this, endTag, tagName, attrs as any);
+                            _handleTagOpening.call(this, endTag, tagName, attrs);
                             tagName = undefined;
                             attrs = undefined;
                             endTag = undefined;
@@ -215,8 +221,10 @@ export class SaxLtx extends EventEmitter {
                         break;
                     case STATE_ATTR_VALUE:
                         if (c === attrQuote) {
-                            const value = unescapeXML(endRecording()!);
-                            (attrs as any)[attrName!] = value;
+                            const recorded = endRecording();
+                            if (recorded !== undefined && attrName !== undefined) {
+                                (attrs as XmlAttributes)[attrName] = unescapeXML(recorded);
+                            }
                             attrName = undefined;
                             state = STATE_TAG;
                         }

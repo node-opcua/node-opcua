@@ -50,9 +50,16 @@ export interface ParserLike {
 
 export interface ReaderStateParserLike {
     parser?: ParserLike;
+    // `this` here is an open extension point — callers across the workspace attach domain-specific
+    // shapes (e.g. EUInformationParserLevel2) that only duck-type against ReaderState, so a concrete
+    // `this: ReaderState` breaks those call sites structurally.
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     init?: (this: any, name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     finish?: (this: any) => void;
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     startElement?: (this: any, name: string, attrs: XmlAttributes) => void;
+    // biome-ignore lint/suspicious/noExplicitAny: see comment above
     endElement?: (this: any, name: string) => void;
 }
 
@@ -82,9 +89,9 @@ export class ReaderState extends ReaderStateBase {
     public _startElement?: (name: string, attrs: XmlAttributes) => void;
     public _endElement?: (name: string) => void;
 
-    public parser: any;
+    public parser: Parser;
     public attrs?: XmlAttributes;
-    public chunks: any[] = [];
+    public chunks: string[] = [];
     public text = "";
     public name? = "";
     public level = -1;
@@ -94,7 +101,7 @@ export class ReaderState extends ReaderStateBase {
 
     public parent?: IReaderState;
     public root?: Xml2Json;
-    public data?: any;
+    public data?: Record<string, unknown>;
 
     constructor(options: ReaderStateParser | ReaderState) {
         super();
@@ -180,7 +187,7 @@ export class ReaderState extends ReaderStateBase {
             this.chunks = [];
             // this is the end
             this._on_finish();
-            if (this.parent && (this.parent as any).parser && Object.hasOwn((this.parent as any).parser, elementName)) {
+            if (this.parent instanceof ReaderState && Object.hasOwn(this.parent.parser, elementName)) {
                 this.engine?._demote(this, level, elementName);
             }
         }
@@ -248,7 +255,7 @@ function resolve_namespace(name: string) {
  */
 export class Xml2Json {
     public currentLevel = 0;
-    private state_stack: any[] = [];
+    private state_stack: Array<{ state: IReaderState | null; backup: Record<string, unknown> | null }> = [];
     private current_state: IReaderState | null = null;
     private activation_count: Map<IReaderState, number> = new Map();
 
@@ -285,6 +292,10 @@ export class Xml2Json {
 
         const parent = this.current_state;
         this.current_state = new_state;
+        // parent is null only for the root element; every _on_init implementation in this codebase
+        // names the parameter `_parent` (unused), so widening the public IReaderState signature to
+        // accept null would ripple into every consumer package that already treats it as non-null.
+        // biome-ignore lint/style/noNonNullAssertion: see comment above
         this.current_state._on_init(name || "???", attr, parent!, level, this);
     }
 
@@ -294,7 +305,11 @@ export class Xml2Json {
      */
     public _demote(cur_state: IReaderState, level: number, elementName: string): void {
         ///  assert(this.current_state === cur_state);
-        const { state, backup } = this.state_stack.pop();
+        const popped = this.state_stack.pop();
+        if (!popped) {
+            throw new Error("_demote called without a matching _promote");
+        }
+        const { state, backup } = popped;
         this.current_state = state;
         if (this.current_state) {
             this.current_state._on_endElement2(level, elementName);
@@ -353,14 +368,9 @@ export class Xml2Json {
         });
         parser.write(data);
         parser.end("");
-        return (this.current_state! as any)._pojo;
-        /*
-        return await new Promise((resolve) => {
-            parser.once("close", () => {
-                resolve((this.current_state! as any)._pojo);
-            });
-            //parser.write(data);
-            parser.end(data);
-        })*/
+        if (!this.current_state) {
+            return {};
+        }
+        return (this.current_state as unknown as { _pojo: Record<string, unknown> })._pojo;
     }
 }

@@ -1,10 +1,11 @@
+import type { XmlAttributes } from "../dist/source";
 import { SaxLtx } from "../dist/source/thirdparties/parser/lts";
 
 function testString(xml_text: string) {
     const parser = new SaxLtx();
-    let attributes = {};
+    let attributes: XmlAttributes | undefined = {};
     let content = "";
-    parser.on("startElement", (_name: string, _attributes: any) => {
+    parser.on("startElement", (_name: string, _attributes: XmlAttributes | undefined) => {
         attributes = _attributes;
     });
     parser.on("text", (text: string) => {
