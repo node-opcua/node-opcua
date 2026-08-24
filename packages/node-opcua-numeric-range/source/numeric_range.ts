@@ -147,12 +147,12 @@ function construct_numeric_range_bit_from_string(str: string): NumericalRange0 {
     }
 }
 
-function _normalize(e: NumericalRange1): number | number[] {
+function _normalize(e: NumericalRange1): number[] {
     if (e.type === NumericRangeType.SingleValue) {
         const ee = e as NumericalRangeSingleValue;
         return [ee.value, ee.value];
     }
-    return e.value as number;
+    return e.value as number[];
 }
 
 function construct_numeric_range_from_string(str: string): NumericalRange0 {
@@ -169,13 +169,13 @@ function construct_numeric_range_from_string(str: string): NumericalRange0 {
         return construct_numeric_range_bit_from_string(values[0]);
     } else if (values.length === 2) {
         const elements = values.map(construct_numeric_range_bit_from_string);
-        let rowRange: any = elements[0];
-        let colRange: any = elements[1];
-        if (rowRange.type === NumericRangeType.InvalidRange || colRange.type === NumericRangeType.InvalidRange) {
+        const rowElement: NumericalRange0 = elements[0];
+        const colElement: NumericalRange0 = elements[1];
+        if (rowElement.type === NumericRangeType.InvalidRange || colElement.type === NumericRangeType.InvalidRange) {
             return { type: NumericRangeType.InvalidRange, value: str };
         }
-        rowRange = _normalize(rowRange);
-        colRange = _normalize(colRange);
+        const rowRange = _normalize(rowElement);
+        const colRange = _normalize(colElement);
         return {
             type: NumericRangeType.MatrixRange,
             value: [rowRange, colRange]
@@ -244,7 +244,7 @@ function construct_from_values(value: number, secondValue?: number): NumericalRa
     }
 }
 
-function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
+function _construct_from_array(value: number[], value2?: number | number[]): NumericalRange0 {
     assert(value.length === 2);
 
     // c8 ignore next
@@ -256,7 +256,7 @@ function _construct_from_array(value: number[], value2?: any): NumericalRange0 {
         return range1;
     }
     // we have a matrix
-    const nr2 = new NumericRange(value2);
+    const nr2 = Array.isArray(value2) ? new NumericRange(value2) : new NumericRange(value2);
     // c8 ignore next
     if (
         nr2.type === NumericRangeType.InvalidRange ||
@@ -388,17 +388,17 @@ export class NumericRange implements NumericalRange1 {
             return values.map((value) => value.toString(10)).join(":");
         }
 
-        function matrix_range_to_string(values: any) {
+        function matrix_range_to_string(values: number[][]) {
             return values
-                .map((value: any) => {
-                    return Array.isArray(value) ? array_range_to_string(value) : value.toString(10);
+                .map((value: number[] | number) => {
+                    return Array.isArray(value) ? array_range_to_string(value) : (value as number).toString(10);
                 })
                 .join(",");
         }
 
         switch (this.type) {
             case NumericRangeType.SingleValue:
-                return (this.value as any).toString(10);
+                return (this.value as number).toString(10);
 
             case NumericRangeType.ArrayRange:
                 return array_range_to_string(this.value as number[]);
@@ -407,7 +407,7 @@ export class NumericRange implements NumericalRange1 {
                 return NUMERIC_RANGE_EMPTY_STRING;
 
             case NumericRangeType.MatrixRange:
-                return matrix_range_to_string(this.value);
+                return matrix_range_to_string(this.value as number[][]);
 
             default:
                 assert(this.type === NumericRangeType.InvalidRange);
@@ -561,7 +561,7 @@ export class NumericRange implements NumericalRange1 {
               ? insertInPlaceBuffer
               : insertInPlaceTypedArray;
         return {
-            array: insertInPlace(arrayToAlter, low_index, high_index, newValues),
+            array: insertInPlace(arrayToAlter, low_index, high_index, newValues) as Buffer | [],
             statusCode: StatusCodes.Good
         };
     }
@@ -572,15 +572,24 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
         return arr;
     }
 
+    // T is ArrayLike<U>, which only guarantees .length and index access; slicing a
+    // TypedArray/Buffer/Array/string each needs a different underlying method, so we
+    // duck-type across a wider surface than the ArrayLike<U> constraint describes.
+    type SliceableArrayLike = {
+        buffer?: unknown;
+        subarray?: (start: number, end: number) => unknown;
+        slice?: (start: number, end: number) => unknown;
+    };
+    const arrLike = arr as unknown as SliceableArrayLike;
     let res: unknown;
-    if ((arr as any).buffer instanceof ArrayBuffer) {
-        res = (arr as any).subarray(start, end);
+    if (arrLike.buffer instanceof ArrayBuffer) {
+        res = arrLike.subarray?.(start, end);
     } else if (arr instanceof Buffer) {
         res = arr.subarray(start, end);
     } else {
-        assert(typeof (arr as any).slice === "function");
-        assert(arr instanceof Buffer || arr instanceof Array || typeof arr === "string");
-        res = (arr as any).slice(start, end);
+        assert(typeof arrLike.slice === "function");
+        assert(arr instanceof Buffer || Array.isArray(arr) || typeof arr === "string");
+        res = arrLike.slice?.(start, end);
     }
     if (res instanceof Uint8Array && arr instanceof Buffer) {
         // note in io-js 3.00 onward standard Buffer are implemented differently and
@@ -598,10 +607,10 @@ export interface ExtractResult<T> {
     dimensions?: number[];
 }
 
-function extract_empty<U, T extends ArrayLike<U>>(array: T, dimensions: any): ExtractResult<T> {
+function extract_empty<U, T extends ArrayLike<U>>(array: T, dimensions?: number[] | null): ExtractResult<T> {
     return {
         array: slice(array, 0, array.length),
-        dimensions,
+        dimensions: dimensions ?? undefined,
         statusCode: StatusCodes.Good
     };
 }
@@ -609,9 +618,9 @@ function extract_empty<U, T extends ArrayLike<U>>(array: T, dimensions: any): Ex
 function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number): ExtractResult<T> {
     if (index >= array.length) {
         if (typeof array === "string") {
-            return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: "" as unknown as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as unknown as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     return {
         array: slice(array, index, index + 1),
@@ -625,9 +634,9 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
     assert(low_index <= high_index);
     if (low_index >= array.length) {
         if (typeof array === "string") {
-            return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: "" as unknown as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as unknown as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     // clamp high index
     high_index = Math.min(high_index, array.length - 1);
@@ -638,8 +647,11 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
     };
 }
 
-function isArrayLike(value: any): boolean {
-    return typeof value.length === "number" || Object.hasOwn(value, "length");
+function isArrayLike(value: unknown): boolean {
+    if (value === null || value === undefined) {
+        return false;
+    }
+    return typeof (value as { length?: unknown }).length === "number" || Object.hasOwn(value, "length");
 }
 
 function extract_matrix_range<U, T extends ArrayLike<U>>(
@@ -656,12 +668,13 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
-    if (isArrayLike((array as any)[0]) && !dimension) {
+    if (isArrayLike((array as unknown as Record<number, unknown>)[0]) && !dimension) {
         // like extracting data from a one dimensional array of strings or byteStrings...
         const result = extract_array_range(array, rowRange[0], rowRange[1]);
-        for (let i = 0; i < result.array!.length; i++) {
-            const e = (result.array! as any)[i];
-            (result.array as any)[i] = extract_array_range(e, colRange[0], colRange[1]).array;
+        const resultArray = result.array as unknown as (Record<number, ArrayLike<unknown>> & { length: number }) | undefined;
+        for (let i = 0; resultArray && i < resultArray.length; i++) {
+            const e = resultArray[i];
+            resultArray[i] = extract_array_range(e, colRange[0], colRange[1]).array as ArrayLike<unknown>;
         }
         return result;
     }
@@ -680,7 +693,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     const colLow = colRange[0];
     const colHigh = colRange[1];
 
-    const nbRow = dimension[0];
+    const _nbRow = dimension[0];
     const nbCol = dimension[1];
 
     const nbRowDest = rowHigh - rowLow + 1;
@@ -688,7 +701,9 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
 
     // construct an array of the same type with the appropriate length to
     // store the extracted matrix.
-    const tmp = new (array as any).constructor(nbColDest * nbRowDest);
+    const arrayConstructor = (array as unknown as { constructor: new (length: number) => Record<number, unknown> }).constructor;
+    const tmp = new arrayConstructor(nbColDest * nbRowDest);
+    const source = array as unknown as Record<number, unknown>;
 
     let r = 0;
     for (let row = rowLow; row <= rowHigh; row++) {
@@ -696,47 +711,59 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
         for (let col = colLow; col <= colHigh; col++) {
             const srcIndex = row * nbCol + col;
             const destIndex = r * nbColDest + c;
-            tmp[destIndex] = (array as any)[srcIndex];
+            tmp[destIndex] = source[srcIndex];
             c++;
         }
         r += 1;
     }
     return {
-        array: tmp,
+        array: tmp as unknown as T,
         dimensions: [nbRowDest, nbColDest],
         statusCode: StatusCodes.Good
     };
 }
 
-function assert_array_or_buffer(array: any) {
-    assert(Array.isArray(array) || array.buffer instanceof ArrayBuffer || array instanceof Buffer);
+function assert_array_or_buffer(array: unknown) {
+    assert(Array.isArray(array) || (array as { buffer?: unknown }).buffer instanceof ArrayBuffer || array instanceof Buffer);
 }
 
-function insertInPlaceStandardArray(arrayToAlter: any, low: number, high: number, newValues: any): any {
-    const args = [low, high - low + 1].concat(newValues);
-    arrayToAlter.splice(...args);
-    return arrayToAlter;
+// The three insertInPlace* helpers below are dispatched dynamically from set_values()
+// based on the actual runtime type of arrayToAlter (plain Array vs Buffer vs TypedArray) —
+// note set_values' own declared signature (Buffer | []) is already inaccurate about the
+// TypedArray case this third branch handles. They share one loose (unknown) signature to
+// keep that dynamic dispatch call site simple; each function narrows internally to the
+// specific shape it actually operates on.
+function insertInPlaceStandardArray(arrayToAlter: unknown, low: number, high: number, newValues: unknown): unknown {
+    const arr = arrayToAlter as unknown[];
+    const args = ([low, high - low + 1] as unknown[]).concat(newValues as unknown[]);
+    arr.splice(...(args as [number, number, ...unknown[]]));
+    return arr;
 }
 
-function insertInPlaceTypedArray(arrayToAlter: any, low: number, high: number, newValues: any): any {
-    if (low === 0 && high === arrayToAlter.length - 1) {
-        return new arrayToAlter.constructor(newValues);
+function insertInPlaceTypedArray(arrayToAlter: unknown, low: number, high: number, newValues: unknown): unknown {
+    const arr = arrayToAlter as {
+        length: number;
+        constructor: new (values: unknown) => unknown;
+        subarray: (start: number, end: number) => { set: (values: unknown) => void };
+    };
+    if (low === 0 && high === arr.length - 1) {
+        return new arr.constructor(newValues);
     }
-    assert(newValues.length === high - low + 1);
-    arrayToAlter.subarray(low, high + 1).set(newValues);
-    return arrayToAlter;
+    assert((newValues as ArrayLike<unknown>).length === high - low + 1);
+    arr.subarray(low, high + 1).set(newValues);
+    return arr;
 }
 
-function insertInPlaceBuffer(bufferToAlter: Buffer | [], low: number, high: number, newValues: any): Buffer {
+function insertInPlaceBuffer(bufferToAlter: unknown, low: number, high: number, newValues: unknown): Buffer {
     // insertInPlaceBuffer with buffer is not really possible as existing Buffer cannot be resized
     if (!(bufferToAlter instanceof Buffer)) throw new Error("expecting a buffer");
+    const values = newValues as ArrayLike<number>;
     if (low === 0 && high === bufferToAlter.length - 1) {
-        bufferToAlter = Buffer.from(newValues);
-        return bufferToAlter;
+        return Buffer.from(values as Uint8Array | number[]);
     }
-    assert(newValues.length === high - low + 1);
-    for (let i = 0; i < newValues.length; i++) {
-        bufferToAlter[i + low] = newValues[i];
+    assert(values.length === high - low + 1);
+    for (let i = 0; i < values.length; i++) {
+        bufferToAlter[i + low] = values[i];
     }
     return bufferToAlter;
 }
@@ -751,11 +778,11 @@ export function encodeNumericRange(numericRange: NumericRange, stream: OutputBin
 }
 
 export function decodeNumericRange(stream: BinaryStream, _value?: NumericRange): NumericRange {
-    const str = decodeString(stream)!;
+    const str = decodeString(stream);
     return new NumericRange(str);
 }
 
-function coerceNumericRange(value: any | string | NumericRange | null | number[]): NumericRange {
+function coerceNumericRange(value: string | NumericRange | null | undefined | number[]): NumericRange {
     if (value instanceof NumericRange) {
         return value;
     }
@@ -766,5 +793,5 @@ function coerceNumericRange(value: any | string | NumericRange | null | number[]
         return new NumericRange();
     }
     assert(typeof value === "string" || Array.isArray(value));
-    return new NumericRange(value);
+    return Array.isArray(value) ? new NumericRange(value) : new NumericRange(value);
 }
