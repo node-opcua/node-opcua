@@ -2,8 +2,6 @@
  * @module node-opcua-enum
  *
  */
-// tslint:disable:no-bitwise
-// tslint:disable:max-classes-per-file
 
 /**
  * Represents an Item of an Enum.
@@ -232,7 +230,7 @@ export class Enum {
         }
         const pThis = this as any;
 
-        let name;
+        let name: string | undefined;
         let c = 1;
         for (let i = 0; c < key; i++) {
             if ((c & key) === c) {
@@ -241,12 +239,15 @@ export class Enum {
                     return null;
                 }
                 if (name) {
-                    name = name + " | " + item.key;
+                    name = `${name} | ${item.key}`;
                 } else {
                     name = item.key;
                 }
             }
             c *= 2;
+        }
+        if (name === undefined) {
+            throw new Error(`internal error: no matching flag found for key ${key}`);
         }
         const kv = new EnumItem(name, key);
         // add in cache for later
