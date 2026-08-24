@@ -847,7 +847,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
                 }
 
-                await write([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], null), await create_monitored_item();
+                await write([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], null);
+                await create_monitored_item();
 
                 await wait(300);
 
@@ -859,7 +860,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 await write([100, 101], "0:1");
                 await wait(300);
 
-                await write([200, 201], "0:1"), await wait(300);
+                await write([200, 201], "0:1");
+                await wait(300);
 
                 // no change ! there is no overlap
                 //xx tracelog(monitoredItemOnChangedSpy.getCall(1).args[0].value.toString());
@@ -935,7 +937,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     });
                 }
 
-                await write([0, 0, 0, 0, 0, 0]), await create_monitored_item();
+                await write([0, 0, 0, 0, 0, 0]);
+                await create_monitored_item();
 
                 await wait(300);
                 await write([1, 2, 3, 4, 5]);
@@ -1313,7 +1316,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     },
                     TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
                 );
-                await new Promise<any>((resolve, reject) => {
+                await new Promise<unknown>((resolve, reject) => {
                     monitoredItem.on("initialized", () => {
                         reject(new Error("Should not get there"));
                     });
@@ -1578,7 +1581,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                  */
                 function repairUnpublishing(session: ClientSession) {
                     const sessionEx = session as ClientSessionEx;
-                    const spy = sessionEx.getPublishEngine().internalSendPublishRequest as any;
+                    const spy = sessionEx.getPublishEngine().internalSendPublishRequest as unknown as sinon.SinonStub;
                     spy.callCount.should.be.greaterThan(1);
                     spy.restore();
                     sessionEx.getPublishEngine().internalSendPublishRequest();
@@ -1653,7 +1656,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 if (true || doDebug) {
                     tracelog("timeout = ", timeout);
                 }
-                const verif = (shortLifeSubscription as any).nb_keep_alive_received;
+                const verif = (shortLifeSubscription as ClientSubscriptionEx).nb_keep_alive_received;
                 // let explicitly close the subscription by calling terminate
                 // but delay a little bit so we can verify that internalSendPublishRequest
                 // is not called
@@ -1664,7 +1667,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
 
                 // --------------------------------------------
                 tracelog(" shortLifeSubscription terminated");
-                (shortLifeSubscription as any).nb_keep_alive_received.should.be.equal(verif);
+                (shortLifeSubscription as ClientSubscriptionEx).nb_keep_alive_received.should.be.equal(verif);
 
                 stepLog("terminate_ long_ life_subscription");
                 tracelog("before longLifeSubscription terminate");
@@ -1990,7 +1993,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             monitoredItemResult.revisedSamplingInterval?.should.be.greaterThan(19);
         });
 
-        async function test_modify_monitored_item_on_noValue_attribute(parameters: any): Promise<void> {
+        async function test_modify_monitored_item_on_noValue_attribute(parameters: MonitoringParametersOptions): Promise<void> {
             const nodeId = "ns=0;i=2258";
 
             const itemToMonitor = {
@@ -2162,6 +2165,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 throw new Error("addressSpace should be initialized");
             }
             const objectsFolder = addressSpace.rootFolder.objects;
+            // biome-ignore lint/suspicious/noExplicitAny: navigating the conformance-test nodeset's custom object hierarchy, which has no static type
             const server_node = (objectsFolder as any).simulation.static["all Profiles"].scalars.int16;
             //xx tracelog("server_node.minimumSamplingInterval = ",server_node.minimumSamplingInterval);
             server_node.minimumSamplingInterval = forcedMinimumInterval;
@@ -2173,7 +2177,6 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             const _subscriptionId = -1;
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 await f<DataValue>(async function read_minimumSamplingInterval(): Promise<DataValue> {
-                    let minimumSamplingIntervalOnNode: number;
                     const nodeToRead = {
                         nodeId: nodeId,
                         attributeId: AttributeIds.MinimumSamplingInterval
@@ -2181,7 +2184,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     const dataValue = await session.read(nodeToRead);
 
                     dataValue.statusCode.should.eql(StatusCodes.Good);
-                    minimumSamplingIntervalOnNode = dataValue.value.value;
+                    const minimumSamplingIntervalOnNode: number = dataValue.value.value;
                     //xx tracelog("minimumSamplingIntervalOnNode= =",minimumSamplingIntervalOnNode);
 
                     minimumSamplingIntervalOnNode.should.eql(forcedMinimumInterval);
@@ -2657,7 +2660,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     }
 
                     // write initial value => [1,2,3,4,5,6,7,8,9,10]
-                    await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), await createSubscription(session);
+                    await write_node([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+                    await createSubscription(session);
                     await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
                     await wait(100);
