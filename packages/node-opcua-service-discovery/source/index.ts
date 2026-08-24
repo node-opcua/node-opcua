@@ -9,18 +9,14 @@ export {
     MdnsDiscoveryConfiguration,
     RegisterServer2Request,
     RegisterServer2Response,
-
     RegisterServerRequestOptions,
     RegisterServer2RequestOptions,
-
     FindServersRequest,
     FindServersRequestOptions,
     FindServersResponse,
-
     FindServersOnNetworkRequest,
     FindServersOnNetworkRequestOptions,
     FindServersOnNetworkResponse,
-
     ServerOnNetwork
 } from "node-opcua-types";
 
@@ -33,4 +29,3 @@ export {
 } from "./tools";
 
 export { announcementToServiceConfig } from "./announcement_to_service_config";
-

@@ -1,13 +1,10 @@
-import { Announcement } from "./Announcement";
-import {
-    ServiceConfig
-} from "sterfive-bonjour-service";
-
+import type { Announcement } from "./Announcement";
+import type { ServiceConfig } from "sterfive-bonjour-service";
 
 /**
  * Convert an OPCUA mDNS Announcement into a ServiceConfig
- * @param announcement 
- * @returns 
+ * @param announcement
+ * @returns
  */
 export function announcementToServiceConfig(announcement: Announcement): ServiceConfig {
     const serviceConfig: ServiceConfig = {

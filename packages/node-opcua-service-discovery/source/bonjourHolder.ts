@@ -6,9 +6,9 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { Bonjour, Service, ServiceConfig } from "sterfive-bonjour-service";
+import { Bonjour, type Service, type ServiceConfig } from "sterfive-bonjour-service";
 
-import { Announcement } from "./Announcement";
+import type { Announcement } from "./Announcement";
 import { announcementToServiceConfig } from "./announcement_to_service_config";
 import { isSameService, serviceToString } from "./tools";
 
@@ -17,12 +17,9 @@ const doDebug = checkDebugFlag("Bonjour");
 const errorLog = make_errorLog("Bonjour");
 const warningLog = make_warningLog("Bonjour");
 
-
 const registry = new ObjectRegistry();
 
-
 async function releaseMulticastDNS(bonjour: Bonjour) {
-
     await new Promise<void>((resolve) => {
         bonjour!.unpublishAll(() => {
             resolve();
@@ -34,7 +31,6 @@ async function releaseMulticastDNS(bonjour: Bonjour) {
         });
     });
     registry.unregister(bonjour);
-
 }
 
 export function acquireMulticastDNS(): Bonjour {
@@ -90,7 +86,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
             timer = undefined!;
             service.removeListener("error", onError);
             service.removeListener("up", onUp);
-            const err = new Error("Timeout waiting for bonjour to announce service " + serviceConfig.name);
+            const err = new Error(`Timeout waiting for bonjour to announce service ${serviceConfig.name}`);
             errorLog(err.message);
             reject(err);
         }, 10_000);
@@ -102,11 +98,11 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
 export class BonjourHolder {
     public serviceConfig?: ServiceConfig;
 
-     #_multicastDNS?: Bonjour;
-    
-     #_service?: Service;
+    #_multicastDNS?: Bonjour;
 
-     #pendingAnnouncement: boolean = false;
+    #_service?: Service;
+
+    #pendingAnnouncement: boolean = false;
     /**
      *
      * @param announcement
@@ -138,8 +134,6 @@ export class BonjourHolder {
     public isStarted(): boolean {
         return !!this.#_multicastDNS;
     }
-
-
 
     /**
      * @private
@@ -173,9 +167,7 @@ export class BonjourHolder {
         this.serviceConfig = undefined;
 
         if (that_multicastDNS && that_service.stop) {
-
             await new Promise<void>((resolve) => {
-
                 that_service.stop((err?: Error) => {
                     debugLog(chalk.green("service stopped err=", err));
                     err && warningLog(err.message);
@@ -185,12 +177,9 @@ export class BonjourHolder {
                 });
             });
             await releaseMulticastDNS(that_multicastDNS);
-
         }
 
         debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = done"));
         debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet stop announcement completed"));
     }
-
-
 }

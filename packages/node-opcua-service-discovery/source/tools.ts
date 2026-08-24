@@ -1,5 +1,4 @@
-import { ServiceConfig } from "sterfive-bonjour-service";
-
+import type { ServiceConfig } from "sterfive-bonjour-service";
 
 export function isSameService(a?: ServiceConfig, b?: ServiceConfig): boolean {
     if (!a && !b) {
@@ -21,7 +20,9 @@ export const serviceToString = (service: ServiceConfig) => {
         service.port +
         "\n    txt " +
         JSON.stringify(service.txt) +
-        "\n   ttl=" + service.ttl +
-        "\n   ip=" + (service.ip!) 
+        "\n   ttl=" +
+        service.ttl +
+        "\n   ip=" +
+        service.ip!
     );
 };

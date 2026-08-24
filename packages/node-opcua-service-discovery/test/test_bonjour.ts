@@ -1,9 +1,4 @@
-import {
-    Announcement,
-    BonjourHolder,
-    announcementToServiceConfig,
-    serviceToString
-} from "..";
+import { type Announcement, BonjourHolder, announcementToServiceConfig, serviceToString } from "..";
 import should from "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import Bonjour from "sterfive-bonjour-service";
@@ -16,9 +11,8 @@ describe("Bonjour", () => {
         const holder = new BonjourHolder();
         should(holder).be.instanceOf(BonjourHolder);
         should(holder.serviceConfig).eql(undefined);
-
     });
-  
+
     it("should convert an Announcement to a ServiceConfig", () => {
         const announcement: Announcement = {
             name: "name",
@@ -36,7 +30,7 @@ describe("Bonjour", () => {
             port: 1234,
             txt: {
                 caps: "capability1,capability2",
-                path: "path",
+                path: "path"
             }
         });
     });
@@ -63,15 +57,19 @@ describe("Bonjour", () => {
         browser.on("up", spyUp);
         browser.on("down", spyDown);
 
-        return { spyUp, spyDown,bonjour, browser, shutdown() {
-            browser.stop();
-            bonjour.destroy();
-        }};
+        return {
+            spyUp,
+            spyDown,
+            bonjour,
+            browser,
+            shutdown() {
+                browser.stop();
+                bonjour.destroy();
+            }
+        };
     }
     it("should start/stop a BonjourHolder", async () => {
-
         const { spyUp, spyDown, shutdown } = startListner();
-
 
         const holder = new BonjourHolder();
         should(holder.serviceConfig).eql(undefined);
@@ -88,7 +86,7 @@ describe("Bonjour", () => {
         await pause(1000);
         should(holder.isStarted()).eql(true);
         should(holder.serviceConfig).not.eql(undefined);
-        
+
         await pause(500);
 
         spyUp.callCount.should.eql(1);
@@ -104,5 +102,4 @@ describe("Bonjour", () => {
         spyUp.callCount.should.eql(1);
         shutdown();
     });
-
 });
