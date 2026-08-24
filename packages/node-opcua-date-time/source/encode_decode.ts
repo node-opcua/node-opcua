@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-date-time
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, getMinOPCUADate } from "./date_time";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
