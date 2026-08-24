@@ -4,27 +4,26 @@
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { BinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream } from "node-opcua-binary-stream";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { type ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { TypeSchemaBase } from "./builtin_types";
-import { parameters } from "./parameters";
+import type { DataTypeFactory } from "./datatype_factory";
 import { getStandardDataTypeFactory } from "./get_standard_data_type_factory";
+import { parameters } from "./parameters";
 import {
-    BitField,
-    CommonInterface,
+    type BitField,
+    type CommonInterface,
     FieldCategory,
-    FieldInterfaceOptions,
-    FieldType,
-    IStructuredTypeSchema,
-    StructuredTypeOptions
+    type FieldInterfaceOptions,
+    type FieldType,
+    type IStructuredTypeSchema,
+    type StructuredTypeOptions
 } from "./types";
-import { DataTypeFactory } from "./datatype_factory";
 
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
-
 
 function figureOutFieldCategory(field: FieldInterfaceOptions, dataTypeFactory: DataTypeFactory): FieldCategory {
     const fieldType = field.fieldType;
@@ -65,7 +64,7 @@ function figureOutSchema(
     const m = field.fieldType.match(regExp);
     /* c8 ignore next */
     if (!m) {
-        throw new Error("malformed fieldType ? : " + field.fieldType);
+        throw new Error(`malformed fieldType ? : ${field.fieldType}`);
     }
     const fieldTypeWithoutNS = m[3];
 
@@ -104,14 +103,14 @@ function figureOutSchema(
         }
         throw new Error(
             "Cannot find Schema for field with name " +
-            field.name +
-            " fieldTypeWithoutNS= " +
-            fieldTypeWithoutNS +
-            " with type " +
-            field.fieldType +
-            " category = " +
-            category +
-            JSON.stringify(field, null, "\t")
+                field.name +
+                " fieldTypeWithoutNS= " +
+                fieldTypeWithoutNS +
+                " with type " +
+                field.fieldType +
+                " category = " +
+                category +
+                JSON.stringify(field, null, "\t")
         );
     }
     return returnValue;
@@ -123,9 +122,8 @@ function buildField(
     fieldLight: FieldInterfaceOptions,
     _index: number
 ): FieldType {
-
     const category =
-        (fieldLight.fieldType == underConstructSchema.name)
+        fieldLight.fieldType === underConstructSchema.name
             ? underConstructSchema.category
             : figureOutFieldCategory(fieldLight, dataTypeFactory);
 
@@ -135,27 +133,18 @@ function buildField(
     if (!schema) {
         throw new Error(
             "expecting a valid schema for field with name " +
-            fieldLight.name +
-            " with type " +
-            fieldLight.fieldType +
-            " category" +
-            category +
-            " at index" +
-            _index
+                fieldLight.name +
+                " with type " +
+                fieldLight.fieldType +
+                " category" +
+                category +
+                " at index" +
+                _index
         );
     }
 
-    const { 
-        defaultValue, 
-        isArray, 
-        documentation, 
-        fieldType, 
-        switchBit, 
-        switchValue, 
-        allowSubTypes, 
-        dataType, 
-        basicDataType 
-    } =  fieldLight;
+    const { defaultValue, isArray, documentation, fieldType, switchBit, switchValue, allowSubTypes, dataType, basicDataType } =
+        fieldLight;
     return {
         name: lowerFirstLetter(fieldLight.name),
         originalName: fieldLight.name,
@@ -201,7 +190,7 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         this.bitFields = options.bitFields;
 
         this.baseType = options.baseType;
-        this.category = options.category ||  FieldCategory.complex;
+        this.category = options.category || FieldCategory.complex;
 
         this._dataTypeFactory = options.dataTypeFactory;
         if (this._dataTypeFactory.hasBuiltInType(options.name)) {
@@ -231,29 +220,29 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
 
     public toString(): string {
         const str: string[] = [];
-        str.push("name           = " + this.name);
-        str.push("baseType       = " + this.baseType);
-        str.push("bitFields      = " + (this.bitFields ? this.bitFields.map((b) => b.name).join(" ") : undefined));
-        str.push("dataTypeNodeId = " + (this.dataTypeNodeId ? this.dataTypeNodeId.toString() : undefined));
-        str.push("documentation  = " + this.documentation);
-        str.push("encodingDefaultBinary  = " + this.encodingDefaultBinary?.toString());
-        str.push("encodingDefaultXml     = " + this.encodingDefaultXml?.toString());
-        str.push("encodingDefaultJson    = " + this.encodingDefaultJson?.toString());
+        str.push(`name           = ${this.name}`);
+        str.push(`baseType       = ${this.baseType}`);
+        str.push(`bitFields      = ${this.bitFields ? this.bitFields.map((b) => b.name).join(" ") : undefined}`);
+        str.push(`dataTypeNodeId = ${this.dataTypeNodeId ? this.dataTypeNodeId.toString() : undefined}`);
+        str.push(`documentation  = ${this.documentation}`);
+        str.push(`encodingDefaultBinary  = ${this.encodingDefaultBinary?.toString()}`);
+        str.push(`encodingDefaultXml     = ${this.encodingDefaultXml?.toString()}`);
+        str.push(`encodingDefaultJson    = ${this.encodingDefaultJson?.toString()}`);
         for (const f of this.fields) {
             str.push(
                 "  field   =  " +
-                f.name.padEnd(30) +
-                " isArray= " +
-                (f.isArray ? true : false) +
-                " " +
-                f.fieldType.toString().padEnd(30) +
-                (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
-                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
+                    f.name.padEnd(30) +
+                    " isArray= " +
+                    (f.isArray ? true : false) +
+                    " " +
+                    f.fieldType.toString().padEnd(30) +
+                    (f.switchBit !== undefined ? ` switchBit ${f.switchBit}` : "") +
+                    (f.switchValue !== undefined ? ` switchValue    ${f.switchValue}` : "")
             );
         }
         return str.join("\n");
     }
-} 
+}
 
 function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema | null | undefined {
     const dataTypeFactory = schema.getDataTypeFactory();
@@ -279,7 +268,7 @@ function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema 
 
         // c8 ignore next
         if (!structureInfo) {
-            throw new Error(" cannot find factory for " + schema.baseType);
+            throw new Error(` cannot find factory for ${schema.baseType}`);
         }
         if (structureInfo.schema) {
             return structureInfo.schema;
@@ -324,7 +313,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
 
     // c8 ignore next
     if (!(options !== null && typeof options === "object") && !(typeof options === "object")) {
-        let message = chalk.red(" Invalid options specified while trying to construct a ") + " " + chalk.yellow(schema.name);
+        let message = `${chalk.red(" Invalid options specified while trying to construct a ")} ${chalk.yellow(schema.name)}`;
         message += "\n";
         message += chalk.red(" expecting a ") + chalk.yellow(" Object ");
         message += "\n";
@@ -362,7 +351,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     if (invalidOptionsFields.length !== 0) {
         errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));
-        throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
+        throw new Error(` invalid field found in option :${JSON.stringify(invalidOptionsFields)}`);
     }
     return true;
 }

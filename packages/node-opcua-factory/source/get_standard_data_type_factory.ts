@@ -2,10 +2,9 @@
  * @module node-opcua-factory
  */
 
-
 import { DataTypeFactory } from "./datatype_factory";
 
-import { ConstructorFuncWithSchema } from "./types";
+import type { ConstructorFuncWithSchema } from "./types";
 
 let globalFactory: DataTypeFactory;
 
@@ -18,17 +17,15 @@ export function getStandardDataTypeFactory(): DataTypeFactory {
 }
 
 export function getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
-    const structureInfo =  getStandardDataTypeFactory().getStructureInfoByTypeName(typeName);
+    const structureInfo = getStandardDataTypeFactory().getStructureInfoByTypeName(typeName);
     if (!structureInfo) {
-        throw new Error("cannot find Structure Information for "+ typeName)
+        throw new Error(`cannot find Structure Information for ${typeName}`);
     }
     if (!structureInfo.constructor) {
-        throw new Error("cannot  Structure is Abstract ! "+ typeName)
+        throw new Error(`cannot  Structure is Abstract ! ${typeName}`);
     }
     return structureInfo.constructor;
 }
-
-
 
 /* c8 ignore next */
 export function dump(): void {

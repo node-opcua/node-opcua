@@ -1,5 +1,5 @@
 import assert from "node-opcua-assert";
-import { OutputBinaryStream, BinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 export function defaultEncode(value: any, stream: OutputBinaryStream): void {
     /** */
@@ -29,7 +29,6 @@ export function decodeAny(stream: BinaryStream) {
     assert(false, "type 'Any' cannot be decoded");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 export function encodeNull(value: any, stream: OutputBinaryStream): void {}
 
 export function decodeNull(stream: BinaryStream): any {

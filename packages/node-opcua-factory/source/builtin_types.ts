@@ -60,14 +60,20 @@ import { DataTypeIds } from "node-opcua-constants";
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
-import { defaultEncode, defaultDecode, decodeNull, encodeNull, decodeAny, encodeAny, toJSONGuid } from "./encode_decode";
-import { type BasicTypeDefinition, type BasicTypeDefinitionOptions, type BasicTypeDefinitionOptionsBase, type CommonInterface, FieldCategory, type TypeSchemaConstructorOptions } from "./types";
-
+import { decodeAny, decodeNull, defaultDecode, defaultEncode, encodeAny, encodeNull, toJSONGuid } from "./encode_decode";
+import {
+    type BasicTypeDefinition,
+    type BasicTypeDefinitionOptions,
+    type BasicTypeDefinitionOptionsBase,
+    type CommonInterface,
+    FieldCategory,
+    type TypeSchemaConstructorOptions
+} from "./types";
 
 /**
  * a type Schema for a OPCUA object
  */
- export class TypeSchemaBase implements CommonInterface {
+export class TypeSchemaBase implements CommonInterface {
     public name: string;
     public defaultValue: any;
     public encode?: (value: any, stream: OutputBinaryStream) => void;
@@ -86,7 +92,7 @@ import { type BasicTypeDefinition, type BasicTypeDefinitionOptions, type BasicTy
         this.category = options.category || FieldCategory.basic;
         this.name = options.name;
         for (const prop in options) {
-            if (Object.prototype.hasOwnProperty.call(options, prop)) {
+            if (Object.hasOwn(options, prop)) {
                 (this as any)[prop] = (options as any)[prop];
             }
         }
@@ -142,7 +148,6 @@ export class BasicTypeSchema extends TypeSchemaBase implements BasicTypeDefiniti
         this.decode = options.decode || defaultDecode;
     }
 }
-
 
 // there are 4 types of DataTypes in opcua:
 //   Built-In DataType
@@ -359,7 +364,7 @@ export function registerType(schema: BasicTypeDefinitionOptionsBase): void {
     if (schema.name !== "Null" && schema.name !== "Any" && schema.name !== "Variant" && schema.name !== "ExtensionObject") {
         const dataType = DataTypeIds[schema.name as keyof typeof DataTypeIds];
         if (!dataType) {
-            throw new Error("registerType : dataType " + schema.name + " is not defined");
+            throw new Error(`registerType : dataType ${schema.name} is not defined`);
         }
     }
     const definition = new BasicTypeSchema(schema as BasicTypeDefinitionOptions);
@@ -375,7 +380,7 @@ export function unregisterType(typeName: string): void {
 export function getBuiltInType(name: string): TypeSchemaBase {
     const typeSchema = _defaultTypeMap.get(name);
     if (!typeSchema) {
-        throw new Error("Cannot find schema for simple type " + name);
+        throw new Error(`Cannot find schema for simple type ${name}`);
     }
     return typeSchema;
 }
@@ -386,7 +391,7 @@ export function hasBuiltInType(name: string): boolean {
 
 /** */
 export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
-    assert(typeof dataTypeName === "string", "findBuiltInType : expecting a string " + dataTypeName);
+    assert(typeof dataTypeName === "string", `findBuiltInType : expecting a string ${dataTypeName}`);
     const t = getBuiltInType(dataTypeName);
     if (t.subType && t.subType !== t.name /* avoid infinite recursion */) {
         const st = getBuiltInType(t.subType);
@@ -396,5 +401,3 @@ export function findBuiltInType(dataTypeName: string): BasicTypeDefinition {
     }
     return t;
 }
-
-

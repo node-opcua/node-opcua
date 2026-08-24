@@ -1,37 +1,33 @@
-/* eslint-disable prefer-rest-params */
-/* eslint-disable complexity */
 /**
  * @module node-opcua-factory
  */
-// tslint:disable:no-shadowed-variable
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
-import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
+import { type BinaryStream, BinaryStreamSizeCalculator, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { hexDump, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
-
+import type { DataTypeFactory } from "./datatype_factory";
 import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
-import { DataTypeFactory } from "./datatype_factory";
 import { getStructureTypeConstructor } from "./get_standard_data_type_factory";
 
 import {
-    EnumerationDefinition,
+    type BuiltInTypeDefinition,
+    type DecodeDebugOptions,
+    type EnumerationDefinition,
     FieldCategory,
-    StructuredTypeField,
-    BuiltInTypeDefinition,
-    FieldType,
-    Func1,
-    IStructuredTypeSchema,
-    IBaseUAObject,
-    DecodeDebugOptions
+    type FieldType,
+    type Func1,
+    type IBaseUAObject,
+    type IStructuredTypeSchema,
+    type StructuredTypeField
 } from "./types";
 
 const errorLog = make_errorLog(__filename);
 
 function r(str: string, length = 30) {
-    return (str + "                                ").substring(0, length);
+    return `${str}                                `.substring(0, length);
 }
 
 function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredTypeField, value: any): IStructuredTypeSchema {
@@ -48,7 +44,7 @@ function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredType
     const fieldTypeConstructor = field.fieldTypeConstructor;
     if (fieldTypeConstructor) {
         if (value && value.constructor && value.constructor !== fieldTypeConstructor) {
-            // this should not happen, as we are not expecting value to be 
+            // this should not happen, as we are not expecting value to be
             // a subtype of the declared field type
             errorLog("Error: unexpected subtype ", value.constructor.name, " instead of ", fieldTypeConstructor?.name);
         }
@@ -84,9 +80,10 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
                 field.fieldTypeConstructor = getStructureTypeConstructor(field.fieldType);
             }
             if (typeof field.fieldTypeConstructor !== "function") {
-                throw new Error("Cannot find constructor for  " + field.name + "of type " + field.fieldType);
+                throw new Error(`Cannot find constructor for  ${field.name}of type ${field.fieldType}`);
             }
             // assert(typeof field.fieldTypeConstructor === "function");
+            // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
             const constructor = field.fieldTypeConstructor;
             value = new constructor();
             value.decodeDebug(stream, options);
@@ -124,7 +121,7 @@ function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
         const m = Math.min(_nbElements, value.length);
         const ellipsis = value.length > _nbElements ? " ... " : "";
 
-        const pad = data.padding + "  ";
+        const pad = `${data.padding}  `;
         let isMultiLine = true;
         for (let i = 0; i < m; i++) {
             let element = value[i];
@@ -136,7 +133,7 @@ function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
                 element = element.toString();
                 const s = element.split("\n");
                 if (s.length > 1) {
-                    element = "\n" + pad + s.join("\n" + pad);
+                    element = `\n${pad}${s.join(`\n${pad}`)}`;
                     isMultiLine = true;
                 }
             }
@@ -146,11 +143,11 @@ function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
             v.push(element);
         }
 
-        const length = "/* length =" + value.length + "*/";
+        const length = `/* length =${value.length}*/`;
         if (isMultiLine) {
-            return "[ " + length + "\n" + pad + v.join(",\n" + pad + "    ") + ellipsis + "\n" + data.padding + "]";
+            return `[ ${length}\n${pad}${v.join(`,\n${pad}    `)}${ellipsis}\n${data.padding}]`;
         } else {
-            return "[ " + length + v.join(",") + ellipsis + "]";
+            return `[ ${length}${v.join(",")}${ellipsis}]`;
         }
     }
 }
@@ -159,8 +156,6 @@ interface ExploreParams {
     padding: string;
     lines: string[];
 }
-// eslint-disable-next-line complexity
-// eslint-disable-next-line max-statements
 function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: ExploreParams, args: any): void {
     if (!self) {
         return;
@@ -175,16 +170,16 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
     let value = (self as any)[fieldName];
 
-    let str;
+    let str: string;
 
     // decorate the field name with ?# if the field is optional
     let opt = "    ";
     if (field.switchBit !== undefined) {
-        opt = " ?" + field.switchBit + " ";
+        opt = ` ?${field.switchBit} `;
     }
 
     if (field.switchValue !== undefined) {
-        opt = " !" + field.switchValue + " ";
+        opt = ` !${field.switchValue} `;
     }
     const allowSubTypeSymbol = field.allowSubTypes ? "~" : " ";
     const arraySymbol = field.isArray ? "[]" : "  ";
@@ -193,13 +188,13 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
     // detected when optional field is not specified in value
     if (field.switchBit !== undefined && value === undefined) {
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* optional field not specified */";
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.italic.grey("undefined")} /* optional field not specified */`;
         data.lines.push(str);
         return;
     }
     // detected when union field is not specified in value
     if (field.switchValue !== undefined && value === undefined) {
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.italic.grey("undefined") + " /* union field not specified */";
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.italic.grey("undefined")} /* union field not specified */`;
         data.lines.push(str);
         return;
     }
@@ -207,25 +202,25 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
     // compact version of very usual objects
     if (fieldType === "QualifiedName" && !field.isArray && value) {
         value = value.toString() || "<null>";
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString());
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.green(value.toString())}`;
         data.lines.push(str);
         return;
     }
     if (fieldType === "LocalizedText" && !field.isArray && value) {
         value = value.toString() || "<null>";
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString());
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.green(value.toString())}`;
         data.lines.push(str);
         return;
     }
     if (fieldType === "DataValue" && !field.isArray && value) {
         value = value.toString(data);
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString(data));
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.green(value.toString(data))}`;
         data.lines.push(str);
         return;
     }
     if (fieldType === "DiagnosticInfo" && !field.isArray && value) {
         value = value.toString(data);
-        str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString(data));
+        str = `${fieldNameF} ${fieldTypeF}: ${chalk.green(value.toString(data))}`;
         data.lines.push(str);
         return;
     }
@@ -241,7 +236,6 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
         // c8 ignore next
         if (!s.typedEnum) {
-            // tslint:disable:no-console
             errorLog("xxxx cannot find typeEnum", s);
         }
         const convert = (value: number) => {
@@ -281,36 +275,35 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
     ) {
         let str = "";
         if (value instanceof Buffer) {
-            data.lines.push(fieldNameF + " " + fieldTypeF);
+            data.lines.push(`${fieldNameF} ${fieldTypeF}`);
             if (fullBuffer || value.length <= 32) {
-                const _hexDump = value.length <= 32 ? "Ox" + value.toString("hex") : "\n" + hexDump(value);
-                data.lines.push("Buffer: " + _hexDump);
+                const _hexDump = value.length <= 32 ? `Ox${value.toString("hex")}` : `\n${hexDump(value)}`;
+                data.lines.push(`Buffer: ${_hexDump}`);
             } else {
                 const _hexDump1 = value.subarray(0, 16).toString("hex");
                 const _hexDump2 = value.subarray(-16).toString("hex");
-                data.lines.push("Buffer: ", _hexDump1 + "..." + _hexDump2);
+                data.lines.push("Buffer: ", `${_hexDump1}...${_hexDump2}`);
             }
         } else {
             if (field.isArray) {
-                str = fieldNameF + " " + fieldTypeF + ": " + _arrayEllipsis(value, data);
+                str = `${fieldNameF} ${fieldTypeF}: ${_arrayEllipsis(value, data)}`;
             } else {
                 if (field.fieldType === "NodeId" && value instanceof NodeId) {
                     value = value.displayText();
                 } else if (fieldType === "IntegerId" || fieldType === "UInt32") {
                     if (field.name === "attributeId") {
-                        value = "AttributeIds." + AttributeIds[value] + "/* " + value + " */";
+                        value = `AttributeIds.${AttributeIds[value]}/* ${value} */`;
                     } else {
-                        const extra = value !== undefined ? "0x" + value.toString(16) : "undefined";
-                        value = "" + value + "               " + extra;
+                        const extra = value !== undefined ? `0x${value.toString(16)}` : "undefined";
+                        value = `${value}               ${extra}`;
                     }
                 } else if (fieldType === "DateTime" || fieldType === "UtcTime") {
                     try {
                         value = value && value.toISOString ? value.toISOString() : value;
                     } catch {
-                        value = chalk.red(value?.toString() + " *** ERROR ***");
+                        value = chalk.red(`${value?.toString()} *** ERROR ***`);
                     }
                 } else if (typeof value === "object" && value !== null && value !== undefined) {
-                    // eslint-disable-next-line prefer-spread
                     value = value.toString.apply(value, args);
                 }
                 str =
@@ -346,11 +339,11 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
             if (field.isArray) {
                 if (value === null) {
-                    data.lines.push(fieldNameF + " " + fieldTypeF + ": null []");
+                    data.lines.push(`${fieldNameF} ${fieldTypeF}: null []`);
                 } else if (value.length === 0) {
-                    data.lines.push(fieldNameF + " " + fieldTypeF + ": [ /* empty */ ]");
+                    data.lines.push(`${fieldNameF} ${fieldTypeF}: [ /* empty */ ]`);
                 } else {
-                    data.lines.push(fieldNameF + " " + fieldTypeF + ": [");
+                    data.lines.push(`${fieldNameF} ${fieldTypeF}: [`);
                     const m = Math.min(_nbElements, value.length);
 
                     for (let i = 0; i < m; i++) {
@@ -358,31 +351,31 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
 
                         const _newFieldSchema = _findFieldSchema(typeDictionary, field, element);
 
-                        data.lines.push(padding + `  { ` + chalk.cyan(`/* ${i} - ${_newFieldSchema?.name}*/`));
+                        data.lines.push(`${padding}  { ${chalk.cyan(`/* ${i} - ${_newFieldSchema?.name}*/`)}`);
 
                         const data1 = {
                             lines: [] as string[],
-                            padding: padding + "    "
+                            padding: `${padding}    `
                         };
                         _applyOnAllSchemaFields(element, _newFieldSchema, data1, _exploreObject, args);
 
                         data.lines = data.lines.concat(data1.lines);
 
-                        data.lines.push(padding + "  }" + (i === value.length - 1 ? "" : ","));
+                        data.lines.push(`${padding}  }${i === value.length - 1 ? "" : ","}`);
                     }
                     if (m < value.length) {
-                        data.lines.push(padding + " ..... ( " + value.length + " elements )");
+                        data.lines.push(`${padding} ..... ( ${value.length} elements )`);
                     }
-                    data.lines.push(padding + "]");
+                    data.lines.push(`${padding}]`);
                 }
             } else {
                 const _newFieldSchema = _findFieldSchema(typeDictionary, field, value);
-                data.lines.push(fieldNameF + " " + fieldTypeF + ": {");
-                const data1 = { padding: padding + "  ", lines: [] as string[] };
+                data.lines.push(`${fieldNameF} ${fieldTypeF}: {`);
+                const data1 = { padding: `${padding}  `, lines: [] as string[] };
                 _applyOnAllSchemaFields(value, _newFieldSchema, data1, _exploreObject, args);
                 data.lines = data.lines.concat(data1.lines);
 
-                data.lines.push(padding + "}");
+                data.lines.push(`${padding}}`);
             }
         }
     }
@@ -398,7 +391,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             _dump_complex_value(self, field, data, value, fieldType);
             break;
         default:
-            throw new Error("internal error: unknown kind_of_field " + category);
+            throw new Error(`internal error: unknown kind_of_field ${category}`);
     }
 }
 
@@ -455,6 +448,7 @@ export interface BaseUAObject extends IBaseUAObject {
 /**
  * base class for all OPCUA objects
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class BaseUAObject {
     constructor() {
         /**  */
@@ -486,7 +480,7 @@ export class BaseUAObject {
     /**
      */
     public toString(...args: any[]): string {
-        if (this.schema && Object.prototype.hasOwnProperty.call(this.schema, "toString")) {
+        if (this.schema && Object.hasOwn(this.schema, "toString")) {
             return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {
@@ -516,7 +510,7 @@ export class BaseUAObject {
         const tracer = options.tracer;
         const schema = this.schema;
 
-        tracer.trace("start", options.name + "(" + schema.name + ")", stream.length, stream.length);
+        tracer.trace("start", `${options.name}(${schema.name})`, stream.length, stream.length);
         const self: any = this as any;
 
         for (const field of schema.fields) {
@@ -539,7 +533,7 @@ export class BaseUAObject {
                 tracer.trace("start_array", field.name, nb, cursorBefore, stream.length);
                 for (let i = 0; i < nb; i++) {
                     tracer.trace("start_element", field.name, i);
-                    options.name = "element #" + i;
+                    options.name = `element #${i}`;
 
                     _decode_member_(value, field, stream, options);
 
@@ -561,7 +555,7 @@ export class BaseUAObject {
             padding: " "
         };
 
-        data.lines.push("{" + chalk.cyan(" /*" + (this.schema ? this.schema.name : "") + "*/"));
+        data.lines.push(`{${chalk.cyan(` /*${this.schema ? this.schema.name : ""}*/`)}`);
         if (this.schema) {
             this.applyOnAllFields(_exploreObject, data);
         }
@@ -589,11 +583,12 @@ export class BaseUAObject {
     public clone(): any {
         const self = this as BaseUAObject & Record<string, any> & { constructor: new (options: any) => BaseUAObject };
 
-        const params: Record<string,unknown>= {};
+        const params: Record<string, unknown> = {};
 
         const schema = self.schema;
+        // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
         const constructor = self.constructor;
-        
+
         // get all fields from baseType and current type
         _applyOnAllSchemaFields(
             self,
@@ -610,8 +605,8 @@ export class BaseUAObject {
                     data[field.name] = value;
                 }
             }
-        )
-        
+        );
+
         const cloned = new constructor(params);
         assert(cloned instanceof BaseUAObject);
         return cloned;

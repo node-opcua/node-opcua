@@ -3,11 +3,12 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { registerType } from "./builtin_types";
-import { ConstructorFunc } from "./types";
+import type { ConstructorFunc } from "./types";
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
 function _self_encode(constructor: any) {
     assert(typeof constructor === "function");
     return (value: any, stream: OutputBinaryStream) => {
@@ -18,6 +19,7 @@ function _self_encode(constructor: any) {
     };
 }
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
 function _self_decode(constructor: any) {
     assert(typeof constructor === "function");
     return (stream: BinaryStream) => {
@@ -27,6 +29,7 @@ function _self_decode(constructor: any) {
     };
 }
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
 function _self_coerce(constructor: any) {
     assert(typeof constructor === "function");
     return (value: any) => {
@@ -35,6 +38,7 @@ function _self_coerce(constructor: any) {
     };
 }
 
+// biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
 export function registerSpecialVariantEncoder(constructor: ConstructorFunc): void {
     assert(typeof constructor === "function");
 

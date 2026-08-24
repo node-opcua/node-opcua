@@ -1,7 +1,5 @@
 import { registerEnumeration } from "./enumerations";
 
-
-
 export enum NodeIdType {
     ReferenceType = 0x01,
     IsForward = 0x02,

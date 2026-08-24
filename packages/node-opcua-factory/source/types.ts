@@ -1,10 +1,10 @@
 /**
  * @module node-opcua-factory
  */
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Enum } from "node-opcua-enum";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import { DataTypeFactory } from "./datatype_factory";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { Enum } from "node-opcua-enum";
+import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import type { DataTypeFactory } from "./datatype_factory";
 
 export enum FieldCategory {
     enumeration = "enumeration",
@@ -108,7 +108,6 @@ export interface StructuredTypeField {
     decode?: (stream: BinaryStream) => any;
 }
 
-// tslint:disable:no-empty-interface
 export interface FieldEnumeration extends StructuredTypeField {
     // xx category: FieldCategory.enumeration;
 }
@@ -166,7 +165,7 @@ export interface BasicTypeDefinition extends CommonInterface {
     subType: string;
 }
 
-export interface BuiltInTypeDefinition extends BasicTypeDefinition { }
+export interface BuiltInTypeDefinition extends BasicTypeDefinition {}
 
 export interface EnumerationDefinition extends CommonInterface {
     //  enumValues: any;

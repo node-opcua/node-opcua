@@ -3,12 +3,12 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { DataTypeIds } from "node-opcua-constants";
-import { Enum, EnumItem, _TypescriptEnum, adaptTypescriptEnum } from "node-opcua-enum";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { type _TypescriptEnum, adaptTypescriptEnum, Enum, type EnumItem } from "node-opcua-enum";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { TypeSchemaBase } from "./builtin_types";
-import { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types";
+import type { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types";
 
 function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinaryStream): void {
     assert(typeof value === "number", "Expecting a number here");
@@ -21,7 +21,7 @@ function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     const e = typedEnum.get(value) as any as string;
     // c8 ignore next
     if (!e) {
-        throw new Error("cannot  coerce value=" + value + " to " + typedEnum.constructor.name);
+        throw new Error(`cannot  coerce value=${value} to ${typedEnum.constructor.name}`);
     }
     return value;
 }
@@ -80,12 +80,12 @@ const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, 
 export function registerEnumeration(options: EnumerationDefinitionOptions): Enum {
     const dataTypeNodeId = resolveNodeId(DataTypeIds[options.name as any]);
 
-    assert(Object.prototype.hasOwnProperty.call(options, "name"));
-    assert(Object.prototype.hasOwnProperty.call(options, "enumValues"));
+    assert(Object.hasOwn(options, "name"));
+    assert(Object.hasOwn(options, "enumValues"));
     const name = options.name;
 
-    if (Object.prototype.hasOwnProperty.call(_enumerations, name)) {
-        throw new Error("factories.registerEnumeration : Enumeration " + options.name + " has been already inserted");
+    if (Object.hasOwn(_enumerations, name)) {
+        throw new Error(`factories.registerEnumeration : Enumeration ${options.name} has been already inserted`);
     }
     const enumerationDefinition = new EnumerationDefinitionSchema(dataTypeNodeId, options);
     _enumerations.set(name, enumerationDefinition);
@@ -99,7 +99,7 @@ export function hasBuiltInEnumeration(enumerationName: string): boolean {
 
 export function getBuiltInEnumeration(enumerationName: string): EnumerationDefinitionSchema {
     if (!hasBuiltInEnumeration(enumerationName)) {
-        throw new Error("Cannot find enumeration with type " + enumerationName);
+        throw new Error(`Cannot find enumeration with type ${enumerationName}`);
     }
     return _enumerations.get(enumerationName) as EnumerationDefinitionSchema;
 }

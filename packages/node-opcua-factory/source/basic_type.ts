@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
-import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { make_errorLog } from "node-opcua-debug";
 import { getBuiltInType, hasBuiltInType, registerType } from "./builtin_types";
 
@@ -61,8 +61,7 @@ export function registerBasicType(schema: BasicTypeOptions): void {
 
     /* c8 ignore next */
     if (!t) {
-        // tslint:disable-next-line:no-console
-        throw new Error(" cannot find subtype " + schema.subType);
+        throw new Error(` cannot find subtype ${schema.subType}`);
     }
     assert(typeof t.decode === "function");
 

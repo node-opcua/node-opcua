@@ -1,23 +1,17 @@
 /**
  * @module node-opcua-factory
  */
-import util from "util";
+
+import util from "node:util";
 import chalk from "chalk";
-
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { DataTypeIds } from "node-opcua-constants";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
-import { getBuiltInType as getBuiltInType, hasBuiltInType } from "./builtin_types";
-import { EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
-import {
-    CommonInterface,
-    IStructuredTypeSchema,
-    ConstructorFuncWithSchema,
-    ConstructorFunc,
-    IBaseUAObject
-} from "./types";
+import { getBuiltInType, hasBuiltInType } from "./builtin_types";
+import { type EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
+import type { CommonInterface, ConstructorFunc, ConstructorFuncWithSchema, IBaseUAObject, IStructuredTypeSchema } from "./types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -72,7 +66,7 @@ export class DataTypeFactory {
     // -----------------------------
     // EnumerationDefinitionSchema
     public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
-        if(this._enumerations.has(enumeration.name)) {
+        if (this._enumerations.has(enumeration.name)) {
             throw new Error(`enumeration ${enumeration.name}  has already been registered`);
         }
         this._enumerations.set(enumeration.name, enumeration);
@@ -116,7 +110,7 @@ export class DataTypeFactory {
             return structureInfo;
         }
         this.getStructureInfoForDataType(dataTypeNodeId);
-        throw new Error("Cannot find StructureType constructor for dataType " + dataTypeNodeId.toString());
+        throw new Error(`Cannot find StructureType constructor for dataType ${dataTypeNodeId.toString()}`);
     }
     public getStructureInfoForDataType(dataTypeNodeId: NodeId): StructureInfo | null {
         const structureInfo = this._structureInfoByDataTypeMap.get(dataTypeNodeId.toString());
@@ -160,9 +154,7 @@ export class DataTypeFactory {
             debugLog([...this.structuredTypesNames()].join(" "));
         }
         // c8 ignore next
-        throw new Error(
-            "Cannot find StructureType constructor for " + typeName + " - it may be abstract, or it could be a basic type"
-        );
+        throw new Error(`Cannot find StructureType constructor for ${typeName} - it may be abstract, or it could be a basic type`);
     }
 
     public hasStructureByTypeName(typeName: string): boolean {
@@ -185,10 +177,7 @@ export class DataTypeFactory {
     // c8 ignore next
     public dump(): void {
         warningLog(" dumping registered factories");
-        warningLog(
-            " Factory ",
-            [...this.structuredTypesNames()].sort().forEach((e) => e)
-        );
+        warningLog(" Factory ", [...this.structuredTypesNames()].sort().join(", "));
         warningLog(" done");
     }
 
@@ -203,12 +192,12 @@ export class DataTypeFactory {
         if (classConstructor.schema.isAbstract) {
             return;
         }
-        
+
         if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {
             // for instance in DI FetchResultDataType should be abstract but is not
-            // this is valid as long as the class is not instantiated directly but only 
+            // this is valid as long as the class is not instantiated directly but only
             // used inside another class.
             // xx warningLog("warning ", dataTypeNodeId.toString(), "name=", className, " does not have binary encoding");
         }
@@ -242,6 +231,7 @@ export class DataTypeFactory {
         verifyExpandedNodeId(binaryEncodingNodeId);
 
         const expandedNodeIdKey = makeExpandedNodeIdKey(binaryEncodingNodeId);
+        // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
         const constructor = this._structureInfoByEncodingMap.get(expandedNodeIdKey);
         if (constructor) {
             return true;
@@ -261,8 +251,8 @@ export class DataTypeFactory {
         const Constructor = this.getConstructor(binaryEncodingNodeId);
 
         if (!Constructor) {
-            debugLog("Cannot find constructor for " + binaryEncodingNodeId.toString());
-            throw new Error("Cannot find constructor for " + binaryEncodingNodeId.toString());
+            debugLog(`Cannot find constructor for ${binaryEncodingNodeId.toString()}`);
+            throw new Error(`Cannot find constructor for ${binaryEncodingNodeId.toString()}`);
         }
         return new Constructor();
     }
@@ -304,13 +294,14 @@ export class DataTypeFactory {
     private _registerFactory(
         dataTypeNodeId: NodeId,
         typeName: string,
+        // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
         constructor: ConstructorFuncWithSchema | null,
         schema: IStructuredTypeSchema
     ): void {
         /* c8 ignore next */
         if (this._structureInfoByName.has(typeName)) {
-            warningLog("target namespace = `" + this.targetNamespace + "`");
-            warningLog("registerFactory  : " + typeName + " already registered. dataTypeNodeId=", dataTypeNodeId.toString());
+            warningLog(`target namespace = \`${this.targetNamespace}\``);
+            warningLog(`registerFactory  : ${typeName} already registered. dataTypeNodeId=`, dataTypeNodeId.toString());
             return;
         }
         debugLog("registering typeName ", typeName, dataTypeNodeId.toString(), "isAbstract ", schema.isAbstract);
@@ -337,7 +328,7 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ..
         write("structureTypeName =", structureTypeName);
 
         if (!dataFactory.getStructureInfoForDataType(schema.dataTypeNodeId)) {
-            write("  ( No constructor for " + schema.name + "  " + schema.dataTypeNodeId.toString());
+            write(`  ( No constructor for ${schema.name}  ${schema.dataTypeNodeId.toString()}`);
         }
         if (!schema.encodingDefaultBinary) {
             write(" (Schema has no encoding defaultBinary )");

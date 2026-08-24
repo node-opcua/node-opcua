@@ -3,8 +3,8 @@
  */
 export * from "./base_ua_object";
 export * from "./basic_type";
-export * from "./builtin_types_special";
 export * from "./builtin_types";
+export * from "./builtin_types_special";
 export * from "./datatype_factory";
 export * from "./enumerations";
 export * from "./get_standard_data_type_factory";
