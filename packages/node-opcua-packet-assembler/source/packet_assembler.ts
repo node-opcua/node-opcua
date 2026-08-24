@@ -123,6 +123,7 @@ export interface PacketAssembler {
  * socket.on("data", (data) => assembler.feed(data));
  * ```
  */
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed event overloads for this class
 export class PacketAssembler extends EventEmitter {
     public static defaultMaxChunkCount = 777;
     public static defaultMaxMessageSize = 1024 * 64 - 7;
@@ -193,7 +194,7 @@ export class PacketAssembler extends EventEmitter {
      * ```
      */
     public feed(data: Buffer) {
-        let messageChunk;
+        let messageChunk: Buffer;
 
         if (this.expectedLength === 0 && this.currentLength + data.length >= this.minimumSizeInBytes) {
             // we are at a start of a block and there is enough data provided to read the length  of the block
