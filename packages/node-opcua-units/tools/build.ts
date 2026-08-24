@@ -121,7 +121,6 @@ async function main() {
             }
             const keyU = u.Name;
             const unit = makeU(keyU);
-            const cf = u["Conversion Factor"] || "";
             const description = makeDescription(u);
             w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
         }
@@ -143,7 +142,6 @@ async function main() {
         for (const [keyU, u] of Object.entries(units).sort(([a], [b]) => (a > b ? 1 : a < b ? -1 : 0))) {
             const code = u["Common Code"];
             const unit = makeU(keyU);
-            const cf = u["Conversion Factor"] || "";
             const description = makeDescription(u);
             w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
         }
@@ -155,7 +153,6 @@ async function main() {
             if (keyU === "denier") continue;
             const code = u["Common\nCode"];
             const unit = makeU(keyU);
-            const cf = u["Conversion Factor"] || "";
             const description = makeDescription(u);
             w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
         }
