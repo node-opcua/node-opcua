@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-common
  */
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 import { assert } from "node-opcua-assert";
 
@@ -17,7 +17,7 @@ export function makeApplicationUrn(hostname: string, suffix: string): string {
         // a portion of the hostname hash.
         hostnameHash = createHash("md5").update(hostname).digest("hex").substring(0, 16);
     }
-    const applicationUrn = "urn:" + hostnameHash + ":" + suffix;
+    const applicationUrn = `urn:${hostnameHash}:${suffix}`;
     assert(applicationUrn.length <= 64);
     return applicationUrn;
 }

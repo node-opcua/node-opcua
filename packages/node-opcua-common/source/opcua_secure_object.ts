@@ -36,9 +36,7 @@ export interface ICertificateKeyPairProviderWithLocation extends ICertificateKey
  * If the provider already implements the extended interface, it is
  * returned as-is. Otherwise a thin wrapper adds `"<unknown>"` defaults.
  */
-function ensureProviderHasLocation(
-    provider: ICertificateKeyPairProvider
-): ICertificateKeyPairProviderWithLocation {
+function ensureProviderHasLocation(provider: ICertificateKeyPairProvider): ICertificateKeyPairProviderWithLocation {
     if ("certificateFile" in provider && "privateKeyFile" in provider) {
         return provider as ICertificateKeyPairProviderWithLocation;
     }

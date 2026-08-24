@@ -57,9 +57,7 @@ export class InMemoryCertificateStore implements ICertificateStore {
         this.#crls.clear();
     }
 
-    public async checkCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<StatusCode> {
+    public async checkCertificate(certificate: Certificate | Certificate[]): Promise<StatusCode> {
         const tp = thumbprint(certificate);
 
         if (this.#trusted.has(tp)) {
@@ -96,43 +94,28 @@ export class InMemoryCertificateStore implements ICertificateStore {
         return "BadCertificateUntrusted";
     }
 
-    public async trustCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<void> {
+    public async trustCertificate(certificate: Certificate | Certificate[]): Promise<void> {
         const tp = thumbprint(certificate);
         this.#rejected.delete(tp);
         this.#trusted.add(tp);
     }
 
-    public async rejectCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<void> {
+    public async rejectCertificate(certificate: Certificate | Certificate[]): Promise<void> {
         const tp = thumbprint(certificate);
         this.#trusted.delete(tp);
         this.#rejected.add(tp);
     }
 
-    public async getTrustStatus(
-        certificate: Certificate
-    ): Promise<StatusCode> {
+    public async getTrustStatus(certificate: Certificate): Promise<StatusCode> {
         const tp = thumbprint(certificate);
-        return this.#trusted.has(tp)
-            ? StatusCodes.Good
-            : StatusCodes.BadCertificateUntrusted;
+        return this.#trusted.has(tp) ? StatusCodes.Good : StatusCodes.BadCertificateUntrusted;
     }
 
-    public async addIssuer(
-        certificate: Certificate,
-        _validate?: boolean,
-        _addInTrustList?: boolean
-    ): Promise<void> {
+    public async addIssuer(certificate: Certificate, _validate?: boolean, _addInTrustList?: boolean): Promise<void> {
         this.#issuers.add(thumbprint(certificate));
     }
 
-    public async addRevocationList(
-        crl: Certificate,
-        _target?: "issuers" | "trusted"
-    ): Promise<void> {
+    public async addRevocationList(crl: Certificate, _target?: "issuers" | "trusted"): Promise<void> {
         this.#crls.add(thumbprint(crl));
     }
 }

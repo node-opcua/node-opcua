@@ -41,9 +41,7 @@ export let defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 export function setDefaultCertificateSubject(value: string): void {
     // 0. Guard against non-string values from plain-JS callers.
     if (typeof value !== "string") {
-        throw new TypeError(
-            'Example: "/O=MyOrg/L=MyCity/C=US".'
-        );
+        throw new TypeError('Example: "/O=MyOrg/L=MyCity/C=US".');
     }
 
     // 1. Remove surrounding whitespace that would silently corrupt the subject string.
@@ -51,8 +49,7 @@ export function setDefaultCertificateSubject(value: string): void {
 
     if (trimmed.length === 0) {
         throw new Error(
-            'setDefaultCertificateSubject: value must not be empty. ' +
-            'Expected a string like "/O=MyOrg/L=MyCity/C=US".'
+            "setDefaultCertificateSubject: value must not be empty. " + 'Expected a string like "/O=MyOrg/L=MyCity/C=US".'
         );
     }
 
@@ -64,10 +61,7 @@ export function setDefaultCertificateSubject(value: string): void {
         Subject.parse(normalised);
     } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
-        throw new Error(
-            `setDefaultCertificateSubject: "${value}" is not a valid subject string. ${reason}`,
-            { cause: err }
-        );
+        throw new Error(`setDefaultCertificateSubject: "${value}" is not a valid subject string. ${reason}`, { cause: err });
     }
 
     defaultCertificateSubject = normalised;
@@ -76,5 +70,5 @@ export function setDefaultCertificateSubject(value: string): void {
 export function makeSubject(applicationName: string, hostname: string): string {
     const commonName = `${applicationName}@${hostname}`.substring(0, 63);
     const dc = `${hostname}`.substring(63);
-    return `/CN=${commonName}` + `/DC=${dc}` + defaultCertificateSubject;
+    return `/CN=${commonName}/DC=${dc}${defaultCertificateSubject}`;
 }

@@ -10,11 +10,11 @@
 import {
     type Certificate,
     CertificatePurpose,
-    type PrivateKey,
     convertPEMtoDER,
     createSelfSignedCertificate,
     generatePrivateKey,
     makePrivateKeyFromPem,
+    type PrivateKey,
     privateKeyToPEM
 } from "node-opcua-crypto/web";
 
@@ -54,7 +54,9 @@ export class InMemoryCertificateKeyPairProvider implements ICertificateKeyPairPr
 
     public getCertificateChain(): Certificate[] {
         if (!this.#chain) {
-            throw new Error("InMemoryCertificateKeyPairProvider: no certificate chain available — call ensureCertificateExists() first");
+            throw new Error(
+                "InMemoryCertificateKeyPairProvider: no certificate chain available — call ensureCertificateExists() first"
+            );
         }
         return this.#chain;
     }

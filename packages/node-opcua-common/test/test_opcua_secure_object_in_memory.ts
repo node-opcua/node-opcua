@@ -1,9 +1,9 @@
 import "mocha";
 import should from "should";
 import {
-    OPCUASecureObject,
     type ICertificateKeyPairProvider,
-    type ICertificateKeyPairProviderWithLocation
+    type ICertificateKeyPairProviderWithLocation,
+    OPCUASecureObject
 } from "../source/opcua_secure_object";
 
 describe("OPCUASecureObject + injected ICertificateKeyPairProvider", () => {
@@ -82,7 +82,9 @@ describe("OPCUASecureObject + injected ICertificateKeyPairProvider", () => {
             getCertificate: () => cert,
             getCertificateChain: () => [cert],
             getPrivateKey: () => pk,
-            invalidate: () => { invalidated = true; }
+            invalidate: () => {
+                invalidated = true;
+            }
         };
         const obj = new OPCUASecureObject({ certificateKeyPairProvider: provider });
         obj.invalidateCachedCertificates();

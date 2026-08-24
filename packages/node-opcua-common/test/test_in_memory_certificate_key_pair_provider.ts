@@ -1,7 +1,7 @@
 import "mocha";
+import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 import should from "should";
 import { InMemoryCertificateKeyPairProvider } from "../source/in_memory_certificate_key_pair_provider";
-import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 
 describe("InMemoryCertificateKeyPairProvider", () => {
     const fakeCert = Buffer.from("FAKE-CERT-CONTENT") as Certificate;

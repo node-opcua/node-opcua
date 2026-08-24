@@ -38,9 +38,7 @@ export interface ICertificateStore {
      * `StatusCodes.BadCertificateUntrusted` if unknown/rejected,
      * or another `StatusCode` for validation failures.
      */
-    checkCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<StatusCode>;
+    checkCertificate(certificate: Certificate | Certificate[]): Promise<StatusCode>;
 
     /**
      * Verify a certificate against the store.
@@ -48,35 +46,26 @@ export interface ICertificateStore {
      * Returns a string status: `"Good"`, `"BadCertificateUntrusted"`,
      * `"BadCertificateTimeInvalid"`, etc.
      */
-    verifyCertificate(
-        certificate: Certificate | Certificate[],
-        options?: { acceptOutdatedCertificate?: boolean }
-    ): Promise<string>;
+    verifyCertificate(certificate: Certificate | Certificate[], options?: { acceptOutdatedCertificate?: boolean }): Promise<string>;
 
     /**
      * Move a certificate to the trusted store.
      * If previously rejected, it will be removed from the
      * rejected set.
      */
-    trustCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<void>;
+    trustCertificate(certificate: Certificate | Certificate[]): Promise<void>;
 
     /**
      * Move a certificate to the rejected store.
      * If previously trusted, it will be removed from the
      * trusted set.
      */
-    rejectCertificate(
-        certificate: Certificate | Certificate[]
-    ): Promise<void>;
+    rejectCertificate(certificate: Certificate | Certificate[]): Promise<void>;
 
     /**
      * Check whether a certificate is currently trusted.
      */
-    getTrustStatus(
-        certificate: Certificate
-    ): Promise<StatusCode>;
+    getTrustStatus(certificate: Certificate): Promise<StatusCode>;
 
     /**
      * Register an issuer (CA) certificate so that certificates
@@ -87,11 +76,7 @@ export interface ICertificateStore {
      *                      itself (default: true)
      * @param addInTrustList - also add to the trusted list
      */
-    addIssuer(
-        certificate: Certificate,
-        validate?: boolean,
-        addInTrustList?: boolean
-    ): Promise<unknown>;
+    addIssuer(certificate: Certificate, validate?: boolean, addInTrustList?: boolean): Promise<unknown>;
 
     /**
      * Register a Certificate Revocation List so that revoked
@@ -100,8 +85,5 @@ export interface ICertificateStore {
      * @param crl    - the CRL (DER-encoded)
      * @param target - which folder/set to store the CRL in
      */
-    addRevocationList(
-        crl: Certificate,
-        target?: "issuers" | "trusted"
-    ): Promise<unknown>;
+    addRevocationList(crl: Certificate, target?: "issuers" | "trusted"): Promise<unknown>;
 }
