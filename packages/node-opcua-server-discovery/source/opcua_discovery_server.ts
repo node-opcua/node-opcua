@@ -72,7 +72,13 @@ export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
 interface RegisteredServerExtended extends RegisteredServer {
     bonjourHolder: BonjourHolder;
     serverInfo: ApplicationDescriptionOptions;
-    discoveryConfiguration?: MdnsDiscoveryConfiguration[];
+    discoveryConfiguration?: MdnsDiscoveryConfigurationExtended[];
+}
+
+// each discoveryConfiguration entry gets its own BonjourHolder stashed on it for
+// the lifetime of the mDNS announcement (see #announcedOnMulticastSubnet)
+interface MdnsDiscoveryConfigurationExtended extends MdnsDiscoveryConfiguration {
+    bonjourHolder?: BonjourHolder;
 }
 
 type RegisterServerMap = Map<string, RegisteredServerExtended>;
@@ -178,7 +184,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         assert(Array.isArray(this.capabilitiesForMDNS));
 
         this._preInitTask.push(async () => {
-            await this._delayInit!();
+            await this._delayInit?.();
         });
 
         await new Promise<void>((resolve, reject) => super.start((err?: Error | null) => (err ? reject(err) : resolve())));
@@ -262,10 +268,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         this.#internalRegisterServer(
             RegisterServer2Response,
             request.server,
-            request.discoveryConfiguration as MdnsDiscoveryConfiguration[]
+            request.discoveryConfiguration as MdnsDiscoveryConfigurationExtended[]
         )
-            .then((response?: Response) => {
-                channel.send_response("MSG", response!, message);
+            .then((response: Response) => {
+                channel.send_response("MSG", response, message);
             })
             .catch((err: Error) => {
                 errorLog("What shall I do ?", err.message);
@@ -289,7 +295,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         assert(request.schema.name === "RegisterServerRequest");
         this.#internalRegisterServer(RegisterServerResponse, request.server, undefined)
             .then((response) => {
-                channel.send_response("MSG", response!, message);
+                channel.send_response("MSG", response, message);
             })
             .catch((err: Error) => {
                 let additional_messages = [];
@@ -360,7 +366,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         request.serverCapabilityFilter = request.serverCapabilityFilter || [];
         const serverCapabilityFilter: string = request.serverCapabilityFilter
-            .map((x: UAString) => x!.toUpperCase())
+            .map((x: UAString) => x?.toUpperCase())
             .sort()
             .join(" ");
 
@@ -401,17 +407,20 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         channel.send_response("MSG", response, message);
     }
 
-    async #stopAnnouncedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration): Promise<void> {
-        const b = (conf as any).bonjourHolder as BonjourHolder;
+    async #stopAnnouncedOnMulticastSubnet(conf: MdnsDiscoveryConfigurationExtended): Promise<void> {
+        const b = conf.bonjourHolder;
+        if (!b) {
+            throw new Error("#stopAnnouncedOnMulticastSubnet: conf has no bonjourHolder");
+        }
         await b.stopAnnouncedOnMulticastSubnet();
-        (conf as any).bonjourHolder = undefined;
+        conf.bonjourHolder = undefined;
     }
 
-    async #announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration, announcement: Announcement): Promise<void> {
+    async #announcedOnMulticastSubnet(conf: MdnsDiscoveryConfigurationExtended, announcement: Announcement): Promise<void> {
         const serviceConfig = announcementToServiceConfig(announcement);
 
-        let b = (conf as any).bonjourHolder as BonjourHolder;
-        if (b && b.serviceConfig) {
+        let b = conf.bonjourHolder;
+        if (b?.serviceConfig) {
             if (isSameService(b.serviceConfig, serviceConfig)) {
                 debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
                 // nothing to do
@@ -427,14 +436,14 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             await this.#stopAnnouncedOnMulticastSubnet(conf);
         }
         b = new BonjourHolder();
-        (conf as any).bonjourHolder = b;
+        conf.bonjourHolder = b;
         await b.announcedOnMulticastSubnet(announcement);
     }
     async #dealWithDiscoveryConfiguration(
-        previousConfMap: Map<string, MdnsDiscoveryConfiguration>,
+        previousConfMap: Map<string, MdnsDiscoveryConfigurationExtended>,
         server1: RegisteredServer,
         serverInfo: ApplicationDescriptionOptions,
-        discoveryConfiguration: MdnsDiscoveryConfiguration
+        discoveryConfiguration: MdnsDiscoveryConfigurationExtended
     ): Promise<StatusCode> {
         // mdnsServerName     String     The name of the Server when it is announced via mDNS.
         //                               See Part 12 for the details about mDNS. This string shall be
@@ -444,7 +453,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         // serverCapabilities [] String  The set of Server capabilities supported by the Server.
         //                               A Server capability is a short identifier for a feature
         //                               The set of allowed Server capabilities are defined in Part 12.
-        discoveryConfiguration.mdnsServerName ??= server1.serverNames![0].text;
+        discoveryConfiguration.mdnsServerName ??= server1.serverNames?.[0].text || null;
 
         serverInfo.discoveryUrls ??= [];
 
@@ -465,7 +474,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             debugLog("Configuration ", discoveryConfiguration.mdnsServerName, " already exists !");
             const prevConf = previousConfMap.get(discoveryConfiguration.mdnsServerName || "");
             previousConfMap.delete(discoveryConfiguration.mdnsServerName || "");
-            (discoveryConfiguration as any).bonjourHolder = (prevConf as any).bonjourHolder;
+            discoveryConfiguration.bonjourHolder = prevConf?.bonjourHolder;
         }
 
         // let's announce the server on the  multicast DNS
@@ -508,10 +517,16 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         }
         return configurationResults;
     }
-    async #internalRegisterServerOnline(server: RegisteredServerExtended, discoveryConfigurations: MdnsDiscoveryConfiguration[]) {
+    async #internalRegisterServerOnline(
+        server: RegisteredServerExtended,
+        discoveryConfigurations: MdnsDiscoveryConfigurationExtended[]
+    ) {
         assert(discoveryConfigurations);
 
-        const key = server.serverUri!;
+        if (!server.serverUri) {
+            throw new Error("#internalRegisterServerOnline: server.serverUri is required");
+        }
+        const key = server.serverUri;
 
         let configurationResults: StatusCode[] | null = null;
 
@@ -519,7 +534,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         // prepare serverInfo which will be used by FindServers
         const serverInfo: ApplicationDescriptionOptions = {
-            applicationName: server.serverNames![0], // which one shall we use ?
+            applicationName: server.serverNames?.[0], // which one shall we use ?
             applicationType: server.serverType,
             applicationUri: server.serverUri,
             discoveryUrls: server.discoveryUrls,
@@ -528,15 +543,17 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             // XXX ?????? serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri;
         };
 
-        const previousConfMap: Map<string, MdnsDiscoveryConfiguration> = new Map();
+        const previousConfMap: Map<string, MdnsDiscoveryConfigurationExtended> = new Map();
 
         // let check in the server has already been registed on this LDS
         let firstTimeRegistration = true;
-        if (this.registeredServers.has(key)) {
+        const previousServer = this.registeredServers.get(key);
+        if (previousServer) {
             // server already exists and must only be updated
-            const previousServer = this.registeredServers.get(key)!;
-            for (const conf of previousServer.discoveryConfiguration!) {
-                previousConfMap.set(conf.mdnsServerName!, conf);
+            for (const conf of previousServer.discoveryConfiguration || []) {
+                if (conf.mdnsServerName) {
+                    previousConfMap.set(conf.mdnsServerName, conf);
+                }
             }
             firstTimeRegistration = false;
         }
@@ -564,7 +581,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
     async #internalRegisterServer(
         RegisterServerXResponse: typeof RegisterServer2Response | typeof RegisterServerResponse,
         rawServer: RegisteredServer,
-        discoveryConfigurations?: MdnsDiscoveryConfiguration[]
+        discoveryConfigurations?: MdnsDiscoveryConfigurationExtended[]
     ): Promise<Response> {
         // #region check parameter validity
         function sendError(statusCode: StatusCode): Response {
@@ -579,7 +596,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             return sendError(StatusCodes.BadShutdown);
         }
 
-        const server = rawServer as any as RegisteredServerExtended;
+        const server = rawServer as unknown as RegisteredServerExtended;
 
         // check serverType is valid
         if (!_isValidServerType(server.serverType)) {

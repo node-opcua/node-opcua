@@ -1,10 +1,11 @@
 /**
  * @module node-opcua-server-discovery
  */
-import { type Service, Bonjour, type Browser } from "sterfive-bonjour-service";
+
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
+import { Bonjour, type Browser, type Service } from "sterfive-bonjour-service";
 
 const debugLog = make_debugLog("LDSSERVER");
 const doDebug = checkDebugFlag("LDSSERVER") || true;
@@ -18,7 +19,7 @@ export class MDNSResponder {
     public registeredServers: ServerOnNetwork[];
 
     #bonjour: Bonjour;
-    #mDNSBrowser: Browser;
+    #mDNSBrowser: Browser | undefined;
 
     #recordId: number;
     public lastUpdateDate: Date = new Date();
@@ -77,7 +78,7 @@ export class MDNSResponder {
             const serverName = service.name;
 
             service.txt = service.txt || {};
-            const service_txt = service.txt as any;
+            const service_txt = service.txt;
             service_txt.caps = service_txt.caps || "";
             const serverCapabilities = service_txt.caps
                 .split(",")
@@ -128,7 +129,7 @@ export class MDNSResponder {
     public async dispose(): Promise<void> {
         if (this.#mDNSBrowser) {
             this.#mDNSBrowser.stop();
-            this.#mDNSBrowser = undefined!;
+            this.#mDNSBrowser = undefined;
         }
         await new Promise<void>((resolve) => {
             this.#bonjour.unpublishAll(() => {
