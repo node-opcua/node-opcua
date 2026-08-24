@@ -80,11 +80,8 @@ describe("Security: verifying some security use cases", function (this: Mocha.Su
         const client = OPCUAClient.create({
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientCertificateManager,
-            // The following options attempt to bypass certificate validation
-            allowUntrusted: true,
-            rejectUnauthorized: false
-        } as any);
+            clientCertificateManager
+        });
         await client.createDefaultCertificate();
 
         // trust the server certificate
