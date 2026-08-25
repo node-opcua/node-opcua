@@ -44,6 +44,26 @@ node tools/scan-deps.js --verbose
 
 For more details, see [scan-dependencies/README.md](scan-dependencies/README.md).
 
+### check-debug-log
+
+Finds debug log calls that are not guarded by a debug flag. `make_debugLog()` tests the
+flag *inside* the returned function, so arguments — template literals, chalk chains,
+`.toString()` calls — are evaluated on every call even with debugging off.
+
+```bash
+# report; exits non-zero if anything is unguarded, so it works as a CI gate
+node tools/check-debug-log.js
+
+# list every site, or scope to one package
+node tools/check-debug-log.js --verbose
+node tools/check-debug-log.js --package node-opcua-server
+
+# rewrite them into `if (doDebug) { ... }` blocks
+node tools/check-debug-log.js --fix
+```
+
+For more details, see [check-debug-log/README.md](check-debug-log/README.md).
+
 ### Other Tools
 
 - `clean/`: Cleanup utilities
@@ -54,8 +74,10 @@ For more details, see [scan-dependencies/README.md](scan-dependencies/README.md)
 ```
 tools/
 ├── scan-dependencies/     # Dependency scanning tool
+├── check-debug-log/       # Unguarded debug-log finder / fixer
 ├── clean/                # Cleanup utilities
 ├── fix-tsconfigs/        # TypeScript config fixes
 ├── scan-deps.js          # Launcher for scan-dependencies
+├── check-debug-log.js    # Launcher for check-debug-log
 └── README.md            # This file
 ``` 
