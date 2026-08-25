@@ -112,8 +112,12 @@ export interface ClientSessionBase {
     /**
      * the time of the latest response received by the client from the server.
      *
-     * this is only updated when the server has actually answered: a transaction that
-     * fails on a timeout or on a broken channel does not update this value.
+     * this is only updated when the server has actually answered. A transaction that fails
+     * on a timeout or on a broken channel does not update this value, whereas a ServiceFault
+     * does: a fault means the server answered and rejected the request, so the session is
+     * still in contact with it.
+     *
+     * before the first answer, this holds the session creation sentinel rather than a real date.
      */
     lastResponseReceivedTime: Date;
     /**

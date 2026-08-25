@@ -44,7 +44,8 @@ import {
     getThumbprint,
     type ICertificateKeyPairProvider,
     type Request,
-    type Response
+    type Response,
+    type ServiceFaultAnnotatedError
 } from "../common";
 import { MessageBuilder } from "../message_builder";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";
@@ -152,8 +153,11 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
         response.responseHeader.stringTable = [...(response.responseHeader.stringTable || [])];
         err = new Error(` serviceResult = ${response.responseHeader.serviceResult.toString()}`);
         //  "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
-        (err as unknown as { response: Response }).response = response;
-        (err as unknown as { request: Request }).request = request;
+        // the server did answer: keep the decoded fault on the error so that callers can tell a
+        // ServiceFault apart from a transaction that never got a reply (see ServiceFaultAnnotatedError)
+        const annotatedError = err as ServiceFaultAnnotatedError;
+        annotatedError.response = response;
+        annotatedError.request = request;
         response = undefined;
     }
 
