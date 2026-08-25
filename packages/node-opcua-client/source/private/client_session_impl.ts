@@ -1608,15 +1608,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 }
                 return;
             }
+            // the queue is owned by flushPendingTransactions, which the repair calls on every
+            // exit: draining one entry from here would send it before the session is restored,
+            // and would race with that flush.
             callback(err, response);
-            const length = this._reconnecting.pendingTransactions.length; // record length before callback is called !
-            if (length > 0) {
-                debugLog("reprocessRequest => ", this._reconnecting.pendingTransactions.length, " transaction(s) left in queue");
-                const pending = this._reconnecting.pendingTransactions.shift();
-                if (pending) {
-                    this.#reprocessRequest(0, pending.request, pending.callback);
-                }
-            }
         });
     }
 
