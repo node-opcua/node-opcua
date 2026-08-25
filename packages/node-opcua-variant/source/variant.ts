@@ -31,6 +31,7 @@ import {
     FieldCategory,
     findBuiltInType,
     initialize_field,
+    onBuiltInTypeRegistryChanged,
     registerSpecialVariantEncoder,
     registerType
 } from "node-opcua-factory";
@@ -546,30 +547,79 @@ function calculate_product(array: number[] | null): number {
     return array.reduce((n: number, p: number) => n * p, 1);
 }
 
-function get_encoder(dataType: DataType) {
-    const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
-    /* c8 ignore start */
-    if (!dataTypeAsString) {
-        throw new Error(`invalid dataType ${dataType}`);
+type VariantEncodeFunc = (value: unknown, stream: OutputBinaryStream) => void;
+type VariantDecodeFunc = (stream: BinaryStream) => unknown;
+
+// Resolving a codec used to cost a DataType[n] reverse-enum lookup, a recursive
+// findBuiltInType, and two string-hash Map lookups - once per scalar Variant, on both
+// encode and decode. These memoise that per numeric DataType.
+//
+// They must be filled lazily, not built up front: the built-in type registry is
+// populated across package boundaries at module-eval time, and ExtensionObject,
+// DataValue and Variant all register *after* this module's body runs. An eager table
+// would throw at import, or silently cache undefined for the three hottest types.
+//
+// Sized to VARIANT_TYPE_MASK (0x3f), since a peer controls those bits on the wire.
+const encoderTable: (VariantEncodeFunc | undefined)[] = new Array(64);
+const decoderTable: (VariantDecodeFunc | undefined)[] = new Array(64);
+
+// registerType/unregisterType are public API, so a memoised function can go stale.
+onBuiltInTypeRegistryChanged(() => {
+    encoderTable.fill(undefined);
+    decoderTable.fill(undefined);
+});
+
+function get_encoder(dataType: DataType): VariantEncodeFunc {
+    // Only consult the memo for a numeric DataType. Array indices are strings, so
+    // encoderTable["11"] and encoderTable[11] are the same slot: a numeric-string
+    // dataType would be silently served the cached codec for 11, where the resolution
+    // path below correctly rejects it.
+    if (typeof dataType === "number") {
+        const cached = encoderTable[dataType];
+        if (cached !== undefined) {
+            return cached;
+        }
     }
-    /* c8 ignore stop */
+    // a hand-built Variant may carry a string dataType; the constructor normalises it,
+    // so this is a fallback rather than a hot path, and it is deliberately not memoised.
+    const dataTypeAsString = typeof dataType === "string" ? dataType : DataType[dataType];
+    if (!dataTypeAsString) {
+        throw new Error(`Variant.encode : invalid dataType ${dataType}`);
+    }
     const encode = findBuiltInType(dataTypeAsString).encode;
     /* c8 ignore start */
     if (!encode) {
         throw new Error(`Cannot find encode function for dataType ${dataTypeAsString}`);
     }
     /* c8 ignore stop */
+    if (typeof dataType === "number") {
+        encoderTable[dataType] = encode;
+    }
     return encode;
 }
 
-function get_decoder(dataType: DataType) {
+function get_decoder(dataType: DataType): VariantDecodeFunc {
+    // same index-coercion hazard as get_encoder above
+    if (typeof dataType === "number") {
+        const cached = decoderTable[dataType];
+        if (cached !== undefined) {
+            return cached;
+        }
+    }
     const dataTypeAsString = DataType[dataType];
+    // the wire carries 6 bits of DataType but only 0..25 are defined: reject the rest
+    // with a real Error, so "bad input from the peer" stays distinguishable from a
+    // TypeError raised by calling an undefined table entry.
+    if (!dataTypeAsString) {
+        throw new Error(`Variant.decode : cannot find decoder for type ${dataType}`);
+    }
     const decode = findBuiltInType(dataTypeAsString).decode;
     /* c8 ignore start */
     if (!decode) {
         throw new Error(`Variant.decode : cannot find decoder for type ${dataTypeAsString}`);
     }
     /* c8 ignore stop */
+    decoderTable[dataType] = decode;
     return decode;
 }
 
@@ -648,7 +698,12 @@ interface DataTypeHelper {
 // of walking off the end into the prototype chain.
 const typedArrayHelpers: DataTypeHelper[] = new Array(64);
 
-function _getHelper(dataType: DataType): DataTypeHelper {
+function _getHelper(dataType: DataType): DataTypeHelper | undefined {
+    // guard the index coercion described in get_encoder: a numeric-string dataType would
+    // otherwise select a typed-array helper and silently encode down a different path
+    if (typeof dataType !== "number") {
+        return undefined;
+    }
     return typedArrayHelpers[dataType];
 }
 
@@ -684,7 +739,13 @@ function encodeGeneralArray(dataType: DataType, stream: OutputBinaryStream, valu
 
 function encodeVariantArray(dataType: DataType, stream: OutputBinaryStream, value: BufferedArray2 | unknown[] | null) {
     if (value && (value as BufferedArray2).buffer) {
-        return _getHelper(dataType).encode(stream, value);
+        const helper = _getHelper(dataType);
+        // previously an undefined helper here surfaced as "cannot read properties of
+        // undefined"; keep it a failure, but one that names the offending dataType
+        if (!helper) {
+            throw new Error(`Variant.encode : no typed-array encoder for dataType ${dataType}`);
+        }
+        return helper.encode(stream, value);
     }
     return encodeGeneralArray(dataType, stream, value as unknown[] | null);
 }

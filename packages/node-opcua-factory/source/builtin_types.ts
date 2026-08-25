@@ -336,6 +336,16 @@ const _defaultType: BasicTypeDefinitionOptionsBase[] = [
     }
 ];
 
+type RegistryChangeHandler = () => void;
+// declared before the registerType() sweep below, which already notifies through it
+const _registryChangeHandlers: RegistryChangeHandler[] = [];
+
+function _notifyRegistryChanged(): void {
+    for (const handler of _registryChangeHandlers) {
+        handler();
+    }
+}
+
 // populate the default type map
 const _defaultTypeMap: Map<string, BasicTypeSchema> = new Map<string, BasicTypeSchema>();
 _defaultType.forEach(registerType);
@@ -359,12 +369,29 @@ export function registerType(schema: BasicTypeDefinitionOptionsBase): void {
     }
     const definition = new BasicTypeSchema(schema as BasicTypeDefinitionOptions);
     _defaultTypeMap.set(schema.name, definition);
+    _notifyRegistryChanged();
 }
 
 export const registerBuiltInType = registerType;
 
 export function unregisterType(typeName: string): void {
     _defaultTypeMap.delete(typeName);
+    _notifyRegistryChanged();
+}
+
+/**
+ * subscribe to changes of the built-in type registry.
+ *
+ * Callers that memoise a lookup derived from this registry - node-opcua-variant caches
+ * the encode/decode function per DataType - need to drop their cache when a type is
+ * registered or unregistered, or they keep serving a stale function. Registration
+ * happens at module-eval time today, but registerType and unregisterType are public
+ * API and nothing stops a consumer calling them later.
+ *
+ * Handlers must be cheap: they run on every registration.
+ */
+export function onBuiltInTypeRegistryChanged(handler: RegistryChangeHandler): void {
+    _registryChangeHandlers.push(handler);
 }
 
 export function getBuiltInType(name: string): TypeSchemaBase {
