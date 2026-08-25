@@ -103,8 +103,14 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
 
         encodeNodeId(encodingDefaultBinary, stream);
         stream.writeUInt8(0x01); // 0x01 The body is encoded as a ByteString.
-        stream.writeUInt32(object.binaryStoreSize());
+        // Reserve the body length and patch it in once the body has been written, rather
+        // than asking binaryStoreSize() for it. binaryStoreSize() is a full second encode
+        // of the object, and it re-enters this function for every nested ExtensionObject -
+        // so the two-pass form costs 2^(depth+1) traversals. Reserve-then-patch is one.
+        const lengthPosition = stream.reserveUInt32();
+        const bodyStart = stream.length;
         object.encode(stream);
+        stream.patchUInt32(lengthPosition, stream.length - bodyStart);
     }
 }
 

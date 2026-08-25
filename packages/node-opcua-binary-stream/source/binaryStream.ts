@@ -182,6 +182,29 @@ export class BinaryStream {
     }
 
     /**
+     * reserve room for a 32 bit unsigned integer whose value is not known yet,
+     * and return the position at which it can later be written with patchUInt32.
+     *
+     * This lets a length-prefixed body be written in a single pass: reserve the slot,
+     * encode the body, then patch in the byte count. The alternative - computing the
+     * size up front - means encoding the body twice, which compounds for nested
+     * structures.
+     */
+    public reserveUInt32(): number {
+        const position = this.length;
+        this.length += 4;
+        return position;
+    }
+
+    /**
+     * write a 32 bit unsigned integer at an absolute position previously returned by
+     * reserveUInt32, without moving the cursor.
+     */
+    public patchUInt32(position: number, value: number): void {
+        this.buffer.writeUInt32LE(value, position);
+    }
+
+    /**
      * @param arrayBuf a buffer or byte array write
      * @param offset   the offset position (default =0)
      * @param length   the number of byte to write

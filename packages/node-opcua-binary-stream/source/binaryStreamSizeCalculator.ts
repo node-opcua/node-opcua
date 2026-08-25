@@ -59,6 +59,19 @@ export class BinaryStreamSizeCalculator {
         this.length += 8;
     }
 
+    /**
+     * counterpart of BinaryStream.reserveUInt32: only the 4 reserved bytes matter here.
+     * The returned position is meaningless for a calculator - patchUInt32 ignores it.
+     */
+    public reserveUInt32(): number {
+        this.length += 4;
+        return -1;
+    }
+
+    public patchUInt32(_position: number, _value: number): void {
+        /* nothing to patch: a size calculator only accumulates a byte count */
+    }
+
     public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, byteLength?: number): void {
         assert(arrayBuf instanceof ArrayBuffer);
         // must resolve (offset, byteLength) exactly as BinaryStream.writeArrayBuffer does
