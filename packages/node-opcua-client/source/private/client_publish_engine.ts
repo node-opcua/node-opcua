@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import type { ServiceFaultAnnotatedError } from "node-opcua-secure-channel";
 import { PublishRequest, type PublishResponse } from "node-opcua-service-subscription";
 import type { SubscriptionAcknowledgementOptions } from "node-opcua-types";
 
@@ -267,7 +268,15 @@ export class ClientSidePublishEngine {
         session.publish(publishRequest, (err: Error | null, response?: PublishResponse) => {
             this.nbPendingPublishRequests -= 1;
 
-            this.lastRequestSentTime = new Date();
+            // despite its name, this timestamp records the *answer*, not the send: it is what
+            // ClientSubscriptionImpl.evaluateRemainingLifetime() uses to estimate when the server
+            // will drop the subscription. A publish that failed on a timeout or a broken channel
+            // says nothing about the server and must not move it, or the subscription would look
+            // healthy for the whole outage. A ServiceFault does count - the server answered.
+            // Same rule as ClientSessionImpl.lastResponseReceivedTime (see #1569).
+            if (response || (err as ServiceFaultAnnotatedError)?.response) {
+                this.lastRequestSentTime = new Date();
+            }
 
             if (err) {
                 debugLog(

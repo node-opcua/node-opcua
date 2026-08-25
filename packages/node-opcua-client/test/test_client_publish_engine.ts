@@ -1,6 +1,7 @@
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type PublishRequest, PublishResponse, SubscriptionAcknowledgement } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
 
@@ -339,5 +340,56 @@ describe("Testing the client publish engine", function (this: Mocha.Suite) {
         stop();
 
         done();
+    });
+    // see https://github.com/node-opcua/node-opcua/issues/1569
+    // lastRequestSentTime is stamped on the answer, and drives
+    // ClientSubscriptionImpl.evaluateRemainingLifetime(); a publish that never got an answer
+    // must not refresh it, or the subscription looks healthy for the whole outage.
+    describe("lastRequestSentTime must only reflect genuine server answers", () => {
+        function makeEngine(publishImpl: (request: PublishRequest, callback: (...args: unknown[]) => void) => void) {
+            const fakeSession = {
+                publish: publishImpl,
+                isChannelValid: () => true
+            } as unknown as ClientSessionImpl;
+            const engine = new ClientSidePublishEngine(fakeSession);
+            engine.registerSubscription(makeSubscription(1, 10000, noop));
+            return engine;
+        }
+
+        it("should not move lastRequestSentTime when the publish times out", () => {
+            const engine = makeEngine((_request, callback) => callback(new Error("Transaction has timed out")));
+            const before = engine.lastRequestSentTime.getTime();
+
+            clock.tick(4500);
+
+            engine.lastRequestSentTime.getTime().should.eql(before, "a timed-out publish proves nothing about the server");
+            engine.unregisterSubscription(1);
+        });
+
+        it("should move lastRequestSentTime when the server answers", () => {
+            const engine = makeEngine((_request, callback) =>
+                callback(null, new PublishResponse({ subscriptionId: 1, availableSequenceNumbers: [] }))
+            );
+            const before = engine.lastRequestSentTime.getTime();
+
+            clock.tick(4500);
+
+            engine.lastRequestSentTime.getTime().should.be.greaterThan(before, "the server answered");
+            engine.unregisterSubscription(1);
+        });
+
+        it("should move lastRequestSentTime when the server answers with a ServiceFault", () => {
+            const engine = makeEngine((_request, callback) => {
+                const err = new Error(" serviceResult = BadTooManyPublishRequests") as Error & { response: unknown };
+                err.response = { responseHeader: { serviceResult: StatusCodes.BadTooManyPublishRequests } };
+                callback(err);
+            });
+            const before = engine.lastRequestSentTime.getTime();
+
+            clock.tick(4500);
+
+            engine.lastRequestSentTime.getTime().should.be.greaterThan(before, "a rejecting server is still a reachable server");
+            engine.unregisterSubscription(1);
+        });
     });
 });
