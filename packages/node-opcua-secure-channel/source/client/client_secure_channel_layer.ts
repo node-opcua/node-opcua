@@ -897,16 +897,27 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                     debugLog("request id = ", requestId, "message was ", requestData);
                 }
 
-                const err = new ServiceFault({
+                // the request may already be gone - its own timeout removes it - in which case
+                // there is nobody left to notify. The "error" handler below guards the same way.
+                if (!requestData) {
+                    warningLog("requestData not found for abandoned requestId = ", requestId);
+                    return;
+                }
+
+                // the server sent an Abort chunk: it gave up on this request, but it did answer
+                // and the connection can probably continue.
+                const serviceFault = new ServiceFault({
                     responseHeader: {
                         requestHandle: requestId,
                         serviceResult: StatusCodes.BadOperationAbandoned
                     }
                 });
 
-                const callback = requestData.callback;
                 delete this.#_requests[requestId];
-                callback?.(null, err);
+                // route it like any other ServiceFault, so callers get the usual
+                // (err carrying err.response, no response argument) shape rather than a fault
+                // sitting in the response slot, which reads as a plain successful transaction.
+                process_request_callback(requestData, null, serviceFault);
             })
             .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
                 // c8 ignore next
