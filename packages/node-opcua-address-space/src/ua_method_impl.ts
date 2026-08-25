@@ -23,7 +23,7 @@ import {
 import { assert } from "node-opcua-assert";
 import { AttributeIds, type DiagnosticInfo, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { Argument } from "node-opcua-service-call";
@@ -38,6 +38,7 @@ import { _handle_hierarchy_parent } from "./namespace_impl";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
 
 function default_check_valid_argument(arg: unknown): boolean {
@@ -259,8 +260,11 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
                     context,
                     (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
                         if (err) {
-                            debugLog(err.message);
-                            debugLog(err);
+                            // c8 ignore next
+                            if (doDebug) {
+                                debugLog(err.message);
+                                debugLog(err);
+                            }
                         }
                         callMethodResult = callMethodResult || {};
 

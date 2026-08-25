@@ -654,7 +654,8 @@ export class Subscription extends EventEmitter {
         this.timerId = null;
         this._start_timer({ firstTime: true });
 
-        debugLog(chalk.green(`creating subscription ${this.id}`));
+        // c8 ignore next
+        doDebug && debugLog(chalk.green(`creating subscription ${this.id}`));
 
         this.serverCapabilities = options.serverCapabilities;
         this.serverCapabilities.maxMonitoredItems =
@@ -805,7 +806,8 @@ export class Subscription extends EventEmitter {
      *
      */
     public terminate(): void {
-        debugLog("Subscription#terminate status", SubscriptionState[this.state]);
+        // c8 ignore next
+        doDebug && debugLog("Subscription#terminate status", SubscriptionState[this.state]);
 
         if (this.state === SubscriptionState.CLOSED) {
             // todo verify if asserting is required here
@@ -815,7 +817,8 @@ export class Subscription extends EventEmitter {
         // stop timer
         this._stop_timer();
 
-        debugLog("terminating Subscription  ", this.id, " with ", this.monitoredItemCount, " monitored items");
+        // c8 ignore next
+        doDebug && debugLog("terminating Subscription  ", this.id, " with ", this.monitoredItemCount, " monitored items");
 
         // dispose all monitoredItem
         const keys = Object.keys(this.monitoredItems);
@@ -1166,7 +1169,8 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemId : the id of the monitored item to get.
      */
     public removeMonitoredItem(monitoredItemId: number): StatusCode {
-        debugLog("Removing monitoredIem ", monitoredItemId);
+        // c8 ignore next
+        doDebug && debugLog("Removing monitoredIem ", monitoredItemId);
         if (!Object.hasOwn(this.monitoredItems, monitoredItemId.toString())) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
@@ -1245,7 +1249,8 @@ export class Subscription extends EventEmitter {
      * acknowledges a notification identified by its sequence number
      */
     public acknowledgeNotification(sequenceNumber: number): StatusCode {
-        debugLog("acknowledgeNotification ", sequenceNumber);
+        // c8 ignore next
+        doDebug && debugLog("acknowledgeNotification ", sequenceNumber);
         let foundIndex = -1;
         this._sent_notification_messages.forEach((e: NotificationMessage, index: number) => {
             if (e.sequenceNumber === sequenceNumber) {
@@ -1346,7 +1351,8 @@ export class Subscription extends EventEmitter {
         // If the Server transfers the Subscription to the new Session, the Server shall issue
         // a StatusChangeNotification notificationMessage with the status code
         // Good_SubscriptionTransferred to the old Session.
-        debugLog(chalk.red(" Subscription => Notifying Transfer                                  "));
+        // c8 ignore next
+        doDebug && debugLog(chalk.red(" Subscription => Notifying Transfer                                  "));
 
         const notificationData = new StatusChangeNotification({
             status: StatusCodes.GoodSubscriptionTransferred
@@ -1355,10 +1361,12 @@ export class Subscription extends EventEmitter {
         if (this.publishEngine?.pendingPublishRequestCount) {
             // the GoodSubscriptionTransferred can be processed immediately
             this._addNotificationMessage(notificationData);
-            debugLog(chalk.red("pendingPublishRequestCount"), this.publishEngine?.pendingPublishRequestCount);
+            // c8 ignore next
+            doDebug && debugLog(chalk.red("pendingPublishRequestCount"), this.publishEngine?.pendingPublishRequestCount);
             this._publish_pending_notifications();
         } else {
-            debugLog(chalk.red("Cannot  send GoodSubscriptionTransferred => lets create a TransferredSubscription "));
+            // c8 ignore next
+            doDebug && debugLog(chalk.red("Cannot  send GoodSubscriptionTransferred => lets create a TransferredSubscription "));
             // c8 ignore next
             if (!this.publishEngine) {
                 warningLog("notifyTransfer: publishEngine is not available");
@@ -1482,7 +1490,8 @@ export class Subscription extends EventEmitter {
         if (this.state !== SubscriptionState.CLOSED) {
             assert((notificationMessage.notificationData?.length || 0) > 0, "We are not expecting a keep-alive message here");
             this.state = SubscriptionState.NORMAL;
-            debugLog(`subscription ${this.id}${chalk.bgYellow(" set to NORMAL")}`);
+            // c8 ignore next
+            doDebug && debugLog(`subscription ${this.id}${chalk.bgYellow(" set to NORMAL")}`);
         }
     }
 
@@ -1491,7 +1500,8 @@ export class Subscription extends EventEmitter {
 
         if (!this.publishingEnabled) {
             // no publish to do, except keep alive
-            debugLog("    -> no publish to do, except keep alive");
+            // c8 ignore next
+            doDebug && debugLog("    -> no publish to do, except keep alive");
             this._process_keepAlive();
             return;
         }
@@ -1526,14 +1536,17 @@ export class Subscription extends EventEmitter {
         this.increaseKeepAliveCounter();
 
         if (this.keepAliveCounterHasExpired) {
-            debugLog(`     ->  _process_keepAlive => keepAliveCounterHasExpired`);
+            // c8 ignore next
+            doDebug && debugLog(`     ->  _process_keepAlive => keepAliveCounterHasExpired`);
             if (this._sendKeepAliveResponse()) {
                 this.resetLifeTimeAndKeepAliveCounters();
             } else {
-                debugLog(
-                    "     -> subscription.state === LATE , " +
-                        "because keepAlive Response cannot be send due to lack of PublishRequest"
-                );
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        "     -> subscription.state === LATE , " +
+                            "because keepAlive Response cannot be send due to lack of PublishRequest"
+                    );
                 if (this.messageSent || this.keepAliveCounterHasExpired) {
                     this.state = SubscriptionState.LATE;
                 }
@@ -1543,19 +1556,22 @@ export class Subscription extends EventEmitter {
 
     private _stop_timer() {
         if (this.timerId) {
-            debugLog(chalk.bgWhite.blue("Subscription#_stop_timer subscriptionId="), this.id);
+            // c8 ignore next
+            doDebug && debugLog(chalk.bgWhite.blue("Subscription#_stop_timer subscriptionId="), this.id);
             clearInterval(this.timerId);
             this.timerId = null;
         }
     }
 
     private _start_timer({ firstTime }: { firstTime: boolean }) {
-        debugLog(
-            chalk.bgWhite.blue("Subscription#_start_timer  subscriptionId="),
-            this.id,
-            " publishingInterval = ",
-            this.publishingInterval
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                chalk.bgWhite.blue("Subscription#_start_timer  subscriptionId="),
+                this.id,
+                " publishingInterval = ",
+                this.publishingInterval
+            );
 
         assert(this.timerId === null);
         // from the spec:

@@ -137,7 +137,8 @@ export async function executeUpdateCertificate(
     try {
         const context = resolveCertificateGroupContext(serverImpl, certificateGroupId);
         if (context.statusCode.isNotGood() || !context.certificateManager) {
-            debugLog(" cannot find group ", certificateGroupId);
+            // c8 ignore next
+            doDebug && debugLog(" cannot find group ", certificateGroupId);
             return { statusCode: StatusCodes.BadInvalidArgument, applyChangesRequired: false };
         }
 

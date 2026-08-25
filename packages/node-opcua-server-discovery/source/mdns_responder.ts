@@ -69,7 +69,8 @@ export class MDNSResponder {
 
             const existingIndex = findServiceIndex(service.name);
             if (existingIndex >= 0) {
-                debugLog("Ignoring existing server ", service.name);
+                // c8 ignore next
+                doDebug && debugLog("Ignoring existing server ", service.name);
                 return;
             }
 
@@ -98,15 +99,18 @@ export class MDNSResponder {
             );
             this.lastUpdateDate = new Date(Date.now());
 
-            debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
+            // c8 ignore next
+            doDebug && debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
         };
 
         const removeService = (service: Service) => {
             const serverName = service.name;
-            debugLog("a OPCUA server has been unregistered in mDNS", serverName);
+            // c8 ignore next
+            doDebug && debugLog("a OPCUA server has been unregistered in mDNS", serverName);
             const index = findServiceIndex(serverName);
             if (index === -1) {
-                debugLog("Cannot find server with name ", serverName, " in registeredServers");
+                // c8 ignore next
+                doDebug && debugLog("Cannot find server with name ", serverName, " in registeredServers");
                 return;
             }
             this.registeredServers.splice(index, 1); // remove element at index

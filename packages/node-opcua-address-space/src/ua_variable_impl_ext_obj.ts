@@ -272,7 +272,8 @@ function getOrCreateProperty(
     // c8 ignore next
     if (field.dataType.value === DataType.Variant) {
         // this means that any type of extensions being used here
-        debugLog("Warning : variant is not supported in ExtensionObject");
+        // c8 ignore next
+        doDebug && debugLog("Warning : variant is not supported in ExtensionObject");
     }
 
     if (selectedComponents.length === 1) {
@@ -282,7 +283,14 @@ function getOrCreateProperty(
         if (!options?.createMissingProp) {
             return null;
         }
-        debugLog("adding missing array variable", field.name, variableNode.browseName.toString(), variableNode.nodeId.toString());
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "adding missing array variable",
+                field.name,
+                variableNode.browseName.toString(),
+                variableNode.nodeId.toString()
+            );
         // todo: Handle array appropriately...
         assert(selectedComponents.length === 0);
         // create a variable (Note we may use ns=1;s=parentName/0:PropertyName)

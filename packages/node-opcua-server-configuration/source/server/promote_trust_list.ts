@@ -662,7 +662,8 @@ export async function promoteTrustList(trustList: UATrustList) {
                 MemFs.unlinkSync(filename);
             }
         } catch (err) {
-            debugLog("could not release trust list backing file", filename, (err as Error).message);
+            // c8 ignore next
+            doDebug && debugLog("could not release trust list backing file", filename, (err as Error).message);
         }
     });
 

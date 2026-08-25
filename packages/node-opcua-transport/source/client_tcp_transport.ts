@@ -138,7 +138,8 @@ export class ClientTCP_transport extends ClientTransportBase {
                      */
                     this.emit("connect");
                 } else {
-                    debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
+                    // c8 ignore next
+                    doDebug && debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
                 }
                 callback(err);
             });

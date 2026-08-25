@@ -1,13 +1,14 @@
 import type { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, type LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { type INodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { type BrowseResult, type DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export async function getDefinition(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<DataTypeDefinition | null> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.DataTypeDefinition });
@@ -180,7 +181,8 @@ export async function getTypeDefinition(session: IBasicSessionBrowseAsyncSimple,
         resultMask: 0xffff
     });
     if (!browseResult.references || browseResult.references.length === 0) {
-        debugLog("no subtype", nodeId.toString());
+        // c8 ignore next
+        doDebug && debugLog("no subtype", nodeId.toString());
         throw new Error("No subtype");
     }
     return browseResult.references[0];

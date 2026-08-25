@@ -26,7 +26,7 @@ import {
 } from "node-opcua-types";
 import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
-const _doDebug = checkDebugFlag("REGISTER_LDS");
+const doDebug = checkDebugFlag("REGISTER_LDS");
 const debugLog = make_debugLog("REGISTER_LDS");
 const warningLog = make_warningLog("REGISTER_LDS");
 
@@ -127,7 +127,8 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
 
     // c8 ignore next
     if (!server.serverInfo.applicationName.text) {
-        debugLog("warning: application name is missing");
+        // c8 ignore next
+        doDebug && debugLog("warning: application name is missing");
     }
     // The globally unique identifier for the Server instance. The serverUri matches
     // the applicationUri from the ApplicationDescription defined in 7.1.
@@ -203,27 +204,44 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
         client.performMessageTransaction(request, (err: Error | null, _response?: RegisterServer2Response) => {
             if (!err) {
                 // RegisterServerResponse
-                debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline", isOnline, ")");
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        "RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline",
+                        isOnline,
+                        ")"
+                    );
                 return resolve();
             }
-            debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has failed " + "(isOnline", isOnline, ")");
-            debugLog("RegisterServerManager#_registerServer" + " falling back to using sendRegisterServerRequest instead");
+            // c8 ignore next
+            if (doDebug) {
+                debugLog(
+                    "RegisterServerManager#_registerServer sendRegisterServer2Request has failed " + "(isOnline",
+                    isOnline,
+                    ")"
+                );
+                debugLog("RegisterServerManager#_registerServer" + " falling back to using sendRegisterServerRequest instead");
+            }
             // fall back to
             const request1 = constructRegisterServerRequest(server, isOnline);
             client.performMessageTransaction(request1, (err1: Error | null, _response1?: RegisterServerResponse) => {
                 if (!err1) {
+                    // c8 ignore next
+                    doDebug &&
+                        debugLog(
+                            "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has succeeded (isOnline",
+                            isOnline,
+                            ")"
+                        );
+                    return resolve();
+                }
+                // c8 ignore next
+                doDebug &&
                     debugLog(
-                        "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has succeeded (isOnline",
+                        "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has failed (isOnline",
                         isOnline,
                         ")"
                     );
-                    return resolve();
-                }
-                debugLog(
-                    "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has failed (isOnline",
-                    isOnline,
-                    ")"
-                );
                 reject(err1);
             });
         });
@@ -310,7 +328,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     public dispose(): void {
         this.server = null;
-        debugLog("RegisterServerManager#dispose", this.state.toString());
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#dispose", this.state.toString());
 
         if (this._registrationTimerId) {
             clearTimeout(this._registrationTimerId);
@@ -323,19 +342,22 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     #_emitEvent(eventName: string): void {
         setImmediate(() => {
-            debugLog("emiting event", eventName);
+            // c8 ignore next
+            doDebug && debugLog("emiting event", eventName);
             this.emit(eventName);
         });
     }
 
     #_setState(status: RegisterServerManagerStatus): void {
         const previousState = this.state || RegisterServerManagerStatus.INACTIVE;
-        debugLog(
-            "RegisterServerManager#setState : ",
-            RegisterServerManagerStatus[previousState],
-            " => ",
-            RegisterServerManagerStatus[status]
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "RegisterServerManager#setState : ",
+                RegisterServerManagerStatus[previousState],
+                " => ",
+                RegisterServerManagerStatus[status]
+            );
         this.state = status;
     }
 
@@ -344,7 +366,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      * It immediately returns while the actual work is performed in a background task.
      */
     public async start(): Promise<void> {
-        debugLog("RegisterServerManager#start");
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#start");
         if (this.state !== RegisterServerManagerStatus.INACTIVE) {
             throw new Error(`RegisterServer process already started: ${RegisterServerManagerStatus[this.state]}`);
         }
@@ -367,12 +390,14 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      */
     async #_runRegistrationProcess(): Promise<void> {
         while (this.getState() !== RegisterServerManagerStatus.WAITING && !this.#_isTerminating()) {
-            debugLog(
-                "RegisterServerManager#_runRegistrationProcess - state =",
-                RegisterServerManagerStatus[this.state],
-                "isTerminating =",
-                this.#_isTerminating()
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "RegisterServerManager#_runRegistrationProcess - state =",
+                    RegisterServerManagerStatus[this.state],
+                    "isTerminating =",
+                    this.#_isTerminating()
+                );
             try {
                 if (this.getState() === RegisterServerManagerStatus.INACTIVE) {
                     this.#_setState(RegisterServerManagerStatus.INITIALIZING);
@@ -380,7 +405,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 await this.#_establish_initial_connection();
 
                 if (this.getState() !== RegisterServerManagerStatus.INITIALIZING) {
-                    debugLog("RegisterServerManager#_runRegistrationProcess: aborted during initialization");
+                    // c8 ignore next
+                    doDebug && debugLog("RegisterServerManager#_runRegistrationProcess: aborted during initialization");
                     return;
                 }
 
@@ -391,7 +417,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 await this.#_registerOrUnregisterServer(true);
 
                 if (this.getState() !== RegisterServerManagerStatus.REGISTERING) {
-                    debugLog("RegisterServerManager#_runRegistrationProcess: aborted during registration");
+                    // c8 ignore next
+                    doDebug && debugLog("RegisterServerManager#_runRegistrationProcess: aborted during registration");
                     return;
                 }
 
@@ -401,7 +428,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this.#_trigger_next();
                 return;
             } catch (err) {
-                debugLog("RegisterServerManager#_runRegistrationProcess - operation failed!", (err as Error).message);
+                // c8 ignore next
+                doDebug && debugLog("RegisterServerManager#_runRegistrationProcess - operation failed!", (err as Error).message);
                 if (!this.#_isTerminating()) {
                     this.#_setState(RegisterServerManagerStatus.INACTIVE);
                     this.#_emitEvent("serverRegistrationFailure");
@@ -431,10 +459,12 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             return;
         }
         if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
-            debugLog("RegisterServerManager#_establish_initial_connection: aborting due to state change");
+            // c8 ignore next
+            doDebug && debugLog("RegisterServerManager#_establish_initial_connection: aborting due to state change");
             return;
         }
-        debugLog("RegisterServerManager#_establish_initial_connection");
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#_establish_initial_connection");
 
         assert(!this._registration_client);
         assert(typeof this.discoveryServerEndpointUrl === "string");
@@ -465,16 +495,18 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         registrationClient.on("backoff", (nbRetry: number, delay: number) => {
             if (this.state !== RegisterServerManagerStatus.INITIALIZING) return; // Ignore event if state has changed
             debugLog("RegisterServerManager - received backoff");
-            debugLog(
-                registrationClient.clientName,
-                chalk.bgWhite.cyan("contacting discovery server backoff "),
-                this.discoveryServerEndpointUrl,
-                " attempt #",
-                nbRetry,
-                " retrying in ",
-                delay / 1000.0,
-                " seconds"
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    registrationClient.clientName,
+                    chalk.bgWhite.cyan("contacting discovery server backoff "),
+                    this.discoveryServerEndpointUrl,
+                    " attempt #",
+                    nbRetry,
+                    " retrying in ",
+                    delay / 1000.0,
+                    " seconds"
+                );
             this.#_emitEvent("serverRegistrationPending");
         });
 
@@ -488,7 +520,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
             // Re-check state after the long-running connect operation
             if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
-                debugLog("RegisterServerManager#_establish_initial_connection: aborted after connection");
+                // c8 ignore next
+                doDebug && debugLog("RegisterServerManager#_establish_initial_connection: aborted after connection");
                 return;
             }
 
@@ -522,28 +555,34 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         assert(!this._registrationTimerId);
         assert(this.state === RegisterServerManagerStatus.WAITING);
 
-        debugLog(
-            "RegisterServerManager#_trigger_next " + ": installing timeout to perform registerServer renewal (timeout =",
-            this.timeout,
-            ")"
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "RegisterServerManager#_trigger_next " + ": installing timeout to perform registerServer renewal (timeout =",
+                this.timeout,
+                ")"
+            );
         if (this._registrationTimerId) clearTimeout(this._registrationTimerId);
         this._registrationTimerId = setTimeout(() => {
             if (!this._registrationTimerId) {
-                debugLog("RegisterServerManager => cancelling re registration");
+                // c8 ignore next
+                doDebug && debugLog("RegisterServerManager => cancelling re registration");
                 return;
             }
             this._registrationTimerId = null;
 
             if (this.#_isTerminating()) {
-                debugLog("RegisterServerManager#_trigger_next : cancelling re registration");
+                // c8 ignore next
+                doDebug && debugLog("RegisterServerManager#_trigger_next : cancelling re registration");
                 return;
             }
-            debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
+            // c8 ignore next
+            doDebug && debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
 
             const after_register = (err?: Error) => {
                 if (!this.#_isTerminating()) {
-                    debugLog("RegisterServerManager#_trigger_next : renewed ! err:", err?.message);
+                    // c8 ignore next
+                    doDebug && debugLog("RegisterServerManager#_trigger_next : renewed ! err:", err?.message);
                     this.#_setState(RegisterServerManagerStatus.WAITING);
                     this.#_emitEvent("serverRegistrationRenewed");
                     this.#_trigger_next();
@@ -561,9 +600,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     }
 
     public async stop(): Promise<void> {
-        debugLog("RegisterServerManager#stop");
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#stop");
         if (this.#_isTerminating()) {
-            debugLog("Already stopping  or stopped...");
+            // c8 ignore next
+            doDebug && debugLog("Already stopping  or stopped...");
             return;
         }
 
@@ -611,11 +652,13 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     async #_registerOrUnregisterServer(isOnline: boolean): Promise<void> {
         const expectedState = isOnline ? RegisterServerManagerStatus.REGISTERING : RegisterServerManagerStatus.UNREGISTERING;
         if (this.getState() !== expectedState) {
-            debugLog("RegisterServerManager#_registerServer: aborting due to state change");
+            // c8 ignore next
+            doDebug && debugLog("RegisterServerManager#_registerServer: aborting due to state change");
             return;
         }
 
-        debugLog("RegisterServerManager#_registerServer isOnline:", isOnline);
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#_registerServer isOnline:", isOnline);
 
         assert(this.selectedEndpoint, "must have a selected endpoint");
         assert(this.server?.serverType !== undefined, " must have a valid server Type");
@@ -654,7 +697,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             privateKeyFile: server.privateKeyFile
         }) as ClientBaseEx;
         client.on("backoff", (nbRetry, delay) => {
-            debugLog(client.clientCertificateManager, "backoff trying to connect to the LDS has failed", nbRetry, delay);
+            // c8 ignore next
+            doDebug && debugLog(client.clientCertificateManager, "backoff trying to connect to the LDS has failed", nbRetry, delay);
         });
 
         this._registration_client = client;
@@ -663,7 +707,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         if (!endpointUrl) {
             throw new Error("selectedEndpoint.endpointUrl is missing — cannot connect to LDS");
         }
-        debugLog("lds endpoint uri : ", endpointUrl);
+        // c8 ignore next
+        doDebug && debugLog("lds endpoint uri : ", endpointUrl);
 
         const state = isOnline ? "RegisterServer" : "UnRegisterServer";
         try {
@@ -682,7 +727,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                     }
                 }
             } else {
-                debugLog("RegisterServerManager#_registerServer: aborted ");
+                // c8 ignore next
+                doDebug && debugLog("RegisterServerManager#_registerServer: aborted ");
             }
         } catch (err) {
             if (this.getState() !== expectedState) {
@@ -707,11 +753,14 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      * @private
      */
     async #_cancel_pending_client_if_any(): Promise<void> {
-        debugLog("RegisterServerManager#_cancel_pending_client_if_any");
+        // c8 ignore next
+        doDebug && debugLog("RegisterServerManager#_cancel_pending_client_if_any");
         if (this._registration_client) {
             const client = this._registration_client;
             this._registration_client = null;
-            debugLog("RegisterServerManager#_cancel_pending_client_if_any " + "=> wee need to disconnect_registration_client");
+            // c8 ignore next
+            doDebug &&
+                debugLog("RegisterServerManager#_cancel_pending_client_if_any " + "=> wee need to disconnect_registration_client");
             try {
                 await client.disconnect();
             } catch (err) {
@@ -719,7 +768,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             }
             await this.#_cancel_pending_client_if_any(); // Recursive call to ensure all are handled
         } else {
-            debugLog("RegisterServerManager#_cancel_pending_client_if_any : done (nothing to do)");
+            // c8 ignore next
+            doDebug && debugLog("RegisterServerManager#_cancel_pending_client_if_any : done (nothing to do)");
         }
     }
 }

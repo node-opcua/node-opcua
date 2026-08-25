@@ -26,7 +26,7 @@ import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_im
 import type { ClientSessionImpl } from "./private/client_session_impl";
 
 const debugLog = make_debugLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export interface ClientMonitoredItemBaseEx extends ClientMonitoredItemBase {
     internalSetMonitoringMode(monitoringMode: MonitoringMode): void;
@@ -85,7 +85,9 @@ export namespace ClientMonitoredItemToolbox {
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
             /* c8 ignore next */
             if (err) {
-                debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ", err.message));
+                // c8 ignore next
+                doDebug &&
+                    debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ", err.message));
             } else {
                 /* c8 ignore next */
                 if (!response) {

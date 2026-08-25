@@ -20,7 +20,7 @@ import type { CertificateManager } from "node-opcua-certificate-manager";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
 import { type Certificate, readCertificateChainAsync } from "node-opcua-crypto";
 import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
@@ -37,6 +37,7 @@ import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_p
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
 
 const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 
@@ -273,14 +274,16 @@ function bindCertificateGroup(certificateGroup: UACertificateGroup, certificateM
         const certificateFile = getCertificateFilename(certificateManager);
         const changeDetector = installCertificateFileWatcher(certificateGroup, certificateFile);
         changeDetector.on("certificateChange", () => {
-            debugLog("detecting certificate change", certificateFile);
+            // c8 ignore next
+            doDebug && debugLog("detecting certificate change", certificateFile);
             updateCertificateAlarm();
         });
     }
 
     async function updateCertificateAlarm() {
         try {
-            debugLog("updateCertificateAlarm", certificateGroup.browseName.toString());
+            // c8 ignore next
+            doDebug && debugLog("updateCertificateAlarm", certificateGroup.browseName.toString());
             const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
             if (certificateExpired && certificateManager) {
                 const certificateExpiredEx = certificateExpired as unknown as UACertificateExpirationAlarmEx;
@@ -393,7 +396,8 @@ export async function installPushCertificateManagement(
 
     const serverConfigurationPriv = serverConfiguration as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
-        debugLog("PushCertificateManagement has already been installed");
+        // c8 ignore next
+        doDebug && debugLog("PushCertificateManagement has already been installed");
         return;
     }
 

@@ -434,14 +434,16 @@ export class MessageBuilder extends MessageBuilderBase {
             } else {
                 warningLog(`cannot decode message  for valid object of type ${id.toString()} ${objMessage.constructor.name}`);
                 this.emit("invalid_message", objMessage);
-                debugLog(
-                    this.id,
-                    "message size =",
-                    `${this.totalMessageSize}`.padEnd(8),
-                    " body size   =",
-                    `${this.totalBodySize}`.padEnd(8),
-                    objMessage.constructor.name
-                );
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        this.id,
+                        "message size =",
+                        `${this.totalMessageSize}`.padEnd(8),
+                        " body size   =",
+                        `${this.totalBodySize}`.padEnd(8),
+                        objMessage.constructor.name
+                    );
                 warningLog(objMessage.toString());
 
                 // we don't report an error here, we just ignore the message
@@ -464,7 +466,8 @@ export class MessageBuilder extends MessageBuilderBase {
                 const errMessage = `Invalid Sequence Number found ( expected ${expectedSequenceNumber}, got ${sequenceNumber})`;
 
                 /* c8 ignore next */
-                debugLog(chalk.red.bold(errMessage));
+                // c8 ignore next
+                doDebug && debugLog(chalk.red.bold(errMessage));
                 /**
                  * notify the observers that a message with an invalid sequence number has been received.
                  * @event invalid_sequence_number

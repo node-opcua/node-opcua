@@ -8,7 +8,7 @@ import {
     NodeClass,
     type QualifiedNameOptions
 } from "node-opcua-data-model";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { VariantArrayType, type VariantOptions } from "node-opcua-variant";
@@ -23,6 +23,7 @@ import { makeNodeIdParser } from "./nodeid_parser";
 import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser";
 
 const debugLog = make_debugLog(__dirname);
+const doDebug = checkDebugFlag(__dirname);
 
 export type Task = (addressSpace2: IAddressSpace) => Promise<void>;
 
@@ -91,7 +92,8 @@ function _installExtensionObjectListInitializationPostTask(
     const task = async (addressSpace2: IAddressSpace) => {
         const node = nodeId ? addressSpace2.findNode(nodeId) : null;
         if (!node) {
-            debugLog(`Cannot find node with nodeId ${nodeId}. may be the node was marked as deprecated`);
+            // c8 ignore next
+            doDebug && debugLog(`Cannot find node with nodeId ${nodeId}. may be the node was marked as deprecated`);
         } else if (node.nodeClass === NodeClass.Variable) {
             const v = node as UAVariable;
             assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");

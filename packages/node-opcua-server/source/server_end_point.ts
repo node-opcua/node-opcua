@@ -786,12 +786,14 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._listen_callback = callback;
 
         this._server.on("error", (err: Error) => {
-            debugLog(`${chalk.red.bold(" error")} port = ${this.port}`, err);
+            // c8 ignore next
+            doDebug && debugLog(`${chalk.red.bold(" error")} port = ${this.port}`, err);
             this._started = false;
             this._end_listen(err);
         });
         this._server.on("listening", () => {
-            debugLog("server is listening");
+            // c8 ignore next
+            doDebug && debugLog("server is listening");
         });
 
         const listenOptions: net.ListenOptions = {
@@ -843,7 +845,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // if the server was not open when it was closed.
         this._server.close(() => {
             this._started = false;
-            debugLog(`Connection has been closed !${this.port}`);
+            // c8 ignore next
+            doDebug && debugLog(`Connection has been closed !${this.port}`);
         });
         this._started = false;
         callback();
@@ -862,7 +865,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     /**
      */
     public shutdown(callback: (err?: Error) => void): void {
-        debugLog("OPCUAServerEndPoint#shutdown ");
+        // c8 ignore next
+        doDebug && debugLog("OPCUAServerEndPoint#shutdown ");
 
         if (this._started) {
             // make sure we don't accept new connection any more ...
@@ -952,9 +956,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     private _dump_statistics() {
         this._server?.getConnections((_err: Error | null, count: number) => {
-            debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
+            // c8 ignore next
+            doDebug && debugLog(chalk.cyan("CONCURRENT CONNECTION = "), count);
         });
-        debugLog(chalk.cyan("MAX CONNECTIONS = "), this._server?.maxConnections);
+        // c8 ignore next
+        doDebug && debugLog(chalk.cyan("MAX CONNECTIONS = "), this._server?.maxConnections);
     }
 
     private _setup_server() {
@@ -974,11 +980,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 }
             })
             .on("close", () => {
-                debugLog("server closed : all connections have ended");
+                // c8 ignore next
+                doDebug && debugLog("server closed : all connections have ended");
             })
             .on("error", (err: Error) => {
                 // this could be because the port is already in use
-                debugLog(chalk.red.bold("server error: "), err.message);
+                // c8 ignore next
+                doDebug && debugLog(chalk.red.bold("server error: "), err.message);
             });
     }
 
@@ -986,14 +994,17 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // a client is attempting a connection on the socket
         socket.setNoDelay(true);
 
-        debugLog("OPCUAServerEndPoint#_on_client_connection", this._started);
+        // c8 ignore next
+        doDebug && debugLog("OPCUAServerEndPoint#_on_client_connection", this._started);
         if (!this._started) {
-            debugLog(
-                chalk.bgWhite.cyan(
-                    "OPCUAServerEndPoint#_on_client_connection " +
-                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
-                )
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    chalk.bgWhite.cyan(
+                        "OPCUAServerEndPoint#_on_client_connection " +
+                            "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                    )
+                );
             socket.end();
             return;
         }
@@ -1026,7 +1037,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 return;
             }
 
-            debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
+            // c8 ignore next
+            doDebug && debugLog("OPCUAServerEndPoint._on_client_connection successful => New Channel");
 
             const channel = new ServerSecureChannelLayer({
                 defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
@@ -1036,7 +1048,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 adjustTransportLimits: this.transportSettings?.adjustTransportLimits
             });
 
-            debugLog("channel Timeout = >", channel.timeout);
+            // c8 ignore next
+            doDebug && debugLog("channel Timeout = >", channel.timeout);
 
             socket.resume();
 
@@ -1044,7 +1057,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
             channel.init(socket, (err?: Error) => {
                 this._un_pre_registerChannel(channel);
-                debugLog(chalk.yellow.bold("Channel#init done"), err);
+                // c8 ignore next
+                doDebug && debugLog(chalk.yellow.bold("Channel#init done"), err);
                 if (err) {
                     const reason = `openSecureChannel has Failed ${err.message}`;
                     const socketData = extractSocketData(socket, reason);
@@ -1054,7 +1068,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                     socket.end();
                     socket.destroy();
                 } else {
-                    debugLog("server receiving a client connection");
+                    // c8 ignore next
+                    doDebug && debugLog("server receiving a client connection");
                     this._registerChannel(channel);
                 }
             });
@@ -1149,7 +1164,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 return;
             }
 
-            debugLog("OPCUAServerEndPoint#createReverseConnection successful => New Channel");
+            // c8 ignore next
+            doDebug && debugLog("OPCUAServerEndPoint#createReverseConnection successful => New Channel");
 
             const channel = new ServerSecureChannelLayer({
                 defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
@@ -1162,7 +1178,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
             channel.initReverse(socket, { serverUri: options.serverUri, endpointUrl: options.endpointUrl }, (err?: Error) => {
                 this._un_pre_registerChannel(channel);
-                debugLog(chalk.yellow.bold("reverse Channel#initReverse done"), err);
+                // c8 ignore next
+                doDebug && debugLog(chalk.yellow.bold("reverse Channel#initReverse done"), err);
                 if (err) {
                     if (settled) return;
                     settled = true;
@@ -1174,7 +1191,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                     callback(err);
                 } else {
                     settled = true;
-                    debugLog("server established a reverse connection");
+                    // c8 ignore next
+                    doDebug && debugLog("server established a reverse connection");
                     this._registerChannel(channel);
                     callback(null, channel);
                 }
@@ -1204,7 +1222,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._channels[channel.hashKey] = channel;
         const onAbort = () => {
-            debugLog("Channel received an abort event during the preregistration phase");
+            // c8 ignore next
+            doDebug && debugLog("Channel received an abort event during the preregistration phase");
             this._un_pre_registerChannel(channel);
             channel.dispose();
         };
@@ -1214,7 +1233,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     private _un_pre_registerChannel(channel: ServerSecureChannelLayer) {
         if (!this._channels[channel.hashKey]) {
-            debugLog("Already un preregistered ?", channel.hashKey);
+            // c8 ignore next
+            doDebug && debugLog("Already un preregistered ?", channel.hashKey);
             return;
         }
         delete this._channels[channel.hashKey];
@@ -1230,7 +1250,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     private _registerChannel(channel: ServerSecureChannelLayer) {
         if (this._started) {
-            debugLog(chalk.red("_registerChannel = "), "channel.hashKey = ", channel.hashKey);
+            // c8 ignore next
+            doDebug && debugLog(chalk.red("_registerChannel = "), "channel.hashKey = ", channel.hashKey);
 
             assert(!this._channels[channel.hashKey]);
             this._channels[channel.hashKey] = channel;
@@ -1256,8 +1277,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 this._unregisterChannel(channel);
             });
         } else {
-            debugLog("OPCUAServerEndPoint#_registerChannel called when end point is shutdown !");
-            debugLog("  -> channel will be forcefully terminated");
+            // c8 ignore next
+            if (doDebug) {
+                debugLog("OPCUAServerEndPoint#_registerChannel called when end point is shutdown !");
+                debugLog("  -> channel will be forcefully terminated");
+            }
             channel.close(() => {
                 channel.dispose();
             });
@@ -1267,7 +1291,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     /**
      */
     private _unregisterChannel(channel: ServerSecureChannelLayer): void {
-        debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
+        // c8 ignore next
+        doDebug && debugLog("_un-registerChannel channel.hashKey", channel.hashKey);
         if (!Object.hasOwn(this._channels, channel.hashKey)) {
             return;
         }

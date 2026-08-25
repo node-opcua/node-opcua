@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { ITypedEventEmitter, UAObject, UAObjectEvents } from "node-opcua-address-space-base";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 
 export interface CertificateChangeEvents extends UAObjectEvents {
     certificateChange: () => void;
@@ -19,7 +20,8 @@ export function installCertificateFileWatcher(
         (_eventType: "rename" | "change", filename) => {
             /** */
             if (filename === fileToWatch) {
-                debugLog("filename changed = ", filename, fileToWatch);
+                // c8 ignore next
+                doDebug && debugLog("filename changed = ", filename, fileToWatch);
                 node.emit("certificateChange");
             }
         }

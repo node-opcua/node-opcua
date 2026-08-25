@@ -96,7 +96,8 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            debugLog("Cannot open file : ");
+            // c8 ignore next
+            doDebug && debugLog("Cannot open file : ");
             throw new Error(`cannot open file statusCode = ${result.statusCode.toString()} mode = ${OpenFileMode[mode]}`);
         }
 
@@ -117,7 +118,8 @@ export class ClientFile implements IClientFile {
             objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
-            debugLog("Cannot close file : ");
+            // c8 ignore next
+            doDebug && debugLog("Cannot close file : ");
             throw new Error(`cannot close file statusCode = ${result.statusCode.toString()}`);
         }
 
@@ -237,7 +239,8 @@ export class ClientFile implements IClientFile {
 
     protected async extractMethodsIds(): Promise<void> {
         if (ClientFile.useGlobalMethod) {
-            debugLog("Using GlobalMethodId");
+            // c8 ignore next
+            doDebug && debugLog("Using GlobalMethodId");
             this.openMethodNodeId = resolveNodeId(MethodIds.FileType_Open);
             this.closeMethodNodeId = resolveNodeId(MethodIds.FileType_Close);
             this.setPositionNodeId = resolveNodeId(MethodIds.FileType_SetPosition);

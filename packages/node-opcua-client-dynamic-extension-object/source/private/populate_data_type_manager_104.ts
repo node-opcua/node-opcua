@@ -61,7 +61,8 @@ export async function readDataTypeDefinitionAndBuildType(
         ]);
         if (isAbstractDataValue.statusCode === StatusCodes.BadNodeIdUnknown) {
             // may be model is incomplete and dataTypeNodeId is missing
-            debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
+            // c8 ignore next
+            doDebug && debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
             return dependentNamespaces;
         }
 
@@ -228,7 +229,8 @@ async function applyOnReferenceRecursively(
     const hasBoosted = hasBoostedSession(session as unknown as IBasicSessionAsync2);
     const useHeavyParallelization = hasBoosted;
 
-    debugLog("applyOnReferenceRecursively = useHeavyParallelization", useHeavyParallelization);
+    // c8 ignore next
+    doDebug && debugLog("applyOnReferenceRecursively = useHeavyParallelization", useHeavyParallelization);
 
     const oneLevel = async (nodeId: NodeIdLike, level: number) => {
         doDebug && debugLog("applyOnReferenceRecursively = level", level, "nodeId", nodeId.toString());

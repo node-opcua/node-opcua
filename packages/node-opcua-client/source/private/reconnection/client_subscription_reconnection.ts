@@ -19,7 +19,7 @@ import { __create_subscription, type ClientSubscriptionImpl, TERMINATED_SUBSCRIP
 import { _shouldNotContinue } from "./reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
-const _doDebug = checkDebugFlag("RECONNECTION");
+const doDebug = checkDebugFlag("RECONNECTION");
 const warningLog = make_warningLog("RECONNECTION");
 
 async function createMonitoredItemsAndRespectOperationalLimits(
@@ -43,11 +43,13 @@ async function adjustMonitoredItemNodeIds(_subscription: ClientSubscription, _ol
 
  */
 export async function recreateSubscriptionAndMonitoredItem(_subscription: ClientSubscription): Promise<void> {
-    debugLog("recreateSubscriptionAndMonitoredItem", _subscription.subscriptionId.toString());
+    // c8 ignore next
+    doDebug && debugLog("recreateSubscriptionAndMonitoredItem", _subscription.subscriptionId.toString());
 
     const subscription = _subscription as ClientSubscriptionImpl;
     if (subscription.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
-        debugLog("Subscription is not in a valid state");
+        // c8 ignore next
+        doDebug && debugLog("Subscription is not in a valid state");
         return;
     }
 
@@ -65,7 +67,8 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
 
     const _test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
-    debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
+    // c8 ignore next
+    doDebug && debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
     // re-create monitored items
     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
@@ -92,7 +95,8 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
         throw new Error("no session");
     }
 
-    debugLog("Recreating ", itemsToCreate.length, " monitored items");
+    // c8 ignore next
+    doDebug && debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
     const response = await createMonitoredItemsAndRespectOperationalLimits(session, createMonitorItemsRequest);
     const monitoredItemResults = response.results || [];

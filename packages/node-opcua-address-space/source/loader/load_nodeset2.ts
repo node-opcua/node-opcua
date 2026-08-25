@@ -220,7 +220,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     let performedCalled = false;
 
     function _reset_namespace_translation() {
-        debugLog("_reset_namespace_translation");
+        // c8 ignore next
+        doDebug && debugLog("_reset_namespace_translation");
         namespaceUriTranslationMap.clear();
         foundNamespaceMap.clear();
         namespaceCounter = 0;
@@ -710,11 +711,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         node: { browseName: QualifiedName; nodeClass: NodeClass }
     ) => {
         if (isDraft && !options.loadDraftNodes) {
-            debugLog("Ignoring Draft            =", NodeClass[node.nodeClass], node.browseName.toString());
+            // c8 ignore next
+            doDebug && debugLog("Ignoring Draft            =", NodeClass[node.nodeClass], node.browseName.toString());
             return true;
         }
         if (isDeprecated && !options.loadDeprecatedNodes) {
-            debugLog("Ignoring Deprecate        =", NodeClass[node.nodeClass], node.browseName.toString());
+            // c8 ignore next
+            doDebug && debugLog("Ignoring Deprecate        =", NodeClass[node.nodeClass], node.browseName.toString());
             return true;
         }
         return false;
@@ -813,7 +816,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     const cv = capturedVariable;
                     // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                     if (false && doDebug) {
-                        debugLog("1 setting value to ", cv.nodeId.toString(), new Variant(capturedValue).toString());
+                        // c8 ignore next
+                        doDebug && debugLog("1 setting value to ", cv.nodeId.toString(), new Variant(capturedValue).toString());
                     }
                     cv.setValueFromSource(capturedValue as VariantOptions);
                     capturedValue = undefined;
@@ -837,7 +841,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     if (value) {
                         // biome-ignore lint/correctness/noConstantCondition: deliberate debug on/off toggle, not dead code
                         if (false && doDebug) {
-                            debugLog("2 setting value to ", cv.nodeId.toString(), value);
+                            // c8 ignore next
+                            doDebug && debugLog("2 setting value to ", cv.nodeId.toString(), value);
                         }
                         // a Matrix variable declared with fixed ArrayDimensions but no <Value> is built with
                         // an empty value (value=[]) yet non-zero declared dimensions. This is an *uninitialized*

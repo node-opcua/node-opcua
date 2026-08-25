@@ -219,7 +219,9 @@ export class DataTypeFactory {
                 return Constructor2;
             }
         }
-        debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), binaryEncodingNodeId.toString());
+        // c8 ignore next
+        doDebug &&
+            debugLog(chalk.red("#getConstructor : cannot find constructor for expandedId "), binaryEncodingNodeId.toString());
         return null;
     }
 
@@ -250,7 +252,8 @@ export class DataTypeFactory {
         const Constructor = this.getConstructor(binaryEncodingNodeId);
 
         if (!Constructor) {
-            debugLog(`Cannot find constructor for ${binaryEncodingNodeId.toString()}`);
+            // c8 ignore next
+            doDebug && debugLog(`Cannot find constructor for ${binaryEncodingNodeId.toString()}`);
             throw new Error(`Cannot find constructor for ${binaryEncodingNodeId.toString()}`);
         }
         return new Constructor();
@@ -303,7 +306,8 @@ export class DataTypeFactory {
             warningLog(`registerFactory  : ${typeName} already registered. dataTypeNodeId=`, dataTypeNodeId.toString());
             return;
         }
-        debugLog("registering typeName ", typeName, dataTypeNodeId.toString(), "isAbstract ", schema.isAbstract);
+        // c8 ignore next
+        doDebug && debugLog("registering typeName ", typeName, dataTypeNodeId.toString(), "isAbstract ", schema.isAbstract);
         const structureInfo = { constructor, schema };
         this._structureInfoByName.set(typeName, structureInfo);
         if (dataTypeNodeId.value !== 0) {

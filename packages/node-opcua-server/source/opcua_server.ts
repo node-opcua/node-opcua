@@ -46,7 +46,7 @@ import {
     RESPONSE_DIAGNOSTICS_MASK_ALL
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, isIPAddress } from "node-opcua-hostname";
 import type { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -179,6 +179,7 @@ function isSubscriptionIdInvalid(subscriptionId: number): boolean {
 }
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
 
@@ -247,7 +248,8 @@ function channel_has_session(channel: ServerSecureChannelLayer, session: ServerS
 }
 
 function moveSessionToChannel(session: ServerSession, channel: ServerSecureChannelLayer) {
-    debugLog("moveSessionToChannel sessionId", session.nodeId, " channelId=", channel.channelId);
+    // c8 ignore next
+    doDebug && debugLog("moveSessionToChannel sessionId", session.nodeId, " channelId=", channel.channelId);
     if (session.publishEngine) {
         session.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
     }
@@ -574,7 +576,8 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * connection process is raised
          * @event serverRegistrationPending
          */
-        debugLog("serverRegistrationPending");
+        // c8 ignore next
+        doDebug && debugLog("serverRegistrationPending");
         self.emit("serverRegistrationPending");
     });
     self.registerServerManager.on("serverRegistered", () => {
@@ -582,7 +585,8 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * emitted when the server is successfully registered to the LDS
          * @event serverRegistered
          */
-        debugLog("serverRegistered");
+        // c8 ignore next
+        doDebug && debugLog("serverRegistered");
         self.emit("serverRegistered");
     });
     self.registerServerManager.on("serverRegistrationRenewed", () => {
@@ -590,12 +594,14 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * emitted when the server has successfully renewed its registration to the LDS
          * @event serverRegistrationRenewed
          */
-        debugLog("serverRegistrationRenewed");
+        // c8 ignore next
+        doDebug && debugLog("serverRegistrationRenewed");
         self.emit("serverRegistrationRenewed");
     });
 
     self.registerServerManager.on("serverUnregistered", () => {
-        debugLog("serverUnregistered");
+        // c8 ignore next
+        doDebug && debugLog("serverUnregistered");
         /**
          * emitted when the server is successfully unregistered to the LDS
          * ( for instance during shutdown)
@@ -638,7 +644,8 @@ function validate_security_endpoint(
     errCode: StatusCode;
     endpoint?: EndpointDescription;
 } {
-    debugLog("validate_security_endpoint = ", request.endpointUrl);
+    // c8 ignore next
+    doDebug && debugLog("validate_security_endpoint = ", request.endpointUrl);
     let endpoints = server.findMatchingEndpoints(request.endpointUrl);
     // endpointUrl String The network address that the Client used to access the Session Endpoint.
     //             The HostName portion of the URL should be one of the HostNames for the application that are
@@ -688,7 +695,8 @@ function validate_security_endpoint(
         return { errCode: StatusCodes.BadSecurityPolicyRejected };
     }
     if (endpoints_matching_security_policy.length !== 1) {
-        debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
+        // c8 ignore next
+        doDebug && debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
     }
     return {
         errCode: StatusCodes.Good,
@@ -1655,7 +1663,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         const timeout = args.length === 1 ? OPCUAServer.defaultShutdownTimeout : (args[0] as number);
         const callback = (args.length === 1 ? args[0] : args[1]) as (err?: Error) => void;
         assert(typeof callback === "function");
-        debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
+        // c8 ignore next
+        doDebug && debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
         /* c8 ignore next */
         if (!this.engine) {
@@ -1680,7 +1689,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         const shutdownTime = new Date(Date.now() + timeout);
         this.engine.setShutdownTime(shutdownTime);
 
-        debugLog("OPCUAServer is now un-registering itself from  the discovery server ", this.buildInfo);
+        // c8 ignore next
+        doDebug && debugLog("OPCUAServer is now un-registering itself from  the discovery server ", this.buildInfo);
         if (!this.registerServerManager) {
             callback(new Error("invalid register server manager"));
             return;
@@ -1688,18 +1698,22 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         this.registerServerManager
             .stop()
             .then(() => {
-                debugLog("OPCUAServer unregistered from discovery server successfully");
+                // c8 ignore next
+                doDebug && debugLog("OPCUAServer unregistered from discovery server successfully");
             })
             .catch((err) => {
-                debugLog("OPCUAServer unregistered from discovery server with err: ", err.message);
+                // c8 ignore next
+                doDebug && debugLog("OPCUAServer unregistered from discovery server with err: ", err.message);
             })
             .finally(() => {
                 setTimeout(async () => {
                     await this.engine.shutdown();
 
-                    debugLog("OPCUAServer#shutdown: started");
+                    // c8 ignore next
+                    doDebug && debugLog("OPCUAServer#shutdown: started");
                     OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error | null) => {
-                        debugLog("OPCUAServer#shutdown: completed");
+                        // c8 ignore next
+                        doDebug && debugLog("OPCUAServer#shutdown: completed");
 
                         this.dispose();
                         callback(err1 || undefined);
@@ -1988,7 +2002,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     StatusCodes.BadSecurityChecksFailed.equals(certificateStatus) ||
                     !StatusCodes.Good.equals(certificateStatus))
             ) {
-                debugLog("isValidX509IdentityToken => certificateStatus = ", certificateStatus?.toString());
+                // c8 ignore next
+                doDebug && debugLog("isValidX509IdentityToken => certificateStatus = ", certificateStatus?.toString());
 
                 return callback(null, StatusCodes.BadIdentityTokenRejected);
             }
@@ -2179,10 +2194,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             // see also #198
             // let's the server assign a sessionName for this lazy client.
 
-            debugLog(
-                "assigning OPCUAServer.fallbackSessionName because client's sessionName is null ",
-                OPCUAServer.fallbackSessionName
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "assigning OPCUAServer.fallbackSessionName because client's sessionName is null ",
+                    OPCUAServer.fallbackSessionName
+                );
 
             request.sessionName = OPCUAServer.fallbackSessionName;
         }
@@ -2448,7 +2465,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         if (!session) {
             // this may happen when the server has been restarted and a client tries to reconnect, thinking
             // that the previous session may still be active
-            debugLog(chalk.yellow.bold(" Bad Session in  _on_ActivateSessionRequest"), authenticationToken.toString());
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow.bold(" Bad Session in  _on_ActivateSessionRequest"), authenticationToken.toString());
 
             rejectConnection(this, StatusCodes.BadSessionIdInvalid);
             return;
@@ -2706,7 +2724,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             const response = new ServiceFault({
                 responseHeader: { serviceResult: sessionStatusCode }
             });
-            debugLog(chalk.red.bold(errMessage), chalk.yellow(sessionStatusCode.toString()), response.constructor.name);
+            // c8 ignore next
+            doDebug && debugLog(chalk.red.bold(errMessage), chalk.yellow(sessionStatusCode.toString()), response.constructor.name);
             return sendResponse(response);
         }
 

@@ -54,7 +54,8 @@ const theWatchDog = new WatchDog();
 const registeredNodeNameSpace = 9999;
 
 function on_channel_abort(this: ServerSession) {
-    debugLog("ON CHANNEL ABORT ON  SESSION!!!");
+    // c8 ignore next
+    doDebug && debugLog("ON CHANNEL ABORT ON  SESSION!!!");
     /**
      * @event channel_aborted
      */
@@ -234,7 +235,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public dispose(): void {
-        debugLog("ServerSession#dispose()");
+        // c8 ignore next
+        doDebug && debugLog("ServerSession#dispose()");
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
@@ -469,7 +471,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      *
      */
     public close(deleteSubscriptions: boolean, reason: string): void {
-        debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
+        // c8 ignore next
+        doDebug && debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
             this.publishEngine.onSessionClose();
         }
@@ -629,7 +632,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-        debugLog("ServerSession#_exposeSubscriptionDiagnostics");
+        // c8 ignore next
+        doDebug && debugLog("ServerSession#_exposeSubscriptionDiagnostics");
         assert(subscription.$session === this);
         const subscriptionDiagnosticsArray = this._getSubscriptionDiagnosticsArray();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
@@ -649,14 +653,16 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             // subscription.id,"on session", session.nodeId.toString());
             removeElement(subscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
         }
-        debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
+        // c8 ignore next
+        doDebug && debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
     }
     /**
      * used as a callback for the Watchdog
      * @private
      */
     public watchdogReset(): void {
-        debugLog("Session#watchdogReset: the server session has expired and must be removed from the server");
+        // c8 ignore next
+        doDebug && debugLog("Session#watchdogReset: the server session has expired and must be removed from the server");
         // the server session has expired and must be removed from the server
         this.emit("timeout");
     }
@@ -669,18 +675,21 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         this.sessionObject = null;
         if (!this.addressSpace) {
-            debugLog("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
+            // c8 ignore next
+            doDebug && debugLog("ServerSession#_createSessionObjectInAddressSpace : no addressSpace");
             return; // no addressSpace
         }
         const root = this.addressSpace.rootFolder;
         assert(root, "expecting a root object");
 
         if (!root.objects) {
-            debugLog("ServerSession#_createSessionObjectInAddressSpace : no object folder");
+            // c8 ignore next
+            doDebug && debugLog("ServerSession#_createSessionObjectInAddressSpace : no object folder");
             return false;
         }
         if (!root.objects.server) {
-            debugLog("ServerSession#_createSessionObjectInAddressSpace : no server object");
+            // c8 ignore next
+            doDebug && debugLog("ServerSession#_createSessionObjectInAddressSpace : no server object");
             return false;
         }
 
@@ -688,7 +697,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const serverDiagnosticsNode = root.objects.server.serverDiagnostics;
 
         if (!serverDiagnosticsNode?.sessionsDiagnosticsSummary) {
-            debugLog("ServerSession#_createSessionObjectInAddressSpace :" + " no serverDiagnostics.sessionsDiagnosticsSummary");
+            // c8 ignore next
+            doDebug &&
+                debugLog("ServerSession#_createSessionObjectInAddressSpace :" + " no serverDiagnostics.sessionsDiagnosticsSummary");
             return false;
         }
 

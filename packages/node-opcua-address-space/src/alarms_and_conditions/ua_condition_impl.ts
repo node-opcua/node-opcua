@@ -547,7 +547,8 @@ export class UAConditionImplBase<
         // for the time being , only current branch
         const currentBranch = this.currentBranch();
         if (currentBranch.getRetain()) {
-            debugLog(` resending condition event for ${this.browseName.toString()}`);
+            // c8 ignore next
+            doDebug && debugLog(` resending condition event for ${this.browseName.toString()}`);
             this.raiseConditionEvent(currentBranch, false);
             return 1;
         }
@@ -848,7 +849,8 @@ function UACondition_instantiate(
             !options.conditionSource ||
             (options.conditionSource.nodeClass !== NodeClass.Object && options.conditionSource.nodeClass !== NodeClass.Variable)
         ) {
-            debugLog(options.conditionSource);
+            // c8 ignore next
+            doDebug && debugLog(options.conditionSource);
             throw new Error("Expecting condition source to be NodeClass.Object or Variable");
         }
 
@@ -1006,7 +1008,8 @@ function _disable_method(inputArguments: VariantLike[], context: ISessionContext
 
     // c8 ignore next
     if (!(conditionNode instanceof UAConditionImpl)) {
-        debugLog("conditionNode is not a UACondition ", conditionNode?.toString());
+        // c8 ignore next
+        doDebug && debugLog("conditionNode is not a UACondition ", conditionNode?.toString());
         return callback(null, {
             statusCode: StatusCodes.BadNodeIdInvalid
         });

@@ -745,7 +745,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
         const old_client = internalSession._client;
 
-        debugLog("OPCUAClientImpl#reactivateSession");
+        // c8 ignore next
+        doDebug && debugLog("OPCUAClientImpl#reactivateSession");
 
         this._activateSession(
             internalSession,
@@ -839,7 +840,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* c8 ignore next */
             if (err) {
-                debugLog("__createSession_step3 has failed", err.message);
+                // c8 ignore next
+                doDebug && debugLog("__createSession_step3 has failed", err.message);
                 return callback(err);
                 //                 // we could have an invalid state here or a connection error
                 //                 errorLog("error: ", err.message, " retrying in ... 5 secondes");
@@ -882,7 +884,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             session.serverCertificate = response.serverCertificate;
             session.serverSignature = response.serverSignature;
 
-            debugLog("revised session timeout = ", session.timeout, response.revisedSessionTimeout);
+            // c8 ignore next
+            doDebug && debugLog("revised session timeout = ", session.timeout, response.revisedSessionTimeout);
 
             response.serverEndpoints = response.serverEndpoints || [];
 

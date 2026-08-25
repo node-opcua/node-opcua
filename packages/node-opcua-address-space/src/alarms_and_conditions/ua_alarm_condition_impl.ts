@@ -6,7 +6,7 @@ import type { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-a
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type VariantOptions } from "node-opcua-variant";
@@ -24,6 +24,7 @@ import { ConditionInfoImpl } from "./condition_info_impl";
 import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -336,7 +337,8 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 
             const _node = addressSpace._coerceNode(inputNode);
             if (_node === null) {
-                debugLog(" cannot find nodeId ", inputNode);
+                // c8 ignore next
+                doDebug && debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
                 $(this).inputNode.setValueFromSource({
@@ -436,8 +438,11 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 
         // detect potential internal bugs due to misused of _signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
-            debugLog("oldConditionInfo", oldConditionInfo);
-            debugLog("oldConditionInfo", newConditionInfo);
+            // c8 ignore next
+            if (doDebug) {
+                debugLog("oldConditionInfo", oldConditionInfo);
+                debugLog("oldConditionInfo", newConditionInfo);
+            }
             throw new Error(
                 `condition values have not change, shall we really raise an event ? alarm ${this.browseName.toString()}`
             );

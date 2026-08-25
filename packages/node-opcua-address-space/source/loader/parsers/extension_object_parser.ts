@@ -20,7 +20,7 @@ import { localizedText_parser } from "./localized_text_parser";
 
 const debugLog = make_debugLog("ExtensionObjectParser");
 const errorLog = make_debugLog("ExtensionObjectParser");
-const _doDebug = false;
+const doDebug = false;
 export type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
 // #region Argument parser
@@ -318,10 +318,12 @@ export function makeExtensionObjectParser<T>(
                                     // the XML file is probably not exposing standard UA extension object correctly.
                                     // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
                                     // nodeid
-                                    errorLog(
-                                        "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
-                                        typeDefinitionId.toString()
-                                    );
+                                    // c8 ignore next
+                                    doDebug &&
+                                        errorLog(
+                                            "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
+                                            typeDefinitionId.toString()
+                                        );
                                     break;
                                 }
                                 const bodyXML = this._cloneFragment.value;
@@ -330,7 +332,8 @@ export function makeExtensionObjectParser<T>(
                                 // the "Default Xml" encoding  nodeId
                                 const xmlEncodingNodeId = typeDefinitionId;
                                 if (typeDefinitionId.isEmpty()) {
-                                    debugLog(`xmlEncodingNodeId is empty for ${typeDefinitionId.toString()}`);
+                                    // c8 ignore next
+                                    doDebug && debugLog(`xmlEncodingNodeId is empty for ${typeDefinitionId.toString()}`);
                                     break;
                                 }
                                 setExtensionObjectPojo(xmlEncodingNodeId, bodyXML ?? "", data);

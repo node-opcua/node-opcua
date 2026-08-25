@@ -297,7 +297,8 @@ export function setNextSubscriptionId(n: number) {
     next_subscriptionId = Math.max(n, 1);
 }
 function _get_next_subscriptionId() {
-    debugLog(" next_subscriptionId = ", next_subscriptionId);
+    // c8 ignore next
+    doDebug && debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
 }
 
@@ -584,7 +585,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     /**
      */
     public async shutdown(): Promise<void> {
-        debugLog("ServerEngine#shutdown");
+        // c8 ignore next
+        doDebug && debugLog("ServerEngine#shutdown");
 
         this._internalState = "shutdown";
         this.setServerState(ServerState.Shutdown);
@@ -901,7 +903,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         const startTime = new Date();
 
-        debugLog("Loading ", options.nodeset_filename, "...");
+        // c8 ignore next
+        doDebug && debugLog("Loading ", options.nodeset_filename, "...");
 
         this.addressSpace = AddressSpace.create();
 
@@ -925,7 +928,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 const addressSpace = this.addressSpace;
 
                 const endTime = new Date();
-                debugLog("Loading ", options.nodeset_filename, " done : ", endTime.getTime() - startTime.getTime(), " ms");
+                // c8 ignore next
+                doDebug &&
+                    debugLog("Loading ", options.nodeset_filename, " done : ", endTime.getTime() - startTime.getTime(), " ms");
 
                 const bindVariableIfPresent = (nodeId: NodeId, opts?: BindVariableOptions) => {
                     assert(!nodeId.isEmpty());
@@ -1538,7 +1543,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
                     const varType = addressSpace.findVariableType("SessionSecurityDiagnosticsType");
                     if (!varType) {
-                        debugLog("Warning cannot find SessionSecurityDiagnosticsType variable Type");
+                        // c8 ignore next
+                        doDebug && debugLog("Warning cannot find SessionSecurityDiagnosticsType variable Type");
                     } else {
                         const sessionSecurityDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName(
                             "SessionSecurityDiagnosticsArray"
@@ -1640,7 +1646,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public createSession(options?: CreateSessionOption): ServerSession {
         options = options || {};
         options.server = options.server || {};
-        debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
+        // c8 ignore next
+        doDebug && debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
         this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
         this.serverDiagnosticsSummary.currentSessionCount += 1;
 
@@ -1655,7 +1662,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // session's SessionContext (see ServerSession's constructor).
         const session = new ServerSession(this, options.server, sessionTimeout);
 
-        debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
+        // c8 ignore next
+        doDebug && debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
         const key = session.authenticationToken.toString();
 
@@ -1734,7 +1742,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
 
-        debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
+        // c8 ignore next
+        doDebug && debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
 
         const session = this.getSession(authenticationToken);
 
@@ -1750,7 +1759,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 this._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
             }
 
-            debugLog("transferring remaining live subscription to orphanPublishEngine !");
+            // c8 ignore next
+            doDebug && debugLog("transferring remaining live subscription to orphanPublishEngine !");
             ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this._orphanPublishEngine);
         }
 
@@ -1758,7 +1768,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         assert(session.status === "closed");
 
-        debugLog(" engine.serverDiagnosticsSummary.currentSessionCount -= 1;");
+        // c8 ignore next
+        doDebug && debugLog(" engine.serverDiagnosticsSummary.currentSessionCount -= 1;");
         this.serverDiagnosticsSummary.currentSessionCount -= 1;
 
         // xx //TODO make sure _closedSessions gets cleaned at some point
@@ -2009,7 +2020,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
         try {
-            debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
+            // c8 ignore next
+            doDebug && debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
             const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
             const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
             assert((subscriptionDiagnostics as unknown as Record<string, unknown>).$subscription === subscription);
@@ -2035,7 +2047,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             );
             */
         }
-        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics", subscription.subscriptionId);
+        // c8 ignore next
+        doDebug && debugLog("ServerEngine#_unexposeSubscriptionDiagnostics", subscription.subscriptionId);
     }
 
     /**

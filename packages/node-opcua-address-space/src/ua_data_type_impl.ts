@@ -418,10 +418,12 @@ function makeStructureDefinition(
     const hasSubtypedFields = fields.filter((field) => field.allowSubTypes).length > 0;
 
     if (hasSubtypedFields && doDebug) {
-        debugLog("Fields with subtypes:");
+        // c8 ignore next
+        doDebug && debugLog("Fields with subtypes:");
         for (const field of fields) {
             if (field.allowSubTypes) {
-                debugLog("  ", field.name, field.dataType?.toString());
+                // c8 ignore next
+                doDebug && debugLog("  ", field.name, field.dataType?.toString());
             }
         }
     }
