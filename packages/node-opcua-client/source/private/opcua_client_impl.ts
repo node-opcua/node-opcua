@@ -1026,6 +1026,11 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             session.lastRequestSentTime = new Date();
 
             this.performMessageTransaction(request, (err1: Error | null, response?: Response) => {
+                // this path bypasses ClientSessionImpl._performMessageTransaction, so it has to
+                // record the contact itself - and under the same rule, not a stricter one: a
+                // server that answers and rejects the activation is still a server we reached.
+                session.noteServerAnswer(err1, response);
+
                 if (!err1 && response && response.responseHeader.serviceResult.isGoodish()) {
                     /* c8 ignore next */
                     if (!(response instanceof ActivateSessionResponse)) {
@@ -1040,7 +1045,6 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                     // OPC 10000-18 §5.2.8) so a Client can react without server access.
                     session.lastActivateSessionStatusCode = response.responseHeader.serviceResult;
                     session.serverNonce = response.serverNonce;
-                    session.lastResponseReceivedTime = new Date();
                     if (this.keepSessionAlive) {
                         session.startKeepAliveManager(this.keepAliveInterval);
                     }

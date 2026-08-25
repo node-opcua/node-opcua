@@ -190,6 +190,27 @@ type EmptyCallback = (err?: Error) => void;
 // (see process_request_callback): response / request / serviceDiagnostics / diagnosticsInfo.
 type ServiceFaultAnnotatedError = ChannelServiceFaultAnnotatedError;
 
+/**
+ * attach the server side diagnostics to an error, so that a caller can inspect them without
+ * having to know how the channel delivered the failure.
+ *
+ * For a ServiceFault there is no `response` argument at all - the channel moved the decoded
+ * fault onto `err.response` - so fall back to it, otherwise the diagnostics of the most
+ * interesting case would always be dropped.
+ */
+function annotateWithDiagnostics(err: Error, response?: Response): Error {
+    const annotatedError = err as ServiceFaultAnnotatedError;
+    const source = response ?? annotatedError.response;
+    if (source?.responseHeader.serviceDiagnostics) {
+        annotatedError.serviceDiagnostics = source.responseHeader.serviceDiagnostics;
+    }
+    const responseWithDiagnosticInfos = source as unknown as { diagnosticInfos?: unknown } | undefined;
+    if (responseWithDiagnosticInfos?.diagnosticInfos) {
+        annotatedError.diagnosticsInfo = responseWithDiagnosticInfos.diagnosticInfos;
+    }
+    return annotatedError;
+}
+
 export interface Reconnectable {
     _reconnecting: {
         reconnecting: boolean;
@@ -1593,6 +1614,23 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
     }
 
+    /**
+     * record that the server has answered.
+     *
+     * A transaction that failed on a timeout or on a broken channel comes back with no response
+     * at all and must not refresh lastResponseReceivedTime, or the keep-alive manager would never
+     * notice that the server is gone (see #1569). A ServiceFault does count - the round trip
+     * completed - but the channel reports it as an Error carrying the decoded fault on
+     * err.response, so the response argument alone does not tell the two cases apart.
+     *
+     * @internal
+     */
+    public noteServerAnswer(err: Error | null, response?: Response): void {
+        if (response || (err as ServiceFaultAnnotatedError)?.response) {
+            this.lastResponseReceivedTime = new Date();
+        }
+    }
+
     public _performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
         assert(typeof callback === "function");
 
@@ -1623,28 +1661,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this.lastRequestSentTime = new Date();
 
         this._client.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            // only record a server contact when the server has actually answered:
-            // a transaction that fails on a timeout or a broken channel comes back with no
-            // response at all, and must not refresh lastResponseReceivedTime, otherwise the
-            // keep-alive manager would never notice that the server is gone. (see #1569)
-            //
-            // a ServiceFault is a genuine answer - the round trip completed - but the channel
-            // reports it as an Error carrying the decoded fault on err.response, so testing
-            // `response` alone would wrongly treat a live-but-rejecting server as unreachable.
-            if (response || (err as ServiceFaultAnnotatedError)?.response) {
-                this.lastResponseReceivedTime = new Date();
-            }
+            this.noteServerAnswer(err, response);
 
-            /* c8 ignore next */
             if (err) {
-                if (response?.responseHeader.serviceDiagnostics) {
-                    (err as ServiceFaultAnnotatedError).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
-                }
-                const responseWithDiagnosticInfos = response as unknown as { diagnosticInfos?: unknown } | undefined;
-                if (responseWithDiagnosticInfos?.diagnosticInfos) {
-                    (err as ServiceFaultAnnotatedError).diagnosticsInfo = responseWithDiagnosticInfos.diagnosticInfos;
-                }
-                return callback(err);
+                return callback(annotateWithDiagnostics(err, response));
             }
 
             /* c8 ignore next */
@@ -1652,23 +1672,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error("internal Error"));
             }
 
-            /* c8 ignore next */
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
-                err = new Error(
+                const serviceResultError = new Error(
                     " ServiceResult is " +
                         response.responseHeader.serviceResult.toString() +
                         " request was " +
                         request.constructor.name
                 );
-
-                if (response?.responseHeader.serviceDiagnostics) {
-                    (err as ServiceFaultAnnotatedError).serviceDiagnostics = response.responseHeader.serviceDiagnostics;
-                }
-                const responseWithDiagnosticInfos = response as unknown as { diagnosticInfos?: unknown } | undefined;
-                if (responseWithDiagnosticInfos?.diagnosticInfos) {
-                    (err as ServiceFaultAnnotatedError).diagnosticsInfo = responseWithDiagnosticInfos.diagnosticInfos;
-                }
-                return callback(err, response);
+                return callback(annotateWithDiagnostics(serviceResultError, response), response);
             }
             return callback(null, response);
         });

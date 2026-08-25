@@ -13,6 +13,7 @@
 // `err.response` (see process_request_callback), so the response argument alone does not tell the
 // two cases apart.
 import "mocha";
+import { DiagnosticInfo } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
@@ -20,7 +21,7 @@ import type { Response } from "node-opcua-secure-channel";
 import { ReadRequest, ReadResponse } from "node-opcua-service-read";
 import { ServiceFault } from "node-opcua-service-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
-import "should";
+import should from "should";
 import sinon from "sinon";
 import { ClientSessionKeepAliveManager } from "../source/client_session_keepalive_manager";
 import { ClientSessionImpl } from "../source/private/client_session_impl";
@@ -210,5 +211,28 @@ describe("issue #1569 - lastResponseReceivedTime must only reflect genuine serve
         } finally {
             clock.restore();
         }
+    });
+    it("should surface the server diagnostics carried by a ServiceFault", () => {
+        // for a ServiceFault there is no response argument at all, so reading the diagnostics off
+        // it silently dropped them for the one case where they matter most.
+        const serviceFault = new ServiceFault({
+            responseHeader: {
+                serviceResult: StatusCodes.BadUserAccessDenied,
+                serviceDiagnostics: new DiagnosticInfo({ additionalInfo: "account is locked" })
+            }
+        });
+        const faultError = new Error(" serviceResult = BadUserAccessDenied") as Error & { response: Response };
+        faultError.response = serviceFault as unknown as Response;
+
+        const session = makeSession((_request, callback) => callback(faultError));
+
+        let annotated: (Error & { serviceDiagnostics?: DiagnosticInfo }) | null = null;
+        session._performMessageTransaction(new ReadRequest({}), (err) => {
+            annotated = err as Error & { serviceDiagnostics?: DiagnosticInfo };
+        });
+
+        (annotated === null).should.eql(false, "the callback must have been called");
+        should(annotated!.serviceDiagnostics).be.instanceOf(DiagnosticInfo);
+        annotated!.serviceDiagnostics!.additionalInfo!.should.eql("account is locked");
     });
 });
