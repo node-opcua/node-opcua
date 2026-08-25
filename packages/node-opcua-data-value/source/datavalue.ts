@@ -357,14 +357,27 @@ export class DataValue extends BaseUAObject {
     }
 
     public clone(): DataValue {
-        return new DataValue({
-            serverPicoseconds: this.serverPicoseconds,
-            serverTimestamp: this.serverTimestamp,
-            sourcePicoseconds: this.sourcePicoseconds,
-            sourceTimestamp: this.sourceTimestamp,
-            statusCode: this.statusCode,
-            value: this.value ? this.value.clone() : undefined
-        });
+        // Assign the fields rather than routing them back through the constructor. Passing
+        // an already-cloned Variant as `options.value` made the constructor clone it a
+        // second time - `new Variant(variant)` copies the value, typed arrays included - so
+        // every DataValue.clone() copied its payload twice. The server clones each sampled
+        // value on the monitored-item path, so that duplicate was paid per value.
+        //
+        // The remaining Variant.clone() is the one that matters and is deliberately kept:
+        // the result must not share mutable state with the source, or a later write to the
+        // address space would retroactively alter an already-recorded sample.
+        //
+        // The other fields are copied exactly as the constructor would: statusCode is
+        // already a StatusCode, and the timestamps are already Date | null, so the coercion
+        // being skipped here is a no-op on both.
+        const dataValue = new DataValue(null);
+        dataValue.value = this.value ? this.value.clone() : new Variant(null);
+        dataValue.statusCode = this.statusCode;
+        dataValue.sourceTimestamp = this.sourceTimestamp;
+        dataValue.sourcePicoseconds = this.sourcePicoseconds;
+        dataValue.serverTimestamp = this.serverTimestamp;
+        dataValue.serverPicoseconds = this.serverPicoseconds;
+        return dataValue;
     }
 }
 
