@@ -19,7 +19,7 @@ import type { IClientBase } from "./private/i_private_client";
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
 const debugLog = make_debugLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
+const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
 export interface ClientSessionKeepAliveManagerEvents {
@@ -77,11 +77,13 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
     public stop(): void {
         if (this.timerId) {
-            debugLog("ClientSessionKeepAliveManager#stop");
+            // c8 ignore next
+            doDebug && debugLog("ClientSessionKeepAliveManager#stop");
             clearTimeout(this.timerId);
             this.timerId = undefined;
         } else {
-            debugLog("warning ClientSessionKeepAliveManager#stop ignore (already stopped)");
+            // c8 ignore next
+            doDebug && debugLog("warning ClientSessionKeepAliveManager#stop ignore (already stopped)");
         }
     }
 
@@ -120,7 +122,8 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     private async _ping_server(): Promise<number> {
         const session = this.session;
         if (!session || session.isReconnecting) {
-            debugLog("ClientSessionKeepAliveManager#ping_server => no session available");
+            // c8 ignore next
+            doDebug && debugLog("ClientSessionKeepAliveManager#ping_server => no session available");
             return this.checkInterval;
         }
 
@@ -131,30 +134,36 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
         const timeSinceLastServerContact = now - session.lastResponseReceivedTime.getTime();
         if (timeSinceLastServerContact < this.pingTimeout) {
-            debugLog(
-                "ClientSessionKeepAliveManager#ping_server skipped because last communication with server was not that long ago ping timeout=",
-                Math.round(this.pingTimeout),
-                "timeSinceLastServerContact  = ",
-                timeSinceLastServerContact
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "ClientSessionKeepAliveManager#ping_server skipped because last communication with server was not that long ago ping timeout=",
+                    Math.round(this.pingTimeout),
+                    "timeSinceLastServerContact  = ",
+                    timeSinceLastServerContact
+                );
             // no need to send a ping yet: come back when the quiet period is actually over
             return this.pingTimeout - timeSinceLastServerContact;
         }
 
         if (session.isReconnecting) {
-            debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
+            // c8 ignore next
+            doDebug && debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
             return this.checkInterval;
         }
         if (session.hasBeenClosed()) {
-            debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
+            // c8 ignore next
+            doDebug && debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
             return this.checkInterval;
         }
-        debugLog(
-            "ClientSessionKeepAliveManager#ping_server timeSinceLastServerContact=",
-            timeSinceLastServerContact,
-            "timeout",
-            this.session.timeout
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "ClientSessionKeepAliveManager#ping_server timeSinceLastServerContact=",
+                timeSinceLastServerContact,
+                "timeout",
+                this.session.timeout
+            );
 
         if (this.transactionInProgress) {
             // readVariable already taking place ! Ignore
@@ -207,9 +216,11 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                                     // See: https://reference.opcfoundation.org/Core/Part4/v105/docs/7.38.2
                                     //      https://reference.opcfoundation.org/Core/Part4/v105/docs/7.32
                                     this.consecutiveFailures = 0;
-                                    debugLog(
-                                        "emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)"
-                                    );
+                                    // c8 ignore next
+                                    doDebug &&
+                                        debugLog(
+                                            "emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)"
+                                        );
                                     this.emit("keepalive", this.lastKnownState ?? ServerState.Unknown, this.count);
                                     resolve(this.checkInterval);
                                     return;
@@ -255,7 +266,8 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                         this.count++; // increase successful counter
                     }
                     this.consecutiveFailures = 0;
-                    debugLog("emit keepalive");
+                    // c8 ignore next
+                    doDebug && debugLog("emit keepalive");
                     this.emit("keepalive", this.lastKnownState, this.count);
                     resolve(this.checkInterval);
                 }
