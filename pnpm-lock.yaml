@@ -4188,6 +4188,8 @@ importers:
         specifier: 2.178.0
         version: link:../../packages/node-opcua
 
+  tools/check-debug-log: {}
+
   tools/fix-tsconfigs:
     dependencies:
       json5:
