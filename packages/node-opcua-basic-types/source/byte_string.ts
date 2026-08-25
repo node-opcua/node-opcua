@@ -39,5 +39,15 @@ export function coerceByteString(value: number[] | string | ByteString): ByteStr
     if (typeof value === "string") {
         return Buffer.from(value, "base64");
     }
+    // Copy rather than adopt the caller's Buffer. A structure built from an existing
+    // ByteString used to alias it, so cloning an ExtensionObject that carries one - which
+    // is how the server records a sampled value - produced a "clone" that still followed
+    // later writes to the original buffer.
+    //
+    // The decode path does not come through here (decodeByteString reads from the stream
+    // directly), so this costs nothing on the wire path.
+    if (Buffer.isBuffer(value)) {
+        return Buffer.from(value);
+    }
     return value;
 }

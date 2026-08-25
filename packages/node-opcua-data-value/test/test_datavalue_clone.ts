@@ -80,12 +80,35 @@ describe("DataValue.clone", () => {
     });
 
     it("should isolate a ByteString from later writes to the source", () => {
+        // A ByteString is a Buffer, and a server that fills a Buffer in place rather than
+        // replacing it would otherwise rewrite a sample that was already recorded and
+        // queued. The clone has to own its bytes.
         const buffer = Buffer.from([1, 2, 3]);
         const source = new DataValue({ value: new Variant({ dataType: DataType.ByteString, value: buffer }) });
 
         const clone = source.clone();
-
         clone.value.value.should.eql(buffer);
+
+        buffer[0] = 99;
+
+        clone.value.value[0].should.eql(1, "writing the source Buffer must not change the clone");
+        clone.value.value.should.not.equal(buffer, "the clone must own its Buffer");
+    });
+
+    it("should isolate an array of ByteStrings from later writes to the source", () => {
+        const first = Buffer.from([1, 2]);
+        const source = new DataValue({
+            value: new Variant({
+                dataType: DataType.ByteString,
+                arrayType: VariantArrayType.Array,
+                value: [first, Buffer.from([3, 4])]
+            })
+        });
+
+        const clone = source.clone();
+        first[0] = 99;
+
+        clone.value.value[0][0].should.eql(1, "writing an element Buffer must not change the clone");
     });
 
     it("should tolerate a DataValue with no value", () => {
