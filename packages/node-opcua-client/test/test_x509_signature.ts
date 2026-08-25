@@ -149,7 +149,7 @@ describe("X509 - Wireshark Analysis", () => {
             toString() {
                 return `UserTokenPolicy(policyId=${this.policyId})`;
             },
-            policyId: userIdentityToken.policyId
+            policyId: userIdentityToken.policyId ?? ""
         };
 
         const userCertificateChain = readCertificateChain(path.join(__dirname, "./fixtures/user1_certificate.pem"));

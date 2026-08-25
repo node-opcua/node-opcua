@@ -1711,7 +1711,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      */
     public evaluateRemainingLifetime(): number {
         const now = Date.now();
-        const expiryTime = this.lastRequestSentTime.getTime() + this.timeout;
+        // anchored on the last answer, not the last send: the server restarts its session
+        // watchdog when it *receives* a request, and the only proof the client has that a
+        // request arrived is an answer coming back. Anchoring on the send made this return a
+        // full lifetime throughout an outage - a client that keeps trying keeps refreshing the
+        // send timestamp - which is precisely when the caller needs the truth (see #1569).
+        const expiryTime = this.lastResponseReceivedTime.getTime() + this.timeout;
         return Math.max(0, expiryTime - now);
     }
 

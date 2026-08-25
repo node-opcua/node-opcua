@@ -20,7 +20,7 @@ import { NodeId } from "node-opcua-nodeid";
 import type { Response } from "node-opcua-secure-channel";
 import { ReadRequest, ReadResponse } from "node-opcua-service-read";
 import { ServiceFault } from "node-opcua-service-secure-channel";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
 import { ClientSessionKeepAliveManager } from "../source/client_session_keepalive_manager";
@@ -44,7 +44,7 @@ function makeSession(transaction: TransactionImpl, channelIsOpened = true): Clie
  * the shape the secure channel actually delivers for a ServiceFault: an Error carrying the
  * decoded fault, and *no* response argument. Mirrors process_request_callback.
  */
-function makeServiceFaultError(statusCode: (typeof StatusCodes)[keyof typeof StatusCodes]): Error {
+function makeServiceFaultError(statusCode: StatusCode): Error {
     const serviceFault = new ServiceFault({ responseHeader: { serviceResult: statusCode } });
     const err = new Error(` serviceResult = ${statusCode.toString()}`) as Error & { response: Response };
     err.response = serviceFault as unknown as Response;
@@ -234,5 +234,30 @@ describe("issue #1569 - lastResponseReceivedTime must only reflect genuine serve
         (annotated === null).should.eql(false, "the callback must have been called");
         should(annotated!.serviceDiagnostics).be.instanceOf(DiagnosticInfo);
         annotated!.serviceDiagnostics!.additionalInfo!.should.eql("account is locked");
+    });
+    it("should decay evaluateRemainingLifetime() during an outage", () => {
+        // the estimate used to be anchored on the last *send*, which a client that keeps
+        // retrying refreshes forever, so it never decayed to zero during the very outage it is
+        // meant to describe.
+        const clock = sinon.useFakeTimers();
+        try {
+            const session = makeSession((_request, callback) => callback(new Error("Transaction has timed out")));
+            session.timeout = 10_000;
+            session.lastResponseReceivedTime = new Date(Date.now());
+
+            session.evaluateRemainingLifetime().should.eql(10_000, "a fresh answer means a full lifetime");
+
+            // the application keeps retrying for the whole session timeout, and never gets an answer
+            for (let i = 0; i < 20; i++) {
+                clock.tick(500);
+                session._performMessageTransaction(new ReadRequest({}), () => {
+                    /* ignored */
+                });
+            }
+
+            session.evaluateRemainingLifetime().should.eql(0, "the server side session has expired by now");
+        } finally {
+            clock.restore();
+        }
     });
 });
