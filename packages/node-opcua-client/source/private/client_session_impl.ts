@@ -33,7 +33,12 @@ import {
     readNamespaceArray
 } from "node-opcua-pseudo-session";
 import type { AnyConstructorFunc } from "node-opcua-schemas";
-import { ClientSecureChannelLayer, requestHandleNotSetValue, type SignatureData } from "node-opcua-secure-channel";
+import {
+    type ServiceFaultAnnotatedError as ChannelServiceFaultAnnotatedError,
+    ClientSecureChannelLayer,
+    requestHandleNotSetValue,
+    type SignatureData
+} from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, type CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
 import type { EndpointDescription } from "node-opcua-service-endpoints";
@@ -181,10 +186,9 @@ const emptyUint32Array = new Uint32Array(0);
 
 type EmptyCallback = (err?: Error) => void;
 
-interface ServiceFaultAnnotatedError extends Error {
-    serviceDiagnostics?: unknown;
-    diagnosticsInfo?: unknown;
-}
+// re-exported from node-opcua-secure-channel, where the annotation is produced
+// (see process_request_callback): response / request / serviceDiagnostics / diagnosticsInfo.
+type ServiceFaultAnnotatedError = ChannelServiceFaultAnnotatedError;
 
 export interface Reconnectable {
     _reconnecting: {
@@ -1619,12 +1623,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this.lastRequestSentTime = new Date();
 
         this._client.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            if (response) {
-                // only record a server contact when the server has actually answered:
-                // a transaction that fails on a timeout or a broken channel comes back with no
-                // response at all, and must not refresh lastResponseReceivedTime, otherwise the
-                // keep-alive manager would never notice that the server is gone. (see #1569)
-                // note: a ServiceFault is still a genuine answer from the server.
+            // only record a server contact when the server has actually answered:
+            // a transaction that fails on a timeout or a broken channel comes back with no
+            // response at all, and must not refresh lastResponseReceivedTime, otherwise the
+            // keep-alive manager would never notice that the server is gone. (see #1569)
+            //
+            // a ServiceFault is a genuine answer - the round trip completed - but the channel
+            // reports it as an Error carrying the decoded fault on err.response, so testing
+            // `response` alone would wrongly treat a live-but-rejecting server as unreachable.
+            if (response || (err as ServiceFaultAnnotatedError)?.response) {
                 this.lastResponseReceivedTime = new Date();
             }
 

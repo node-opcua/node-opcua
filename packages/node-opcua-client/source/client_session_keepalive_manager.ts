@@ -11,19 +11,10 @@ import { VariableIds } from "node-opcua-constants";
 import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
-import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
-import type { StatusCode } from "node-opcua-status-code";
+import { ClientSecureChannelLayer, type ServiceFaultAnnotatedError } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import type { ClientSessionImpl } from "./private/client_session_impl";
 import type { IClientBase } from "./private/i_private_client";
-
-interface ServiceFaultAnnotatedError extends Error {
-    response?: {
-        responseHeader?: {
-            serviceResult?: StatusCode;
-        };
-    };
-}
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
