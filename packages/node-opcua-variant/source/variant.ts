@@ -111,7 +111,11 @@ export class Variant extends BaseUAObject {
     constructor(options?: VariantOptions | null) {
         super();
 
-        if (options === null) {
+        // `new Variant()` and `new Variant(null)` describe the same empty variant, so both
+        // take the cheap branch. The general path below would reach the identical field
+        // values via constructHook({}) + initialize_field, at ~12x the cost - which the
+        // decoders pay on every value, since they overwrite these fields immediately.
+        if (options === null || options === undefined) {
             this.dataType = DataType.Null;
             this.arrayType = VariantArrayType.Scalar;
             this.value = null;
