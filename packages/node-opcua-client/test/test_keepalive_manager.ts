@@ -193,4 +193,52 @@ describe("ClientSessionKeepAliveManager", function (this: Mocha.Suite) {
 
         mgr.stop();
     });
+    it("KAL-6 should re-check as soon as the quiet period is over, not a whole interval later", async () => {
+        // the skip branch used to return a negative delta which the scheduler then subtracted,
+        // pushing the next liveness check out to 1.4x checkInterval instead of the residual wait.
+        const readSpy = sinon.spy((_n: ReadValueIdOptions, cb: ReadCallback) =>
+            cb(null, { statusCode: StatusCodes.Good, value: { value: 0 } } as unknown as DataValue)
+        );
+        const session = makeSession(readSpy);
+
+        // checkInterval = 1000, pingTimeout = 500
+        const mgr = new ClientSessionKeepAliveManager(session);
+        mgr.start(1000);
+
+        // the server was heard from at t=400, so at the t=500 check there is nothing to do yet
+        session.lastResponseReceivedTime = new Date(400);
+        await clock.tickAsync(500);
+        readSpy.callCount.should.eql(0, "no ping needed while the last contact is still recent");
+
+        // the quiet period ends at t=900: the manager must come back then, not at t=1900
+        await clock.tickAsync(400);
+        readSpy.callCount.should.eql(1, "the ping must happen as soon as the quiet period is over");
+
+        mgr.stop();
+    });
+
+    it("KAL-7 should keep pinging after _ping_server rejects", async () => {
+        // a throw out of the read used to reject the un-caught promise chain, leaving
+        // transactionInProgress latched and the timer never re-armed: keepalive dead for good.
+        let throwOnce = true;
+        const readSpy = sinon.spy((_n: ReadValueIdOptions, cb: ReadCallback) => {
+            if (throwOnce) {
+                throwOnce = false;
+                throw new Error("boom");
+            }
+            cb(null, { statusCode: StatusCodes.Good, value: { value: 0 } } as unknown as DataValue);
+        });
+        const session = makeSession(readSpy);
+
+        const mgr = new ClientSessionKeepAliveManager(session);
+        mgr.start(1000);
+
+        await clock.tickAsync(500); // first ping throws
+        readSpy.callCount.should.eql(1);
+
+        await clock.tickAsync(3000); // the manager must have recovered and kept its cadence
+        readSpy.callCount.should.be.greaterThan(1, "keepalive must survive an unexpected throw");
+
+        mgr.stop();
+    });
 });

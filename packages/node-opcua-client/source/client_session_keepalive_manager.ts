@@ -86,17 +86,29 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     }
 
     private ping_server() {
-        this._ping_server().then((delta) => {
-            if (!this.session || this.session.hasBeenClosed()) {
-                return; // stop here
-            }
-            if (this.timerId) {
-                // When delta exceeds checkInterval it is an explicit backoff requested by _ping_server;
-                // otherwise delta is the time already consumed this cycle.
-                const timeout = delta > this.checkInterval ? delta : Math.max(1, this.checkInterval - delta);
-                this.timerId = setTimeout(() => this.ping_server(), timeout);
-            }
-        });
+        this._ping_server()
+            .catch((err) => {
+                // _ping_server must never reject: transactionInProgress would stay latched and the
+                // timer chain would stop, silently killing the keep-alive for the life of the
+                // session. Recover the cycle instead, and try again at the normal cadence.
+                warningLog(
+                    chalk.cyan("ClientSessionKeepAliveManager#ping_server unexpected error "),
+                    chalk.yellow(err instanceof Error ? err.message : String(err))
+                );
+                this.transactionInProgress = false;
+                return this.checkInterval;
+            })
+            .then((nextCheckDelay) => {
+                if (!this.session || this.session.hasBeenClosed()) {
+                    return; // stop here
+                }
+                if (this.timerId) {
+                    // _ping_server returns how long to wait before the next check: checkInterval
+                    // in steady state, the residual wait when it skipped the ping because we heard
+                    // from the server recently, or an explicit backoff after consecutive faults.
+                    this.timerId = setTimeout(() => this.ping_server(), Math.max(1, nextCheckDelay));
+                }
+            });
     }
     /**
      * @private
@@ -109,11 +121,11 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         const session = this.session;
         if (!session || session.isReconnecting) {
             debugLog("ClientSessionKeepAliveManager#ping_server => no session available");
-            return 0;
+            return this.checkInterval;
         }
 
         if (!this.timerId) {
-            return 0; // keep-alive has been canceled ....
+            return this.checkInterval; // keep-alive has been canceled ....
         }
         const now = Date.now();
 
@@ -125,17 +137,17 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                 "timeSinceLastServerContact  = ",
                 timeSinceLastServerContact
             );
-            // no need to send a ping yet
-            return timeSinceLastServerContact - this.pingTimeout;
+            // no need to send a ping yet: come back when the quiet period is actually over
+            return this.pingTimeout - timeSinceLastServerContact;
         }
 
         if (session.isReconnecting) {
             debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
-            return 0;
+            return this.checkInterval;
         }
         if (session.hasBeenClosed()) {
             debugLog("ClientSessionKeepAliveManager#ping_server skipped because client is reconnecting");
-            return 0;
+            return this.checkInterval;
         }
         debugLog(
             "ClientSessionKeepAliveManager#ping_server timeSinceLastServerContact=",
@@ -146,7 +158,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
 
         if (this.transactionInProgress) {
             // readVariable already taking place ! Ignore
-            return 0;
+            return this.checkInterval;
         }
         this.transactionInProgress = true;
         // Server_ServerStatus_State
@@ -171,7 +183,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                                     "Keep alive has failed, considering a network outage is in place, forcing a reconnection"
                                 );
                                 terminateConnection(session._client);
-                                resolve(0);
+                                resolve(this.checkInterval);
                             } else {
                                 if (sc?.equals(StatusCodes.BadInvalidTimestamp)) {
                                     // BadInvalidTimestamp (OPC UA Part 4 7.38.2, Table 178:
@@ -199,7 +211,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                                         "emit keepalive (BadInvalidTimestamp: session alive, clock skew on request timestamp)"
                                     );
                                     this.emit("keepalive", this.lastKnownState ?? ServerState.Unknown, this.count);
-                                    resolve(0);
+                                    resolve(this.checkInterval);
                                     return;
                                 }
                                 this.consecutiveFailures++;
@@ -211,7 +223,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                             this.emit("failure");
                             warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
                             terminateConnection(session._client);
-                            resolve(0);
+                            resolve(this.checkInterval);
                         }
                         return;
                     }
@@ -224,7 +236,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                         this.emit("failure");
                         warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
                         terminateConnection(session._client);
-                        resolve(0);
+                        resolve(this.checkInterval);
                         return;
                     }
 
@@ -245,7 +257,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                     this.consecutiveFailures = 0;
                     debugLog("emit keepalive");
                     this.emit("keepalive", this.lastKnownState, this.count);
-                    resolve(0);
+                    resolve(this.checkInterval);
                 }
             );
         });
