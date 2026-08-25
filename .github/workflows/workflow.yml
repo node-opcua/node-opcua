@@ -72,6 +72,19 @@ jobs:
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
+    # Node 24.15.0 on Windows dies with a native abort - exit -1073740791
+    # (0xC0000409, STATUS_STACK_BUFFER_OVERRUN) - part way through the end-to-end
+    # suite, during test_e2e_985 (server restarts with a rotated private key and
+    # certificate) right after an asymmetricVerify against the new key. It is not
+    # a JS-level failure: the retry path unwinds through setImmediate, so it
+    # cannot be stack exhaustion, and the same commit passes on Windows/22.x.
+    #
+    # It reproduces on master on its own: runs 32814236095 (d887399d) and
+    # 32345463907 both failed this matrix entry and nothing else. Until the crash
+    # is diagnosed it must not block merges - but it keeps running, and keeps
+    # uploading its node-report artifact, because that report carries the native
+    # stack needed to find the cause.
+    continue-on-error: ${{ matrix.node-version == '24.15.0' }}
     strategy:
       # Don't cancel the whole matrix when one Node version fails.
       fail-fast: false
