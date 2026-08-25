@@ -1619,7 +1619,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this.lastRequestSentTime = new Date();
 
         this._client.performMessageTransaction(request, (err: Error | null, response?: Response) => {
-            this.lastResponseReceivedTime = new Date();
+            if (response) {
+                // only record a server contact when the server has actually answered:
+                // a transaction that fails on a timeout or a broken channel comes back with no
+                // response at all, and must not refresh lastResponseReceivedTime, otherwise the
+                // keep-alive manager would never notice that the server is gone. (see #1569)
+                // note: a ServiceFault is still a genuine answer from the server.
+                this.lastResponseReceivedTime = new Date();
+            }
 
             /* c8 ignore next */
             if (err) {
