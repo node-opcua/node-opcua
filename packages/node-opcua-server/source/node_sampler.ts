@@ -13,8 +13,15 @@ import type { MonitoredItem } from "./monitored_item";
 
 interface ITimer {
     _samplingId: NodeJS.Timeout | false;
-    monitoredItems: Record<string, MonitoredItem>;
-    monitoredItemsCount: number;
+    /**
+     * a Map, not a plain object: this is walked in full on every sampling tick, and a
+     * subscription may hold up to maxMonitoredItemsPerSubscription (100 000 by default)
+     * items on the same interval. At that size a plain object goes into dictionary mode
+     * and every lookup becomes a hash probe, on top of the per-key Object.hasOwn that
+     * `for...in` requires. Map also makes the count intrinsic, so the parallel counter
+     * that had to be kept in step is gone.
+     */
+    monitoredItems: Map<number, MonitoredItem>;
 }
 const timers: Record<string, ITimer> = {};
 const NS_PER_SEC = 1e9;
@@ -42,18 +49,15 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
     if (!_t) {
         _t = {
             _samplingId: false,
-            monitoredItems: {},
-            monitoredItemsCount: 0
+            monitoredItems: new Map()
         };
 
         _t._samplingId = setInterval(() => {
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
-            for (const m in _t.monitoredItems) {
-                if (Object.hasOwn(_t.monitoredItems, m)) {
-                    sampleMonitoredItem(_t.monitoredItems[m]);
-                    counter++;
-                }
+            for (const monitoredItem of _t.monitoredItems.values()) {
+                sampleMonitoredItem(monitoredItem);
+                counter++;
             }
             // c8 ignore next
             if (doDebug) {
@@ -67,9 +71,8 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
         }, samplingInterval);
         timers[key] = _t;
     }
-    assert(!_t.monitoredItems[monitoredItem.monitoredItemId]);
-    _t.monitoredItems[monitoredItem.monitoredItemId] = monitoredItem;
-    _t.monitoredItemsCount++;
+    assert(!_t.monitoredItems.has(monitoredItem.monitoredItemId));
+    _t.monitoredItems.set(monitoredItem.monitoredItemId, monitoredItem);
     return key;
 }
 
@@ -85,11 +88,9 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
         return;
     }
     assert(_t);
-    assert(_t.monitoredItems[monitoredItem.monitoredItemId]);
-    delete _t.monitoredItems[monitoredItem.monitoredItemId];
-    _t.monitoredItemsCount--;
-    assert(_t.monitoredItemsCount >= 0);
-    if (_t.monitoredItemsCount === 0) {
+    assert(_t.monitoredItems.has(monitoredItem.monitoredItemId));
+    _t.monitoredItems.delete(monitoredItem.monitoredItemId);
+    if (_t.monitoredItems.size === 0) {
         if (_t._samplingId !== false) {
             clearInterval(_t._samplingId);
         }

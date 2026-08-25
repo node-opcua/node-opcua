@@ -8,7 +8,7 @@ interface M2 {
 }
 
 interface ISubscriptionWithMonitoredItems {
-    monitoredItems: Record<number, MonitoredItem>;
+    monitoredItems: Map<number, MonitoredItem>;
 }
 
 export function add_mock_monitored_item(subscription: Subscription) {
@@ -41,7 +41,7 @@ export function add_mock_monitored_item(subscription: Subscription) {
         }
     );
 
-    (subscription as unknown as ISubscriptionWithMonitoredItems).monitoredItems[1] = monitoredItem as unknown as MonitoredItem;
+    (subscription as unknown as ISubscriptionWithMonitoredItems).monitoredItems.set(1, monitoredItem as unknown as MonitoredItem);
 
     let counter = 1;
 
