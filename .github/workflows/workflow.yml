@@ -72,28 +72,43 @@ jobs:
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
-    # Node 24.15.0 on Windows dies with a native abort - exit -1073740791
-    # (0xC0000409, STATUS_STACK_BUFFER_OVERRUN) - part way through the end-to-end
-    # suite, during test_e2e_985 (server restarts with a rotated private key and
-    # certificate) right after an asymmetricVerify against the new key. It is not
-    # a JS-level failure: the retry path unwinds through setImmediate, so it
-    # cannot be stack exhaustion, and the same commit passes on Windows/22.x.
+    # The Node 24 entry is a sentinel, not a gate. There is currently no Node 24
+    # release Windows can pass on, so this entry is expected to be red; it must not
+    # block a merge or a release. 22.x is the entry that gates.
     #
-    # It reproduces on master on its own: runs 32814236095 (d887399d) and
-    # 32345463907 both failed this matrix entry and nothing else. Until the crash
-    # is diagnosed it must not block merges - but it keeps running, and keeps
-    # uploading its node-report artifact, because that report carries the native
-    # stack needed to find the cause.
-    continue-on-error: ${{ matrix.node-version == '24.15.0' }}
+    # Two libuv bugs are in play, and as of 2026-08-25 neither is in any released
+    # 24.x - both are fixed on main only:
+    #
+    #   - uv_async_send after uv_close (nodejs/node#56645): "Assertion failed:
+    #     !(handle->flags & UV_HANDLE_CLOSING), win/async.c:76", aborting as exit
+    #     3221226505 / 0xC0000409 (STATUS_STACK_BUFFER_OVERRUN). Windows only,
+    #     absent on 22.x, present from 23 onwards, and racy - it fires at an
+    #     unrelated test each time, and the same commit can crash once and pass on
+    #     re-run. node-opcua opens and closes sockets constantly, which is exactly
+    #     what provokes it. Fixed by nodejs/node#61999, merged 2026-07-24.
+    #
+    #   - fs-event regression introduced in 24.16.0 (nodejs/node#63638,
+    #     libuv/libuv#5010). Fixed by nodejs/node#65118, merged 2026-08-14.
+    #
+    # 24.19.0 - the newest 24.x, released 2026-08-03 - therefore carries both. An
+    # earlier attempt to pin it here was strictly worse than the 24.15.0 it
+    # replaced, which predates the fs-event regression and so carries only one of
+    # the two.
+    #
+    # Floating 24.x rather than pinning, deliberately. No pin can be green, so the
+    # pin's usual payoff - an attributable failure - buys less than picking up the
+    # fix unattended: the first 24.x release carrying both PRs turns this entry
+    # green with nobody having to watch for it. When a failure does need
+    # attributing, the resolved version is in the setup-node step of the run.
+    #
+    # Drop continue-on-error once it stays green, and re-check both issues first.
+    continue-on-error: ${{ startsWith(matrix.node-version, '24') }}
     strategy:
       # Don't cancel the whole matrix when one Node version fails.
       fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # node-version: [20.x, 22.x, 24.x]
-        # 24.15.0 pinned: libuv regression in 24.16.0+ crashes on
-        # Windows fs-event (nodejs/node#63638, libuv/libuv#5010).
-        node-version: [22.x, 24.15.0]
+        node-version: [22.x, 24.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -119,22 +134,44 @@ jobs:
       # genuine exit(127) once bash has masked it. $LASTEXITCODE keeps all 32.
       - name: Run tests
         shell: pwsh
+        # This job exists to exercise the Windows-specific paths - sockets, crypto, fs -
+        # and to watch for the 0xC0000409 fast-fail. Leak detection is covered by
+        # build (22.x); duplicating it here only costs wall clock. Hence no
+        # --expose-gc on the node line below either - the detector is its only
+        # consumer, and it is switched off here.
+        env:
+          MEM_LEAK_DETECTION_DISABLED: "true"
         run: |
           $reportDir = Join-Path $env:RUNNER_TEMP 'node-reports'
           New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
           Set-Location packages
-          # --report-on-fatalerror / --report-uncaught-exception: write a
-          # diagnostic JSON (native stack, heap stats, active handles) when V8
-          # or libuv aborts. Uploaded by the next step; it is the only evidence
-          # that survives a death this abrupt, since stdout to a pipe is async
-          # on Windows and the last writes are lost when the process is killed.
-          node --expose-gc --max-old-space-size=4096 `
-               --report-on-fatalerror --report-uncaught-exception `
-               --report-directory="$reportDir" `
-               run_all_mocha_tests.js
+          $stderrLog = Join-Path $reportDir 'node-stderr.log'
+          # --report-on-fatalerror / --report-uncaught-exception ask V8 and libuv to
+          # write a diagnostic JSON when they abort. Keep them - but they have now
+          # produced nothing on three separate 0xC0000409 crashes ("No files were
+          # found with the provided path" each time), because a Windows fast-fail
+          # terminates the process before node reaches its report writer.
+          #
+          # So capture stderr as well, and capture it to a *file*. V8 prints its
+          # "FATAL ERROR: ..." line and a native stack trace to stderr immediately
+          # before aborting, and node writes synchronously to a file handle where it
+          # writes asynchronously to a pipe - which is precisely why those last lines
+          # vanish today.
+          #
+          # cmd, not pwsh, for the redirect: PowerShell's own `2>` hands node a pipe,
+          # re-encodes to UTF-16, wraps the output in a NativeCommandError, and - the
+          # part that matters here - loses the real exit code (a measured abort came
+          # back as 134 instead of the NTSTATUS). cmd's `2>` passes a genuine file
+          # handle and propagates the full 32-bit code unchanged.
+          cmd /c "node --max-old-space-size=4096 --report-on-fatalerror --report-uncaught-exception --report-directory=""$reportDir"" parallel_test.js 2> ""$stderrLog"""
           $code = $LASTEXITCODE
+          if ((Test-Path $stderrLog) -and (Get-Item $stderrLog).Length -gt 0) {
+            Write-Host "----- node stderr (tail) -----"
+            Get-Content $stderrLog -Tail 60
+            Write-Host "------------------------------"
+          }
           $hex = '0x{0:X8}' -f $code
-          Write-Host "::notice::run_all_mocha_tests.js exited with code $code ($hex)"
+          Write-Host "::notice::parallel_test.js exited with code $code ($hex)"
           switch ($code) {
             0 { }
             1 { Write-Host "::error::test runner reported a test failure (exit 1)" }
@@ -146,7 +183,8 @@ jobs:
           exit $code
 
       # if: failure() only — a passing run writes no report and the upload
-      # would just warn about an empty directory.
+      # would just warn about an empty directory. Carries node-stderr.log as well
+      # as any report JSON; on a fast-fail the stderr log is the only survivor.
       - name: Upload node diagnostic reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -163,10 +201,10 @@ jobs:
       fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # Deliberately NOT pinned to 24.15.0 like the Windows job: every
-        # abnormal-exit crash on record came from build_on_windows (24.15.0).
-        # Linux has never reproduced it, so pinning here would only cost us
-        # coverage of current Node 24.
+        # Both entries gate here, unlike build_on_windows where 24.x is a
+        # non-blocking sentinel: every abnormal-exit crash on record came from that
+        # job, and the libuv bug behind it (nodejs/node#56645) is Windows-only.
+        # Linux has never reproduced it.
         node-version: [22.x, 24.x]
 
     steps:
@@ -183,7 +221,22 @@ jobs:
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
-      - run: pnpm run test
+      # Leak detection runs on exactly one flavour. Its two checks - a heapUsed
+      # delta and unreleased setTimeout/setInterval handles - are monkey-patched at
+      # the JS level and have no platform-specific component, so running it on all
+      # five test jobs produces the same signal five times. Cost is not the reason:
+      # measured against master it is worth roughly two minutes per job.
+      #
+      # NODE_OPTIONS rather than a flag in the test:parallel script, so that a plain
+      # `pnpm run test:parallel` stays a plain test run for developers. The detector
+      # is the only consumer of --expose-gc, and without it takeMemorySnapshot
+      # compares heaps that were never collected - detection on with GC off is the
+      # one combination that costs without measuring. Worker threads inherit it, so
+      # it reaches the per-file isolates parallel_test.js spawns.
+      - run: pnpm run test:parallel
+        env:
+          MEM_LEAK_DETECTION_DISABLED: ${{ matrix.node-version != '22.x' }}
+          NODE_OPTIONS: ${{ matrix.node-version == '22.x' && '--expose-gc' || '' }}
 
   coverage:
     runs-on: ubuntu-latest
@@ -206,7 +259,12 @@ jobs:
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
+      # Same reasoning as the build job: leak detection is a single JS-level signal
+      # and build (22.x) already produces it. Coverage instruments every call in the
+      # tree, which is the last place the detector's heap deltas mean anything.
       - run: make test-cov
+        env:
+          MEM_LEAK_DETECTION_DISABLED: "true"
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:

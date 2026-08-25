@@ -328,7 +328,12 @@ if (isMainThread) {
 
         fileMax = testFiles.length;
         const promises = [];
-        const cpuCount = Math.max(CPU || os.cpus().length * 0.7, 2);
+        // Floor of 4, not 2: GitHub runners report few cores, and 0.7 * that rounds
+        // down far enough to barely parallelise at all. The floor applies to the
+        // computed default only - an explicit CPU=<n> is taken as given, since it
+        // exists precisely to throttle a machine that cannot take four workers each
+        // spinning up real servers.
+        const cpuCount = CPU || Math.max(Math.round(os.cpus().length * 0.7), 4);
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
