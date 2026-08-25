@@ -590,7 +590,7 @@ export class Subscription extends EventEmitter {
     public _pending_notifications: Queue<InternalNotification>;
     private _sent_notification_messages: NotificationMessage[];
     private readonly _sequence_number_generator: SequenceNumberGenerator;
-    private readonly monitoredItems: { [key: number]: MonitoredItem };
+    private readonly monitoredItems: Map<number, MonitoredItem>;
     private timerId: ReturnType<typeof setTimeout> | null;
     private _hasUncollectedMonitoredItemNotifications = false;
 
@@ -637,7 +637,7 @@ export class Subscription extends EventEmitter {
 
         this.publishIntervalCount = 0;
 
-        this.monitoredItems = {}; // monitored item map
+        this.monitoredItems = new Map(); // monitored item map
 
         this.monitoredItemIdCounter = 0;
 
@@ -821,10 +821,8 @@ export class Subscription extends EventEmitter {
         doDebug && debugLog("terminating Subscription  ", this.id, " with ", this.monitoredItemCount, " monitored items");
 
         // dispose all monitoredItem
-        const keys = Object.keys(this.monitoredItems);
-
-        for (const key of keys) {
-            const status = this.removeMonitoredItem(parseInt(key, 10));
+        for (const monitoredItemId of [...this.monitoredItems.keys()]) {
+            const status = this.removeMonitoredItem(monitoredItemId);
             assert(status === StatusCodes.Good);
         }
         assert(this.monitoredItemCount === 0);
@@ -959,16 +957,18 @@ export class Subscription extends EventEmitter {
      * number of monitored items handled by this subscription
      */
     public get monitoredItemCount(): number {
-        return Object.keys(this.monitoredItems).length;
+        return this.monitoredItems.size;
     }
 
     /**
      * number of disabled monitored items.
      */
     public get disabledMonitoredItemCount(): number {
-        return Object.values(this.monitoredItems).reduce((sum: number, monitoredItem: MonitoredItem) => {
-            return sum + (monitoredItem.monitoringMode === MonitoringMode.Disabled ? 1 : 0);
-        }, 0);
+        let count = 0;
+        for (const monitoredItem of this.monitoredItems.values()) {
+            count += monitoredItem.monitoringMode === MonitoringMode.Disabled ? 1 : 0;
+        }
+        return count;
     }
 
     /**
@@ -1126,7 +1126,7 @@ export class Subscription extends EventEmitter {
     }
 
     public async applyOnMonitoredItem(functor: (monitoredItem: MonitoredItem) => Promise<void>): Promise<void> {
-        for (const m of Object.values(this.monitoredItems)) {
+        for (const m of this.monitoredItems.values()) {
             await functor(m);
         }
     }
@@ -1161,7 +1161,7 @@ export class Subscription extends EventEmitter {
      * @return the monitored item matching monitoredItemId
      */
     public getMonitoredItem(monitoredItemId: number): MonitoredItem | null {
-        return this.monitoredItems[monitoredItemId] || null;
+        return this.monitoredItems.get(monitoredItemId) || null;
     }
 
     /**
@@ -1171,11 +1171,10 @@ export class Subscription extends EventEmitter {
     public removeMonitoredItem(monitoredItemId: number): StatusCode {
         // c8 ignore next
         doDebug && debugLog("Removing monitoredIem ", monitoredItemId);
-        if (!Object.hasOwn(this.monitoredItems, monitoredItemId.toString())) {
+        const monitoredItem = this.monitoredItems.get(monitoredItemId);
+        if (!monitoredItem) {
             return StatusCodes.BadMonitoredItemIdInvalid;
         }
-
-        const monitoredItem = this.monitoredItems[monitoredItemId];
 
         monitoredItem.terminate();
 
@@ -1188,7 +1187,7 @@ export class Subscription extends EventEmitter {
 
         monitoredItem.dispose();
 
-        delete this.monitoredItems[monitoredItemId];
+        this.monitoredItems.delete(monitoredItemId);
         this.globalCounter.totalMonitoredItemCount -= 1;
 
         this._removePendingNotificationsFor(monitoredItemId);
@@ -1204,11 +1203,7 @@ export class Subscription extends EventEmitter {
         if (this._hasUncollectedMonitoredItemNotifications) {
             return true;
         }
-        const keys = Object.keys(this.monitoredItems);
-        const n = keys.length;
-        for (let i = 0; i < n; i++) {
-            const key = parseInt(keys[i], 10);
-            const monitoredItem = this.monitoredItems[key];
+        for (const monitoredItem of this.monitoredItems.values()) {
             if (monitoredItem.hasMonitoredItemNotifications) {
                 this._hasUncollectedMonitoredItemNotifications = true;
                 return true;
@@ -1284,7 +1279,7 @@ export class Subscription extends EventEmitter {
      *
      */
     public getMonitoredItems(): GetMonitoredItemsResult {
-        const monitoredItems = Object.keys(this.monitoredItems);
+        const monitoredItems = [...this.monitoredItems.keys()];
         const monitoredItemCount = monitoredItems.length;
         const result: GetMonitoredItemsResult = {
             clientHandles: new Uint32Array(monitoredItemCount),
@@ -1292,8 +1287,7 @@ export class Subscription extends EventEmitter {
             statusCode: StatusCodes.Good
         };
         for (let index = 0; index < monitoredItemCount; index++) {
-            const monitoredItemId = monitoredItems[index];
-            const serverHandle = parseInt(monitoredItemId, 10);
+            const serverHandle = monitoredItems[index];
             const monitoredItem = this.getMonitoredItem(serverHandle);
             // c8 ignore next
             if (!monitoredItem) {
@@ -1317,7 +1311,7 @@ export class Subscription extends EventEmitter {
 
         try {
             const promises: Promise<void>[] = [];
-            for (const monitoredItem of Object.values(this.monitoredItems)) {
+            for (const monitoredItem of this.monitoredItems.values()) {
                 promises.push(
                     (async () => {
                         try {
@@ -1921,7 +1915,7 @@ export class Subscription extends EventEmitter {
 
         assert(monitoredItem.monitoredItemId === monitoredItemId);
 
-        this.monitoredItems[monitoredItemId] = monitoredItem;
+        this.monitoredItems.set(monitoredItemId, monitoredItem);
         this.globalCounter.totalMonitoredItemCount += 1;
 
         assert(monitoredItem.clientHandle !== 4294967295);
@@ -1960,7 +1954,7 @@ export class Subscription extends EventEmitter {
     }
 
     public _harvestMonitoredItems() {
-        for (const monitoredItem of Object.values(this.monitoredItems)) {
+        for (const monitoredItem of this.monitoredItems.values()) {
             const notifications_chunks = monitoredItem.extractMonitoredItemNotifications();
             for (const chunk of notifications_chunks) {
                 this._addNotificationMessage(chunk, monitoredItem.monitoredItemId);
