@@ -1320,10 +1320,19 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             }
         }
         dataValue = apply_timestamps(dataValue, this.timestampsToReturn, attributeId);
-        return new MonitoredItemNotification({
-            clientHandle: this.clientHandle,
-            value: dataValue
-        });
+        // Assign rather than pass through the options constructor: DataValue is registered
+        // with a coerce that always builds a new instance, so `{ value: dataValue }` would
+        // deep-copy the payload a second time - typed arrays included - immediately after
+        // recordValue already cloned it.
+        //
+        // Handing over apply_timestamps' result directly is safe because that is itself a
+        // fresh DataValue: the notification owns its statusCode and timestamps (which
+        // _setOverflowBit and the timestamp handling do write), and shares only the Variant
+        // with oldDataValue, which nothing mutates in place.
+        const notification = new MonitoredItemNotification(null);
+        notification.clientHandle = this.clientHandle;
+        notification.value = dataValue;
+        return notification;
     }
 
     /**
