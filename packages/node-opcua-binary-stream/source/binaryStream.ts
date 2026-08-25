@@ -186,16 +186,36 @@ export class BinaryStream {
      * @param offset   the offset position (default =0)
      * @param length   the number of byte to write
      */
-    public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, length = 0): void {
+    public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, length?: number): void {
         // c8 ignore next
         if (performCheck) {
             assert(arrayBuf instanceof ArrayBuffer);
         }
+        // note: for a real ArrayBuffer this is a zero-copy view. It also preserves the
+        // legacy shape where a caller passes a TypedArray instead: that takes the
+        // array-like constructor path and truncates element-wise, which some tests rely on.
         const byteArr = new Uint8Array(arrayBuf);
-        const n = (length || byteArr.length) + offset;
-        for (let i = offset; i < n; i++) {
-            this.buffer[this.length++] = byteArr[i];
+        // `length` must default to "the rest of the buffer", not to the *whole* buffer:
+        // the old `length || byteArr.length` turned an explicit 0 into a full copy, and
+        // ignored `offset` when length was omitted.
+        const len = clampArrayBufferLength(byteArr.length, offset, length);
+        if (len === 0) {
+            return;
         }
+        // make sure there is enough room in destination buffer
+        const remainingBytes = this.buffer.length - this.length;
+        /* c8 ignore next */
+        if (remainingBytes < len) {
+            throw new Error(
+                "BinaryStream.writeArrayBuffer error : not enough bytes left in buffer :  requested is " +
+                    len +
+                    " but only " +
+                    remainingBytes +
+                    " left"
+            );
+        }
+        this.buffer.set(byteArr.subarray(offset, offset + len), this.length);
+        this.length += len;
     }
 
     // writeArrayBuffer(arrayBuf, offset, length) {
@@ -457,6 +477,36 @@ export class BinaryStream {
         this.length += bufLen;
         return str;
     }
+}
+
+/**
+ * resolve the (offset, length) arguments of writeArrayBuffer into a byte count.
+ *
+ * Shared by BinaryStream and BinaryStreamSizeCalculator so the two can never
+ * disagree: MessageChunker sizes a message with the calculator, allocates
+ * exactly that many bytes, then encodes with the stream. Any divergence here
+ * shows up as malformed chunk framing, not as a wrong number.
+ *
+ * @internal
+ */
+export function clampArrayBufferLength(byteLength: number, offset: number, length?: number): number {
+    // A negative offset would make `available` larger than the source, and
+    // TypedArray#subarray reads a negative start as an offset from the *end* - so the
+    // caller would advance the cursor by more bytes than were actually copied, leaving
+    // a window of untouched destination memory inside the stream. Reject it here, in
+    // the one place both the stream and the size calculator agree on.
+    if (!(offset >= 0)) {
+        throw new Error(`BinaryStream.writeArrayBuffer: offset must be a non-negative number, got ${offset}`);
+    }
+    const available = byteLength - offset;
+    if (available <= 0) {
+        return 0;
+    }
+    const requested = length === undefined ? available : length;
+    if (requested <= 0) {
+        return 0;
+    }
+    return requested < available ? requested : available;
 }
 
 /**

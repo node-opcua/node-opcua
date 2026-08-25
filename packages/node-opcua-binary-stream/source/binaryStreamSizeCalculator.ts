@@ -2,7 +2,7 @@
  * @module node-opcua-binary-stream
  */
 import { assert } from "node-opcua-assert";
-import { calculateByteLength } from "./binaryStream";
+import { calculateByteLength, clampArrayBufferLength } from "./binaryStream";
 
 /**
  * a BinaryStreamSizeCalculator can be used to quickly evaluate the required size
@@ -59,10 +59,10 @@ export class BinaryStreamSizeCalculator {
         this.length += 8;
     }
 
-    public writeArrayBuffer(arrayBuf: ArrayBuffer, offset: number, byteLength: number): void {
-        offset = offset || 0;
+    public writeArrayBuffer(arrayBuf: ArrayBuffer, offset = 0, byteLength?: number): void {
         assert(arrayBuf instanceof ArrayBuffer);
-        this.length += byteLength || arrayBuf.byteLength;
+        // must resolve (offset, byteLength) exactly as BinaryStream.writeArrayBuffer does
+        this.length += clampArrayBufferLength(arrayBuf.byteLength, offset, byteLength);
     }
 
     public writeByteStream(buf: Buffer): void {
