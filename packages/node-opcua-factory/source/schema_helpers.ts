@@ -3,12 +3,13 @@
  */
 import { assert } from "node-opcua-assert";
 import { DataTypeIds } from "node-opcua-constants";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { BaseUAObject } from "./base_ua_object";
 import type { DataTypeFactory } from "./datatype_factory";
 import { FieldCategory, type FieldType, type IStructuredTypeSchema, type StructuredTypeField } from "./types";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 /**
  * ensure correctness of a schema object.
@@ -54,7 +55,8 @@ export function initialize_field<T = any>(field: StructuredTypeField, value: unk
         if (field.fieldTypeConstructor) {
             return new field.fieldTypeConstructor(value as Record<string, unknown>) as T;
         } else {
-            debugLog("xxxx => missing constructor for field type", field.fieldType);
+            // c8 ignore next
+            doDebug && debugLog("xxxx => missing constructor for field type", field.fieldType);
         }
     }
 

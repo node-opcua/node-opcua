@@ -22,7 +22,7 @@ const paths = envPaths("node-opcua-default");
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export interface ICertificateManager {
     getTrustStatus(certificate: Certificate): Promise<StatusCode>;
@@ -231,13 +231,17 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
         const statusCode = StatusCodes[status];
 
-        debugLog(`checkCertificate => StatusCode = ${statusCode.toString()}`);
+        // c8 ignore next
+        doDebug && debugLog(`checkCertificate => StatusCode = ${statusCode.toString()}`);
         if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
             const topCertificateInChain = certificates[0];
             const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
             if (this.automaticallyAcceptUnknownCertificate) {
-                debugLog("automaticallyAcceptUnknownCertificate = true");
-                debugLog(`certificate with thumbprint ${thumbprint} is now trusted (was: ${statusCode.toString()})`);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog("automaticallyAcceptUnknownCertificate = true");
+                    debugLog(`certificate with thumbprint ${thumbprint} is now trusted (was: ${statusCode.toString()})`);
+                }
                 try {
                     await this.trustCertificate(topCertificateInChain);
                 } catch (err) {
@@ -246,7 +250,8 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                         // from rejected to trusted — verify it's now trusted.
                         const trustStatus = await this.getTrustStatus(topCertificateInChain);
                         if (trustStatus.equals(StatusCodes.Good)) {
-                            debugLog(`certificate with thumbprint ${thumbprint} was already trusted by another caller`);
+                            // c8 ignore next
+                            doDebug && debugLog(`certificate with thumbprint ${thumbprint} was already trusted by another caller`);
                             return StatusCodes.Good;
                         }
                     }
@@ -254,8 +259,11 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 }
                 return StatusCodes.Good;
             } else {
-                debugLog("automaticallyAcceptUnknownCertificate = false");
-                debugLog(`certificate with thumbprint ${thumbprint} is now rejected`);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog("automaticallyAcceptUnknownCertificate = false");
+                    debugLog(`certificate with thumbprint ${thumbprint} is now rejected`);
+                }
                 await this.rejectCertificate(topCertificateInChain);
                 return StatusCodes.BadCertificateUntrusted;
             }
@@ -267,8 +275,11 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             const topCertificateInChain = certificates[0];
             if (this.automaticallyAcceptUnknownCertificate) {
                 const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
-                debugLog("automaticallyAcceptUnknownCertificate = true (revocation unknown)");
-                debugLog(`certificate with thumbprint ${thumbprint} is now trusted despite unknown revocation status`);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog("automaticallyAcceptUnknownCertificate = true (revocation unknown)");
+                    debugLog(`certificate with thumbprint ${thumbprint} is now trusted despite unknown revocation status`);
+                }
                 await this.trustCertificate(topCertificateInChain);
                 return StatusCodes.Good;
             }

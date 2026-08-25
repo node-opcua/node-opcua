@@ -26,7 +26,7 @@ import {
     type QualifiedName
 } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
@@ -41,6 +41,7 @@ import { _getBasicDataType } from "./get_basic_datatype";
 import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
@@ -164,7 +165,8 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
                     options.value = this.value as Variant;
                     options.statusCode = StatusCodes.Good;
                 } else {
-                    debugLog(" warning Value not implemented");
+                    // c8 ignore next
+                    doDebug && debugLog(" warning Value not implemented");
                     options.value = { dataType: DataType.Null };
                     options.statusCode = StatusCodes.BadAttributeIdInvalid;
                 }

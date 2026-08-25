@@ -856,7 +856,8 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
         /* c8 ignore next */
         if (do_debug) {
-            debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
+            // c8 ignore next
+            doDebug && debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
             dumpReferences(addressSpace, _private._referenceIdx.values());
         }
 
@@ -1540,11 +1541,13 @@ function toObject(addressSpace: IAddressSpace, reference: UAReference): BaseNode
     const obj = resolveReferenceNode(addressSpace, reference);
     // c8 ignore next
     if (doDebug && !obj) {
-        debugLog(
-            chalk.red(" Warning :  object with nodeId ") +
-                chalk.cyan(reference.nodeId.toString()) +
-                chalk.red(" cannot be found in the address space !")
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                chalk.red(" Warning :  object with nodeId ") +
+                    chalk.cyan(reference.nodeId.toString()) +
+                    chalk.red(" cannot be found in the address space !")
+            );
     }
     return obj;
 }

@@ -314,15 +314,19 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         }
 
         if ("privateKey" in this.serverCertificateManager) {
-            debugLog(
-                "privateKey      = ",
-                this.privateKeyFile,
-                (this.serverCertificateManager as unknown as { privateKey: string }).privateKey
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "privateKey      = ",
+                    this.privateKeyFile,
+                    (this.serverCertificateManager as unknown as { privateKey: string }).privateKey
+                );
         } else {
-            debugLog("privateKey      = ", this.privateKeyFile);
+            // c8 ignore next
+            doDebug && debugLog("privateKey      = ", this.privateKeyFile);
         }
-        debugLog("certificateFile = ", this.certificateFile);
+        // c8 ignore next
+        doDebug && debugLog("certificateFile = ", this.certificateFile);
         this._checkCertificateSanMismatch();
         await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
         this._checkOwnCertificateChainCompleteness();
@@ -580,10 +584,12 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
                 // The certificate manager may already be disposing if
                 // userCertificateManager and serverCertificateManager
                 // point to the same instance (common in tests).
-                debugLog("OPCUABaseServer#shutdown serverCertificateManager.dispose() error:", err.message);
+                // c8 ignore next
+                doDebug && debugLog("OPCUABaseServer#shutdown serverCertificateManager.dispose() error:", err.message);
             })
             .then(() => {
-                debugLog("OPCUABaseServer#shutdown starting");
+                // c8 ignore next
+                doDebug && debugLog("OPCUABaseServer#shutdown starting");
                 const promises = this.endpoints.map((endpoint) => {
                     return new Promise<void>((resolve, reject) => {
                         cleanupEndpoint(endpoint);
@@ -592,7 +598,8 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
                 });
                 Promise.all(promises)
                     .then(() => {
-                        debugLog("shutdown completed");
+                        // c8 ignore next
+                        doDebug && debugLog("shutdown completed");
                         done();
                     })
                     .catch((err) => done(err));
@@ -605,10 +612,12 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         assert(typeof callback === "function");
         // c8 ignore next
         if (!callback) throw new Error("thenify is not available");
-        debugLog("OPCUABaseServer#shutdownChannels");
+        // c8 ignore next
+        doDebug && debugLog("OPCUABaseServer#shutdownChannels");
         const promises = this.endpoints.map((endpoint) => {
             return new Promise<void>((resolve, reject) => {
-                debugLog(" shutting down endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
+                // c8 ignore next
+                doDebug && debugLog(" shutting down endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
                 endpoint.abruptlyInterruptChannels();
                 endpoint.shutdown((err) => (err ? reject(err) : resolve()));
             });
@@ -650,7 +659,8 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             } else {
                 errMessage = `[NODE-OPCUA-W07] Unsupported Service : ${request.schema.name}`;
                 warningLog(errMessage);
-                debugLog(chalk.red.bold(errMessage));
+                // c8 ignore next
+                doDebug && debugLog(chalk.red.bold(errMessage));
                 response = makeServiceFault(StatusCodes.BadServiceUnsupported, [errMessage]);
                 channel.send_response("MSG", response, message, emptyCallback);
             }

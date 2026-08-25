@@ -94,7 +94,8 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         for (const fullBrowsePath of this._map.keys()) {
             const node = this._node_index.get(fullBrowsePath);
             if (!node) {
-                debugLog("cannot node for find key", fullBrowsePath);
+                // c8 ignore next
+                doDebug && debugLog("cannot node for find key", fullBrowsePath);
                 continue;
             }
             if (isDisabled && !Object.hasOwn(_varTable, fullBrowsePath)) {
@@ -275,7 +276,8 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         const node = this._node_index.get(key);
         if (!node) {
             // for instance localTime is optional
-            debugLog(`Cannot serVar ${varName} dataType ${DataType[dataType]}`);
+            // c8 ignore next
+            doDebug && debugLog(`Cannot serVar ${varName} dataType ${DataType[dataType]}`);
             return;
         }
         assert(node.nodeClass === NodeClass.Variable);

@@ -21,8 +21,8 @@ import { OpenFileMode, OpenFileModeMask } from "../open_mode";
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
-const _doDebug = checkDebugFlag("FileType");
-_doDebug;
+const doDebug = checkDebugFlag("FileType");
+doDebug;
 /**
  *
  */
@@ -166,7 +166,8 @@ export class FileTypeData {
                 }
                 const stat = await promisify(abstractFs.stat)(self.filename);
                 self._fileSize = stat.size;
-                debugLog("original file size ", self.filename, " size = ", self._fileSize);
+                // c8 ignore next
+                doDebug && debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
                 if (types.isNativeError(err)) {
@@ -419,7 +420,8 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
-    debugLog("Opening file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
+    // c8 ignore next
+    doDebug && debugLog("Opening file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     const callMethodResult = {
         outputArguments: [
@@ -460,7 +462,8 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
 
     const fileData = getFileDataFromContext(context);
 
-    debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
+    // c8 ignore next
+    doDebug && debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     await promisify(abstractFs.close)(_fileInfo.fd);
     _close(addressSpace, _fileInfo);
@@ -598,9 +601,11 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);
 
         const fileData = getFileDataFromContext(context);
-        debugLog(fileData.fileSize);
+        // c8 ignore next
+        doDebug && debugLog(fileData.fileSize);
         fileData.fileSize = Math.max(fileData.fileSize, _fileInfo.position[1]);
-        debugLog(fileData.fileSize);
+        // c8 ignore next
+        doDebug && debugLog(fileData.fileSize);
     } catch (err) {
         if (types.isNativeError(err)) {
             errorLog("Write error : ", err.message);

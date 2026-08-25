@@ -266,16 +266,19 @@ async function _verify_serverCertificate(certificateManager: ICertificateStore, 
 }
 
 const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0", 10);
-debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
+// c8 ignore next
+doDebug && debugLog("forceEndpointDiscoveryOnConnect = ", forceEndpointDiscoveryOnConnect);
 
 class ClockAdjustment {
     constructor() {
-        debugLog("installPeriodicClockAdjustment ", periodicClockAdjustment.timerInstallationCount);
+        // c8 ignore next
+        doDebug && debugLog("installPeriodicClockAdjustment ", periodicClockAdjustment.timerInstallationCount);
         installPeriodicClockAdjustment();
     }
     dispose() {
         uninstallPeriodicClockAdjustment();
-        debugLog("uninstallPeriodicClockAdjustment ", periodicClockAdjustment.timerInstallationCount);
+        // c8 ignore next
+        doDebug && debugLog("uninstallPeriodicClockAdjustment ", periodicClockAdjustment.timerInstallationCount);
     }
 }
 
@@ -560,13 +563,16 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             warningLog("internal error: _cancel_reconnection should only be used when reconnecting is in progress");
         }
 
-        debugLog("canceling reconnection : ", this.clientName);
+        // c8 ignore next
+        doDebug && debugLog("canceling reconnection : ", this.clientName);
 
         this._reconnectionIsCanceled = true;
 
         // c8 ignore next
         if (!this._secureChannel) {
-            debugLog("_cancel_reconnection:  Nothing to do for !", this.clientName, " because secure channel doesn't exist");
+            // c8 ignore next
+            doDebug &&
+                debugLog("_cancel_reconnection:  Nothing to do for !", this.clientName, " because secure channel doesn't exist");
             return callback(); // nothing to do
         }
 
@@ -577,10 +583,12 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     }
 
     public _recreate_secure_channel(callback: ErrorCallback): void {
-        debugLog("_recreate_secure_channel... while internalState is", this._internalState);
+        // c8 ignore next
+        doDebug && debugLog("_recreate_secure_channel... while internalState is", this._internalState);
 
         if (!this.knowsServerEndpoint) {
-            debugLog("Cannot reconnect , server endpoint is unknown");
+            // c8 ignore next
+            doDebug && debugLog("Cannot reconnect , server endpoint is unknown");
             callback(new Error("Cannot reconnect, server endpoint is unknown - this.knowsServerEndpoint = false"));
             return;
         }
@@ -607,7 +615,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         };
 
         const _failAndRetry = (err: Error, message: string, callback: ErrorCallback) => {
-            debugLog("failAndRetry; ", message);
+            // c8 ignore next
+            doDebug && debugLog("failAndRetry; ", message);
             if (this._reconnectionIsCanceled) {
                 return _when_reconnectionIsCanceled(callback);
             }
@@ -623,13 +632,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             this.emit("after_reconnection", null); // send after callback
             assert(this._secureChannel, "expecting a secureChannel here ");
             // a new channel has be created and a new connection is established
-            debugLog(chalk.bgWhite.red("ClientBaseImpl:  RECONNECTED                !!!"));
+            // c8 ignore next
+            doDebug && debugLog(chalk.bgWhite.red("ClientBaseImpl:  RECONNECTED                !!!"));
             this._setInternalState("reconnecting_newchannel_connected");
             return callback();
         };
 
         const _attempt_to_recreate_secure_channel = (callback: ErrorCallback) => {
-            debugLog("attempt to recreate a new secure channel");
+            // c8 ignore next
+            doDebug && debugLog("attempt to recreate a new secure channel");
             if (this._reconnectionIsCanceled) {
                 return _when_reconnectionIsCanceled(callback);
             }
@@ -732,11 +743,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         assert(this._secureChannel === null);
         assert(typeof this.endpointUrl === "string");
 
-        debugLog(
-            "_internal_create_secure_channel creating new ClientSecureChannelLayer _internalState =",
-            this._internalState,
-            this.clientName
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "_internal_create_secure_channel creating new ClientSecureChannelLayer _internalState =",
+                this._internalState,
+                this.clientName
+            );
         const secureChannel = new ClientSecureChannelLayer({
             connectionStrategy,
             defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
@@ -766,12 +779,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         const step2_openSecureChannel = (): Promise<void> => {
             return new Promise<void>((resolve, reject) => {
-                debugLog("_internal_create_secure_channel before secureChannel.create");
+                // c8 ignore next
+                doDebug && debugLog("_internal_create_secure_channel before secureChannel.create");
 
                 secureChannel.create(this.endpointUrl, (err?: Error) => {
-                    debugLog("_internal_create_secure_channel after secureChannel.create");
+                    // c8 ignore next
+                    doDebug && debugLog("_internal_create_secure_channel after secureChannel.create");
                     if (!this._secureChannel) {
-                        debugLog("_secureChannel has been closed during the transaction !");
+                        // c8 ignore next
+                        doDebug && debugLog("_secureChannel has been closed during the transaction !");
                         return reject(new Error("Secure Channel Closed"));
                     }
                     if (err) {
@@ -791,7 +807,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
                     this.getEndpoints((err: Error | null /*, endpoints?: EndpointDescription[]*/) => {
                         if (!this._secureChannel) {
-                            debugLog("_secureChannel has been closed during the transaction ! (while getEndpoints)");
+                            // c8 ignore next
+                            doDebug && debugLog("_secureChannel has been closed during the transaction ! (while getEndpoints)");
                             return reject(new Error("Secure Channel Closed"));
                         }
                         if (err) {
@@ -875,14 +892,18 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     this.applicationName,
                     this._getBuiltApplicationUri()
                 );
-                debugLog("privateKey      = ", this.privateKeyFile);
+                // c8 ignore next
+                doDebug && debugLog("privateKey      = ", this.privateKeyFile);
                 if ("privateKey" in this.clientCertificateManager) {
-                    debugLog(
-                        "                = ",
-                        (this.clientCertificateManager as unknown as OPCUACertificateManager).privateKey
-                    );
+                    // c8 ignore next
+                    doDebug &&
+                        debugLog(
+                            "                = ",
+                            (this.clientCertificateManager as unknown as OPCUACertificateManager).privateKey
+                        );
                 }
-                debugLog("certificateFile = ", this.certificateFile);
+                // c8 ignore next
+                doDebug && debugLog("certificateFile = ", this.certificateFile);
                 const _certificate = this.getCertificate();
                 // Note: do NOT eagerly call this.getPrivateKey() here. A freshly
                 // generated key may already be passphrase-encrypted on disk (when
@@ -963,7 +984,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     protected _internalState: InternalClientState = "uninitialized";
 
     protected _handleUnrecoverableConnectionFailure(err: Error, callback: ErrorCallback): void {
-        debugLog(err.message);
+        // c8 ignore next
+        doDebug && debugLog(err.message);
         // Terminal connect failure: make sure the client is removed from the leak registry. A
         // synchronous throw out of _connectStep2 (e.g. an invalid SecureChannel config) lands here
         // WITHOUT the error-branch unregister ever running, which would otherwise leak the client.
@@ -974,7 +996,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         callback(err);
     }
     private _handleDisconnectionWhileConnecting(err: Error, callback: ErrorCallback) {
-        debugLog(err.message);
+        // c8 ignore next
+        doDebug && debugLog(err.message);
         // see _handleUnrecoverableConnectionFailure: idempotent unregister guards against a leaked
         // client when a connect attempt fails before the error-branch unregister runs.
         OPCUAClientBase.registry.unregister(this);
@@ -983,7 +1006,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         callback(err);
     }
     private _handleSuccessfulConnection(callback: ErrorCallback) {
-        debugLog(" Connected successfully  to ", this.endpointUrl);
+        // c8 ignore next
+        doDebug && debugLog(" Connected successfully  to ", this.endpointUrl);
         this.emit("connected");
         this._setInternalState("connected");
         callback();
@@ -1021,7 +1045,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this.initializeCM()
             .then(() => {
-                debugLog("ClientBaseImpl#connect ", endpointUrl, this.clientName);
+                // c8 ignore next
+                doDebug && debugLog("ClientBaseImpl#connect ", endpointUrl, this.clientName);
                 if (this._internalState === "disconnecting" || this._internalState === "disconnected") {
                     return this._handleDisconnectionWhileConnecting(new Error("premature disconnection 1"), callback);
                 }
@@ -1030,7 +1055,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     !this.serverCertificate &&
                     (forceEndpointDiscoveryOnConnect || this.securityMode !== MessageSecurityMode.None)
                 ) {
-                    debugLog("Fetching certificates from endpoints");
+                    // c8 ignore next
+                    doDebug && debugLog("Fetching certificates from endpoints");
                     this.fetchServerCertificate(endpointUrl, (err: Error | null, adjustedEndpointUrl?: string) => {
                         if (err) {
                             return this._handleUnrecoverableConnectionFailure(err, callback);
@@ -1039,10 +1065,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                             return this._handleDisconnectionWhileConnecting(new Error("premature disconnection 2"), callback);
                         }
                         if (forceEndpointDiscoveryOnConnect) {
-                            debugLog("connecting with adjusted endpoint : ", adjustedEndpointUrl, "  was =", endpointUrl);
+                            // c8 ignore next
+                            doDebug &&
+                                debugLog("connecting with adjusted endpoint : ", adjustedEndpointUrl, "  was =", endpointUrl);
                             this._connectStep2(adjustedEndpointUrl || "", callback);
                         } else {
-                            debugLog("connecting with endpoint : ", endpointUrl);
+                            // c8 ignore next
+                            doDebug && debugLog("connecting with endpoint : ", endpointUrl);
                             this._connectStep2(endpointUrl, callback);
                         }
                     });
@@ -1134,7 +1163,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this.initializeCM()
             .then(() => {
-                debugLog("ClientBaseImpl#connectReverse ", placeholderEndpointUrl, this.clientName);
+                // c8 ignore next
+                doDebug && debugLog("ClientBaseImpl#connectReverse ", placeholderEndpointUrl, this.clientName);
                 if (this._internalState === "disconnecting" || this._internalState === "disconnected") {
                     return this._handleDisconnectionWhileConnecting(new Error("premature disconnection 1"), callback);
                 }
@@ -1158,7 +1188,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         this._clockAdjuster = this._clockAdjuster || new ClockAdjustment();
         OPCUAClientBase.registry.register(this);
 
-        debugLog("__connectStep2 ", this._internalState);
+        // c8 ignore next
+        doDebug && debugLog("__connectStep2 ", this._internalState);
 
         this._internal_create_secure_channel(this.connectionStrategy, (err: Error | null) => {
             if (!err) {
@@ -1169,13 +1200,16 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     this._clockAdjuster.dispose();
                     this._clockAdjuster = undefined;
                 }
-                debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
+                // c8 ignore next
+                doDebug && debugLog(chalk.red("SecureChannel creation has failed with error :", err.message));
                 if (err.message.match(/ECONNABORTED/)) {
-                    debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Connection has been aborted.`));
+                    // c8 ignore next
+                    doDebug && debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Connection has been aborted.`));
                     err = new Error("The connection has been aborted");
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 } else if (err.message.match(/ECONNREF/)) {
-                    debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Server is not reachable.`));
+                    // c8 ignore next
+                    doDebug && debugLog(chalk.yellow(`- The client cannot to :${endpointUrl}. Server is not reachable.`));
                     err = new Error(
                         `The connection cannot be established with server ${endpointUrl} .\n` +
                             "Please check that the server is up and running or your network configuration.\n" +
@@ -1418,7 +1452,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             return callback(null);
         }
 
-        debugLog(chalk.bgWhite.green("_closeSession ") + this._secureChannel.channelId);
+        // c8 ignore next
+        doDebug && debugLog(chalk.bgWhite.green("_closeSession ") + this._secureChannel.channelId);
 
         const request = new CloseSessionRequest({
             deleteSubscriptions
@@ -1487,16 +1522,20 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             callback();
             return undefined;
         }
-        debugLog("disconnecting client! (will set reconnectionIsCanceled to true");
+        // c8 ignore next
+        doDebug && debugLog("disconnecting client! (will set reconnectionIsCanceled to true");
         this._reconnectionIsCanceled = true;
 
-        debugLog("ClientBaseImpl#disconnect", this.endpointUrl);
+        // c8 ignore next
+        doDebug && debugLog("ClientBaseImpl#disconnect", this.endpointUrl);
 
         if (this.isReconnecting && !this._reconnectionIsCanceled) {
-            debugLog("ClientBaseImpl#disconnect called while reconnection is in progress");
+            // c8 ignore next
+            doDebug && debugLog("ClientBaseImpl#disconnect called while reconnection is in progress");
             // let's abort the reconnection process
             this._cancel_reconnection((err?: Error) => {
-                debugLog("ClientBaseImpl#disconnect reconnection has been canceled", this.applicationName);
+                // c8 ignore next
+                doDebug && debugLog("ClientBaseImpl#disconnect reconnection has been canceled", this.applicationName);
                 assert(!err, " why would this fail ?");
                 // sessions cannot be cancelled properly and must be discarded.
                 this.disconnect(callback);
@@ -1505,7 +1544,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         }
 
         if (this._sessions.length && !this.keepPendingSessionsOnDisconnect) {
-            debugLog("warning : disconnection : closing pending sessions");
+            // c8 ignore next
+            doDebug && debugLog("warning : disconnection : closing pending sessions");
             // disconnect has been called whereas living session exists
             // we need to close them first .... (unless keepPendingSessionsOnDisconnect)
             this._close_pending_sessions((/*err*/) => {
@@ -1514,13 +1554,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             return undefined;
         }
 
-        debugLog("Disconnecting !");
+        // c8 ignore next
+        doDebug && debugLog("Disconnecting !");
         this._setInternalState("disconnecting");
         if (this.clientCertificateManager) {
             const tmp = this.clientCertificateManager;
             // (this as any).clientCertificateManager = null;
             tmp.dispose().catch((err: Error) => {
-                debugLog("Error disposing clientCertificateManager", err.message);
+                // c8 ignore next
+                doDebug && debugLog("Error disposing clientCertificateManager", err.message);
             });
         }
 
@@ -1543,7 +1585,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         if (this._secureChannel) {
             let tmpChannel: ClientSecureChannelLayer | null = this._secureChannel;
             this._secureChannel = null;
-            debugLog("Closing channel");
+            // c8 ignore next
+            doDebug && debugLog("Closing channel");
             tmpChannel.close(() => {
                 this._secureChannel = tmpChannel;
                 tmpChannel = null;
@@ -1615,7 +1658,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
     private fetchServerCertificate(endpointUrl: string, callback: (err: Error | null, adjustedEndpointUrl?: string) => void): void {
         const discoveryUrl = this.discoveryUrl.length > 0 ? this.discoveryUrl : endpointUrl;
-        debugLog("OPCUAClientImpl : getting serverCertificate");
+        // c8 ignore next
+        doDebug && debugLog("OPCUAClientImpl : getting serverCertificate");
         // we have not been given the serverCertificate but this certificate
         // is required as the connection is to be secured.
         //
@@ -1793,7 +1837,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         resolved = true;
                         if (err) {
                             const msg = session.authenticationToken ? session.authenticationToken.toString() : "";
-                            debugLog(` failing to close session ${msg}`);
+                            // c8 ignore next
+                            doDebug && debugLog(` failing to close session ${msg}`);
                         }
                         resolve();
                     });
@@ -1805,11 +1850,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             .then(() => {
                 // c8 ignore next
                 if (this._sessions.length > 0) {
-                    debugLog(
-                        this._sessions
-                            .map((s: ClientSessionImpl) => (s.authenticationToken ? s.authenticationToken.toString() : ""))
-                            .join(" ")
-                    );
+                    // c8 ignore next
+                    doDebug &&
+                        debugLog(
+                            this._sessions
+                                .map((s: ClientSessionImpl) => (s.authenticationToken ? s.authenticationToken.toString() : ""))
+                                .join(" ")
+                        );
                 }
                 assert(this._sessions.length === 0, " failed to disconnect exiting sessions ");
                 callback();
@@ -1858,13 +1905,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         secureChannel.on("lifetime_75", (token: ChannelSecurityToken) => {
             // secureChannel requests a new token
-            debugLog(
-                "SecureChannel Security Token ",
-                token.tokenId,
-                "live time was =",
-                token.revisedLifetime,
-                " is about to expired , it's time to request a new token"
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "SecureChannel Security Token ",
+                    token.tokenId,
+                    "live time was =",
+                    token.revisedLifetime,
+                    " is about to expired , it's time to request a new token"
+                );
             // forward message to upper level
             this.emit("lifetime_75", token);
         });
@@ -1878,7 +1927,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             if (err) {
                 this._setInternalState("panic");
             }
-            debugLog(chalk.yellow.bold(" ClientBaseImpl emitting close"), err?.message);
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow.bold(" ClientBaseImpl emitting close"), err?.message);
             this._destroy_secure_channel();
             if (!err || !this.reconnectOnFailure) {
                 if (err) {
@@ -1895,7 +1945,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     this._internalState !== "reconnecting" &&
                     this._internalState !== "reconnecting_newchannel_connected"
                 ) {
-                    debugLog(" ClientBaseImpl emitting connection_lost");
+                    // c8 ignore next
+                    doDebug && debugLog(" ClientBaseImpl emitting connection_lost");
                     this._setInternalState("reconnecting");
                     /**
                      * @event connection_lost
@@ -1946,7 +1997,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     private __innerRepairConnection() {
         if (this.isUnusable()) return;
 
-        debugLog("Entering _repairConnection ", this._internalState);
+        // c8 ignore next
+        doDebug && debugLog("Entering _repairConnection ", this._internalState);
         if (this.#insideRepairConnection) {
             errorLog(
                 "_repairConnection already in progress internal state = ",
@@ -1959,11 +2011,14 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         }
         this.emit("repairConnectionStarted");
         this.#insideRepairConnection = true;
-        debugLog("recreating new secure channel ", this._internalState);
+        // c8 ignore next
+        doDebug && debugLog("recreating new secure channel ", this._internalState);
         this._recreate_secure_channel((err1?: Error) => {
-            debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err1 ? err1.message : "OK");
+            // c8 ignore next
+            doDebug && debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err1 ? err1.message : "OK");
             if (err1) {
-                debugLog("_recreate_secure_channel has failed: err = ", err1.message);
+                // c8 ignore next
+                doDebug && debugLog("_recreate_secure_channel has failed: err = ", err1.message);
                 this.emit("close", err1);
                 this.#insideRepairConnection = false;
                 if (this.#shouldRepairAgain) {
@@ -1983,8 +2038,11 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                             debugLog("err= ", err2.message);
                         }
                         // we still need to retry connecting here !!!
-                        debugLog("Disconnected following reconnection failure", err2.message);
-                        debugLog(`I will retry OPCUA client reconnection in ${OPCUAClientBase.retryDelay / 1000} seconds`);
+                        // c8 ignore next
+                        if (doDebug) {
+                            debugLog("Disconnected following reconnection failure", err2.message);
+                            debugLog(`I will retry OPCUA client reconnection in ${OPCUAClientBase.retryDelay / 1000} seconds`);
+                        }
                         this.#insideRepairConnection = false;
                         this.#shouldRepairAgain = false;
 
@@ -2048,7 +2106,8 @@ class TmpClient extends ClientBaseImpl {
     async connect(endpoint: string): Promise<void>;
     connect(endpoint: string, callback: ErrorCallback): void;
     connect(endpoint: string, callback?: ErrorCallback): Promise<void> | void {
-        debugLog("connecting to TmpClient");
+        // c8 ignore next
+        doDebug && debugLog("connecting to TmpClient");
 
         // c8 ignore next
         if (this._internalState !== "disconnected") {

@@ -16,8 +16,8 @@ import ts from "typescript";
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
 const debugLog = make_debugLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
-_doDebug;
+const doDebug = checkDebugFlag(__filename);
+doDebug;
 
 /**
  * @module opcua.miscellaneous
@@ -135,7 +135,8 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
             throw new Error(`module must export a Schema with name ${schemaName}_Schema  in ${generatedTypescriptSource}`);
         }
 
-        debugLog(" generated_source_is_outdated ", schemaName, " to ", generatedTypescriptSource);
+        // c8 ignore next
+        doDebug && debugLog(" generated_source_is_outdated ", schemaName, " to ", generatedTypescriptSource);
         if (exports.verbose) {
             console.log(" generating ", schemaName, " in ", generatedTypescriptSource);
         }

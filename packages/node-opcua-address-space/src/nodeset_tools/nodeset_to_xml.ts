@@ -404,8 +404,11 @@ function _dumpVariantInnerExtensionObject(
                 if (types.isNativeError(err)) {
                     errorLog("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                 }
-                debugLog(name);
-                debugLog(field);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(name);
+                    debugLog(field);
+                }
                 // throw err;
             }
             restoreDefaultNamespace(xw);
@@ -664,7 +667,8 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
 
     // c8 ignore next
     if (!dataTypeNode) {
-        debugLog("Cannot find dataType:", node.dataType.toString());
+        // c8 ignore next
+        doDebug && debugLog("Cannot find dataType:", node.dataType.toString());
         return;
     }
 
@@ -813,12 +817,14 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
             assert(nodeChild instanceof BaseNodeImpl);
             if (nodeChild.nodeId.namespace === node.nodeId.namespace) {
                 if (!xw.visitedNode.has(_hash(nodeChild))) {
-                    debugLog(
-                        node.nodeId.toString(),
-                        " dumping child ",
-                        nodeChild.browseName.toString(),
-                        nodeChild.nodeId.toString()
-                    );
+                    // c8 ignore next
+                    doDebug &&
+                        debugLog(
+                            node.nodeId.toString(),
+                            " dumping child ",
+                            nodeChild.browseName.toString(),
+                            nodeChild.nodeId.toString()
+                        );
                     dumpNodeInXml(xw, nodeChild);
                 }
             }
@@ -1147,14 +1153,16 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
         const dataTypeNode = addressSpace.findNode(node.dataType);
         if (!dataTypeNode) {
             // throw new Error(" cannot find datatype " + node.dataType);
-            debugLog(
-                " cannot find datatype " +
-                    node.dataType +
-                    " for node " +
-                    node.browseName.toString() +
-                    " id =" +
-                    node.nodeId.toString()
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    " cannot find datatype " +
+                        node.dataType +
+                        " for node " +
+                        node.browseName.toString() +
+                        " id =" +
+                        node.nodeId.toString()
+                );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
             xw.writeAttribute("DataType", dataTypeName);

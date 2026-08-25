@@ -199,7 +199,8 @@ async function readBrowseNameWithCache(session: IBasicSessionAsync, nodeId: Node
         const dataValue = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
         if (dataValue.statusCode.isNotGood()) {
             const message = `cannot extract BrowseName of nodeId = ${nodeId.toString()} statusCode = ${dataValue.statusCode.toString()}`;
-            debugLog(message);
+            // c8 ignore next
+            doDebug && debugLog(message);
             throw new Error(message);
         }
         return dataValue.value.value.name;

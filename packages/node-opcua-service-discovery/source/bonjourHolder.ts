@@ -13,7 +13,7 @@ import { announcementToServiceConfig } from "./announcement_to_service_config";
 import { isSameService, serviceToString } from "./tools";
 
 const debugLog = make_debugLog("Bonjour");
-const _doDebug = checkDebugFlag("Bonjour");
+const doDebug = checkDebugFlag("Bonjour");
 const errorLog = make_errorLog("Bonjour");
 const warningLog = make_warningLog("Bonjour");
 
@@ -46,7 +46,8 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         assert(multicastDNS, "bonjour must have been initialized?");
 
         let timer: NodeJS.Timeout | undefined;
-        debugLog(chalk.cyan("  announceServerOnMulticastSubnet", serviceToString(serviceConfig)));
+        // c8 ignore next
+        doDebug && debugLog(chalk.cyan("  announceServerOnMulticastSubnet", serviceToString(serviceConfig)));
 
         // waitServiceUp(serviceConfig, () => {
         //     // c8 ignore next
@@ -74,7 +75,8 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
                 clearTimeout(timer);
                 timer = undefined;
             }
-            debugLog("_announceServerOnMulticastSubnet: bonjour UP received ! ", serviceToString(serviceConfig));
+            // c8 ignore next
+            doDebug && debugLog("_announceServerOnMulticastSubnet: bonjour UP received ! ", serviceToString(serviceConfig));
             service.removeListener("error", onError);
             service.removeListener("up", onUp);
             resolve(service);
@@ -109,13 +111,17 @@ export class BonjourHolder {
      * @returns
      */
     public async announcedOnMulticastSubnet(announcement: Announcement): Promise<boolean> {
-        debugLog(chalk.yellow("\n\nentering announcedOnMulticastSubnet"));
+        // c8 ignore next
+        doDebug && debugLog(chalk.yellow("\n\nentering announcedOnMulticastSubnet"));
         const serviceConfig = announcementToServiceConfig(announcement);
         if (this.#_service && this.serviceConfig) {
             // verify that Announcement has changed
             if (isSameService(serviceConfig, this.serviceConfig)) {
-                debugLog(" Announcement ignored as it has been already made", announcement.name);
-                debugLog("exiting announcedOnMulticastSubnet-2", false);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(" Announcement ignored as it has been already made", announcement.name);
+                    debugLog("exiting announcedOnMulticastSubnet-2", false);
+                }
                 return false; // nothing changed
             }
         }
@@ -127,7 +133,8 @@ export class BonjourHolder {
         this.serviceConfig = serviceConfig;
         this.#_service = await _announceServerOnMulticastSubnet(this.#_multicastDNS, serviceConfig);
         this.#pendingAnnouncement = false;
-        debugLog(chalk.yellow("exiting announcedOnMulticastSubnet-3", true));
+        // c8 ignore next
+        doDebug && debugLog(chalk.yellow("exiting announcedOnMulticastSubnet-3", true));
         return true;
     }
 
@@ -140,21 +147,28 @@ export class BonjourHolder {
      */
     public async stopAnnouncedOnMulticastSubnet(): Promise<void> {
         if (this.#pendingAnnouncement) {
-            debugLog(chalk.bgWhite.redBright("stopAnnnouncedOnMulticastSubnet is pending : let's wait a little bit and try again"));
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    chalk.bgWhite.redBright("stopAnnnouncedOnMulticastSubnet is pending : let's wait a little bit and try again")
+                );
             // wait until announcement is done
             await new Promise((resolve) => setTimeout(resolve, 500));
             return this.stopAnnouncedOnMulticastSubnet();
         }
 
-        debugLog(
-            chalk.green(
-                "\n\nentering stop_announcedOnMulticastSubnet = ",
-                this.serviceConfig ? serviceToString(this.serviceConfig) : "<null>"
-            )
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                chalk.green(
+                    "\n\nentering stop_announcedOnMulticastSubnet = ",
+                    this.serviceConfig ? serviceToString(this.serviceConfig) : "<null>"
+                )
+            );
 
         if (!this.#_service) {
-            debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = no service"));
+            // c8 ignore next
+            doDebug && debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = no service"));
             return;
         }
         // due to a wrong declaration of Service.stop in the d.ts file we
@@ -169,7 +183,8 @@ export class BonjourHolder {
         if (that_multicastDNS && that_service.stop) {
             await new Promise<void>((resolve) => {
                 that_service.stop((err?: Error) => {
-                    debugLog(chalk.green("service stopped err=", err));
+                    // c8 ignore next
+                    doDebug && debugLog(chalk.green("service stopped err=", err));
                     err && warningLog(err.message);
                     that_multicastDNS.unpublishAll(() => {
                         resolve();
@@ -179,7 +194,10 @@ export class BonjourHolder {
             await releaseMulticastDNS(that_multicastDNS);
         }
 
-        debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = done"));
-        debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet stop announcement completed"));
+        // c8 ignore next
+        if (doDebug) {
+            debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = done"));
+            debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet stop announcement completed"));
+        }
     }
 }

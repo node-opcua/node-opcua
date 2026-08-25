@@ -1052,7 +1052,8 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                     ")" +
                     " ";
 
-                debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
+                // c8 ignore next
+                doDebug && debugLog(chalk.red.bold(message), chalk.yellow(moreInfo));
                 warningLog(chalk.red.bold(message), chalk.yellow(moreInfo));
                 warningLog(request.toString());
             }
@@ -1115,11 +1116,13 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
 
     #_cancel_pending_transactions(err?: Error | null) {
         if (doDebug && this.#_requests) {
-            debugLog(
-                "_cancel_pending_transactions  ",
-                Object.keys(this.#_requests),
-                this.#_transport ? this.#_transport.name : "no transport"
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "_cancel_pending_transactions  ",
+                    Object.keys(this.#_requests),
+                    this.#_transport ? this.#_transport.name : "no transport"
+                );
         }
 
         if (this.#_requests) {
@@ -1582,9 +1585,12 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         if (doDebug1) {
             const _stream = new BinaryStream(messageChunk);
             const messageHeader = readMessageHeader(_stream);
-            debugLog(`CLIENT RECEIVED ${chalk.yellow(`${JSON.stringify(messageHeader)}`)}`);
-            debugLog(`\n${hexDump(messageChunk)}`);
-            debugLog(messageHeaderToString(messageChunk));
+            // c8 ignore next
+            if (doDebug) {
+                debugLog(`CLIENT RECEIVED ${chalk.yellow(`${JSON.stringify(messageHeader)}`)}`);
+                debugLog(`\n${hexDump(messageChunk)}`);
+                debugLog(messageHeaderToString(messageChunk));
+            }
         }
         this.#messageBuilder?.feed(messageChunk);
     }
@@ -1686,7 +1692,8 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         timeout = Math.max(ClientSecureChannelLayer.minTransactionTimeout, timeout);
         /* c8 ignore next */
         if (request.requestHeader.timeoutHint !== timeout) {
-            debugLog("Adjusted timeout = ", request.requestHeader.timeoutHint);
+            // c8 ignore next
+            doDebug && debugLog("Adjusted timeout = ", request.requestHeader.timeoutHint);
         }
         request.requestHeader.timeoutHint = timeout;
         return timeout;
@@ -1792,9 +1799,12 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
             /* c8 ignore next */
             if (checkChunks) {
                 verify_message_chunk(chunk);
-                debugLog(chalk.yellow("CLIENT SEND chunk "));
-                debugLog(chalk.yellow(messageHeaderToString(chunk)));
-                debugLog(chalk.red(hexDump(chunk)));
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(chalk.yellow("CLIENT SEND chunk "));
+                    debugLog(chalk.yellow(messageHeaderToString(chunk)));
+                    debugLog(chalk.red(hexDump(chunk)));
+                }
             }
             assert(this.#_transport);
             this.#_transport?.write(chunk);
@@ -1804,7 +1814,8 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
 
             /* c8 ignore next */
             if (checkChunks) {
-                debugLog(chalk.yellow("CLIENT SEND done."));
+                // c8 ignore next
+                doDebug && debugLog(chalk.yellow("CLIENT SEND done."));
             }
             if (requestData) {
                 if (doPerfMonitoring) {

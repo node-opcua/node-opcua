@@ -368,7 +368,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         let hasEnded = false;
 
         this.taskQueue.drain(() => {
-            debugLog("taskQueue is empty !!", this.taskQueue.length());
+            // c8 ignore next
+            doDebug && debugLog("taskQueue is empty !!", this.taskQueue.length());
 
             if (!hasEnded) {
                 hasEnded = true;
@@ -602,7 +603,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                 callback();
             })
             .catch((err) => {
-                debugLog("session.browse err:", err);
+                // c8 ignore next
+                doDebug && debugLog("session.browse err:", err);
                 return callback(err || undefined);
             });
     }
@@ -652,7 +654,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         const key = nodeId.toString();
 
         if (this._visitedNode.has(key)) {
-            debugLog("skipping already visited", key);
+            // c8 ignore next
+            doDebug && debugLog("skipping already visited", key);
             callback();
             return; // already visited
         }
@@ -750,14 +753,17 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                             self[maxNodePerX] = value;
                         }
                     } else {
-                        debugLog(
-                            `warning: server does not provide a valid dataValue for ${maxNodePerX}`,
-                            dataValue.statusCode.toString()
-                        );
+                        // c8 ignore next
+                        doDebug &&
+                            debugLog(
+                                `warning: server does not provide a valid dataValue for ${maxNodePerX}`,
+                                dataValue.statusCode.toString()
+                            );
                     }
                     // ensure we have a sensible maxNodesPerRead value in case the server doesn't specify one
                     self[maxNodePerX] = self[maxNodePerX] || 100;
-                    debugLog(maxNodePerX, " set to ", self[maxNodePerX]);
+                    // c8 ignore next
+                    doDebug && debugLog(maxNodePerX, " set to ", self[maxNodePerX]);
                 };
 
                 fix(this, "maxNodesPerRead", dataValues[0]);
@@ -895,7 +901,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             doDebug1 && debugLog("_resolve_deferred ", comment, collection.length);
             this._push_task(`adding operation ${comment}`, {
                 func: (_task: Task, callback: EmptyCallback) => {
-                    debugLog("executing task", comment);
+                    // c8 ignore next
+                    doDebug && debugLog("executing task", comment);
                     method.call(this, callback);
                 },
                 param: {}

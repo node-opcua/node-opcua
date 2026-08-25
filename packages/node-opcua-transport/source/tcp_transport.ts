@@ -372,7 +372,8 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
         // Setting true for noDelay will immediately fire off data each time socket.write() is called.
         this._socket.setNoDelay(true);
         // set socket timeout
-        debugLog(`  TCP_transport#install => setting ${this.name} _socket.setTimeout to `, this.timeout);
+        // c8 ignore next
+        doDebug && debugLog(`  TCP_transport#install => setting ${this.name} _socket.setTimeout to `, this.timeout);
         // let use a large timeout here to make sure that we not conflict with our internal timeout
         this._socket.setTimeout(this.timeout, () => {});
 
@@ -410,7 +411,8 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     public prematureTerminate(err: Error, statusCode: StatusCode): void {
         // https://reference.opcfoundation.org/v104/Core/docs/Part6/6.7.3/
 
-        debugLog("prematureTerminate", err ? err.message : "", statusCode.toString(), "has socket = ", !!this._socket);
+        // c8 ignore next
+        doDebug && debugLog("prematureTerminate", err ? err.message : "", statusCode.toString(), "has socket = ", !!this._socket);
 
         doDebugFlow && errorLog("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
 
@@ -559,8 +561,11 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
             // }
         } else {
             const prevClose = this.#_closedEmitted instanceof Error ? this.#_closedEmitted.message : this.#_closedEmitted;
-            debugLog("Already emitted close event", prevClose);
-            debugLog("err = ", err?.message, err);
+            // c8 ignore next
+            if (doDebug) {
+                debugLog("Already emitted close event", prevClose);
+                debugLog("err = ", err?.message, err);
+            }
         }
     }
 
@@ -571,10 +576,14 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
             return;
         }
         //
-        debugLog(`${chalk.red(" Transport Connection ended")} ${this.name} `);
+        // c8 ignore next
+        doDebug && debugLog(`${chalk.red(" Transport Connection ended")} ${this.name} `);
         const err = new Error(`${this.name}: socket has been disconnected by third party`);
-        debugLog(" bytesRead    = ", this.bytesRead);
-        debugLog(" bytesWritten = ", this.bytesWritten);
+        // c8 ignore next
+        if (doDebug) {
+            debugLog(" bytesRead    = ", this.bytesRead);
+            debugLog(" bytesWritten = ", this.bytesWritten);
+        }
         this._theCloseError = err;
 
         this._fulfill_pending_promises(new Error(`Connection aborted - ended by server: ${err ? err.message : ""} `));
@@ -582,7 +591,7 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
 
     private _on_socket_error(err: Error) {
         // c8 ignore next
-        debugLog(chalk.red(` _on_socket_error:  ${this.name} `), chalk.yellow(err.message));
+        doDebug && debugLog(chalk.red(` _on_socket_error:  ${this.name} `), chalk.yellow(err.message));
         // node The "close" event will be called directly following this event.
         // this._emitClose(err);
     }

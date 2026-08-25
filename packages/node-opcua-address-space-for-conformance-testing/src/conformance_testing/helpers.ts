@@ -6,11 +6,12 @@ import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import { randomString } from "node-opcua-basic-types";
 import { AccessLevelFlag, LocalizedText, makeAccessLevelFlag, QualifiedName } from "node-opcua-data-model";
-import { make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { findBuiltInType } from "node-opcua-factory";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
 // ─── Validators & Random Generators ─────────────────────────────────────
@@ -211,8 +212,11 @@ export function addMultiDimensionalArrayVariable(
 
     // c8 ignore next
     if (!DataType[realTypeName as keyof typeof DataType]) {
-        debugLog("dataTypeName", dataTypeName);
-        debugLog("realTypeName", realTypeName);
+        // c8 ignore next
+        if (doDebug) {
+            debugLog("dataTypeName", dataTypeName);
+            debugLog("realTypeName", realTypeName);
+        }
     }
 
     assert(DataType[realTypeName as keyof typeof DataType], " expecting a valid real type");

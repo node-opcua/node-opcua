@@ -4,12 +4,13 @@
 
 import type { BaseNode, UAObjectType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { SimpleAttributeOperand } from "node-opcua-types";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 /**
 
@@ -33,7 +34,8 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     }
     // ... and that node must be an ObjectType (an EventType)
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
-        debugLog(" checkSelectClause", eventTypeNode.toString());
+        // c8 ignore next
+        doDebug && debugLog(" checkSelectClause", eventTypeNode.toString());
         return StatusCodes.BadTypeMismatch;
     }
 

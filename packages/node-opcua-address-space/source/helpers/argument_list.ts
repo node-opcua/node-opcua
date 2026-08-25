@@ -188,7 +188,8 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 
     // c8 ignore next
     if (!argDefDataType) {
-        debugLog("dataType ", argDefinition.dataType.toString(), "doesn't exist");
+        // c8 ignore next
+        doDebug && debugLog("dataType ", argDefinition.dataType.toString(), "doesn't exist");
         return false;
     }
 

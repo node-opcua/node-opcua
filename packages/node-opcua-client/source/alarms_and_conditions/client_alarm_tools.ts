@@ -17,7 +17,7 @@ import type { ClientMonitoredItem } from "../client_monitored_item";
 import type { ClientSession } from "../client_session";
 import type { ClientSubscription } from "../client_subscription";
 
-const _doDebug = checkDebugFlag("A&E");
+const doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");
 const warningLog = make_warningLog("A&E");
 
@@ -116,12 +116,14 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
         const pojo = fieldsToJson(fields, eventFields);
         const { eventType, eventId, conditionId, conditionName } = pojo;
 
-        debugLog(
-            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED " +
-                eventType.value.toString() +
-                " " +
-                eventId.value?.toString("hex")
-        );
+        // c8 ignore next
+        doDebug &&
+            debugLog(
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED " +
+                    eventType.value.toString() +
+                    " " +
+                    eventId.value?.toString("hex")
+            );
         try {
             if (!conditionId?.value || conditionId.dataType === DataType.Null) {
                 // not a acknowledgeable condition

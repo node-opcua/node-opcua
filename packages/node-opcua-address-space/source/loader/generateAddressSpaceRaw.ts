@@ -200,7 +200,8 @@ export async function generateAddressSpaceRaw(
     for (let index = 0; index < order.length; index++) {
         const nodesetIndex = order[index];
         const nodeset = nodesetDesc[nodesetIndex];
-        debugLog(" loading ", nodesetIndex, nodeset.xmlData.length);
+        // c8 ignore next
+        doDebug && debugLog(" loading ", nodesetIndex, nodeset.xmlData.length);
         try {
             await nodesetLoader.addNodeSetAsync(nodeset.xmlData);
         } catch (err) {

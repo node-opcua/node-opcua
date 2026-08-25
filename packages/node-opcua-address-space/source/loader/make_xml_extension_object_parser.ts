@@ -11,7 +11,7 @@ import {
     type UInt32,
     type UInt64
 } from "node-opcua-basic-types";
-import { make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, ExpandedNodeId, type INodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
@@ -31,6 +31,7 @@ import { makeVariantReader } from "./parsers/variant_parser";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 // textual form of an ExpandedNodeId, as found in <ExpandedNodeId><Identifier>...</Identifier></ExpandedNodeId>:
 // an optional server index, an optional namespace uri, then a plain nodeId. see OPC UA part 6.
@@ -399,7 +400,8 @@ function _makeTypeReader(
                         if (fieldParser.finish) {
                             fieldParser.finish.call(this);
                         } else {
-                            debugLog(`xxx check ${fieldTypename}`);
+                            // c8 ignore next
+                            doDebug && debugLog(`xxx check ${fieldTypename}`);
                         }
                         this.parent.value = this.parent.value || Object.create(null);
                         (this.parent.value as Record<string, unknown>)[elName] = _clone(this.value);

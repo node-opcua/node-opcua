@@ -437,7 +437,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     public dispose(): void {
-        debugLog("ServerSecureChannelLayer#dispose");
+        // c8 ignore next
+        doDebug && debugLog("ServerSecureChannelLayer#dispose");
         this.#_stop_open_channel_watch_dog();
         assert(!this.#timeoutId, "timeout must have been cleared");
         assert(!this.#securityTokenTimeout, "_securityTokenTimeout must have been cleared");
@@ -581,13 +582,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const minTimeout = 2000;
         // set the transport timeout
         this.#transport.timeout = Math.max(minTimeout, this.timeout);
-        debugLog("Setting socket timeout to ", this.#transport.timeout);
+        // c8 ignore next
+        doDebug && debugLog("Setting socket timeout to ", this.#transport.timeout);
     }
 
     #_installTransportCloseListener(): void {
         // detect transport closure
         this.#transport_socket_close_listener = (err: Error | null) => {
-            debugLog(`transport has send 'close' event ${err ? err.message : "null"}`);
+            // c8 ignore next
+            doDebug && debugLog(`transport has send 'close' event ${err ? err.message : "null"}`);
             this.#_abort(err || new Error("Transport closed abruptly"));
         };
         this.#transport.on("close", this.#transport_socket_close_listener);
@@ -598,7 +601,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (err) {
             // failed to initialize the transport ( most likely a timeout has occurred)
             // or a errorneous Hello message has been received
-            debugLog("ServerSecureChannelLayer : Transport layer has failed to initialize");
+            // c8 ignore next
+            doDebug && debugLog("ServerSecureChannelLayer : Transport layer has failed to initialize");
             callback(err);
             return;
         }
@@ -621,8 +625,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
             this.#messageBuilder?.feed(messageChunk);
         });
-        debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
-        debugLog("... now waiting for OpenSecureChannelRequest...");
+        // c8 ignore next
+        if (doDebug) {
+            debugLog("ServerSecureChannelLayer : Transport layer has been initialized");
+            debugLog("... now waiting for OpenSecureChannelRequest...");
+        }
 
         ServerSecureChannelLayer.registry.register(this);
 
@@ -639,7 +646,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         assert(allowNullRequestId || requestId !== 0);
 
         if (this.aborted) {
-            debugLog("channel has been terminated , cannot send responses");
+            // c8 ignore next
+            doDebug && debugLog("channel has been terminated , cannot send responses");
             callback?.(new Error("Aborted"));
             return;
         }
@@ -777,7 +785,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
             return;
         }
-        debugLog("ServerSecureChannelLayer.close");
+        // c8 ignore next
+        doDebug && debugLog("ServerSecureChannelLayer.close");
         this.#status = "closing";
         // close socket
         this.#transport.disconnect(() => {
@@ -826,8 +835,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
             maxChunkCount: this.#transport.maxChunkCount,
             maxMessageSize: this.#transport.maxMessageSize
         });
-        debugLog(" this.transport.maxChunkCount", this.#transport.maxChunkCount);
-        debugLog(" this.transport.maxMessageSize", this.#transport.maxMessageSize);
+        // c8 ignore next
+        if (doDebug) {
+            debugLog(" this.transport.maxChunkCount", this.#transport.maxChunkCount);
+            debugLog(" this.transport.maxMessageSize", this.#transport.maxMessageSize);
+        }
 
         this.#messageBuilder.on("error", (err, statusCode) => {
             warningLog("ServerSecureChannel:MessageBuilder: ", err.message, statusCode.toString());
@@ -846,7 +858,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     #_sendFatalErrorAndAbort(statusCode: StatusCode, description: string, _message: Message, callback: ErrorCallback): void {
-        debugLog("_sendFatalErrorAndAbort", statusCode.toString(), description);
+        // c8 ignore next
+        doDebug && debugLog("_sendFatalErrorAndAbort", statusCode.toString(), description);
         this.#transport.sendErrorMessage(statusCode, description);
         if (!this.#transport) {
             callback(new Error("Transport has been closed"));
@@ -941,7 +954,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     #_stop_open_channel_watch_dog() {
         if (this.#timeoutId) {
-            debugLog("stopping open channel watch dog");
+            // c8 ignore next
+            doDebug && debugLog("stopping open channel watch dog");
             clearTimeout(this.#timeoutId);
             this.#timeoutId = null;
         }
@@ -1001,16 +1015,21 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             const err = new Error(msg);
             this.emit("abort", err);
-            debugLog(err.message);
+            // c8 ignore next
+            doDebug && debugLog(err.message);
             this.close((_err) => {
-                debugLog("_install_wait_for_open_secure_channel_request_timeout:");
-                debugLog("  closed()");
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog("_install_wait_for_open_secure_channel_request_timeout:");
+                    debugLog("  closed()");
+                }
             });
         }, timeoutFoOpenChannelRequest);
     }
 
     #_on_initial_open_secure_channel_request(request: Request, requestId: number, channelId: number) {
-        debugLog("Just received first OpenSecureChannelRequest");
+        // c8 ignore next
+        doDebug && debugLog("Just received first OpenSecureChannelRequest");
         this.#status = "connecting";
 
         /* c8 ignore next */
@@ -1533,10 +1552,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
     #_abort(err: Error) {
         this.#status = "closed";
 
-        debugLog("ServerSecureChannelLayer#_abort");
+        // c8 ignore next
+        doDebug && debugLog("ServerSecureChannelLayer#_abort");
 
         if (this.#abort_has_been_called) {
-            debugLog("Warning => ServerSecureChannelLayer#_abort has already been called");
+            // c8 ignore next
+            doDebug && debugLog("Warning => ServerSecureChannelLayer#_abort has already been called");
             return;
         }
 
@@ -1555,7 +1576,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
          * @event abort
          */
         this.emit("abort", err);
-        debugLog("ServerSecureChannelLayer emitted abort event");
+        // c8 ignore next
+        doDebug && debugLog("ServerSecureChannelLayer emitted abort event");
     }
 
     #_record_transaction_statistics() {
@@ -1660,10 +1682,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const receiverCertificateThumbprintHex = clientSecurityHeader.receiverCertificateThumbprint.toString("hex");
             const thisIsMyCertificate = myCertificateThumbPrintHex === receiverCertificateThumbprintHex;
             if (doDebug && !thisIsMyCertificate) {
-                debugLog(
-                    "receiverCertificateThumbprint do not match server certificate",
-                    `${receiverCertificateThumbprintHex} <> ${myCertificateThumbPrintHex}`
-                );
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        "receiverCertificateThumbprint do not match server certificate",
+                        `${receiverCertificateThumbprintHex} <> ${myCertificateThumbPrintHex}`
+                    );
             }
             return thisIsMyCertificate;
         }

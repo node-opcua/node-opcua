@@ -3,7 +3,7 @@
  */
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import {
     BaseUAObject,
     getStandardDataTypeFactory,
@@ -15,6 +15,7 @@ import {
 import { makeNodeId, type NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
 import chalk from "chalk";
@@ -81,23 +82,27 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         // ensure we have a valid encoding Default Binary ID !!!
         /* c8 ignore next */
         if (!object.schema) {
-            debugLog(" object = ", object);
+            // c8 ignore next
+            doDebug && debugLog(" object = ", object);
             throw new Error(`object has no schema ${object.constructor.name}`);
         }
         const encodingDefaultBinary = object.schema.encodingDefaultBinary;
         /* c8 ignore next */
         if (!encodingDefaultBinary) {
-            debugLog(chalk.yellow("encoding ExtObj "), object);
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow("encoding ExtObj "), object);
             throw new Error(`Cannot find encodingDefaultBinary for this object : ${object.schema.name}`);
         }
         /* c8 ignore next */
         if (encodingDefaultBinary.isEmpty()) {
-            debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString());
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString());
             throw new Error(`Cannot find encodingDefaultBinary for this object : ${object.schema.name}`);
         }
         /* c8 ignore next */
         if (is_internal_id(encodingDefaultBinary.value as number)) {
-            debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString(), object.schema.name);
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow("encoding ExtObj "), encodingDefaultBinary.toString(), object.schema.name);
             throw new Error(`Cannot find valid OPCUA encodingDefaultBinary for this object : ${object.schema.name}`);
         }
 
@@ -194,7 +199,8 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
             try {
                 object.decode(stream);
             } catch (err) {
-                debugLog("Cannot decode object ", err);
+                // c8 ignore next
+                doDebug && debugLog("Cannot decode object ", err);
             }
         }
     }
@@ -203,7 +209,8 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         // this may happen if the server or client do have a different OPCUA version
         // for instance SubscriptionDiagnostics structure has been changed between OPCUA version 1.01 and 1.04
         // causing 2 extra member to be added.
-        debugLog(chalk.bgWhiteBright.red("========================================="));
+        // c8 ignore next
+        doDebug && debugLog(chalk.bgWhiteBright.red("========================================="));
 
         warningLog(
             "WARNING => decodeExtensionObject: Extension object decoding error on ",

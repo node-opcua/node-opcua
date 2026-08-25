@@ -650,22 +650,25 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         // c8 ignore next
         if (doDebug2) {
-            debugLog(
-                "MonitoredItem#recordValue",
-                this.node?.nodeId.toString(),
-                this.node?.browseName.toString(),
-                " has Changed = ",
-                !sameDataValue(dataValue, this.oldDataValue),
-                "skipChangeTest = ",
-                skipChangeTest,
-                "hasSemanticChanged = ",
-                hasSemanticChanged
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "MonitoredItem#recordValue",
+                    this.node?.nodeId.toString(),
+                    this.node?.browseName.toString(),
+                    " has Changed = ",
+                    !sameDataValue(dataValue, this.oldDataValue),
+                    "skipChangeTest = ",
+                    skipChangeTest,
+                    "hasSemanticChanged = ",
+                    hasSemanticChanged
+                );
         }
 
         // if semantic has changed, value need to be enqueued regardless of other assumptions
         if (hasSemanticChanged) {
-            debugLog("_enqueue_value => because hasSemanticChanged");
+            // c8 ignore next
+            doDebug && debugLog("_enqueue_value => because hasSemanticChanged");
             setSemanticChangeBit(dataValue);
             this._semantic_version = (this.node as UAVariable).semantic_version;
             this._enqueue_value(dataValue);
@@ -934,12 +937,14 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
         // c8 ignore next
         if (doDebug2) {
-            debugLog(
-                "MonitoredItem#_on_sampling_timer",
-                this.node ? this.node.nodeId.toString() : "null",
-                " isSampling?=",
-                this._is_sampling
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "MonitoredItem#_on_sampling_timer",
+                    this.node ? this.node.nodeId.toString() : "null",
+                    " isSampling?=",
+                    this._is_sampling
+                );
         }
 
         if (this._samplingId) {
@@ -985,7 +990,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             });
         } else {
             /* c8 ignore next */
-            debugLog("_on_sampling_timer call but MonitoredItem has been terminated !!! ");
+            // c8 ignore next
+            doDebug && debugLog("_on_sampling_timer call but MonitoredItem has been terminated !!! ");
         }
     }
 
@@ -1303,7 +1309,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
     private _makeDataChangeNotification(dataValue: DataValue): MonitoredItemNotification {
         if (this.clientHandle === -1 || this.clientHandle === 4294967295) {
-            debugLog("Invalid client handle");
+            // c8 ignore next
+            doDebug && debugLog("Invalid client handle");
         }
         const attributeId = this.itemToMonitor.attributeId;
         // if dataFilter is specified ....

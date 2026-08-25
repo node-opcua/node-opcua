@@ -65,7 +65,8 @@ async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictiona
     /* c8 ignore next */
     if (!a.targets || a.targets.length === 0) {
         // the server is probably version < 1.04.
-        debugLog(`Cannot find Deprecated property for dataTypeDictionary ${dataTypeDictionary.toString()}`);
+        // c8 ignore next
+        doDebug && debugLog(`Cannot find Deprecated property for dataTypeDictionary ${dataTypeDictionary.toString()}`);
         return false;
     }
     const deprecatedFlagNodeId = a.targets[0].targetId;
@@ -331,12 +332,14 @@ async function _extractDataTypeDictionaryFromDefinition(
             }
         } else {
             /* c8 ignore next */
-            debugLog(
-                "dataTypeNodeId ",
-                dataTypeNodeId.toString(),
-                " has no DataTypeDescription attribute",
-                dataValue.statusCode.toString()
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    "dataTypeNodeId ",
+                    dataTypeNodeId.toString(),
+                    " has no DataTypeDescription attribute",
+                    dataValue.statusCode.toString()
+                );
         }
         index++;
     }
@@ -611,7 +614,8 @@ export async function populateDataTypeManager103(
     session: IBasicSessionAsync2,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
-    debugLog("in ... populateDataTypeManager");
+    // c8 ignore next
+    doDebug && debugLog("in ... populateDataTypeManager");
 
     // read namespace array
     const dataValueNamespaceArray = await session.read({
@@ -623,7 +627,8 @@ export async function populateDataTypeManager103(
 
     // c8 ignore next
     if (!namespaceArray) {
-        debugLog("session: cannot read Server_NamespaceArray");
+        // c8 ignore next
+        doDebug && debugLog("session: cannot read Server_NamespaceArray");
         // throw new Error("Cannot get Server_NamespaceArray as a array of string");
         return;
     }
@@ -680,7 +685,8 @@ export async function populateDataTypeManager103(
         (e: ReferenceDescription) => e.nodeId.namespace !== 0 && sameNodeId(e.typeDefinition, dataTypeDictionaryType)
     );
 
-    debugLog(`found ${references.length} dictionaries`);
+    // c8 ignore next
+    doDebug && debugLog(`found ${references.length} dictionaries`);
 
     async function putInCorrectOrder(): Promise<TypeDictionaryInfo[]> {
         const infos: TypeDictionaryInfo[] = [];
@@ -738,17 +744,20 @@ export async function populateDataTypeManager103(
                         if (r) {
                             const { xmlns, namespace } = r;
                             nsKeyNamespace[xmlns] = namespace;
-                            debugLog("xxxx ns= ", xmlns, "=>", namespace);
+                            // c8 ignore next
+                            doDebug && debugLog("xxxx ns= ", xmlns, "=>", namespace);
                         }
                     }
                     info.dependencies = nsKeyNamespace;
-                    debugLog("xxx targetNamespace = ", info.targetNamespace);
+                    // c8 ignore next
+                    doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
                     innerMap[info.targetNamespace] = info;
                 }
             } else {
                 // may be 1.04 => the rawSchema is no more needed in new version
                 info.targetNamespace = namespaceArray[dataTypeDictionaryNodeId.namespace];
-                debugLog("xxx targetNamespace = ", info.targetNamespace);
+                // c8 ignore next
+                doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
                 innerMap[info.targetNamespace] = info;
             }
             // assert(info.targetNamespace.length !== 0);
@@ -776,7 +785,8 @@ export async function populateDataTypeManager103(
             explore(d);
         }
 
-        debugLog(" Ordered List = ", orderedList.map((a) => a.targetNamespace).join("  "));
+        // c8 ignore next
+        doDebug && debugLog(" Ordered List = ", orderedList.map((a) => a.targetNamespace).join("  "));
 
         return orderedList;
     }
@@ -865,7 +875,8 @@ export async function populateDataTypeManager103(
 
     // now investigate DataTypeDescriptionType
     async function processReferenceOnDataTypeDictionaryType(d: TypeDictionaryInfo): Promise<void> {
-        debugLog(chalk.cyan("processReferenceOnDataTypeDictionaryType on  "), d.targetNamespace);
+        // c8 ignore next
+        doDebug && debugLog(chalk.cyan("processReferenceOnDataTypeDictionaryType on  "), d.targetNamespace);
         const ref = d.reference;
         const dataTypeDictionaryNodeId = d.reference.nodeId;
 
@@ -978,5 +989,6 @@ export async function populateDataTypeManager103(
             await Promise.all(promises);
         }
     }
-    debugLog("out ... populateDataTypeManager103");
+    // c8 ignore next
+    doDebug && debugLog("out ... populateDataTypeManager103");
 }

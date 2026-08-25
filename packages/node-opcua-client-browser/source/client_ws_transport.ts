@@ -193,7 +193,8 @@ export class ClientWS_transport extends ClientTransportBase {
                     this._install_post_connect_error_handler(endpointUrl);
                     this.emit("connect");
                 } else {
-                    debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
+                    // c8 ignore next
+                    doDebug && debugLog("_perform_HEL_ACK_transaction has failed with err=", err.message);
                 }
                 callback(err);
             });

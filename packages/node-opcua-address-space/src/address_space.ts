@@ -1034,7 +1034,8 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         /* c8 ignore next */
         if (!_dataType.isSubtypeOf(structureDataType)) {
-            debugLog(_dataType.toString());
+            // c8 ignore next
+            doDebug && debugLog(_dataType.toString());
         }
         assert(_dataType.isSubtypeOf(structureDataType));
         if (!_dataType._extensionObjectConstructor) {

@@ -210,29 +210,36 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         if (this.#shutting_down) return;
         this.#shutting_down = true;
 
-        debugLog("stopping announcement of LDS on mDNS");
+        // c8 ignore next
+        doDebug && debugLog("stopping announcement of LDS on mDNS");
         //
         for (const registeredServer of this.registeredServers.values()) {
-            debugLog("LDS is shutting down and is forcefuly unregistering server", registeredServer.serverUri);
+            // c8 ignore next
+            doDebug && debugLog("LDS is shutting down and is forcefuly unregistering server", registeredServer.serverUri);
             await this.#internalRegisterServerOffline(registeredServer, true);
         }
 
         if (this.mDnsResponder) {
-            debugLog("disposing mDnsResponder");
+            // c8 ignore next
+            doDebug && debugLog("disposing mDnsResponder");
             await this.mDnsResponder.dispose();
             this.mDnsResponder = undefined;
-            debugLog(" mDnsResponder disposed");
+            // c8 ignore next
+            doDebug && debugLog(" mDnsResponder disposed");
         }
 
         if (this.mDnsLDSAnnouncer) {
-            debugLog("disposing mDnsLDSAnnouncer of this LDS to the mDNS");
+            // c8 ignore next
+            doDebug && debugLog("disposing mDnsLDSAnnouncer of this LDS to the mDNS");
             await this.mDnsLDSAnnouncer.stopAnnouncedOnMulticastSubnet();
             this.mDnsLDSAnnouncer = undefined;
         }
 
-        debugLog("Shutting down Discovery Server");
+        // c8 ignore next
+        doDebug && debugLog("Shutting down Discovery Server");
         await new Promise<void>((resolve, reject) => super.shutdown((err) => (err ? reject(err) : resolve())));
-        debugLog("stopping announcement of LDS on mDNS - DONE");
+        // c8 ignore next
+        doDebug && debugLog("stopping announcement of LDS on mDNS - DONE");
         // add a extra delay to ensure that the port is really closed
         // and registered server propagated the fact that LDS is not here anymore
         await new Promise<void>((resolve) => setTimeout(resolve, 1000));
@@ -370,11 +377,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             .sort()
             .join(" ");
 
-        debugLog(" startingRecordId = ", request.startingRecordId);
+        // c8 ignore next
+        doDebug && debugLog(" startingRecordId = ", request.startingRecordId);
 
         if (this.mDnsResponder) {
             for (const serverOnNetwork of this.mDnsResponder.registeredServers) {
-                debugLog("Exploring server ", serverOnNetwork.serverName);
+                // c8 ignore next
+                doDebug && debugLog("Exploring server ", serverOnNetwork.serverName);
 
                 if (serverOnNetwork.recordId <= request.startingRecordId) {
                     continue;
@@ -392,10 +401,12 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
                     }
                     continue;
                 }
-                debugLog("   server ", serverOnNetwork.serverName, " found");
+                // c8 ignore next
+                doDebug && debugLog("   server ", serverOnNetwork.serverName, " found");
                 servers.push(serverOnNetwork);
                 if (servers.length === request.maxRecordsToReturn) {
-                    debugLog("max records to return reached", request.maxRecordsToReturn);
+                    // c8 ignore next
+                    doDebug && debugLog("max records to return reached", request.maxRecordsToReturn);
                     break;
                 }
             }
@@ -422,7 +433,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         let b = conf.bonjourHolder;
         if (b?.serviceConfig) {
             if (isSameService(b.serviceConfig, serviceConfig)) {
-                debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
+                // c8 ignore next
+                doDebug && debugLog("Configuration ", conf.mdnsServerName, " has not changed !");
                 // nothing to do
                 return;
             } else {
@@ -471,7 +483,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         if (previousConfMap.has(discoveryConfiguration.mdnsServerName || "")) {
             // configuration already exists
-            debugLog("Configuration ", discoveryConfiguration.mdnsServerName, " already exists !");
+            // c8 ignore next
+            doDebug && debugLog("Configuration ", discoveryConfiguration.mdnsServerName, " already exists !");
             const prevConf = previousConfMap.get(discoveryConfiguration.mdnsServerName || "");
             previousConfMap.delete(discoveryConfiguration.mdnsServerName || "");
             discoveryConfiguration.bonjourHolder = prevConf?.bonjourHolder;
@@ -502,7 +515,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             if (!serverToUnregister) {
                 throw new Error("internal error");
             }
-            debugLog(chalk.cyan("unregistering server : "), chalk.yellow(serverToUnregister?.serverUri));
+            // c8 ignore next
+            doDebug && debugLog(chalk.cyan("unregistering server : "), chalk.yellow(serverToUnregister?.serverUri));
             configurationResults = [];
 
             const discoveryConfigurations = serverToUnregister?.discoveryConfiguration || [];
@@ -530,7 +544,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         let configurationResults: StatusCode[] | null = null;
 
-        debugLog(chalk.cyan(" registering server : "), chalk.yellow(server.serverUri));
+        // c8 ignore next
+        doDebug && debugLog(chalk.cyan(" registering server : "), chalk.yellow(server.serverUri));
 
         // prepare serverInfo which will be used by FindServers
         const serverInfo: ApplicationDescriptionOptions = {
@@ -574,7 +589,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         }
         // now also unregister unprocessed
         if (previousConfMap.size !== 0) {
-            debugLog(" Warning some conf need to be removed !");
+            // c8 ignore next
+            doDebug && debugLog(" Warning some conf need to be removed !");
         }
         return configurationResults;
     }
@@ -585,7 +601,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
     ): Promise<Response> {
         // #region check parameter validity
         function sendError(statusCode: StatusCode): Response {
-            debugLog(chalk.red("_on_RegisterServer(2)Request error"), statusCode.toString());
+            // c8 ignore next
+            doDebug && debugLog(chalk.red("_on_RegisterServer(2)Request error"), statusCode.toString());
             const response1 = new ServiceFault({
                 responseHeader: { serviceResult: statusCode }
             });
@@ -600,11 +617,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         // check serverType is valid
         if (!_isValidServerType(server.serverType)) {
-            debugLog("Invalid server Type", ApplicationType[server.serverType]);
+            // c8 ignore next
+            doDebug && debugLog("Invalid server Type", ApplicationType[server.serverType]);
             return sendError(StatusCodes.BadInvalidArgument);
         }
         if (!server.serverUri) {
-            debugLog("Missing serverURI");
+            // c8 ignore next
+            doDebug && debugLog("Missing serverURI");
             return sendError(StatusCodes.BadInvalidArgument);
         }
         server.serverNames = server.serverNames || [];

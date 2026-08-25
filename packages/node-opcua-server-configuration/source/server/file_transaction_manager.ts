@@ -5,10 +5,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { randomBytes } from "node-opcua-utils";
 
 const debugLog = make_debugLog("ServerConfiguration");
+const doDebug = checkDebugFlag("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 
@@ -16,7 +17,8 @@ type Functor = () => Promise<void>;
 
 async function _copyFile(source: string, dest: string): Promise<void> {
     try {
-        debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
+        // c8 ignore next
+        doDebug && debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
         const sourceExist = fs.existsSync(source);
         if (sourceExist) {
             await fs.promises.copyFile(source, dest);
@@ -30,7 +32,8 @@ async function _deleteFile(file: string): Promise<void> {
     try {
         const exists = fs.existsSync(file);
         if (exists) {
-            debugLog("deleting file ", file);
+            // c8 ignore next
+            doDebug && debugLog("deleting file ", file);
             await fs.promises.unlink(file);
         }
     } catch (err) {
@@ -39,7 +42,8 @@ async function _deleteFile(file: string): Promise<void> {
 }
 
 async function _moveFile(source: string, dest: string): Promise<void> {
-    debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
+    // c8 ignore next
+    doDebug && debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
     try {
         await _copyFile(source, dest);
         await _deleteFile(source);
@@ -50,7 +54,8 @@ async function _moveFile(source: string, dest: string): Promise<void> {
 
 async function _moveFileWithBackup(source: string, dest: string, backupPath: string): Promise<void> {
     // let make a copy of the destination file
-    debugLog("moveFileWithBackup file \n source ", source, "\n =>\n dest ", dest);
+    // c8 ignore next
+    doDebug && debugLog("moveFileWithBackup file \n source ", source, "\n =>\n dest ", dest);
     await _copyFile(dest, backupPath);
     await _moveFile(source, dest);
 }
@@ -161,7 +166,8 @@ export class FileTransactionManager {
      * Commit the transaction by executing all pending file operations.
      */
     public async applyFileOps(): Promise<void> {
-        debugLog("start applyFileOps");
+        // c8 ignore next
+        doDebug && debugLog("start applyFileOps");
         const fileOperation = this.#pendingFileOps.splice(0);
 
         try {
@@ -169,7 +175,8 @@ export class FileTransactionManager {
                 const op = fileOperation.shift();
                 await op?.();
             }
-            debugLog("end applyFileOps");
+            // c8 ignore next
+            doDebug && debugLog("end applyFileOps");
 
             // Transaction successful - clean up backup files
             await this.#cleanupBackupFiles();
@@ -182,7 +189,8 @@ export class FileTransactionManager {
             // Rollback: restore all backup files to their original locations
             try {
                 await this.#rollbackTransaction();
-                debugLog("Transaction rollback successful");
+                // c8 ignore next
+                doDebug && debugLog("Transaction rollback successful");
             } catch (rollbackErr) {
                 errorLog("Critical: Rollback failed:", (rollbackErr as Error).message);
                 errorLog("Certificate state may be inconsistent - manual intervention required");
@@ -202,7 +210,8 @@ export class FileTransactionManager {
      * This restores files from their *_old backups to recover the previous state.
      */
     async #rollbackTransaction(): Promise<void> {
-        debugLog("Rolling back transaction, restoring", this.#backupFiles.size, "backup files");
+        // c8 ignore next
+        doDebug && debugLog("Rolling back transaction, restoring", this.#backupFiles.size, "backup files");
 
         const rollbackPromises: Promise<void>[] = [];
 
@@ -212,7 +221,8 @@ export class FileTransactionManager {
                     try {
                         // Check if backup exists before trying to restore
                         if (fs.existsSync(backupPath)) {
-                            debugLog("Restoring backup:", backupPath, "to", dest);
+                            // c8 ignore next
+                            doDebug && debugLog("Restoring backup:", backupPath, "to", dest);
                             await _copyFile(backupPath, dest);
                             // Delete backup immediately after restoration
                             await _deleteFile(backupPath);
@@ -225,7 +235,8 @@ export class FileTransactionManager {
         }
 
         await Promise.all(rollbackPromises);
-        debugLog("Transaction rollback completed");
+        // c8 ignore next
+        doDebug && debugLog("Transaction rollback completed");
     }
 
     /**
@@ -233,7 +244,8 @@ export class FileTransactionManager {
      * Removes all *_old backup files that were created during the transaction.
      */
     async #cleanupBackupFiles(): Promise<void> {
-        debugLog("Cleaning up", this.#backupFiles.size, "backup files");
+        // c8 ignore next
+        doDebug && debugLog("Cleaning up", this.#backupFiles.size, "backup files");
 
         const cleanupPromises: Promise<void>[] = [];
 
@@ -265,7 +277,8 @@ export class FileTransactionManager {
     }
 
     async #executeCleanupTasks(): Promise<void> {
-        debugLog("Executing cleanup tasks");
+        // c8 ignore next
+        doDebug && debugLog("Executing cleanup tasks");
         const tasks = this.#cleanupTasks.splice(0);
         for (const task of tasks) {
             try {

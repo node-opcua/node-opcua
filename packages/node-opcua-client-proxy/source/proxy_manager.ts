@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 
 import { type AccessLevelFlag, AttributeIds, coerceAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import type { IBasicSessionAsync, IBasicSessionGetArgumentDefinitionAsync } from "node-opcua-pseudo-session";
 import type { ReadValueIdOptions } from "node-opcua-service-read";
@@ -28,6 +28,7 @@ interface ProxyObjectWithDynamicFields extends ProxyObject {
 }
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export interface IProxy1 {
     nodeId: NodeId;
@@ -221,7 +222,8 @@ export class UAProxyManager {
             proxyObject.emit("value_changed", dataValue);
         });
         proxyObject.__monitoredItem?.on("err", (err: Error) => {
-            debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
+            // c8 ignore next
+            doDebug && debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
         });
     }
 

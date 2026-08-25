@@ -41,7 +41,8 @@ export async function writeOPCUAFile(clientFile: IClientFile, filePath: string, 
         // note: pipeline requires NodeJS 15 or above
         await pipeline(readStream, outStream);
     } catch (e) {
-        debugLog((e as Error).message);
+        // c8 ignore next
+        doDebug && debugLog((e as Error).message);
         throw e;
     } finally {
         doDebug && debugLog("closing the OPCUA File");

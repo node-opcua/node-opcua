@@ -80,7 +80,8 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
     const key = monitoredItem._samplingId as string;
     const _t = timers[key];
     if (!_t) {
-        debugLog("cannot find common timer for samplingInterval", key);
+        // c8 ignore next
+        doDebug && debugLog("cannot find common timer for samplingInterval", key);
         return;
     }
     assert(_t);

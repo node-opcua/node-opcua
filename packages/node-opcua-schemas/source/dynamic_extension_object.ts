@@ -23,7 +23,7 @@ import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 function associateEncoding(
     dataTypeFactory: DataTypeFactory,
@@ -684,7 +684,8 @@ class UnionBaseClass extends BaseUAObject {
             /* c8 ignore next */
             if (uniqueFieldHasBeenFound && value !== undefined) {
                 // let try to be helpful for the developper by providing some hint
-                debugLog(this.schema);
+                // c8 ignore next
+                doDebug && debugLog(this.schema);
                 throw new Error(
                     "union must have only one choice in " +
                         JSON.stringify(options) +
@@ -753,7 +754,8 @@ class UnionBaseClass extends BaseUAObject {
                 // throw new Error(this.schema.name + ": cannot find field with value "
                 // +  options[switchFieldName]);
             } else {
-                debugLog(this.schema);
+                // c8 ignore next
+                doDebug && debugLog(this.schema);
                 throw new Error(`${this.schema.name}: At least one of [ ${r} ] must be specified in ${JSON.stringify(options)}`);
             }
         }

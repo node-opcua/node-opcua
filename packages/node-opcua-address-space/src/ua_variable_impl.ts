@@ -455,13 +455,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData) ||
             dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
         ) {
-            debugLog(
-                chalk.red(" Warning:  UAVariable#readValue ") +
-                    chalk.cyan(this.browseName.toString()) +
-                    " (" +
-                    chalk.yellow(this.nodeId.toString()) +
-                    ") exists but dataValue has not been defined"
-            );
+            // c8 ignore next
+            doDebug &&
+                debugLog(
+                    chalk.red(" Warning:  UAVariable#readValue ") +
+                        chalk.cyan(this.browseName.toString()) +
+                        " (" +
+                        chalk.yellow(this.nodeId.toString()) +
+                        ") exists but dataValue has not been defined"
+                );
         }
         return dataValue;
     }
@@ -1457,7 +1459,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                         continue;
                     }
                     if (e.constructor.name !== Constructor.name) {
-                        debugLog("extObj.constructor.name ", e.constructor.name, "expected", Constructor.name);
+                        // c8 ignore next
+                        doDebug && debugLog("extObj.constructor.name ", e.constructor.name, "expected", Constructor.name);
                         return false;
                     }
                 }
@@ -2181,7 +2184,8 @@ function _Variable_bind_with_async_refresh(
         // when a getter /timestamped_getter or async_getter is provided
         // samplingInterval cannot be 0, as the item value must be scanned to be updated.
         this.minimumSamplingInterval = _default_minimumSamplingInterval; // MonitoredItem.minimumSamplingInterval;
-        debugLog(`adapting minimumSamplingInterval on ${this.browseName.toString()} to ${this.minimumSamplingInterval}`);
+        // c8 ignore next
+        doDebug && debugLog(`adapting minimumSamplingInterval on ${this.browseName.toString()} to ${this.minimumSamplingInterval}`);
     }
         */
 }

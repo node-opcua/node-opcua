@@ -249,7 +249,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public terminate(): Promise<void>;
     public terminate(callback: ErrorCallback): void;
     public terminate(callback?: ErrorCallback): Promise<void> | void {
-        debugLog("Terminating client subscription ", this.subscriptionId);
+        // c8 ignore next
+        doDebug && debugLog("Terminating client subscription ", this.subscriptionId);
 
         if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
@@ -276,7 +277,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 },
                 (err: Error | null, response?: DeleteSubscriptionsResponse) => {
                     if (response && response?.results?.[0] !== StatusCodes.Good) {
-                        debugLog("warning: deleteSubscription returned ", response.results);
+                        // c8 ignore next
+                        doDebug && debugLog("warning: deleteSubscription returned ", response.results);
                     }
                     if (err) {
                         /**
@@ -290,7 +292,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                 }
             );
         } else {
-            debugLog("subscriptionId is not value ", this.subscriptionId);
+            // c8 ignore next
+            doDebug && debugLog("subscriptionId is not value ", this.subscriptionId);
             assert(this.subscriptionId === PENDING_SUBSCRIPTION_ID);
             this._terminate_step2(callback as ErrorCallback);
         }
@@ -692,14 +695,16 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     private __on_publish_response_StatusChangeNotification(notification: StatusChangeNotification) {
         assert(notification.schema.name === "StatusChangeNotification");
 
-        debugLog("Client has received a Status Change Notification ", notification.status.toString());
+        // c8 ignore next
+        doDebug && debugLog("Client has received a Status Change Notification ", notification.status.toString());
 
         if (notification.status === StatusCodes.GoodSubscriptionTransferred) {
             // OPCUA UA Spec 1.0.3 : part 3 - page 82 - 5.13.7 TransferSubscriptions:
             // If the Server transfers the Subscription to the new Session, the Server shall issue
             // a StatusChangeNotification  notificationMessage with the status code
             // Good_SubscriptionTransferred to the old Session.
-            debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
+            // c8 ignore next
+            doDebug && debugLog("ClientSubscription#__on_publish_response_StatusChangeNotification : GoodSubscriptionTransferred");
 
             // may be it has been transferred after a reconnection.... in this case should do nothing about it
         }
@@ -754,7 +759,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         if (notificationData.length === 0) {
             // this is a keep alive message
-            debugLog(chalk.yellow("Client : received a keep alive notification from client"));
+            // c8 ignore next
+            doDebug && debugLog(chalk.yellow("Client : received a keep alive notification from client"));
             /**
              * notify the observers that a keep alive Publish Response has been received from the server.
              * @event keepalive
@@ -948,7 +954,8 @@ export function __create_subscription(subscription: ClientSubscriptionImpl, call
     }
     const session = subscription.session;
 
-    debugLog(chalk.yellow.bold("ClientSubscription created "));
+    // c8 ignore next
+    doDebug && debugLog(chalk.yellow.bold("ClientSubscription created "));
 
     const request = new CreateSubscriptionRequest({
         maxNotificationsPerPublish: subscription.maxNotificationsPerPublish,
