@@ -110,6 +110,84 @@ describe("Testing BinaryStream.writeArrayBuffer", () => {
         stream.buffer.subarray(0, 4).should.eql(Buffer.from([1, 2, 3, 4]));
     });
 
+    it("should write nothing when an explicit zero length is given", () => {
+        // `length || byteArr.length` used to turn an explicit 0 into a full-buffer copy,
+        // so encoding an empty typed array wrote the whole backing ArrayBuffer.
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+        stream.writeArrayBuffer(arrayBuffer, 0, 0);
+        stream.length.should.eql(0);
+
+        stream.writeArrayBuffer(arrayBuffer, 16, 0);
+        stream.length.should.eql(0);
+    });
+
+    it("should write from offset to the end when length is omitted", () => {
+        // the old form ignored `offset` when computing the count, so it read 16 bytes
+        // past the end of the source and wrote 64 bytes instead of 48.
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+        stream.writeArrayBuffer(arrayBuffer, 16);
+
+        stream.length.should.eql(SIZE - 16);
+        stream.buffer.subarray(0, SIZE - 16).should.eql(Buffer.from(new Uint8Array(arrayBuffer, 16)));
+    });
+
+    it("should clamp a length that runs past the end of the source", () => {
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+        const calculator = new BinaryStreamSizeCalculator();
+
+        stream.writeArrayBuffer(arrayBuffer, 32, 999);
+        calculator.writeArrayBuffer(arrayBuffer, 32, 999);
+
+        stream.length.should.eql(SIZE - 32);
+        calculator.length.should.eql(stream.length);
+        stream.buffer.subarray(0, SIZE - 32).should.eql(Buffer.from(new Uint8Array(arrayBuffer, 32)));
+    });
+
+    it("should write nothing when offset is at or past the end of the source", () => {
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+        const calculator = new BinaryStreamSizeCalculator();
+
+        stream.writeArrayBuffer(arrayBuffer, SIZE);
+        calculator.writeArrayBuffer(arrayBuffer, SIZE);
+        stream.length.should.eql(0);
+        calculator.length.should.eql(0);
+
+        stream.writeArrayBuffer(arrayBuffer, SIZE + 8);
+        calculator.writeArrayBuffer(arrayBuffer, SIZE + 8);
+        stream.length.should.eql(0);
+        calculator.length.should.eql(0);
+    });
+
+    it("should reject a negative offset rather than desynchronising the cursor", () => {
+        // subarray() reads a negative start as an offset from the END of the source, so
+        // writeArrayBuffer(buf, -4) would copy the last 4 bytes while advancing the cursor
+        // by 68 - leaving 64 bytes of untouched destination memory inside the stream, and
+        // the size calculator agreeing on the wrong number.
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+        const calculator = new BinaryStreamSizeCalculator();
+
+        should(() => stream.writeArrayBuffer(arrayBuffer, -4)).throw(/offset must be a non-negative number/);
+        should(() => calculator.writeArrayBuffer(arrayBuffer, -4)).throw(/offset must be a non-negative number/);
+
+        stream.length.should.eql(0);
+        calculator.length.should.eql(0);
+    });
+
+    it("should reject a NaN offset", () => {
+        const stream = new BinaryStream(Buffer.allocUnsafe(SIZE * 4));
+
+        should(() => stream.writeArrayBuffer(arrayBuffer, Number.NaN)).throw(/offset must be a non-negative number/);
+        stream.length.should.eql(0);
+    });
+
+    it("should throw rather than silently truncate when the destination is too small", () => {
+        // the byte-by-byte loop used to drop the overflowing writes on the floor while
+        // still advancing `length`, producing a stream that claimed bytes it never wrote.
+        const stream = new BinaryStream(Buffer.allocUnsafe(16));
+
+        should(() => stream.writeArrayBuffer(arrayBuffer, 0, SIZE)).throw(/not enough bytes left in buffer/);
+    });
+
     it("should round-trip a large Float64Array through writeArrayBuffer/readArrayBuffer", () => {
         const n = 4096;
         const arr = new Float64Array(n);
