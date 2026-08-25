@@ -4,7 +4,7 @@
 
 import { assert } from "node-opcua-assert";
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
-import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
+import { BinaryStream, BinaryStreamMaxSizeExceededError } from "node-opcua-binary-stream";
 import type { Mode } from "node-opcua-chunkmanager";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { BaseUAObject } from "node-opcua-factory";
@@ -45,6 +45,11 @@ export interface ChunkMessageParameters {
 export class MessageChunker {
     public static defaultMaxMessageSize: number = 16 * 1024 * 1024;
     public static readonly defaultChunkCount: number = 0; // 0 => no limits
+    /** floor for the growable encode buffer, so tiny messages do not keep reallocating */
+    public static readonly minimumMessageSizeHint: number = 4 * 1024;
+
+    /** size of the last message encoded on this chunker, used to size the next one */
+    #messageSizeHint: number = MessageChunker.minimumMessageSizeHint;
 
     public maxMessageSize: number;
     public maxChunkCount: number;
@@ -115,17 +120,33 @@ export class MessageChunker {
         message: BaseUAObject,
         messageChunkCallback: MessageCallbackFunc
     ): StatusCode {
-        const calculateMessageLength = (message: BaseUAObject) => {
-            if (!message.schema.encodingDefaultBinary) {
-                throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
-            }
-            const stream = new BinaryStreamSizeCalculator();
-            encodeExpandedNodeId(message.schema.encodingDefaultBinary, stream);
+        const encodingDefaultBinary = message.schema.encodingDefaultBinary;
+        if (!encodingDefaultBinary) {
+            throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
+        }
+
+        // Encode once, into a stream that grows as needed. The previous form ran the whole
+        // object graph through a BinaryStreamSizeCalculator to learn the length and then
+        // encoded it a second time; both passes traverse everything and cost about the
+        // same, so sizing was roughly half the work.
+        //
+        // Growth is capped at the negotiated maximum message size, so encoding before the
+        // oversize check cannot be used to make us allocate without bound.
+        const ceiling = this.maxMessageSize > 0 ? this.maxMessageSize : MessageChunker.defaultMaxMessageSize;
+        const stream = BinaryStream.createGrowable(Math.min(this.#messageSizeHint, ceiling), ceiling);
+        try {
+            encodeExpandedNodeId(encodingDefaultBinary, stream);
             message.encode(stream);
-            return stream.length;
-        };
-        // evaluate the message size
-        const messageLength = calculateMessageLength(message);
+        } catch (err) {
+            if (err instanceof BinaryStreamMaxSizeExceededError) {
+                errorLog(`[NODE-OPCUA-E11] ${message.schema.name}: ${err.message}`);
+                return StatusCodes.BadTcpMessageTooLarge;
+            }
+            throw err;
+        }
+        const messageLength = stream.length;
+        // remember the size so the next message on this channel usually fits without growing
+        this.#messageSizeHint = Math.max(MessageChunker.minimumMessageSizeHint, messageLength);
 
         const { statusCode, chunkManager } = this.prepareChunk(msgType, params, messageLength);
         if (statusCode !== StatusCodes.Good) {
@@ -162,15 +183,10 @@ export class MessageChunker {
                 messageChunkCallback(null);
             });
 
-        // create buffer to stream
-        if (!message.schema.encodingDefaultBinary) {
-            throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
-        }
-        const stream = new BinaryStream(messageLength);
-        encodeExpandedNodeId(message.schema.encodingDefaultBinary, stream);
-        message.encode(stream);
-        // inject buffer to chunk manager
-        chunkManager.write(stream.buffer, stream.buffer.length);
+        // inject buffer to chunk manager.
+        // note: the growable buffer is usually larger than the message, so the length must
+        // come from the cursor - stream.buffer.length would ship uninitialised tail bytes
+        chunkManager.write(stream.buffer, messageLength);
         chunkManager.end();
         return StatusCodes.Good;
     }
