@@ -640,10 +640,16 @@ interface DataTypeHelper {
     decode: (stream: BinaryStream) => unknown;
 }
 
-const typedArrayHelpers: { [key: string]: DataTypeHelper } = {};
+// Indexed by the numeric DataType, so a lookup is a plain array load rather than a
+// DataType[n] reverse-enum lookup followed by a string-keyed property access.
+//
+// Sized to VARIANT_TYPE_MASK (0x3f) rather than to the number of DataTypes: a peer
+// controls those bits, so an out-of-range value must read an in-bounds hole instead
+// of walking off the end into the prototype chain.
+const typedArrayHelpers: DataTypeHelper[] = new Array(64);
 
-function _getHelper(dataType: DataType) {
-    return typedArrayHelpers[DataType[dataType]];
+function _getHelper(dataType: DataType): DataTypeHelper {
+    return typedArrayHelpers[dataType];
 }
 
 function coerceVariantArray(dataType: DataType, value: BufferedArray2 | unknown[] | null) {
@@ -733,7 +739,7 @@ function decodeVariantArray(dataType: DataType, stream: BinaryStream) {
 }
 
 function _declareTypeArrayHelper(dataType: DataType, typedArrayConstructor: BufferedArrayConstructor) {
-    typedArrayHelpers[DataType[dataType]] = {
+    typedArrayHelpers[dataType] = {
         coerce: convertTo.bind(null, dataType, typedArrayConstructor),
         decode: decodeTypedArray.bind(null, typedArrayConstructor),
         encode: encodeTypedArray.bind(null, typedArrayConstructor)
