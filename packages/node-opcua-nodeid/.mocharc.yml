@@ -1,3 +1,8 @@
 recursive: true
 bail: true
 require:
+  - should
+  - tsx
+extension:
+  - ts
+  - js
