@@ -10,6 +10,20 @@ const MAXUINT32 = 4294967295; // 2**32 -1;
 const performCheck = false;
 
 /**
+ * raised when a growable BinaryStream would have to exceed its declared maximum size.
+ *
+ * Distinct from every other encoding failure on purpose: a caller that sized the stream
+ * from a negotiated limit needs to tell "the peer's message is too big" apart from
+ * "the encoder is broken".
+ */
+export class BinaryStreamMaxSizeExceededError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "BinaryStreamMaxSizeExceededError";
+    }
+}
+
+/**
  * a BinaryStream can be use to perform sequential read or write
  * inside a buffer.
  * The BinaryStream maintains a cursor up to date as the caller
@@ -45,6 +59,56 @@ export class BinaryStream {
      */
     public buffer: Buffer;
 
+    /**
+     * 0 means "fixed size": the buffer is never reallocated and an overflowing write
+     * fails the same way it always has. A non-zero value turns the stream growable and
+     * caps how far it may grow. Kept as a single field so a fixed stream - the
+     * overwhelming majority - pays exactly one compare per write.
+     */
+    #maxLength = 0;
+
+    /**
+     * create a stream that reallocates its buffer as needed, up to maxLength bytes.
+     *
+     * Encoding a message whose size is not known up front otherwise means encoding it
+     * twice: once into a BinaryStreamSizeCalculator to learn the length, then again for
+     * real. Both passes walk the whole object graph, and measuring shows the sizing pass
+     * costs about as much as the real one.
+     *
+     * @param initialSize starting capacity; a good guess avoids reallocation entirely
+     * @param maxLength   hard ceiling - exceeding it throws BinaryStreamMaxSizeExceededError
+     */
+    public static createGrowable(initialSize: number, maxLength: number): BinaryStream {
+        const stream = new BinaryStream(Math.max(1, initialSize));
+        stream.#maxLength = maxLength;
+        return stream;
+    }
+
+    #ensure(n: number): void {
+        if (this.#maxLength !== 0 && this.length + n > this.buffer.length) {
+            this.#grow(n);
+        }
+    }
+
+    #grow(n: number): void {
+        const needed = this.length + n;
+        if (needed > this.#maxLength) {
+            throw new BinaryStreamMaxSizeExceededError(
+                `BinaryStream: cannot grow to ${needed} bytes, the maximum allowed size is ${this.#maxLength}`
+            );
+        }
+        let newSize = this.buffer.length * 2;
+        while (newSize < needed) {
+            newSize *= 2;
+        }
+        if (newSize > this.#maxLength) {
+            newSize = this.#maxLength;
+        }
+        const bigger = createFastUninitializedBuffer(newSize);
+        this.buffer.copy(bigger, 0, 0, this.length);
+        this.buffer = bigger;
+    }
+
     constructor(data: undefined | Buffer | number) {
         if (data === undefined) {
             this.buffer = createFastUninitializedBuffer(1024);
@@ -71,6 +135,7 @@ export class BinaryStream {
      * @param value the value to write
      */
     public writeInt8(value: number): void {
+        this.#ensure(1);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 1, "not enough space in buffer");
@@ -85,6 +150,7 @@ export class BinaryStream {
      * @param value  the value to write
      */
     public writeUInt8(value: number): void {
+        this.#ensure(1);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 1, "not enough space in buffer");
@@ -99,6 +165,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeInt16(value: number): void {
+        this.#ensure(2);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 2, "not enough space in buffer");
@@ -112,6 +179,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeUInt16(value: number): void {
+        this.#ensure(2);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 2, "not enough space in buffer");
@@ -125,6 +193,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeInteger(value: number): void {
+        this.#ensure(4);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
@@ -139,6 +208,7 @@ export class BinaryStream {
      * @param  value the value to write
      */
     public writeUInt32(value: number): void {
+        this.#ensure(4);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
@@ -160,6 +230,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeFloat(value: number): void {
+        this.#ensure(4);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 4, "not enough space in buffer");
@@ -173,6 +244,7 @@ export class BinaryStream {
      * @param  value  the value to write
      */
     public writeDouble(value: number): void {
+        this.#ensure(8);
         // c8 ignore next
         if (performCheck) {
             assert(this.buffer.length >= this.length + 8, "not enough space in buffer");
@@ -191,6 +263,7 @@ export class BinaryStream {
      * structures.
      */
     public reserveUInt32(): number {
+        this.#ensure(4);
         const position = this.length;
         this.length += 4;
         return position;
@@ -225,6 +298,7 @@ export class BinaryStream {
         if (len === 0) {
             return;
         }
+        this.#ensure(len);
         // make sure there is enough room in destination buffer
         const remainingBytes = this.buffer.length - this.length;
         /* c8 ignore next */
@@ -347,6 +421,7 @@ export class BinaryStream {
         }
         assert(buf instanceof Buffer);
         this.writeInteger(buf.length);
+        this.#ensure(buf.length);
         // make sure there is enough room in destination buffer
         const remainingBytes = this.buffer.length - this.length;
 
@@ -374,6 +449,7 @@ export class BinaryStream {
         if (byteLength === 0) {
             return;
         }
+        this.#ensure(byteLength);
         // make sure there is enough room in destination buffer
         const remainingBytes = this.buffer.length - this.length;
         /* c8 ignore next */
