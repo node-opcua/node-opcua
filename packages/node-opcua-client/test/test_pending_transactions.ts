@@ -149,4 +149,29 @@ describe("ClientSessionImpl pending transaction queue", function (this: Mocha.Su
         (answers[0] === null).should.eql(false);
         session._reconnecting.pendingTransactions.length.should.eql(0);
     });
+    it("PTQ-7 should not orphan a transaction answered BadSessionIdInvalid while reconnecting", () => {
+        // this used to park the callback on a one-shot session_restored listener, which is
+        // emitted only when a repair succeeds - so a repair that gave up stranded the caller.
+        const { session, setChannelOpened } = makeHarness();
+        const sessionGone = new Error(" serviceResult = BadSessionIdInvalid");
+        session._client = {
+            ...(session._client as unknown as Record<string, unknown>),
+            _secureChannel: { isOpened: () => true, forceConnectionBreak: sinon.spy() },
+            isReconnecting: true,
+            performMessageTransaction: (_r: unknown, cb: (e: Error | null) => void) => cb(sessionGone)
+        } as unknown as IClientBase;
+        setChannelOpened(true);
+        session._reconnecting.reconnecting = true;
+
+        const answers: (Error | null)[] = [];
+        session.performMessageTransaction(new ReadRequest({}), (e) => answers.push(e));
+
+        answers.length.should.eql(0, "the caller waits while the session is being repaired");
+        session._reconnecting.pendingTransactions.length.should.eql(1, "it must be held, not parked on a listener");
+
+        // the repair gives up: the caller must be told, not left waiting
+        session.flushPendingTransactions(new Error("repair gave up"));
+        answers.length.should.eql(1, "a failed repair must resolve the held caller");
+        (answers[0] === null).should.eql(false);
+    });
 });

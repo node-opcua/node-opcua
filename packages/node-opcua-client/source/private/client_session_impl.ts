@@ -1599,10 +1599,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 );
                 request.requestHeader.requestHandle = requestHandleNotSetValue;
                 if (this.isReconnecting) {
-                    this.once("session_restored", () => {
-                        warningLog("redoing", request.constructor.name, this.isReconnecting);
-                        this.#reprocessRequest(attemptCount + 1, request, callback);
-                    });
+                    // Hand it back to the queue rather than parking it on a one-shot
+                    // session_restored listener: that event is emitted only when a repair
+                    // succeeds, so a repair that gave up - or a dispose, which drops every
+                    // listener - left the caller waiting for an answer that could never come.
+                    // flushPendingTransactions is called on every exit from a repair, so the
+                    // transaction is always resolved one way or the other.
+                    debugLog("holding for replay after repair:", request.constructor.name, "attempt", attemptCount);
+                    this._reconnecting.pendingTransactions.push({ request, callback });
                 } else {
                     this.#_recreate_session_and_reperform_transaction(request, callback);
                 }
