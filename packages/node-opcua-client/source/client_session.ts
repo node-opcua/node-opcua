@@ -110,7 +110,10 @@ export interface ClientSessionBase {
      */
     lastRequestSentTime: Date;
     /**
-     * the time of the latest response received by the client
+     * the time of the latest response received by the client from the server.
+     *
+     * this is only updated when the server has actually answered: a transaction that
+     * fails on a timeout or on a broken channel does not update this value.
      */
     lastResponseReceivedTime: Date;
     /**
