@@ -53,6 +53,22 @@ jobs:
           fi
           echo "Generated files are in sync."
 
+  # Enforces the repo-wide Biome gate (lint + format + import order) across
+  # packages/, packages_extra/, and tools/. Pure static check, no build
+  # needed — kept fast and separate from the build/test matrix jobs.
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run lint
+
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
