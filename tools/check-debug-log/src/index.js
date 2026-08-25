@@ -163,15 +163,20 @@ function findUnguardedStatements(lines, loggerNames, guardName) {
                 const guardedByBlock = braceIsGuard.some(Boolean);
                 if (!guardedInline && !guardedByBlock) {
                     const end = findStatementEnd(lines, i);
-                    found.push({ start: i, end, indent: line.slice(0, line.length - trimmed.length) });
+                    // end === -1 means the extent could not be bounded safely: still report
+                    // it, but never rewrite it - a wrong extent emits code that will not
+                    // compile, or silently moves the next statement inside the guard
+                    found.push({ start: i, end, indent: line.slice(0, line.length - trimmed.length), unsafe: end < 0 });
                 }
             }
         }
 
-        // update brace tracking for this line
+        // update brace tracking for this line, ignoring braces inside strings and comments
         const opensGuard = guards.length > 0 && new RegExp(`^\\}?\\s*(else\\s+)?if\\s*\\(\\s*(${guards.join("|")})\\s*\\)`).test(trimmed);
-        const opens = countChar(line, "{");
-        const closes = countChar(line, "}");
+        const stripped = stripLiterals(line);
+        const counted = stripped === null ? "" : stripped.clean;
+        const opens = countChar(counted, "{");
+        const closes = countChar(counted, "}");
         for (let k = 0; k < opens; k++) {
             braceIsGuard.push(opensGuard && k === 0);
         }
@@ -182,22 +187,61 @@ function findUnguardedStatements(lines, loggerNames, guardName) {
     return found;
 }
 
-/** a call may span several lines; find the line on which its parentheses balance out */
+/**
+ * blank out string, template and comment content so brackets inside them are not counted.
+ *
+ * A log message is exactly the place an unbalanced `(` shows up - `debugLog("closing (")`
+ * - and counting it would make the tool believe the statement continues onto the next
+ * line, quietly pulling the following statement inside the guard. Returns null when the
+ * line ends inside an unterminated quote, which means the extent cannot be trusted.
+ */
+function stripLiterals(line) {
+    let out = "";
+    let quote = null;
+    for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (quote) {
+            if (c === "\\") {
+                i++;
+            } else if (c === quote) {
+                quote = null;
+            }
+            continue;
+        }
+        if (c === '"' || c === "'" || c === "`") {
+            quote = c;
+            continue;
+        }
+        if (c === "/" && line[i + 1] === "/") {
+            break;
+        }
+        out += c;
+    }
+    // a template literal may legitimately span lines; anything else left open is a line we
+    // do not understand well enough to rewrite
+    return quote === null || quote === "`" ? { clean: out, open: quote === "`" } : null;
+}
+
+/**
+ * a call may span several lines; find the line on which its parentheses balance out.
+ * Returns -1 when the extent cannot be determined safely.
+ */
 function findStatementEnd(lines, start) {
     let depth = 0;
-    for (let i = start; i < lines.length; i++) {
-        depth += countChar(lines[i], "(") - countChar(lines[i], ")");
+    for (let i = start; i < lines.length && i < start + 40; i++) {
+        const stripped = stripLiterals(lines[i]);
+        if (stripped === null || stripped.open) {
+            return -1;
+        }
+        depth += countChar(stripped.clean, "(") - countChar(stripped.clean, ")");
         if (depth <= 0) {
             return i;
         }
     }
-    return start;
+    return -1;
 }
 
 function countChar(line, ch) {
-    // good enough for source that is already formatted by biome; string literals holding
-    // braces or parens are reported rather than rewritten because the statement extent
-    // would come out wrong and the `--fix` output would not compile
     let n = 0;
     for (const c of line) {
         if (c === ch) {
@@ -268,7 +312,11 @@ function applyFix(source, loggerNames) {
         return { source, fixed: 0, skipped: true };
     }
     let lines = ensured.source.split("\n");
-    const statements = findUnguardedStatements(lines, loggerNames, ensured.guardName);
+    const all = findUnguardedStatements(lines, loggerNames, ensured.guardName);
+    // never rewrite a statement whose extent could not be bounded: a wrong extent either
+    // emits code that does not compile, or silently moves the next statement inside the guard
+    const statements = all.filter((st) => !st.unsafe);
+    const unsafe = all.length - statements.length;
     const groups = groupAdjacent(statements);
 
     // bottom-up so earlier line numbers stay valid
@@ -296,7 +344,7 @@ function applyFix(source, loggerNames) {
         const from = above !== undefined && above.trim() === IGNORE_COMMENT ? group.start - 1 : group.start;
         lines = [...lines.slice(0, from), ...replacement, ...lines.slice(group.end + 1)];
     }
-    return { source: lines.join("\n"), fixed: statements.length, skipped: false, addedGuard: ensured.added };
+    return { source: lines.join("\n"), fixed: statements.length, unsafe, skipped: false, addedGuard: ensured.added };
 }
 
 // ---------------------------------------------------------------------------------------
@@ -315,6 +363,7 @@ function main() {
 
     let totalUnguarded = 0;
     let totalFixed = 0;
+    let totalUnsafe = 0;
     const perPackage = new Map();
     const skipped = [];
 
@@ -330,6 +379,7 @@ function main() {
 
         if (fix) {
             const result = applyFix(source, loggerNames);
+            totalUnsafe += result.unsafe || 0;
             if (result.skipped) {
                 skipped.push(file);
             } else if (result.fixed > 0) {
@@ -359,6 +409,9 @@ function main() {
 
     if (fix) {
         console.log(`check-debug-log: guarded ${totalFixed} call site${totalFixed === 1 ? "" : "s"}.`);
+        if (totalUnsafe > 0) {
+            console.log(`  ${totalUnsafe} site(s) left alone: extent could not be bounded safely. Guard these by hand.`);
+        }
         if (skipped.length) {
             console.log(`  ${skipped.length} file(s) skipped: no debug flag could be declared automatically.`);
             for (const f of skipped) {
