@@ -516,11 +516,16 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
 
     const privateSession = session as unknown as Reconnectable;
-    privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pendingCallbacks: [] };
+    privateSession._reconnecting = privateSession._reconnecting || {
+        reconnecting: false,
+        pendingCallbacks: [],
+        pendingTransactions: []
+    };
 
     if (session.hasBeenClosed()) {
         privateSession._reconnecting.reconnecting = false;
         doDebug && debugLog("Aborting reactivation of old session because session has been closed");
+        session.flushPendingTransactions(new Error("Session has been closed while the transaction was waiting for reconnection"));
         callback();
         return;
     }
@@ -531,9 +536,6 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     }
 
     privateSession._reconnecting.reconnecting = true;
-
-    // get old transaction queue ...
-    const transactionQueue = privateSession._reconnecting.pendingTransactions.splice(0);
 
     const repeatedAction = (callback: EmptyCallback) => {
         // prettier-ignore
@@ -592,19 +594,17 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     repeatedAction((err) => {
         privateSession._reconnecting.reconnecting = false;
         const otherCallbacks = privateSession._reconnecting.pendingCallbacks.splice(0);
-        // re-inject element in queue
 
-        // c8 ignore next
-        if (transactionQueue.length > 0) {
-            doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-            transactionQueue.forEach((e) => {
-                privateSession._reconnecting.pendingTransactions.push(e);
-            });
-        }
         otherCallbacks.forEach((c: EmptyCallback) => {
             c(err);
         });
         callback(err);
+
+        // Resolve what the application asked for while the channel was down - after the repair
+        // callbacks have run, so the session is fully usable by the time anything is replayed.
+        // On failure they are failed rather than held across the client's retry delay: a caller
+        // waiting without bound is worse than an error it can act on.
+        session.flushPendingTransactions(err ?? null);
     });
 }
 
