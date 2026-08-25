@@ -1544,7 +1544,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             return;
         }
 
-        if (this._reconnecting.pendingTransactions.length > 0) {
+        // Hold the transaction only while the channel is genuinely down and a repair is under
+        // way. The repair restores the session *after* the secure channel is back up
+        // (_repairConnection: _recreate_secure_channel, then _finalReconnectionStep), so its own
+        // traffic - including the plain Read that readOperationLimits issues - always sees a
+        // valid channel and passes straight through. Queueing on "reconnecting" alone would
+        // park the repair's requests behind the repair that is waiting for them.
+        if (!this.isChannelValid() && (this._reconnecting.reconnecting || this._client.isReconnecting)) {
             /* c8 ignore next */
             if (this._reconnecting.pendingTransactions.length > 10) {
                 if (!pendingTransactionMessageDisplayed) {
@@ -1625,6 +1631,31 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *
      * @internal
      */
+    /**
+     * resolve every transaction that was held while the connection was down: replay them when the
+     * session is usable again, fail them when the repair gave up.
+     *
+     * Every exit from a repair must call this, otherwise a held caller waits for an answer that
+     * can never come - and the session is disposed with a queue that nobody drained.
+     *
+     * @internal
+     */
+    public flushPendingTransactions(err: Error | null): void {
+        const heldTransactions = this._reconnecting.pendingTransactions.splice(0);
+        if (heldTransactions.length === 0) {
+            return;
+        }
+        debugLog("flushPendingTransactions", heldTransactions.length, err ? `failing: ${err.message}` : "replaying");
+        pendingTransactionMessageDisplayed = false;
+        for (const pending of heldTransactions) {
+            if (err) {
+                pending.callback(err);
+            } else {
+                this.#reprocessRequest(0, pending.request, pending.callback);
+            }
+        }
+    }
+
     public noteServerAnswer(err: Error | null, response?: Response): void {
         if (response || (err as ServiceFaultAnnotatedError)?.response) {
             this.lastResponseReceivedTime = new Date();
@@ -2020,9 +2051,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         this.stopKeepAliveManager();
         this.removeAllListeners();
         //
-        if (this._reconnecting.pendingTransactions.length !== 0) {
-            warningLog("dispose when pendingTransactions is not empty ");
-        }
+        // never strand a held caller: the session is going away, so nothing will ever replay them
+        this.flushPendingTransactions(new Error("Session has been disposed while the transaction was waiting for reconnection"));
     }
 
     public toString(): string {
