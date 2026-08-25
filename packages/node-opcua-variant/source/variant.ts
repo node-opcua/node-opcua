@@ -75,6 +75,80 @@ const schemaVariant = buildStructuredType({
     name: "Variant"
 });
 
+/**
+ * copy one element of a Variant deeply enough that writing the original cannot be seen
+ * through the copy.
+ *
+ * Only the DataTypes whose values are mutable objects need work here. Numbers, strings and
+ * booleans are immutable, and a StatusCode is a shared constant, so they are returned
+ * as-is. Everything else is a live object that a server may well write in place - the
+ * address space does exactly that with a bound ExtensionObject - and sharing it would let
+ * a later write rewrite a sample that has already been recorded and queued.
+ */
+function cloneVariantElement(dataType: DataType, value: unknown): unknown {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    switch (dataType) {
+        case DataType.ByteString:
+            return Buffer.isBuffer(value) ? Buffer.from(value as Buffer) : value;
+        case DataType.DateTime:
+            return value instanceof Date ? new Date(value.getTime()) : value;
+        case DataType.NodeId:
+        case DataType.ExpandedNodeId: {
+            const nodeId = value as NodeId;
+            if (!(nodeId instanceof NodeId)) {
+                return value;
+            }
+            // a ByteString identifier is itself a Buffer and needs copying too
+            const identifier = Buffer.isBuffer(nodeId.value) ? Buffer.from(nodeId.value) : nodeId.value;
+            return new NodeId(nodeId.identifierType, identifier, nodeId.namespace);
+        }
+        case DataType.LocalizedText:
+            return value instanceof LocalizedText ? new LocalizedText(value) : value;
+        case DataType.QualifiedName:
+            return value instanceof QualifiedName ? new QualifiedName(value) : value;
+        case DataType.Variant:
+            return value instanceof Variant ? value.clone() : value;
+        case DataType.ExtensionObject: {
+            const extensionObject = value as { constructor: new (options: unknown) => unknown };
+            return extensionObject?.constructor ? new extensionObject.constructor(value) : value;
+        }
+        default:
+            // Boolean, the integer and floating point families, String, Guid, StatusCode:
+            // immutable values, nothing to copy
+            return value;
+    }
+}
+
+/** deep-copy the payload of a Variant, preserving its shape (scalar, typed array or array) */
+function cloneVariantValue(dataType: DataType, value: unknown): unknown {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    // a Buffer is both a typed array and the representation of a scalar ByteString, so it
+    // has to be tested before the generic typed-array branch below
+    if (Buffer.isBuffer(value)) {
+        return Buffer.from(value);
+    }
+    if (ArrayBuffer.isView(value)) {
+        // Float64Array and friends: copy the elements, never the view onto the source
+        const typed = value as unknown as BufferedArray2;
+        const copy = new (typed.constructor as BufferedArrayConstructor)(typed.length);
+        copy.set(typed as never);
+        return copy;
+    }
+    if (Array.isArray(value)) {
+        const n = value.length;
+        const copy = new Array(n);
+        for (let i = 0; i < n; i++) {
+            copy[i] = cloneVariantElement(dataType, value[i]);
+        }
+        return copy;
+    }
+    return cloneVariantElement(dataType, value);
+}
+
 function _coerceVariant(variantLike: VariantOptions | Variant): Variant {
     const value = variantLike instanceof Variant ? variantLike : new Variant(variantLike);
     return value;
@@ -178,7 +252,12 @@ export class Variant extends BaseUAObject {
     }
 
     public clone(): Variant {
-        return new Variant(this);
+        const variant = new Variant(null);
+        variant.dataType = this.dataType;
+        variant.arrayType = this.arrayType;
+        variant.dimensions = this.dimensions ? this.dimensions.slice() : null;
+        variant.value = cloneVariantValue(this.dataType, this.value);
+        return variant;
     }
 }
 
