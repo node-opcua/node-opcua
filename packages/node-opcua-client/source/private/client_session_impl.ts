@@ -1297,7 +1297,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     public emitCloseEvent(statusCode: StatusCode): void {
         if (!this._closeEventHasBeenEmitted) {
-            debugLog("ClientSession#emitCloseEvent");
+            // c8 ignore next
+            doDebug && debugLog("ClientSession#emitCloseEvent");
             this._closeEventHasBeenEmitted = true;
             this.emit("session_closed", statusCode);
         }
@@ -1523,7 +1524,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     public isChannelValid(): boolean {
         /* c8 ignore next */
         if (!this._client) {
-            debugLog(chalk.red("Warning SessionClient is null ?"));
+            // c8 ignore next
+            doDebug && debugLog(chalk.red("Warning SessionClient is null ?"));
         }
 
         return !!this._client?._secureChannel?.isOpened();
@@ -1571,12 +1573,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     );
                 }
             } else if (this._reconnecting.pendingTransactions.length > 3) {
-                debugLog(
-                    chalk.yellow(
-                        "Warning : your client is sending multiple requests simultaneously to the server",
-                        request.constructor.name
-                    )
-                );
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        chalk.yellow(
+                            "Warning : your client is sending multiple requests simultaneously to the server",
+                            request.constructor.name
+                        )
+                    );
             }
             this._reconnecting.pendingTransactions.push({ request, callback });
             return;
@@ -1605,7 +1609,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     // listener - left the caller waiting for an answer that could never come.
                     // flushPendingTransactions is called on every exit from a repair, so the
                     // transaction is always resolved one way or the other.
-                    debugLog("holding for replay after repair:", request.constructor.name, "attempt", attemptCount);
+                    // c8 ignore next
+                    doDebug && debugLog("holding for replay after repair:", request.constructor.name, "attempt", attemptCount);
                     this._reconnecting.pendingTransactions.push({ request, callback });
                 } else {
                     this.#_recreate_session_and_reperform_transaction(request, callback);
@@ -1644,7 +1649,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         if (heldTransactions.length === 0) {
             return;
         }
-        debugLog("flushPendingTransactions", heldTransactions.length, err ? `failing: ${err.message}` : "replaying");
+        // c8 ignore next
+        doDebug && debugLog("flushPendingTransactions", heldTransactions.length, err ? `failing: ${err.message}` : "replaying");
         pendingTransactionMessageDisplayed = false;
         for (const pending of heldTransactions) {
             if (err) {
@@ -1675,7 +1681,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
             // for a long time
             // we may need to queue this transaction, as a secure token may be being reprocessed
-            debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
+            // c8 ignore next
+            doDebug && debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
             callback(new Error("Invalid Channel BadConnectionClosed"));
             return;
         }
@@ -1783,14 +1790,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         /* c8 ignore next */
         if (!this._client) {
-            debugLog("ClientSession#close : warning, client is already closed");
+            // c8 ignore next
+            doDebug && debugLog("ClientSession#close : warning, client is already closed");
             return callback(); // already close ?
         }
         assert(this._client);
 
         this._terminatePublishEngine();
         this._client.closeSession(this, deleteSubscription as boolean, (err?: Error) => {
-            debugLog("session Close err ", err ? err.message : "null");
+            // c8 ignore next
+            doDebug && debugLog("session Close err ", err ? err.message : "null");
             callback();
         });
         return undefined;
@@ -2241,7 +2250,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         /* c8 ignore next */
         if (this._closeEventHasBeenEmitted) {
-            debugLog("ClientSession#_defaultRequest => session has been closed !!", request.toString());
+            // c8 ignore next
+            doDebug && debugLog("ClientSession#_defaultRequest => session has been closed !!", request.toString());
             setImmediate(() => {
                 callback(new Error("ClientSession is closed !"));
             });
@@ -2250,15 +2260,18 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
         return this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             if (this._closeEventHasBeenEmitted) {
-                debugLog(
-                    "ClientSession#_defaultRequest ... err =",
-                    err ? err.message : "null",
-                    response ? response.toString() : " null"
-                );
+                // c8 ignore next
+                doDebug &&
+                    debugLog(
+                        "ClientSession#_defaultRequest ... err =",
+                        err ? err.message : "null",
+                        response ? response.toString() : " null"
+                    );
             }
             /* c8 ignore next */
             if (err) {
-                debugLog("Client session : performMessageTransaction error = ", err.message);
+                // c8 ignore next
+                doDebug && debugLog("Client session : performMessageTransaction error = ", err.message);
                 // let intercept interesting error message
                 if (err.message.match(/BadSessionClosed/)) {
                     // the session has been closed by Server
