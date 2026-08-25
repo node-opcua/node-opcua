@@ -291,8 +291,16 @@ export class DataValue extends BaseUAObject {
      */
     constructor(options?: DataValueOptions | null) {
         super();
-        if (options === null) {
-            this.statusCode = StatusCodes.Bad;
+        // Both `new DataValue()` and `new DataValue(null)` take this branch: the general
+        // path below would allocate a fully initialised Variant that decodeDataValue
+        // overwrites on the very next line, which costs ~6x for nothing.
+        //
+        // They differ in one field only, and that difference is preserved here: `null`
+        // means "explicitly empty" and reports Bad, while a missing argument keeps the
+        // historical Good default. Widening this test without keeping them apart would
+        // silently flip the default status code of every `new DataValue()` in the SDK.
+        if (options === null || options === undefined) {
+            this.statusCode = options === null ? StatusCodes.Bad : StatusCodes.Good;
             this.sourceTimestamp = null;
             this.sourcePicoseconds = 0;
             this.serverTimestamp = null;
