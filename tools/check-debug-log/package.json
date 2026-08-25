@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-debug-log",
+    "version": "1.0.0",
+    "private": true,
+    "description": "find (and fix) debug log calls that are not guarded by a debug flag",
+    "bin": {
+        "check-debug-log": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "fix": "node src/index.js --fix"
+    }
+}
