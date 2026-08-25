@@ -92,8 +92,20 @@ function cloneVariantElement(dataType: DataType, value: unknown): unknown {
     switch (dataType) {
         case DataType.ByteString:
             return Buffer.isBuffer(value) ? Buffer.from(value as Buffer) : value;
-        case DataType.DateTime:
-            return value instanceof Date ? new Date(value.getTime()) : value;
+        case DataType.DateTime: {
+            if (!(value instanceof Date)) {
+                return value;
+            }
+            const copy = new Date(value.getTime());
+            // node-opcua carries sub-millisecond precision as a `picoseconds` property
+            // hung on the Date instance itself, so a plain new Date(getTime()) silently
+            // drops it - the historical-access nodes compare on it.
+            const picoseconds = (value as Date & { picoseconds?: number }).picoseconds;
+            if (picoseconds !== undefined) {
+                (copy as Date & { picoseconds?: number }).picoseconds = picoseconds;
+            }
+            return copy;
+        }
         case DataType.NodeId:
         case DataType.ExpandedNodeId: {
             const nodeId = value as NodeId;
@@ -104,10 +116,28 @@ function cloneVariantElement(dataType: DataType, value: unknown): unknown {
             const identifier = Buffer.isBuffer(nodeId.value) ? Buffer.from(nodeId.value) : nodeId.value;
             return new NodeId(nodeId.identifierType, identifier, nodeId.namespace);
         }
-        case DataType.LocalizedText:
-            return value instanceof LocalizedText ? new LocalizedText(value) : value;
-        case DataType.QualifiedName:
-            return value instanceof QualifiedName ? new QualifiedName(value) : value;
+        // LocalizedText and QualifiedName are copied field by field rather than through
+        // their option constructors: those default with `options.text || null`, so an
+        // empty string - a perfectly valid value, and what an uncommented Condition
+        // carries - would come back as null.
+        case DataType.LocalizedText: {
+            if (!(value instanceof LocalizedText)) {
+                return value;
+            }
+            const localizedText = new LocalizedText(null);
+            localizedText.locale = value.locale;
+            localizedText.text = value.text;
+            return localizedText;
+        }
+        case DataType.QualifiedName: {
+            if (!(value instanceof QualifiedName)) {
+                return value;
+            }
+            const qualifiedName = new QualifiedName(null);
+            qualifiedName.namespaceIndex = value.namespaceIndex;
+            qualifiedName.name = value.name;
+            return qualifiedName;
+        }
         case DataType.Variant:
             return value instanceof Variant ? value.clone() : value;
         case DataType.ExtensionObject: {
@@ -1261,6 +1291,14 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
         }
         if (Buffer.isBuffer(v1.value) && Buffer.isBuffer(v2.value)) {
             return v1.value.equals(v2.value);
+        }
+        // NodeId, LocalizedText, QualifiedName and DateTime are objects too, and without
+        // this they fall through to `return false` below - two equal values would always
+        // look different. That was masked as long as clone() shared the instance, so the
+        // `v1.value === v2.value` shortcut above matched; it was already wrong for values
+        // that arrive separately, such as anything just decoded off the wire.
+        if (v1.value !== null && typeof v1.value === "object") {
+            return __check_same_object(v1.value, v2.value);
         }
     }
     if (v1.arrayType === VariantArrayType.Array) {
