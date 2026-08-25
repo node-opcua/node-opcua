@@ -391,7 +391,11 @@ function w(n: number): string {
 }
 
 function _partial_clone(dataValue: DataValue): DataValue {
-    const cloneDataValue = new DataValue({ value: undefined });
+    // `new DataValue({ value: undefined })` builds a fully initialised Null Variant that
+    // the next line throws away; the null form skips that. The Variant is deliberately
+    // shared rather than copied - the caller only adjusts timestamps and the status code,
+    // which are DataValue fields, so the payload is never written through this alias.
+    const cloneDataValue = new DataValue(null);
     cloneDataValue.value = dataValue.value;
     cloneDataValue.statusCode = dataValue.statusCode;
     return cloneDataValue;
