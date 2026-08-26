@@ -5,7 +5,6 @@ import { EventEmitter } from "node:events";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 import { readMessageHeader } from "./read_message_header";
 
@@ -194,7 +193,7 @@ export class ChunkManager extends EventEmitter {
 
             const nbToWrite = Math.min(length - inputCursor, spaceLeft);
 
-            this.#chunk = this.#chunk || createFastUninitializedBuffer(this.chunkSize);
+            this.#chunk = this.#chunk || Buffer.allocUnsafe(this.chunkSize);
             const chunk = this.#chunk;
 
             if (buffer) {

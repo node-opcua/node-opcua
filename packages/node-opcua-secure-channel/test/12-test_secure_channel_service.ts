@@ -1,6 +1,5 @@
 import "should";
 
-import { clone_buffer } from "node-opcua-buffer-utils";
 import { hexDump, make_debugLog, makeBufferFromTrace } from "node-opcua-debug";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import {
@@ -52,7 +51,7 @@ describe("SecureMessageChunkManager", () => {
         await new Promise<void>((resolve, _reject) => {
             chunker.chunkSecureMessage("MSG", options, endPointResponse, (messageChunk?: Buffer | null) => {
                 if (messageChunk) {
-                    chunk_stack.push(clone_buffer(messageChunk));
+                    chunk_stack.push(Buffer.from(messageChunk));
                 } else {
                     resolve();
                 }

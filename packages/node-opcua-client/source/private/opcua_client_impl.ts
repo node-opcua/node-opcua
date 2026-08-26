@@ -7,7 +7,6 @@ import { callbackify } from "node:util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import {
     type Certificate,
@@ -352,7 +351,7 @@ function createUserNameIdentityToken(
     });
 
     // now encrypt password as requested
-    const lenBuf = createFastUninitializedBuffer(4);
+    const lenBuf = Buffer.allocUnsafe(4);
     lenBuf.writeUInt32LE(identityToken.password.length + serverNonce.length, 0);
     const block = Buffer.concat([lenBuf, identityToken.password, serverNonce]);
     identityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);

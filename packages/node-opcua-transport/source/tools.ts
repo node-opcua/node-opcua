@@ -4,7 +4,6 @@
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import type { BaseUAObject } from "node-opcua-factory";
 
@@ -50,7 +49,7 @@ export function decodeMessage(stream: BinaryStream, classNameConstructor: Constr
 export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): Buffer {
     assert(is_valid_msg_type(msgType));
 
-    const messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
+    const messageChunk = Buffer.allocUnsafe(encodableObject.binaryStoreSize() + 8);
     // encode encode-ableObject in a packet
     const stream = new BinaryStream(messageChunk);
     encodeMessage(msgType, encodableObject, stream);

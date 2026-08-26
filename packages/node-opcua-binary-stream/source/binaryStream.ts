@@ -4,7 +4,6 @@
 import "node:util";
 
 import { assert } from "node-opcua-assert";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 const MAXUINT32 = 4294967295; // 2**32 -1;
 const performCheck = false;
@@ -104,16 +103,16 @@ export class BinaryStream {
         if (newSize > this.#maxLength) {
             newSize = this.#maxLength;
         }
-        const bigger = createFastUninitializedBuffer(newSize);
+        const bigger = Buffer.allocUnsafe(newSize);
         this.buffer.copy(bigger, 0, 0, this.length);
         this.buffer = bigger;
     }
 
     constructor(data: undefined | Buffer | number) {
         if (data === undefined) {
-            this.buffer = createFastUninitializedBuffer(1024);
+            this.buffer = Buffer.allocUnsafe(1024);
         } else if (typeof data === "number") {
-            this.buffer = createFastUninitializedBuffer(data);
+            this.buffer = Buffer.allocUnsafe(data);
         } else {
             assert(data instanceof Buffer);
             this.buffer = data;
@@ -632,4 +631,4 @@ export function calculateByteLength(str: string): number {
     return s;
 }
 
-const zeroLengthBuffer = createFastUninitializedBuffer(0);
+const zeroLengthBuffer = Buffer.allocUnsafe(0);
