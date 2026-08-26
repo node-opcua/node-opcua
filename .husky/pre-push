@@ -1,0 +1,5 @@
+# biome only - no build, no tests: a pre-push hook has to stay in the seconds
+# range or it gets bypassed with --no-verify and stops being a safety net.
+# Use `git push --no-verify` deliberately when you need to push work in progress.
+echo "running biome check before push..."
+pnpm run lint
