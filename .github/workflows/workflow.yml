@@ -69,6 +69,35 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
 
+  # A gate rather than a lint step, because what it guards is not style. Two test files
+  # holding one fixed port collide as soon as the runner schedules them together, and the
+  # result is an EADDRINUSE at whichever test happened to be running - a flaky job that
+  # costs hours to trace back. This took master red once already.
+  #
+  # --summary exits non-zero on doubt as well as on failure: a port it cannot resolve, one
+  # pinned inside the ephemeral range, a literal invisible from the top of its file, an
+  # unmarked listen(0). Each is a way for two tests to share a port while the report says
+  # otherwise, so none of them may accumulate.
+  #
+  # A deliberate ephemeral port stays legal - mark it, with a reason:
+  #     // check-test-ports: dynamic-ok - asks the OS for a free port, then closes it
+  check_test_ports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+      # Called directly rather than through `pnpm run check:ports:summary`, which is
+      # the same command: the scanner has no dependencies, so the gate needs no install
+      # and cannot fail for setup reasons. The npm scripts exist for people.
+      - run: node tools/check-test-ports.mjs --summary
+      - name: Unit tests for the scanner
+        run: node tools/check-test-ports/test/test_scanner.js
+
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
