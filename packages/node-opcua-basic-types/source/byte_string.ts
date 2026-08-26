@@ -2,7 +2,6 @@
  * @module node-opcua-basic-types
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 import { getRandomInt, getRandomIntInclusive } from "./utils";
 
@@ -17,7 +16,7 @@ export type ByteString = Buffer;
 
 export function randomByteString(_value: unknown, len: number): ByteString {
     len = len || getRandomInt(1, 200);
-    const b = createFastUninitializedBuffer(len);
+    const b = Buffer.allocUnsafe(len);
     for (let i = 0; i < len; i++) {
         b.writeUInt8(getRandomIntInclusive(0, 0xff), i);
     }

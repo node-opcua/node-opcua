@@ -11,8 +11,6 @@
  * conditional export or `.browser` variant is needed here.
  */
 
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-
 /** WebCrypto refuses more than 65536 bytes in a single getRandomValues call */
 const maxBytesPerDraw = 65536;
 
@@ -34,7 +32,7 @@ function getCrypto(): Crypto {
  * @returns a Buffer of `size` cryptographically strong random bytes
  */
 export function cryptoRandomBytes(size: number): Buffer {
-    const buffer = createFastUninitializedBuffer(size);
+    const buffer = Buffer.allocUnsafe(size);
     const crypto = getCrypto();
     for (let offset = 0; offset < size; offset += maxBytesPerDraw) {
         const chunk = Math.min(maxBytesPerDraw, size - offset);

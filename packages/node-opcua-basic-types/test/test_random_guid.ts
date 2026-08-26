@@ -18,7 +18,6 @@ describe("randomGuid", () => {
     });
 
     it("RG-3 should honour the byteOffset of a pooled buffer", () => {
-        // createFastUninitializedBuffer hands out slices of a shared pool: drawing into a
         // view that ignored byteOffset would corrupt a neighbouring buffer
         const first = cryptoRandomBytes(8);
         const snapshot = Buffer.from(first);
