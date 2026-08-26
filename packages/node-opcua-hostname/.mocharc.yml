@@ -1,9 +1,0 @@
-recursive: true
-require:
-  - tsx
-  - ../../node_modules/should
-timeout: 20000
-extension:
-  - ts
-  - js
-

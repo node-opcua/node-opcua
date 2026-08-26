@@ -1,8 +1,0 @@
-require:
-  - tsx
-extension:
-  - ts
-  - js
-recursive: false
-timeout: 30000
-

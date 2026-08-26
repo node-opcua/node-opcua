@@ -1,8 +1,0 @@
-require:
-  - tsx
-  - ../../node_modules/should
-extension:
-  - ts
-recursive: true
-timeout: 20000
-enable-source-maps: true

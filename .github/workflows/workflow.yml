@@ -68,6 +68,11 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
+      # Every package's mocha config must stay on the one shape that survives pnpm's
+      # layout: spread packages/.mocharc.js, override only what differs, never write a
+      # relative path into `require`. Cheap to check here, and the alternative is
+      # finding out from a package that will not start - which is how the last one went.
+      - run: pnpm run check:mocharc
 
   # A gate rather than a lint step, because what it guards is not style. Two test files
   # holding one fixed port collide as soon as the runner schedules them together, and the

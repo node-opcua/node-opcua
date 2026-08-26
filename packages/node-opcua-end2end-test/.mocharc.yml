@@ -1,8 +1,0 @@
-recursive: true
-bail: true
-timeout: 30000
-require:
-  - tsx
-extension:
-  - ts
-  - js
