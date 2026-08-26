@@ -236,7 +236,7 @@ function epilogue() {
     );
     console.log("-------------------------------------------------------------------------------");
     const runningTests = [...runningPages].map((i) => testFiles[i]);
-    console.log(`running tests: ${runningTests.length}`);
+    console.log(`still running at exit: ${runningTests.length}`);
     console.log(runningTests.join("\n"));
 }
 
@@ -321,7 +321,7 @@ if (isMainThread) {
         };
 
         const infoTimer = setInterval(() => {
-            console.log("----------------------------------------------- RUNNING TESTS ");
+            console.log(`--------------------------------- WATCHDOG TICK (every ${durationToString(testWatchDogTimeout)}) - STILL RUNNING `);
             dumpRunningTests();
             dumpRunningTestsLogs();
         }, testWatchDogTimeout);
