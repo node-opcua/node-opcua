@@ -134,13 +134,11 @@ jobs:
       # genuine exit(127) once bash has masked it. $LASTEXITCODE keeps all 32.
       - name: Run tests
         shell: pwsh
-        # This job exists to exercise the Windows-specific paths - sockets, crypto, fs -
-        # and to watch for the 0xC0000409 fast-fail. Leak detection is covered by
-        # build (22.x); duplicating it here only costs wall clock. Hence no
-        # --expose-gc on the node line below either - the detector is its only
-        # consumer, and it is switched off here.
-        env:
-          MEM_LEAK_DETECTION_DISABLED: "true"
+        # This job exists to exercise the Windows-specific paths - sockets, crypto,
+        # fs - and to watch for the 0xC0000409 fast-fail. Leak detection is left on
+        # here for the same reason as the build job: its afterEach is what releases
+        # the timers and handles that would otherwise keep a worker alive past its
+        # last test. --expose-gc on the node line below is what it needs to measure.
         run: |
           $reportDir = Join-Path $env:RUNNER_TEMP 'node-reports'
           New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
@@ -163,7 +161,7 @@ jobs:
           # part that matters here - loses the real exit code (a measured abort came
           # back as 134 instead of the NTSTATUS). cmd's `2>` passes a genuine file
           # handle and propagates the full 32-bit code unchanged.
-          cmd /c "node --max-old-space-size=4096 --report-on-fatalerror --report-uncaught-exception --report-directory=""$reportDir"" parallel_test.js 2> ""$stderrLog"""
+          cmd /c "node --expose-gc --max-old-space-size=4096 --report-on-fatalerror --report-uncaught-exception --report-directory=""$reportDir"" parallel_test.js 2> ""$stderrLog"""
           $code = $LASTEXITCODE
           if ((Test-Path $stderrLog) -and (Get-Item $stderrLog).Length -gt 0) {
             Write-Host "----- node stderr (tail) -----"
@@ -221,22 +219,24 @@ jobs:
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
-      # Leak detection runs on exactly one flavour. Its two checks - a heapUsed
-      # delta and unreleased setTimeout/setInterval handles - are monkey-patched at
-      # the JS level and have no platform-specific component, so running it on all
-      # five test jobs produces the same signal five times. Cost is not the reason:
-      # measured against master it is worth roughly two minutes per job.
+      # Leak detection stays ON everywhere, and MEM_LEAK_DETECTION_DISABLED is
+      # deliberately not set on any job. The detector is not only a measurement: its
+      # afterEach clears the timers and closes the handles a block left behind, and
+      # that is what lets a mocha worker exit. Disabled, it never installs, so mocha
+      # 12 (which does not pass --exit) waits out the longest armed timer and the run
+      # grows a tail after its last test has already reported - measured on this
+      # matrix at 26m before the cleanup fix, still 5m after it. The entry that kept
+      # detection on has a tail under one second and is the fastest job of the five.
       #
-      # NODE_OPTIONS rather than a flag in the test:parallel script, so that a plain
-      # `pnpm run test:parallel` stays a plain test run for developers. The detector
-      # is the only consumer of --expose-gc, and without it takeMemorySnapshot
-      # compares heaps that were never collected - detection on with GC off is the
-      # one combination that costs without measuring. Worker threads inherit it, so
-      # it reaches the per-file isolates parallel_test.js spawns.
+      # --expose-gc via NODE_OPTIONS rather than in the test:parallel script, so a
+      # plain `pnpm run test:parallel` stays a plain test run for developers. The
+      # detector is its only consumer, and without it takeMemorySnapshot compares
+      # heaps that were never collected - detection on with GC off is the one
+      # combination that costs wall clock and measures nothing. Worker threads
+      # inherit NODE_OPTIONS, which is how it reaches the per-file isolates.
       - run: pnpm run test:parallel
         env:
-          MEM_LEAK_DETECTION_DISABLED: ${{ matrix.node-version != '22.x' }}
-          NODE_OPTIONS: ${{ matrix.node-version == '22.x' && '--expose-gc' || '' }}
+          NODE_OPTIONS: --expose-gc
 
   coverage:
     runs-on: ubuntu-latest
@@ -259,12 +259,7 @@ jobs:
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
-      # Same reasoning as the build job: leak detection is a single JS-level signal
-      # and build (22.x) already produces it. Coverage instruments every call in the
-      # tree, which is the last place the detector's heap deltas mean anything.
       - run: make test-cov
-        env:
-          MEM_LEAK_DETECTION_DISABLED: "true"
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
