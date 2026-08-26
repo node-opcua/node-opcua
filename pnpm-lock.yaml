@@ -168,6 +168,9 @@ importers:
       ersatz-node-expat:
         specifier: ^0.1.6
         version: 0.1.6
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -5286,6 +5289,11 @@ packages:
   humanize@0.0.9:
     resolution: {integrity: sha512-bvZZ7vXpr1RKoImjuQ45hJb5OvE2oJafHysiD/AL3nkqTZH2hFCjQ3YZfCd63FefDitbJze/ispUPP0gfDsT2Q==}
 
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   hyperdyperid@1.2.0:
     resolution: {integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==}
     engines: {node: '>=10.18'}
@@ -6908,6 +6916,8 @@ snapshots:
   hexy@0.4.0: {}
 
   humanize@0.0.9: {}
+
+  husky@9.1.7: {}
 
   hyperdyperid@1.2.0: {}
 
