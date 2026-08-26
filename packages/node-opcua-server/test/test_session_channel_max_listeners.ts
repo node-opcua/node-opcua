@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import should from "should";
+import "should";
 
 import { ServerEngine } from "../source";
 
