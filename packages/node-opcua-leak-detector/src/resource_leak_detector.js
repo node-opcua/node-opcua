@@ -157,6 +157,19 @@ ResourceLeakDetector.prototype.start = (info) => {
     // no wrapper objects) — it just records handles so stop() can clear them.
     self._activeTimeouts = new Set();
 
+    // Snapshot the handles that already exist, so stop() can tell a handle the
+    // block leaked (a server left listening, an unclosed stream) from one it
+    // inherited — stdio, the test runner's own IPC channel, and so on. Only the
+    // former may be closed.
+    self._preexistingHandles = new WeakSet();
+    if (typeof process._getActiveHandles === "function") {
+        for (const h of process._getActiveHandles()) {
+            if (h && typeof h === "object") {
+                self._preexistingHandles.add(h);
+            }
+        }
+    }
+
     if (monitor_intervals) {
         global.setTimeout = (func, delay, ...extra) => {
 
@@ -350,6 +363,37 @@ ResourceLeakDetector.prototype.check = () => {
     /**  */
 };
 
+function closeLeakedHandles(self, info) {
+    if (typeof process._getActiveHandles !== "function" || !self._preexistingHandles) {
+        return;
+    }
+    const leaked = process._getActiveHandles().filter(
+        (h) =>
+            h &&
+            typeof h === "object" &&
+            !self._preexistingHandles.has(h) &&
+            typeof h.close === "function" &&
+            (typeof h.hasRef !== "function" || h.hasRef())
+    );
+    self._preexistingHandles = null;
+    if (leaked.length === 0) {
+        return;
+    }
+    if (!info.silent) {
+        const names = leaked.map((h) => (h.constructor ? h.constructor.name : typeof h));
+        console.log(
+            chalk.yellow(`[LeakDetector] ⚠️  ${leaked.length} handle(s) left open: ${names.join(", ")} - closing them`)
+        );
+    }
+    for (const h of leaked) {
+        try {
+            h.close();
+        } catch (_err) {
+            // a handle that refuses to close cannot be helped here
+        }
+    }
+}
+
 ResourceLeakDetector.prototype.stop = (info) => {
     if (!global.ResourceLeakDetectorStarted) {
         return;
@@ -375,11 +419,13 @@ ResourceLeakDetector.prototype.stop = (info) => {
     self.clearTimeout_old = null;
 
 
-    const results = self.verify_registry_counts(info);
-
     // Clear any remaining tracked timeouts/intervals to prevent process hang.
     // Mocha 12+ does not call process.exit() unless --exit is set, so any
     // ref'd timer will keep the event loop alive indefinitely.
+    //
+    // This MUST run before verify_registry_counts(), which throws on leak:
+    // a leak report that left the leaked timers armed would hang the mocha
+    // worker for the lifetime of the longest timer instead of failing fast.
     for (const [, data] of Object.entries(self.interval_map)) {
         if (data && !data.disposed) {
             global.clearInterval(data.intervalId);
@@ -404,12 +450,27 @@ ResourceLeakDetector.prototype.stop = (info) => {
         }
         self._activeTimeouts.clear();
     }
-    self.interval_map = {};
-    self.timeout_map = {};
 
-    // call garbage collector
-    if (typeof global.gc === "function") {
-        global.gc(true);
+    // Timers are not the only thing that can keep the event loop alive: a
+    // net.Server left listening or an unclosed stream does too, and mocha 12
+    // does not process.exit() without --exit. Close whatever ref'd handle this
+    // block created and forgot; handles inherited from outside are left alone.
+    closeLeakedHandles(self, info);
+
+    // verify_registry_counts() throws when a leak is detected, and it reports
+    // from interval_map/timeout_map - so the maps are reset in the finally
+    // block, not before, or the leak report would come out empty.
+    let results;
+    try {
+        results = self.verify_registry_counts(info);
+    } finally {
+        self.interval_map = {};
+        self.timeout_map = {};
+
+        // call garbage collector
+        if (typeof global.gc === "function") {
+            global.gc(true);
+        }
     }
 
     // Diagnostic: dump active handles to identify what keeps the event loop alive

@@ -139,16 +139,22 @@ describe("Subprocess integration tests", function () {
     // ── Handle leaks (socket, fd) ───────────────────────
 
     it("S9 - leaked net.Server socket does not hang", () => {
-        const { exitCode, stdout } = runMocha("fixture_leaked_socket.js");
-        // Process must exit (not hang), exit code may be 0 or non-zero
-        assert.ok(typeof exitCode === "number", "Process must exit");
+        const t0 = Date.now();
+        const { stdout } = runMocha("fixture_leaked_socket.js");
+        const elapsed = Date.now() - t0;
         assert.ok(stdout.includes("1 passing"), `Expected '1 passing':\n${stdout}`);
+        assert.ok(stdout.includes("handle(s) left open"), `Expected handle report:\n${stdout}`);
+        // runMocha kills at 15s; a hang shows up as elapsed near that
+        assert.ok(elapsed < 10000, `Took ${elapsed}ms - the process hung:\n${stdout}`);
     });
 
     it("S10 - leaked file descriptor does not hang", () => {
-        const { exitCode, stdout } = runMocha("fixture_leaked_fd.js");
-        assert.ok(typeof exitCode === "number", "Process must exit");
+        const t0 = Date.now();
+        const { stdout } = runMocha("fixture_leaked_fd.js");
+        const elapsed = Date.now() - t0;
         assert.ok(stdout.includes("1 passing"), `Expected '1 passing':\n${stdout}`);
+        // runMocha kills at 15s; a hang shows up as elapsed near that
+        assert.ok(elapsed < 10000, `Took ${elapsed}ms - the process hung:\n${stdout}`);
     });
 
     // ── tsx (TypeScript) ────────────────────────────────
@@ -192,5 +198,18 @@ describe("Subprocess integration tests", function () {
         assert.ok(typeof exitCode === "number", "Process must exit");
         // The test itself passes — it's the afterAll check that fails
         assert.ok(stdout.includes("1 passing"), `Expected '1 passing':\n${stdout}`);
+    });
+
+    it("S14 - a registry leak still clears leaked timers (no hang)", () => {
+        // stop() throws on the registry leak; before the fix it did so BEFORE
+        // clearing the tracked timers, so the fixture's leaked 60s ref'd timer
+        // kept the event loop alive and mocha (no --exit) never returned.
+        const t0 = Date.now();
+        const { stdout } = runMocha("fixture_leaked_registry_and_timer.js");
+        const elapsed = Date.now() - t0;
+        assert.ok(stdout.includes("1 passing"), `Expected '1 passing':\n${stdout}`);
+        assert.ok(stdout.includes("RESOURCE LEAK DETECTED"), `Expected leak report:\n${stdout}`);
+        // the leaked timer is 60s; anything near the 15s harness timeout means it hung
+        assert.ok(elapsed < 10000, `Took ${elapsed}ms - the leaked timer was not cleared:\n${stdout}`);
     });
 });
