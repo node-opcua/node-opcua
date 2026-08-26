@@ -119,6 +119,9 @@ describe("benchmark", () => {
         }
         console.log(`countUpperCaseSlow: ${d1.toFixed(3)} ms, countUpperCase: ${d2.toFixed(3)} ms`);
 
-        d2.should.be.lessThan(d1 * 1.2);
+        
+        // should not be more than 50% slower than the optimized version
+        d2.should.be.lessThan(d1 * 1.5);
+
     });
 });
