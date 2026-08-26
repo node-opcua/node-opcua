@@ -93,6 +93,12 @@ export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed"
  *   SessionDiagnosticsArray Variable and notifies any other Clients who were subscribed to this entry.
  *
  */
+/**
+ * headroom above the one-"abort"-listener-per-session baseline, for the handlers
+ * the endpoint and the reverse-connect manager register on the same channel.
+ */
+const EXTRA_CHANNEL_LISTENERS = 10;
+
 export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession, IServerSessionBase {
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue = 100;
@@ -602,6 +608,14 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         channel.sessionTokens[key] = this;
 
+        // A secure channel can carry many sessions, and each one registers its own
+        // "abort" handler below - so the default ceiling of 10 is tripped by ~9
+        // concurrent sessions on a single channel and reported as a leak (#422).
+        // Track the session count rather than lifting the ceiling once and for all,
+        // so a listener that is NOT session-bound still trips the warning.
+        const sessionCount = Object.keys(channel.sessionTokens).length;
+        channel.setMaxListeners(sessionCount + EXTRA_CHANNEL_LISTENERS);
+
         // when channel is aborting
         this.channel_abort_event_handler = on_channel_abort.bind(this);
         channel.on("abort", this.channel_abort_event_handler);
@@ -627,6 +641,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
 
         delete channel.sessionTokens[key];
+
+        // bring the ceiling back down with the session count, so a channel that
+        // shed its sessions cannot silently hoard listeners (see _attach_channel)
+        channel.setMaxListeners(Object.keys(channel.sessionTokens).length + EXTRA_CHANNEL_LISTENERS);
+
         this.channel = undefined;
         this.channelId = undefined;
     }
