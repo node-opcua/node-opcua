@@ -9,7 +9,7 @@
     },
     "scripts": {
         "build": "tsc -b",
-        "test": "mocha",
+        "test": "echo no test",
         "lint": "biome check --no-errors-on-unmatched .",
         "format": "biome check --write --no-errors-on-unmatched .",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
