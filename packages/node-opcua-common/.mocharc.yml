@@ -1,7 +1,0 @@
-require:
-  - should
-  - tsx
-timeout: 30000
-extension:
-  - .ts
-  - .js

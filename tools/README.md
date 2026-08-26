@@ -64,6 +64,19 @@ node tools/check-debug-log.js --fix
 
 For more details, see [check-debug-log/README.md](check-debug-log/README.md).
 
+### check-mocharc
+
+Keeps every package's mocha configuration on one shape that survives pnpm's layout:
+spread `packages/.mocharc.js`, override only what differs, never write a relative path
+into `require`.
+
+```bash
+pnpm run check:mocharc          # report, exit 1 if anything is off-pattern
+pnpm run check:mocharc:fix      # rewrite to the canonical shape
+```
+
+For more details, see [check-mocharc/README.md](check-mocharc/README.md).
+
 ### Other Tools
 
 - `clean/`: Cleanup utilities
@@ -75,9 +88,11 @@ For more details, see [check-debug-log/README.md](check-debug-log/README.md).
 tools/
 ├── scan-dependencies/     # Dependency scanning tool
 ├── check-debug-log/       # Unguarded debug-log finder / fixer
+├── check-mocharc/         # Mocha config shape checker / fixer
 ├── clean/                # Cleanup utilities
 ├── fix-tsconfigs/        # TypeScript config fixes
 ├── scan-deps.js          # Launcher for scan-dependencies
 ├── check-debug-log.js    # Launcher for check-debug-log
+├── check-mocharc.js      # Launcher for check-mocharc
 └── README.md            # This file
 ``` 

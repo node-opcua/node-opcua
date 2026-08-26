@@ -1,6 +1,0 @@
-require:
-  - tsx
-extension:
-  - ts 
-  - js
-recursive: true

@@ -16,6 +16,8 @@
     "check:ports:suggest": "node tools/check-test-ports.mjs --suggest",
     "check:ports:summary": "node tools/check-test-ports.mjs --summary",
     "check:ports:ai": "node tools/check-test-ports.mjs --ai",
+    "check:mocharc": "node tools/check-mocharc.js",
+    "check:mocharc:fix": "node tools/check-mocharc.js --fix",
     "preinstall": "node prevent_npm_install.js",
     "lint": "biome check --reporter=summary --no-errors-on-unmatched .",
     "build": "tsc -b packages",

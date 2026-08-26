@@ -4193,6 +4193,8 @@ importers:
 
   tools/check-debug-log: {}
 
+  tools/check-mocharc: {}
+
   tools/check-test-ports: {}
 
   tools/fix-tsconfigs:

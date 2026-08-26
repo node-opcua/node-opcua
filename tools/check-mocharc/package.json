@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-mocharc",
+    "version": "1.0.0",
+    "private": true,
+    "description": "keep every package's mocha configuration on one robust shape",
+    "bin": {
+        "check-mocharc": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "fix": "node src/index.js --fix"
+    }
+}

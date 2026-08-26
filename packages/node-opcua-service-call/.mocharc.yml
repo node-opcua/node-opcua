@@ -1,9 +1,0 @@
-require:
-  - tsx
-  - ../../node_modules/should
-timeout: 60000
-extension:
-  - ts
-  - js
-bail: true
-parallel: true

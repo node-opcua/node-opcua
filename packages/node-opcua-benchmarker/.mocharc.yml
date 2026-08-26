@@ -1,8 +1,0 @@
-recursive: true
-require:
-  - should
-  - tsx
-extension:
-  - .ts
-bail: true
-spec: test/*.ts

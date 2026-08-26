@@ -1,7 +1,0 @@
-require:
-  - tsx
-  - ../../node_modules/should
-extension:
-  - ts
-  - js
-recursive: true
