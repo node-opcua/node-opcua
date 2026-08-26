@@ -272,6 +272,51 @@ jobs:
         env:
           NODE_OPTIONS: --expose-gc
 
+  # The suite has three entry points. Two are already exercised: run_all_mocha_tests.js
+  # by coverage, parallel_test.js by build and build_on_windows. This is the third -
+  # `pnpm m run test` walks every package and runs that package's own mocha against its
+  # own .mocharc.
+  #
+  # It needs its own job because it is the only one that reads those config files at
+  # all: the two programmatic runners construct their Mocha instance in code and never
+  # look at a .mocharc. That is how per-package runs came to be broken for a long while
+  # with every CI job green - the root config named ts-node, which is not installed
+  # anywhere in the workspace, and nothing that ran in CI ever tried to load it.
+  #
+  # One flavour is enough. What this proves is config resolution under pnpm's strict
+  # node_modules layout, which is neither platform- nor Node-version-specific.
+  build_per_package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
+      - run: pnpm run build:all
+      - run: pnpm run pretest
+      # Dry run first. It loads every package's .mocharc and every test file but runs no
+      # test body, so a config that cannot resolve fails here in seconds instead of
+      # after the real run has been grinding through packages. It is a fail-fast, not a
+      # substitute - the real run follows.
+      - run: pnpm run test:per-package:dry-run
+        env:
+          NODE_OPTIONS: --expose-gc
+      # --expose-gc for the same reason as the build job: the leak detector's afterEach
+      # is what releases the timers and handles that would otherwise keep mocha alive
+      # past its last test, and it needs a real collector to measure with.
+      - run: pnpm run test:per-package
+        env:
+          NODE_OPTIONS: --expose-gc
+
   coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 45
