@@ -29,6 +29,8 @@
     "test": "cd packages && node --expose-gc ${SECURITY_REVERT_CVE_2023_46809} --max-old-space-size=2048 run_all_mocha_tests.js",
     "test:parallel": "cd packages && node parallel_test.js",
     "test:win": "cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js",
+    "test:per-package": "pnpm m run test",
+    "test:per-package:dry-run": "pnpm m run test --dry-run",
     "ncu": "ncu -u -x yargs,env-paths,long,@types/long,cli-truncate,chalk,case-anything,@types/node,typescript --target=latest && ncu --deep -u --timeout 400000  -x yargs,env-paths,cli-truncate,chalk,case-anything,long,@types/long,@types/node,typescript --target=latest ",
     "ncu:minor": "npx npm-check-updates  -u  --deep --target=minor",
     "alex": "npx alex documentation/*.md",
