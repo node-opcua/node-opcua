@@ -22,4 +22,3 @@ export function makeBuffer(listOfBytes: string): Buffer {
     });
     return b;
 }
-

@@ -1,8 +1,7 @@
 import { Benchmarker } from "node-opcua-benchmarker";
 import "mocha";
 
-describe("testing buffer utils", function(this)  {
-
+describe("testing buffer utils", function (this) {
     this.timeout(30000);
 
     it("buffer.allocUnsafe should be faster than Buffer.alloc(size)", (done) => {
