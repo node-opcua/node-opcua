@@ -22,7 +22,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
         let timer;
 
         before(() => {
-            timer = setTimeout(() => { }, 30 * 60 * 1000);
+            timer = setTimeout(() => { }, 5 * 1000);
         });
 
         after(() => {
@@ -38,7 +38,11 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
         before(() => {
             // This timer is NEVER cleared — simulates a leaked timer.
             // The leak detector will catch it in stop() and clear it.
-            setTimeout(() => { }, 30 * 60 * 1000);
+            // Kept short on purpose: if the detector ever fails to clear it,
+            // the mocha worker hangs for exactly this long (mocha 12 does not
+            // process.exit() without --exit), so a regression costs seconds
+            // in CI instead of half an hour.
+            setTimeout(() => { }, 5 * 1000);
         });
 
         it("should pass and leak detector cleans the timer", () => {
@@ -48,7 +52,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
 
     describe("T1.4 - Unref'd timer", () => {
         before(() => {
-            const t = setTimeout(() => { }, 30 * 60 * 1000);
+            const t = setTimeout(() => { }, 5 * 1000);
             t.unref();
         });
 
