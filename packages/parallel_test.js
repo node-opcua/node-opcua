@@ -1,9 +1,31 @@
-const { Worker, isMainThread, parentPort, workerData } = require("node:worker_threads");
+const { Worker, isMainThread } = require("node:worker_threads");
 const readline = require("node:readline");
 const os = require("node:os");
-const util = require("node:util");
 
-const CPU = process.env.CPU ? parseInt(process.env.CPU, 10) : 0;
+/**
+ * A malformed value must not silently disable the run: parseInt("x") is NaN, and
+ * NaN propagates through Math.round/Math.max all the way to the worker loop,
+ * which then spawns nothing and exits as if every test had passed.
+ */
+function envNumber(name, defaultValue, parse) {
+    const raw = process.env[name];
+    if (raw === undefined || raw === "") {
+        return defaultValue;
+    }
+    const value = parse(raw);
+    if (!Number.isFinite(value) || value <= 0) {
+        // no chalk here: this runs before the require() block below
+        console.warn(`[parallel_test] ignoring ${name}=${raw} - not a positive number, using ${defaultValue}`);
+        return defaultValue;
+    }
+    return value;
+}
+
+const CPU = envNumber("CPU", 0, (v) => parseInt(v, 10));
+
+const MIN_WORKER_COUNT = envNumber("MIN_WORKER_COUNT", 5, (v) => parseInt(v, 10));
+
+const FACTOR = envNumber("CPU_FORMULA_FACTOR", 0.9, parseFloat);
 
 const testWatchDogTimeout = process.env.PING ? parseInt(process.env.PING) : 10 * 60 * 1000;
 
@@ -19,7 +41,6 @@ const chalk = require("chalk");
 
 const { Mocha } = require("mocha");
 const yargs = require("yargs");
-const { Argv } = require("yargs");
 
 function durationToString(milliseconds) {
     const seconds = Math.floor(milliseconds / 1000);
@@ -29,6 +50,79 @@ function durationToString(milliseconds) {
     const a = (n) => n.toString().padStart(2, "0");
     const b = (n) => n.toString().padStart(3, "0");
     return `${a(minutes % 60)}:${a(seconds % 60)}.${b(milliseconds % 1000)}`;
+}
+
+/** hh:mm:ss - for the wall clock of the whole run, which routinely passes the hour */
+function elapsedToString(milliseconds) {
+    const seconds = Math.floor(milliseconds / 1000);
+    const a = (n) => n.toString().padStart(2, "0");
+    return `${a(Math.floor(seconds / 3600))}:${a(Math.floor(seconds / 60) % 60)}:${a(seconds % 60)}`;
+}
+
+/**
+ * coarse "45 s" / "12 min" / "1 h 05 min": the estimate is extrapolated from the
+ * completed test files, so a to-the-second rendering would only look precise.
+ */
+function etaToString(milliseconds) {
+    if (!Number.isFinite(milliseconds) || milliseconds < 0) {
+        return "--";
+    }
+    const seconds = Math.round(milliseconds / 1000);
+    if (seconds < 90) {
+        return `${seconds} s`;
+    }
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 90) {
+        return `${minutes} min`;
+    }
+    return `${Math.floor(minutes / 60)} h ${(minutes % 60).toString().padStart(2, "0")} min`;
+}
+
+const CPU_BARS_VERTICAL = "▁▂▃▄▅▆▇█";
+const CPU_BARS_HORIZONTAL = "▏▎▍▌▋▊▉█";
+const CPU_BARS = CPU_BARS_HORIZONTAL; // CPU_BARS_VERTICAL;
+const CPU_SAMPLE_INTERVAL = 500;
+let cpuLoad = 0;
+let cpuSample = null;
+let cpuSampledAt = 0;
+
+/**
+ * one-character CPU gauge, averaged over all cores.
+ * Sampled lazily (the progress line is printed far more often than every 500ms)
+ * and from the deltas of os.cpus() times, so no extra timer is kept alive - an
+ * unref'd one would still be a handle for the leak detector to trip over.
+ */
+function cpuBar() {
+    const now = Date.now();
+    if (now - cpuSampledAt >= CPU_SAMPLE_INTERVAL) {
+        let idle = 0;
+        let total = 0;
+        for (const cpu of os.cpus()) {
+            for (const time of Object.values(cpu.times)) {
+                total += time;
+            }
+            idle += cpu.times.idle;
+        }
+        if (cpuSample) {
+            const dTotal = total - cpuSample.total;
+            const dIdle = idle - cpuSample.idle;
+            if (dTotal > 0) {
+                cpuLoad = Math.min(1, Math.max(0, 1 - dIdle / dTotal));
+            }
+        }
+        cpuSample = { idle, total };
+        cpuSampledAt = now;
+    }
+    const bar = CPU_BARS[Math.min(CPU_BARS.length - 1, Math.floor(cpuLoad * CPU_BARS.length))];
+    const color = cpuLoad < 0.5 ? chalk.green : cpuLoad < 0.85 ? chalk.yellow : chalk.red;
+    return color(bar);
+}
+
+/** elapsed wall clock + ETA, extrapolated from the fraction of test files completed */
+function clock() {
+    const elapsed = Date.now() - t1;
+    const eta = fileCounter > 0 ? (elapsed / fileCounter) * (fileMax - fileCounter) : Number.POSITIVE_INFINITY;
+    return `${cpuBar()}${chalk.gray(` ${elapsedToString(elapsed)} ETA ${etaToString(eta).padEnd(9)}`)}`;
 }
 
 const { extractAllTestFiles, extractPageTest } = require("./run_all_mocha_tests.js");
@@ -131,7 +225,7 @@ async function runTest({ page, selectedTests, g }) {
 
                         const d = durationToString(duration);
 
-                        console.log(prefix(), d, chalk.red(title)); // JSON.stringify(test, null, ""));
+                        console.log(prefix(), d, clock(), chalk.red(title)); // JSON.stringify(test, null, ""));
                         console.log(prefix(), file);
                         console.log(error);
 
@@ -162,7 +256,7 @@ async function runTest({ page, selectedTests, g }) {
                             }
 
                         const d = durationToString(duration);
-                        console.log(prefix(), d, chalk.green(title)); // JSON.stringify(test, null, ""));
+                        console.log(prefix(), d, clock(), chalk.green(title)); // JSON.stringify(test, null, ""));
                     }
                     break;
             }
@@ -328,12 +422,16 @@ if (isMainThread) {
 
         fileMax = testFiles.length;
         const promises = [];
-        // Floor of 4, not 2: GitHub runners report few cores, and 0.7 * that rounds
-        // down far enough to barely parallelise at all. The floor applies to the
-        // computed default only - an explicit CPU=<n> is taken as given, since it
-        // exists precisely to throttle a machine that cannot take four workers each
-        // spinning up real servers.
-        const cpuCount = CPU || Math.max(Math.round(os.cpus().length * 0.7), 4);
+        // GitHub runners report few cores, and FACTOR * that rounds down far enough
+        // to barely parallelise at all - hence the MIN_WORKER_COUNT floor, capped by
+        // the core count so a 2-core runner is not handed 5 workers each spinning up
+        // real servers. The floor applies to the computed default only: an explicit
+        // CPU=<n> is taken as given, since it exists precisely to override this.
+        const coreCount = Math.max(1, os.cpus().length);
+        const cpuCount = CPU || Math.max(1, Math.min(Math.max(Math.round(coreCount * FACTOR), MIN_WORKER_COUNT), coreCount));
+
+        console.log(`Running ${fileMax} test files in parallel with ${cpuCount} workers`);
+
         for (let i = 0; i < cpuCount; i++) {
             promises.push(runTestAndContinue(data));
         }
