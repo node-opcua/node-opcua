@@ -3312,6 +3312,9 @@ importers:
       node-opcua-buffer-utils:
         specifier: 2.176.0
         version: link:../node-opcua-buffer-utils
+      node-opcua-certificate-manager:
+        specifier: 2.178.0
+        version: link:../node-opcua-certificate-manager
       node-opcua-leak-detector:
         specifier: 2.175.6
         version: link:../node-opcua-leak-detector
