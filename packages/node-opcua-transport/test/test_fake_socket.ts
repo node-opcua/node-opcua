@@ -86,6 +86,27 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
 
         let events: string[] = [];
 
+        /**
+         * Run `fn` once the socket pair has finished, or give up after 2s.
+         *
+         * A server-side 'close' says nothing about the client: its end and close are
+         * separate events on the other socket. Tests used to bridge that with a fixed
+         * setTimeout, which held on an idle machine and stopped holding under the
+         * parallel runner - "expected 0 to equal 1" on a spy callCount. Waiting for the
+         * events themselves is what the assertions actually depend on.
+         */
+        const whenSettled = (expectedCount: number, fn: () => void) => {
+            const deadline = Date.now() + 2000;
+            const poll = () => {
+                if (events.length < expectedCount && Date.now() < deadline) {
+                    setImmediate(poll);
+                    return;
+                }
+                fn();
+            };
+            setImmediate(poll);
+        };
+
         beforeEach((done) => {
             events = [];
             transportPair = new Transport({ port: ports[portIndex++] });
@@ -321,7 +342,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
                 }, 100);
             });
             transportPair.server.on("close", () => {
-                setTimeout(() => {
+                whenSettled(4, () => {
                     spyOnEndClient.callCount.should.eql(1);
 
                     spyOnCloseClient.callCount.should.eql(1);
@@ -345,7 +366,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
                     // the timeout is what starts the teardown
                     events.indexOf("server timeout").should.eql(0);
                     done();
-                }, 10);
+                });
             });
         });
         it("FS-14 server terminating socket on timeout - client should disconnect", (done) => {
@@ -368,7 +389,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
                 }, 100);
             });
             transportPair.server.on("close", () => {
-                setTimeout(() => {
+                whenSettled(5, () => {
                     spyOnEndClient.callCount.should.eql(1);
 
                     spyOnCloseClient.callCount.should.eql(1);
@@ -397,7 +418,7 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
                     // a socket cannot close before it has ended
                     events.indexOf("client end").should.be.lessThan(events.indexOf("client close false"));
                     done();
-                }, 10);
+                });
             });
         });
         it("FS-16 server terminating socket on timeout - end - client should disconnect", (done) => {
@@ -420,16 +441,24 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
                 }, 100);
             });
             transportPair.server.on("close", () => {
-                spyOnEndClient.callCount.should.eql(1);
+                whenSettled(5, () => {
+                    spyOnEndClient.callCount.should.eql(1);
 
-                spyOnCloseClient.callCount.should.eql(1);
-                spyOnCloseClient.getCall(0).args[0].should.eql(false);
+                    spyOnCloseClient.callCount.should.eql(1);
+                    spyOnCloseClient.getCall(0).args[0].should.eql(false);
 
-                spyOnTimeOutClient.callCount.should.eql(0);
-                spyOnErrorClient.callCount.should.eql(0);
+                    spyOnTimeOutClient.callCount.should.eql(0);
+                    spyOnErrorClient.callCount.should.eql(0);
 
-                events.should.eql(["server timeout", "client end", "client close false", "server end", "server close false"]);
-                done();
+                    // As in FS-13 and FS-14: the client's pair and the server's pair are
+                    // each internally ordered, but nothing sequences one against the other.
+                    const expected = ["server timeout", "client end", "client close false", "server end", "server close false"];
+                    [...events].sort().should.eql([...expected].sort());
+                    events.indexOf("server timeout").should.eql(0);
+                    events.indexOf("client end").should.be.lessThan(events.indexOf("client close false"));
+                    events.indexOf("server end").should.be.lessThan(events.indexOf("server close false"));
+                    done();
+                });
             });
         });
     });
