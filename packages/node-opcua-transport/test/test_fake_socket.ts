@@ -329,11 +329,21 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
 
                     spyOnTimeOutClient.callCount.should.eql(0);
                     spyOnErrorClient.callCount.should.eql(0);
-                    // note that sequence of event may vary depending on nodeJS version
-                    events.should.be.oneOf(
-                        ["server timeout", "client end", "client close false", "server close false"],
-                        ["server timeout", "client end", "server close false", "client close false"]
-                    );
+                    // Only the causal pair is ordered. Nothing sequences the server's
+                    // close against the client's end and close - that is the event loop
+                    // and the OS - so listing whole sequences means enumerating whichever
+                    // interleavings a machine happens to produce, and a new legal one
+                    // appears as soon as the machine is loaded differently.
+                    //
+                    // It was also passing two arguments to oneOf, which takes a single
+                    // array of candidates, so the second was never considered at all.
+                    const expected = ["server timeout", "client end", "client close false", "server close false"];
+                    // exactly these four, once each, in any order
+                    [...events].sort().should.eql([...expected].sort());
+                    // a socket cannot close before it has ended
+                    events.indexOf("client end").should.be.lessThan(events.indexOf("client close false"));
+                    // the timeout is what starts the teardown
+                    events.indexOf("server timeout").should.eql(0);
                     done();
                 }, 10);
             });
