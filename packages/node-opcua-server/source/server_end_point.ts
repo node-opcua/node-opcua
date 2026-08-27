@@ -837,19 +837,38 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             return;
         }
 
-        // Stops the server from accepting new connections and keeps existing connections.
-        // (note from nodejs doc: This function is asynchronous, the server is finally closed
-        // when all connections are ended and the server emits a 'close' event.
-        // The optional callback will be called once the 'close' event occurs.
-        // Unlike that event, it will be called with an Error as its only argument
-        // if the server was not open when it was closed.
+        // Stops the server accepting new connections while keeping the existing ones.
+        // close() is asynchronous: node finishes it once every connection has ended and
+        // the server emits 'close'. This used to call back immediately anyway, so
+        // restoreConnection() could re-listen on a port the old handle had not released
+        // yet - an EADDRINUSE from resumeEndPoints, seen during certificate rotation and
+        // reproducible on a loaded machine.
+        //
+        // The callback now waits for that event. It is guarded by a timer because
+        // suspend deliberately keeps existing connections alive, and a channel that
+        // stays open would otherwise hold close() - and the caller - open with it.
+        // Waiting a bounded time is what the caller needs; hanging is not.
+        this._started = false;
+        let notified = false;
+        const notify = () => {
+            if (notified) {
+                return;
+            }
+            notified = true;
+            callback();
+        };
+        const guard = setTimeout(() => {
+            // c8 ignore next
+            doDebug && debugLog(`suspendConnection: still had connections on ${this.port}`);
+            notify();
+        }, 1000);
+        guard.unref();
         this._server.close(() => {
-            this._started = false;
+            clearTimeout(guard);
             // c8 ignore next
             doDebug && debugLog(`Connection has been closed !${this.port}`);
+            notify();
         });
-        this._started = false;
-        callback();
     }
 
     public restoreConnection(callback: (err?: Error) => void): void {
