@@ -1,6 +1,7 @@
 import "should";
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { ICertificateStore } from "node-opcua-common";
+import type { EndpointDescription } from "node-opcua-service-endpoints";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { helloMessage1 } from "node-opcua-transport/dist/test-fixtures";
@@ -21,7 +22,16 @@ describe("T73-1 Reproduction: Sequence Number Reset on Renewal", () => {
             getCertificate: () => Buffer.alloc(0),
             getCertificateChain: () => [Buffer.alloc(0)],
             getPrivateKey: () => invalidPrivateKey,
-            getEndpointDescription: () => null,
+            // Must not be null. The channel asks its parent whether an endpoint exists
+            // for the requested mode and policy, and treats null as "none", so a parent
+            // answering null rejects every OPN with BadSecurityPolicyRejected - including
+            // the None/None this test sets up on the line below. The channel only checks
+            // for non-null here, so a minimal descriptor is enough.
+            getEndpointDescription: () =>
+                ({
+                    securityMode: MessageSecurityMode.None,
+                    securityPolicyUri: SecurityPolicy.None
+                }) as unknown as EndpointDescription,
             certificateManager: {
                 checkCertificate: async () => ({ isGood: () => true })
             } as unknown as ICertificateStore
