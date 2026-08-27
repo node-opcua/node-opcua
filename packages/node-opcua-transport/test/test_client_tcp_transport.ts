@@ -13,7 +13,28 @@ const errorLog = make_errorLog("TEST");
 
 import { FakeServer } from "../dist/test_helpers";
 
-const port = 5678;
+// One port per test. The server is rebuilt in beforeEach, and re-binding a single
+// fixed port that many times loses a race under load: close() resolves only once
+// every connection has ended, so the next bind can arrive before the previous
+// listener has let go. That is an EADDRINUSE that moves around, and it took master
+// red. the client transport suite rebuilds its FakeServer for every test.
+//
+// Written out rather than computed: a port derived as `base + i` binds a number
+// that appears nowhere, which no scanner can check for collisions.
+const port1 = 5700;
+const port2 = 5701;
+const port3 = 5702;
+const port4 = 5703;
+const port5 = 5704;
+const port6 = 5705;
+const port7 = 5706;
+const port8 = 5707;
+const port9 = 5708;
+const port10 = 5709;
+const port11 = 5710;
+const port12 = 5711;
+const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12];
+let portIndex = 0;
 
 import { BinaryStream } from "../../node-opcua/dist";
 import { AcknowledgeMessage, ClientTCP_transport, packTcpMessage, TCP_transport, TCPErrorMessage, writeTCPMessageHeader } from "..";
@@ -43,7 +64,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
         spyOnConnectionBreak = sinon.spy();
         clientTransport.on("connection_break", spyOnConnectionBreak);
 
-        fakeServer = new FakeServer({ port });
+        fakeServer = new FakeServer({ port: ports[portIndex++] });
         fakeServer.initialize(() => {
             endpointUrl = fakeServer.url;
             done();
@@ -371,11 +392,25 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
                     errorLog(chalk.bgWhite.red(" err = "), err.message);
                 }
                 assert(!err);
-                setImmediate(() => {
+                // Both flags are set from socket 'close' handlers, which are events, not
+                // continuations: a single setImmediate is not a guarantee that either has
+                // run. It held while the machine was idle and stopped holding under the
+                // parallel runner - the EADDRINUSE on this file was masking it. Wait for
+                // the condition instead of assuming a tick is enough.
+                const deadline = Date.now() + 2000;
+                const check = () => {
+                    const settled =
+                        server_confirms_that_server_socket_has_been_closed &&
+                        transport_confirms_that_close_event_has_been_processed;
+                    if (!settled && Date.now() < deadline) {
+                        setImmediate(check);
+                        return;
+                    }
                     server_confirms_that_server_socket_has_been_closed.should.equal(true);
                     transport_confirms_that_close_event_has_been_processed.should.equal(true);
                     done(err);
-                });
+                };
+                setImmediate(check);
             });
         });
     });

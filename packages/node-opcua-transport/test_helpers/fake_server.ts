@@ -58,6 +58,18 @@ export class FakeServer extends EventEmitter {
     }
 
     public shutdown(callback: (err?: Error) => void): void {
+        // close() stops the server accepting, but resolves only once every existing
+        // connection has ended - and this server keeps one. A test that leaves its
+        // socket open therefore never frees the port, the afterEach times out, and the
+        // next beforeEach binds the same fixed port and fails with EADDRINUSE. That was
+        // invisible while the suite ran one file at a time and the socket happened to
+        // close first; under the parallel runner the machine is loaded and it does not.
+        //
+        // Destroying the tracked socket is enough: the connection handler asserts this
+        // server never holds more than one. destroy() is optional-called because
+        // transport_pair_socket.ts reuses FakeServer with an emulated socket.
+        this._serverSocket?.destroy?.();
+        this._serverSocket = undefined;
         this.tcpServer.close(callback);
     }
 
