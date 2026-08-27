@@ -4193,6 +4193,8 @@ importers:
 
   tools/check-debug-log: {}
 
+  tools/check-test-ports: {}
+
   tools/fix-tsconfigs:
     dependencies:
       json5:

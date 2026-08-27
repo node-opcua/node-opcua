@@ -1,0 +1,15 @@
+{
+    "name": "@sterfive/check-test-ports",
+    "version": "1.0.0",
+    "private": true,
+    "description": "find fixed test ports, report collisions, suggest the next free one",
+    "bin": {
+        "check-test-ports": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "suggest": "node src/index.js --suggest",
+        "test": "node test/test_scanner.js"
+    }
+}
