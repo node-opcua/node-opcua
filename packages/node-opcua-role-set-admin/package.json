@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-role-set-admin",
-    "version": "2.178.0",
+    "version": "2.179.0",
     "description": "pure nodejs OPCUA SDK - role-set-admin CLI to administer RoleSet & User Management (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -19,11 +19,11 @@
     "dependencies": {
         "@inquirer/prompts": "8.7.0",
         "commander": "^15.0.0",
-        "node-opcua-certificate-manager": "2.178.0",
-        "node-opcua-client": "2.178.0",
-        "node-opcua-role-set-client": "2.178.0",
-        "node-opcua-status-code": "2.176.0",
-        "node-opcua-types": "2.177.0"
+        "node-opcua-certificate-manager": "2.179.0",
+        "node-opcua-client": "2.179.0",
+        "node-opcua-role-set-client": "2.179.0",
+        "node-opcua-status-code": "2.179.0",
+        "node-opcua-types": "2.179.0"
     },
     "devDependencies": {
         "tsx": "^4.23.12"
