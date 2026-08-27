@@ -2239,6 +2239,15 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             return rejectConnection(this, errCode);
         }
 
+        // A CreateSession can still arrive after shutdown() has begun disposing the
+        // engine. Refuse it here, through the same path as every other refusal, so the
+        // client gets a ServiceFault: throwing from the engine instead unwinds into a
+        // promise nobody awaits, and an unhandled rejection takes the process down
+        // rather than failing one request.
+        if (this.engine._internalState === "shutdown" || this.engine._internalState === "disposed") {
+            return rejectConnection(this, StatusCodes.BadServerHalted);
+        }
+
         // see Release 1.02  27  OPC Unified Architecture, Part 4
         const session = this.createSession({
             clientDescription: request.clientDescription,

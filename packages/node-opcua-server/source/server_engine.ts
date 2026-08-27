@@ -1644,6 +1644,30 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * create a new server session object.
      */
     public createSession(options?: CreateSessionOption): ServerSession {
+        // A CreateSession already in flight can land after shutdown() has disposed the
+        // address space. Everything downstream assumes it is still there, so the failure
+        // surfaced far from here as `Cannot read properties of null (reading
+        // 'findDataType')` inside UAVariableImpl - thrown from a promise nobody awaited,
+        // which took the process with it rather than failing one request.
+        //
+        // Keyed on _internalState, which shutdown() sets before it does anything else.
+        //
+        // Not on addressSpace being null: that is legitimately null before initialize(),
+        // and refusing there breaks every caller that builds an engine and creates a
+        // session on it - 51 tests, including the one asserting sessions are disposed on
+        // shutdown.
+        //
+        // Nor on ServerState.Shutdown, which looks right and is not: setServerState
+        // writes through `this.addressSpace?.rootFolder?...setValueFromSource(...)`, so
+        // once the address space is disposed the write silently does nothing and the
+        // state never reaches Shutdown. Guarding on it let the crash straight through.
+        if (this._internalState === "shutdown" || this._internalState === "disposed") {
+            const err = new Error("createSession: the server is shutting down") as Error & {
+                statusCode?: StatusCode;
+            };
+            err.statusCode = StatusCodes.BadServerHalted;
+            throw err;
+        }
         options = options || {};
         options.server = options.server || {};
         // c8 ignore next
