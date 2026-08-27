@@ -25,7 +25,7 @@ import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 
-const port = 48499;
+const port = 5003;
 const pkiRoot = path.join(os.tmpdir(), `role-set-um-e2e-${port}`);
 
 function userRule(criteria: string): IdentityMappingRuleType {

@@ -40,7 +40,7 @@ const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-const port = 2014;
+const port = 5780;
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -911,7 +911,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await f(ensure_continuous);
 
         // now drop connection  for 1.5 seconds
-        await f(simulate_connection_break.bind(null, 5000, "ECONNRESET"));
+        await f(simulate_connection_break.bind(null, 5780, "ECONNRESET"));
         // make sure that we have received all notifications
         // (thanks to republish )
 
@@ -1090,7 +1090,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await f(disconnect_client);
 
         await f(reset_backoff_counter);
-        await f(wait_for.bind(null, 5000));
+        await f(wait_for.bind(null, 5780));
 
         await f(assert_NO_backoff_event_since_last_reset);
         await f(verify_that_client_is_NOT_trying_to_reconnect);
@@ -1143,7 +1143,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
         await f(wait_a_little_while);
 
         // now drop connection  for 1.5 seconds
-        await f(simulate_connection_break.bind(null, 5000, "EPIPE"));
+        await f(simulate_connection_break.bind(null, 5780, "EPIPE"));
         // make sure that we have received all notifications
         // (thanks to republish )
 
@@ -1172,7 +1172,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
     it("TR24 -  a client with active monitored item should be able to reconnect and transfer subscriptions when session timeout", async () => {
-        const requestedSessionTimeout = 5000;
+        const requestedSessionTimeout = 5780;
 
         await f(start_demo_server);
         await f(reset_continuous);

@@ -17,6 +17,10 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { OPCUAServer } from "../source";
 
+const testPort1 = 12066;
+const testPort2 = 12067;
+const testPort3 = 12068;
+
 const passphrase = "correct-horse-battery-staple";
 
 async function makeTmpDir(name: string): Promise<string> {
@@ -49,7 +53,7 @@ describe("OPCUAServer with a passphrase-protected private key", function (this: 
             rawBefore.should.containEql("ENCRYPTED PRIVATE KEY");
 
             server = new OPCUAServer({
-                port: 12066,
+                port: testPort1,
                 serverCertificateManager: cm,
                 securityModes: [MessageSecurityMode.SignAndEncrypt],
                 securityPolicies: [SecurityPolicy.Basic256Sha256]
@@ -100,7 +104,7 @@ describe("OPCUAServer with a passphrase-protected private key", function (this: 
             });
 
             server = new OPCUAServer({
-                port: 12067,
+                port: testPort2,
                 serverCertificateManager: cmNoPassphrase
             });
 
@@ -148,7 +152,7 @@ describe("OPCUAServer with a passphrase-protected private key", function (this: 
             });
 
             server = new OPCUAServer({
-                port: 12068,
+                port: testPort3,
                 serverCertificateManager: cm
             });
             await server.start();

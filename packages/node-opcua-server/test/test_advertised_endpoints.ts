@@ -9,6 +9,12 @@ import { OPCUAServer } from "../source";
 import { type AdvertisedEndpointConfig, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "../source/server_end_point";
 import { createServerCertificateManager } from "./create_server_certificate_manager";
 
+const testPort1 = 12061;
+const testPort2 = 12062;
+const testPort3 = 12063;
+const testPort4 = 12064;
+const testPort5 = 12065;
+
 describe("parseOpcTcpUrl", () => {
     it("should parse a standard opc.tcp URL", () => {
         const result = parseOpcTcpUrl("opc.tcp://localhost:48481");
@@ -40,7 +46,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         const serverCertificateManager = await createServerCertificateManager(12061);
 
         const server = new OPCUAServer({
-            port: 12061,
+            port: testPort1,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None, SecurityPolicy.Basic256Sha256],
@@ -77,7 +83,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         const serverCertificateManager = await createServerCertificateManager(12062);
 
         const server = new OPCUAServer({
-            port: 12062,
+            port: testPort2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None, SecurityPolicy.Basic256Sha256],
@@ -114,7 +120,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         const serverCertificateManager = await createServerCertificateManager(12063);
 
         const server = new OPCUAServer({
-            port: 12063,
+            port: testPort3,
             hostname: "myhost",
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
@@ -147,7 +153,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         const serverCertificateManager = await createServerCertificateManager(12064);
 
         const server = new OPCUAServer({
-            port: 12064,
+            port: testPort4,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -178,7 +184,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
         const serverCertificateManager = await createServerCertificateManager(12065);
 
         const server = new OPCUAServer({
-            port: 12065,
+            port: testPort5,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None]
@@ -197,6 +203,7 @@ describe("OPCUAServer with advertisedEndpoints", () => {
 });
 
 const port = 12055;
+const port2 = 12056;
 
 describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by GetEndpoints and CreateSession)", () => {
     // findMatchingEndpoints() is the shared code path used by both:
@@ -249,10 +256,10 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
     });
 
     it("should return empty when URL matches nothing", async () => {
-        const serverCertificateManager = await createServerCertificateManager(port + 1);
+        const serverCertificateManager = await createServerCertificateManager(port2);
 
         const server = new OPCUAServer({
-            port: port + 1,
+            port: port2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -276,6 +283,8 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
 });
 
 const sanPort = 12070;
+const sanPort2 = 12071;
+const sanPort3 = 12072;
 
 describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
     it("should include alternateHostname in the self-signed cert SAN", async () => {
@@ -314,10 +323,10 @@ describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
     it("should include advertisedEndpoints hostnames in the self-signed cert SAN", async () => {
         const { exploreCertificate } = await import("node-opcua-crypto/web");
 
-        const serverCertificateManager = await createServerCertificateManager(sanPort + 1);
+        const serverCertificateManager = await createServerCertificateManager(sanPort2);
 
         const server = new OPCUAServer({
-            port: sanPort + 1,
+            port: sanPort2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -347,10 +356,10 @@ describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
     it("should produce a sorted and deduplicated dns list", async () => {
         const { exploreCertificate } = await import("node-opcua-crypto/web");
 
-        const serverCertificateManager = await createServerCertificateManager(sanPort + 2);
+        const serverCertificateManager = await createServerCertificateManager(sanPort3);
 
         const server = new OPCUAServer({
-            port: sanPort + 2,
+            port: sanPort3,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -385,6 +394,7 @@ describe("US-AE-06/07: Certificate SAN includes configured hostnames", () => {
 });
 
 const ae08Port = 12080;
+const ae08Port2 = 12081;
 
 describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
     it("checkCertificateSAN should return missing hostnames", async () => {
@@ -438,11 +448,11 @@ describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
         const fs = await import("node:fs");
         const { exploreCertificate } = await import("node-opcua-crypto/web");
 
-        const serverCertificateManager = await createServerCertificateManager(ae08Port + 1);
+        const serverCertificateManager = await createServerCertificateManager(ae08Port2);
 
         // Step 1: create server with only basic cert
         const server = new OPCUAServer({
-            port: ae08Port + 1,
+            port: ae08Port2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -483,6 +493,9 @@ describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
 });
 
 const ae18Port = 12090;
+const ae18Port2 = 12091;
+const ae18Port3 = 12092;
+const ae18Port4 = 12093;
 
 describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
     it("should put IP from alternateHostname into SAN iPAddress, not dNSName", async () => {
@@ -524,10 +537,10 @@ describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
         const fs = await import("node:fs");
         const { exploreCertificate } = await import("node-opcua-crypto/web");
 
-        const serverCertificateManager = await createServerCertificateManager(ae18Port + 1);
+        const serverCertificateManager = await createServerCertificateManager(ae18Port2);
 
         const server = new OPCUAServer({
-            port: ae18Port + 1,
+            port: ae18Port2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -563,10 +576,10 @@ describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
         const fs = await import("node:fs");
         const { exploreCertificate } = await import("node-opcua-crypto/web");
 
-        const serverCertificateManager = await createServerCertificateManager(ae18Port + 2);
+        const serverCertificateManager = await createServerCertificateManager(ae18Port3);
 
         const server = new OPCUAServer({
-            port: ae18Port + 2,
+            port: ae18Port3,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -614,10 +627,10 @@ describe("regenerateSelfSignedCertificate includes IPs", () => {
         const { exploreCertificate } = await import("node-opcua-crypto/web");
         const { getIpAddresses } = await import("node-opcua-hostname");
 
-        const serverCertificateManager = await createServerCertificateManager(ae18Port + 3);
+        const serverCertificateManager = await createServerCertificateManager(ae18Port4);
 
         const server = new OPCUAServer({
-            port: ae18Port + 3,
+            port: ae18Port4,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityPolicies: [SecurityPolicy.None],
@@ -654,6 +667,8 @@ describe("regenerateSelfSignedCertificate includes IPs", () => {
 });
 
 const ae10Port = 12100;
+const ae10Port2 = 12101;
+const ae10Port3 = 12102;
 
 describe("US-AE-10: normalizeAdvertisedEndpoints", () => {
     it("should normalize a single string to AdvertisedEndpointConfig[]", () => {
@@ -732,10 +747,10 @@ describe("US-AE-11: per-URL security overrides", () => {
     });
 
     it("should suppress AnonymousIdentityToken when allowAnonymous is false", async () => {
-        const serverCertificateManager = await createServerCertificateManager(ae10Port + 1);
+        const serverCertificateManager = await createServerCertificateManager(ae10Port2);
 
         const server = new OPCUAServer({
-            port: ae10Port + 1,
+            port: ae10Port2,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             allowAnonymous: true, // main endpoint allows anon
@@ -771,10 +786,10 @@ describe("US-AE-11: per-URL security overrides", () => {
 
 describe("US-AE-12: string shorthand inherits main settings", () => {
     it("should produce same security modes for string and main endpoint", async () => {
-        const serverCertificateManager = await createServerCertificateManager(ae10Port + 2);
+        const serverCertificateManager = await createServerCertificateManager(ae10Port3);
 
         const server = new OPCUAServer({
-            port: ae10Port + 2,
+            port: ae10Port3,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
             securityModes: [MessageSecurityMode.None, MessageSecurityMode.SignAndEncrypt],

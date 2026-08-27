@@ -6,6 +6,7 @@ import { OPCUAServer } from "../source";
 async function findAvailablePort(): Promise<number> {
     return new Promise((resolve) => {
         const server = net.createServer();
+        // check-test-ports: dynamic-ok - findAvailablePort asks the OS for a free port, then closes it
         server.listen(0);
         server.on("listening", () => {
             const port = (server.address() as net.AddressInfo).port;

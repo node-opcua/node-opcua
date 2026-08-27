@@ -80,6 +80,7 @@ describe("ReverseConnect - server endpoint createReverseConnection (RC-SRV)", fu
             accepted.push(s);
             s.on("error", () => undefined);
         });
+        // check-test-ports: dynamic-ok - a blackhole that absorbs connections; its port is read back, never fixed
         await new Promise<void>((resolve) => blackhole.listen(0, "127.0.0.1", () => resolve()));
         const blackholePort = (blackhole.address() as net.AddressInfo).port;
 

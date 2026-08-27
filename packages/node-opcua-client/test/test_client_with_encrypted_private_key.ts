@@ -32,6 +32,7 @@ const passphrase = "client-side-passphrase";
  */
 async function getUnreachableEndpoint(): Promise<string> {
     const server = net.createServer();
+    // check-test-ports: dynamic-ok - wants a port guaranteed closed, so connect is refused rather than hanging
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
     const port = (server.address() as net.AddressInfo).port;
     await new Promise<void>((resolve) => server.close(() => resolve()));

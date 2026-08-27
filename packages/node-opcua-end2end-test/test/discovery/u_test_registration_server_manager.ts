@@ -22,6 +22,7 @@ function withTimeout(manager: OPCUAServer["registerServerManager"]): RegisterSer
 const debugLog = make_debugLog("TEST");
 
 const port = 1435;
+const portRegistration = 11435;
 
 // a non-existing discovery server
 const port_discovery = 1436;
@@ -304,7 +305,7 @@ export function t(_test: TestHarness) {
             // no discovery ...
             const doTest = async (_index: number, waitTime: number) => {
                 const server = new OPCUAServer({
-                    port: port + 10000,
+                    port: portRegistration,
                     registerServerMethod: RegisterServerMethod.LDS,
 
                     discoveryServerEndpointUrl,

@@ -5,6 +5,8 @@ import should from "should";
 import { WebSocket, WebSocketServer } from "ws";
 import { browserWsTransportFactory, ClientWS_transport, parseWsEndpointUrl, type WebSocketConstructor } from "../../dist";
 
+const port = 5014;
+
 describe("parseWsEndpointUrl", () => {
     it("accepts opc.ws:// and returns ws:// plus secure=false", () => {
         const r = parseWsEndpointUrl("opc.ws://host:4840/path");
@@ -104,7 +106,7 @@ describe("ClientWS_transport — HEL/ACK over ws://", function (this: Mocha.Suit
         // completes. We parse the HEL just enough to surface meaningful
         // failures.
         server = new WebSocketServer({
-            port: 0,
+            port,
             handleProtocols: (protocols) => (protocols.has("opcua+uacp") ? "opcua+uacp" : false)
         });
 

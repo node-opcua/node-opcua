@@ -18,6 +18,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { SAMPLE_USERS, type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
 
+const port = 5005;
+
 describe("Sample server: Variables gated by per-Role RolePermissions (§4)", function () {
     this.timeout(60000);
 
@@ -26,7 +28,7 @@ describe("Sample server: Variables gated by per-Role RolePermissions (§4)", fun
     let clientCertificateManager: OPCUACertificateManager;
 
     before(async () => {
-        handle = await startSampleServer({ port: 48557 });
+        handle = await startSampleServer({ port });
         // the client owns its own PKI (the server only manages the server side)
         clientPkiRoot = path.join(os.tmpdir(), `role-set-sample-client-${process.pid}`);
         clientCertificateManager = new OPCUACertificateManager({

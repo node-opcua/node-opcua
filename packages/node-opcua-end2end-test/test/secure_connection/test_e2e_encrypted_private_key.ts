@@ -15,6 +15,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import "mocha";
 
+const port = 20913;
+
 describe("End-to-End: encrypted-at-rest private key on both server and client", function (this: Mocha.Suite) {
     this.timeout(60000);
 
@@ -56,7 +58,7 @@ describe("End-to-End: encrypted-at-rest private key on both server and client", 
         fs.readFileSync(clientCertificateManager.privateKey, "utf-8").should.containEql("ENCRYPTED PRIVATE KEY");
 
         const server = new OPCUAServer({
-            port: 20913,
+            port,
             serverCertificateManager,
             securityPolicies: [SecurityPolicy.Basic256Sha256],
             securityModes: [MessageSecurityMode.SignAndEncrypt]

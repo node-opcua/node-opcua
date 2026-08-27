@@ -55,6 +55,7 @@ async function startStaticServer(rootDir: string): Promise<StaticServer> {
             res.end("not found");
         }
     });
+    // check-test-ports: dynamic-ok - throwaway static file server; the URL is built from the assigned port
     await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
     const addr = server.address();
     if (!addr || typeof addr === "string") {

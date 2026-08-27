@@ -14,6 +14,10 @@ import { CertificateAuthority } from "node-opcua-pki";
 import should from "should";
 import "mocha";
 
+const port2 = 5013;
+
+const port1 = 5012;
+
 describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);
 
@@ -125,7 +129,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         await createSignedCertInManager(serverCertificateManager, name);
 
         const server = new OPCUAServer({
-            port: 0,
+            port: port1,
             serverInfo: {
                 applicationUri: `urn:localhost:${name}`
             },
@@ -254,7 +258,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
         should(chainCheck.length).be.greaterThanOrEqual(2, "certificate.pem should contain at least leaf + CA");
 
         const server = new OPCUAServer({
-            port: 0,
+            port: port2,
             serverInfo: {
                 applicationUri: `urn:localhost:${name}`
             },

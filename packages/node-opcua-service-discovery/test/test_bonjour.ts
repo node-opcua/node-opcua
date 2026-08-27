@@ -5,6 +5,8 @@ import sinon from "sinon";
 import Bonjour from "sterfive-bonjour-service";
 import { type Announcement, announcementToServiceConfig, BonjourHolder, serviceToString } from "..";
 
+const port = 1234;
+
 const debugLog = make_debugLog("Bonjour")!;
 
 describe("Bonjour", () => {
@@ -20,7 +22,7 @@ describe("Bonjour", () => {
             capabilities: ["capability1", "capability2"],
             host: "host",
             path: "path",
-            port: 1234
+            port
         };
         const serviceConfig = announcementToServiceConfig(announcement);
         should(serviceConfig).eql({
@@ -28,7 +30,7 @@ describe("Bonjour", () => {
             type: "opcua-tcp",
             protocol: "tcp",
             host: "host",
-            port: 1234,
+            port,
             txt: {
                 caps: "capability1,capability2",
                 path: "path"
@@ -80,7 +82,7 @@ describe("Bonjour", () => {
             capabilities: ["capability1", "capability2"],
             host: "host",
             path: "path",
-            port: 1234
+            port
         };
         holder.announcedOnMulticastSubnet(announcement);
 
