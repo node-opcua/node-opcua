@@ -111,10 +111,25 @@ async function _getDataTypeDescriptions(
     return result2.references.map((r) => ({ nodeId: r.nodeId, browseName: r.browseName }));
 }
 
+/**
+ * A DataType together with the DataTypeDescription it was reached through.
+ *
+ * These used to be two arrays paired by index, which only holds while nothing is
+ * skipped - and descriptions are skipped, since an abstract type has no DescriptionOf
+ * reference. After the first skip every index named a different type in each array, so
+ * encodings were written onto the wrong description and the caller's lookup missed. That
+ * surfaced as "cannot find dataTypeDescription for ns=..;i=..", caught and logged, with
+ * the class silently left unregistered. Keeping the two together makes it unrepresentable.
+ */
+interface IDataTypeAndDescription {
+    dataTypeNodeId: NodeId;
+    dataTypeDescription: IDataTypeDescription;
+}
+
 async function _enrichWithDescriptionOf(
     session: IBasicSessionAsync2,
     dataTypeDescriptions: IDataTypeDescription[]
-): Promise<NodeId[]> {
+): Promise<IDataTypeAndDescription[]> {
     const nodesToBrowse3: BrowseDescriptionOptions[] = dataTypeDescriptions.map((dataTypeDescription) => ({
         browseDirection: BrowseDirection.Inverse,
         includeSubtypes: false,
@@ -133,6 +148,8 @@ async function _enrichWithDescriptionOf(
 
     const binaryEncodings = [];
     const nodesToBrowseDataType: BrowseDescriptionOptions[] = [];
+    // parallel to nodesToBrowseDataType, so the pairing survives the skips below
+    const browsedDescriptions: IDataTypeDescription[] = [];
 
     for (let i = 0; i < results3.length; i++) {
         const result3 = results3[i];
@@ -159,6 +176,7 @@ async function _enrichWithDescriptionOf(
             };
             dataTypeDescription.encodings.binaryEncodingNodeId = binaryEncodingNodeId;
             binaryEncodings.push(binaryEncodingNodeId);
+            browsedDescriptions.push(dataTypeDescription);
             nodesToBrowseDataType.push({
                 browseDirection: BrowseDirection.Inverse,
                 includeSubtypes: false,
@@ -171,7 +189,7 @@ async function _enrichWithDescriptionOf(
         }
     }
 
-    const dataTypeNodeIds: NodeId[] = [];
+    const pairs: IDataTypeAndDescription[] = [];
 
     if (nodesToBrowseDataType.length > 0) {
         const results4 = await browseAll(session, nodesToBrowseDataType);
@@ -183,17 +201,21 @@ async function _enrichWithDescriptionOf(
             if (result4.references.length !== 1) {
                 errorLog("What's going on ?", result4.toString(), "result4.references.length = ", result4.references.length);
             }
+            // Nothing to pair with, and reading references[0] would throw.
+            if (result4.references.length === 0) {
+                continue;
+            }
 
             const ref = result4.references[0];
             const dataTypeNodeId = ref.nodeId;
-            dataTypeNodeIds[i] = dataTypeNodeId;
-            const dataTypeDescription = dataTypeDescriptions[i];
+            const dataTypeDescription = browsedDescriptions[i];
             // biome-ignore lint/style/noNonNullAssertion: encodings is always populated for entries that reached nodesToBrowseDataType (see loop above)
             dataTypeDescription.encodings!.dataTypeNodeId = dataTypeNodeId;
+            pairs.push({ dataTypeNodeId, dataTypeDescription });
         }
     }
 
-    const otherEncodingBrowse = dataTypeNodeIds.map((dataTypeNodeId) => ({
+    const otherEncodingBrowse = pairs.map(({ dataTypeNodeId }) => ({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: false,
         nodeClassMask: NodeClassMask.Object,
@@ -206,7 +228,7 @@ async function _enrichWithDescriptionOf(
     const results5 = await browseAll(session, otherEncodingBrowse);
     for (let i = 0; i < results5.length; i++) {
         const result5 = results5[i];
-        const dataTypeDescription = dataTypeDescriptions[i];
+        const { dataTypeDescription } = pairs[i];
         let encodingCounter = 0;
         // biome-ignore lint/style/noNonNullAssertion: encodings is always populated by the earlier enrichment pass for these dataTypeDescriptions
         const encodings = dataTypeDescription.encodings!;
@@ -232,7 +254,7 @@ async function _enrichWithDescriptionOf(
             dataTypeDescription.isAbstract = true;
         }
     }
-    return dataTypeNodeIds;
+    return pairs;
 }
 
 interface IDataTypeDefInfo {
@@ -240,6 +262,8 @@ interface IDataTypeDefInfo {
     dataTypeNodeId: NodeId;
     dataTypeDefinition: StructureDefinition;
     isAbstract: boolean;
+    /** the description this type was reached through; carried so nothing has to find it again */
+    dataTypeDescription: IDataTypeDescription;
 }
 type DataTypeDefinitions = IDataTypeDefInfo[];
 
@@ -292,19 +316,22 @@ async function _extractDataTypeDictionaryFromDefinition(
     assert(dataTypeManager, "expecting a dataTypeManager");
 
     const dataTypeDescriptions = await _getDataTypeDescriptions(session, dataTypeDictionaryNodeId);
-    const dataTypeNodeIds = await _enrichWithDescriptionOf(session, dataTypeDescriptions);
+    const dataTypeAndDescriptions = await _enrichWithDescriptionOf(session, dataTypeDescriptions);
 
-    // now read DataTypeDefinition attributes of all the dataTypeNodeIds, this will only contains concrete structure
-    const nodesToRead: ReadValueIdOptions[] = dataTypeNodeIds.map((nodeId: NodeId) => ({
+    // now read DataTypeDefinition attributes of all the dataTypes, this will only contains concrete structure
+    const nodesToRead: ReadValueIdOptions[] = dataTypeAndDescriptions.map(({ dataTypeNodeId }) => ({
         attributeId: AttributeIds.DataTypeDefinition,
-        nodeId
+        nodeId: dataTypeNodeId
     }));
 
     const cache: { [key: string]: CacheForFieldResolution } = {};
     const dataValuesWithDataTypeDefinition = nodesToRead.length > 0 ? await session.read(nodesToRead) : [];
 
-    // in some circumstances like Euromap, this assert fails:
-    // assert(dataValuesWithDataTypeDefinition.length === dataTypeDescriptions.length);
+    // The commented-out assert here compared against dataTypeDescriptions.length and
+    // was reported to fail on nodesets such as Euromap. It was right to fail: the two
+    // lists are not the same length, because abstract types are skipped. The read is
+    // driven by dataTypeAndDescriptions, so this is the invariant that does hold.
+    assert(dataValuesWithDataTypeDefinition.length === dataTypeAndDescriptions.length);
 
     const dataTypeDefinitions: DataTypeDefinitions = [];
 
@@ -312,8 +339,7 @@ async function _extractDataTypeDictionaryFromDefinition(
 
     const promise: Promise<void>[] = [];
     for (const dataValue of dataValuesWithDataTypeDefinition) {
-        const dataTypeNodeId = dataTypeNodeIds[index];
-        const dataTypeDescription = dataTypeDescriptions[index];
+        const { dataTypeNodeId, dataTypeDescription } = dataTypeAndDescriptions[index];
 
         if (dataValue.statusCode.isGood()) {
             const dataTypeDefinition = dataValue.value.value;
@@ -326,7 +352,13 @@ async function _extractDataTypeDictionaryFromDefinition(
                 promise.push(
                     (async () => {
                         const isAbstract = await readIsAbstract(session, dataTypeNodeId);
-                        dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
+                        dataTypeDefinitions.push({
+                            className,
+                            dataTypeNodeId,
+                            dataTypeDefinition,
+                            isAbstract,
+                            dataTypeDescription
+                        });
                     })()
                 );
             }
@@ -354,7 +386,7 @@ async function _extractDataTypeDictionaryFromDefinition(
 
     const promises2: Promise<void>[] = [];
 
-    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
+    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract, dataTypeDescription } of dataTypeDefinitionsSorted) {
         promises2.push(
             (async () => {
                 const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
@@ -367,7 +399,10 @@ async function _extractDataTypeDictionaryFromDefinition(
                 }
                 // now fill typeDictionary
                 try {
-                    const dataTypeDescription = dataTypeDescriptions.find((a) => a.nodeId.toString() === dataTypeNodeId.toString());
+                    // Previously this searched dataTypeDescriptions for one whose nodeId
+                    // equalled dataTypeNodeId - comparing a description node against a
+                    // DataType node, which only ever matched by accident. The description
+                    // now travels with the type it belongs to.
                     if (!dataTypeDefinition) {
                         throw new Error(`cannot find dataTypeDefinition for ${dataTypeNodeId.toString()}`);
                     }
