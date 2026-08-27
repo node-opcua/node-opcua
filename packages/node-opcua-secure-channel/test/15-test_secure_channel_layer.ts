@@ -224,7 +224,14 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const port = port3;
         const options: ClientSecureChannelLayerOptions = {
             connectionStrategy: {
-                maxRetry: 15,
+                // The server below starts after a 6 second pause, so the retry budget has
+                // to outlast it. 15 retries at maxDelay 100 is ~1.5s of backoff; the rest
+                // used to come from how long each connect attempt took, which is
+                // environmental. Where the host refuses immediately - a CI runner
+                // connecting to its own address - the budget collapsed and the client gave
+                // up long before the server existed. 200 covers the pause on backoff
+                // alone, and the test ends as soon as it connects, so it costs nothing.
+                maxRetry: 200,
                 initialDelay: 10,
                 maxDelay: 100,
                 randomisationFactor: 0
