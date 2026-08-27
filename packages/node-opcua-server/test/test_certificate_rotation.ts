@@ -15,6 +15,8 @@ import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { invalidateServerCertificateCache, OPCUAServer } from "../source";
 
+const serverPort = 5011;
+
 const tmpDir = path.join(os.tmpdir(), `test-cert-rotation-${process.pid}`);
 
 async function generateCert(cm: OPCUACertificateManager, subject: string): Promise<void> {
@@ -62,7 +64,7 @@ describe("Runtime certificate rotation (no push cert management)", function (thi
         await generateCert(cm, "/CN=Initial");
 
         server = new OPCUAServer({
-            port: 0,
+            port: serverPort,
             serverCertificateManager: cm,
             securityModes: [MessageSecurityMode.None],
             securityPolicies: [SecurityPolicy.None]

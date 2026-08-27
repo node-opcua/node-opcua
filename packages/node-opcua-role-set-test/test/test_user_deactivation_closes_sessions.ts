@@ -16,6 +16,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
 
+const port = 5781;
+
 describe("Deactivating a user terminates their live sessions (§5.2.6-7)", function () {
     this.timeout(60000);
 
@@ -24,7 +26,7 @@ describe("Deactivating a user terminates their live sessions (§5.2.6-7)", funct
     let clientCertificateManager: OPCUACertificateManager;
 
     before(async () => {
-        handle = await startSampleServer({ port: 48561 });
+        handle = await startSampleServer({ port });
         clientPkiRoot = path.join(os.tmpdir(), `role-set-deact-client-${process.pid}`);
         clientCertificateManager = new OPCUACertificateManager({
             rootFolder: clientPkiRoot,

@@ -8,6 +8,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
 
+const port = 2000;
+
 describe("FileType: Testing with very large file end-to-end", function (this: Mocha.Context) {
     this.timeout(100000);
 
@@ -16,7 +18,7 @@ describe("FileType: Testing with very large file end-to-end", function (this: Mo
     let nodeId: NodeId;
     before(async () => {
         server = new OPCUAServer({
-            port: 2000
+            port
         });
 
         await server.start();

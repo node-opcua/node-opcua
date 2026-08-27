@@ -6,6 +6,9 @@ import should from "should";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_aliases.js";
 import { ANONYMOUS, withSession } from "./helpers.js";
 
+const port1 = 5008;
+const port2 = 5009;
+
 /**
  * A `FindAlias` response large enough to span more than one message chunk.
  *
@@ -24,7 +27,7 @@ describe("OPC 10000-17: a large FindAlias result", function (this: Mocha.Suite) 
 
     before(async () => {
         handle = await startSampleServer({
-            port: 48562,
+            port: port1,
             bulkAliasCount: BULK_COUNT,
             // above the bulk count, so the cap is not what is being tested here
             maxResults: BULK_COUNT * 2
@@ -82,7 +85,7 @@ describe("OPC 10000-17: a large FindAlias result", function (this: Mocha.Suite) 
     it("should still honour maxResults on a large set", async () => {
         // a second server, capped below the bulk count
         const capped = await startSampleServer({
-            port: 48563,
+            port: port2,
             bulkAliasCount: 100,
             maxResults: 10
         });

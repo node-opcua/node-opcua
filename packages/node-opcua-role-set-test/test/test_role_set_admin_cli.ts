@@ -8,6 +8,8 @@ import { promisify } from "node:util";
 import "should";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
 
+const port = 5006;
+
 const execFileAsync = promisify(execFile);
 // the shipped CLI now lives in its own package; drive its source via tsx
 const CLI = path.join(__dirname, "..", "..", "node-opcua-role-set-admin", "source", "cli.ts");
@@ -19,7 +21,7 @@ describe("role-set-admin CLI (e2e against the sample server)", function () {
     let endpoint: string;
 
     before(async () => {
-        handle = await startSampleServer({ port: 48559 });
+        handle = await startSampleServer({ port });
         endpoint = handle.endpointUrl;
     });
     after(async () => {

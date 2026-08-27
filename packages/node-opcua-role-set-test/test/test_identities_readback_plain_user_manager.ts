@@ -33,7 +33,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 import should from "should";
 
-const port = 48501;
+const port = 5004;
 const pkiRoot = path.join(os.tmpdir(), `role-set-identities-e2e-${port}`);
 
 describe("Identities read-back with a plain userManager (no getIdentitiesForRole)", function (this: Mocha.Suite) {

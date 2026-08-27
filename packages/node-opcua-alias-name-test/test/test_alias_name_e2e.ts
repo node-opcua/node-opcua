@@ -8,6 +8,8 @@ import should from "should";
 import { ALIAS_CAPABILITY, type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_aliases.js";
 import { ANONYMOUS, asUser, withSession } from "./helpers.js";
 
+const port = 5007;
+
 /**
  * End-to-end AliasName tests over a **real TCP transport**.
  *
@@ -23,7 +25,7 @@ describe("OPC 10000-17: AliasNames end to end", function (this: Mocha.Suite) {
     let handle: SampleServerHandle;
 
     before(async () => {
-        handle = await startSampleServer({ port: 48561 });
+        handle = await startSampleServer({ port });
     });
 
     after(async () => {

@@ -172,6 +172,7 @@ describeWithLeakDetector("T7 - Net server handle lifecycle", () => {
 
     before((done) => {
         server = net.createServer();
+        // check-test-ports: dynamic-ok - needs an active handle for the detector to notice; the port is irrelevant
         server.listen(0, () => done());
     });
 

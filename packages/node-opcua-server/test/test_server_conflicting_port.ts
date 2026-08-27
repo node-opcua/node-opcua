@@ -5,6 +5,8 @@ import should from "should";
 
 import { OPCUAServer } from "../source";
 
+const testPort1 = 12345;
+
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const _debugLog = make_debugLog("TEST");
@@ -23,7 +25,7 @@ describe("testing 2 servers on same port ", () => {
         await server1.shutdown();
     });
     it("should fail to start a second server on a busy port ", async () => {
-        const server2 = new OPCUAServer({ port: 12345, nodeset_filename: empty_nodeset_filename });
+        const server2 = new OPCUAServer({ port: testPort1, nodeset_filename: empty_nodeset_filename });
 
         let _err: Error | undefined;
         try {

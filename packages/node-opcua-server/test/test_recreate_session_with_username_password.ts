@@ -5,7 +5,7 @@ import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, U
 import { OPCUAServer } from "..";
 
 const seconds = 1000;
-const port = 48444;
+const port = 5002;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
