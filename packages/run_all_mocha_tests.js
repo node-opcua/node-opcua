@@ -47,6 +47,10 @@ process.on("uncaughtException", (err) => {
     console.error(err && err.stack ? err.stack : err);
 });
 
+/** a spec: optionally numbered, named test_ or repro_ */
+const SPEC_TS = /^(\d+[-_])?(test|repro)_.*\.ts$/;
+const SPEC_JS = /^(\d+[-_])?(test|repro)_.*\.js$/;
+
 async function collect_files(testFiles, testFolder) {
 
     const files = await fs.promises.readdir(testFolder);
@@ -57,10 +61,18 @@ async function collect_files(testFiles, testFolder) {
         if (stat.isDirectory()) {
             await collect_files(testFiles, f);
         } else {
-            if (file.match(/^test_.*\.ts/) && !file.match(/^test_.*\.d\.ts/)) {
+            // Optional NN- or NN_ prefix, and repro_ as well as test_.
+            //
+            // node-opcua-secure-channel numbers its files 01-test_..., 02-test_... to
+            // fix their order, and a reproduction case is named repro_<issue>. Neither
+            // matched a bare /^test_/, so 24 files - 22 of them that whole package's
+            // suite - were skipped in silence by both programmatic runners for as long
+            // as the pattern has existed. They ran only under `pnpm m run test`, which
+            // was itself broken, so nothing ran them at all.
+            if (file.match(SPEC_TS) && !file.match(/\.d\.ts$/)) {
                 doDebug && console.log("     - adding file ", f);
                 testFiles.push(f);
-            } else if (file.match(/^test_.*\.js/)) {
+            } else if (file.match(SPEC_JS)) {
                 // make sure that there is not a TS file along side
                 if (fs.existsSync(f.replace(".js", ".ts"))) {
                     console.log("warning => transpiled js file ignored : ", file);
