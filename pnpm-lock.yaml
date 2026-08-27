@@ -3315,6 +3315,9 @@ importers:
       node-opcua-certificate-manager:
         specifier: 2.178.0
         version: link:../node-opcua-certificate-manager
+      node-opcua-data-value:
+        specifier: 2.177.0
+        version: link:../node-opcua-data-value
       node-opcua-leak-detector:
         specifier: 2.175.6
         version: link:../node-opcua-leak-detector
@@ -3330,6 +3333,9 @@ importers:
       node-opcua-test-helpers:
         specifier: 2.175.1
         version: link:../node-opcua-test-helpers
+      node-opcua-variant:
+        specifier: 2.177.0
+        version: link:../node-opcua-variant
 
   packages/node-opcua-server:
     dependencies:
