@@ -33,12 +33,28 @@ const doDebug = checkDebugFlag("populateDataTypeManager");
 
 type DependentNamespaces = Set<number>;
 
+/**
+ * A dataType that could not be turned into a constructor.
+ *
+ * These are collected rather than only logged. A failure here means the class is never
+ * registered, so decoding that extension object fails later with nothing pointing back
+ * to this load - and the 1.03 loader had exactly that fault for five standard types
+ * while every test passed. One line naming the count and the types makes the state
+ * visible without anyone having to read scrollback.
+ */
+export interface IDataTypeLoadFailure {
+    dataTypeNodeId: string;
+    name: string;
+    message: string;
+}
+
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string | undefined,
     dataTypeManager: ExtraDataTypeManager,
-    cache: ICache
+    cache: ICache,
+    failures?: IDataTypeLoadFailure[]
 ): Promise<DependentNamespaces> {
     const dependentNamespaces: DependentNamespaces = new Set();
     try {
@@ -129,7 +145,14 @@ export async function readDataTypeDefinitionAndBuildType(
             createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }
     } catch (err) {
-        errorLog("Error", (err as Error).message, " while processing dataTypeNodeId =", dataTypeNodeId.toString());
+        const message = (err as Error).message;
+        if (failures) {
+            // the caller reports these together; logging here as well would only
+            // reproduce the scattered lines this is meant to replace
+            failures.push({ dataTypeNodeId: dataTypeNodeId.toString(), name: name || "?", message });
+        } else {
+            errorLog("Error", message, " while processing dataTypeNodeId =", dataTypeNodeId.toString());
+        }
     }
     return dependentNamespaces;
 }
@@ -141,6 +164,7 @@ export async function populateDataTypeManager104(
     const dataFactoriesDependencies = new Map<number, DependentNamespaces>();
 
     const cache: ICache = {};
+    const failures: IDataTypeLoadFailure[] = [];
 
     async function withDataType(r: ReferenceDescription): Promise<void> {
         const dataTypeNodeId = r.nodeId;
@@ -177,7 +201,8 @@ export async function populateDataTypeManager104(
                 dataTypeNodeId,
                 r.browseName.name,
                 dataTypeManager,
-                cache
+                cache,
+                failures
             );
 
             // add dependent namespaces to dataFactoriesDependencies
@@ -191,7 +216,12 @@ export async function populateDataTypeManager104(
                 dataFactoryDependencies.add(ns);
             }
         } catch (err) {
-            errorLog("err=", err);
+            // named, so the summary below can say which type failed rather than "err="
+            failures.push({
+                dataTypeNodeId: dataTypeNodeId.toString(),
+                name: r.browseName.name || "?",
+                message: (err as Error).message
+            });
         }
     }
 
@@ -204,6 +234,19 @@ export async function populateDataTypeManager104(
         resultMask: 0xff
     };
     await applyOnReferenceRecursively(session, resolveNodeId("Structure"), nodeToBrowse, withDataType);
+
+    // One line for the whole load. A dataType that fails here is simply absent from the
+    // factory, and every later decode of it fails somewhere unrelated, so the count
+    // belongs where it can be seen rather than spread across the run.
+    if (failures.length > 0) {
+        warningLog(
+            `populateDataTypeManager104: ${failures.length} dataType(s) could not be registered;` +
+                " decoding those extension objects will fail:"
+        );
+        for (const f of failures) {
+            warningLog(`    ${f.name} (${f.dataTypeNodeId}): ${f.message}`);
+        }
+    }
 
     // set factory dependencies
     for (const [namespace, dependentNamespaces] of dataFactoriesDependencies) {
