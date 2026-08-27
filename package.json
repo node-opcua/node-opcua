@@ -91,7 +91,7 @@
     "node": ">=22.13.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@11.24.0",
   "dependenciesMeta": {
     "*": {
       "injected": true
