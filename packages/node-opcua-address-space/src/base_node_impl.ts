@@ -949,6 +949,16 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         } else if (_private._back_referenceIdx.has(h)) {
             relatedNode.removeReference(backwardReference);
         } else {
+            // A back reference of a massively used type was never installed: _propagate_ref
+            // skips HasTypeDefinition and HasModellingRule deliberately, "because there are
+            // too many". Removal has to mirror that, or detaching any node asks its type
+            // definition to drop a reference it never held - which is where the hundred-odd
+            // "Cannot find reference to remove: ns=0;i=40" lines per run came from. The
+            // absence is the designed state, not a fault worth reporting.
+            const referenceType = resolveReferenceType(addressSpace, reference);
+            if (!reference.isForward && referenceType && _is_massively_used_reference(referenceType)) {
+                return;
+            }
             warningLog(`Cannot find reference to remove: ${reference.toString()}`);
         }
     }
