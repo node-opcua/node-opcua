@@ -5,7 +5,28 @@ import should from "should";
 import { WebSocket, WebSocketServer } from "ws";
 import { browserWsTransportFactory, ClientWS_transport, parseWsEndpointUrl, type WebSocketConstructor } from "../../dist";
 
-const port = 5014;
+// One port per test. beforeEach builds a fresh WebSocketServer and afterEach closes
+// it, but close() completes only once every connection has ended, so re-binding a
+// single fixed port twelve times races the previous listener letting go - an
+// EADDRINUSE that moves between tests under load. Same defect, and same remedy, as
+// node-opcua-transport's fake server.
+//
+// Written out rather than computed: a port derived as `base + i` binds a number
+// that appears nowhere, which check-test-ports cannot verify against collisions.
+const port1 = 5782;
+const port2 = 5783;
+const port3 = 5784;
+const port4 = 5785;
+const port5 = 5786;
+const port6 = 5787;
+const port7 = 5788;
+const port8 = 5789;
+const port9 = 5790;
+const port10 = 5791;
+const port11 = 5792;
+const port12 = 5793;
+const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12];
+let portIndex = 0;
 
 describe("parseWsEndpointUrl", () => {
     it("accepts opc.ws:// and returns ws:// plus secure=false", () => {
@@ -106,7 +127,7 @@ describe("ClientWS_transport — HEL/ACK over ws://", function (this: Mocha.Suit
         // completes. We parse the HEL just enough to surface meaningful
         // failures.
         server = new WebSocketServer({
-            port,
+            port: ports[portIndex++],
             handleProtocols: (protocols) => (protocols.has("opcua+uacp") ? "opcua+uacp" : false)
         });
 
