@@ -91,11 +91,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      # No pnpm setup and no cache: the scanner has no dependencies, so this job never
+      # installs. Leaving `cache: 'pnpm'` here failed the job outright - setup-node's
+      # post step looks for a pnpm store that was never created and reports a Path
+      # Validation Error.
+      #
+      # Node 26 rather than the matrix versions: this runs plain ESM against the
+      # filesystem, so the newest runtime is the useful one - it is where a syntax or
+      # API change would show up first, and it costs nothing to find out here.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-          cache: 'pnpm'
+          node-version: 26.x
       # Called directly rather than through `pnpm run check:ports:summary`, which is
       # the same command: the scanner has no dependencies, so the gate needs no install
       # and cannot fail for setup reasons. The npm scripts exist for people.
