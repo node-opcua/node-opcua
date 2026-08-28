@@ -30,7 +30,8 @@ import {
     type UAObject,
     type UAObjectType,
     type UAVariable,
-    type UAView
+    type UAView,
+    type UnresolvedPermissionPolicy
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
@@ -913,6 +914,22 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      */
     userManager?: UserManagerOptions;
 
+    /**
+     * how a Session's permission is resolved when neither the target Node nor its namespace
+     * declares any RolePermissions:
+     *
+     *  - `"allow"` (default): grant every permission. This is how node-opcua has always behaved,
+     *    and what most address spaces expect, since almost no server declares RolePermissions on
+     *    its own Nodes.
+     *  - `"deny"` : grant nothing. Fail-closed, for products that drive access entirely from
+     *    declared policy. Expect to set DefaultRolePermissions on every namespace, otherwise the
+     *    address space becomes unreadable to remote Sessions.
+     *
+     * This governs remote Sessions only. In-process callers keep every permission regardless.
+     * @default "allow"
+     */
+    unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
+
     /** resource Path is a string added at the end of the url such as "/UA/Server" */
     resourcePath?: string;
 
@@ -1385,6 +1402,13 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
      */
     public roleResolvers: IRoleResolver[] = [];
 
+    /**
+     * how a remote Session's permission is resolved when no RolePermissions apply.
+     * @default "allow"
+     * @see OPCUAServerOptions.unresolvedPermissionPolicy
+     */
+    public unresolvedPermissionPolicy: UnresolvedPermissionPolicy;
+
     public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
@@ -1427,6 +1451,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         this.serverInfo.productUri = this.serverInfo.productUri || buildInfo.productUri;
 
         this.userManager = makeUserManager(options.userManager);
+
+        this.unresolvedPermissionPolicy = options.unresolvedPermissionPolicy ?? "allow";
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : !!options.allowAnonymous;
         /**
