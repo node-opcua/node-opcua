@@ -2,7 +2,7 @@
     "name": "node-opcua-data-access",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.179.0",
+    "version": "2.180.0",
     "description": "pure nodejs OPCUA SDK - module data-access",
     "scripts": {
         "build": "tsc -b",
@@ -12,8 +12,8 @@
         "format": "biome check --write --no-errors-on-unmatched ."
     },
     "dependencies": {
-        "node-opcua-data-model": "2.179.0",
-        "node-opcua-types": "2.179.0"
+        "node-opcua-data-model": "2.180.0",
+        "node-opcua-types": "2.180.0"
     },
     "devDependencies": {
         "node-opcua-assert": "2.179.0"
