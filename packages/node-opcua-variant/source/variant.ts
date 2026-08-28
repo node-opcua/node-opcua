@@ -267,7 +267,16 @@ export class Variant extends BaseUAObject {
     }
 
     public decode(stream: BinaryStream): void {
-        internalDecodeVariant(this, stream);
+        // A Variant can hold an ExtensionObject whose body holds another Variant, so the
+        // value graph can nest without the message growing. Count each Variant level
+        // against the shared budget so a deep chain cannot exhaust the stack (Part 6
+        // §5.1.9).
+        stream.enterNestingLevel();
+        try {
+            internalDecodeVariant(this, stream);
+        } finally {
+            stream.exitNestingLevel();
+        }
     }
 
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {

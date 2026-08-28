@@ -23,6 +23,35 @@ export class BinaryStreamMaxSizeExceededError extends Error {
 }
 
 /**
+ * raised when a decoder descends past BinaryStream.maxNestingLevel while reading a
+ * recursive type (ExtensionObject, Variant, DiagnosticInfo).
+ *
+ * Distinct from a size error on purpose: a message can be well within its size limit yet
+ * still nest deeply enough to exhaust the call stack, so a caller needs to tell "the peer
+ * nested too deep" apart from "the message is too big".
+ */
+export class BinaryStreamMaxNestingLevelExceededError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "BinaryStreamMaxNestingLevelExceededError";
+    }
+}
+
+/**
+ * raised when a wire array length is refused before any element is decoded - it exceeds
+ * either BinaryStream.maxArrayLength or the number of bytes left to read.
+ *
+ * Named distinctly so a caller can map it to Bad_EncodingLimitsExceeded (Part 4 §5.3)
+ * rather than mistaking it for a genuine parse error.
+ */
+export class BinaryStreamArrayLengthExceededError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "BinaryStreamArrayLengthExceededError";
+    }
+}
+
+/**
  * a BinaryStream can be use to perform sequential read or write
  * inside a buffer.
  * The BinaryStream maintains a cursor up to date as the caller
@@ -49,6 +78,36 @@ export class BinaryStream {
     public static maxByteStringLength = 16 * 1024 * 1024;
     public static maxStringLength = 16 * 1024 * 1024;
     /**
+     * how deep decoders may nest recursive types (ExtensionObject, Variant,
+     * DiagnosticInfo) while reading from this stream.
+     *
+     * These types can nest without ever making the message larger than the negotiated
+     * limit, so a message well under the size cap can still drive the decoder deep enough
+     * to exhaust the call stack. OPC UA Part 6 §5.1.8/§5.1.9 anticipates this and requires
+     * a decoder to support at least 100 levels and to report an error beyond what it
+     * supports; §5.2.2.12 says the same for the self-recursive DiagnosticInfo. One shared
+     * budget across the three types bounds what actually matters - total stack depth -
+     * regardless of how a message mixes them.
+     *
+     * Set to 128, comfortably above the 100 the spec requires us to support (so a message
+     * that legitimately nests 100 deep still decodes whichever way you count the outermost
+     * level) and far below the depth at which the call stack would actually overflow.
+     */
+    public static maxNestingLevel = 128;
+
+    /**
+     * hard ceiling on the number of elements a single array length prefix may declare.
+     *
+     * The length is read straight off the wire as a UInt32, so without a ceiling a tiny
+     * message can declare billions of elements and drive the decoder to loop and allocate
+     * to match. Mirrors the cap the Variant value path has always enforced
+     * (Variant.maxArrayLength); the generic path that decodes every structured-type array
+     * field never had one. Adjustable so a deployment that legitimately exchanges larger
+     * arrays can raise it.
+     */
+    public static maxArrayLength = 1 * 1024 * 1024;
+
+    /**
      * the current position inside the buffer
      */
     public length: number;
@@ -65,6 +124,69 @@ export class BinaryStream {
      * overwhelming majority - pays exactly one compare per write.
      */
     #maxLength = 0;
+
+    /**
+     * current recursive-decode depth. Bumped by enterNestingLevel/exitNestingLevel as a
+     * decoder descends into nested ExtensionObject/Variant/DiagnosticInfo values.
+     */
+    #nestingLevel = 0;
+
+    /**
+     * signal that the decoder is about to descend one level into a recursive type.
+     * Throws BinaryStreamMaxNestingLevelExceededError once the depth passes
+     * BinaryStream.maxNestingLevel, before the recursive call is made and before any
+     * further stack frame is consumed. Every successful call must be paired with
+     * exitNestingLevel, which is why callers use try/finally.
+     */
+    public enterNestingLevel(): void {
+        // Check before incrementing: a refused entry must leave the depth untouched.
+        // Callers put enterNestingLevel() outside their try/finally, so a throw here is
+        // never paired with an exitNestingLevel - incrementing first would leak a level
+        // every time the guard trips (e.g. when decodeExtensionObject swallows the throw)
+        // and slowly starve the budget for the rest of the message.
+        if (this.#nestingLevel >= BinaryStream.maxNestingLevel) {
+            throw new BinaryStreamMaxNestingLevelExceededError(
+                `BinaryStream: maximum nesting level of ${BinaryStream.maxNestingLevel} exceeded while decoding a recursive type`
+            );
+        }
+        this.#nestingLevel++;
+    }
+
+    /**
+     * mark that the decoder has finished one level of a recursive type. Pair with a
+     * preceding successful enterNestingLevel via try/finally so the depth is restored
+     * even when the nested decode throws.
+     */
+    public exitNestingLevel(): void {
+        this.#nestingLevel--;
+    }
+
+    /**
+     * validate a wire array length before a decoder loops over it.
+     *
+     * Two independent bounds:
+     *  - it may not exceed BinaryStream.maxArrayLength;
+     *  - it may not exceed the bytes left in the stream, since every encoded element
+     *    occupies at least one byte. This tight check alone rejects an implausible length
+     *    (0x7FFFFFFE elements behind a 100-byte body) immediately, and also catches a
+     *    length that sits under the ceiling yet is still far larger than the remaining
+     *    payload can back.
+     *
+     * @param length the element count just read from the stream
+     */
+    public checkArrayLength(length: number): void {
+        if (length > BinaryStream.maxArrayLength) {
+            throw new BinaryStreamArrayLengthExceededError(
+                `BinaryStream: array length ${length} exceeds the maximum allowed length of ${BinaryStream.maxArrayLength}`
+            );
+        }
+        const remaining = this.buffer.length - this.length;
+        if (length > remaining) {
+            throw new BinaryStreamArrayLengthExceededError(
+                `BinaryStream: array length ${length} exceeds the ${remaining} bytes remaining in the stream`
+            );
+        }
+    }
 
     /**
      * create a stream that reallocates its buffer as needed, up to maxLength bytes.

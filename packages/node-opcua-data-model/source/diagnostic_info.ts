@@ -133,7 +133,16 @@ export class DiagnosticInfo extends BaseUAObject {
     }
 
     public decode(stream: BinaryStream): void {
-        decode_DiagnosticInfo(this, stream);
+        // DiagnosticInfo is self-recursive through innerDiagnosticInfo: a chain of nested
+        // masks can nest the decoder as deep as the message has bytes, exhausting the
+        // stack on a message well under the size limit. Count each level against the shared
+        // budget and refuse to descend further (Part 6 §5.2.2.12).
+        stream.enterNestingLevel();
+        try {
+            decode_DiagnosticInfo(this, stream);
+        } finally {
+            stream.exitNestingLevel();
+        }
     }
 
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {

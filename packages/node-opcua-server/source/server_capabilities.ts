@@ -231,6 +231,14 @@ export class ServerCapabilities implements IServerCapabilities {
 
         this.maxArrayLength = options.maxArrayLength || defaultServerCapabilities.maxArrayLength;
 
+        // The generic array decoder refuses any array longer than BinaryStream.maxArrayLength.
+        // Raise that ceiling to cover what this server advertises, so it never rejects an array a
+        // client was told it may send. Only ever raised, never lowered, so configuring one server
+        // cannot shrink a limit another already relies on.
+        if (BinaryStream.maxArrayLength < this.maxArrayLength) {
+            BinaryStream.maxArrayLength = this.maxArrayLength;
+        }
+
         this.maxStringLength = options.maxStringLength || defaultServerCapabilities.maxStringLength;
         this.maxByteStringLength = options.maxByteStringLength || defaultServerCapabilities.maxByteStringLength;
 

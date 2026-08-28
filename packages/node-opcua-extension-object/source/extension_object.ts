@@ -148,6 +148,19 @@ export interface IDataTypeFactory {
     constructObject(dataTypeNodeId: NodeId): BaseUAObject | null;
 }
 export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionObject | null): ExtensionObject | null {
+    // An ExtensionObject body can itself contain ExtensionObjects (directly, or via a
+    // Variant), so a deeply nested value graph can descend arbitrarily far on a message
+    // that stays within its size limit. Count the descent and refuse to go past the shared
+    // limit before the recursive call consumes another stack frame (Part 6 §5.1.8).
+    stream.enterNestingLevel();
+    try {
+        return _decodeExtensionObject(stream, _value);
+    } finally {
+        stream.exitNestingLevel();
+    }
+}
+
+function _decodeExtensionObject(stream: BinaryStream, _value?: ExtensionObject | null): ExtensionObject | null {
     const nodeId = decodeNodeId(stream);
     const encodingType = stream.readUInt8();
 

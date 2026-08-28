@@ -1237,7 +1237,15 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     );
 
                     bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength, DataType.UInt32, () => {
-                        return Math.min(this.serverCapabilities.maxArrayLength, Variant.maxArrayLength);
+                        // Advertise the smallest of the three ceilings that actually apply: the
+                        // configured value, the Variant value-array cap, and the generic
+                        // structured-array cap. Reporting more than any of them enforces would let
+                        // a client send an array the decoder then refuses.
+                        return Math.min(
+                            this.serverCapabilities.maxArrayLength,
+                            Variant.maxArrayLength,
+                            BinaryStream.maxArrayLength
+                        );
                     });
 
                     bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength, DataType.UInt32, () => {
