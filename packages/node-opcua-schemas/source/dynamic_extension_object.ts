@@ -182,6 +182,7 @@ function decodeArrayOrElement(
         if (nbElements === 0xffffffff) {
             obj[field.name] = null;
         } else {
+            stream.checkArrayLength(nbElements);
             for (let i = 0; i < nbElements; i++) {
                 const element = decodeElement(dataTypeFactory, field, stream, decodeFunc);
                 array.push(element);

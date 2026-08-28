@@ -37,6 +37,11 @@ export function decodeArray<T>(stream: BinaryStream, decodeElementFunc: (stream:
     if (length === 0xffffffff) {
         return null;
     }
+    // The length came straight off the wire as a UInt32; without a ceiling a 12-byte
+    // message can declare ~4.29e9 elements and drive that many iterations and allocation.
+    // The Variant value path has always capped this; the generic structured-type path
+    // never did.
+    stream.checkArrayLength(length);
     const arr: T[] = [];
     for (let i = 0; i < length; i++) {
         arr.push(decodeElementFunc(stream));
