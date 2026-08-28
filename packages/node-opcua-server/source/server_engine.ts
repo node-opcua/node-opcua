@@ -970,20 +970,28 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     set: null // read only
                 });
 
-                // fix DefaultUserRolePermissions and DefaultUserRolePermissions
-                // of namespaces
+                // Make each namespace's DefaultRolePermissions / DefaultUserRolePermissions
+                // Property readable. A Property loaded from a NodeSet2 without a Value reads back
+                // uninitialized; give it a Good, Null value so a client can read it. A Property
+                // that already carries a value (a default declared by the nodeset) is left as is,
+                // since overwriting it would silently drop the declared namespace default.
                 const namespaces = makeNodeId(ObjectIds.Server_Namespaces);
                 const namespacesNode = addressSpace.findNode(namespaces) as UAObject;
                 if (namespacesNode) {
+                    const initializeIfUnset = (variable: UAVariable | null) => {
+                        if (!variable) {
+                            return;
+                        }
+                        const dataValue = variable.readValue();
+                        const value = dataValue?.value?.value;
+                        const hasValue = dataValue?.statusCode.isGood() && value !== null && value !== undefined;
+                        if (!hasValue) {
+                            variable.setValueFromSource({ dataType: DataType.Null });
+                        }
+                    };
                     for (const ns of namespacesNode.getComponents()) {
-                        const defaultUserRolePermissions = ns.getChildByName("DefaultUserRolePermissions") as UAVariable | null;
-                        if (defaultUserRolePermissions) {
-                            defaultUserRolePermissions.setValueFromSource({ dataType: DataType.Null });
-                        }
-                        const defaultRolePermissions = ns.getChildByName("DefaultRolePermissions") as UAVariable | null;
-                        if (defaultRolePermissions) {
-                            defaultRolePermissions.setValueFromSource({ dataType: DataType.Null });
-                        }
+                        initializeIfUnset(ns.getChildByName("DefaultUserRolePermissions") as UAVariable | null);
+                        initializeIfUnset(ns.getChildByName("DefaultRolePermissions") as UAVariable | null);
                     }
                 }
 

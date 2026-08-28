@@ -245,28 +245,36 @@ function getDefaultUserRolePermissionsOnNamespace(
     }
 
     const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
-    if (!namespaces) {
-        return null;
-    }
-    const uaNamespaceObject = namespaces.getChildByName(namespace.namespaceUri);
-    if (!uaNamespaceObject) {
-        return null;
-    }
-    const defaultUserRolePermissions = uaNamespaceObject.getChildByName("DefaultUserRolePermissions") as UAVariable;
-    if (defaultUserRolePermissions) {
-        const dataValue = defaultUserRolePermissions.readValue();
-        if (dataValue?.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
-            return dataValue.value.value as RolePermissionType[];
+    const uaNamespaceObject = namespaces?.getChildByName(namespace.namespaceUri);
+    if (uaNamespaceObject) {
+        // DefaultUserRolePermissions is the user-specific policy and wins when it carries a value.
+        const defaultUserRolePermissions = uaNamespaceObject.getChildByName("DefaultUserRolePermissions") as UAVariable;
+        if (defaultUserRolePermissions) {
+            const dataValue = defaultUserRolePermissions.readValue();
+            if (dataValue?.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
+                return dataValue.value.value as RolePermissionType[];
+            }
+        }
+        const defaultRolePermissions = uaNamespaceObject.getChildByName("DefaultRolePermissions") as UAVariable;
+        if (defaultRolePermissions) {
+            const dataValue = defaultRolePermissions.readValue();
+            const value = dataValue?.value?.value as RolePermissionType[] | null | undefined;
+            // Honour a real value only. The metadata node is left Null-typed (value === null)
+            // unless setNamespaceMetaData() bound it, so a null must fall through to the
+            // namespace policy below instead of short-circuiting the whole lookup to null.
+            if (dataValue?.statusCode.isGood() && value !== null && value !== undefined) {
+                return value;
+            }
         }
     }
-    const defaultRolePermissions = uaNamespaceObject.getChildByName("DefaultRolePermissions") as UAVariable;
-    if (defaultRolePermissions) {
-        const dataValue = defaultRolePermissions.readValue();
-        if (dataValue?.statusCode.isGood()) {
-            return dataValue.value.value as RolePermissionType[] | null;
-        }
-    }
-    return null;
+
+    // Fall back to the policy configured programmatically via Namespace.setDefaultRolePermissions().
+    // The NamespaceMetadata node is only bound to that field when setNamespaceMetaData() is called
+    // (which throws on NodeSet2-loaded namespaces), and is absent entirely for a programmatically
+    // created namespace. Consulting the field here keeps the configured default consistent between
+    // the local getter (BaseNode.getRolePermissions(inherited=true)) and this enforcement path,
+    // so setDefaultRolePermissions() takes effect without also requiring setNamespaceMetaData().
+    return namespace.getDefaultRolePermissions();
 }
 
 /**
