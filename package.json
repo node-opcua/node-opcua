@@ -18,6 +18,7 @@
     "check:ports:ai": "node tools/check-test-ports.mjs --ai",
     "check:mocharc": "node tools/check-mocharc.js",
     "check:privatekey": "node tools/check-private-key-usage.mjs",
+    "check:testtypes": "node tools/check-test-types.mjs",
     "check:mocharc:fix": "node tools/check-mocharc.js --fix",
     "check:tla": "node tools/check-no-tla.mjs",
     "check:debugname": "node tools/check-debug-name.mjs",
