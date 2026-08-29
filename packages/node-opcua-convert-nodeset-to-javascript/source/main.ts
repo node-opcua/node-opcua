@@ -7,6 +7,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { constructNodesetFilename, nodesetCatalog } from "node-opcua-nodesets";
 
 import { convertNamespaceTypeToTypescript } from "./convert_namespace_to_typescript";
+import { packagesFolder } from "./package_root";
 import { cleanUpTypescriptModule } from "./remove_unused";
 import { updateParentTSConfig } from "./update_parent_tsconfig";
 
@@ -30,7 +31,7 @@ async function main() {
 
     const session = new PseudoSession(addressSpace);
     const options = {
-        baseFolder: path.join(__dirname, "../../"),
+        baseFolder: packagesFolder,
         prefix: "node-opcua-nodeset-"
     };
     // const nodesetCatalog2 = nodesetCatalog.filter((meta) => meta.name == "scales");
