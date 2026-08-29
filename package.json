@@ -19,6 +19,7 @@
     "check:mocharc": "node tools/check-mocharc.js",
     "check:mocharc:fix": "node tools/check-mocharc.js --fix",
     "check:tla": "node tools/check-no-tla.mjs",
+    "check:consumers": "node fixtures/consumer-cjs/index.cjs && node fixtures/consumer-esm/index.mjs",
     "preinstall": "node prevent_npm_install.js",
     "lint": "biome check --reporter=summary --no-errors-on-unmatched .",
     "build": "tsc -b packages",

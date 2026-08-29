@@ -265,6 +265,14 @@ jobs:
       # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
+      # Load the built tree the way the two kinds of consumer do, before spending 30
+      # minutes on the suite. The suite itself proves nothing here: it loads packages by
+      # relative path with a TypeScript loader, never through the published entry point,
+      # so it cannot see a broken `main`, a wrong exports condition, a named export
+      # cjs-module-lexer failed to find, or the ERR_REQUIRE_ASYNC_MODULE that a
+      # top-level await would introduce. These two files are the only thing in CI that
+      # exercises `require("node-opcua")` and `import ... from "node-opcua"`.
+      - run: pnpm run check:consumers
       - run: pnpm run pretest
       # Leak detection stays ON everywhere, and MEM_LEAK_DETECTION_DISABLED is
       # deliberately not set on any job. The detector is not only a measurement: its
