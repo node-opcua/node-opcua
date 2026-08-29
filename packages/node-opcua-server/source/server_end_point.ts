@@ -379,6 +379,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     private _started = false;
     private _counter = OPCUAServerEndPointCounter++;
     private _policy_deduplicator: { [key: string]: number } = {};
+    // every accepted socket, channel or not, so shutdown() can destroy the
+    // survivors and let the listener's 'close' event fire
+    #acceptedSockets = new Set<Socket>();
 
     private transportSettings?: IServerTransportSettings;
     constructor(options: OPCUAServerEndPointOptions) {
@@ -831,6 +834,29 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         callback();
     }
 
+    /**
+     * Stops the server accepting new connections and returns a promise that
+     * settles once node has emitted the 'close' event - the point where the
+     * listening handle is genuinely released and the port can be bound again.
+     * close() is asynchronous and finishes only once every accepted
+     * connection has ended, so callers decide what to do with the still
+     * connected sockets before (or while) awaiting the returned promise.
+     */
+    private _initiateListenerRelease(): Promise<void> {
+        this._started = false;
+        const server = this._server;
+        if (!server) {
+            return Promise.resolve();
+        }
+        return new Promise<void>((resolve) => {
+            server.close(() => {
+                // c8 ignore next
+                doDebug && debugLog(`Connection has been closed !${this.port}`);
+                resolve();
+            });
+        });
+    }
+
     public suspendConnection(callback: (err?: Error) => void): void {
         if (!this._started || !this._server) {
             callback(new Error("Connection already suspended !!"));
@@ -848,7 +874,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // suspend deliberately keeps existing connections alive, and a channel that
         // stays open would otherwise hold close() - and the caller - open with it.
         // Waiting a bounded time is what the caller needs; hanging is not.
-        this._started = false;
         let notified = false;
         const notify = () => {
             if (notified) {
@@ -863,10 +888,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             notify();
         }, 1000);
         guard.unref();
-        this._server.close(() => {
+        this._initiateListenerRelease().then(() => {
             clearTimeout(guard);
-            // c8 ignore next
-            doDebug && debugLog(`Connection has been closed !${this.port}`);
             notify();
         });
     }
@@ -887,39 +910,51 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         // c8 ignore next
         doDebug && debugLog("OPCUAServerEndPoint#shutdown ");
 
-        if (this._started) {
-            // make sure we don't accept new connection any more ...
-            this.suspendConnection(() => {
-                // shutdown all opened channels ...
-                const _channels = Object.values(this._channels);
-                const promises = _channels.map(
-                    (channel) =>
-                        new Promise<void>((resolve, reject) => {
-                            this.shutdown_channel(channel, (err?: Error) => {
-                                if (err) {
-                                    reject(err);
-                                } else {
-                                    resolve();
-                                }
-                            });
-                        })
-                );
-                Promise.all(promises)
-                    .then(() => {
-                        /* c8 ignore next */
-                        if (!(Object.keys(this._channels).length === 0)) {
-                            errorLog(" Bad !");
-                        }
-                        assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
-                        callback();
-                    })
-                    .catch((err) => {
-                        callback(err);
-                    });
-            });
-        } else {
+        if (!this._started) {
             callback();
+            return;
         }
+        // Stop accepting new connections and start releasing the listening
+        // socket. Node emits 'close' only once every accepted socket has
+        // ended, so the release is awaited after the channels are shut down:
+        // calling back on the channels alone lets the next listen() race the
+        // still-held handle - an intermittent EADDRINUSE on rapid
+        // stop/start cycles, mostly seen on Windows where the release lags.
+        const listenerReleased = this._initiateListenerRelease();
+        const _channels = Object.values(this._channels);
+        const promises = _channels.map(
+            (channel) =>
+                new Promise<void>((resolve, reject) => {
+                    this.shutdown_channel(channel, (err?: Error) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve();
+                        }
+                    });
+                })
+        );
+        Promise.all(promises)
+            .then(() => {
+                /* c8 ignore next */
+                if (!(Object.keys(this._channels).length === 0)) {
+                    errorLog(" Bad !");
+                }
+                assert(Object.keys(this._channels).length === 0, "channel must have unregistered themselves");
+                // sockets that never completed the handshake are not in
+                // _channels yet still hold the 'close' event; sweep them so
+                // the wait below cannot hang.
+                for (const socket of this.#acceptedSockets) {
+                    socket.destroy();
+                }
+                return listenerReleased;
+            })
+            .then(() => {
+                callback();
+            })
+            .catch((err) => {
+                callback(err);
+            });
     }
 
     /**
@@ -992,6 +1027,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._listen_callback = undefined;
         this._server
             .on("connection", (socket: Socket) => {
+                this.#acceptedSockets.add(socket);
+                socket.on("close", () => this.#acceptedSockets.delete(socket));
                 // c8 ignore next
                 if (doDebug) {
                     this._dump_statistics();
