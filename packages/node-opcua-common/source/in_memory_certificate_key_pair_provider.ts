@@ -13,12 +13,14 @@ import {
     convertPEMtoDER,
     createSelfSignedCertificate,
     generatePrivateKey,
+    type IKeyOperations,
     makePrivateKeyFromPem,
     type PrivateKey,
     privateKeyToPEM
 } from "node-opcua-crypto/web";
 
-import type { ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
+import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
 
 export interface EnsureCertificateExistsParams {
     applicationUri: string;
@@ -28,7 +30,7 @@ export interface EnsureCertificateExistsParams {
     validity?: number; // days, default 3650 (10 years)
 }
 
-export class InMemoryCertificateKeyPairProvider implements ICertificateKeyPairProviderWithLocation {
+export class InMemoryCertificateKeyPairProvider implements ICertificateKeyPairProviderWithLocation, ICertificateKeyPairProvider2 {
     #chain: Certificate[] | null;
     #privateKey: PrivateKey | null;
 
@@ -66,6 +68,11 @@ export class InMemoryCertificateKeyPairProvider implements ICertificateKeyPairPr
             throw new Error("InMemoryCertificateKeyPairProvider: no private key available — call ensureCertificateExists() first");
         }
         return this.#privateKey;
+    }
+
+    /** The key as an opaque sign/decrypt object — see {@link localKeyOperationsOfProvider}. */
+    public getKeyOperations(): IKeyOperations {
+        return localKeyOperationsOfProvider(this);
     }
 
     /**

@@ -12,6 +12,7 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     CertificateManager,
     type CertificateManagerOptions,
+    type IKeyOperations,
     type PrivateKeyPassphrase,
     type PrivateKeyProvider,
     resolvePrivateKeyPassphrase
@@ -116,6 +117,20 @@ export interface OPCUACertificateManagerOptions {
      * @defaultValue undefined
      */
     privateKeyProvider?: PrivateKeyProvider;
+
+    /**
+     * Use a private key this manager can never read: an opaque
+     * `IKeyOperations` provider (HSM, KMS, TPM, OS keystore). Unlike
+     * `privateKeyProvider` — which sources raw key material — the key never
+     * enters the process: `getPrivateKey()` throws
+     * `PrivateKeyUnavailableError` and every use goes through
+     * `getKeyOperations()`. Mutually exclusive with `privateKeyProvider`
+     * and `privateKeyPassphrase`. See node-opcua-pki's
+     * private-key-protection guide for the full contract.
+     *
+     * @defaultValue undefined
+     */
+    keyOperations?: IKeyOperations;
 }
 
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager, ICertificateStore {
@@ -144,12 +159,13 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             location,
             disableFileWatchers: options.disableFileWatchers,
             privateKeyPassphrase: options.privateKeyPassphrase,
-            privateKeyProvider: options.privateKeyProvider
+            privateKeyProvider: options.privateKeyProvider,
+            keyOperations: options.keyOperations
         };
         super(_options);
 
         this.#privateKeyPassphrase = options.privateKeyPassphrase;
-        this.#privateKeyManaged = !!options.privateKeyPassphrase || !!options.privateKeyProvider;
+        this.#privateKeyManaged = !!options.privateKeyPassphrase || !!options.privateKeyProvider || !!options.keyOperations;
 
         this.referenceCounter = 0;
 

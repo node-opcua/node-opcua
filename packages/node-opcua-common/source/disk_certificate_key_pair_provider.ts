@@ -9,12 +9,15 @@
  */
 import fs from "node:fs";
 import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
-import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
+import type { Certificate, IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
 import type { ICertificateChainProvider } from "./certificate_chain_provider";
-import type { ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
+import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
 
-export class DiskCertificateKeyPairProvider implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation {
+export class DiskCertificateKeyPairProvider
+    implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation, ICertificateKeyPairProvider2
+{
     #certificateChain: Certificate[] | null = null;
     #privateKey: PrivateKey | null = null;
     readonly #certificateFile: string;
@@ -75,6 +78,11 @@ export class DiskCertificateKeyPairProvider implements ICertificateChainProvider
             this.#privateKey = key;
         }
         return this.#privateKey;
+    }
+
+    /** The key as an opaque sign/decrypt object — see {@link localKeyOperationsOfProvider}. */
+    public getKeyOperations(): IKeyOperations {
+        return localKeyOperationsOfProvider(this);
     }
 
     /**

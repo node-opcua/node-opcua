@@ -14,11 +14,18 @@ import {
 import { assert } from "node-opcua-assert";
 import type { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import {
+    type AsymmetricDecryptParams,
+    type AsymmetricSignParams,
     type Certificate,
     computeDerivedKeys as computeDerivedKeys_ext,
     type DerivedKeys,
+    decryptLong,
+    decryptLongSync,
     encryptBufferWithDerivedKeys,
     exploreCertificateInfo,
+    type IKeyOperations,
+    isKeyOperations,
+    keyOperationsFromPrivateKey,
     makeMessageChunkSignature,
     makeMessageChunkSignatureWithDerivedKeys,
     type Nonce,
@@ -434,6 +441,17 @@ export interface CryptoFactory {
     asymmetricEncrypt: (buffer: Buffer, publicKey: PublicKey) => Buffer;
     asymmetricDecrypt: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
 
+    /**
+     * The policy's asymmetric signature scheme as parameters an opaque
+     * {@link IKeyOperations} provider understands — the algorithm-URI-free
+     * twin of `asymmetricSign`. Optional so third-party factory literals
+     * predating it stay valid; using an opaque key against a factory that
+     * lacks it fails with a clear error (see {@link getSignParams}).
+     */
+    signParams?: AsymmetricSignParams;
+    /** Same as {@link signParams}, for `asymmetricDecrypt`. */
+    decryptParams?: AsymmetricDecryptParams;
+
     /**  for info only */
     asymmetricSignatureAlgorithm: string;
     /**  for info only */
@@ -464,6 +482,9 @@ const factoryBasic128Rsa15: CryptoFactory = {
     asymmetricVerify: RSA_PKCS1V15_SHA1_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+
+    signParams: { padding: "RSA-PKCS1-v1_5", hash: "SHA-1" },
+    decryptParams: { padding: "RSA-PKCS1-v1_5" },
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAPKCS1V15_Encrypt,
@@ -499,6 +520,9 @@ const _Basic256: CryptoFactory = {
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
+    signParams: { padding: "RSA-PKCS1-v1_5", hash: "SHA-1" },
+    decryptParams: { padding: "RSA-OAEP", oaepHash: "SHA-1" },
+
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
 
@@ -533,6 +557,9 @@ const _Basic256Sha256: CryptoFactory = {
     asymmetricVerify: RSA_PKCS1_OAEP_SHA256_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+
+    signParams: { padding: "RSA-PKCS1-v1_5", hash: "SHA-256" },
+    decryptParams: { padding: "RSA-OAEP", oaepHash: "SHA-1" },
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
@@ -570,6 +597,9 @@ const _Aes128_Sha256_RsaOaep: CryptoFactory = {
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 
+    signParams: { padding: "RSA-PKCS1-v1_5", hash: "SHA-256" },
+    decryptParams: { padding: "RSA-OAEP", oaepHash: "SHA-1" },
+
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSAOAEP_Encrypt,
 
@@ -603,6 +633,9 @@ const _Aes256_Sha256_RsaPss: CryptoFactory = {
     asymmetricVerify: RSA_PSS_SHA2_256_Verify,
 
     asymmetricSignatureAlgorithm: "http://opcfoundation.org/UA/security/rsa-pss-sha2-256",
+
+    signParams: { padding: "RSA-PSS", hash: "SHA-256" },
+    decryptParams: { padding: "RSA-OAEP", oaepHash: "SHA-256" },
 
     /* asymmetric encryption algorithm */
     asymmetricEncrypt: RSA_OAEP_SHA2_256_Encrypt,
@@ -674,6 +707,100 @@ export function computeSignature(
         // This is a signature generated with the private key associated with a Certificate
         signature
     });
+}
+
+/** {@link CryptoFactory.signParams}, or a clear error for a custom factory that predates it. */
+export function getSignParams(cryptoFactory: CryptoFactory): AsymmetricSignParams {
+    if (!cryptoFactory.signParams) {
+        throw new Error(
+            `the CryptoFactory for ${cryptoFactory.securityPolicy} does not declare signParams:` +
+                " a custom factory must add them before it can be used with an opaque (IKeyOperations) key"
+        );
+    }
+    return cryptoFactory.signParams;
+}
+
+/** {@link CryptoFactory.decryptParams}, or a clear error for a custom factory that predates it. */
+export function getDecryptParams(cryptoFactory: CryptoFactory): AsymmetricDecryptParams {
+    if (!cryptoFactory.decryptParams) {
+        throw new Error(
+            `the CryptoFactory for ${cryptoFactory.securityPolicy} does not declare decryptParams:` +
+                " a custom factory must add them before it can be used with an opaque (IKeyOperations) key"
+        );
+    }
+    return cryptoFactory.decryptParams;
+}
+
+/**
+ * {@link computeSignature}, but through an opaque key: accepts either a raw
+ * {@link PrivateKey} (wrapped locally, byte-identical result) or an
+ * {@link IKeyOperations} whose key may live in an HSM/KMS. This is the
+ * choke point every application-level signature goes through — the
+ * client's ActivateSession signature, the server's CreateSession signature,
+ * and the X509 user-token signature.
+ */
+export async function computeSignatureAsync(
+    senderCertificate: Buffer | null,
+    senderNonce: Nonce | null,
+    receiverKey: PrivateKey | IKeyOperations | null,
+    securityPolicy: SecurityPolicy
+): Promise<SignatureData | undefined> {
+    if (!senderNonce || !senderCertificate || senderCertificate.length === 0 || !receiverKey) {
+        return undefined;
+    }
+
+    // Verify that senderCertificate is not a chain
+    const chain = split_der(senderCertificate);
+
+    const cryptoFactory = getCryptoFactory(securityPolicy);
+    if (!cryptoFactory) {
+        return undefined;
+    }
+
+    // This parameter is calculated by appending the clientNonce to the clientCertificate
+    const dataToSign = Buffer.concat([chain[0], senderNonce]);
+
+    const keyOperations = isKeyOperations(receiverKey) ? receiverKey : keyOperationsFromPrivateKey(receiverKey);
+    const signature = await keyOperations.sign(dataToSign, getSignParams(cryptoFactory));
+
+    return new SignatureData({
+        algorithm: cryptoFactory.asymmetricSignatureAlgorithm,
+        signature
+    });
+}
+
+/**
+ * Asymmetric decryption through an opaque key: the ops-based twin of
+ * `cryptoFactory.asymmetricDecrypt`. The cipher block size comes from the
+ * provider's declared metadata; blocks are decrypted concurrently and
+ * reassembled in order.
+ *
+ * Unlike `privateDecrypt_native`, a block that fails to decrypt REJECTS
+ * rather than degrading into garbage bytes — callers that rely on the
+ * legacy swallow-and-fail-later behavior (the anti-oracle property of the
+ * password / OPN paths) must catch and degrade themselves, uniformly for
+ * local and remote keys.
+ */
+export async function asymmetricDecryptWithKeyOps(
+    cryptoFactory: CryptoFactory,
+    buffer: Buffer,
+    keyOperations: IKeyOperations
+): Promise<Buffer> {
+    const { modulusLength } = await keyOperations.getKeyMetadata();
+    return await decryptLong(keyOperations, buffer, getDecryptParams(cryptoFactory), modulusLength);
+}
+
+/** Synchronous {@link asymmetricDecryptWithKeyOps}; requires the provider's sync fast path. */
+export function asymmetricDecryptWithKeyOpsSync(
+    cryptoFactory: CryptoFactory,
+    buffer: Buffer,
+    keyOperations: IKeyOperations
+): Buffer {
+    if (typeof keyOperations.getKeyMetadataSync !== "function") {
+        throw new Error("asymmetricDecryptWithKeyOpsSync requires a key-operations provider with a synchronous fast path");
+    }
+    const { modulusLength } = keyOperations.getKeyMetadataSync();
+    return decryptLongSync(keyOperations, buffer, getDecryptParams(cryptoFactory), modulusLength);
 }
 
 export function verifySignature(
