@@ -2,8 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog";
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 export function constructNodesetFilename(filename: string) {
-    const dirname = __dirname;
+    const dirname = here;
     let file = path.join(dirname, "../nodesets", filename);
     if (!fs.existsSync(file)) {
         if (!process.argv[1]) {

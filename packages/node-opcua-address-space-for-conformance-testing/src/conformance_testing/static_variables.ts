@@ -12,6 +12,11 @@ import { typeAndDefaultValue } from "./type_defaults";
 
 const errorLog = make_errorLog("static_variables");
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 export async function addStaticVariables(namespace: Namespace, scalarFolder: UAObject): Promise<void> {
     const staticScalarFolder = namespace.addObject({
         organizedBy: scalarFolder,
@@ -30,7 +35,7 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
 
     // Load images
     async function setImage(imageType: string, filename: string): Promise<void> {
-        const fullPath = path.join(__dirname, "../../data", filename);
+        const fullPath = path.join(here, "../../data", filename);
         const imageNode = namespace.findNode(`s=Static_Scalar_Image${imageType}`) as UAVariable;
         try {
             const data = await fs.promises.readFile(fullPath);

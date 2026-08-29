@@ -4,6 +4,7 @@ import { DataTypeIds } from "node-opcua-constants";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { convertTypeToTypescript } from "./convert_to_typescript";
 import type { Options } from "./options";
+import { packageRoot } from "./package_root";
 import { constructCache } from "./private/cache";
 import { writeFileSyncRetry } from "./private/fs_retry";
 import {
@@ -15,7 +16,7 @@ import {
 
 function findPackageJson(dependency: string, options: Options): string | undefined {
     const l = [...(options.lookupFolders || [])];
-    l.push(path.join(__dirname, "../../"));
+    l.push(options.baseFolder);
     for (const folder of l) {
         const d = path.join(folder, `${dependency}/package.json`);
         if (!fs.existsSync(d)) {
@@ -33,7 +34,7 @@ function getPackageFolder(dependency: string, options: Options) {
     }
     //
     console.log("cannot find package.json for ", dependency, " : creating it");
-    const packageoFolder = path.join(__dirname, "../../", dependency);
+    const packageoFolder = path.join(options.baseFolder, dependency);
     if (!fs.existsSync(packageoFolder)) {
         fs.mkdirSync(packageoFolder);
     }
@@ -88,7 +89,7 @@ function getGeneratedPackageVersion(info: Info, options: Options): string {
 // Monorepo release version (lerna.json), used only to seed a package that has no
 // version of its own yet.
 function getReleaseVersion(options: Options): string {
-    let folder = __dirname;
+    let folder = packageRoot;
     for (let i = 0; i < 6; i++) {
         if (path.basename(folder) === "node_modules") {
             // installed as a dependency: the lerna.json above us belongs to someone else.

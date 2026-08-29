@@ -15,6 +15,11 @@ import ts from "typescript";
 
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 const debugLog = make_debugLog("generator");
 const doDebug = checkDebugFlag("generator");
 doDebug;
@@ -115,9 +120,9 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
 
         schemaFileIsNewer = generatedSourceMtime <= schemaFileMtime;
 
-        let codeGeneratorScript = path.join(__dirname, "factory_code_generator.ts");
+        let codeGeneratorScript = path.join(here, "factory_code_generator.ts");
         if (!fs.existsSync(codeGeneratorScript)) {
-            codeGeneratorScript = path.join(__dirname, "factory_code_generator.js");
+            codeGeneratorScript = path.join(here, "factory_code_generator.js");
         }
 
         assert(fs.existsSync(codeGeneratorScript), `cannot get code factory_code_generator${codeGeneratorScript}`);

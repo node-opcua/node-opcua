@@ -6,14 +6,12 @@ import { existsSync, promises as fsPromises } from "node:fs";
 const { readFile, writeFile } = fsPromises;
 
 import path from "node:path";
-// Uncomment the following to get __dirname equivalent when compiling to ESM
-//import { fileURLToPath } from 'url';
-//const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import { nodesetCatalog } from "node-opcua-nodesets";
 
+import { packagesFolder } from "./package_root";
+
 export async function updateParentTSConfig() {
-    const packagesFolder = path.join(__dirname, "..", "..");
     const parentTSConfigFile = path.join(packagesFolder, "tsconfig.json");
     console.log(`Updating parent tsconfig.json file: ${parentTSConfigFile}`);
     const content = await readFile(parentTSConfigFile, "utf8");
