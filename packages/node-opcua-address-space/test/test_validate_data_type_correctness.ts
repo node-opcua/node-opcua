@@ -56,44 +56,44 @@ describe("testing validateDataTypeCorrectness", () => {
         }
     });
     it("Int16: should accept a DataType.Int16 variant", async () => {
-        const dataType = addressSpace.findDataType("Int16")?.nodeId;
+        const dataType = addressSpace.findDataType("Int16")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int16, false).should.eql(true);
     });
     it("Int16: should reject a DataType.Int32 variant", async () => {
-        const dataType = addressSpace.findDataType("Int16")?.nodeId;
+        const dataType = addressSpace.findDataType("Int16")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
     });
     it("Integer: should accept a DataType.Int16 variant", async () => {
-        const dataType = addressSpace.findDataType("Integer")?.nodeId;
+        const dataType = addressSpace.findDataType("Integer")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int16, false).should.eql(true);
     });
     it("Integer: should accept a DataType.Int32 variant", async () => {
-        const dataType = addressSpace.findDataType("Int16")?.nodeId;
+        const dataType = addressSpace.findDataType("Int16")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
     });
     it("Integer: should reject a DataType.Double variant", async () => {
-        const dataType = addressSpace.findDataType("Int16")?.nodeId;
+        const dataType = addressSpace.findDataType("Int16")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Double, false).should.eql(false);
     });
 
     it("Integer: should reject a DataType.ExtensionObject variant", async () => {
-        const dataType = addressSpace.findDataType("Int16")?.nodeId;
+        const dataType = addressSpace.findDataType("Int16")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.ExtensionObject, false).should.eql(false);
     });
 
     it("0:BrokerConnectionTransportDataType: should accept a DataType.ExtensionObject variant", async () => {
-        const dataType = addressSpace.findDataType("BrokerConnectionTransportDataType")?.nodeId;
+        const dataType = addressSpace.findDataType("BrokerConnectionTransportDataType")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.ExtensionObject, false).should.eql(true);
     });
     it("0:BrokerConnectionTransportDataType: should reject a DataType.Int32 variant", async () => {
-        const dataType = addressSpace.findDataType("BrokerConnectionTransportDataType")?.nodeId;
+        const dataType = addressSpace.findDataType("BrokerConnectionTransportDataType")!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
     });
@@ -101,14 +101,14 @@ describe("testing validateDataTypeCorrectness", () => {
     it("custom basicType INT(int16): should accept a DataType.Int16 variant", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("INT", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("INT", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int16, false).should.eql(true);
     });
     it("custome basicType INT(int16): should not accept a DataType.Int32 variant", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("INT", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("INT", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
     });
@@ -116,21 +116,21 @@ describe("testing validateDataTypeCorrectness", () => {
     it("custom Enumeration: should accept a DataType.Int32 variant", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("MyEnumeration", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("MyEnumeration", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(true);
     });
     it("custom Enumeration: should not accept a DataType.UInt32 variant", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("MyEnumeration", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("MyEnumeration", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.UInt32, false).should.eql(false);
     });
     it("custome Enumeration: should not accept a DataType.QualifiedName variant", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("MyEnumeration", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("MyEnumeration", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.QualifiedName, false).should.eql(false);
     });
@@ -138,7 +138,7 @@ describe("testing validateDataTypeCorrectness", () => {
     it("DataType.Null: should accept DataType.Null if allow Null", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
-        const dataType = addressSpace.findDataType("MyEnumeration", ns)?.nodeId;
+        const dataType = addressSpace.findDataType("MyEnumeration", ns)!.nodeId;
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Null, true).should.eql(true);
     });

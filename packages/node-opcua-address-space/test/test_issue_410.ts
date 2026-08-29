@@ -7,6 +7,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import { AddressSpace, SessionContext, type UAAnalogItem } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
@@ -53,6 +54,6 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
         }) as DataValueT<Double, DataType.Double>;
         const context = SessionContext.defaultContext;
         const statusCode = await analogItem.valuePrecision?.writeValue(context, dataValue);
-        statusCode.should.eql(StatusCodes.Good);
+        should(statusCode).eql(StatusCodes.Good);
     });
 });

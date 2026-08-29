@@ -196,11 +196,11 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                 xDataValue.sourceTimestamp
                     ?.getTime()
                     .should.lessThanOrEqual(
-                        dataValue.sourceTimestamp?.getTime(),
+                        dataValue.sourceTimestamp!.getTime(),
                         `x ${xDataValue.sourceTimestamp.toISOString()} ext =${dataValue.sourceTimestamp?.toISOString()}`
                     );
-                yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp?.getTime());
-                zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp?.getTime());
+                yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
+                zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
             };
             verify({ x: 1, y: 2, z: 3 });
 

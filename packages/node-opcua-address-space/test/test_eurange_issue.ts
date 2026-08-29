@@ -45,14 +45,14 @@ describe("Testing EURange Issue", async function (this: Mocha.Suite) {
         should.exists(objectType);
         doDebug && console.log("objectType\n", objectType.toString());
 
-        const dataValueFromType = objectType.getChildByName("Range")?.readAttribute(null, AttributeIds.Value);
+        const dataValueFromType = objectType.getChildByName("Range")!.readAttribute(null, AttributeIds.Value);
         doDebug && console.log(dataValueFromType.toString());
 
         const object = objectType.instantiate({
             browseName: "MyObject",
             componentOf: addressSpace.rootFolder.objects.server
         });
-        const dataValue = object.getChildByName("Range")?.readAttribute(null, AttributeIds.Value);
+        const dataValue = object.getChildByName("Range")!.readAttribute(null, AttributeIds.Value);
         doDebug && console.log("dataValue=\n", dataValue.toString());
 
         dataValue.value.toString().should.eql(dataValueFromType.value.toString());

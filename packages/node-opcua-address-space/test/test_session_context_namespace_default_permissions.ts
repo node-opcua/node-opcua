@@ -52,7 +52,7 @@ describe("SessionContext - namespace DefaultRolePermissions on the enforcement p
         namespace.setDefaultRolePermissions([{ roleId: WellKnownRoles.Operator, permissions: makePermissionFlag("Read | Write") }]);
         const ctx = anonymous();
         // the configured default now reaches enforcement: Anonymous matches no entry -> no bits
-        ctx.getApplicableRolePermissions(variable).should.not.eql(null);
+        should(ctx.getApplicableRolePermissions(variable)).not.eql(null);
         ctx.checkPermission(variable, PermissionType.Write).should.eql(false);
     });
 

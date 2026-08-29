@@ -59,7 +59,7 @@ describe("test component/property/method and method accessors", () => {
     it("getComponentByName form 0", () => {
         const t1 = uaObject.getComponentByName("SomeUniqueComponent");
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 2, name: "SomeUniqueComponent" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 2, name: "SomeUniqueComponent" });
     });
     it("getComponentByName form 0 - should throw if multiple component exist with the same name (regardless of namespace)", () => {
         should.throws(() => {
@@ -69,18 +69,18 @@ describe("test component/property/method and method accessors", () => {
     it("getComponentByName form 1", () => {
         const t1 = uaObject.getComponentByName("SomeComponent", 3);
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeComponent" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeComponent" });
     });
     it("getComponentByName form 3", () => {
         const t1 = uaObject.getComponentByName({ namespaceIndex: 3, name: "SomeComponent" });
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeComponent" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeComponent" });
     });
 
     it("getPropertyByName form 0", () => {
         const t1 = uaObject.getPropertyByName("SomeUniqueProperty");
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 2, name: "SomeUniqueProperty" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 2, name: "SomeUniqueProperty" });
     });
     it("getPropertyByName form 0 - should throw if multiple property exist with the same name (regardless of namespace)", () => {
         should.throws(() => {
@@ -90,19 +90,19 @@ describe("test component/property/method and method accessors", () => {
     it("getPropertyByName form 1", () => {
         const t1 = uaObject.getPropertyByName("SomeProperty", 3);
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeProperty" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeProperty" });
     });
     it("getPropertyByName form 3", () => {
         const t1 = uaObject.getPropertyByName({ namespaceIndex: 3, name: "SomeProperty" });
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeProperty" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeProperty" });
     });
 
     // --------------------------
     it("getMethodByName form 0", () => {
         const t1 = uaObject.getMethodByName("SomeUniqueMethod");
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 2, name: "SomeUniqueMethod" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 2, name: "SomeUniqueMethod" });
     });
     it("getMethodByName form 0 - should throw if multiple Method exist with the same name (regardless of namespace)", () => {
         should.throws(() => {
@@ -112,11 +112,11 @@ describe("test component/property/method and method accessors", () => {
     it("getMethodByName form 1", () => {
         const t1 = uaObject.getMethodByName("SomeMethod", 3);
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeMethod" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeMethod" });
     });
     it("getMethodByName form 3", () => {
         const t1 = uaObject.getMethodByName({ namespaceIndex: 3, name: "SomeMethod" });
         should.exist(t1);
-        t1?.browseName.toJSON().should.eql({ namespaceIndex: 3, name: "SomeMethod" });
+        should(t1?.browseName.toJSON()).eql({ namespaceIndex: 3, name: "SomeMethod" });
     });
 });

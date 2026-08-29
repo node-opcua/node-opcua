@@ -32,7 +32,7 @@ function userRule(criteria: string): IdentityMappingRuleType {
     return new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.UserName, criteria });
 }
 
-describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.8)", function () {
+describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.8)", function (this: Mocha.Suite) {
     this.timeout(60000);
 
     let server: OPCUAServer;

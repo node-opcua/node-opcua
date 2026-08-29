@@ -4,12 +4,20 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { PublishResponseOptions } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
-import { type ServerSession, Subscription, type SubscriptionOptions, SubscriptionState } from "..";
+import { type ServerSession, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
 import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
 import type { Subscription as SubscriptionType } from "../source/server_subscription";
 
 const doDebug = false;
-function getFakePublishEngine(): IServerSidePublishEngine {
+
+// the fake publish engine exposes a mutable pendingPublishRequestCount so the test can
+// simulate the arrival of PublishRequests
+interface IFakePublishEngine extends IServerSidePublishEngine {
+    pendingPublishRequestCount: number;
+    _send_response(subscription: SubscriptionType, response?: PublishResponseOptions): void;
+}
+
+function getFakePublishEngine(): IFakePublishEngine {
     return {
         pendingPublishRequestCount: 0,
         _send_response(_subscription: SubscriptionType, _response?: PublishResponseOptions) {
@@ -34,9 +42,11 @@ function getFakePublishEngine(): IServerSidePublishEngine {
     };
 }
 
-let fake_publish_engine: IServerSidePublishEngine = {
+// as unknown as: the initial placeholder only carries the counter; it is replaced by a
+// full fake engine in beforeEach via reconstruct_fake_publish_engine()
+let fake_publish_engine: IFakePublishEngine = {
     pendingPublishRequestCount: 0
-} as unknown as IServerSidePublishEngine;
+} as unknown as IFakePublishEngine;
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();

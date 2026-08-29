@@ -34,10 +34,12 @@ describe("testing ClientSecureChannelLayer ", function (this: Mocha.Context) {
             //Xx packTcpMessage("CLO", fakeAcknowledgeMessage),
             function (this: MockServerTransport) {
                 this.mockTransport.server.end();
+                return undefined; // ReplyEntry: no reply chunk for this transaction
             },
 
             () => {
                 done(new Error("no more packet to mock"));
+                return undefined; // ReplyEntry: no reply chunk for this transaction
             }
         ]);
 
@@ -72,6 +74,7 @@ describe("testing ClientSecureChannelLayer ", function (this: Mocha.Context) {
             // Server will close the socket, without sending a response
             function (this: MockServerTransport) {
                 this.mockTransport.server.end();
+                return undefined; // ReplyEntry: no reply chunk for this transaction
             }
         ]);
 
@@ -119,6 +122,7 @@ describe("testing ClientSecureChannelLayer ", function (this: Mocha.Context) {
             // Server will close the socket, without sending a response
             function (this: MockServerTransport) {
                 this.mockTransport.server.end();
+                return undefined; // ReplyEntry: no reply chunk for this transaction
             }
         ]);
 

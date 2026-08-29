@@ -30,7 +30,7 @@ describe("testing ArgumentList special encode/decode process", () => {
         encode_ArgumentList(definition, args, stream);
 
         stream.rewind();
-        const args_reloaded = decode_ArgumentList(definition, stream);
+        const args_reloaded = decode_ArgumentList(definition, stream) as number[];
 
         Array.isArray(args_reloaded).should.equal(true);
         args_reloaded[0].should.eql(100);
@@ -52,7 +52,7 @@ describe("testing ArgumentList special encode/decode process", () => {
         encode_ArgumentList(definition, args, stream);
 
         stream.rewind();
-        const args_reloaded = decode_ArgumentList(definition, stream);
+        const args_reloaded = decode_ArgumentList(definition, stream) as number[][];
 
         Array.isArray(args_reloaded).should.equal(true);
         args_reloaded.length.should.eql(1);
@@ -78,7 +78,7 @@ describe("testing ArgumentList special encode/decode process", () => {
 
         // here the base dataType is created with its definition before decode is called
         stream.rewind();
-        const args_reloaded = decode_ArgumentList(definition, stream);
+        const args_reloaded = decode_ArgumentList(definition, stream) as [number, number[], string];
         args_reloaded[0].should.equal(10);
         args_reloaded[1][0].should.equal(15);
         args_reloaded[1][1].should.equal(20);

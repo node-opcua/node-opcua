@@ -158,7 +158,8 @@ function perform_test(
 ) {
     let expected_chunks: Buffer[] = [];
     if (typeof expected_chunk_lengths[0] === "string") {
-        expected_chunks = expected_chunk_lengths.map(make_hex_block);
+        // a string first element means the caller passed hex-block strings for every entry
+        expected_chunks = (expected_chunk_lengths as string[]).map(make_hex_block);
         expected_chunk_lengths = expected_chunks.map((b) => b.length);
     }
     let chunk_counter = 0;

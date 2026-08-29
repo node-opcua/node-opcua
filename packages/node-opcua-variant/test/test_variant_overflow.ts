@@ -104,8 +104,8 @@ describe("test variant decoding - hostile encoding byte", () => {
                 }
 
                 should.exist(caught, `decoding DataType ${dataType} should have thrown`);
-                caught.should.be.instanceOf(Error);
-                caught.should.not.be.instanceOf(TypeError);
+                should(caught).be.instanceOf(Error);
+                should(caught).not.be.instanceOf(TypeError);
             });
         }
     }

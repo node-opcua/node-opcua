@@ -20,7 +20,8 @@ describe("testing AddressSpace#findReferenceType and findReferenceTypeFromInvers
         const n2 = addressSpace.findReferenceTypeFromInverseName("OrganizedBy")?.nodeId;
         should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
 
-        n1.should.equal(n2);
+        should.exist(n1);
+        n1?.should.equal(n2);
     });
 
     it("should normalize a {referenceType/isForward} combination", () => {

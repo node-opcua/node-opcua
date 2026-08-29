@@ -54,7 +54,7 @@ describe("testing findReferencesEx", () => {
 
         r1_child.length.should.be.greaterThan(1);
 
-        ([] as string[]).concat(r1_components, r1_properties).sort().should.eql(r1_child.sort());
+        ([] as (string | undefined)[]).concat(r1_components, r1_properties).sort().should.eql(r1_child.sort());
 
         const r2_child = topologyElementType
             .findReferencesEx("Aggregates")
@@ -70,7 +70,9 @@ describe("testing findReferencesEx", () => {
             chalk.yellow.bold(r2_child.sort().join(" "))
         );
 
-        const optionals = ([] as string[]).concat(r1_child.sort(), r2_child.sort());
+        const optionals = ([] as (string | undefined)[])
+            .concat(r1_child.sort(), r2_child.sort())
+            .filter((x): x is string => x !== undefined);
         console.log("optionals ", topologyElementType.browseName.toString(), ": ", chalk.yellow.bold(optionals.join(" ")));
 
         const valveType = addressSpace.getOwnNamespace().addObjectType({
@@ -94,6 +96,6 @@ describe("testing findReferencesEx", () => {
 
         // xx console.log(instance_children);
 
-        ([] as string[]).concat(r1_child, r2_child).sort().should.eql(instance_children.sort());
+        ([] as (string | undefined)[]).concat(r1_child, r2_child).sort().should.eql(instance_children.sort());
     });
 });

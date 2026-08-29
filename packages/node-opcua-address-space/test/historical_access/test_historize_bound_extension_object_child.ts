@@ -37,7 +37,7 @@ describe("Testing Historical Data Node - cascade of a bound ExtensionObject to a
         addressSpace.dispose();
     });
 
-    async function readAllHistory(node: UAVariable, today: Date): Promise<HistoryData["dataValues"]> {
+    async function readAllHistory(node: UAVariable, today: Date): Promise<NonNullable<HistoryData["dataValues"]>> {
         const historyReadDetails = new ReadRawModifiedDetails({
             endTime: date_add(today, { seconds: 60 }),
             isReadModified: false,

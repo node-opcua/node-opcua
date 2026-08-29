@@ -18,9 +18,11 @@ import { DataType, sameVariant, Variant, VariantArrayType } from "..";
 const mutableTypes: {
     name: string;
     dataType: DataType;
-    make: () => unknown;
-    mutate: (value: never) => void;
-    read: (value: never) => unknown;
+    make(): unknown;
+    // method syntax on purpose: it is bivariant, so each entry may narrow `value`
+    // to its own concrete type (Buffer, Date, NodeId, ...)
+    mutate(value: unknown): void;
+    read(value: unknown): unknown;
 }[] = [
     {
         name: "ByteString",

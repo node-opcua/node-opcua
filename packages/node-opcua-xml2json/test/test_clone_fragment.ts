@@ -1,3 +1,4 @@
+import should from "should";
 import { FragmentClonerParser, type ReaderStateParserLike, Xml2Json } from "..";
 
 const doDebug = false;
@@ -117,7 +118,7 @@ describe("Cloning XML Fragment", () => {
         const _a = await parser.parseString(xmlDoc);
 
         xmlObjects.length.should.eql(3);
-        xmlObjects[0].should.eql(`<EnumValueType a="b" c="d">
+        should(xmlObjects[0]).eql(`<EnumValueType a="b" c="d">
     <Value>1</Value>
     <DisplayName>
         <Locale/>

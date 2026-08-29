@@ -1,8 +1,9 @@
 import "should";
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
+import type { NodeId } from "node-opcua-nodeid";
 import { InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
-import { MessageSecurityMode, type NodeId, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
+import { MessageSecurityMode, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import {
     makeAddUserHandler,

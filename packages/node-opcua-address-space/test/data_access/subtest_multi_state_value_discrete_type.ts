@@ -568,7 +568,8 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
                 // verification
                 multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
 
-                const tt = multiStateValueDiscrete1323.readValue().value.value;
+                // the variable has valueRank 1: the runtime value is an array of scalars
+                const tt = multiStateValueDiscrete1323.readValue().value.value as unknown as (number | Int64)[];
                 tt.length.should.eql(2);
                 tt[0].should.eql(coerce(values[0]));
                 tt[1].should.eql(coerce(values[1]));

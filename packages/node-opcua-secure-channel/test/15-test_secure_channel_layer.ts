@@ -124,11 +124,13 @@ function simulate_server_abrupt_shutdown(holder: IHolder) {
 
 describe("Testing ClientSecureChannel 2", function (this: Mocha.Context) {
     const port = port2;
+    // mocha's Context is used as an ad-hoc property bag for the server state (IHolder)
+    const holder = this as unknown as IHolder;
     beforeEach(async () => {
-        await startServer(this, port);
+        await startServer(holder, port);
     });
     afterEach(async () => {
-        await stopServer(this);
+        await stopServer(holder);
     });
 
     it("should establish a client secure channel ", async () => {
@@ -155,6 +157,8 @@ describe("Testing ClientSecureChannel 2", function (this: Mocha.Context) {
 
 describe("Testing ClientSecureChannel with BackOff reconnection strategy", function (this: Mocha.Context) {
     this.timeout(Math.max(this.timeout(), 100000));
+    // mocha's Context is used as an ad-hoc property bag for the server state (IHolder)
+    const holder = this as unknown as IHolder;
 
     it("WW2-a connectionStrategy: should retry many times and fail eventually ", (done) => {
         const port = port3;
@@ -263,10 +267,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const promiseStartServerWithDelay = (async () => {
             await pause(6000);
             // start the server with a delay
-            await startServer(this, port);
+            await startServer(holder, port);
             debugLog("Server finally started !");
             await pause(2000);
-            await stopServer(this);
+            await stopServer(holder);
             debugLog("Server finally stopped !");
         })();
 

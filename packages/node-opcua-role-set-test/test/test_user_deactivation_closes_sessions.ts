@@ -18,7 +18,7 @@ import { type SampleServerHandle, startSampleServer } from "../bin/sample_server
 
 const port = 5781;
 
-describe("Deactivating a user terminates their live sessions (§5.2.6-7)", function () {
+describe("Deactivating a user terminates their live sessions (§5.2.6-7)", function (this: Mocha.Suite) {
     this.timeout(60000);
 
     let handle: SampleServerHandle;

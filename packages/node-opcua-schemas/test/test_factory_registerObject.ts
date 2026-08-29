@@ -1,7 +1,7 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 
 import { redirectToFile } from "node-opcua-debug/nodeJS";
-import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
+import { BaseUAObject, type ConstructorFuncWithSchema, DataTypeFactory, type IBaseUAObject } from "node-opcua-factory";
 import { makeExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
@@ -17,6 +17,37 @@ import {
 import { MockProvider } from "./mock_id_provider";
 
 const _a = BaseUAObject;
+
+// The constructors below are built at runtime from the schemas: describe, for the
+// type checker only, the fields that the tests access on the resulting instances.
+interface PersonLike extends IBaseUAObject {
+    lastName: string;
+    address: string;
+    age: number;
+    toJSON(): Record<string, unknown>;
+}
+interface RoleLike extends IBaseUAObject {
+    title: string;
+    description: string;
+}
+interface EmployeeLike extends PersonLike {
+    role: RoleLike;
+    service: string;
+    salary: number;
+}
+interface CompanyLike extends IBaseUAObject {
+    name: string;
+    employees: EmployeeLike[];
+    companyValues: string[];
+    toJSON(): Record<string, unknown>;
+    clone(): CompanyLike;
+}
+interface FakeBlobLike extends IBaseUAObject {
+    name: string;
+    buffer0: Buffer;
+    buffer1: Buffer;
+}
+type TypedConstructor<T extends IBaseUAObject> = (new (options?: Record<string, unknown>) => T) & ConstructorFuncWithSchema;
 
 const typeDictionary = new InternalTypeDictionary();
 
@@ -81,11 +112,11 @@ function p(structuredType: StructureTypeRaw, typeDictionary1: InternalTypeDictio
     return createDynamicObjectConstructor(schema, dataTypeFactory);
 }
 
-const Person = p(Person_Schema, typeDictionary);
-const Role = p(Role_Schema, typeDictionary);
-const Employee = p(Employee_Schema, typeDictionary);
-const Company = p(Company_Schema, typeDictionary);
-const FakeBlob = p(FakeBlob_Schema, typeDictionary);
+const Person = p(Person_Schema, typeDictionary) as TypedConstructor<PersonLike>;
+const Role = p(Role_Schema, typeDictionary) as TypedConstructor<RoleLike>;
+const Employee = p(Employee_Schema, typeDictionary) as TypedConstructor<EmployeeLike>;
+const Company = p(Company_Schema, typeDictionary) as TypedConstructor<CompanyLike>;
+const FakeBlob = p(FakeBlob_Schema, typeDictionary) as TypedConstructor<FakeBlobLike>;
 
 describe("Factories: construction", () => {
     it("a schema should provide a list of possible fields", () => {
@@ -259,13 +290,14 @@ describe("testing Factory", () => {
 describe("Factories: testing encodingDefaultBinary and constructObject", () => {
     it("XF1 a factory object should have a encodingDefaultBinary", () => {
         const company = new Company({ name: "ACME" });
-        company.constructor.schema.dataTypeNodeId
+        const companyConstructor = company.constructor as ConstructorFuncWithSchema;
+        companyConstructor.schema.dataTypeNodeId
             .toString()
             .should.eql(makeExpandedNodeId(Company.schema.dataTypeNodeId).toString());
-        company.constructor.encodingDefaultBinary
+        companyConstructor.encodingDefaultBinary
             .toString()
             .should.eql(makeExpandedNodeId(Company.schema.encodingDefaultBinary).toString());
-        company.constructor.encodingDefaultXml
+        companyConstructor.encodingDefaultXml
             .toString()
             .should.eql(makeExpandedNodeId(Company.schema.encodingDefaultXml).toString());
         // company.constructor.encodingDefaultJson.toString().should.eql(makeExpandedNodeId(Company.schema.encodingDefaultJson!).toString());

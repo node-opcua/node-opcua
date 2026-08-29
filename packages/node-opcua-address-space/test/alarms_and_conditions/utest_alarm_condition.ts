@@ -19,7 +19,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
     describe("AlarmConditionType", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let _engine: UAObject;
+        let _engine: UAObject | undefined;
         let variableWithAlarm: UAVariable;
         before(() => {
             addressSpace = test.addressSpace;
@@ -350,7 +350,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
     describe("AlarmConditionType: Server maintains current state only", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
-        let _engine: UAObject;
+        let _engine: UAObject | undefined;
         before(() => {
             addressSpace = test.addressSpace;
             source = test.source;

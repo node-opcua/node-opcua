@@ -220,13 +220,13 @@ describe("testing Method binding", () => {
 
         const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
         const result = await server.getMonitoredItems?.execute(null, inputArguments, context);
-        const outputArguments = result.outputArguments as VariantLike[];
+        const outputArguments = result!.outputArguments as VariantLike[];
         outputArguments.should.have.length(2);
         should.exist(outputArguments[0]);
         should.exist(outputArguments[1]);
         (outputArguments[0] as Variant).dataType.should.eql(DataType.UInt32);
         (outputArguments[1] as Variant).dataType.should.eql(DataType.UInt32);
-        result.statusCode?.should.eql(StatusCodes.BadBoundNotFound);
+        result!.statusCode?.should.eql(StatusCodes.BadBoundNotFound);
     });
 });
 
