@@ -100,7 +100,9 @@ async function startServer(port: number, allowAnonymousSubscriptionTransferOnUns
 function breakClientSocket(client: OPCUAClient): void {
     // Brutally destroy the underlying socket to emulate an abrupt network failure so that the client
     // enters its reconnection pipeline.
-    const secureChannel = (client as OPCUAClientImpl)._secureChannel;
+    // double cast: OPCUAClient comes from the dist typings while OPCUAClientImpl
+    // is deep-imported from source; #private fields keep the two nominally distinct
+    const secureChannel = (client as unknown as OPCUAClientImpl)._secureChannel;
     const transport = secureChannel?.getTransport() as ClientTCP_transport | undefined;
     const clientSocket = transport?._socket;
     clientSocket?.end();
