@@ -71,8 +71,9 @@ describe("testing the server ability to deny client session request (server with
     it("B-Server shall reject secure client connection if ActiveSession.clientSignature has wrong algorithm", async () => {
         const client = OPCUAClient.create(clientOptions) as InternalAny;
         const old_compute = client.computeClientSignature;
-        client.computeClientSignature = function (...args: unknown[]) {
-            const res = old_compute.apply(this, args);
+        // computeClientSignature is async (the key may be HSM/KMS-held)
+        client.computeClientSignature = async function (...args: unknown[]) {
+            const res = await old_compute.apply(this, args);
             res.algorithm = "<bad algorithm>";
             //  return res;
         };
@@ -93,8 +94,9 @@ describe("testing the server ability to deny client session request (server with
     it("D-Server shall reject secure client connection if ActiveSession.clientSignature is tampered", async () => {
         const client = OPCUAClient.create(clientOptions) as InternalAny;
         const old_compute = client.computeClientSignature;
-        client.computeClientSignature = function (...args: unknown[]) {
-            const res = old_compute.apply(this, args);
+        // computeClientSignature is async (the key may be HSM/KMS-held)
+        client.computeClientSignature = async function (...args: unknown[]) {
+            const res = await old_compute.apply(this, args);
             res.should.be.instanceOf(SignatureData);
             // alter 10th word
             res.signature.writeInt16BE(res.signature.readInt16BE(10), 10);

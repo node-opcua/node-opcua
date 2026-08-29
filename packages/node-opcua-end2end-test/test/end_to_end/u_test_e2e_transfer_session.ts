@@ -57,9 +57,11 @@ async function createSubscription(session: ClientSession) {
 }
 async function perform(client1: OPCUAClient | ClientSession, request: Request) {
     try {
-        const performTx = (client1 as OPCUAClientImpl).performMessageTransaction;
+        // double cast: OPCUAClient comes from the dist typings while OPCUAClientImpl
+        // is deep-imported from source; #private fields keep the two nominally distinct
+        const performTx = (client1 as unknown as OPCUAClientImpl).performMessageTransaction;
         // Bind to preserve context natively, satisfying `this` parameter requirements
-        const promisified = promisify(performTx).bind(client1 as OPCUAClientImpl);
+        const promisified = promisify(performTx).bind(client1 as unknown as OPCUAClientImpl);
         const response = await promisified(request as unknown as Parameters<typeof performTx>[0]);
         return response as { responseHeader: { serviceResult: unknown } };
     } catch (err) {
