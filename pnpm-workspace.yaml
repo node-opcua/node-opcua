@@ -5,6 +5,9 @@ packages:
   - packages/*
   - packages_extra/node-opcua-example
   - tools/*
+  # consumer smoke tests: they must resolve node-opcua the way a real consumer does,
+  # which means being real packages with a real dependency on it
+  - fixtures/*
   # all packages in subdirs of components/
   # - 'packages_extra/*'
 

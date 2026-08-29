@@ -1,0 +1,13 @@
+{
+    "name": "@sterfive/consumer-cjs",
+    "version": "1.0.0",
+    "private": true,
+    "description": "smoke test: node-opcua loaded the way a CommonJS consumer loads it",
+    "type": "commonjs",
+    "scripts": {
+        "smoke": "node index.cjs"
+    },
+    "dependencies": {
+        "node-opcua": "workspace:*"
+    }
+}

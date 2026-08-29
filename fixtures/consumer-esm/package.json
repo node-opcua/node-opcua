@@ -1,0 +1,13 @@
+{
+    "name": "@sterfive/consumer-esm",
+    "version": "1.0.0",
+    "private": true,
+    "description": "smoke test: node-opcua loaded the way an ESM consumer loads it",
+    "type": "module",
+    "scripts": {
+        "smoke": "node index.mjs"
+    },
+    "dependencies": {
+        "node-opcua": "workspace:*"
+    }
+}

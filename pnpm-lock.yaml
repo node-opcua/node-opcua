@@ -196,6 +196,18 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  fixtures/consumer-cjs:
+    dependencies:
+      node-opcua:
+        specifier: workspace:*
+        version: link:../../packages/node-opcua
+
+  fixtures/consumer-esm:
+    dependencies:
+      node-opcua:
+        specifier: workspace:*
+        version: link:../../packages/node-opcua
+
   packages/node-opcua:
     dependencies:
       '@types/semver':
