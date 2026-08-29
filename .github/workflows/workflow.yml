@@ -87,6 +87,10 @@ jobs:
       - run: pnpm run check:debugname
       - name: Unit tests for the debug-name rule
         run: node tools/check-debug-name/test/test_rule.js
+      # Raw private-key access is being migrated to the opaque key-operations
+      # path (HSM/KMS capable); the baseline ratchet only ever tightens, so a
+      # new .getPrivateKey( call site fails here instead of slipping in.
+      - run: pnpm run check:privatekey
 
   # A gate rather than a lint step, because what it guards is not style. Two test files
   # holding one fixed port collide as soon as the runner schedules them together, and the
