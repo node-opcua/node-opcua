@@ -16,6 +16,7 @@ import {
     makeApplicationUrn,
     makeSubject,
     OPCUASecureObject,
+    OpaqueCertificateKeyPairProvider,
     resolvePrivateKeyProviderIfNeeded
 } from "node-opcua-common";
 import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
@@ -948,8 +949,12 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             } else {
                 // Disk path — create default cert if missing
                 await this.createDefaultCertificate();
+                const hasOpaqueKey =
+                    typeof (this.clientCertificateManager as { isPrivateKeyOpaque?: () => boolean }).isPrivateKeyOpaque ===
+                        "function" &&
+                    (this.clientCertificateManager as unknown as { isPrivateKeyOpaque: () => boolean }).isPrivateKeyOpaque();
                 // c8 ignore next
-                if (!fs.existsSync(this.privateKeyFile)) {
+                if (!hasOpaqueKey && !fs.existsSync(this.privateKeyFile)) {
                     throw new Error(` cannot locate private key file ${this.privateKeyFile}`);
                 }
 
@@ -1049,6 +1054,24 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                 doDebug && debugLog("ClientBaseImpl#connect ", endpointUrl, this.clientName);
                 if (this._internalState === "disconnecting" || this._internalState === "disconnected") {
                     return this._handleDisconnectionWhileConnecting(new Error("premature disconnection 1"), callback);
+                }
+
+                // STARTUP GUARD (until the secure-channel OPN paths speak key
+                // operations): an opaque application key can only open
+                // MessageSecurityMode.None channels — fail now, clearly,
+                // rather than deep inside the first secure handshake.
+                if (
+                    this.securityMode !== MessageSecurityMode.None &&
+                    this.getProvider() instanceof OpaqueCertificateKeyPairProvider
+                ) {
+                    return this._handleUnrecoverableConnectionFailure(
+                        new Error(
+                            "[NODE-OPCUA-E33] the client's private key is opaque (HSM/KMS-held via keyOperations), which is" +
+                                " not yet supported for secure channels: use securityMode: MessageSecurityMode.None," +
+                                " or a local private key"
+                        ),
+                        callback
+                    );
                 }
 
                 if (

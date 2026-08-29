@@ -13,6 +13,7 @@ import {
     combine_der,
     exploreCertificate,
     extractPublicKeyFromCertificateSync,
+    type IKeyOperations,
     makePrivateKeyFromPem,
     type Nonce,
     type PrivateKey,
@@ -25,7 +26,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import { readNamespaceArray } from "node-opcua-pseudo-session";
 import {
     type ClientSecureChannelLayer,
-    computeSignature,
+    computeSignatureAsync,
     fromURI,
     getCryptoFactory,
     SecurityPolicy
@@ -191,13 +192,14 @@ interface X509TokenAndSignature {
  *
  * @param context
  * @param certificate - the user certificate
- * @param privateKey  - the private key associated with the user certificate
+ * @param userKey     - the key associated with the user certificate: raw
+ *                      material, or an opaque IKeyOperations (HSM/smartcard)
  */
-function createX509IdentityToken(
+async function createX509IdentityToken(
     context: IdentityTokenContext,
     certificate: Certificate,
-    privateKey: PrivateKey
-): X509TokenAndSignature {
+    userKey: PrivateKey | IKeyOperations
+): Promise<X509TokenAndSignature> {
     const endpoint = context.endpoint;
     assert(endpoint instanceof EndpointDescription);
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
@@ -260,8 +262,14 @@ function createX509IdentityToken(
     // now create the proof of possession, by creating a signature
     // The data to sign is created by appending the last serverNonce to the serverCertificate
 
-    // The signature generated with private key associated with the User Certificate
-    const userTokenSignature = computeSignature(serverCertificate, serverNonce, privateKey, securityPolicy) as SignatureDataOptions;
+    // The signature generated with the key associated with the User Certificate —
+    // possibly produced inside an HSM/smartcard, when the user supplied keyOperations
+    const userTokenSignature = (await computeSignatureAsync(
+        serverCertificate,
+        serverNonce,
+        userKey,
+        securityPolicy
+    )) as SignatureDataOptions;
 
     return { userIdentityToken, userTokenSignature };
 }
@@ -965,10 +973,26 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             serverNonce: serverNonce as Buffer // please check this !
         };
 
-        this.createUserIdentityToken(context, userIdentityInfo, (err: Error | null, data?: TokenAndSignature | null) => {
+        this.createUserIdentityToken(context, userIdentityInfo, async (err: Error | null, data?: TokenAndSignature | null) => {
             if (err) {
                 session._client = _old_client;
                 return callback(err);
+            }
+
+            // the client application signature is asynchronous now (the key
+            // may be HSM/KMS-held), so it is computed before the request
+            // object is assembled
+            let clientSignature: SignatureDataOptions | undefined;
+            try {
+                clientSignature =
+                    (await this.computeClientSignature(
+                        this._secureChannel as ClientSecureChannelLayer,
+                        serverCertificate,
+                        serverNonce
+                    )) || undefined;
+            } catch (signatureError) {
+                session._client = _old_client;
+                return callback(signatureError as Error);
             }
 
             data = data as TokenAndSignature;
@@ -981,9 +1005,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                 // clientCertificate. The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm
                 // specified in the SecurityPolicy for the Endpoint. The SignatureData type is defined in 7.30.
 
-                clientSignature:
-                    this.computeClientSignature(this._secureChannel as ClientSecureChannelLayer, serverCertificate, serverNonce) ||
-                    undefined,
+                clientSignature,
 
                 // These are the SoftwareCertificates which have been issued to the Client application.
                 // The productUri contained in the SoftwareCertificates shall match the productUri in the
@@ -1218,7 +1240,14 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
      * @private
      */
     private computeClientSignature(channel: ClientSecureChannelLayer, serverCertificate: Buffer, serverNonce: Nonce | undefined) {
-        return computeSignature(serverCertificate, serverNonce || Buffer.alloc(0), this.getPrivateKey(), channel.securityPolicy);
+        // through the opaque key-operations path: works whether the client's
+        // application instance key is local or HSM/KMS-held
+        return computeSignatureAsync(
+            serverCertificate,
+            serverNonce || Buffer.alloc(0),
+            this.getKeyOperations(),
+            channel.securityPolicy
+        );
     }
     /**
      *
@@ -1261,7 +1290,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
         let userIdentityToken: UserIdentityToken;
 
-        let userTokenSignature: SignatureDataOptions = {
+        const userTokenSignature: SignatureDataOptions = {
             algorithm: undefined,
             signature: undefined
         };
@@ -1281,9 +1310,19 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
-                    const privateKey = makePrivateKeyFromPem(userIdentityInfo.privateKey);
-                    ({ userIdentityToken, userTokenSignature } = createX509IdentityToken(context, certificate, privateKey));
-                    break;
+                    if (!userIdentityInfo.privateKey === !userIdentityInfo.keyOperations) {
+                        return callback(
+                            new Error("CLIENT: a X509 user identity requires exactly one of 'privateKey' (PEM) or 'keyOperations'")
+                        );
+                    }
+                    const userKey: PrivateKey | IKeyOperations = userIdentityInfo.keyOperations
+                        ? userIdentityInfo.keyOperations
+                        : makePrivateKeyFromPem(userIdentityInfo.privateKey as string);
+                    createX509IdentityToken(context, certificate, userKey).then(
+                        (x509Data) => callback(null, x509Data),
+                        (err: Error) => callback(err)
+                    );
+                    return;
                 }
 
                 default:
